@@ -434,7 +434,7 @@ export class AuthService {
   }
 
   private toAuthUser(user: User) {
-    return {
+    const baseUser = {
       id: user.id,
       email: user.email,
       role: user.role,
@@ -444,18 +444,36 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
       isVerified: user.isVerified,
       isActive: user.isActive,
-      isApproved: user.isApproved,
-      adminTitle: user.adminTitle,
-      adminPermissions: user.adminPermissions,
-      provider: user.role === UserRole.PROVIDER
-        ? {
-            businessName: user.providerBusinessName,
-            serviceArea: user.providerServiceArea,
-            approvalStatus: user.providerApprovalStatus,
-          }
-        : null,
       deletionState: this.toDeletionState(user),
     };
+
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return baseUser;
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      return {
+        ...baseUser,
+        admin: {
+          title: user.adminTitle,
+          permissions: user.adminPermissions,
+          isApproved: user.isApproved,
+        },
+      };
+    }
+
+    if (user.role === UserRole.PROVIDER) {
+      return {
+        ...baseUser,
+        provider: {
+          businessName: user.providerBusinessName,
+          serviceArea: user.providerServiceArea,
+          approvalStatus: user.providerApprovalStatus,
+        },
+      };
+    }
+
+    return baseUser;
   }
 
   private toDeletionState(user: User) {

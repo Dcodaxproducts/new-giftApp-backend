@@ -36,7 +36,7 @@ Base route: `/api/v1/auth`
 - `POST /forgot-password` — request password reset OTP
 - `POST /reset-password` — reset password with OTP
 - `PATCH /change-password` — change password while authenticated
-- `GET /me` — current user profile/context including role metadata
+- `GET /me` — current user profile/context with role-specific metadata only
 - `DELETE /account` — schedule Registered User / Provider account deletion for 30 days
 - `POST /cancel-deletion` — cancel scheduled account deletion
 
@@ -46,7 +46,10 @@ Base route: `/api/v1/auth`
 - Provider signup stores provider status as `PENDING`; login is blocked until approval.
 - Admin accounts are expected to be created/approved by Super Admin flows in the admin module.
 - Admin JWT payloads include `adminPermissions` so future admin APIs can enforce inherited Super Admin use cases.
+- Auth responses are role-shaped: registered users do not receive null admin/provider fields.
+- `isActive` means account enabled/disabled state; `isVerified` means email/OTP verification. Provider approval is returned only under `provider.approvalStatus`.
 - Guest access remains unauthenticated by design, matching the SRD requirement that all roles except Guest authenticate.
+- In development, OTP is exposed in the API response. Real email delivery requires adding SMTP/email-provider configuration in the next mailer slice.
 
 ## Tech Stack
 
