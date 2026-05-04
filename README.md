@@ -1,6 +1,8 @@
 # Gift App Backend
 
-NestJS backend for the Gift App. This repository starts with the first production-ready authentication API slice.
+NestJS backend for the Personalized Gifting & Payments Application.
+
+This repo is now aligned with the SRD roles: **Super Admin**, **Admin**, **Registered User**, **Guest User**, and **Provider User**.
 
 ## Base Path
 
@@ -10,12 +12,23 @@ NestJS backend for the Gift App. This repository starts with the first productio
 
 `http://localhost:3000/docs`
 
-## Auth APIs
+## Auth / Role Model
+
+### Roles
+
+- `SUPER_ADMIN` — full system control; creates/manages Admins and defines policies.
+- `ADMIN` — signs in directly and receives Super Admin-defined permissions; no public admin signup.
+- `REGISTERED_USER` — mobile app user for gifting, payments, calendar, contacts, and profile features.
+- `PROVIDER` — signs up from provider onboarding, remains pending until Super Admin approval.
+- `GUEST` — intentionally not persisted as an auth role; guests access public/onboarding/shared-link flows without authentication.
+
+### Auth APIs
 
 Base route: `/api/v1/auth`
 
-- `POST /register` — create customer/admin account and issue auth tokens
-- `POST /login` — login with email/password
+- `POST /users/register` — Registered User signup
+- `POST /providers/register` — Provider signup with business/service-area details and verification document URLs
+- `POST /login` — sign in for Super Admin, Admin, approved Provider, and Registered User
 - `POST /refresh` — rotate access/refresh tokens
 - `POST /logout` — revoke current refresh token
 - `POST /verify-email` — verify email with OTP
@@ -23,9 +36,17 @@ Base route: `/api/v1/auth`
 - `POST /forgot-password` — request password reset OTP
 - `POST /reset-password` — reset password with OTP
 - `PATCH /change-password` — change password while authenticated
-- `GET /me` — current user profile/context
-- `DELETE /account` — schedule account deletion for 30 days
+- `GET /me` — current user profile/context including role metadata
+- `DELETE /account` — schedule Registered User / Provider account deletion for 30 days
 - `POST /cancel-deletion` — cancel scheduled account deletion
+
+## SRD Alignment Notes
+
+- Public signup does **not** accept arbitrary roles, preventing users from self-registering as Admin or Super Admin.
+- Provider signup stores provider status as `PENDING`; login is blocked until approval.
+- Admin accounts are expected to be created/approved by Super Admin flows in the admin module.
+- Admin JWT payloads include `adminPermissions` so future admin APIs can enforce inherited Super Admin use cases.
+- Guest access remains unauthenticated by design, matching the SRD requirement that all roles except Guest authenticate.
 
 ## Tech Stack
 

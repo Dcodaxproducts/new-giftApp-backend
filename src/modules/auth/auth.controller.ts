@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import {
@@ -8,7 +8,8 @@ import {
   ForgotPasswordDto,
   LoginDto,
   RefreshDto,
-  RegisterDto,
+  RegisterProviderDto,
+  RegisterUserDto,
   ResetPasswordDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -18,9 +19,14 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  @Post('users/register')
+  registerUser(@Body() dto: RegisterUserDto) {
+    return this.authService.registerUser(dto);
+  }
+
+  @Post('providers/register')
+  registerProvider(@Body() dto: RegisterProviderDto) {
+    return this.authService.registerProvider(dto);
   }
 
   @Post('login')

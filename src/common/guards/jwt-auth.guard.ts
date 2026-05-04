@@ -1,11 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 import { Request } from 'express';
 import { AuthUserContext } from '../decorators/current-user.decorator';
 
 interface JwtPayload extends AuthUserContext {
   type?: string;
+  permissions?: Prisma.JsonValue;
 }
 
 @Injectable()
@@ -27,7 +29,11 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       });
-      request.user = { uid: payload.uid, role: payload.role };
+      request.user = {
+        uid: payload.uid,
+        role: payload.role,
+        permissions: payload.permissions,
+      };
       return true;
     } catch {
       throw new UnauthorizedException('Invalid bearer token');

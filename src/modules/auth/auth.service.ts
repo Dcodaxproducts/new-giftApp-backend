@@ -1,13 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { User, UserRole } from '@prisma/client';
+import { Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
@@ -17,7 +18,8 @@ import {
   ForgotPasswordDto,
   LoginDto,
   RefreshDto,
-  RegisterDto,
+  RegisterProviderDto,
+  RegisterUserDto,
   ResetPasswordDto,
   VerifyEmailDto,
 } from './dto/auth.dto';
@@ -25,6 +27,7 @@ import {
 interface TokenPayload {
   uid: string;
   role: UserRole;
+  permissions?: Prisma.JsonValue;
   type?: 'refresh';
 }
 
@@ -36,26 +39,16 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const email = this.normalizeEmail(dto.email);
-    const existing = await this.prisma.user.findUnique({ where: { email } });
-
-    if (existing) {
-      throw new ConflictException('User already exists');
-    }
-
-    const otp = this.generateOtp();
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: await bcrypt.hash(dto.password, 10),
-        firstName: dto.firstName.trim(),
-        lastName: dto.lastName.trim(),
-        phone: dto.phone?.trim(),
-        role: dto.role ?? UserRole.CUSTOMER,
-        verificationOtp: otp,
-        verificationOtpExpiresAt: this.generateOtpExpiry(),
-      },
+  async registerUser(dto: RegisterUserDto) {
+    const user = await this.createUser({
+      email: dto.email,
+      password: dto.password,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      role: UserRole.REGISTERED_USER,
+      isApproved: true,
+      providerApprovalStatus: null,
     });
     const tokens = await this.issueTokens(user);
 
@@ -63,9 +56,35 @@ export class AuthService {
       data: {
         user: this.toAuthUser(user),
         ...tokens,
-        verificationOtp: this.shouldExposeOtp() ? otp : undefined,
+        verificationOtp: this.shouldExposeOtp() ? user.verificationOtp : undefined,
       },
-      message: 'Registration successful. Verify email with OTP.',
+      message: 'Registered user account created. Verify email with OTP.',
+    };
+  }
+
+  async registerProvider(dto: RegisterProviderDto) {
+    const user = await this.createUser({
+      email: dto.email,
+      password: dto.password,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      role: UserRole.PROVIDER,
+      isApproved: false,
+      providerApprovalStatus: ProviderApprovalStatus.PENDING,
+      providerBusinessName: dto.businessName.trim(),
+      providerServiceArea: dto.serviceArea.trim(),
+      providerDocuments: dto.documentUrls ?? [],
+    });
+    const tokens = await this.issueTokens(user);
+
+    return {
+      data: {
+        user: this.toAuthUser(user),
+        ...tokens,
+        verificationOtp: this.shouldExposeOtp() ? user.verificationOtp : undefined,
+      },
+      message: 'Provider application submitted for Super Admin approval.',
     };
   }
 
@@ -90,6 +109,14 @@ export class AuthService {
 
     if (!user.isActive || user.deletedAt) {
       throw new UnauthorizedException('Account is inactive');
+    }
+
+    if (user.role === UserRole.PROVIDER && !user.isApproved) {
+      throw new ForbiddenException('Provider account is pending Super Admin approval');
+    }
+
+    if (user.role === UserRole.ADMIN && !user.isApproved) {
+      throw new ForbiddenException('Admin account is not approved');
     }
 
     const tokens = await this.issueTokens(user);
@@ -292,6 +319,10 @@ export class AuthService {
   }
 
   async deleteAccount(user: AuthUserContext) {
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Administrative accounts must be managed by Super Admin');
+    }
+
     await this.prisma.user.update({
       where: { id: user.uid },
       data: {
@@ -320,6 +351,46 @@ export class AuthService {
     return { data: null, message: 'Account deletion cancelled' };
   }
 
+  private async createUser(input: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    role: UserRole;
+    isApproved: boolean;
+    providerApprovalStatus: ProviderApprovalStatus | null;
+    providerBusinessName?: string;
+    providerServiceArea?: string;
+    providerDocuments?: string[];
+  }): Promise<User> {
+    const email = this.normalizeEmail(input.email);
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+
+    if (existing) {
+      throw new ConflictException('User already exists');
+    }
+
+    const otp = this.generateOtp();
+    return this.prisma.user.create({
+      data: {
+        email,
+        password: await bcrypt.hash(input.password, 10),
+        firstName: input.firstName.trim(),
+        lastName: input.lastName.trim(),
+        phone: input.phone?.trim(),
+        role: input.role,
+        isApproved: input.isApproved,
+        providerApprovalStatus: input.providerApprovalStatus,
+        providerBusinessName: input.providerBusinessName,
+        providerServiceArea: input.providerServiceArea,
+        providerDocuments: input.providerDocuments ?? undefined,
+        verificationOtp: otp,
+        verificationOtpExpiresAt: this.generateOtpExpiry(),
+      },
+    });
+  }
+
   private async getActiveUser(userId: string): Promise<User> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
@@ -331,7 +402,11 @@ export class AuthService {
   }
 
   private async issueTokens(user: User) {
-    const payload: TokenPayload = { uid: user.id, role: user.role };
+    const payload: TokenPayload = {
+      uid: user.id,
+      role: user.role,
+      permissions: user.adminPermissions ?? undefined,
+    };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       expiresIn: this.configService.get<string>(
@@ -369,6 +444,16 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
       isVerified: user.isVerified,
       isActive: user.isActive,
+      isApproved: user.isApproved,
+      adminTitle: user.adminTitle,
+      adminPermissions: user.adminPermissions,
+      provider: user.role === UserRole.PROVIDER
+        ? {
+            businessName: user.providerBusinessName,
+            serviceArea: user.providerServiceArea,
+            approvalStatus: user.providerApprovalStatus,
+          }
+        : null,
       deletionState: this.toDeletionState(user),
     };
   }

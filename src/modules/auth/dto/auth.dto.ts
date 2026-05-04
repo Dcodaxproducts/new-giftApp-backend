@@ -1,15 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import {
+  IsArray,
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
 
-export class RegisterDto {
+export class RegisterUserDto {
   @ApiProperty()
   @IsEmail()
   email!: string;
@@ -33,11 +32,24 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
+}
 
-  @ApiPropertyOptional({ enum: UserRole, default: UserRole.CUSTOMER })
+export class RegisterProviderDto extends RegisterUserDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  businessName!: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  serviceArea!: string;
+
+  @ApiPropertyOptional({ type: [String] })
   @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
+  @IsArray()
+  @IsString({ each: true })
+  documentUrls?: string[];
 }
 
 export class LoginDto {

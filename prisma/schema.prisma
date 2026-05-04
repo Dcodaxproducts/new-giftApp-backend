@@ -7,32 +7,49 @@ datasource db {
 }
 
 enum UserRole {
+  SUPER_ADMIN
   ADMIN
-  CUSTOMER
+  REGISTERED_USER
+  PROVIDER
+}
+
+enum ProviderApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model User {
-  id                        String    @id @default(cuid())
-  email                     String    @unique
+  id                        String                  @id @default(cuid())
+  email                     String                  @unique
   password                  String
-  role                      UserRole  @default(CUSTOMER)
-  firstName                 String    @map("first_name")
-  lastName                  String    @map("last_name")
+  role                      UserRole                @default(REGISTERED_USER)
+  firstName                 String                  @map("first_name")
+  lastName                  String                  @map("last_name")
   phone                     String?
-  avatarUrl                 String?   @map("avatar_url")
-  isVerified                Boolean   @default(false) @map("is_verified")
-  isActive                  Boolean   @default(true) @map("is_active")
-  verificationOtp           String?   @map("verification_otp")
-  verificationOtpExpiresAt  DateTime? @map("verification_otp_expires_at") @db.Timestamptz
-  verificationOtpAttempts   Int       @default(0) @map("verification_otp_attempts")
-  resetPasswordOtp          String?   @map("reset_password_otp")
-  resetPasswordOtpExpiresAt DateTime? @map("reset_password_otp_expires_at") @db.Timestamptz
-  resetPasswordOtpAttempts  Int       @default(0) @map("reset_password_otp_attempts")
-  refreshTokenHash          String?   @map("refresh_token_hash")
-  deletedAt                 DateTime? @map("deleted_at") @db.Timestamptz
-  deleteAfter               DateTime? @map("delete_after") @db.Timestamptz
-  createdAt                 DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  avatarUrl                 String?                 @map("avatar_url")
+  isVerified                Boolean                 @default(false) @map("is_verified")
+  isActive                  Boolean                 @default(true) @map("is_active")
+  isApproved                Boolean                 @default(true) @map("is_approved")
+  adminTitle                String?                 @map("admin_title")
+  adminPermissions          Json?                   @map("admin_permissions")
+  providerBusinessName      String?                 @map("provider_business_name")
+  providerServiceArea       String?                 @map("provider_service_area")
+  providerDocuments         Json?                   @map("provider_documents")
+  providerApprovalStatus    ProviderApprovalStatus? @map("provider_approval_status")
+  verificationOtp           String?                 @map("verification_otp")
+  verificationOtpExpiresAt  DateTime?               @map("verification_otp_expires_at") @db.Timestamptz
+  verificationOtpAttempts   Int                     @default(0) @map("verification_otp_attempts")
+  resetPasswordOtp          String?                 @map("reset_password_otp")
+  resetPasswordOtpExpiresAt DateTime?               @map("reset_password_otp_expires_at") @db.Timestamptz
+  resetPasswordOtpAttempts  Int                     @default(0) @map("reset_password_otp_attempts")
+  refreshTokenHash          String?                 @map("refresh_token_hash")
+  deletedAt                 DateTime?               @map("deleted_at") @db.Timestamptz
+  deleteAfter               DateTime?               @map("delete_after") @db.Timestamptz
+  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
 
+  @@index([role, isActive])
+  @@index([providerApprovalStatus])
   @@map("users")
 }
