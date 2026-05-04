@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
+
+model User {
+  id                        String    @id @default(cuid())
+  email                     String    @unique
+  password                  String
+  role                      UserRole  @default(CUSTOMER)
+  firstName                 String    @map("first_name")
+  lastName                  String    @map("last_name")
+  phone                     String?
+  avatarUrl                 String?   @map("avatar_url")
+  isVerified                Boolean   @default(false) @map("is_verified")
+  isActive                  Boolean   @default(true) @map("is_active")
+  verificationOtp           String?   @map("verification_otp")
+  verificationOtpExpiresAt  DateTime? @map("verification_otp_expires_at") @db.Timestamptz
+  verificationOtpAttempts   Int       @default(0) @map("verification_otp_attempts")
+  resetPasswordOtp          String?   @map("reset_password_otp")
+  resetPasswordOtpExpiresAt DateTime? @map("reset_password_otp_expires_at") @db.Timestamptz
+  resetPasswordOtpAttempts  Int       @default(0) @map("reset_password_otp_attempts")
+  refreshTokenHash          String?   @map("refresh_token_hash")
+  deletedAt                 DateTime? @map("deleted_at") @db.Timestamptz
+  deleteAfter               DateTime? @map("delete_after") @db.Timestamptz
+  createdAt                 DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("users")
+}
