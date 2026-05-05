@@ -38,20 +38,28 @@ export class MailerService {
     html: string;
   }): Promise<void> {
     if (!this.isEnabled()) {
+      this.logger.warn(
+        `EMAIL_ENABLED is false; skipped email to ${input.to} (${input.subject})`,
+      );
       return;
     }
 
     try {
+      const from = this.required('MAIL_FROM_ADDRESS');
+      this.logger.log(
+        `Sending email to ${input.to} via ${this.safeMailerConfig()} with subject "${input.subject}"`,
+      );
       await this.getTransporter().sendMail({
-        from: this.configService.get<string>('MAIL_FROM_ADDRESS'),
+        from,
         to: input.to,
         subject: input.subject,
         text: input.text,
         html: input.html,
       });
+      this.logger.log(`Email send completed for ${input.to}`);
     } catch (error) {
       this.logger.error(
-        `Failed to send email to ${input.to}`,
+        `Failed to send email to ${input.to} via ${this.safeMailerConfig()}`,
         error instanceof Error ? error.stack : undefined,
       );
       throw new ServiceUnavailableException('Email service is unavailable');
@@ -65,6 +73,7 @@ export class MailerService {
 
     const port = Number(this.configService.get<string>('MAIL_PORT', '587'));
     const encryption = this.configService.get<string>('MAIL_ENCRYPTION', 'tls');
+    this.logger.log(`Initializing SMTP transporter: ${this.safeMailerConfig()}`);
 
     this.transporter = nodemailer.createTransport({
       host: this.required('MAIL_HOST'),
@@ -87,4 +96,24 @@ export class MailerService {
 
     return value;
   }
+
+  private safeMailerConfig(): string {
+    const host = this.configService.get<string>('MAIL_HOST', 'missing-host');
+    const port = this.configService.get<string>('MAIL_PORT', 'missing-port');
+    const encryption = this.configService.get<string>(
+      'MAIL_ENCRYPTION',
+      'missing-encryption',
+    );
+    const username = this.configService.get<string>(
+      'MAIL_USERNAME',
+      'missing-username',
+    );
+    const from = this.configService.get<string>(
+      'MAIL_FROM_ADDRESS',
+      'missing-from',
+    );
+
+    return `host=${host} port=${port} encryption=${encryption} username=${username} from=${from}`;
+  }
+
 }

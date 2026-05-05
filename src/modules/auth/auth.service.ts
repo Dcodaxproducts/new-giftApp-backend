@@ -82,7 +82,6 @@ export class AuthService implements OnModuleInit {
       data: {
         user: this.toAuthUser(user),
         ...tokens,
-        verificationOtp: this.shouldExposeOtp() ? user.verificationOtp : undefined,
       },
       message: 'Registered user account created. Verify email with OTP.',
     };
@@ -112,7 +111,6 @@ export class AuthService implements OnModuleInit {
       data: {
         user: this.toAuthUser(user),
         ...tokens,
-        verificationOtp: this.shouldExposeOtp() ? user.verificationOtp : undefined,
       },
       message: 'Provider application submitted for Super Admin approval.',
     };
@@ -434,7 +432,7 @@ export class AuthService implements OnModuleInit {
     await this.mailerService.sendVerificationEmail(dbUser.email, otp);
 
     return {
-      data: { verificationOtp: this.shouldExposeOtp() ? otp : undefined },
+      data: null,
       message: 'Verification OTP sent',
     };
   }
@@ -458,7 +456,7 @@ export class AuthService implements OnModuleInit {
     }
 
     return {
-      data: { resetOtp: user && this.shouldExposeOtp() ? otp : undefined },
+      data: null,
       message: 'If account exists, reset instructions are sent',
     };
   }
@@ -817,7 +815,4 @@ export class AuthService implements OnModuleInit {
     return new Date(Date.now() + 10 * 60 * 1000);
   }
 
-  private shouldExposeOtp(): boolean {
-    return this.configService.get<string>('NODE_ENV', 'development') !== 'production';
-  }
 }
