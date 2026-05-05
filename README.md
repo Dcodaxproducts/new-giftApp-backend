@@ -152,3 +152,4 @@ AWS_PRESIGNED_UPLOAD_EXPIRY_SECONDS=300
 ```
 
 After pulling schema changes on a server, run `npx prisma db push` or create/apply a migration before restarting PM2.
+- `GET /api/v1/auth/audit-logs` — Super Admin fetch audit logs with `page`, `limit`, `actorId`, `targetId`, `action` filters.

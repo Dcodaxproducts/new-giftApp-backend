@@ -34,6 +34,7 @@ import {
   UpdateAdminRoleDto,
   UpdateRolePermissionsDto,
 } from './dto/admin-management.dto';
+import { ListAuditLogsDto } from './dto/audit-logs.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -204,6 +205,17 @@ export class AuthController {
   @Get('permissions/catalog')
   permissionCatalog() {
     return this.authService.permissionCatalog();
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('audit-logs')
+  listAuditLogs(
+    @CurrentUser() user: AuthUserContext,
+    @Query() query: ListAuditLogsDto,
+  ) {
+    return this.authService.listAuditLogs(user, query);
   }
 
   @ApiBearerAuth()

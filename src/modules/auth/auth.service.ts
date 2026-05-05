@@ -42,6 +42,7 @@ import {
   UpdateAdminRoleDto,
   UpdateRolePermissionsDto,
 } from './dto/admin-management.dto';
+import { ListAuditLogsDto } from './dto/audit-logs.dto';
 import { PERMISSION_CATALOG, SUPER_ADMIN_PERMISSIONS } from './permission-catalog';
 import {
   ChangePasswordDto,
@@ -504,6 +505,35 @@ export class AuthService implements OnModuleInit {
 
   permissionCatalog() {
     return { data: PERMISSION_CATALOG, message: 'Permission catalog fetched successfully' };
+  }
+
+  async listAuditLogs(_user: AuthUserContext, query: ListAuditLogsDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const where: Prisma.AdminAuditLogWhereInput = {
+      actorId: query.actorId,
+      targetId: query.targetId,
+      action: query.action,
+    };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.adminAuditLog.findMany({
+        where,
+        include: {
+          actor: { select: { id: true, email: true, firstName: true, lastName: true } },
+          target: { select: { id: true, email: true, firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.adminAuditLog.count({ where }),
+    ]);
+
+    return {
+      data: items,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      message: 'Audit logs fetched successfully',
+    };
   }
 
   async approveProvider(_user: AuthUserContext, providerId: string) {
