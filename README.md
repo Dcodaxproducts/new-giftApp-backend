@@ -33,6 +33,7 @@ Base route: `/api/v1/auth`
 - `POST /admins` — Super Admin creates Admin users with permissions
 - `PATCH /providers/:id/approve` — Super Admin approves Provider login access
 - `PATCH /providers/:id/reject` — Super Admin rejects a Provider application
+- `PATCH /users/:id/active-status` — Super Admin/Admin activates or deactivates allowed accounts
 - `POST /refresh` — rotate access/refresh tokens
 - `POST /logout` — revoke current refresh token
 - `POST /verify-email` — verify email with OTP
@@ -55,7 +56,8 @@ Base route: `/api/v1/auth`
 - Guest access remains unauthenticated by design, matching the SRD requirement that all roles except Guest authenticate.
 - Exactly one backend Super Admin is bootstrapped on startup: `superadmin@giftapp.dev` / `Admin@123456` unless overridden by `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
 - Login attempts are tracked in `login_attempts`; five failed attempts within 15 minutes blocks further login attempts temporarily.
-- In development, OTP is exposed in the API response. Real email delivery requires adding SMTP/email-provider configuration in the next mailer slice.
+- Login requires `isVerified=true` and `isActive=true`; inactive users are blocked until reactivated by an authorized Admin/Super Admin.
+- When `EMAIL_ENABLED=true`, verification and password-reset OTPs are sent through SMTP.
 
 ### Login Attempt Tracking APIs
 
@@ -93,6 +95,14 @@ JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
 SUPER_ADMIN_EMAIL=superadmin@giftapp.dev
 SUPER_ADMIN_PASSWORD=Admin@123456
+EMAIL_ENABLED=false
+MAIL_MAILER=smtp
+MAIL_HOST=
+MAIL_PORT=465
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS=
 ```
 
 ## Response Envelope

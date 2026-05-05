@@ -17,7 +17,12 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AuthService } from './auth.service';
-import { CreateAdminDto, GuestSessionDto, RejectProviderDto } from './dto/admin-auth.dto';
+import {
+  CreateAdminDto,
+  GuestSessionDto,
+  RejectProviderDto,
+  UpdateUserActiveStatusDto,
+} from './dto/admin-auth.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -80,6 +85,18 @@ export class AuthController {
     @Body() dto: RejectProviderDto,
   ) {
     return this.authService.rejectProvider(user, id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Patch('users/:id/active-status')
+  updateUserActiveStatus(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: UpdateUserActiveStatusDto,
+  ) {
+    return this.authService.updateUserActiveStatus(user, id, dto);
   }
 
   @Post('refresh')

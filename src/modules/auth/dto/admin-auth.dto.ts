@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsObject,
@@ -58,4 +59,10 @@ export class GuestSessionDto {
   @IsArray()
   @IsString({ each: true })
   capabilities?: string[];
+}
+
+export class UpdateUserActiveStatusDto {
+  @ApiProperty({ example: false })
+  @IsBoolean()
+  isActive!: boolean;
 }

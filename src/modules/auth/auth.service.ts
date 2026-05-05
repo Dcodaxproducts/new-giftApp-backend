@@ -22,7 +22,13 @@ import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
-import { CreateAdminDto, GuestSessionDto, RejectProviderDto } from './dto/admin-auth.dto';
+import { MailerService } from '../mailer/mailer.service';
+import {
+  CreateAdminDto,
+  GuestSessionDto,
+  RejectProviderDto,
+  UpdateUserActiveStatusDto,
+} from './dto/admin-auth.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -48,6 +54,7 @@ export class AuthService implements OnModuleInit {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly loginAttemptsService: LoginAttemptsService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -65,6 +72,10 @@ export class AuthService implements OnModuleInit {
       isApproved: true,
       providerApprovalStatus: null,
     });
+    await this.mailerService.sendVerificationEmail(
+      user.email,
+      this.requiredOtp(user.verificationOtp),
+    );
     const tokens = await this.issueTokens(user);
 
     return {
@@ -91,6 +102,10 @@ export class AuthService implements OnModuleInit {
       providerServiceArea: dto.serviceArea.trim(),
       providerDocuments: dto.documentUrls ?? [],
     });
+    await this.mailerService.sendVerificationEmail(
+      user.email,
+      this.requiredOtp(user.verificationOtp),
+    );
     const tokens = await this.issueTokens(user);
 
     return {
@@ -168,6 +183,19 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Account is inactive');
     }
 
+    if (!user.isVerified) {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.FAILED,
+        reason: 'EMAIL_NOT_VERIFIED',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+        userId: user.id,
+        role: user.role,
+      });
+      throw new ForbiddenException('Please verify your email before login');
+    }
+
     if (user.role === UserRole.PROVIDER && !user.isApproved) {
       await this.loginAttemptsService.record({
         email: dto.email,
@@ -222,6 +250,7 @@ export class AuthService implements OnModuleInit {
       phone: dto.phone,
       role: UserRole.ADMIN,
       isApproved: true,
+      isVerified: true,
       providerApprovalStatus: null,
       adminTitle: dto.title?.trim(),
       adminPermissions: (dto.permissions ?? {}) as Prisma.InputJsonObject,
@@ -269,6 +298,37 @@ export class AuthService implements OnModuleInit {
       message: dto.reason
         ? `Provider rejected successfully: ${dto.reason}`
         : 'Provider rejected successfully',
+    };
+  }
+
+  async updateUserActiveStatus(
+    user: AuthUserContext,
+    targetUserId: string,
+    dto: UpdateUserActiveStatusDto,
+  ) {
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+
+    if (!target || target.deletedAt) {
+      throw new NotFoundException('User not found');
+    }
+
+    this.assertCanToggleActiveStatus(user, target);
+
+    const updated = await this.prisma.user.update({
+      where: { id: target.id },
+      data: {
+        isActive: dto.isActive,
+        refreshTokenHash: dto.isActive ? target.refreshTokenHash : null,
+      },
+    });
+
+    return {
+      data: this.toAuthUser(updated),
+      message: dto.isActive
+        ? 'User account activated successfully'
+        : 'User account deactivated successfully',
     };
   }
 
@@ -371,6 +431,7 @@ export class AuthService implements OnModuleInit {
         verificationOtpAttempts: 0,
       },
     });
+    await this.mailerService.sendVerificationEmail(dbUser.email, otp);
 
     return {
       data: { verificationOtp: this.shouldExposeOtp() ? otp : undefined },
@@ -393,6 +454,7 @@ export class AuthService implements OnModuleInit {
           resetPasswordOtpAttempts: 0,
         },
       });
+      await this.mailerService.sendPasswordResetEmail(user.email, otp);
     }
 
     return {
@@ -502,6 +564,7 @@ export class AuthService implements OnModuleInit {
     phone?: string;
     role: UserRole;
     isApproved: boolean;
+    isVerified?: boolean;
     providerApprovalStatus: ProviderApprovalStatus | null;
     providerBusinessName?: string;
     providerServiceArea?: string;
@@ -525,6 +588,7 @@ export class AuthService implements OnModuleInit {
         lastName: input.lastName.trim(),
         phone: input.phone?.trim(),
         role: input.role,
+        isVerified: input.isVerified ?? false,
         isApproved: input.isApproved,
         providerApprovalStatus: input.providerApprovalStatus,
         providerBusinessName: input.providerBusinessName,
@@ -558,6 +622,29 @@ export class AuthService implements OnModuleInit {
     }
 
     return user;
+  }
+
+  private assertCanToggleActiveStatus(user: AuthUserContext, target: User): void {
+    if (target.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Super Admin active status cannot be changed');
+    }
+
+    if (user.uid === target.id) {
+      throw new ForbiddenException('You cannot change your own active status');
+    }
+
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return;
+    }
+
+    if (
+      user.role === UserRole.ADMIN &&
+      (target.role === UserRole.REGISTERED_USER || target.role === UserRole.PROVIDER)
+    ) {
+      return;
+    }
+
+    throw new ForbiddenException('Your role cannot change this account status');
   }
 
   private async issueTokens(user: User) {
@@ -650,6 +737,14 @@ export class AuthService implements OnModuleInit {
 
   private normalizeUserAgent(userAgent?: string | string[]): string | undefined {
     return Array.isArray(userAgent) ? userAgent.join(', ') : userAgent;
+  }
+
+  private requiredOtp(otp: string | null): string {
+    if (!otp) {
+      throw new ServiceUnavailableException('Verification OTP was not generated');
+    }
+
+    return otp;
   }
 
   private async ensureSingleSuperAdmin(): Promise<void> {
