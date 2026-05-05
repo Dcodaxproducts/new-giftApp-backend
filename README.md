@@ -119,3 +119,36 @@ Error:
 ```json
 { "success": false, "error": { "code": "BadRequestException", "message": "Invalid input" }, "meta": {} }
 ```
+
+## Super Admin / Staff Management APIs
+
+- `GET /api/v1/auth/admins` — Super Admin list admins with `page`, `limit`, `search`, `roleId`, `role`, `status`, `sortBy`, `sortOrder`.
+- `GET /api/v1/auth/admins/:id` — Super Admin fetch admin details.
+- `POST /api/v1/auth/admins` — Super Admin create admin using `roleId`, `temporaryPassword` or `generateTemporaryPassword`, `mustChangePassword`, `avatarUrl`, `isActive`.
+- `PATCH /api/v1/auth/admins/:id` — Super Admin update admin profile, avatar, title, role, status.
+- `PATCH /api/v1/auth/admins/:id/active-status` — Super Admin enable/disable admin.
+- `PATCH /api/v1/auth/admins/:id/password` — Super Admin set/reset temporary password.
+- `GET /api/v1/auth/admin-roles` — Super Admin list reusable admin roles.
+- `GET /api/v1/auth/admin-roles/:id` — Super Admin fetch role with permissions.
+- `POST /api/v1/auth/admin-roles` — Super Admin create custom role.
+- `PATCH /api/v1/auth/admin-roles/:id` — Super Admin update role details/status.
+- `PATCH /api/v1/auth/admin-roles/:id/permissions` — Super Admin update role permissions and sync assigned admins.
+- `DELETE /api/v1/auth/admin-roles/:id` — Super Admin soft-delete custom unused role.
+- `GET /api/v1/auth/permissions/catalog` — Super Admin fetch frontend permission catalog.
+
+## Storage APIs
+
+- `POST /api/v1/uploads/presigned-url` — Super Admin/Admin generate S3 presigned upload URL for `admin-avatars`, `user-avatars`, or `provider-documents`.
+
+Required storage env:
+
+```env
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=eu-west-2
+AWS_BUCKET_NAME=
+AWS_PUBLIC_BASE_URL=
+AWS_PRESIGNED_UPLOAD_EXPIRY_SECONDS=300
+```
+
+After pulling schema changes on a server, run `npx prisma db push` or create/apply a migration before restarting PM2.

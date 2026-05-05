@@ -34,9 +34,12 @@ model User {
   lastName                  String                  @map("last_name")
   phone                     String?
   avatarUrl                 String?                 @map("avatar_url")
+  adminRoleId               String?                 @map("admin_role_id")
   isVerified                Boolean                 @default(false) @map("is_verified")
   isActive                  Boolean                 @default(true) @map("is_active")
   isApproved                Boolean                 @default(true) @map("is_approved")
+  mustChangePassword        Boolean                 @default(false) @map("must_change_password")
+  lastLoginAt               DateTime?               @map("last_login_at") @db.Timestamptz
   adminTitle                String?                 @map("admin_title")
   adminPermissions          Json?                   @map("admin_permissions")
   providerBusinessName      String?                 @map("provider_business_name")
@@ -55,10 +58,52 @@ model User {
   createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
   loginAttempts             LoginAttempt[]
+  adminRole                 AdminRole?              @relation(fields: [adminRoleId], references: [id])
+  auditLogs                 AdminAuditLog[]         @relation("AuditActor")
+  targetAuditLogs           AdminAuditLog[]         @relation("AuditTarget")
 
   @@index([role, isActive])
+  @@index([adminRoleId])
   @@index([providerApprovalStatus])
   @@map("users")
+}
+
+model AdminRole {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  permissions Json     @map("permissions_json")
+  isSystem    Boolean  @default(false) @map("is_system")
+  isActive    Boolean  @default(true) @map("is_active")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  admins User[]
+
+  @@index([isActive, isSystem])
+  @@map("admin_roles")
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?  @map("actor_id")
+  targetId  String?  @map("target_id")
+  action    String
+  beforeJson Json?   @map("before_json")
+  afterJson  Json?   @map("after_json")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id])
+  target User? @relation("AuditTarget", fields: [targetId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([targetId, createdAt])
+  @@index([action, createdAt])
+  @@map("admin_audit_logs")
 }
 
 model LoginAttempt {

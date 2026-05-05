@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
   LoginAttemptStatus,
+  AdminRole,
   Prisma,
   ProviderApprovalStatus,
   User,
@@ -24,11 +25,24 @@ import { PrismaService } from '../../database/prisma.service';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
 import { MailerService } from '../mailer/mailer.service';
 import {
-  CreateAdminDto,
   GuestSessionDto,
   RejectProviderDto,
   UpdateUserActiveStatusDto,
 } from './dto/admin-auth.dto';
+import {
+  AdminStatusFilter,
+  CreateAdminDto,
+  CreateAdminRoleDto,
+  ListAdminRolesDto,
+  ListAdminsDto,
+  ResetAdminPasswordDto,
+  SortOrderDto,
+  UpdateAdminActiveStatusDto,
+  UpdateAdminDto,
+  UpdateAdminRoleDto,
+  UpdateRolePermissionsDto,
+} from './dto/admin-management.dto';
+import { PERMISSION_CATALOG, SUPER_ADMIN_PERMISSIONS } from './permission-catalog';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -221,6 +235,10 @@ export class AuthService implements OnModuleInit {
     }
 
     const tokens = await this.issueTokens(user);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
     await this.loginAttemptsService.record({
       email: dto.email,
       status: LoginAttemptStatus.SUCCESS,
@@ -240,24 +258,252 @@ export class AuthService implements OnModuleInit {
   }
 
   async createAdmin(_user: AuthUserContext, dto: CreateAdminDto) {
+    const adminRole = dto.roleId
+      ? await this.getAdminRole(dto.roleId)
+      : await this.getDefaultAdminRole();
+    const temporaryPassword = dto.temporaryPassword ?? this.generateTemporaryPassword();
     const admin = await this.createUser({
       email: dto.email,
-      password: dto.password,
+      password: temporaryPassword,
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
       role: UserRole.ADMIN,
       isApproved: true,
       isVerified: true,
+      isActive: dto.isActive ?? true,
+      mustChangePassword: dto.mustChangePassword ?? true,
       providerApprovalStatus: null,
       adminTitle: dto.title?.trim(),
-      adminPermissions: (dto.permissions ?? {}) as Prisma.InputJsonObject,
+      adminRoleId: adminRole?.id,
+      avatarUrl: dto.avatarUrl,
+      adminPermissions: adminRole?.permissions ?? {},
+    });
+    await this.recordAudit(_user.uid, admin.id, 'ADMIN_CREATED', null, this.toAdminListItem(admin, adminRole));
+
+    return {
+      data: this.toAdminDetail(admin, adminRole),
+      message: 'Admin account created successfully',
+    };
+  }
+
+  async listAdmins(_user: AuthUserContext, query: ListAdminsDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const where: Prisma.UserWhereInput = {
+      role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+      deletedAt: null,
+      ...(query.roleId ? { adminRoleId: query.roleId } : {}),
+      ...(query.role ? { adminRole: { slug: query.role } } : {}),
+      ...(query.status === AdminStatusFilter.ACTIVE ? { isActive: true } : {}),
+      ...(query.status === AdminStatusFilter.DISABLED ? { isActive: false } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { firstName: { contains: query.search, mode: 'insensitive' } },
+              { lastName: { contains: query.search, mode: 'insensitive' } },
+              { email: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+    const sortBy = query.sortBy ?? 'createdAt';
+    const sortOrder = query.sortOrder === SortOrderDto.ASC ? 'asc' : 'desc';
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        include: { adminRole: true },
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      data: items.map((admin) => this.toAdminListItem(admin, admin.adminRole)),
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      message: 'Admins fetched successfully',
+    };
+  }
+
+  async adminDetails(_user: AuthUserContext, adminId: string) {
+    const admin = await this.getAdmin(adminId);
+    return {
+      data: this.toAdminDetail(admin, admin.adminRole),
+      message: 'Admin details fetched successfully',
+    };
+  }
+
+  async updateAdmin(user: AuthUserContext, adminId: string, dto: UpdateAdminDto) {
+    const admin = await this.getAdmin(adminId);
+    if (user.uid === admin.id && dto.isActive === false) {
+      throw new ForbiddenException('Super Admin cannot deactivate self');
+    }
+    const adminRole = dto.roleId ? await this.getAdminRole(dto.roleId) : admin.adminRole;
+    const before = this.toAdminDetail(admin, admin.adminRole);
+    const updated = await this.prisma.user.update({
+      where: { id: admin.id },
+      data: {
+        firstName: dto.firstName?.trim(),
+        lastName: dto.lastName?.trim(),
+        phone: dto.phone?.trim(),
+        avatarUrl: dto.avatarUrl,
+        adminTitle: dto.title?.trim(),
+        adminRoleId: dto.roleId,
+        adminPermissions: adminRole?.permissions ?? undefined,
+        isActive: dto.isActive,
+        refreshTokenHash: dto.isActive === false ? null : admin.refreshTokenHash,
+      },
+      include: { adminRole: true },
+    });
+    await this.recordAudit(user.uid, admin.id, 'ADMIN_UPDATED', before, this.toAdminDetail(updated, updated.adminRole));
+
+    return {
+      data: this.toAdminDetail(updated, updated.adminRole),
+      message: 'Admin updated successfully',
+    };
+  }
+
+  async updateAdminActiveStatus(user: AuthUserContext, adminId: string, dto: UpdateAdminActiveStatusDto) {
+    await this.updateAdmin(user, adminId, { isActive: dto.isActive });
+    return {
+      data: { id: adminId, isActive: dto.isActive },
+      message: dto.isActive ? 'Admin enabled successfully' : 'Admin disabled successfully',
+    };
+  }
+
+  async resetAdminPassword(user: AuthUserContext, adminId: string, dto: ResetAdminPasswordDto) {
+    const admin = await this.getAdmin(adminId);
+    const temporaryPassword = dto.temporaryPassword ?? this.generateTemporaryPassword();
+    await this.prisma.user.update({
+      where: { id: admin.id },
+      data: {
+        password: await bcrypt.hash(temporaryPassword, 10),
+        mustChangePassword: dto.mustChangePassword ?? true,
+        refreshTokenHash: null,
+      },
+    });
+    await this.recordAudit(user.uid, admin.id, 'ADMIN_PASSWORD_RESET', null, { mustChangePassword: dto.mustChangePassword ?? true });
+
+    return { data: null, message: 'Temporary password generated successfully' };
+  }
+
+  async listAdminRoles(_user: AuthUserContext, query: ListAdminRolesDto) {
+    const where: Prisma.AdminRoleWhereInput = {
+      deletedAt: null,
+      isSystem: query.isSystem,
+      isActive: query.isActive,
+      ...(query.search
+        ? {
+            OR: [
+              { name: { contains: query.search, mode: 'insensitive' } },
+              { slug: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+    const roles = await this.prisma.adminRole.findMany({
+      where,
+      include: { _count: { select: { admins: true } } },
+      orderBy: { createdAt: 'asc' },
     });
 
     return {
-      data: this.toAuthUser(admin),
-      message: 'Admin account created successfully',
+      data: roles.map((role) => ({
+        id: role.id,
+        name: role.name,
+        slug: role.slug,
+        description: role.description,
+        isSystem: role.isSystem,
+        isActive: role.isActive,
+        adminCount: role._count.admins,
+        createdAt: role.createdAt,
+      })),
+      message: 'Admin roles fetched successfully',
     };
+  }
+
+  async adminRoleDetails(_user: AuthUserContext, roleId: string) {
+    const role = await this.getAdminRole(roleId);
+    return { data: this.toAdminRole(role), message: 'Admin role fetched successfully' };
+  }
+
+  async createAdminRole(user: AuthUserContext, dto: CreateAdminRoleDto) {
+    const slug = this.slugify(dto.name);
+    const existing = await this.prisma.adminRole.findUnique({ where: { slug } });
+    if (existing && !existing.deletedAt) {
+      throw new ConflictException('Admin role already exists');
+    }
+    const role = await this.prisma.adminRole.create({
+      data: {
+        name: dto.name.trim(),
+        slug,
+        description: dto.description?.trim(),
+        permissions: dto.permissions,
+        isSystem: false,
+      },
+    });
+    await this.recordAudit(user.uid, null, 'ADMIN_ROLE_CREATED', null, this.toAdminRole(role));
+    return { data: this.toAdminRole(role), message: 'Admin role created successfully' };
+  }
+
+  async updateAdminRole(user: AuthUserContext, roleId: string, dto: UpdateAdminRoleDto) {
+    const role = await this.getAdminRole(roleId);
+    const before = this.toAdminRole(role);
+    const updated = await this.prisma.adminRole.update({
+      where: { id: role.id },
+      data: {
+        name: dto.name?.trim(),
+        description: dto.description?.trim(),
+        isActive: dto.isActive,
+      },
+    });
+    await this.recordAudit(user.uid, null, 'ADMIN_ROLE_UPDATED', before, this.toAdminRole(updated));
+    return { data: this.toAdminRole(updated), message: 'Admin role updated successfully' };
+  }
+
+  async updateRolePermissions(user: AuthUserContext, roleId: string, dto: UpdateRolePermissionsDto) {
+    const role = await this.getAdminRole(roleId);
+    if (role.slug === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('System Super Admin permissions cannot be reduced');
+    }
+    const before = this.toAdminRole(role);
+    const updated = await this.prisma.adminRole.update({
+      where: { id: role.id },
+      data: { permissions: dto.permissions },
+    });
+    await this.prisma.user.updateMany({
+      where: { adminRoleId: role.id },
+      data: { adminPermissions: dto.permissions },
+    });
+    await this.recordAudit(user.uid, null, 'ADMIN_ROLE_PERMISSIONS_UPDATED', before, this.toAdminRole(updated));
+
+    return {
+      data: { id: updated.id, permissions: updated.permissions },
+      message: 'Role permissions updated successfully',
+    };
+  }
+
+  async deleteAdminRole(user: AuthUserContext, roleId: string) {
+    const role = await this.getAdminRole(roleId);
+    if (role.isSystem) {
+      throw new ForbiddenException('System roles cannot be deleted');
+    }
+    const adminCount = await this.prisma.user.count({ where: { adminRoleId: role.id, deletedAt: null } });
+    if (adminCount > 0) {
+      throw new BadRequestException('Role cannot be deleted while admins are assigned to it');
+    }
+    await this.prisma.adminRole.update({
+      where: { id: role.id },
+      data: { isActive: false, deletedAt: new Date() },
+    });
+    await this.recordAudit(user.uid, null, 'ADMIN_ROLE_DELETED', this.toAdminRole(role), null);
+    return { data: null, message: 'Admin role deleted successfully' };
+  }
+
+  permissionCatalog() {
+    return { data: PERMISSION_CATALOG, message: 'Permission catalog fetched successfully' };
   }
 
   async approveProvider(_user: AuthUserContext, providerId: string) {
@@ -563,11 +809,15 @@ export class AuthService implements OnModuleInit {
     role: UserRole;
     isApproved: boolean;
     isVerified?: boolean;
+    isActive?: boolean;
+    mustChangePassword?: boolean;
+    adminRoleId?: string;
     providerApprovalStatus: ProviderApprovalStatus | null;
     providerBusinessName?: string;
     providerServiceArea?: string;
     providerDocuments?: string[];
     adminTitle?: string;
+    avatarUrl?: string;
     adminPermissions?: Prisma.InputJsonValue;
   }): Promise<User> {
     const email = this.normalizeEmail(input.email);
@@ -585,9 +835,13 @@ export class AuthService implements OnModuleInit {
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
         phone: input.phone?.trim(),
+        avatarUrl: input.avatarUrl,
         role: input.role,
+        adminRoleId: input.adminRoleId,
         isVerified: input.isVerified ?? false,
+        isActive: input.isActive ?? true,
         isApproved: input.isApproved,
+        mustChangePassword: input.mustChangePassword ?? false,
         providerApprovalStatus: input.providerApprovalStatus,
         providerBusinessName: input.providerBusinessName,
         providerServiceArea: input.providerServiceArea,
@@ -610,6 +864,38 @@ export class AuthService implements OnModuleInit {
     }
 
     return provider;
+  }
+
+  private async getAdmin(adminId: string): Promise<User & { adminRole: AdminRole | null }> {
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      include: { adminRole: true },
+    });
+
+    if (
+      !admin ||
+      admin.deletedAt ||
+      (admin.role !== UserRole.ADMIN && admin.role !== UserRole.SUPER_ADMIN)
+    ) {
+      throw new NotFoundException('Admin not found');
+    }
+
+    return admin;
+  }
+
+  private async getAdminRole(roleId: string): Promise<AdminRole> {
+    const role = await this.prisma.adminRole.findUnique({ where: { id: roleId } });
+    if (!role || role.deletedAt || !role.isActive) {
+      throw new NotFoundException('Admin role not found');
+    }
+
+    return role;
+  }
+
+  private async getDefaultAdminRole(): Promise<AdminRole | null> {
+    return this.prisma.adminRole.findFirst({
+      where: { slug: 'MANAGER', deletedAt: null, isActive: true },
+    });
   }
 
   private async getActiveUser(userId: string): Promise<User> {
@@ -688,6 +974,7 @@ export class AuthService implements OnModuleInit {
       avatarUrl: user.avatarUrl,
       isVerified: user.isVerified,
       isActive: user.isActive,
+      mustChangePassword: user.mustChangePassword,
       deletionState: this.toDeletionState(user),
     };
 
@@ -729,6 +1016,78 @@ export class AuthService implements OnModuleInit {
     };
   }
 
+  private toAdminListItem(admin: User, adminRole: AdminRole | null) {
+    return {
+      id: admin.id,
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+      fullName: `${admin.firstName} ${admin.lastName}`.trim(),
+      email: admin.email,
+      phone: admin.phone,
+      avatarUrl: admin.avatarUrl,
+      role: adminRole
+        ? { id: adminRole.id, name: adminRole.name, slug: adminRole.slug }
+        : { id: admin.role, name: this.titleCase(admin.role), slug: admin.role },
+      isActive: admin.isActive,
+      isVerified: admin.isVerified,
+      createdAt: admin.createdAt,
+      lastLoginAt: admin.lastLoginAt,
+    };
+  }
+
+  private toAdminDetail(admin: User, adminRole: AdminRole | null) {
+    return {
+      ...this.toAdminListItem(admin, adminRole),
+      title: admin.adminTitle,
+      mustChangePassword: admin.mustChangePassword,
+      role: adminRole
+        ? {
+            id: adminRole.id,
+            name: adminRole.name,
+            slug: adminRole.slug,
+            description: adminRole.description,
+          }
+        : {
+            id: admin.role,
+            name: this.titleCase(admin.role),
+            slug: admin.role,
+            description: null,
+          },
+      permissions: adminRole?.permissions ?? admin.adminPermissions ?? {},
+    };
+  }
+
+  private toAdminRole(role: AdminRole) {
+    return {
+      id: role.id,
+      name: role.name,
+      slug: role.slug,
+      description: role.description,
+      isSystem: role.isSystem,
+      isActive: role.isActive,
+      permissions: role.permissions,
+      createdAt: role.createdAt,
+    };
+  }
+
+  private async recordAudit(
+    actorId: string | null,
+    targetId: string | null,
+    action: string,
+    beforeJson: unknown,
+    afterJson: unknown,
+  ): Promise<void> {
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorId,
+        targetId,
+        action,
+        beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
+        afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
+      },
+    });
+  }
+
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
   }
@@ -746,6 +1105,24 @@ export class AuthService implements OnModuleInit {
   }
 
   private async ensureSingleSuperAdmin(): Promise<void> {
+    const superAdminRole = await this.ensureSystemRole(
+      'Super Admin',
+      UserRole.SUPER_ADMIN,
+      'Full platform access.',
+      SUPER_ADMIN_PERMISSIONS,
+    );
+    await this.ensureSystemRole(
+      'Manager',
+      'MANAGER',
+      'Can oversee daily operations.',
+      {
+        users: ['read', 'updateStatus'],
+        admins: ['read'],
+        providers: ['read', 'approve', 'reject', 'updateStatus'],
+        reports: ['read'],
+        auditLogs: ['read'],
+      },
+    );
     const email = this.normalizeEmail(
       this.configService.get<string>(
         'SUPER_ADMIN_EMAIL',
@@ -779,6 +1156,8 @@ export class AuthService implements OnModuleInit {
           isVerified: true,
           isActive: true,
           isApproved: true,
+          adminRoleId: superAdminRole.id,
+          adminPermissions: SUPER_ADMIN_PERMISSIONS,
         },
       });
     } else {
@@ -788,6 +1167,8 @@ export class AuthService implements OnModuleInit {
           isVerified: true,
           isActive: true,
           isApproved: true,
+          adminRoleId: superAdminRole.id,
+          adminPermissions: SUPER_ADMIN_PERMISSIONS,
           deletedAt: null,
           deleteAfter: null,
         },
@@ -813,6 +1194,55 @@ export class AuthService implements OnModuleInit {
 
   private generateOtpExpiry(): Date {
     return new Date(Date.now() + 10 * 60 * 1000);
+  }
+
+  private async ensureSystemRole(
+    name: string,
+    slug: string,
+    description: string,
+    permissions: Record<string, string[]>,
+  ): Promise<AdminRole> {
+    const existing = await this.prisma.adminRole.findUnique({ where: { slug } });
+    if (existing) {
+      return this.prisma.adminRole.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          description,
+          permissions,
+          isSystem: true,
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+    }
+
+    return this.prisma.adminRole.create({
+      data: {
+        name,
+        slug,
+        description,
+        permissions,
+        isSystem: true,
+        isActive: true,
+      },
+    });
+  }
+
+  private generateTemporaryPassword(): string {
+    return `Gift@${randomInt(100000, 1000000)}`;
+  }
+
+  private slugify(value: string): string {
+    return value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
+  private titleCase(value: string): string {
+    return value
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
 }

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -18,11 +19,21 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AuthService } from './auth.service';
 import {
-  CreateAdminDto,
   GuestSessionDto,
   RejectProviderDto,
   UpdateUserActiveStatusDto,
 } from './dto/admin-auth.dto';
+import {
+  CreateAdminDto,
+  CreateAdminRoleDto,
+  ListAdminRolesDto,
+  ListAdminsDto,
+  ResetAdminPasswordDto,
+  UpdateAdminActiveStatusDto,
+  UpdateAdminDto,
+  UpdateAdminRoleDto,
+  UpdateRolePermissionsDto,
+} from './dto/admin-management.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -65,6 +76,134 @@ export class AuthController {
   @Post('admins')
   createAdmin(@CurrentUser() user: AuthUserContext, @Body() dto: CreateAdminDto) {
     return this.authService.createAdmin(user, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('admins')
+  listAdmins(
+    @CurrentUser() user: AuthUserContext,
+    @Query() query: ListAdminsDto,
+  ) {
+    return this.authService.listAdmins(user, query);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('admins/:id')
+  adminDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
+    return this.authService.adminDetails(user, id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('admins/:id')
+  updateAdmin(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: UpdateAdminDto,
+  ) {
+    return this.authService.updateAdmin(user, id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('admins/:id/active-status')
+  updateAdminActiveStatus(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: UpdateAdminActiveStatusDto,
+  ) {
+    return this.authService.updateAdminActiveStatus(user, id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('admins/:id/password')
+  resetAdminPassword(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: ResetAdminPasswordDto,
+  ) {
+    return this.authService.resetAdminPassword(user, id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('admin-roles')
+  listAdminRoles(
+    @CurrentUser() user: AuthUserContext,
+    @Query() query: ListAdminRolesDto,
+  ) {
+    return this.authService.listAdminRoles(user, query);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('admin-roles/:id')
+  adminRoleDetails(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+  ) {
+    return this.authService.adminRoleDetails(user, id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post('admin-roles')
+  createAdminRole(
+    @CurrentUser() user: AuthUserContext,
+    @Body() dto: CreateAdminRoleDto,
+  ) {
+    return this.authService.createAdminRole(user, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('admin-roles/:id')
+  updateAdminRole(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: UpdateAdminRoleDto,
+  ) {
+    return this.authService.updateAdminRole(user, id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('admin-roles/:id/permissions')
+  updateRolePermissions(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: UpdateRolePermissionsDto,
+  ) {
+    return this.authService.updateRolePermissions(user, id, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Delete('admin-roles/:id')
+  deleteAdminRole(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
+    return this.authService.deleteAdminRole(user, id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('permissions/catalog')
+  permissionCatalog() {
+    return this.authService.permissionCatalog();
   }
 
   @ApiBearerAuth()
