@@ -37,7 +37,6 @@ Base route: `/api/v1/auth`
 - `POST /refresh` — rotate access/refresh tokens
 - `POST /logout` — revoke current refresh token
 - `POST /verify-email` — verify email with OTP
-- `POST /resend-verification` — issue a new verification OTP
 - `POST /resend-otp` — registration-flow alias for resending email verification OTP with the registration bearer token
 - `POST /forgot-password` — request password reset OTP
 - `POST /reset-password` — reset password with OTP

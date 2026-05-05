@@ -123,13 +123,6 @@ export class AuthController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('resend-verification')
-  resendVerification(@CurrentUser() user: AuthUserContext) {
-    return this.authService.resendVerification(user);
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('resend-otp')
   resendRegistrationOtp(@CurrentUser() user: AuthUserContext) {
     return this.authService.resendVerification(user);
