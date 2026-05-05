@@ -11,5 +11,6 @@ import { AuthService } from './auth.service';
   imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule],
   controllers: [AuthController],
   providers: [AuthService, PrismaService, JwtAuthGuard],
+  exports: [AuthService],
 })
 export class AuthModule {}
