@@ -4,15 +4,25 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
+import {
+  LoginAttemptStatus,
+  Prisma,
+  ProviderApprovalStatus,
+  User,
+  UserRole,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
+import { CreateAdminDto, GuestSessionDto, RejectProviderDto } from './dto/admin-auth.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -32,12 +42,17 @@ interface TokenPayload {
 }
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly loginAttemptsService: LoginAttemptsService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.ensureSingleSuperAdmin();
+  }
 
   async registerUser(dto: RegisterUserDto) {
     const user = await this.createUser({
@@ -88,12 +103,45 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
+  createGuestSession(dto: GuestSessionDto) {
+    return {
+      data: {
+        role: 'GUEST_USER',
+        capabilities: dto.capabilities ?? [
+          'VIEW_ONBOARDING',
+          'EXPLORE_FEATURES',
+        ],
+      },
+      message: 'Guest session initialized',
+    };
+  }
+
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string | string[]) {
+    await this.loginAttemptsService.assertLoginAllowed(dto.email).catch(async (error) => {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.BLOCKED,
+        reason: 'RATE_LIMITED',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+      });
+      throw error;
+    });
+
     const user = await this.prisma.user.findUnique({
       where: { email: this.normalizeEmail(dto.email) },
     });
 
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.FAILED,
+        reason: 'INVALID_CREDENTIALS',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+        userId: user?.id,
+        role: user?.role,
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -108,24 +156,119 @@ export class AuthService {
     }
 
     if (!user.isActive || user.deletedAt) {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.FAILED,
+        reason: 'INACTIVE_ACCOUNT',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+        userId: user.id,
+        role: user.role,
+      });
       throw new UnauthorizedException('Account is inactive');
     }
 
     if (user.role === UserRole.PROVIDER && !user.isApproved) {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.FAILED,
+        reason: 'PROVIDER_PENDING_APPROVAL',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+        userId: user.id,
+        role: user.role,
+      });
       throw new ForbiddenException('Provider account is pending Super Admin approval');
     }
 
     if (user.role === UserRole.ADMIN && !user.isApproved) {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.FAILED,
+        reason: 'ADMIN_NOT_APPROVED',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+        userId: user.id,
+        role: user.role,
+      });
       throw new ForbiddenException('Admin account is not approved');
     }
 
     const tokens = await this.issueTokens(user);
+    await this.loginAttemptsService.record({
+      email: dto.email,
+      status: LoginAttemptStatus.SUCCESS,
+      ipAddress,
+      userAgent: this.normalizeUserAgent(userAgent),
+      userId: user.id,
+      role: user.role,
+    });
+
     return {
       data: {
         user: this.toAuthUser(user),
         ...tokens,
       },
       message: 'Login successful',
+    };
+  }
+
+  async createAdmin(_user: AuthUserContext, dto: CreateAdminDto) {
+    const admin = await this.createUser({
+      email: dto.email,
+      password: dto.password,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      role: UserRole.ADMIN,
+      isApproved: true,
+      providerApprovalStatus: null,
+      adminTitle: dto.title?.trim(),
+      adminPermissions: (dto.permissions ?? {}) as Prisma.InputJsonObject,
+    });
+
+    return {
+      data: this.toAuthUser(admin),
+      message: 'Admin account created successfully',
+    };
+  }
+
+  async approveProvider(_user: AuthUserContext, providerId: string) {
+    const provider = await this.getProvider(providerId);
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isApproved: true,
+        isActive: true,
+        providerApprovalStatus: ProviderApprovalStatus.APPROVED,
+      },
+    });
+
+    return {
+      data: this.toAuthUser(updated),
+      message: 'Provider approved successfully',
+    };
+  }
+
+  async rejectProvider(
+    _user: AuthUserContext,
+    providerId: string,
+    dto: RejectProviderDto,
+  ) {
+    const provider = await this.getProvider(providerId);
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isApproved: false,
+        providerApprovalStatus: ProviderApprovalStatus.REJECTED,
+      },
+    });
+
+    return {
+      data: this.toAuthUser(updated),
+      message: dto.reason
+        ? `Provider rejected successfully: ${dto.reason}`
+        : 'Provider rejected successfully',
     };
   }
 
@@ -363,6 +506,8 @@ export class AuthService {
     providerBusinessName?: string;
     providerServiceArea?: string;
     providerDocuments?: string[];
+    adminTitle?: string;
+    adminPermissions?: Prisma.InputJsonValue;
   }): Promise<User> {
     const email = this.normalizeEmail(input.email);
     const existing = await this.prisma.user.findUnique({ where: { email } });
@@ -385,10 +530,24 @@ export class AuthService {
         providerBusinessName: input.providerBusinessName,
         providerServiceArea: input.providerServiceArea,
         providerDocuments: input.providerDocuments ?? undefined,
+        adminTitle: input.adminTitle,
+        adminPermissions: input.adminPermissions ?? undefined,
         verificationOtp: otp,
         verificationOtpExpiresAt: this.generateOtpExpiry(),
       },
     });
+  }
+
+  private async getProvider(providerId: string): Promise<User> {
+    const provider = await this.prisma.user.findUnique({
+      where: { id: providerId },
+    });
+
+    if (!provider || provider.deletedAt || provider.role !== UserRole.PROVIDER) {
+      throw new NotFoundException('Provider not found');
+    }
+
+    return provider;
   }
 
   private async getActiveUser(userId: string): Promise<User> {
@@ -487,6 +646,72 @@ export class AuthService {
 
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
+  }
+
+  private normalizeUserAgent(userAgent?: string | string[]): string | undefined {
+    return Array.isArray(userAgent) ? userAgent.join(', ') : userAgent;
+  }
+
+  private async ensureSingleSuperAdmin(): Promise<void> {
+    const email = this.normalizeEmail(
+      this.configService.get<string>(
+        'SUPER_ADMIN_EMAIL',
+        'superadmin@giftapp.dev',
+      ),
+    );
+    const password = this.configService.get<string>(
+      'SUPER_ADMIN_PASSWORD',
+      'Admin@123456',
+    );
+    const existingSuperAdmins = await this.prisma.user.findMany({
+      where: { role: UserRole.SUPER_ADMIN },
+      orderBy: { createdAt: 'asc' },
+    });
+    const emailOwner = await this.prisma.user.findUnique({ where: { email } });
+
+    if (emailOwner && emailOwner.role !== UserRole.SUPER_ADMIN) {
+      throw new ServiceUnavailableException(
+        'Configured Super Admin email is already used by another role',
+      );
+    }
+
+    if (!emailOwner) {
+      await this.prisma.user.create({
+        data: {
+          email,
+          password: await bcrypt.hash(password, 10),
+          role: UserRole.SUPER_ADMIN,
+          firstName: 'Super',
+          lastName: 'Admin',
+          isVerified: true,
+          isActive: true,
+          isApproved: true,
+        },
+      });
+    } else {
+      await this.prisma.user.update({
+        where: { id: emailOwner.id },
+        data: {
+          isVerified: true,
+          isActive: true,
+          isApproved: true,
+          deletedAt: null,
+          deleteAfter: null,
+        },
+      });
+    }
+
+    const canonicalSuperAdmin = await this.prisma.user.findUnique({ where: { email } });
+    const duplicateIds = existingSuperAdmins
+      .filter((user) => user.email !== email && user.id !== canonicalSuperAdmin?.id)
+      .map((user) => user.id);
+
+    if (duplicateIds.length > 0) {
+      await this.prisma.user.updateMany({
+        where: { id: { in: duplicateIds } },
+        data: { role: UserRole.ADMIN, isApproved: false, refreshTokenHash: null },
+      });
+    }
   }
 
   private generateOtp(): string {

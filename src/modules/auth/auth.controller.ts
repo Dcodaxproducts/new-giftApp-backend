@@ -1,8 +1,23 @@
-import { Body, Controller, Delete, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
+import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { AuthService } from './auth.service';
+import { CreateAdminDto, GuestSessionDto, RejectProviderDto } from './dto/admin-auth.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -29,9 +44,42 @@ export class AuthController {
     return this.authService.registerProvider(dto);
   }
 
+  @Post('guest/session')
+  guestSession(@Body() dto: GuestSessionDto) {
+    return this.authService.createGuestSession(dto);
+  }
+
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Req() request: Request) {
+    return this.authService.login(dto, request.ip, request.headers['user-agent']);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post('admins')
+  createAdmin(@CurrentUser() user: AuthUserContext, @Body() dto: CreateAdminDto) {
+    return this.authService.createAdmin(user, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('providers/:id/approve')
+  approveProvider(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
+    return this.authService.approveProvider(user, id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Patch('providers/:id/reject')
+  rejectProvider(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: RejectProviderDto,
+  ) {
+    return this.authService.rejectProvider(user, id, dto);
   }
 
   @Post('refresh')

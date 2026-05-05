@@ -19,6 +19,12 @@ enum ProviderApprovalStatus {
   REJECTED
 }
 
+enum LoginAttemptStatus {
+  SUCCESS
+  FAILED
+  BLOCKED
+}
+
 model User {
   id                        String                  @id @default(cuid())
   email                     String                  @unique
@@ -48,8 +54,28 @@ model User {
   deleteAfter               DateTime?               @map("delete_after") @db.Timestamptz
   createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  loginAttempts             LoginAttempt[]
 
   @@index([role, isActive])
   @@index([providerApprovalStatus])
   @@map("users")
+}
+
+model LoginAttempt {
+  id        String             @id @default(cuid())
+  email     String
+  status    LoginAttemptStatus
+  reason    String?
+  ipAddress String?            @map("ip_address")
+  userAgent String?            @map("user_agent")
+  userId    String?            @map("user_id")
+  role      UserRole?
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([email, createdAt])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("login_attempts")
 }

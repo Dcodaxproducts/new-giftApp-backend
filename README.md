@@ -28,7 +28,11 @@ Base route: `/api/v1/auth`
 
 - `POST /users/register` — Registered User signup
 - `POST /providers/register` — Provider signup with business/service-area details and verification document URLs
+- `POST /guest/session` — non-authenticated guest capability payload for onboarding/explore mode
 - `POST /login` — sign in for Super Admin, Admin, approved Provider, and Registered User
+- `POST /admins` — Super Admin creates Admin users with permissions
+- `PATCH /providers/:id/approve` — Super Admin approves Provider login access
+- `PATCH /providers/:id/reject` — Super Admin rejects a Provider application
 - `POST /refresh` — rotate access/refresh tokens
 - `POST /logout` — revoke current refresh token
 - `POST /verify-email` — verify email with OTP
@@ -49,7 +53,15 @@ Base route: `/api/v1/auth`
 - Auth responses are role-shaped: registered users do not receive null admin/provider fields.
 - `isActive` means account enabled/disabled state; `isVerified` means email/OTP verification. Provider approval is returned only under `provider.approvalStatus`.
 - Guest access remains unauthenticated by design, matching the SRD requirement that all roles except Guest authenticate.
+- Exactly one backend Super Admin is bootstrapped on startup: `superadmin@giftapp.dev` / `Admin@123456` unless overridden by `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
+- Login attempts are tracked in `login_attempts`; five failed attempts within 15 minutes blocks further login attempts temporarily.
 - In development, OTP is exposed in the API response. Real email delivery requires adding SMTP/email-provider configuration in the next mailer slice.
+
+### Login Attempt Tracking APIs
+
+Base route: `/api/v1/login-attempts`
+
+- `GET /` — Super Admin/Admin list of successful, failed, and blocked login attempts; supports `email`, `status`, `role`, `userId`, `page`, and `limit` filters.
 
 ## Tech Stack
 
@@ -79,6 +91,8 @@ See `.env.example`.
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gift_app
 JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
+SUPER_ADMIN_EMAIL=superadmin@giftapp.dev
+SUPER_ADMIN_PASSWORD=Admin@123456
 ```
 
 ## Response Envelope
