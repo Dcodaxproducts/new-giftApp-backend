@@ -38,6 +38,7 @@ Base route: `/api/v1/auth`
 - `POST /logout` — revoke current refresh token
 - `POST /verify-email` — verify email with OTP
 - `POST /resend-verification` — issue a new verification OTP
+- `POST /resend-otp` — registration-flow alias for resending email verification OTP with the registration bearer token
 - `POST /forgot-password` — request password reset OTP
 - `POST /reset-password` — reset password with OTP
 - `PATCH /change-password` — change password while authenticated
@@ -57,6 +58,7 @@ Base route: `/api/v1/auth`
 - Exactly one backend Super Admin is bootstrapped on startup: `superadmin@giftapp.dev` / `Admin@123456` unless overridden by `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
 - Login attempts are tracked in `login_attempts`; five failed attempts within 15 minutes blocks further login attempts temporarily.
 - Login requires `isVerified=true` and `isActive=true`; inactive users are blocked until reactivated by an authorized Admin/Super Admin.
+- Registration returns access/refresh tokens so the frontend can call `verify-email` or `resend-otp` before normal login is allowed.
 - When `EMAIL_ENABLED=true`, verification and password-reset OTPs are sent through SMTP.
 
 ### Login Attempt Tracking APIs

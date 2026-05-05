@@ -128,6 +128,13 @@ export class AuthController {
     return this.authService.resendVerification(user);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-otp')
+  resendRegistrationOtp(@CurrentUser() user: AuthUserContext) {
+    return this.authService.resendVerification(user);
+  }
+
   @Post('forgot-password')
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
