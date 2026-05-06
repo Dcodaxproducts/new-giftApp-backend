@@ -41,6 +41,19 @@ export class MailerService {
     });
   }
 
+  async sendProviderMessageEmail(
+    email: string,
+    subject: string,
+    message: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject,
+      text: message,
+      html: `<p>${message}</p>`,
+    });
+  }
+
   isEnabled(): boolean {
     return this.configService.get<string>('EMAIL_ENABLED', 'false') === 'true';
   }

@@ -47,6 +47,12 @@ model User {
   providerServiceArea       String?                 @map("provider_service_area")
   providerDocuments         Json?                   @map("provider_documents")
   providerApprovalStatus    ProviderApprovalStatus? @map("provider_approval_status")
+  providerApprovedAt        DateTime?               @map("provider_approved_at") @db.Timestamptz
+  providerApprovedBy        String?                 @map("provider_approved_by")
+  providerRejectedAt        DateTime?               @map("provider_rejected_at") @db.Timestamptz
+  providerRejectedBy        String?                 @map("provider_rejected_by")
+  providerRejectionReason   String?                 @map("provider_rejection_reason")
+  providerRejectionComment  String?                 @map("provider_rejection_comment")
   verificationOtp           String?                 @map("verification_otp")
   verificationOtpExpiresAt  DateTime?               @map("verification_otp_expires_at") @db.Timestamptz
   verificationOtpAttempts   Int                     @default(0) @map("verification_otp_attempts")
