@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { GiftCategoriesController } from './gift-categories.controller';
@@ -7,6 +8,7 @@ import { GiftManagementService } from './gift-management.service';
 import { GiftsController } from './gifts.controller';
 
 @Module({
+  imports: [JwtModule.register({})],
   controllers: [GiftCategoriesController, GiftsController, GiftModerationController],
   providers: [GiftManagementService, PrismaService, AuditLogWriterService],
 })
