@@ -28,6 +28,19 @@ export class MailerService {
     });
   }
 
+  async sendAccountStatusEmail(
+    email: string,
+    status: string,
+    comment?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Your Gift App account status is ${status}`,
+      text: `Your Gift App account status is now ${status}.${comment ? ` Comment: ${comment}` : ''}`,
+      html: `<p>Your Gift App account status is now <strong>${status}</strong>.</p>${comment ? `<p>${comment}</p>` : ''}`,
+    });
+  }
+
   isEnabled(): boolean {
     return this.configService.get<string>('EMAIL_ENABLED', 'false') === 'true';
   }

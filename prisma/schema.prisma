@@ -34,6 +34,7 @@ model User {
   lastName                  String                  @map("last_name")
   phone                     String?
   avatarUrl                 String?                 @map("avatar_url")
+  location                  String?
   adminRoleId               String?                 @map("admin_role_id")
   isVerified                Boolean                 @default(false) @map("is_verified")
   isActive                  Boolean                 @default(true) @map("is_active")
@@ -52,6 +53,10 @@ model User {
   resetPasswordOtp          String?                 @map("reset_password_otp")
   resetPasswordOtpExpiresAt DateTime?               @map("reset_password_otp_expires_at") @db.Timestamptz
   resetPasswordOtpAttempts  Int                     @default(0) @map("reset_password_otp_attempts")
+  suspensionReason          String?                 @map("suspension_reason")
+  suspensionComment         String?                 @map("suspension_comment")
+  suspendedAt               DateTime?               @map("suspended_at") @db.Timestamptz
+  suspendedBy               String?                 @map("suspended_by")
   refreshTokenHash          String?                 @map("refresh_token_hash")
   deletedAt                 DateTime?               @map("deleted_at") @db.Timestamptz
   deleteAfter               DateTime?               @map("delete_after") @db.Timestamptz
@@ -63,6 +68,7 @@ model User {
   targetAuditLogs           AdminAuditLog[]         @relation("AuditTarget")
 
   @@index([role, isActive])
+  @@index([role, suspendedAt])
   @@index([adminRoleId])
   @@index([providerApprovalStatus])
   @@map("users")
