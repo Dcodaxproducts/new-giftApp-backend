@@ -1,12 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
+
+export enum ProviderFulfillmentMethodDto {
+  PICKUP = 'PICKUP',
+  DELIVERY = 'DELIVERY',
+}
 
 export class RegisterUserDto {
   @ApiProperty()
@@ -43,13 +51,28 @@ export class RegisterProviderDto extends RegisterUserDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  serviceArea!: string;
+  businessCategoryId!: string;
 
-  @ApiPropertyOptional({ type: [String] })
+  @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  taxId?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  businessAddress!: string;
+
+  @ApiProperty({ enum: ProviderFulfillmentMethodDto, isArray: true })
   @IsArray()
-  @IsString({ each: true })
-  documentUrls?: string[];
+  @ArrayMinSize(1)
+  @IsEnum(ProviderFulfillmentMethodDto, { each: true })
+  fulfillmentMethods!: ProviderFulfillmentMethodDto[];
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  autoAcceptOrders?: boolean;
 }
 
 export class LoginDto {
@@ -83,7 +106,7 @@ export class ForgotPasswordDto {
   email!: string;
 }
 
-export class ResetPasswordDto {
+export class VerifyResetOtpDto {
   @ApiProperty()
   @IsEmail()
   email!: string;
@@ -92,6 +115,25 @@ export class ResetPasswordDto {
   @IsString()
   @IsNotEmpty()
   otp!: string;
+}
+
+export class ResetPasswordDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ description: '6-digit password reset OTP' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  otp?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  resetToken?: string;
 
   @ApiProperty()
   @IsString()

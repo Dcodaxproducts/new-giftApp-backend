@@ -114,6 +114,11 @@ enum CouponDiscountType {
   FIXED_AMOUNT
 }
 
+enum ProviderFulfillmentMethod {
+  PICKUP
+  DELIVERY
+}
+
 model User {
   id                        String                  @id @default(cuid())
   email                     String                  @unique
@@ -133,7 +138,12 @@ model User {
   adminTitle                String?                 @map("admin_title")
   adminPermissions          Json?                   @map("admin_permissions")
   providerBusinessName      String?                 @map("provider_business_name")
+  providerBusinessCategoryId String?                @map("provider_business_category_id")
+  providerTaxId             String?                 @map("provider_tax_id")
+  providerBusinessAddress   String?                 @map("provider_business_address")
   providerServiceArea       String?                 @map("provider_service_area")
+  providerFulfillmentMethods Json?                  @map("provider_fulfillment_methods")
+  providerAutoAcceptOrders  Boolean                 @default(false) @map("provider_auto_accept_orders")
   providerDocuments         Json?                   @map("provider_documents")
   providerApprovalStatus    ProviderApprovalStatus? @map("provider_approval_status")
   providerApprovedAt        DateTime?               @map("provider_approved_at") @db.Timestamptz
@@ -178,12 +188,29 @@ model User {
   updatedSubscriptionPlans  SubscriptionPlan[]      @relation("SubscriptionPlanUpdater")
   createdCoupons            Coupon[]                @relation("CouponCreator")
   updatedCoupons            Coupon[]                @relation("CouponUpdater")
+  providerBusinessCategory  ProviderBusinessCategory? @relation(fields: [providerBusinessCategoryId], references: [id])
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
   @@index([adminRoleId])
   @@index([providerApprovalStatus])
+  @@index([providerBusinessCategoryId])
   @@map("users")
+}
+
+model ProviderBusinessCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  providers User[]
+
+  @@index([isActive])
+  @@map("provider_business_categories")
 }
 
 model GiftCategory {

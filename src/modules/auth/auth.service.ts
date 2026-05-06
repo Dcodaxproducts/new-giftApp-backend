@@ -53,6 +53,7 @@ import {
   RegisterUserDto,
   ResetPasswordDto,
   VerifyEmailDto,
+  VerifyResetOtpDto,
 } from './dto/auth.dto';
 
 interface TokenPayload {
@@ -95,7 +96,7 @@ export class AuthService implements OnModuleInit {
 
     return {
       data: {
-        user: this.toAuthUser(user),
+        user: await this.toAuthUser(user),
         ...tokens,
       },
       message: 'Registered user account created. Verify email with OTP.',
@@ -103,6 +104,7 @@ export class AuthService implements OnModuleInit {
   }
 
   async registerProvider(dto: RegisterProviderDto) {
+    await this.getProviderBusinessCategory(dto.businessCategoryId);
     const user = await this.createUser({
       email: dto.email,
       password: dto.password,
@@ -113,8 +115,11 @@ export class AuthService implements OnModuleInit {
       isApproved: false,
       providerApprovalStatus: ProviderApprovalStatus.PENDING,
       providerBusinessName: dto.businessName.trim(),
-      providerServiceArea: dto.serviceArea.trim(),
-      providerDocuments: dto.documentUrls ?? [],
+      providerBusinessCategoryId: dto.businessCategoryId,
+      providerTaxId: dto.taxId?.trim(),
+      providerBusinessAddress: dto.businessAddress.trim(),
+      providerFulfillmentMethods: dto.fulfillmentMethods,
+      providerAutoAcceptOrders: dto.autoAcceptOrders ?? false,
     });
     await this.mailerService.sendVerificationEmail(
       user.email,
@@ -124,7 +129,7 @@ export class AuthService implements OnModuleInit {
 
     return {
       data: {
-        user: this.toAuthUser(user),
+        user: await this.toAuthUser(user),
         ...tokens,
       },
       message: 'Provider application submitted for Super Admin approval.',
@@ -176,7 +181,7 @@ export class AuthService implements OnModuleInit {
     if (user.deletedAt && user.deleteAfter && user.deleteAfter > new Date()) {
       return {
         data: {
-          user: this.toAuthUser(user),
+          user: await this.toAuthUser(user),
           deletionState: this.toDeletionState(user),
         },
         message: 'Account is scheduled for deletion. Cancel deletion to login.',
@@ -251,7 +256,7 @@ export class AuthService implements OnModuleInit {
 
     return {
       data: {
-        user: this.toAuthUser(user),
+        user: await this.toAuthUser(user),
         ...tokens,
       },
       message: 'Login successful',
@@ -554,7 +559,7 @@ export class AuthService implements OnModuleInit {
     });
 
     return {
-      data: this.toAuthUser(updated),
+      data: await this.toAuthUser(updated),
       message: 'Provider approved successfully',
     };
   }
@@ -574,7 +579,7 @@ export class AuthService implements OnModuleInit {
     });
 
     return {
-      data: this.toAuthUser(updated),
+      data: await this.toAuthUser(updated),
       message: dto.reason
         ? `Provider rejected successfully: ${dto.reason}`
         : 'Provider rejected successfully',
@@ -605,7 +610,7 @@ export class AuthService implements OnModuleInit {
     });
 
     return {
-      data: this.toAuthUser(updated),
+      data: await this.toAuthUser(updated),
       message: dto.isActive
         ? 'User account activated successfully'
         : 'User account deactivated successfully',
@@ -682,7 +687,7 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
-    await this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id: dbUser.id },
       data: {
         isVerified: true,
@@ -692,7 +697,7 @@ export class AuthService implements OnModuleInit {
       },
     });
 
-    return { data: null, message: 'Email verified successfully' };
+    return { data: await this.toAuthUser(updated), message: 'Email verified successfully' };
   }
 
   async resendVerification(user: AuthUserContext) {
@@ -743,7 +748,7 @@ export class AuthService implements OnModuleInit {
     };
   }
 
-  async resetPassword(dto: ResetPasswordDto) {
+  async verifyResetOtp(dto: VerifyResetOtpDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: this.normalizeEmail(dto.email) },
     });
@@ -768,6 +773,25 @@ export class AuthService implements OnModuleInit {
       });
       throw new BadRequestException('Invalid or expired OTP');
     }
+
+    const resetToken = await this.jwtService.signAsync(
+      { uid: user.id, role: user.role, type: 'reset-password' },
+      {
+        secret: this.configService.get<string>('RESET_PASSWORD_TOKEN_SECRET', 'change-me-reset'),
+        expiresIn: this.configService.get<string>('RESET_PASSWORD_TOKEN_EXPIRES_IN', '10m') as never,
+      },
+    );
+
+    return {
+      data: { resetToken },
+      message: 'OTP verified successfully',
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = dto.resetToken
+      ? await this.userFromResetToken(dto.resetToken)
+      : await this.userFromResetOtp(dto);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -800,7 +824,7 @@ export class AuthService implements OnModuleInit {
 
   async me(user: AuthUserContext) {
     const dbUser = await this.getActiveUser(user.uid);
-    return { data: this.toAuthUser(dbUser), message: 'Current user fetched' };
+    return { data: await this.toAuthUser(dbUser), message: 'Current user fetched' };
   }
 
   async deleteAccount(user: AuthUserContext) {
@@ -850,7 +874,12 @@ export class AuthService implements OnModuleInit {
     adminRoleId?: string;
     providerApprovalStatus: ProviderApprovalStatus | null;
     providerBusinessName?: string;
+    providerBusinessCategoryId?: string;
+    providerTaxId?: string;
+    providerBusinessAddress?: string;
     providerServiceArea?: string;
+    providerFulfillmentMethods?: string[];
+    providerAutoAcceptOrders?: boolean;
     providerDocuments?: string[];
     adminTitle?: string;
     avatarUrl?: string;
@@ -880,7 +909,12 @@ export class AuthService implements OnModuleInit {
         mustChangePassword: input.mustChangePassword ?? false,
         providerApprovalStatus: input.providerApprovalStatus,
         providerBusinessName: input.providerBusinessName,
+        providerBusinessCategoryId: input.providerBusinessCategoryId,
+        providerTaxId: input.providerTaxId,
+        providerBusinessAddress: input.providerBusinessAddress,
         providerServiceArea: input.providerServiceArea,
+        providerFulfillmentMethods: input.providerFulfillmentMethods ?? undefined,
+        providerAutoAcceptOrders: input.providerAutoAcceptOrders ?? false,
         providerDocuments: input.providerDocuments ?? undefined,
         adminTitle: input.adminTitle,
         adminPermissions: input.adminPermissions ?? undefined,
@@ -1015,7 +1049,7 @@ export class AuthService implements OnModuleInit {
     return { accessToken, refreshToken };
   }
 
-  private toAuthUser(user: User) {
+  private async toAuthUser(user: User) {
     const baseUser = {
       id: user.id,
       email: user.email,
@@ -1046,10 +1080,23 @@ export class AuthService implements OnModuleInit {
     }
 
     if (user.role === UserRole.PROVIDER) {
+      const businessCategory = user.providerBusinessCategoryId
+        ? await this.prisma.providerBusinessCategory.findUnique({
+            where: { id: user.providerBusinessCategoryId },
+          })
+        : null;
       return {
         ...baseUser,
         provider: {
+          id: user.id,
           businessName: user.providerBusinessName,
+          businessCategory: businessCategory
+            ? { id: businessCategory.id, name: businessCategory.name }
+            : null,
+          taxId: user.providerTaxId,
+          businessAddress: user.providerBusinessAddress,
+          fulfillmentMethods: this.stringArray(user.providerFulfillmentMethods),
+          autoAcceptOrders: user.providerAutoAcceptOrders,
           serviceArea: user.providerServiceArea,
           approvalStatus: user.providerApprovalStatus,
         },
@@ -1139,6 +1186,78 @@ export class AuthService implements OnModuleInit {
         afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
       },
     });
+  }
+
+  private stringArray(value: Prisma.JsonValue | null | undefined): string[] {
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string')
+      : [];
+  }
+
+  private async userFromResetOtp(dto: ResetPasswordDto): Promise<User> {
+    if (!dto.email || !dto.otp) {
+      throw new BadRequestException('email and otp are required when resetToken is not provided');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: this.normalizeEmail(dto.email) },
+    });
+
+    if (!user || user.deletedAt) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    if (user.resetPasswordOtpAttempts >= 5) {
+      throw new BadRequestException('Too many invalid attempts. Request a new OTP.');
+    }
+
+    const isValid =
+      user.resetPasswordOtp === dto.otp &&
+      !!user.resetPasswordOtpExpiresAt &&
+      user.resetPasswordOtpExpiresAt.getTime() >= Date.now();
+
+    if (!isValid) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { resetPasswordOtpAttempts: { increment: 1 } },
+      });
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    return user;
+  }
+
+  private async userFromResetToken(resetToken: string): Promise<User> {
+    let payload: { uid: string; type?: string };
+
+    try {
+      payload = await this.jwtService.verifyAsync<TokenPayload & { type?: string }>(resetToken, {
+        secret: this.configService.get<string>('RESET_PASSWORD_TOKEN_SECRET', 'change-me-reset'),
+      });
+    } catch {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    if (payload.type !== 'reset-password') {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.uid } });
+    if (!user || user.deletedAt) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    return user;
+  }
+
+  private async getProviderBusinessCategory(categoryId: string) {
+    const category = await this.prisma.providerBusinessCategory.findUnique({
+      where: { id: categoryId },
+    });
+    if (!category || !category.isActive) {
+      throw new NotFoundException('Provider business category not found');
+    }
+    return category;
   }
 
   private normalizeEmail(email: string): string {

@@ -5,12 +5,14 @@ import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 import { MailerModule } from '../mailer/mailer.module';
+import { ProviderBusinessCategoriesController } from './provider-business-categories.controller';
+import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
 import { ProviderManagementController } from './provider-management.controller';
 import { ProviderManagementService } from './provider-management.service';
 
 @Module({
   imports: [AuthModule, JwtModule.register({}), MailerModule],
-  controllers: [ProviderManagementController],
-  providers: [ProviderManagementService, PrismaService, AuditLogWriterService, AccountStatusService],
+  controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
+  providers: [ProviderManagementService, ProviderBusinessCategoriesService, PrismaService, AuditLogWriterService, AccountStatusService],
 })
 export class ProviderManagementModule {}
