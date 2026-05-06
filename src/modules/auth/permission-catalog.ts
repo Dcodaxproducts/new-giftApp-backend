@@ -94,6 +94,37 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'subscriptionPlans',
+    label: 'Subscription Plans',
+    permissions: [
+      { key: 'read', label: 'View Subscription Plans', description: 'View subscription plans.' },
+      { key: 'create', label: 'Create Subscription Plans', description: 'Create subscription plans.' },
+      { key: 'update', label: 'Update Subscription Plans', description: 'Update subscription plans.' },
+      { key: 'delete', label: 'Delete Subscription Plans', description: 'Archive subscription plans.' },
+      { key: 'status.update', label: 'Update Plan Status', description: 'Update plan status.' },
+      { key: 'visibility.update', label: 'Update Plan Visibility', description: 'Update plan visibility.' },
+      { key: 'analytics.read', label: 'View Plan Analytics', description: 'View subscription analytics.' },
+    ],
+  },
+  {
+    module: 'planFeatures',
+    label: 'Plan Features',
+    permissions: [
+      { key: 'read', label: 'View Plan Features', description: 'View plan feature catalog.' },
+      { key: 'update', label: 'Update Plan Features', description: 'Update plan feature catalog.' },
+    ],
+  },
+  {
+    module: 'coupons',
+    label: 'Coupons',
+    permissions: [
+      { key: 'read', label: 'View Coupons', description: 'View coupon codes.' },
+      { key: 'create', label: 'Create Coupons', description: 'Create coupon codes.' },
+      { key: 'update', label: 'Update Coupons', description: 'Update coupon codes.' },
+      { key: 'delete', label: 'Delete Coupons', description: 'Delete coupon codes.' },
+    ],
+  },
+  {
     module: 'transactions',
     label: 'Transactions',
     permissions: [

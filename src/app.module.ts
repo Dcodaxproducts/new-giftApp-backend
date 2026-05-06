@@ -9,6 +9,7 @@ import { GiftManagementModule } from './modules/gift-management/gift-management.
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     UserManagementModule,
     GiftManagementModule,
     BroadcastNotificationsModule,
+    SubscriptionPlansModule,
     LoginAttemptsModule,
     AuditLogsModule,
     StorageModule,
