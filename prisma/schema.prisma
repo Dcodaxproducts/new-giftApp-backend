@@ -31,6 +31,19 @@ enum AccountType {
   ADMIN
 }
 
+enum GiftStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+}
+
+enum GiftModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+}
+
 model User {
   id                        String                  @id @default(cuid())
   email                     String                  @unique
@@ -81,12 +94,83 @@ model User {
   accountSuspensions        AccountSuspension[]     @relation("SuspendedAccount")
   createdSuspensions        AccountSuspension[]     @relation("SuspensionActor")
   resolvedSuspensions       AccountSuspension[]     @relation("UnsuspensionActor")
+  providerGifts             Gift[]                  @relation("GiftProvider")
+  approvedGifts             Gift[]                  @relation("GiftApprover")
+  rejectedGifts             Gift[]                  @relation("GiftRejecter")
+  flaggedGifts              Gift[]                  @relation("GiftFlagger")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
   @@index([adminRoleId])
   @@index([providerApprovalStatus])
   @@map("users")
+}
+
+model GiftCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  iconKey     String?   @map("icon_key")
+  color       String?
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
+
+  gifts Gift[]
+
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
+  @@map("gift_categories")
+}
+
+model Gift {
+  id               String               @id @default(cuid())
+  name             String
+  slug             String               @unique
+  description      String?
+  shortDescription String?              @map("short_description")
+  categoryId       String               @map("category_id")
+  providerId       String               @map("provider_id")
+  price            Decimal              @db.Decimal(10, 2)
+  currency         String               @default("USD")
+  stockQuantity    Int                  @default(0) @map("stock_quantity")
+  sku              String?              @unique
+  imageUrls        Json                 @default("[]") @map("image_urls")
+  status           GiftStatus           @default(INACTIVE)
+  moderationStatus GiftModerationStatus @default(PENDING) @map("moderation_status")
+  isPublished      Boolean              @default(false) @map("is_published")
+  isFeatured       Boolean              @default(false) @map("is_featured")
+  tags             Json                 @default("[]")
+  ratingPlaceholder Decimal             @default(4.8) @map("rating_placeholder") @db.Decimal(3, 2)
+  approvedAt       DateTime?            @map("approved_at") @db.Timestamptz
+  approvedBy       String?              @map("approved_by")
+  rejectedAt       DateTime?            @map("rejected_at") @db.Timestamptz
+  rejectedBy       String?              @map("rejected_by")
+  rejectionReason  String?              @map("rejection_reason")
+  rejectionComment String?              @map("rejection_comment")
+  flaggedAt        DateTime?            @map("flagged_at") @db.Timestamptz
+  flaggedBy        String?              @map("flagged_by")
+  flagReason       String?              @map("flag_reason")
+  flagComment      String?              @map("flag_comment")
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt        DateTime?            @map("deleted_at") @db.Timestamptz
+
+  category GiftCategory @relation(fields: [categoryId], references: [id])
+  provider User         @relation("GiftProvider", fields: [providerId], references: [id])
+  approver User?        @relation("GiftApprover", fields: [approvedBy], references: [id])
+  rejecter User?        @relation("GiftRejecter", fields: [rejectedBy], references: [id])
+  flagger  User?        @relation("GiftFlagger", fields: [flaggedBy], references: [id])
+
+  @@index([categoryId, deletedAt])
+  @@index([providerId, deletedAt])
+  @@index([status, deletedAt])
+  @@index([moderationStatus, deletedAt])
+  @@index([isPublished, deletedAt])
+  @@map("gifts")
 }
 
 model AdminRole {

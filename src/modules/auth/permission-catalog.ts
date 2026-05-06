@@ -39,6 +39,38 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'gifts',
+    label: 'Gift Management',
+    permissions: [
+      { key: 'read', label: 'View Gifts', description: 'View gift inventory and details.' },
+      { key: 'create', label: 'Create Gifts', description: 'Create gift inventory records.' },
+      { key: 'update', label: 'Edit Gifts', description: 'Update gift inventory records.' },
+      { key: 'delete', label: 'Delete Gifts', description: 'Soft-delete gift inventory records.' },
+      { key: 'status.update', label: 'Update Gift Status', description: 'Update gift listing status.' },
+      { key: 'export', label: 'Export Gifts', description: 'Export gift inventory data.' },
+    ],
+  },
+  {
+    module: 'giftCategories',
+    label: 'Gift Categories',
+    permissions: [
+      { key: 'read', label: 'View Gift Categories', description: 'View gift categories.' },
+      { key: 'create', label: 'Create Gift Categories', description: 'Create gift categories.' },
+      { key: 'update', label: 'Edit Gift Categories', description: 'Update gift categories.' },
+      { key: 'delete', label: 'Delete Gift Categories', description: 'Soft-delete gift categories.' },
+    ],
+  },
+  {
+    module: 'giftModeration',
+    label: 'Gift Moderation',
+    permissions: [
+      { key: 'read', label: 'View Gift Moderation', description: 'View moderation queue.' },
+      { key: 'approve', label: 'Approve Gifts', description: 'Approve gifts for publishing.' },
+      { key: 'reject', label: 'Reject Gifts', description: 'Reject gift submissions.' },
+      { key: 'flag', label: 'Flag Gifts', description: 'Flag gifts for manual review.' },
+    ],
+  },
+  {
     module: 'transactions',
     label: 'Transactions',
     permissions: [

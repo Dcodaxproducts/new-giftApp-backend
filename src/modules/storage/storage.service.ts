@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
+import { PrismaService } from '../../database/prisma.service';
 import { CreatePresignedUploadDto, UploadFolder } from './dto/create-presigned-upload.dto';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class StorageService {
   constructor(
     private readonly configService: ConfigService,
     private readonly auditLog: AuditLogWriterService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async createPresignedUpload(
@@ -23,7 +25,7 @@ export class StorageService {
     ipAddress?: string,
     userAgent?: string | string[],
   ) {
-    this.assertUploadScope(user, dto);
+    await this.assertUploadScope(user, dto);
     const bucket = this.required('AWS_BUCKET_NAME');
     const publicBaseUrl = this.configService.get<string>('AWS_PUBLIC_BASE_URL');
     const expiresIn = Number(
@@ -56,7 +58,7 @@ export class StorageService {
     };
   }
 
-  private assertUploadScope(user: AuthUserContext, dto: CreatePresignedUploadDto): void {
+  private async assertUploadScope(user: AuthUserContext, dto: CreatePresignedUploadDto): Promise<void> {
     if (user.role === UserRole.REGISTERED_USER) {
       if (dto.folder !== UploadFolder.USER_AVATARS || (dto.targetAccountId && dto.targetAccountId !== user.uid)) {
         throw new ForbiddenException('Registered users can upload only their own avatar files');
@@ -69,9 +71,18 @@ export class StorageService {
         UploadFolder.PROVIDER_LOGOS,
         UploadFolder.PROVIDER_DOCUMENTS,
         UploadFolder.PROVIDER_ITEM_IMAGES,
+        UploadFolder.GIFT_IMAGES,
       ];
       if (!allowed.includes(dto.folder) || (dto.targetAccountId && dto.targetAccountId !== user.uid)) {
         throw new ForbiddenException('Providers can upload only their own provider assets');
+      }
+      if (dto.folder === UploadFolder.GIFT_IMAGES && dto.giftId) {
+        const gift = await this.prisma.gift.findFirst({
+          where: { id: dto.giftId, providerId: user.uid, deletedAt: null },
+        });
+        if (!gift) {
+          throw new ForbiddenException('Providers can upload images only for their own gifts');
+        }
       }
       return;
     }

@@ -4,6 +4,7 @@ import { AdminManagementModule } from './modules/admin-management/admin-manageme
 import { AdminRolesModule } from './modules/admin-roles/admin-roles.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
 import { StorageModule } from './modules/storage/storage.module';
@@ -17,6 +18,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminRolesModule,
     ProviderManagementModule,
     UserManagementModule,
+    GiftManagementModule,
     LoginAttemptsModule,
     AuditLogsModule,
     StorageModule,

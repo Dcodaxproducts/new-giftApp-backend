@@ -21,6 +21,7 @@ import {
   MessageProviderDto,
   ProviderActivityType,
   ProviderItemStatus,
+  ProviderLookupDto,
   ProviderSortBy,
   ProviderStatusFilter,
   ProviderStatusUpdate,
@@ -106,6 +107,32 @@ export class ProviderManagementService {
     return {
       data: this.toDetail(provider, this.emptyProviderStats()),
       message: 'Provider details fetched successfully',
+    };
+  }
+
+  async lookup(query: ProviderLookupDto) {
+    const providers = await this.prisma.user.findMany({
+      where: {
+        role: UserRole.PROVIDER,
+        deletedAt: null,
+        providerApprovalStatus: query.approvalStatus ?? ProviderApprovalStatus.APPROVED,
+        isActive: query.isActive ?? true,
+        ...(query.search
+          ? {
+              OR: [
+                { providerBusinessName: { contains: query.search, mode: 'insensitive' } },
+                { email: { contains: query.search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { providerBusinessName: 'asc' },
+      take: query.limit ?? 20,
+    });
+
+    return {
+      data: providers.map((provider) => ({ id: provider.id, businessName: this.businessName(provider), email: provider.email })),
+      message: 'Provider lookup fetched successfully',
     };
   }
 

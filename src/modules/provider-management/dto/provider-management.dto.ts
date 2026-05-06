@@ -364,3 +364,29 @@ export class MessageProviderDto {
   @IsEnum(ProviderMessageChannel)
   channel!: ProviderMessageChannel;
 }
+
+export class ProviderLookupDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiPropertyOptional({ enum: ProviderApprovalStatus })
+  @IsOptional()
+  @IsEnum(ProviderApprovalStatus)
+  approvalStatus?: ProviderApprovalStatus;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiPropertyOptional({ example: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+}

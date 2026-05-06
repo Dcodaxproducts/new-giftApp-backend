@@ -25,6 +25,7 @@ import {
   ListProviderItemsDto,
   ListProvidersDto,
   MessageProviderDto,
+  ProviderLookupDto,
   RejectProviderDto,
   UpdateProviderDto,
   UpdateProviderStatusDto,
@@ -59,6 +60,12 @@ export class ProviderManagementController {
   @Permissions('providers.read')
   list(@Query() query: ListProvidersDto): Promise<unknown> {
     return this.providerManagementService.list(query);
+  }
+
+  @Get('lookup')
+  @Permissions('providers.read')
+  lookup(@Query() query: ProviderLookupDto): Promise<unknown> {
+    return this.providerManagementService.lookup(query);
   }
 
   @Post()

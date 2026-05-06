@@ -1,0 +1,13 @@
+import { Module } from '@nestjs/common';
+import { AuditLogWriterService } from '../../common/services/audit-log.service';
+import { PrismaService } from '../../database/prisma.service';
+import { GiftCategoriesController } from './gift-categories.controller';
+import { GiftModerationController } from './gift-moderation.controller';
+import { GiftManagementService } from './gift-management.service';
+import { GiftsController } from './gifts.controller';
+
+@Module({
+  controllers: [GiftCategoriesController, GiftsController, GiftModerationController],
+  providers: [GiftManagementService, PrismaService, AuditLogWriterService],
+})
+export class GiftManagementModule {}

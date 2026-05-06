@@ -7,6 +7,7 @@ export enum UploadFolder {
   PROVIDER_LOGOS = 'provider-logos',
   PROVIDER_DOCUMENTS = 'provider-documents',
   PROVIDER_ITEM_IMAGES = 'provider-item-images',
+  GIFT_IMAGES = 'gift-images',
 }
 
 export class CreatePresignedUploadDto {
@@ -28,4 +29,9 @@ export class CreatePresignedUploadDto {
   @IsOptional()
   @IsString()
   targetAccountId?: string;
+
+  @ApiProperty({ required: false, example: 'gift_id' })
+  @IsOptional()
+  @IsString()
+  giftId?: string;
 }
