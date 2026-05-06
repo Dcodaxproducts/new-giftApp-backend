@@ -5,7 +5,11 @@ export const PERMISSION_CATALOG = [
     permissions: [
       { key: 'read', label: 'View Users', description: 'View user lists and profiles.' },
       { key: 'update', label: 'Edit Users', description: 'Modify user profile fields.' },
-      { key: 'updateStatus', label: 'Activate/Deactivate Users', description: 'Restrict or restore user access.' },
+      { key: 'status.update', label: 'Update User Status', description: 'Enable or disable user access.' },
+      { key: 'suspend', label: 'Suspend Users', description: 'Suspend registered user accounts.' },
+      { key: 'unsuspend', label: 'Unsuspend Users', description: 'Restore suspended registered user accounts.' },
+      { key: 'resetPassword', label: 'Reset User Password', description: 'Send registered user password reset emails.' },
+      { key: 'export', label: 'Export Users', description: 'Export registered user data.' },
     ],
   },
   {
@@ -23,9 +27,15 @@ export const PERMISSION_CATALOG = [
     label: 'Provider Management',
     permissions: [
       { key: 'read', label: 'View Providers', description: 'View provider profiles and applications.' },
+      { key: 'create', label: 'Create Providers', description: 'Create provider accounts from the dashboard.' },
+      { key: 'update', label: 'Edit Providers', description: 'Update provider profile fields.' },
       { key: 'approve', label: 'Approve Providers', description: 'Approve provider onboarding.' },
       { key: 'reject', label: 'Reject Providers', description: 'Reject provider onboarding.' },
-      { key: 'updateStatus', label: 'Activate/Deactivate Providers', description: 'Restrict or restore provider access.' },
+      { key: 'status.update', label: 'Update Provider Status', description: 'Enable or disable provider access.' },
+      { key: 'suspend', label: 'Suspend Providers', description: 'Suspend provider accounts.' },
+      { key: 'unsuspend', label: 'Unsuspend Providers', description: 'Restore suspended provider accounts.' },
+      { key: 'export', label: 'Export Providers', description: 'Export provider data.' },
+      { key: 'message', label: 'Message Providers', description: 'Send provider account messages.' },
     ],
   },
   {

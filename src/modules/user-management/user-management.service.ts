@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { LoginAttemptStatus, Prisma, User, UserRole } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { AccountType, LoginAttemptStatus, Prisma, User, UserRole } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AccountStatusService } from '../../common/services/account-status.service';
 import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
 import {
@@ -40,6 +41,7 @@ export class UserManagementService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
+    private readonly accountStatusService: AccountStatusService,
   ) {}
 
   async list(query: ListRegisteredUsersDto) {
@@ -93,70 +95,37 @@ export class UserManagementService {
   }
 
   async updateStatus(user: AuthUserContext, id: string, dto: UpdateRegisteredUserStatusDto) {
-    if (dto.status === RegisteredUserStatusUpdate.SUSPENDED && !dto.reason) {
-      throw new BadRequestException('Suspension reason is required');
-    }
-
-    if (dto.status === RegisteredUserStatusUpdate.SUSPENDED) {
-      const reason = dto.reason;
-      if (!reason) {
-        throw new BadRequestException('Suspension reason is required');
-      }
-
-      return this.suspend(user, id, {
-        reason,
-        comment: dto.comment,
-        notifyUser: dto.notifyUser,
-      });
-    }
-
-    const target = await this.getRegisteredUser(id);
-    const before = this.toStatusResponse(target);
-    const updated = await this.prisma.user.update({
-      where: { id: target.id },
-      data: {
-        isActive: dto.status === RegisteredUserStatusUpdate.ACTIVE,
-        suspensionReason: null,
-        suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
-        refreshTokenHash: dto.status === RegisteredUserStatusUpdate.ACTIVE ? target.refreshTokenHash : null,
-      },
+    const response = await this.accountStatusService.updateStatus({
+      actorId: user.uid,
+      accountId: id,
+      accountType: AccountType.REGISTERED_USER,
+      status: dto.status,
+      reason: dto.reason,
+      comment: dto.comment,
+      notify: dto.notifyUser,
+      activeStatuses: [RegisteredUserStatusUpdate.ACTIVE],
+      suspendedStatus: RegisteredUserStatusUpdate.SUSPENDED,
+      actionPrefix: 'REGISTERED_USER',
+      targetType: 'REGISTERED_USER',
     });
-    const response = this.toStatusResponse(updated);
-    await this.recordAudit(user.uid, target.id, `REGISTERED_USER_${dto.status}`, before, response);
-    await this.notifyStatusChange(updated, dto.notifyUser, dto.status, dto.comment);
 
     return {
       data: response,
-      message: dto.status === RegisteredUserStatusUpdate.ACTIVE
-        ? 'User unsuspended successfully'
-        : 'User disabled successfully',
+      message: dto.status === RegisteredUserStatusUpdate.SUSPENDED
+        ? 'User suspended successfully'
+        : dto.status === RegisteredUserStatusUpdate.ACTIVE
+          ? 'User unsuspended successfully'
+          : 'User disabled successfully',
     };
   }
 
   async suspend(user: AuthUserContext, id: string, dto: SuspendRegisteredUserDto) {
-    const target = await this.getRegisteredUser(id);
-    const before = this.toStatusResponse(target);
-    const updated = await this.prisma.user.update({
-      where: { id: target.id },
-      data: {
-        isActive: false,
-        suspensionReason: dto.reason,
-        suspensionComment: dto.comment?.trim(),
-        suspendedAt: new Date(),
-        suspendedBy: user.uid,
-        refreshTokenHash: null,
-      },
+    return this.updateStatus(user, id, {
+      status: RegisteredUserStatusUpdate.SUSPENDED,
+      reason: dto.reason,
+      comment: dto.comment,
+      notifyUser: dto.notifyUser,
     });
-    const response = this.toStatusResponse(updated);
-    await this.recordAudit(user.uid, target.id, 'REGISTERED_USER_SUSPENDED', before, response);
-    await this.notifyStatusChange(updated, dto.notifyUser, RegisteredUserStatusUpdate.SUSPENDED, dto.comment);
-
-    return {
-      data: response,
-      message: 'User suspended successfully',
-    };
   }
 
   async unsuspend(
@@ -164,11 +133,19 @@ export class UserManagementService {
     id: string,
     dto: { comment?: string; notifyUser?: boolean },
   ) {
-    return this.updateStatus(user, id, {
-      status: RegisteredUserStatusUpdate.ACTIVE,
+    const response = await this.accountStatusService.unsuspend({
+      actorId: user.uid,
+      accountId: id,
+      accountType: AccountType.REGISTERED_USER,
       comment: dto.comment,
-      notifyUser: dto.notifyUser,
+      notify: dto.notifyUser,
+      activeStatuses: [RegisteredUserStatusUpdate.ACTIVE],
+      suspendedStatus: RegisteredUserStatusUpdate.SUSPENDED,
+      actionPrefix: 'REGISTERED_USER',
+      targetType: 'REGISTERED_USER',
     });
+
+    return { data: response, message: 'User unsuspended successfully' };
   }
 
   async resetPassword(
@@ -562,6 +539,7 @@ export class UserManagementService {
     await this.mailerService.sendAccountStatusEmail(user.email, status, comment);
   }
 
+  // TODO(PROD): replace placeholder stats with Order/Payment/Subscription module aggregates.
   private emptyStats(): UserStats {
     return {
       ordersCount: 0,
@@ -595,12 +573,34 @@ export class UserManagementService {
       data: {
         actorId,
         targetId,
+        targetType: this.inferTargetType(action),
         action,
         beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
         afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
       },
     });
   }
+
+  private inferTargetType(action: string): string | null {
+    if (action.startsWith('ADMIN_ROLE')) {
+      return 'ADMIN_ROLE';
+    }
+
+    if (action.startsWith('ADMIN')) {
+      return 'ADMIN';
+    }
+
+    if (action.startsWith('REGISTERED_USER')) {
+      return 'REGISTERED_USER';
+    }
+
+    if (action.startsWith('PROVIDER')) {
+      return 'PROVIDER';
+    }
+
+    return null;
+  }
+
 
   private titleCase(value: string): string {
     return value

@@ -25,6 +25,12 @@ enum LoginAttemptStatus {
   BLOCKED
 }
 
+enum AccountType {
+  REGISTERED_USER
+  PROVIDER
+  ADMIN
+}
+
 model User {
   id                        String                  @id @default(cuid())
   email                     String                  @unique
@@ -72,6 +78,9 @@ model User {
   adminRole                 AdminRole?              @relation(fields: [adminRoleId], references: [id])
   auditLogs                 AdminAuditLog[]         @relation("AuditActor")
   targetAuditLogs           AdminAuditLog[]         @relation("AuditTarget")
+  accountSuspensions        AccountSuspension[]     @relation("SuspendedAccount")
+  createdSuspensions        AccountSuspension[]     @relation("SuspensionActor")
+  resolvedSuspensions       AccountSuspension[]     @relation("UnsuspensionActor")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -99,23 +108,49 @@ model AdminRole {
 }
 
 model AdminAuditLog {
-  id        String   @id @default(cuid())
-  actorId   String?  @map("actor_id")
-  targetId  String?  @map("target_id")
-  action    String
-  beforeJson Json?   @map("before_json")
-  afterJson  Json?   @map("after_json")
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  targetId   String?  @map("target_id")
+  targetType String?  @map("target_type")
+  action     String
+  beforeJson Json?    @map("before_json")
+  afterJson  Json?    @map("after_json")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   actor User? @relation("AuditActor", fields: [actorId], references: [id])
   target User? @relation("AuditTarget", fields: [targetId], references: [id])
 
   @@index([actorId, createdAt])
   @@index([targetId, createdAt])
+  @@index([targetType, createdAt])
   @@index([action, createdAt])
   @@map("admin_audit_logs")
+}
+
+model AccountSuspension {
+  id            String      @id @default(cuid())
+  accountId     String      @map("account_id")
+  accountType   AccountType @map("account_type")
+  reason        String
+  comment       String?
+  suspendedBy   String      @map("suspended_by")
+  suspendedAt   DateTime    @default(now()) @map("suspended_at") @db.Timestamptz
+  unsuspendedBy String?     @map("unsuspended_by")
+  unsuspendedAt DateTime?   @map("unsuspended_at") @db.Timestamptz
+  isActive      Boolean     @default(true) @map("is_active")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  account       User        @relation("SuspendedAccount", fields: [accountId], references: [id])
+  suspendActor  User        @relation("SuspensionActor", fields: [suspendedBy], references: [id])
+  unsuspendActor User?      @relation("UnsuspensionActor", fields: [unsuspendedBy], references: [id])
+
+  @@index([accountId, isActive])
+  @@index([accountType, isActive])
+  @@index([suspendedBy, suspendedAt])
+  @@map("account_suspensions")
 }
 
 model LoginAttempt {

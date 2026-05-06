@@ -341,6 +341,12 @@ export class AuthService implements OnModuleInit {
     if (user.uid === admin.id && dto.isActive === false) {
       throw new ForbiddenException('Super Admin cannot deactivate self');
     }
+    if (admin.role === UserRole.SUPER_ADMIN && dto.roleId) {
+      throw new ForbiddenException('Super Admin cannot be downgraded');
+    }
+    if (admin.role === UserRole.SUPER_ADMIN && dto.isActive === false) {
+      await this.assertAnotherActiveSuperAdminExists(admin.id);
+    }
     const adminRole = dto.roleId ? await this.getAdminRole(dto.roleId) : admin.adminRole;
     const before = this.toAdminDetail(admin, admin.adminRole);
     const updated = await this.prisma.user.update({
@@ -896,6 +902,22 @@ export class AuthService implements OnModuleInit {
     return provider;
   }
 
+
+  private async assertAnotherActiveSuperAdminExists(currentSuperAdminId: string): Promise<void> {
+    const activeSuperAdmins = await this.prisma.user.count({
+      where: {
+        role: UserRole.SUPER_ADMIN,
+        isActive: true,
+        deletedAt: null,
+        id: { not: currentSuperAdminId },
+      },
+    });
+
+    if (activeSuperAdmins === 0) {
+      throw new ForbiddenException('Last active Super Admin cannot be disabled');
+    }
+  }
+
   private async getAdmin(adminId: string): Promise<User & { adminRole: AdminRole | null }> {
     const admin = await this.prisma.user.findUnique({
       where: { id: adminId },
@@ -1111,6 +1133,7 @@ export class AuthService implements OnModuleInit {
       data: {
         actorId,
         targetId,
+        targetType: this.inferTargetType(action),
         action,
         beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
         afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
@@ -1266,6 +1289,27 @@ export class AuthService implements OnModuleInit {
   private slugify(value: string): string {
     return value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   }
+
+  private inferTargetType(action: string): string | null {
+    if (action.startsWith('ADMIN_ROLE')) {
+      return 'ADMIN_ROLE';
+    }
+
+    if (action.startsWith('ADMIN')) {
+      return 'ADMIN';
+    }
+
+    if (action.startsWith('REGISTERED_USER')) {
+      return 'REGISTERED_USER';
+    }
+
+    if (action.startsWith('PROVIDER')) {
+      return 'PROVIDER';
+    }
+
+    return null;
+  }
+
 
   private titleCase(value: string): string {
     return value

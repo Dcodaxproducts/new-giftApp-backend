@@ -1,13 +1,13 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
+import { AccountType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AccountStatusService } from '../../common/services/account-status.service';
 import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
 import {
@@ -55,6 +55,7 @@ export class ProviderManagementService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
+    private readonly accountStatusService: AccountStatusService,
   ) {}
 
   async list(query: ListProvidersDto) {
@@ -227,30 +228,19 @@ export class ProviderManagementService {
   }
 
   async updateStatus(user: AuthUserContext, id: string, dto: UpdateProviderStatusDto) {
-    if (dto.status === ProviderStatusUpdate.SUSPENDED && !dto.reason) {
-      throw new BadRequestException('Suspension reason is required');
-    }
-
-    const provider = await this.getProvider(id);
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
-        isActive: dto.status === ProviderStatusUpdate.ACTIVE,
-        suspensionReason: dto.status === ProviderStatusUpdate.SUSPENDED ? dto.reason : null,
-        suspensionComment: dto.status === ProviderStatusUpdate.SUSPENDED ? dto.comment?.trim() : null,
-        suspendedAt: dto.status === ProviderStatusUpdate.SUSPENDED ? new Date() : null,
-        suspendedBy: dto.status === ProviderStatusUpdate.SUSPENDED ? user.uid : null,
-        refreshTokenHash: dto.status === ProviderStatusUpdate.ACTIVE ? provider.refreshTokenHash : null,
-      },
+    const response = await this.accountStatusService.updateStatus({
+      actorId: user.uid,
+      accountId: id,
+      accountType: AccountType.PROVIDER,
+      status: dto.status,
+      reason: dto.reason,
+      comment: dto.comment,
+      notify: dto.notifyProvider,
+      activeStatuses: [ProviderStatusUpdate.ACTIVE],
+      suspendedStatus: ProviderStatusUpdate.SUSPENDED,
+      actionPrefix: 'PROVIDER',
+      targetType: 'PROVIDER',
     });
-    const response = {
-      id: updated.id,
-      status: this.toStatus(updated),
-      isActive: updated.isActive,
-      suspension: this.toSuspension(updated),
-    };
-    await this.recordAudit(user.uid, provider.id, `PROVIDER_STATUS_${dto.status}`, null, response);
-    await this.notifyProvider(updated, dto.notifyProvider, dto.status, dto.comment);
 
     return {
       data: response,
@@ -260,10 +250,36 @@ export class ProviderManagementService {
     };
   }
 
+  async suspend(user: AuthUserContext, id: string, dto: UpdateProviderStatusDto) {
+    return this.updateStatus(user, id, {
+      status: ProviderStatusUpdate.SUSPENDED,
+      reason: dto.reason,
+      comment: dto.comment,
+      notifyProvider: dto.notifyProvider,
+    });
+  }
+
+  async unsuspend(user: AuthUserContext, id: string, dto: { comment?: string; notifyProvider?: boolean }) {
+    const response = await this.accountStatusService.unsuspend({
+      actorId: user.uid,
+      accountId: id,
+      accountType: AccountType.PROVIDER,
+      comment: dto.comment,
+      notify: dto.notifyProvider,
+      activeStatuses: [ProviderStatusUpdate.ACTIVE],
+      suspendedStatus: ProviderStatusUpdate.SUSPENDED,
+      actionPrefix: 'PROVIDER',
+      targetType: 'PROVIDER',
+    });
+
+    return { data: response, message: 'Provider unsuspended successfully' };
+  }
+
   async items(id: string, query: ListProviderItemsDto) {
     await this.getProvider(id);
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
+    // TODO(PROD): replace placeholder items with Product/Inventory module data.
     const sampleItems = [
       {
         id: 'demo-item-1',
@@ -620,6 +636,7 @@ export class ProviderManagementService {
       data: {
         actorId,
         targetId,
+        targetType: this.inferTargetType(action),
         action,
         beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
         afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
@@ -635,6 +652,7 @@ export class ProviderManagementService {
     return `PROV-${id.slice(-6).toUpperCase()}`;
   }
 
+  // TODO(PROD): replace placeholder stats with Product/Order/Payment/Dispute module aggregates.
   private emptyProviderStats(): ProviderStats {
     return {
       revenue: 0,
@@ -652,6 +670,27 @@ export class ProviderManagementService {
   private generateTemporaryPassword(): string {
     return `Gift-${randomBytes(6).toString('hex')}1!`;
   }
+
+  private inferTargetType(action: string): string | null {
+    if (action.startsWith('ADMIN_ROLE')) {
+      return 'ADMIN_ROLE';
+    }
+
+    if (action.startsWith('ADMIN')) {
+      return 'ADMIN';
+    }
+
+    if (action.startsWith('REGISTERED_USER')) {
+      return 'REGISTERED_USER';
+    }
+
+    if (action.startsWith('PROVIDER')) {
+      return 'PROVIDER';
+    }
+
+    return null;
+  }
+
 
   private titleCase(value: string): string {
     return value

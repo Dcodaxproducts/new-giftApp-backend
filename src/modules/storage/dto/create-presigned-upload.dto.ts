@@ -1,11 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString, Matches } from 'class-validator';
+import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+
+export enum UploadFolder {
+  ADMIN_AVATARS = 'admin-avatars',
+  USER_AVATARS = 'user-avatars',
+  PROVIDER_LOGOS = 'provider-logos',
+  PROVIDER_DOCUMENTS = 'provider-documents',
+  PROVIDER_ITEM_IMAGES = 'provider-item-images',
+}
 
 export class CreatePresignedUploadDto {
-  @ApiProperty({ example: 'admin-avatars' })
-  @IsString()
-  @IsIn(['admin-avatars', 'user-avatars', 'provider-documents'])
-  folder!: string;
+  @ApiProperty({ enum: UploadFolder })
+  @IsEnum(UploadFolder)
+  folder!: UploadFolder;
 
   @ApiProperty({ example: 'avatar.png' })
   @IsString()
@@ -16,4 +23,9 @@ export class CreatePresignedUploadDto {
   @IsString()
   @Matches(/^(image\/(png|jpeg|jpg|webp)|application\/pdf)$/)
   contentType!: string;
+
+  @ApiProperty({ required: false, example: 'target_account_id' })
+  @IsOptional()
+  @IsString()
+  targetAccountId?: string;
 }
