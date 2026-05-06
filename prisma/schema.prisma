@@ -44,6 +44,54 @@ enum GiftModerationStatus {
   FLAGGED
 }
 
+enum BroadcastChannel {
+  EMAIL
+  PUSH
+  IN_APP
+}
+
+enum BroadcastPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SCHEDULED
+  PROCESSING
+  SENT
+  CANCELLED
+  FAILED
+}
+
+enum BroadcastSendMode {
+  NOW
+  SCHEDULED
+}
+
+enum NotificationRecipientType {
+  ADMIN
+  PROVIDER
+  REGISTERED_USER
+}
+
+enum BroadcastDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  OPENED
+  CLICKED
+}
+
+enum NotificationDevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
 model User {
   id                        String                  @id @default(cuid())
   email                     String                  @unique
@@ -98,6 +146,12 @@ model User {
   approvedGifts             Gift[]                  @relation("GiftApprover")
   rejectedGifts             Gift[]                  @relation("GiftRejecter")
   flaggedGifts              Gift[]                  @relation("GiftFlagger")
+  createdBroadcasts         Broadcast[]             @relation("BroadcastCreator")
+  updatedBroadcasts         Broadcast[]             @relation("BroadcastUpdater")
+  cancelledBroadcasts       Broadcast[]             @relation("BroadcastCanceller")
+  notifications             Notification[]
+  deviceTokens              NotificationDeviceToken[]
+  notificationPreference    NotificationPreference?
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -171,6 +225,127 @@ model Gift {
   @@index([moderationStatus, deletedAt])
   @@index([isPublished, deletedAt])
   @@map("gifts")
+}
+
+model Broadcast {
+  id                 String            @id @default(cuid())
+  title              String
+  message            String
+  imageUrl           String?           @map("image_url")
+  ctaLabel           String?           @map("cta_label")
+  ctaUrl             String?           @map("cta_url")
+  channels           Json
+  priority           BroadcastPriority @default(NORMAL)
+  status             BroadcastStatus   @default(DRAFT)
+  targetingJson      Json?             @map("targeting_json")
+  estimatedReachJson Json?             @map("estimated_reach_json")
+  sendMode           BroadcastSendMode? @map("send_mode")
+  scheduledAt        DateTime?         @map("scheduled_at") @db.Timestamptz
+  timezone           String?           @default("UTC")
+  isRecurring        Boolean           @default(false) @map("is_recurring")
+  recurrenceJson     Json?             @map("recurrence_json")
+  createdBy          String            @map("created_by")
+  updatedBy          String?           @map("updated_by")
+  cancelledAt        DateTime?         @map("cancelled_at") @db.Timestamptz
+  cancelledBy        String?           @map("cancelled_by")
+  cancelReason       String?           @map("cancel_reason")
+  startedAt          DateTime?         @map("started_at") @db.Timestamptz
+  completedAt        DateTime?         @map("completed_at") @db.Timestamptz
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  creator   User  @relation("BroadcastCreator", fields: [createdBy], references: [id])
+  updater   User? @relation("BroadcastUpdater", fields: [updatedBy], references: [id])
+  canceller User? @relation("BroadcastCanceller", fields: [cancelledBy], references: [id])
+
+  deliveries    BroadcastDelivery[]
+  notifications Notification[]
+
+  @@index([status, createdAt])
+  @@index([scheduledAt, status])
+  @@map("broadcasts")
+}
+
+model BroadcastDelivery {
+  id                String                  @id @default(cuid())
+  broadcastId       String                  @map("broadcast_id")
+  recipientId       String                  @map("recipient_id")
+  recipientType     NotificationRecipientType @map("recipient_type")
+  channel           BroadcastChannel
+  status            BroadcastDeliveryStatus @default(QUEUED)
+  email             String?
+  deviceTokenId     String?                 @map("device_token_id")
+  failureReason     String?                 @map("failure_reason")
+  providerMessageId String?                 @map("provider_message_id")
+  queuedAt          DateTime                @default(now()) @map("queued_at") @db.Timestamptz
+  sentAt            DateTime?               @map("sent_at") @db.Timestamptz
+  deliveredAt       DateTime?               @map("delivered_at") @db.Timestamptz
+  openedAt          DateTime?               @map("opened_at") @db.Timestamptz
+  clickedAt         DateTime?               @map("clicked_at") @db.Timestamptz
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+
+  broadcast Broadcast @relation(fields: [broadcastId], references: [id])
+
+  @@index([broadcastId, status])
+  @@index([recipientId, recipientType])
+  @@map("broadcast_deliveries")
+}
+
+model Notification {
+  id            String                    @id @default(cuid())
+  recipientId   String                    @map("recipient_id")
+  recipientType NotificationRecipientType @map("recipient_type")
+  broadcastId   String?                   @map("broadcast_id")
+  title         String
+  message       String
+  imageUrl      String?                   @map("image_url")
+  ctaUrl        String?                   @map("cta_url")
+  type          String                    @default("BROADCAST")
+  isRead        Boolean                   @default(false) @map("is_read")
+  readAt        DateTime?                 @map("read_at") @db.Timestamptz
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+
+  recipient User       @relation(fields: [recipientId], references: [id])
+  broadcast Broadcast? @relation(fields: [broadcastId], references: [id])
+
+  @@index([recipientId, isRead, createdAt])
+  @@index([broadcastId])
+  @@map("notifications")
+}
+
+model NotificationDeviceToken {
+  id         String                     @id @default(cuid())
+  userId     String                     @map("user_id")
+  token      String
+  platform   NotificationDevicePlatform
+  deviceId   String                     @map("device_id")
+  isActive   Boolean                    @default(true) @map("is_active")
+  lastUsedAt DateTime?                  @map("last_used_at") @db.Timestamptz
+  createdAt  DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, deviceId])
+  @@index([userId, isActive])
+  @@map("notification_device_tokens")
+}
+
+model NotificationPreference {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  emailEnabled     Boolean  @default(true) @map("email_enabled")
+  pushEnabled      Boolean  @default(true) @map("push_enabled")
+  inAppEnabled     Boolean  @default(true) @map("in_app_enabled")
+  marketingEnabled Boolean  @default(true) @map("marketing_enabled")
+  systemEnabled    Boolean  @default(true) @map("system_enabled")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notification_preferences")
 }
 
 model AdminRole {

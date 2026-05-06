@@ -71,6 +71,29 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'broadcasts',
+    label: 'Broadcast Notifications',
+    permissions: [
+      { key: 'read', label: 'View Broadcasts', description: 'View broadcast campaigns.' },
+      { key: 'create', label: 'Create Broadcasts', description: 'Create broadcast drafts.' },
+      { key: 'update', label: 'Update Broadcasts', description: 'Update broadcast content and targeting.' },
+      { key: 'delete', label: 'Delete Broadcasts', description: 'Delete broadcast drafts.' },
+      { key: 'schedule', label: 'Schedule Broadcasts', description: 'Schedule broadcasts.' },
+      { key: 'send', label: 'Send Broadcasts', description: 'Send broadcasts now.' },
+      { key: 'cancel', label: 'Cancel Broadcasts', description: 'Cancel scheduled broadcasts.' },
+      { key: 'report.read', label: 'View Broadcast Reports', description: 'View delivery reports.' },
+      { key: 'export', label: 'Export Broadcasts', description: 'Export broadcast reports.' },
+    ],
+  },
+  {
+    module: 'notifications',
+    label: 'Notifications',
+    permissions: [
+      { key: 'read', label: 'View Notifications', description: 'View notification center.' },
+      { key: 'markRead', label: 'Mark Notifications Read', description: 'Mark notifications as read.' },
+    ],
+  },
+  {
     module: 'transactions',
     label: 'Transactions',
     permissions: [

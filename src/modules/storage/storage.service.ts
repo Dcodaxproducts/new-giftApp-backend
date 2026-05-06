@@ -87,6 +87,10 @@ export class StorageService {
       return;
     }
 
+    if (user.role === UserRole.ADMIN && dto.folder === UploadFolder.BROADCAST_IMAGES && !this.hasAnyPermission(user, ['broadcasts.create', 'broadcasts.update'])) {
+      throw new ForbiddenException('Admin role cannot upload broadcast images');
+    }
+
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
       return;
     }
@@ -97,6 +101,24 @@ export class StorageService {
   private scopedFolder(user: AuthUserContext, dto: CreatePresignedUploadDto): string {
     const target = dto.targetAccountId ?? user.uid;
     return `${dto.folder}/${target}`;
+  }
+
+  private hasAnyPermission(user: AuthUserContext, permissions: string[]): boolean {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return true;
+    }
+    if (!user.permissions || typeof user.permissions !== 'object' || Array.isArray(user.permissions)) {
+      return false;
+    }
+    const granted = new Set<string>();
+    for (const [module, values] of Object.entries(user.permissions)) {
+      if (Array.isArray(values)) {
+        for (const value of values) {
+          if (typeof value === 'string') granted.add(`${module}.${value}`);
+        }
+      }
+    }
+    return permissions.some((permission) => granted.has(permission));
   }
 
   private getClient(): S3Client {

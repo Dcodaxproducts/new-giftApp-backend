@@ -8,6 +8,7 @@ export enum UploadFolder {
   PROVIDER_DOCUMENTS = 'provider-documents',
   PROVIDER_ITEM_IMAGES = 'provider-item-images',
   GIFT_IMAGES = 'gift-images',
+  BROADCAST_IMAGES = 'broadcast-images',
 }
 
 export class CreatePresignedUploadDto {
