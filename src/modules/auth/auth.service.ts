@@ -531,7 +531,6 @@ export class AuthService implements OnModuleInit {
         where,
         include: {
           actor: { select: { id: true, email: true, firstName: true, lastName: true } },
-          target: { select: { id: true, email: true, firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
@@ -539,9 +538,17 @@ export class AuthService implements OnModuleInit {
       }),
       this.prisma.adminAuditLog.count({ where }),
     ]);
+    const targetIds = [...new Set(items.map((item) => item.targetId).filter((id): id is string => id !== null))];
+    const targets = targetIds.length > 0
+      ? await this.prisma.user.findMany({
+          where: { id: { in: targetIds } },
+          select: { id: true, email: true, firstName: true, lastName: true },
+        })
+      : [];
+    const targetById = new Map(targets.map((target) => [target.id, target]));
 
     return {
-      data: items,
+      data: items.map((item) => ({ ...item, target: item.targetId ? (targetById.get(item.targetId) ?? null) : null })),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       message: 'Audit logs fetched successfully',
     };

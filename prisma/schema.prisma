@@ -170,7 +170,6 @@ model User {
   loginAttempts             LoginAttempt[]
   adminRole                 AdminRole?              @relation(fields: [adminRoleId], references: [id])
   auditLogs                 AdminAuditLog[]         @relation("AuditActor")
-  targetAuditLogs           AdminAuditLog[]         @relation("AuditTarget")
   accountSuspensions        AccountSuspension[]     @relation("SuspendedAccount")
   createdSuspensions        AccountSuspension[]     @relation("SuspensionActor")
   resolvedSuspensions       AccountSuspension[]     @relation("UnsuspensionActor")
@@ -500,8 +499,6 @@ model AdminAuditLog {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   actor User? @relation("AuditActor", fields: [actorId], references: [id])
-  target User? @relation("AuditTarget", fields: [targetId], references: [id])
-
   @@index([actorId, createdAt])
   @@index([targetId, createdAt])
   @@index([targetType, createdAt])
