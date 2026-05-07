@@ -40,4 +40,15 @@ describe('PermissionsGuard', () => {
   it('uses permission metadata key', () => {
     expect(PERMISSIONS_KEY).toBe('permissions');
   });
+
+  it('allows broadcast schedule endpoint with either send or schedule permission', () => {
+    const reflector = new Reflector();
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['broadcasts.send', 'broadcasts.schedule']);
+    const guard = new PermissionsGuard(reflector);
+
+    expect(guard.canActivate(contextWithUser({
+      role: UserRole.ADMIN,
+      permissions: { broadcasts: ['schedule'] },
+    }))).toBe(true);
+  });
 });

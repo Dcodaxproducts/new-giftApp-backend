@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
 
 export enum UploadFolder {
   ADMIN_AVATARS = 'admin-avatars',
@@ -12,27 +13,22 @@ export enum UploadFolder {
 }
 
 export class CreatePresignedUploadDto {
-  @ApiProperty({ enum: UploadFolder })
-  @IsEnum(UploadFolder)
-  folder!: UploadFolder;
+  @ApiProperty({ enum: UploadFolder }) @IsEnum(UploadFolder) folder!: UploadFolder;
+  @ApiProperty({ example: 'avatar.png' }) @IsString() @Matches(/^[a-zA-Z0-9._-]+$/) fileName!: string;
+  @ApiProperty({ example: 'image/png' }) @IsString() @Matches(/^(image\/(png|jpeg|jpg|webp)|application\/pdf)$/) contentType!: string;
+  @ApiPropertyOptional({ example: 1048576 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(10 * 1024 * 1024) sizeBytes?: number;
+  @ApiProperty({ required: false, example: 'target_account_id' }) @IsOptional() @IsString() targetAccountId?: string;
+  @ApiProperty({ required: false, example: 'gift_id' }) @IsOptional() @IsString() giftId?: string;
+}
 
-  @ApiProperty({ example: 'avatar.png' })
-  @IsString()
-  @Matches(/^[a-zA-Z0-9._-]+$/)
-  fileName!: string;
+export class CompleteUploadDto {
+  @ApiProperty() @IsString() uploadId!: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) sizeBytes?: number;
+}
 
-  @ApiProperty({ example: 'image/png' })
-  @IsString()
-  @Matches(/^(image\/(png|jpeg|jpg|webp)|application\/pdf)$/)
-  contentType!: string;
-
-  @ApiProperty({ required: false, example: 'target_account_id' })
-  @IsOptional()
-  @IsString()
-  targetAccountId?: string;
-
-  @ApiProperty({ required: false, example: 'gift_id' })
-  @IsOptional()
-  @IsString()
-  giftId?: string;
+export class ListUploadsDto {
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ enum: UploadFolder }) @IsOptional() @IsEnum(UploadFolder) folder?: UploadFolder;
+  @ApiPropertyOptional() @IsOptional() @IsString() ownerId?: string;
 }

@@ -10,7 +10,7 @@ import { GiftsController } from './gifts.controller';
 
 @Module({
   imports: [JwtModule.register({})],
-  controllers: [GiftCategoriesController, GiftCategoriesLookupController, GiftsController, GiftModerationController],
+  controllers: [GiftCategoriesLookupController, GiftCategoriesController, GiftsController, GiftModerationController],
   providers: [GiftManagementService, PrismaService, AuditLogWriterService],
 })
 export class GiftManagementModule {}

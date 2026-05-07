@@ -31,9 +31,10 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const grantedPermissions = this.flattenPermissions(user.permissions);
-    const hasPermission = requiredPermissions.every((permission) =>
-      grantedPermissions.has(permission),
-    );
+    const requiresDynamicBroadcastSchedule = requiredPermissions.includes('broadcasts.send') && requiredPermissions.includes('broadcasts.schedule');
+    const hasPermission = requiresDynamicBroadcastSchedule
+      ? requiredPermissions.some((permission) => grantedPermissions.has(permission))
+      : requiredPermissions.every((permission) => grantedPermissions.has(permission));
 
     if (!hasPermission) {
       throw new ForbiddenException('Your role does not have the required permission');

@@ -1,6 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+
+export enum AuditLogSortBy { CREATED_AT = 'createdAt', ACTION = 'action', TARGET_TYPE = 'targetType' }
+export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 
 export class ListAuditLogsDto {
   @ApiPropertyOptional({ default: 1 })
@@ -32,4 +35,34 @@ export class ListAuditLogsDto {
   @IsOptional()
   @IsString()
   action?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  targetType?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  module?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  to?: string;
+
+  @ApiPropertyOptional({ enum: AuditLogSortBy })
+  @IsOptional()
+  @IsEnum(AuditLogSortBy)
+  sortBy?: AuditLogSortBy;
+
+  @ApiPropertyOptional({ enum: SortOrder })
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortOrder?: SortOrder;
 }

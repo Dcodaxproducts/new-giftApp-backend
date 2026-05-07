@@ -111,7 +111,19 @@ export const PERMISSION_CATALOG = [
     label: 'Plan Features',
     permissions: [
       { key: 'read', label: 'View Plan Features', description: 'View plan feature catalog.' },
+      { key: 'create', label: 'Create Plan Features', description: 'Create plan feature catalog entries.' },
       { key: 'update', label: 'Update Plan Features', description: 'Update plan feature catalog.' },
+      { key: 'delete', label: 'Delete Plan Features', description: 'Archive plan feature catalog entries.' },
+    ],
+  },
+  {
+    module: 'providerBusinessCategories',
+    label: 'Provider Business Categories',
+    permissions: [
+      { key: 'read', label: 'View Provider Business Categories', description: 'View provider business categories.' },
+      { key: 'create', label: 'Create Provider Business Categories', description: 'Create provider business categories.' },
+      { key: 'update', label: 'Update Provider Business Categories', description: 'Update provider business categories.' },
+      { key: 'delete', label: 'Delete Provider Business Categories', description: 'Soft-delete provider business categories.' },
     ],
   },
   {
@@ -122,6 +134,7 @@ export const PERMISSION_CATALOG = [
       { key: 'create', label: 'Create Coupons', description: 'Create coupon codes.' },
       { key: 'update', label: 'Update Coupons', description: 'Update coupon codes.' },
       { key: 'delete', label: 'Delete Coupons', description: 'Delete coupon codes.' },
+      { key: 'status.update', label: 'Update Coupon Status', description: 'Activate, deactivate, or expire coupon codes.' },
     ],
   },
   {
@@ -149,6 +162,14 @@ export const PERMISSION_CATALOG = [
     permissions: [
       { key: 'read', label: 'View Settings', description: 'View platform settings.' },
       { key: 'update', label: 'Update Settings', description: 'Modify operational settings.' },
+    ],
+  },
+  {
+    module: 'loginAttempts',
+    label: 'Login Attempts',
+    permissions: [
+      { key: 'read', label: 'View Login Attempts', description: 'View login attempt security logs.' },
+      { key: 'export', label: 'Export Login Attempts', description: 'Export login attempt security logs.' },
     ],
   },
   {

@@ -24,7 +24,7 @@ export class BroadcastsController {
   @Patch(':id') @Permissions('broadcasts.update') update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateBroadcastDto) { return this.broadcasts.update(user, id, dto); }
   @Patch(':id/targeting') @Permissions('broadcasts.update') targeting(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: BroadcastTargetingDto) { return this.broadcasts.updateTargeting(user, id, dto); }
   @Post('estimate-reach') @Permissions('broadcasts.read') estimate(@Body() dto: EstimateReachDto) { return this.broadcasts.estimateReach(dto); }
-  @Patch(':id/schedule') schedule(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ScheduleBroadcastDto) { return this.broadcasts.schedule(user, id, dto); }
+  @Patch(':id/schedule') @Permissions('broadcasts.send', 'broadcasts.schedule') schedule(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ScheduleBroadcastDto) { return this.broadcasts.schedule(user, id, dto); }
   @Post(':id/cancel') @Permissions('broadcasts.cancel') cancel(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: CancelBroadcastDto) { return this.broadcasts.cancel(user, id, dto); }
   @Get(':id/report') @Permissions('broadcasts.report.read') report(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.broadcasts.report(user, id); }
   @Get(':id/recipients') @Permissions('broadcasts.report.read') recipients(@Param('id') id: string, @Query() query: ListRecipientsDto) { return this.broadcasts.recipients(id, query); }

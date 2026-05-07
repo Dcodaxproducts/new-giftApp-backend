@@ -114,6 +114,13 @@ enum CouponDiscountType {
   FIXED_AMOUNT
 }
 
+enum UploadedFileStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  DELETED
+}
+
 enum ProviderFulfillmentMethod {
   PICKUP
   DELIVERY
@@ -183,6 +190,7 @@ model User {
   notifications             Notification[]
   deviceTokens              NotificationDeviceToken[]
   notificationPreference    NotificationPreference?
+  uploadedFiles             UploadedFile[]
   createdSubscriptionPlans  SubscriptionPlan[]      @relation("SubscriptionPlanCreator")
   updatedSubscriptionPlans  SubscriptionPlan[]      @relation("SubscriptionPlanUpdater")
   createdCoupons            Coupon[]                @relation("CouponCreator")
@@ -202,13 +210,17 @@ model ProviderBusinessCategory {
   name        String   @unique
   slug        String   @unique
   description String?
+  iconKey     String?  @map("icon_key")
+  sortOrder   Int      @default(0) @map("sort_order")
   isActive    Boolean  @default(true) @map("is_active")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   providers User[]
 
-  @@index([isActive])
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
   @@map("provider_business_categories")
 }
 
@@ -435,11 +447,37 @@ model PlanFeatureCatalog {
   description String?
   type        String   @default("BOOLEAN")
   isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  @@index([isActive])
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
   @@map("plan_feature_catalog")
+}
+
+model UploadedFile {
+  id          String             @id @default(cuid())
+  ownerId     String             @map("owner_id")
+  ownerRole   UserRole           @map("owner_role")
+  folder      String
+  fileName    String             @map("file_name")
+  contentType String             @map("content_type")
+  sizeBytes   Int?               @map("size_bytes")
+  fileUrl     String             @map("file_url")
+  storageKey  String             @unique @map("storage_key")
+  status      UploadedFileStatus @default(PENDING)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?          @map("deleted_at") @db.Timestamptz
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  @@index([ownerId, status])
+  @@index([folder, createdAt])
+  @@index([deletedAt])
+  @@map("uploaded_files")
 }
 
 model Coupon {
