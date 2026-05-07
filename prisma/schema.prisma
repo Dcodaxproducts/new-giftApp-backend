@@ -114,6 +114,35 @@ enum CouponDiscountType {
   FIXED_AMOUNT
 }
 
+enum PromotionalOfferDiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum PromotionalOfferStatus {
+  ACTIVE
+  SCHEDULED
+  EXPIRED
+  INACTIVE
+  PENDING
+  REJECTED
+}
+
+enum PromotionalOfferApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PromotionalOfferRejectionReason {
+  INVALID_DISCOUNT
+  INVALID_DATES
+  POLICY_VIOLATION
+  ITEM_NOT_ELIGIBLE
+  INCOMPLETE_INFORMATION
+  OTHER
+}
+
 enum UploadedFileStatus {
   PENDING
   COMPLETED
@@ -184,6 +213,9 @@ model User {
   approvedGifts             Gift[]                  @relation("GiftApprover")
   rejectedGifts             Gift[]                  @relation("GiftRejecter")
   flaggedGifts              Gift[]                  @relation("GiftFlagger")
+  promotionalOffers         PromotionalOffer[]       @relation("PromotionalOfferProvider")
+  approvedPromotionalOffers PromotionalOffer[]       @relation("PromotionalOfferApprover")
+  rejectedPromotionalOffers PromotionalOffer[]       @relation("PromotionalOfferRejecter")
   createdBroadcasts         Broadcast[]             @relation("BroadcastCreator")
   updatedBroadcasts         Broadcast[]             @relation("BroadcastUpdater")
   cancelledBroadcasts       Broadcast[]             @relation("BroadcastCanceller")
@@ -244,6 +276,45 @@ model GiftCategory {
   @@map("gift_categories")
 }
 
+model PromotionalOffer {
+  id               String                          @id @default(cuid())
+  providerId       String                          @map("provider_id")
+  itemId           String                          @map("item_id")
+  title            String
+  description      String?
+  discountType     PromotionalOfferDiscountType    @map("discount_type")
+  discountValue    Decimal                         @map("discount_value") @db.Decimal(10, 2)
+  startDate        DateTime                        @map("start_date") @db.Timestamptz
+  endDate          DateTime?                       @map("end_date") @db.Timestamptz
+  eligibilityRules String?                         @map("eligibility_rules")
+  isActive         Boolean                         @default(true) @map("is_active")
+  status           PromotionalOfferStatus          @default(PENDING)
+  approvalStatus   PromotionalOfferApprovalStatus  @default(PENDING) @map("approval_status")
+  approvedAt       DateTime?                       @map("approved_at") @db.Timestamptz
+  approvedBy       String?                         @map("approved_by")
+  rejectedAt       DateTime?                       @map("rejected_at") @db.Timestamptz
+  rejectedBy       String?                         @map("rejected_by")
+  rejectionReason  PromotionalOfferRejectionReason? @map("rejection_reason")
+  rejectionComment String?                         @map("rejection_comment")
+  createdBy        String?                         @map("created_by")
+  updatedBy        String?                         @map("updated_by")
+  deletedAt        DateTime?                       @map("deleted_at") @db.Timestamptz
+  createdAt        DateTime                        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
+
+  provider User @relation("PromotionalOfferProvider", fields: [providerId], references: [id])
+  item     Gift @relation(fields: [itemId], references: [id])
+  approver User? @relation("PromotionalOfferApprover", fields: [approvedBy], references: [id])
+  rejecter User? @relation("PromotionalOfferRejecter", fields: [rejectedBy], references: [id])
+
+  @@index([providerId, status])
+  @@index([itemId, status])
+  @@index([approvalStatus, status])
+  @@index([startDate, endDate])
+  @@index([deletedAt])
+  @@map("promotional_offers")
+}
+
 model Gift {
   id               String               @id @default(cuid())
   name             String
@@ -282,6 +353,7 @@ model Gift {
   approver User?        @relation("GiftApprover", fields: [approvedBy], references: [id])
   rejecter User?        @relation("GiftRejecter", fields: [rejectedBy], references: [id])
   flagger  User?        @relation("GiftFlagger", fields: [flaggedBy], references: [id])
+  promotionalOffers PromotionalOffer[]
 
   @@index([categoryId, deletedAt])
   @@index([providerId, deletedAt])

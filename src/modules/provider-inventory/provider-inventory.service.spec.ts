@@ -14,4 +14,10 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(source).toContain('moderationStatus: GiftModerationStatus.PENDING');
     expect(source).toContain('isPublished: false');
   });
+
+  it('exposes lookup with approved active provider items only', () => {
+    expect(source).toContain('async lookup');
+    expect(source).toContain('status: GiftStatus.ACTIVE');
+    expect(source).toContain('moderationStatus: GiftModerationStatus.APPROVED');
+  });
 });

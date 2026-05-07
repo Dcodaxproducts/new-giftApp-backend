@@ -36,6 +36,18 @@ export class ProviderInventoryService {
     return { data: { totalItems, activeItems, inactiveItems, outOfStockItems, pendingApprovalItems, rejectedItems }, message: 'Provider inventory stats fetched successfully' };
   }
 
+  async lookup(user: AuthUserContext) {
+    const items = await this.prisma.gift.findMany({
+      where: { providerId: user.uid, deletedAt: null, status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.APPROVED },
+      orderBy: { name: 'asc' },
+      take: 500,
+    });
+    return {
+      data: items.map((item) => ({ id: item.id, name: item.name, price: Number(item.price), currency: item.currency, imageUrl: this.firstImage(item.imageUrls), status: item.status, moderationStatus: item.moderationStatus })),
+      message: 'Provider inventory lookup fetched successfully',
+    };
+  }
+
   async create(user: AuthUserContext, dto: CreateProviderInventoryItemDto) {
     await this.ensureCategory(dto.categoryId);
     await this.ensureUniqueSku(dto.sku);

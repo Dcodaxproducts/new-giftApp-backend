@@ -138,6 +138,20 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'promotionalOffers',
+    label: 'Promotional Offers',
+    permissions: [
+      { key: 'read', label: 'View Promotional Offers', description: 'View promotional offers.' },
+      { key: 'create', label: 'Create Promotional Offers', description: 'Create promotional offers.' },
+      { key: 'update', label: 'Update Promotional Offers', description: 'Update promotional offers.' },
+      { key: 'delete', label: 'Delete Promotional Offers', description: 'Archive promotional offers.' },
+      { key: 'status.update', label: 'Update Offer Status', description: 'Activate or deactivate promotional offers.' },
+      { key: 'approve', label: 'Approve Promotional Offers', description: 'Approve provider promotional offers.' },
+      { key: 'reject', label: 'Reject Promotional Offers', description: 'Reject provider promotional offers.' },
+      { key: 'export', label: 'Export Promotional Offers', description: 'Export promotional offers.' },
+    ],
+  },
+  {
     module: 'transactions',
     label: 'Transactions',
     permissions: [

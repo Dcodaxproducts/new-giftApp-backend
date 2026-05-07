@@ -26,6 +26,11 @@ export class ProviderInventoryController {
     return this.service.stats(user);
   }
 
+  @Get('lookup')
+  lookup(@CurrentUser() user: AuthUserContext) {
+    return this.service.lookup(user);
+  }
+
   @Post()
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateProviderInventoryItemDto) {
     return this.service.create(user, dto);

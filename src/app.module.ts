@@ -9,6 +9,7 @@ import { GiftManagementModule } from './modules/gift-management/gift-management.
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
+import { PromotionalOffersModule } from './modules/promotional-offers/promotional-offers.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
@@ -21,6 +22,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminRolesModule,
     ProviderManagementModule,
     ProviderInventoryModule,
+    PromotionalOffersModule,
     UserManagementModule,
     GiftManagementModule,
     BroadcastNotificationsModule,
