@@ -111,8 +111,8 @@ export class MailerService {
   }
 
   private fromAddress(): string {
-    const address = this.configService.get<string>('EMAIL_FROM_ADDRESS') ?? this.configService.get<string>('MAIL_FROM_ADDRESS');
-    if (!address) throw new ServiceUnavailableException('EMAIL_FROM_ADDRESS is required for email delivery');
+    const address = this.configService.get<string>('MAIL_FROM_ADDRESS');
+    if (!address) throw new ServiceUnavailableException('MAIL_FROM_ADDRESS is required for email delivery');
     const name = this.configService.get<string>('EMAIL_FROM_NAME', this.configService.get<string>('APP_NAME', 'Gift App'));
     return `"${name.replaceAll('"', '')}" <${address}>`;
   }
@@ -128,7 +128,7 @@ export class MailerService {
     const port = this.configService.get<string>('MAIL_PORT', 'missing-port');
     const encryption = this.configService.get<string>('MAIL_ENCRYPTION', 'missing-encryption');
     const username = this.configService.get<string>('MAIL_USERNAME', 'missing-username');
-    const from = this.configService.get<string>('EMAIL_FROM_ADDRESS', this.configService.get<string>('MAIL_FROM_ADDRESS', 'missing-from'));
+    const from = this.configService.get<string>('MAIL_FROM_ADDRESS', 'missing-from');
     return `host=${host} port=${port} encryption=${encryption} username=${username} from=${from}`;
   }
 
