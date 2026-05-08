@@ -49,8 +49,18 @@ export class MailerService {
     await this.sendTemplate(email, { subject, text: buildPlainText({ ...this.brand(), title: subject, message }), html: layoutTemplate({ ...this.brand(), title: subject, message, contentHtml }) });
   }
 
-  async sendAdminInviteEmail(email: string, ctaUrl?: string): Promise<void> {
-    await this.sendTemplate(email, adminInviteTemplate({ ...this.brand(), title: 'You are invited to Gift App Admin', message: 'An admin account has been created for you.', ctaText: 'Open Admin Panel', ctaUrl: ctaUrl ?? this.frontendUrl() }));
+  async sendAdminInviteEmail(input: { email: string; userName: string; temporaryPassword?: string; mustChangePassword?: boolean; ctaUrl?: string }): Promise<void> {
+    await this.sendTemplate(input.email, adminInviteTemplate({
+      ...this.brand(),
+      userName: input.userName,
+      userEmail: input.email,
+      temporaryPassword: input.temporaryPassword,
+      mustChangePassword: input.mustChangePassword,
+      title: 'You are invited to Gift App Admin',
+      message: 'An admin account has been created for you.',
+      ctaText: 'Open Admin Panel',
+      ctaUrl: input.ctaUrl ?? this.frontendUrl(),
+    }));
   }
 
   async sendBroadcastEmail(input: { to: string; title: string; message: string; imageUrl?: string | null; ctaLabel?: string | null; ctaUrl?: string | null }): Promise<void> {

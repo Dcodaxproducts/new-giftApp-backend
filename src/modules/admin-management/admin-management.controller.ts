@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -23,6 +23,28 @@ export class AdminManagementController {
   constructor(private readonly adminManagementService: AdminManagementService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Create admin staff user',
+    description: 'Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user\'s permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.',
+  })
+  @ApiBody({
+    schema: {
+      example: {
+        email: 'staff@example.com',
+        temporaryPassword: 'Temp@123456',
+        generateTemporaryPassword: false,
+        mustChangePassword: true,
+        firstName: 'Operations',
+        lastName: 'Staff',
+        phone: '+15550000002',
+        title: 'Operations Manager',
+        roleId: 'admin_role_id',
+        avatarUrl: 'https://cdn.yourdomain.com/admin-avatars/staff.png',
+        isActive: true,
+        sendInviteEmail: true,
+      },
+    },
+  })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateAdminDto) {
     return this.adminManagementService.create(user, dto);
   }

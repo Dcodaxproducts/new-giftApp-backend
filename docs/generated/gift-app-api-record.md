@@ -470,23 +470,33 @@ No body.
 
 ### POST /admins
 
+Creates an `ADMIN` staff user under `SUPER_ADMIN`. `roleId` means **AdminRole.id** only. This endpoint never creates `SUPER_ADMIN`, `REGISTERED_USER`, `PROVIDER`, or `GUEST_USER` accounts, and the backend always stores `User.role = ADMIN`.
+
 ```json
 {
-  "email": "admin@example.com",
-  "firstName": "Operations",
-  "lastName": "Admin",
-  "phone": "+15550000002",
-  "title": "Operations Manager",
-  "roleId": "admin_role_id",
+  "email": "staff@example.com",
   "temporaryPassword": "Temp@123456",
   "generateTemporaryPassword": false,
   "mustChangePassword": true,
-  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/admin.png",
-  "isActive": true
+  "firstName": "Operations",
+  "lastName": "Staff",
+  "phone": "+15550000002",
+  "title": "Operations Manager",
+  "roleId": "admin_role_id",
+  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/staff.png",
+  "isActive": true,
+  "sendInviteEmail": true
 }
 ```
 
+Response highlights:
+- `role` = `ADMIN`
+- `roleId` = selected `AdminRole.id`
+- `inviteEmailSent` reports email delivery success/failure
+
 ## Admin Roles
+
+Admin Roles / RBAC manages permission roles for `ADMIN` staff users only. `SUPER_ADMIN` has full immutable access and does not depend on AdminRole permissions.
 
 ### POST /admin-roles
 
@@ -501,6 +511,17 @@ No body.
   "isActive": true
 }
 ```
+
+Rules:
+- Custom AdminRole permissions are assigned from the backend-supported permission catalog only.
+- `SUPER_ADMIN` bypasses admin permission checks and does not rely on `roleId`.
+- The system `SUPER_ADMIN` role is read-only and cannot be modified or deleted.
+- Disabled AdminRoles immediately block assigned `ADMIN` users from protected admin APIs.
+- Custom AdminRoles cannot be deleted while staff users are assigned.
+
+### GET /permissions/catalog
+
+Read-only list of backend-supported permission keys that can be assigned to admin roles. No create/update/delete endpoints exist for the permission catalog.
 
 ## Providers
 

@@ -13,6 +13,14 @@ function contextWithUser(user: unknown): ExecutionContext {
 }
 
 describe('PermissionsGuard', () => {
+  it('allows super admin without checking permission payload', () => {
+    const reflector = new Reflector();
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['users.read']);
+    const guard = new PermissionsGuard(reflector);
+
+    expect(guard.canActivate(contextWithUser({ role: UserRole.SUPER_ADMIN }))).toBe(true);
+  });
+
   it('allows admin with required permission', () => {
     const reflector = new Reflector();
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['users.read']);
@@ -35,6 +43,25 @@ describe('PermissionsGuard', () => {
       role: UserRole.ADMIN,
       permissions: { providers: ['read'] },
     }))).toThrow(ForbiddenException);
+  });
+
+  it.each([UserRole.REGISTERED_USER, UserRole.PROVIDER])(
+    'rejects %s from admin permission checks',
+    (role: UserRole) => {
+      const reflector = new Reflector();
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['users.read']);
+      const guard = new PermissionsGuard(reflector);
+
+      expect(() => guard.canActivate(contextWithUser({ role }))).toThrow(ForbiddenException);
+    },
+  );
+
+  it('rejects guest session role from admin permission checks', () => {
+    const reflector = new Reflector();
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['users.read']);
+    const guard = new PermissionsGuard(reflector);
+
+    expect(() => guard.canActivate(contextWithUser({ role: 'GUEST_USER' as UserRole }))).toThrow(ForbiddenException);
   });
 
   it('uses permission metadata key', () => {

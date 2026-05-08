@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -24,6 +24,7 @@ export class AdminRolesBaseController {
 @Controller('admin-roles')
 export class AdminRolesController extends AdminRolesBaseController {
   @Get()
+  @ApiOperation({ description: 'Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.' })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListAdminRolesDto) {
     return this.adminRolesService.list(user, query);
   }
@@ -66,6 +67,7 @@ export class AdminRolesController extends AdminRolesBaseController {
 @Controller('permissions')
 export class PermissionCatalogController extends AdminRolesBaseController {
   @Get('catalog')
+  @ApiOperation({ description: 'Read-only list of backend-supported permission keys that can be assigned to admin roles.' })
   catalog() {
     return this.adminRolesService.catalog();
   }

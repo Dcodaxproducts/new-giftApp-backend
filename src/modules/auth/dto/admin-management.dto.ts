@@ -117,10 +117,13 @@ export class CreateAdminDto {
   @IsString()
   title?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({
+    description: 'AdminRole ID that controls this ADMIN staff user permissions.',
+    example: 'admin_role_id',
+  })
   @IsString()
-  roleId?: string;
+  @MinLength(1)
+  roleId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -131,6 +134,11 @@ export class CreateAdminDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ default: true })
+  @IsOptional()
+  @IsBoolean()
+  sendInviteEmail?: boolean;
 }
 
 export class UpdateAdminDto {

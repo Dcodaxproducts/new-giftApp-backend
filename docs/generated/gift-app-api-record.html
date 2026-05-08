@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><style>@page { size: A4; margin: 16mm; } body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; font-size: 10.5pt; } h1 { color: #4C1D95; font-size: 24pt; border-bottom: 2px solid #8B5CF6; padding-bottom: 8px; } h2 { color: #5B21B6; font-size: 17pt; margin-top: 24px; } h3 { color: #111827; font-size: 12.5pt; margin-top: 16px; } pre { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 9px; white-space: pre-wrap; word-break: break-word; font-size: 8.6pt; } code { font-family: Consolas, monospace; } p { margin: 6px 0; } hr { border: 0; border-top: 1px solid #E5E7EB; margin: 18px 0; }</style></head><body><h1>Gift App Backend API Record</h1>
+<!doctype html><html><head><meta charset="utf-8"><style>@page { size: A4; margin: 16mm; } body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; font-size: 10.5pt; } h1 { color: #4C1D95; font-size: 24pt; border-bottom: 2px solid #8B5CF6; padding-bottom: 8px; } h2 { color: #5B21B6; font-size: 17pt; margin-top: 24px; } h3 { color: #111827; font-size: 12.5pt; margin-top: 16px; } pre { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 9px; white-space: pre-wrap; word-break: break-word; font-size: 8.6pt; } code { font-family: Consolas, monospace; } p, li { margin: 6px 0; } hr { border: 0; border-top: 1px solid #E5E7EB; margin: 18px 0; }</style></head><body><h1>Gift App Backend API Record</h1>
 <p>Base URL: <code>/api/v1</code></p>
 <p>Auth header for protected APIs:</p>
 <pre><code class="language-txt">Authorization: Bearer &lt;accessToken&gt;
@@ -332,21 +332,28 @@ New password does not meet security requirements.
 <p>No body.</p>
 <h2>Admin Management</h2>
 <h3>POST /admins</h3>
+<p>Creates an <code>ADMIN</code> staff user under <code>SUPER_ADMIN</code>. <code>roleId</code> means <strong>AdminRole.id</strong> only. This endpoint never creates <code>SUPER_ADMIN</code>, <code>REGISTERED_USER</code>, <code>PROVIDER</code>, or <code>GUEST_USER</code> accounts, and the backend always stores <code>User.role = ADMIN</code>.</p>
 <pre><code class="language-json">{
-  &quot;email&quot;: &quot;admin@example.com&quot;,
-  &quot;firstName&quot;: &quot;Operations&quot;,
-  &quot;lastName&quot;: &quot;Admin&quot;,
-  &quot;phone&quot;: &quot;+15550000002&quot;,
-  &quot;title&quot;: &quot;Operations Manager&quot;,
-  &quot;roleId&quot;: &quot;admin_role_id&quot;,
+  &quot;email&quot;: &quot;staff@example.com&quot;,
   &quot;temporaryPassword&quot;: &quot;Temp@123456&quot;,
   &quot;generateTemporaryPassword&quot;: false,
   &quot;mustChangePassword&quot;: true,
-  &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/admin-avatars/admin.png&quot;,
-  &quot;isActive&quot;: true
+  &quot;firstName&quot;: &quot;Operations&quot;,
+  &quot;lastName&quot;: &quot;Staff&quot;,
+  &quot;phone&quot;: &quot;+15550000002&quot;,
+  &quot;title&quot;: &quot;Operations Manager&quot;,
+  &quot;roleId&quot;: &quot;admin_role_id&quot;,
+  &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/admin-avatars/staff.png&quot;,
+  &quot;isActive&quot;: true,
+  &quot;sendInviteEmail&quot;: true
 }
 </code></pre>
+<p>Response highlights:
+- <code>role</code> = <code>ADMIN</code>
+- <code>roleId</code> = selected <code>AdminRole.id</code>
+- <code>inviteEmailSent</code> reports email delivery success/failure</p>
 <h2>Admin Roles</h2>
+<p>Admin Roles / RBAC manages permission roles for <code>ADMIN</code> staff users only. <code>SUPER_ADMIN</code> has full immutable access and does not depend on AdminRole permissions.</p>
 <h3>POST /admin-roles</h3>
 <pre><code class="language-json">{
   &quot;name&quot;: &quot;Gift Manager&quot;,
@@ -358,6 +365,14 @@ New password does not meet security requirements.
   &quot;isActive&quot;: true
 }
 </code></pre>
+<p>Rules:
+- Custom AdminRole permissions are assigned from the backend-supported permission catalog only.
+- <code>SUPER_ADMIN</code> bypasses admin permission checks and does not rely on <code>roleId</code>.
+- The system <code>SUPER_ADMIN</code> role is read-only and cannot be modified or deleted.
+- Disabled AdminRoles immediately block assigned <code>ADMIN</code> users from protected admin APIs.
+- Custom AdminRoles cannot be deleted while staff users are assigned.</p>
+<h3>GET /permissions/catalog</h3>
+<p>Read-only list of backend-supported permission keys that can be assigned to admin roles. No create/update/delete endpoints exist for the permission catalog.</p>
 <h2>Providers</h2>
 <h3>POST /providers</h3>
 <pre><code class="language-json">{

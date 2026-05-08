@@ -163,6 +163,7 @@ export class AuthService implements OnModuleInit {
 
     const user = await this.prisma.user.findUnique({
       where: { email: this.normalizeEmail(dto.email) },
+      include: { adminRole: true },
     });
 
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
@@ -240,6 +241,22 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Admin account is not approved');
     }
 
+    if (
+      user.role === UserRole.ADMIN &&
+      (!user.adminRoleId || !user.adminRole || user.adminRole.deletedAt || !user.adminRole.isActive)
+    ) {
+      await this.loginAttemptsService.record({
+        email: dto.email,
+        status: LoginAttemptStatus.FAILED,
+        reason: 'ADMIN_ROLE_INACTIVE',
+        ipAddress,
+        userAgent: this.normalizeUserAgent(userAgent),
+        userId: user.id,
+        role: user.role,
+      });
+      throw new ForbiddenException('Admin role is inactive or missing');
+    }
+
     const tokens = await this.issueTokens(user);
     await this.prisma.user.update({
       where: { id: user.id },
@@ -264,10 +281,15 @@ export class AuthService implements OnModuleInit {
   }
 
   async createAdmin(_user: AuthUserContext, dto: CreateAdminDto) {
-    const adminRole = dto.roleId
-      ? await this.getAdminRole(dto.roleId)
-      : await this.getDefaultAdminRole();
-    const temporaryPassword = dto.temporaryPassword ?? this.generateTemporaryPassword();
+    const adminRole = await this.getAdminRole(dto.roleId);
+    const temporaryPassword = dto.generateTemporaryPassword === false
+      ? dto.temporaryPassword
+      : (dto.temporaryPassword ?? this.generateTemporaryPassword());
+
+    if (!temporaryPassword) {
+      throw new BadRequestException('Temporary password is required when generateTemporaryPassword is false');
+    }
+
     const admin = await this.createUser({
       email: dto.email,
       password: temporaryPassword,
@@ -285,11 +307,38 @@ export class AuthService implements OnModuleInit {
       avatarUrl: dto.avatarUrl,
       adminPermissions: adminRole?.permissions ?? {},
     });
+
+    let inviteEmailSent = false;
+    if (dto.sendInviteEmail) {
+      try {
+        await this.mailerService.sendAdminInviteEmail({
+          email: admin.email,
+          userName: `${admin.firstName} ${admin.lastName}`.trim(),
+          temporaryPassword,
+          mustChangePassword: admin.mustChangePassword,
+          ctaUrl: `${this.configService.get<string>('APP_FRONTEND_URL', 'https://app.giftapp.com').replace(/\/$/, '')}/admin`,
+        });
+        inviteEmailSent = true;
+      } catch {
+        inviteEmailSent = false;
+      }
+    }
+
     await this.recordAudit(_user.uid, admin.id, 'ADMIN_CREATED', null, this.toAdminListItem(admin, adminRole));
 
     return {
-      data: this.toAdminDetail(admin, adminRole),
-      message: 'Admin account created successfully',
+      data: {
+        id: admin.id,
+        email: admin.email,
+        role: admin.role,
+        roleId: adminRole.id,
+        inviteEmailSent,
+      },
+      message: dto.sendInviteEmail
+        ? inviteEmailSent
+          ? 'Admin staff user created successfully and invite email sent.'
+          : 'Admin staff user created successfully, but invite email could not be sent.'
+        : 'Admin staff user created successfully.',
     };
   }
 
@@ -462,6 +511,9 @@ export class AuthService implements OnModuleInit {
 
   async updateAdminRole(user: AuthUserContext, roleId: string, dto: UpdateAdminRoleDto) {
     const role = await this.getAdminRole(roleId);
+    if (role.slug === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Super Admin role cannot be modified.');
+    }
     const before = this.toAdminRole(role);
     const updated = await this.prisma.adminRole.update({
       where: { id: role.id },
@@ -478,7 +530,7 @@ export class AuthService implements OnModuleInit {
   async updateRolePermissions(user: AuthUserContext, roleId: string, dto: UpdateRolePermissionsDto) {
     const role = await this.getAdminRole(roleId);
     if (role.slug === UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('System Super Admin permissions cannot be reduced');
+      throw new ForbiddenException('Super Admin role cannot be modified.');
     }
     const before = this.toAdminRole(role);
     const updated = await this.prisma.adminRole.update({
@@ -499,6 +551,9 @@ export class AuthService implements OnModuleInit {
 
   async deleteAdminRole(user: AuthUserContext, roleId: string) {
     const role = await this.getAdminRole(roleId);
+    if (role.slug === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Super Admin role cannot be modified.');
+    }
     if (role.isSystem) {
       throw new ForbiddenException('System roles cannot be deleted');
     }
@@ -989,12 +1044,6 @@ export class AuthService implements OnModuleInit {
     return role;
   }
 
-  private async getDefaultAdminRole(): Promise<AdminRole | null> {
-    return this.prisma.adminRole.findFirst({
-      where: { slug: 'MANAGER', deletedAt: null, isActive: true },
-    });
-  }
-
   private async getActiveUser(userId: string): Promise<User> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
@@ -1084,6 +1133,7 @@ export class AuthService implements OnModuleInit {
         ...baseUser,
         admin: {
           title: user.adminTitle,
+          roleId: user.adminRoleId,
           permissions: user.adminPermissions,
           isApproved: user.isApproved,
         },

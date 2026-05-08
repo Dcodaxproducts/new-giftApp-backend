@@ -221,3 +221,207 @@ describe('reset password email template', () => {
     expect(result.html).toContain('text-align:center; margin:12px 0 0; color:#6B7280; font-size:15px; line-height:22px;');
   });
 });
+
+function createAdminCreationService(options?: {
+  mailerRejects?: boolean;
+  adminRoleActive?: boolean;
+  assignedAdminCount?: number;
+}) {
+  const adminRole = {
+    id: 'role_1',
+    name: 'Gift Manager',
+    slug: 'GIFT_MANAGER',
+    description: 'Gift access',
+    permissions: { gifts: ['read', 'create'], giftCategories: ['read'] },
+    isSystem: false,
+    isActive: options?.adminRoleActive ?? true,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  const createdAdmin = {
+    id: 'admin_1',
+    email: 'staff@example.com',
+    password: 'hash',
+    role: UserRole.ADMIN,
+    firstName: 'Operations',
+    lastName: 'Staff',
+    phone: '+15550000002',
+    avatarUrl: 'https://cdn.yourdomain.com/admin-avatars/staff.png',
+    location: null,
+    adminRoleId: 'role_1',
+    isVerified: true,
+    isActive: true,
+    isApproved: true,
+    mustChangePassword: true,
+    lastLoginAt: null,
+    adminTitle: 'Operations Manager',
+    adminPermissions: adminRole.permissions,
+    providerBusinessName: null,
+    providerServiceArea: null,
+    providerDocuments: null,
+    providerApprovalStatus: null,
+    providerApprovedAt: null,
+    providerApprovedBy: null,
+    providerRejectedAt: null,
+    providerRejectedBy: null,
+    providerRejectionReason: null,
+    providerRejectionComment: null,
+    verificationOtp: null,
+    verificationOtpExpiresAt: null,
+    verificationOtpAttempts: 0,
+    resetPasswordOtp: null,
+    resetPasswordOtpExpiresAt: null,
+    resetPasswordOtpAttempts: 0,
+    suspensionReason: null,
+    suspensionComment: null,
+    suspendedAt: null,
+    suspendedBy: null,
+    refreshTokenHash: null,
+    deletedAt: null,
+    deleteAfter: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  const prisma = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue(createdAdmin),
+      count: jest.fn().mockResolvedValue(options?.assignedAdminCount ?? 1),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    adminRole: {
+      findUnique: jest.fn().mockResolvedValue(adminRole),
+      update: jest.fn().mockResolvedValue({ ...adminRole, permissions: { gifts: ['read'] } }),
+    },
+    adminAuditLog: { create: jest.fn() },
+  };
+  const service = new AuthService(
+    prisma as unknown as ConstructorParameters<typeof AuthService>[0],
+    {} as unknown as ConstructorParameters<typeof AuthService>[1],
+    { get: jest.fn((key: string, fallback?: string) => (key === 'APP_FRONTEND_URL' ? 'https://app.giftapp.com' : fallback)) } as unknown as ConstructorParameters<typeof AuthService>[2],
+    {} as unknown as ConstructorParameters<typeof AuthService>[3],
+    {
+      sendAdminInviteEmail: options?.mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
+    } as unknown as ConstructorParameters<typeof AuthService>[4],
+  );
+  return { service, prisma, adminRole, createdAdmin };
+}
+
+describe('AuthService admin staff RBAC architecture', () => {
+  it('POST /admins creates User.role = ADMIN and roleId points to AdminRole.id', async () => {
+    const { service, prisma } = createAdminCreationService();
+
+    const result = await service.createAdmin(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      {
+        email: 'staff@example.com',
+        temporaryPassword: 'Temp@123456',
+        generateTemporaryPassword: false,
+        mustChangePassword: true,
+        firstName: 'Operations',
+        lastName: 'Staff',
+        phone: '+15550000002',
+        title: 'Operations Manager',
+        roleId: 'role_1',
+        avatarUrl: 'https://cdn.yourdomain.com/admin-avatars/staff.png',
+        isActive: true,
+      },
+    );
+
+    const createCalls = prisma.user.create.mock.calls as Array<[{ data: { role: UserRole; adminRoleId: string } }]>;
+    const createCall = createCalls[0][0];
+    expect(createCall.data.role).toBe(UserRole.ADMIN);
+    expect(createCall.data.adminRoleId).toBe('role_1');
+    expect(result.data).toEqual({ id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: false });
+  });
+
+  it('POST /admins requires valid roleId', async () => {
+    const { service, prisma } = createAdminCreationService();
+    prisma.adminRole.findUnique.mockResolvedValueOnce(null);
+
+    await expect(service.createAdmin(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      { email: 'staff@example.com', firstName: 'Operations', lastName: 'Staff', roleId: 'missing_role' },
+    )).rejects.toThrow('Admin role not found');
+  });
+
+  it('POST /admins sends invite email when sendInviteEmail=true', async () => {
+    const { service } = createAdminCreationService();
+
+    await expect(service.createAdmin(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      { email: 'staff@example.com', temporaryPassword: 'Temp@123456', generateTemporaryPassword: false, firstName: 'Operations', lastName: 'Staff', roleId: 'role_1', sendInviteEmail: true },
+    )).resolves.toEqual({
+      data: { id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: true },
+      message: 'Admin staff user created successfully and invite email sent.',
+    });
+  });
+
+  it('POST /admins returns success even if invite email fails', async () => {
+    const { service } = createAdminCreationService({ mailerRejects: true });
+
+    await expect(service.createAdmin(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      { email: 'staff@example.com', temporaryPassword: 'Temp@123456', generateTemporaryPassword: false, firstName: 'Operations', lastName: 'Staff', roleId: 'role_1', sendInviteEmail: true },
+    )).resolves.toEqual({
+      data: { id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: false },
+      message: 'Admin staff user created successfully, but invite email could not be sent.',
+    });
+  });
+
+  it('custom AdminRole permissions can be patched', async () => {
+    const { service, prisma } = createAdminCreationService();
+
+    const result = await service.updateRolePermissions(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      'role_1',
+      { permissions: { gifts: ['read'] } },
+    );
+
+    expect(prisma.user.updateMany).toHaveBeenCalledWith({ where: { adminRoleId: 'role_1' }, data: { adminPermissions: { gifts: ['read'] } } });
+    expect(result.data).toEqual({ id: 'role_1', permissions: { gifts: ['read'] } });
+  });
+
+  it('custom AdminRole cannot be deleted if adminCount > 0', async () => {
+    const { service } = createAdminCreationService({ assignedAdminCount: 2 });
+
+    await expect(service.deleteAdminRole(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      'role_1',
+    )).rejects.toThrow('Role cannot be deleted while admins are assigned to it');
+  });
+
+  it('system Super Admin role cannot be modified', async () => {
+    const { service, prisma, adminRole } = createAdminCreationService();
+    prisma.adminRole.findUnique.mockResolvedValueOnce({ ...adminRole, slug: UserRole.SUPER_ADMIN, isSystem: true });
+
+    await expect(service.updateAdminRole(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      'role_1',
+      { name: 'Updated' },
+    )).rejects.toThrow('Super Admin role cannot be modified.');
+  });
+
+  it('POST /admins DTO does not accept raw permissions or User.role fields', () => {
+    const dtoSource = readFileSync('src/modules/auth/dto/admin-management.dto.ts', 'utf8');
+    const createAdminBlock = dtoSource.slice(
+      dtoSource.indexOf('export class CreateAdminDto'),
+      dtoSource.indexOf('export class UpdateAdminDto'),
+    );
+
+    expect(createAdminBlock).not.toContain('permissions?:');
+    expect(createAdminBlock).not.toContain('permissions!:');
+    expect(createAdminBlock).not.toContain('role!:');
+  });
+
+  it('permission catalog remains read-only', () => {
+    const controllerSource = readFileSync('src/modules/admin-roles/admin-roles.controller.ts', 'utf8');
+
+    expect(controllerSource).toContain("@Get('catalog')");
+    expect(controllerSource).not.toContain("@Post('catalog')");
+    expect(controllerSource).not.toContain("@Patch('catalog')");
+    expect(controllerSource).not.toContain("@Delete('catalog')");
+  });
+});
