@@ -297,7 +297,7 @@ export class AuthService implements OnModuleInit {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where: Prisma.UserWhereInput = {
-      role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN] },
+      role: UserRole.ADMIN,
       deletedAt: null,
       ...(query.roleId ? { adminRoleId: query.roleId } : {}),
       ...(query.role ? { adminRole: { slug: query.role } } : {}),
