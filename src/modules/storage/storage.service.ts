@@ -18,6 +18,7 @@ export class StorageService {
 
   async createPresignedUpload(user: AuthUserContext, dto: CreatePresignedUploadDto, ipAddress?: string, userAgent?: string | string[]) {
     await this.assertUploadScope(user, dto);
+    this.assertFolderFilePolicy(dto);
     if (dto.sizeBytes && dto.sizeBytes > this.maxFileBytes) throw new ForbiddenException('File exceeds maximum allowed size');
     const bucket = this.required('AWS_BUCKET_NAME');
     const publicBaseUrl = this.configService.get<string>('AWS_PUBLIC_BASE_URL');
@@ -81,8 +82,15 @@ export class StorageService {
       return;
     }
     if (user.role === UserRole.ADMIN && dto.folder === UploadFolder.BROADCAST_IMAGES && !this.hasAnyPermission(user, ['broadcasts.create', 'broadcasts.update'])) throw new ForbiddenException('Admin role cannot upload broadcast images');
+    if (user.role === UserRole.ADMIN && dto.folder === UploadFolder.GIFT_CATEGORY_IMAGES && !this.hasAnyPermission(user, ['giftCategories.create', 'giftCategories.update'])) throw new ForbiddenException('Admin role cannot upload gift category images');
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) return;
     throw new ForbiddenException('Your role cannot upload files');
+  }
+
+  private assertFolderFilePolicy(dto: CreatePresignedUploadDto): void {
+    if (dto.folder !== UploadFolder.GIFT_CATEGORY_IMAGES) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Gift category images must be JPEG, PNG, or WEBP');
+    if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Gift category image exceeds maximum allowed size');
   }
 
   private scopedFolder(user: AuthUserContext, dto: CreatePresignedUploadDto): string { return `${dto.folder}/${dto.targetAccountId ?? user.uid}`; }

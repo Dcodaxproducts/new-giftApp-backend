@@ -9,6 +9,7 @@ export enum UploadFolder {
   PROVIDER_DOCUMENTS = 'provider-documents',
   PROVIDER_ITEM_IMAGES = 'provider-item-images',
   GIFT_IMAGES = 'gift-images',
+  GIFT_CATEGORY_IMAGES = 'gift-category-images',
   BROADCAST_IMAGES = 'broadcast-images',
 }
 

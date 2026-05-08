@@ -30,11 +30,22 @@ export class CreateGiftCategoryDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() iconKey?: string;
-  @ApiPropertyOptional({ example: '#8B5CF6' }) @IsOptional() @IsHexColor() color?: string;
+  @ApiPropertyOptional({ example: '#8B5CF6', description: 'Deprecated alias. Use backgroundColor.' }) @IsOptional() @IsHexColor() color?: string;
+  @ApiPropertyOptional({ example: '#E9D5FF' }) @IsOptional() @IsHexColor() backgroundColor?: string;
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/gift-categories/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
-export class UpdateGiftCategoryDto extends CreateGiftCategoryDto {}
+export class UpdateGiftCategoryDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() iconKey?: string;
+  @ApiPropertyOptional({ example: '#8B5CF6', description: 'Deprecated alias. Use backgroundColor.' }) @IsOptional() @IsHexColor() color?: string;
+  @ApiPropertyOptional({ example: '#E9D5FF' }) @IsOptional() @IsHexColor() backgroundColor?: string;
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/gift-categories/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+}
 
 export class ListGiftCategoriesDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;

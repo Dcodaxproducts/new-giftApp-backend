@@ -44,7 +44,9 @@ export class GiftManagementService {
         slug: await this.uniqueCategorySlug(dto.name),
         description: dto.description?.trim(),
         iconKey: dto.iconKey?.trim(),
-        color: dto.color,
+        color: dto.color ?? dto.backgroundColor,
+        backgroundColor: dto.backgroundColor ?? dto.color ?? '#F3E8FF',
+        imageUrl: dto.imageUrl?.trim(),
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
       },
@@ -111,6 +113,8 @@ export class GiftManagementService {
         description: dto.description?.trim(),
         iconKey: dto.iconKey?.trim(),
         color: dto.color,
+        backgroundColor: dto.backgroundColor ?? dto.color,
+        imageUrl: dto.imageUrl?.trim(),
         sortOrder: dto.sortOrder,
         isActive: dto.isActive,
       },
@@ -322,7 +326,7 @@ export class GiftManagementService {
   private dir(sortOrder?: SortOrder): Prisma.SortOrder { return sortOrder === SortOrder.ASC ? 'asc' : 'desc'; }
   private giftInclude() { return { category: { select: { id: true, name: true } }, provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } } } as const; }
 
-  private toCategory(category: GiftCategory, totalGifts: number) { return { id: category.id, name: category.name, description: category.description, iconKey: category.iconKey, color: category.color, totalGifts, isActive: category.isActive, sortOrder: category.sortOrder, createdAt: category.createdAt }; }
+  private toCategory(category: GiftCategory, totalGifts: number) { const backgroundColor = category.backgroundColor ?? category.color ?? '#F3E8FF'; return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, color: category.color ?? backgroundColor, backgroundColor, imageUrl: category.imageUrl, totalGifts, isActive: category.isActive, sortOrder: category.sortOrder, createdAt: category.createdAt, updatedAt: category.updatedAt }; }
   private toGiftListItem(gift: GiftWithRelations) { return { id: gift.id, name: gift.name, shortDescription: gift.shortDescription, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: Number(gift.ratingPlaceholder), status: gift.status, moderationStatus: gift.moderationStatus, isPublished: gift.isPublished, stockQuantity: gift.stockQuantity, sku: gift.sku, imageUrl: this.firstImage(gift), createdAt: gift.createdAt }; }
   private toGiftDetail(gift: GiftWithRelations) { return { ...this.toGiftListItem(gift), description: gift.description, imageUrls: this.stringArray(gift.imageUrls), isFeatured: gift.isFeatured, tags: this.stringArray(gift.tags), updatedAt: gift.updatedAt }; }
   private providerName(provider: GiftWithRelations['provider']): string { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }

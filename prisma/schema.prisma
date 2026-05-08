@@ -150,6 +150,48 @@ enum UploadedFileStatus {
   DELETED
 }
 
+enum CustomerReminderEventType {
+  BIRTHDAY
+  ANNIVERSARY
+  HOLIDAY
+  CUSTOM
+}
+
+enum CustomerDeliveryOption {
+  SAME_DAY
+  NEXT_DAY
+  SCHEDULED
+}
+
+enum CartStatus {
+  ACTIVE
+  CHECKED_OUT
+  ABANDONED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  COD
+  PLACEHOLDER
+}
+
 enum ProviderFulfillmentMethod {
   PICKUP
   DELIVERY
@@ -263,6 +305,8 @@ model GiftCategory {
   description String?
   iconKey     String?   @map("icon_key")
   color       String?
+  backgroundColor String? @default("#F3E8FF") @map("background_color")
+  imageUrl    String?   @map("image_url")
   sortOrder   Int       @default(0) @map("sort_order")
   isActive    Boolean   @default(true) @map("is_active")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
@@ -274,6 +318,163 @@ model GiftCategory {
   @@index([isActive, sortOrder])
   @@index([deletedAt])
   @@map("gift_categories")
+}
+
+model CustomerWishlist {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  giftId    String   @map("gift_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([userId, giftId])
+  @@index([userId])
+  @@index([giftId])
+  @@map("customer_wishlists")
+}
+
+model CustomerAddress {
+  id                   String    @id @default(cuid())
+  userId               String    @map("user_id")
+  label                String
+  fullName             String    @map("full_name")
+  phone                String
+  line1                String
+  line2                String?
+  city                 String
+  state                String?
+  country              String
+  postalCode           String?   @map("postal_code")
+  latitude             Decimal?  @db.Decimal(10, 7)
+  longitude            Decimal?  @db.Decimal(10, 7)
+  deliveryInstructions String?   @map("delivery_instructions")
+  isDefault            Boolean   @default(false) @map("is_default")
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@index([userId, deletedAt])
+  @@index([userId, isDefault])
+  @@map("customer_addresses")
+}
+
+model CustomerReminder {
+  id            String                    @id @default(cuid())
+  userId        String                    @map("user_id")
+  title         String
+  recipientName String                    @map("recipient_name")
+  eventType     CustomerReminderEventType @map("event_type")
+  reminderDate  DateTime                  @map("reminder_date") @db.Timestamptz
+  notes         String?
+  isActive      Boolean                   @default(true) @map("is_active")
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt     DateTime?                 @map("deleted_at") @db.Timestamptz
+
+  @@index([userId, deletedAt])
+  @@index([reminderDate, isActive])
+  @@map("customer_reminders")
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @map("user_id")
+  status    CartStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  items     CartItem[]
+
+  @@index([userId, status])
+  @@map("carts")
+}
+
+model CartItem {
+  id                      String                 @id @default(cuid())
+  cartId                  String                 @map("cart_id")
+  giftId                  String                 @map("gift_id")
+  providerId              String                 @map("provider_id")
+  quantity                Int
+  unitPriceSnapshot       Decimal                @map("unit_price_snapshot") @db.Decimal(10, 2)
+  discountAmountSnapshot  Decimal                @default(0) @map("discount_amount_snapshot") @db.Decimal(10, 2)
+  finalUnitPriceSnapshot  Decimal                @map("final_unit_price_snapshot") @db.Decimal(10, 2)
+  promotionalOfferId      String?                @map("promotional_offer_id")
+  deliveryOption          CustomerDeliveryOption @map("delivery_option")
+  recipientName           String                 @map("recipient_name")
+  recipientPhone          String                 @map("recipient_phone")
+  recipientAddressId      String                 @map("recipient_address_id")
+  giftMessage             String?                @map("gift_message")
+  scheduledDeliveryAt     DateTime?              @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+  cart                    Cart                   @relation(fields: [cartId], references: [id])
+
+  @@index([cartId])
+  @@index([giftId])
+  @@map("cart_items")
+}
+
+model Order {
+  id                  String        @id @default(cuid())
+  userId              String        @map("user_id")
+  orderNumber         String        @unique @map("order_number")
+  status              OrderStatus   @default(PENDING)
+  paymentStatus       PaymentStatus @default(PENDING) @map("payment_status")
+  paymentMethod       PaymentMethod @default(COD) @map("payment_method")
+  subtotal            Decimal       @db.Decimal(10, 2)
+  discountTotal       Decimal       @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee         Decimal       @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  total               Decimal       @db.Decimal(10, 2)
+  deliveryAddressId   String        @map("delivery_address_id")
+  recipientName       String        @map("recipient_name")
+  recipientPhone      String        @map("recipient_phone")
+  giftMessage         String?       @map("gift_message")
+  scheduledDeliveryAt DateTime?     @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  items               OrderItem[]
+  providerOrders      ProviderOrder[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                 String      @id @default(cuid())
+  orderId            String      @map("order_id")
+  giftId             String      @map("gift_id")
+  providerId         String      @map("provider_id")
+  quantity           Int
+  unitPrice          Decimal     @map("unit_price") @db.Decimal(10, 2)
+  discountAmount     Decimal     @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  finalUnitPrice     Decimal     @map("final_unit_price") @db.Decimal(10, 2)
+  total              Decimal     @db.Decimal(10, 2)
+  promotionalOfferId String?     @map("promotional_offer_id")
+  status             OrderStatus @default(PENDING)
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+  order              Order       @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([providerId, status])
+  @@map("order_items")
+}
+
+model ProviderOrder {
+  id            String      @id @default(cuid())
+  orderId       String      @map("order_id")
+  providerId    String      @map("provider_id")
+  status        OrderStatus @default(PENDING)
+  subtotal      Decimal     @db.Decimal(10, 2)
+  discountTotal Decimal     @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee   Decimal     @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  total         Decimal     @db.Decimal(10, 2)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+  order         Order       @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([providerId, status])
+  @@map("provider_orders")
 }
 
 model PromotionalOffer {
