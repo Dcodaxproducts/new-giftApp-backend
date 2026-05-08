@@ -1,0 +1,650 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@page { size: A4; margin: 16mm; }
+body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; font-size: 10.5pt; }
+h1 { color: #4C1D95; font-size: 24pt; border-bottom: 2px solid #8B5CF6; padding-bottom: 8px; }
+h2 { color: #5B21B6; font-size: 17pt; margin-top: 24px; }
+h3 { color: #111827; font-size: 12.5pt; margin-top: 16px; }
+pre { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 9px; white-space: pre-wrap; word-break: break-word; font-size: 8.6pt; }
+code { font-family: Consolas, monospace; }
+p { margin: 6px 0; }
+hr { border: 0; border-top: 1px solid #E5E7EB; margin: 18px 0; }
+</style></head><body><h1>Gift App Backend API Record</h1>
+<p>Base URL: <code>/api/v1</code></p>
+<p>Auth header for protected APIs:</p>
+<pre><code class="language-txt">Authorization: Bearer &lt;accessToken&gt;
+</code></pre>
+<p>Canonical Super Admin seeded in database:</p>
+<pre><code class="language-txt">email: giftapp.superadmin@yopmail.com
+password: Admin@123456
+</code></pre>
+<p>Note: <code>GET /admins</code> lists only users with role <code>ADMIN</code>; it does not include <code>SUPER_ADMIN</code> users.</p>
+<hr />
+<h2>API List</h2>
+<h3>Auth</h3>
+<pre><code class="language-txt">POST   /auth/users/register
+POST   /auth/providers/register
+POST   /auth/guest/session
+POST   /auth/login
+POST   /auth/refresh
+POST   /auth/logout
+POST   /auth/verify-email
+POST   /auth/resend-otp
+POST   /auth/forgot-password
+POST   /auth/verify-reset-otp
+POST   /auth/reset-password
+PATCH  /auth/change-password
+GET    /auth/me
+DELETE /auth/account
+POST   /auth/cancel-deletion
+</code></pre>
+<h3>Admin Management</h3>
+<pre><code class="language-txt">POST   /admins
+GET    /admins
+GET    /admins/:id
+PATCH  /admins/:id
+PATCH  /admins/:id/active-status
+PATCH  /admins/:id/password
+</code></pre>
+<h3>Admin Roles / Permissions</h3>
+<pre><code class="language-txt">GET    /admin-roles
+POST   /admin-roles
+GET    /admin-roles/:id
+PATCH  /admin-roles/:id
+DELETE /admin-roles/:id
+PATCH  /admin-roles/:id/permissions
+GET    /permissions/catalog
+</code></pre>
+<h3>Providers</h3>
+<pre><code class="language-txt">GET    /providers/export
+GET    /providers/stats
+GET    /providers
+GET    /providers/lookup
+POST   /providers
+GET    /providers/:id
+PATCH  /providers/:id
+PATCH  /providers/:id/approve
+PATCH  /providers/:id/reject
+PATCH  /providers/:id/status
+POST   /providers/:id/suspend
+POST   /providers/:id/unsuspend
+GET    /providers/:id/items
+GET    /providers/:id/activity
+POST   /providers/:id/message
+</code></pre>
+<h3>Provider Business Categories</h3>
+<pre><code class="language-txt">GET    /provider-business-categories
+POST   /provider-business-categories
+GET    /provider-business-categories/:id
+PATCH  /provider-business-categories/:id
+DELETE /provider-business-categories/:id
+</code></pre>
+<h3>Provider Inventory</h3>
+<pre><code class="language-txt">GET    /provider/inventory
+GET    /provider/inventory/stats
+GET    /provider/inventory/lookup
+POST   /provider/inventory
+GET    /provider/inventory/:id
+PATCH  /provider/inventory/:id
+PATCH  /provider/inventory/:id/availability
+DELETE /provider/inventory/:id
+</code></pre>
+<h3>Gift Categories</h3>
+<pre><code class="language-txt">POST   /gift-categories
+GET    /gift-categories
+GET    /gift-categories/lookup
+GET    /gift-categories/stats
+GET    /gift-categories/:id
+PATCH  /gift-categories/:id
+DELETE /gift-categories/:id
+</code></pre>
+<h3>Gifts</h3>
+<pre><code class="language-txt">POST   /gifts
+GET    /gifts
+GET    /gifts/stats
+GET    /gifts/export
+GET    /gifts/:id
+PATCH  /gifts/:id
+PATCH  /gifts/:id/status
+DELETE /gifts/:id
+</code></pre>
+<h3>Gift Moderation</h3>
+<pre><code class="language-txt">GET    /gift-moderation
+PATCH  /gift-moderation/:id/approve
+PATCH  /gift-moderation/:id/reject
+PATCH  /gift-moderation/:id/flag
+</code></pre>
+<h3>Promotional Offers — Admin</h3>
+<pre><code class="language-txt">GET    /promotional-offers/stats
+GET    /promotional-offers/export
+GET    /promotional-offers
+POST   /promotional-offers
+GET    /promotional-offers/:id
+PATCH  /promotional-offers/:id
+PATCH  /promotional-offers/:id/approve
+PATCH  /promotional-offers/:id/reject
+PATCH  /promotional-offers/:id/status
+DELETE /promotional-offers/:id
+</code></pre>
+<h3>Promotional Offers — Provider</h3>
+<pre><code class="language-txt">GET    /provider/offers
+POST   /provider/offers
+GET    /provider/offers/:id
+PATCH  /provider/offers/:id
+PATCH  /provider/offers/:id/status
+DELETE /provider/offers/:id
+</code></pre>
+<h3>Customer Marketplace</h3>
+<pre><code class="language-txt">GET    /customer/home
+GET    /customer/categories
+GET    /customer/gifts
+GET    /customer/gifts/discounted
+GET    /customer/gifts/filter-options
+GET    /customer/gifts/:id
+</code></pre>
+<h3>Customer Wishlist</h3>
+<pre><code class="language-txt">GET    /customer/wishlist
+POST   /customer/wishlist/:giftId
+DELETE /customer/wishlist/:giftId
+</code></pre>
+<h3>Customer Addresses</h3>
+<pre><code class="language-txt">GET    /customer/addresses
+POST   /customer/addresses
+GET    /customer/addresses/:id
+PATCH  /customer/addresses/:id
+DELETE /customer/addresses/:id
+PATCH  /customer/addresses/:id/default
+</code></pre>
+<h3>Customer Reminders</h3>
+<pre><code class="language-txt">GET    /customer/reminders
+POST   /customer/reminders
+GET    /customer/reminders/:id
+PATCH  /customer/reminders/:id
+DELETE /customer/reminders/:id
+</code></pre>
+<h3>Customer Cart</h3>
+<pre><code class="language-txt">GET    /customer/cart
+POST   /customer/cart/items
+PATCH  /customer/cart/items/:id
+DELETE /customer/cart/items/:id
+DELETE /customer/cart
+</code></pre>
+<h3>Customer Orders</h3>
+<pre><code class="language-txt">POST   /customer/orders
+GET    /customer/orders
+GET    /customer/orders/:id
+</code></pre>
+<h3>Broadcasts</h3>
+<pre><code class="language-txt">POST   /broadcasts
+GET    /broadcasts
+GET    /broadcasts/:id
+PATCH  /broadcasts/:id
+PATCH  /broadcasts/:id/targeting
+POST   /broadcasts/estimate-reach
+PATCH  /broadcasts/:id/schedule
+POST   /broadcasts/:id/cancel
+GET    /broadcasts/:id/report
+GET    /broadcasts/:id/recipients
+</code></pre>
+<h3>Notifications</h3>
+<pre><code class="language-txt">GET    /notifications
+PATCH  /notifications/:id/read
+PATCH  /notifications/read-all
+POST   /notifications/device-tokens
+DELETE /notifications/device-tokens/:id
+</code></pre>
+<h3>Storage / Uploads</h3>
+<pre><code class="language-txt">POST   /uploads/presigned-url
+POST   /uploads/complete
+GET    /uploads
+GET    /uploads/:id
+DELETE /uploads/:id
+</code></pre>
+<h3>Subscription Plans</h3>
+<pre><code class="language-txt">GET    /subscription-plans
+GET    /subscription-plans/stats
+POST   /subscription-plans
+GET    /subscription-plans/:id
+PATCH  /subscription-plans/:id
+PATCH  /subscription-plans/:id/status
+PATCH  /subscription-plans/:id/visibility
+DELETE /subscription-plans/:id
+GET    /subscription-plans/:id/analytics
+</code></pre>
+<h3>Plan Features</h3>
+<pre><code class="language-txt">GET    /plan-features/catalog
+GET    /plan-features
+POST   /plan-features
+GET    /plan-features/:id
+PATCH  /plan-features/:id
+DELETE /plan-features/:id
+</code></pre>
+<h3>Coupons</h3>
+<pre><code class="language-txt">GET    /coupons
+POST   /coupons
+GET    /coupons/:id
+PATCH  /coupons/:id
+PATCH  /coupons/:id/status
+DELETE /coupons/:id
+</code></pre>
+<h3>Audit Logs</h3>
+<pre><code class="language-txt">GET    /audit-logs/export
+GET    /audit-logs
+GET    /audit-logs/:id
+</code></pre>
+<h3>Login Attempts</h3>
+<pre><code class="language-txt">GET    /login-attempts/stats
+GET    /login-attempts/export
+GET    /login-attempts
+</code></pre>
+<hr />
+<h1>POST API Payloads</h1>
+<h2>Auth</h2>
+<h3>POST /auth/users/register</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;customer@example.com&quot;,
+  &quot;password&quot;: &quot;Password@123&quot;,
+  &quot;firstName&quot;: &quot;Sarah&quot;,
+  &quot;lastName&quot;: &quot;Khan&quot;,
+  &quot;phone&quot;: &quot;+15550000000&quot;
+}
+</code></pre>
+<h3>POST /auth/providers/register</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;provider@example.com&quot;,
+  &quot;password&quot;: &quot;Password@123&quot;,
+  &quot;firstName&quot;: &quot;Ali&quot;,
+  &quot;lastName&quot;: &quot;Raza&quot;,
+  &quot;phone&quot;: &quot;+15550000001&quot;,
+  &quot;businessName&quot;: &quot;Premium Gifts Co&quot;,
+  &quot;businessCategoryId&quot;: &quot;provider_business_category_id&quot;,
+  &quot;taxId&quot;: &quot;TAX-12345&quot;,
+  &quot;businessAddress&quot;: &quot;123 Gift Street&quot;,
+  &quot;fulfillmentMethods&quot;: [&quot;PICKUP&quot;, &quot;DELIVERY&quot;],
+  &quot;autoAcceptOrders&quot;: false
+}
+</code></pre>
+<h3>POST /auth/guest/session</h3>
+<pre><code class="language-json">{
+  &quot;capabilities&quot;: [&quot;browse_gifts&quot;, &quot;view_categories&quot;]
+}
+</code></pre>
+<h3>POST /auth/login</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;giftapp.superadmin@yopmail.com&quot;,
+  &quot;password&quot;: &quot;Admin@123456&quot;
+}
+</code></pre>
+<h3>POST /auth/refresh</h3>
+<pre><code class="language-json">{
+  &quot;refreshToken&quot;: &quot;refresh_token_here&quot;
+}
+</code></pre>
+<h3>POST /auth/logout</h3>
+<p>No body.</p>
+<h3>POST /auth/verify-email</h3>
+<pre><code class="language-json">{
+  &quot;otp&quot;: &quot;123456&quot;
+}
+</code></pre>
+<h3>POST /auth/resend-otp</h3>
+<p>No body.</p>
+<h3>POST /auth/forgot-password</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;user@example.com&quot;
+}
+</code></pre>
+<p>Success message: <code>Password reset OTP has been sent to your email.</code></p>
+<p>Unknown email message: <code>No account found with this email address.</code></p>
+<p>Email failure message: <code>Unable to send password reset email. Please try again later.</code></p>
+<h3>POST /auth/verify-reset-otp</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;user@example.com&quot;,
+  &quot;otp&quot;: &quot;334018&quot;
+}
+</code></pre>
+<p>Returns only: <code>OTP verified successfully.</code> It does not return a reset token.</p>
+<h3>POST /auth/reset-password</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;user@example.com&quot;,
+  &quot;otp&quot;: &quot;334018&quot;,
+  &quot;newPassword&quot;: &quot;NewPassword@123&quot;
+}
+</code></pre>
+<p>Success message: <code>Password has been reset successfully.</code></p>
+<p>Failure messages include:</p>
+<pre><code class="language-txt">Invalid or expired OTP.
+No account found with this email address.
+New password does not meet security requirements.
+</code></pre>
+<h3>POST /auth/cancel-deletion</h3>
+<p>No body.</p>
+<h2>Admin Management</h2>
+<h3>POST /admins</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;admin@example.com&quot;,
+  &quot;firstName&quot;: &quot;Operations&quot;,
+  &quot;lastName&quot;: &quot;Admin&quot;,
+  &quot;phone&quot;: &quot;+15550000002&quot;,
+  &quot;title&quot;: &quot;Operations Manager&quot;,
+  &quot;roleId&quot;: &quot;admin_role_id&quot;,
+  &quot;temporaryPassword&quot;: &quot;Temp@123456&quot;,
+  &quot;generateTemporaryPassword&quot;: false,
+  &quot;mustChangePassword&quot;: true,
+  &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/admin-avatars/admin.png&quot;,
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<h2>Admin Roles</h2>
+<h3>POST /admin-roles</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Gift Manager&quot;,
+  &quot;description&quot;: &quot;Can manage gifts and categories.&quot;,
+  &quot;permissions&quot;: {
+    &quot;gifts&quot;: [&quot;read&quot;, &quot;create&quot;, &quot;update&quot;],
+    &quot;giftCategories&quot;: [&quot;read&quot;, &quot;create&quot;, &quot;update&quot;]
+  },
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<h2>Providers</h2>
+<h3>POST /providers</h3>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;provider@example.com&quot;,
+  &quot;password&quot;: &quot;Provider@123456&quot;,
+  &quot;firstName&quot;: &quot;Ali&quot;,
+  &quot;lastName&quot;: &quot;Raza&quot;,
+  &quot;phone&quot;: &quot;+15550000001&quot;,
+  &quot;businessName&quot;: &quot;Premium Gifts Co&quot;,
+  &quot;businessCategoryId&quot;: &quot;provider_business_category_id&quot;,
+  &quot;taxId&quot;: &quot;TAX-12345&quot;,
+  &quot;businessAddress&quot;: &quot;123 Gift Street&quot;,
+  &quot;serviceArea&quot;: &quot;London&quot;,
+  &quot;fulfillmentMethods&quot;: [&quot;PICKUP&quot;, &quot;DELIVERY&quot;],
+  &quot;autoAcceptOrders&quot;: false,
+  &quot;documents&quot;: [
+    {
+      &quot;name&quot;: &quot;Trade License&quot;,
+      &quot;url&quot;: &quot;https://cdn.yourdomain.com/provider-documents/license.pdf&quot;
+    }
+  ]
+}
+</code></pre>
+<h3>POST /providers/:id/suspend</h3>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;SUSPENDED&quot;,
+  &quot;reason&quot;: &quot;POLICY_VIOLATION&quot;,
+  &quot;comment&quot;: &quot;Provider documents require review.&quot;,
+  &quot;notifyProvider&quot;: true
+}
+</code></pre>
+<h3>POST /providers/:id/unsuspend</h3>
+<pre><code class="language-json">{
+  &quot;comment&quot;: &quot;Documents verified.&quot;,
+  &quot;notifyProvider&quot;: true
+}
+</code></pre>
+<h3>POST /providers/:id/message</h3>
+<pre><code class="language-json">{
+  &quot;subject&quot;: &quot;Document update required&quot;,
+  &quot;message&quot;: &quot;Please upload your renewed business license.&quot;,
+  &quot;channels&quot;: [&quot;EMAIL&quot;]
+}
+</code></pre>
+<h2>Provider Business Categories</h2>
+<h3>POST /provider-business-categories</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Florists&quot;,
+  &quot;description&quot;: &quot;Flower and bouquet providers.&quot;,
+  &quot;iconKey&quot;: &quot;flowers&quot;,
+  &quot;sortOrder&quot;: 1,
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<h2>Provider Inventory</h2>
+<h3>POST /provider/inventory</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Rose Bouquet&quot;,
+  &quot;description&quot;: &quot;Fresh red roses.&quot;,
+  &quot;shortDescription&quot;: &quot;Premium rose bouquet.&quot;,
+  &quot;categoryId&quot;: &quot;gift_category_id&quot;,
+  &quot;price&quot;: 49.99,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;stockQuantity&quot;: 20,
+  &quot;sku&quot;: &quot;ROSE-BOUQUET-001&quot;,
+  &quot;imageUrls&quot;: [&quot;https://cdn.yourdomain.com/gift-images/rose-bouquet.png&quot;],
+  &quot;isPublished&quot;: true,
+  &quot;tags&quot;: [&quot;flowers&quot;, &quot;romantic&quot;]
+}
+</code></pre>
+<h2>Gift Categories</h2>
+<h3>POST /gift-categories</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Perfumes&quot;,
+  &quot;description&quot;: &quot;Premium fragrance gifts.&quot;,
+  &quot;iconKey&quot;: &quot;perfume&quot;,
+  &quot;backgroundColor&quot;: &quot;#E9D5FF&quot;,
+  &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/gift-category-images/perfumes.png&quot;,
+  &quot;sortOrder&quot;: 1,
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<p>Backward-compatible old field:</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Perfumes&quot;,
+  &quot;color&quot;: &quot;#E9D5FF&quot;
+}
+</code></pre>
+<h2>Gifts</h2>
+<h3>POST /gifts</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Luxury Perfume&quot;,
+  &quot;description&quot;: &quot;Long-lasting premium fragrance.&quot;,
+  &quot;shortDescription&quot;: &quot;Premium fragrance gift.&quot;,
+  &quot;categoryId&quot;: &quot;gift_category_id&quot;,
+  &quot;providerId&quot;: &quot;provider_id&quot;,
+  &quot;price&quot;: 99.99,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;stockQuantity&quot;: 50,
+  &quot;sku&quot;: &quot;PERFUME-001&quot;,
+  &quot;imageUrls&quot;: [&quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;],
+  &quot;isPublished&quot;: true,
+  &quot;isFeatured&quot;: false,
+  &quot;tags&quot;: [&quot;perfume&quot;, &quot;luxury&quot;],
+  &quot;moderationStatus&quot;: &quot;APPROVED&quot;
+}
+</code></pre>
+<h2>Promotional Offers</h2>
+<h3>POST /promotional-offers</h3>
+<pre><code class="language-json">{
+  &quot;providerId&quot;: &quot;provider_id&quot;,
+  &quot;itemId&quot;: &quot;gift_id&quot;,
+  &quot;title&quot;: &quot;20% Off Perfumes&quot;,
+  &quot;description&quot;: &quot;Limited-time discount on selected perfumes.&quot;,
+  &quot;discountType&quot;: &quot;PERCENTAGE&quot;,
+  &quot;discountValue&quot;: 20,
+  &quot;startDate&quot;: &quot;2026-05-10T00:00:00.000Z&quot;,
+  &quot;endDate&quot;: &quot;2026-05-20T23:59:59.000Z&quot;,
+  &quot;eligibilityRules&quot;: &quot;Valid while stock lasts.&quot;,
+  &quot;isActive&quot;: true,
+  &quot;approvalStatus&quot;: &quot;APPROVED&quot;
+}
+</code></pre>
+<h3>POST /provider/offers</h3>
+<pre><code class="language-json">{
+  &quot;itemId&quot;: &quot;gift_id&quot;,
+  &quot;title&quot;: &quot;10 USD Off&quot;,
+  &quot;description&quot;: &quot;Flat discount on this item.&quot;,
+  &quot;discountType&quot;: &quot;FIXED_AMOUNT&quot;,
+  &quot;discountValue&quot;: 10,
+  &quot;startDate&quot;: &quot;2026-05-10T00:00:00.000Z&quot;,
+  &quot;endDate&quot;: &quot;2026-05-20T23:59:59.000Z&quot;,
+  &quot;eligibilityRules&quot;: &quot;One use per customer.&quot;,
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<h2>Customer Wishlist</h2>
+<h3>POST /customer/wishlist/:giftId</h3>
+<p>No body.</p>
+<h2>Customer Addresses</h2>
+<h3>POST /customer/addresses</h3>
+<pre><code class="language-json">{
+  &quot;label&quot;: &quot;Home&quot;,
+  &quot;fullName&quot;: &quot;Sarah Khan&quot;,
+  &quot;phone&quot;: &quot;+15550000000&quot;,
+  &quot;line1&quot;: &quot;221B Baker Street&quot;,
+  &quot;line2&quot;: &quot;Apartment 4&quot;,
+  &quot;city&quot;: &quot;London&quot;,
+  &quot;state&quot;: &quot;Greater London&quot;,
+  &quot;country&quot;: &quot;United Kingdom&quot;,
+  &quot;postalCode&quot;: &quot;NW1 6XE&quot;,
+  &quot;latitude&quot;: 51.5237,
+  &quot;longitude&quot;: -0.1585,
+  &quot;deliveryInstructions&quot;: &quot;Leave at reception.&quot;,
+  &quot;isDefault&quot;: true
+}
+</code></pre>
+<h2>Customer Reminders</h2>
+<h3>POST /customer/reminders</h3>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;Mom birthday&quot;,
+  &quot;recipientName&quot;: &quot;Mom&quot;,
+  &quot;eventType&quot;: &quot;BIRTHDAY&quot;,
+  &quot;reminderDate&quot;: &quot;2026-06-01T09:00:00.000Z&quot;,
+  &quot;notes&quot;: &quot;Buy flowers and perfume.&quot;,
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<p>Allowed eventType: <code>BIRTHDAY | ANNIVERSARY | HOLIDAY | CUSTOM</code></p>
+<h2>Customer Cart</h2>
+<h3>POST /customer/cart/items</h3>
+<pre><code class="language-json">{
+  &quot;giftId&quot;: &quot;gift_id&quot;,
+  &quot;quantity&quot;: 1,
+  &quot;deliveryOption&quot;: &quot;SAME_DAY&quot;,
+  &quot;recipientName&quot;: &quot;Sarah&quot;,
+  &quot;recipientPhone&quot;: &quot;+15550000000&quot;,
+  &quot;recipientAddressId&quot;: &quot;address_id&quot;,
+  &quot;giftMessage&quot;: &quot;Happy Birthday!&quot;,
+  &quot;scheduledDeliveryAt&quot;: null
+}
+</code></pre>
+<p>Allowed deliveryOption: <code>SAME_DAY | NEXT_DAY | SCHEDULED</code></p>
+<h2>Customer Orders</h2>
+<h3>POST /customer/orders</h3>
+<pre><code class="language-json">{
+  &quot;deliveryAddressId&quot;: &quot;address_id&quot;,
+  &quot;paymentMethod&quot;: &quot;COD&quot;
+}
+</code></pre>
+<p>Allowed paymentMethod: <code>COD | PLACEHOLDER</code></p>
+<h2>Broadcasts</h2>
+<h3>POST /broadcasts</h3>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;Mother's Day Gifts&quot;,
+  &quot;message&quot;: &quot;Explore curated gifts for Mother's Day.&quot;,
+  &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/broadcast-images/mothers-day.png&quot;,
+  &quot;ctaLabel&quot;: &quot;Shop Now&quot;,
+  &quot;ctaUrl&quot;: &quot;https://app.giftapp.com/gifts&quot;,
+  &quot;channels&quot;: [&quot;EMAIL&quot;, &quot;PUSH&quot;, &quot;IN_APP&quot;],
+  &quot;priority&quot;: &quot;NORMAL&quot;
+}
+</code></pre>
+<h3>POST /broadcasts/estimate-reach</h3>
+<pre><code class="language-json">{
+  &quot;channels&quot;: [&quot;EMAIL&quot;, &quot;PUSH&quot;, &quot;IN_APP&quot;],
+  &quot;targeting&quot;: {
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
+    &quot;roles&quot;: [&quot;REGISTERED_USER&quot;],
+    &quot;filters&quot;: {
+      &quot;location&quot;: &quot;London&quot;,
+      &quot;onlyVerifiedEmails&quot;: true,
+      &quot;excludeUnsubscribed&quot;: true,
+      &quot;excludeSuspended&quot;: true
+    }
+  }
+}
+</code></pre>
+<h3>POST /broadcasts/:id/cancel</h3>
+<pre><code class="language-json">{
+  &quot;reason&quot;: &quot;Campaign postponed.&quot;
+}
+</code></pre>
+<h2>Notifications</h2>
+<h3>POST /notifications/device-tokens</h3>
+<pre><code class="language-json">{
+  &quot;token&quot;: &quot;device_push_token_here&quot;,
+  &quot;platform&quot;: &quot;IOS&quot;,
+  &quot;deviceId&quot;: &quot;device_id_123&quot;
+}
+</code></pre>
+<p>Allowed platform: <code>IOS | ANDROID | WEB</code></p>
+<h2>Storage / Uploads</h2>
+<h3>POST /uploads/presigned-url</h3>
+<pre><code class="language-json">{
+  &quot;folder&quot;: &quot;gift-category-images&quot;,
+  &quot;fileName&quot;: &quot;perfumes.png&quot;,
+  &quot;contentType&quot;: &quot;image/png&quot;,
+  &quot;sizeBytes&quot;: 1048576,
+  &quot;targetAccountId&quot;: &quot;account_id&quot;,
+  &quot;giftId&quot;: &quot;gift_id&quot;
+}
+</code></pre>
+<p>Allowed folders: <code>admin-avatars</code>, <code>user-avatars</code>, <code>provider-logos</code>, <code>provider-documents</code>, <code>provider-item-images</code>, <code>gift-images</code>, <code>gift-category-images</code>, <code>broadcast-images</code>.</p>
+<p>For <code>gift-category-images</code>: <code>image/jpeg | image/png | image/webp</code>, max 5MB.</p>
+<h3>POST /uploads/complete</h3>
+<pre><code class="language-json">{
+  &quot;uploadId&quot;: &quot;upload_id&quot;,
+  &quot;sizeBytes&quot;: 1048576
+}
+</code></pre>
+<h2>Subscription Plans</h2>
+<h3>POST /subscription-plans</h3>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Premium Provider&quot;,
+  &quot;description&quot;: &quot;Best plan for growing providers.&quot;,
+  &quot;monthlyPrice&quot;: 29.99,
+  &quot;yearlyPrice&quot;: 299.99,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;billingCycle&quot;: &quot;MONTHLY&quot;,
+  &quot;features&quot;: {
+    &quot;maxItems&quot;: 100,
+    &quot;featuredPlacement&quot;: true
+  },
+  &quot;limits&quot;: {
+    &quot;maxItems&quot;: 100,
+    &quot;maxOffers&quot;: 20,
+    &quot;maxStorageMb&quot;: 1024
+  },
+  &quot;status&quot;: &quot;ACTIVE&quot;,
+  &quot;visibility&quot;: &quot;PUBLIC&quot;,
+  &quot;trialDays&quot;: 14,
+  &quot;sortOrder&quot;: 1
+}
+</code></pre>
+<h2>Plan Features</h2>
+<h3>POST /plan-features</h3>
+<pre><code class="language-json">{
+  &quot;key&quot;: &quot;featuredPlacement&quot;,
+  &quot;label&quot;: &quot;Featured Placement&quot;,
+  &quot;description&quot;: &quot;Allows provider gifts to appear in featured sections.&quot;,
+  &quot;type&quot;: &quot;BOOLEAN&quot;,
+  &quot;isActive&quot;: true,
+  &quot;sortOrder&quot;: 1
+}
+</code></pre>
+<p>Allowed type: <code>BOOLEAN | NUMBER | TEXT</code></p>
+<h2>Coupons</h2>
+<h3>POST /coupons</h3>
+<pre><code class="language-json">{
+  &quot;code&quot;: &quot;WELCOME20&quot;,
+  &quot;description&quot;: &quot;20% off first subscription.&quot;,
+  &quot;discountType&quot;: &quot;PERCENTAGE&quot;,
+  &quot;discountValue&quot;: 20,
+  &quot;planIds&quot;: [&quot;subscription_plan_id&quot;],
+  &quot;startsAt&quot;: &quot;2026-05-10T00:00:00.000Z&quot;,
+  &quot;expiresAt&quot;: &quot;2026-06-10T00:00:00.000Z&quot;,
+  &quot;maxRedemptions&quot;: 100,
+  &quot;isActive&quot;: true
+}
+</code></pre>
+<p>Allowed discountType: <code>PERCENTAGE | FIXED_AMOUNT</code></p></body></html>

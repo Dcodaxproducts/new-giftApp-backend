@@ -735,23 +735,37 @@ export class AuthService implements OnModuleInit {
     const user = await this.prisma.user.findUnique({
       where: { email: this.normalizeEmail(dto.email) },
     });
-    const otp = this.generateOtp();
 
-    if (user && !user.deletedAt) {
+    if (!user || user.deletedAt) {
+      throw new BadRequestException('No account found with this email address.');
+    }
+
+    const otp = this.generateOtp();
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordOtp: otp,
+        resetPasswordOtpExpiresAt: this.generateOtpExpiry(),
+        resetPasswordOtpAttempts: 0,
+      },
+    });
+
+    try {
+      await this.mailerService.sendPasswordResetEmail(user.email, otp);
+    } catch {
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
-          resetPasswordOtp: otp,
-          resetPasswordOtpExpiresAt: this.generateOtpExpiry(),
+          resetPasswordOtp: null,
+          resetPasswordOtpExpiresAt: null,
           resetPasswordOtpAttempts: 0,
         },
       });
-      await this.mailerService.sendPasswordResetEmail(user.email, otp);
+      throw new ServiceUnavailableException('Unable to send password reset email. Please try again later.');
     }
 
     return {
-      data: null,
-      message: 'If account exists, reset instructions are sent',
+      message: 'Password reset OTP has been sent to your email.',
     };
   }
 
@@ -781,24 +795,14 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
-    const resetToken = await this.jwtService.signAsync(
-      { uid: user.id, role: user.role, type: 'reset-password' },
-      {
-        secret: this.configService.get<string>('RESET_PASSWORD_TOKEN_SECRET', 'change-me-reset'),
-        expiresIn: this.configService.get<string>('RESET_PASSWORD_TOKEN_EXPIRES_IN', '10m') as never,
-      },
-    );
-
     return {
-      data: { resetToken },
       message: 'OTP verified successfully',
     };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    const user = dto.resetToken
-      ? await this.userFromResetToken(dto.resetToken)
-      : await this.userFromResetOtp(dto);
+    this.assertPasswordMeetsSecurity(dto.newPassword);
+    const user = await this.userFromResetOtp(dto);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -811,7 +815,7 @@ export class AuthService implements OnModuleInit {
       },
     });
 
-    return { data: null, message: 'Password reset successful' };
+    return { message: 'Password has been reset successfully.' };
   }
 
   async changePassword(user: AuthUserContext, dto: ChangePasswordDto) {
@@ -1202,16 +1206,12 @@ export class AuthService implements OnModuleInit {
   }
 
   private async userFromResetOtp(dto: ResetPasswordDto): Promise<User> {
-    if (!dto.email || !dto.otp) {
-      throw new BadRequestException('email and otp are required when resetToken is not provided');
-    }
-
     const user = await this.prisma.user.findUnique({
       where: { email: this.normalizeEmail(dto.email) },
     });
 
     if (!user || user.deletedAt) {
-      throw new BadRequestException('Invalid or expired OTP');
+      throw new BadRequestException('No account found with this email address.');
     }
 
     if (user.resetPasswordOtpAttempts >= 5) {
@@ -1234,27 +1234,10 @@ export class AuthService implements OnModuleInit {
     return user;
   }
 
-  private async userFromResetToken(resetToken: string): Promise<User> {
-    let payload: { uid: string; type?: string };
-
-    try {
-      payload = await this.jwtService.verifyAsync<TokenPayload & { type?: string }>(resetToken, {
-        secret: this.configService.get<string>('RESET_PASSWORD_TOKEN_SECRET', 'change-me-reset'),
-      });
-    } catch {
-      throw new BadRequestException('Invalid or expired reset token');
+  private assertPasswordMeetsSecurity(password: string): void {
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      throw new BadRequestException('New password does not meet security requirements.');
     }
-
-    if (payload.type !== 'reset-password') {
-      throw new BadRequestException('Invalid or expired reset token');
-    }
-
-    const user = await this.prisma.user.findUnique({ where: { id: payload.uid } });
-    if (!user || user.deletedAt) {
-      throw new BadRequestException('Invalid or expired reset token');
-    }
-
-    return user;
   }
 
   private async getProviderBusinessCategory(categoryId: string) {

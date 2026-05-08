@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   MinLength,
 } from 'class-validator';
 
@@ -101,43 +102,38 @@ export class VerifyEmailDto {
 }
 
 export class ForgotPasswordDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
   email!: string;
 }
 
 export class VerifyResetOtpDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ description: '6-digit password reset OTP' })
+  @ApiProperty({ description: '6-digit password reset OTP', example: '334018' })
   @IsString()
   @IsNotEmpty()
   otp!: string;
 }
 
 export class ResetPasswordDto {
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email?: string;
+  email!: string;
 
-  @ApiPropertyOptional({ description: '6-digit password reset OTP' })
-  @IsOptional()
+  @ApiProperty({ description: '6-digit password reset OTP', example: '334018' })
   @IsString()
   @IsNotEmpty()
-  otp?: string;
+  otp!: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  resetToken?: string;
-
-  @ApiProperty()
+  @ApiProperty({ example: 'NewPassword@123' })
   @IsString()
   @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
+    message: 'New password does not meet security requirements.',
+  })
   newPassword!: string;
 }
 

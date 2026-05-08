@@ -44,9 +44,10 @@ export function layoutTemplate(input: EmailTemplateVariables & { contentHtml: st
   const appName = escapeHtml(input.appName);
   const supportEmail = escapeHtml(input.supportEmail ?? 'support@giftapp.com');
   const preheader = escapeHtml(input.message);
-  const logo = input.logoUrl
-    ? `<img src="${escapeHtml(input.logoUrl)}" width="72" alt="${appName}" style="display:block;border:0;outline:none;text-decoration:none;border-radius:18px;margin:0 auto 12px;max-width:72px;height:auto;" />`
-    : `<div style="width:72px;height:72px;border-radius:18px;background:#8B5CF6;color:#ffffff;line-height:72px;text-align:center;font-size:28px;font-weight:700;margin:0 auto 12px;">🎁</div>`;
+  const logoUrl = input.logoUrl && /^https?:\/\//i.test(input.logoUrl) ? input.logoUrl : undefined;
+  const logo = logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" alt="${appName}" width="72" height="72" style="display:block; margin:0 auto 16px; border-radius:16px; object-fit:cover;" />`
+    : '';
   const cta = input.ctaUrl
     ? `<tr><td align="center" style="padding:24px 0 8px;"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;background:#8B5CF6;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:10px;font-size:15px;font-weight:700;">${escapeHtml(input.ctaText ?? 'Open Gift App')}</a></td></tr>`
     : '';
@@ -73,8 +74,8 @@ export function layoutTemplate(input: EmailTemplateVariables & { contentHtml: st
             </tr>
             <tr>
               <td style="padding:8px 28px 4px;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#111827;">${escapeHtml(input.title)}</h1>
-                <p style="margin:0;color:#6B7280;font-size:16px;line-height:1.6;">${escapeHtml(input.message)}</p>
+                <h1 style="text-align:center; margin:0; font-size:24px; color:#111827;">${escapeHtml(input.title)}</h1>
+                <p style="text-align:center; margin:12px 0 0; color:#6B7280; font-size:15px; line-height:22px;">${escapeHtml(input.message)}</p>
               </td>
             </tr>
             <tr><td style="padding:18px 28px 0;">${input.contentHtml}</td></tr>
