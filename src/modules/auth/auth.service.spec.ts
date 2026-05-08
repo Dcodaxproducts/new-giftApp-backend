@@ -212,10 +212,11 @@ describe('AuthService forgot/reset password', () => {
 });
 
 describe('reset password email template', () => {
-  it('uses APP_LOGO_URL as img src and centers title/subtitle', () => {
+  it('does not render images and centers title/subtitle', () => {
     const result = resetPasswordTemplate({ appName: 'Gift App', logoUrl: 'https://res.cloudinary.com/daflot6fo/image/upload/v1778232193/gift_bl9dgu.jpg', supportEmail: 'support@giftapp.com', title: 'Reset your password', message: 'Use this code to reset your Gift App password.', otp: '334018' });
 
-    expect(result.html).toContain('src="https://res.cloudinary.com/daflot6fo/image/upload/v1778232193/gift_bl9dgu.jpg"');
+    expect(result.html).not.toContain('<img');
+    expect(result.html).toContain('align="center"');
     expect(result.html).toContain('text-align:center; margin:0; font-size:24px; color:#111827;');
     expect(result.html).toContain('text-align:center; margin:12px 0 0; color:#6B7280; font-size:15px; line-height:22px;');
   });
