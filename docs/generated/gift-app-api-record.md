@@ -268,8 +268,12 @@ GET    /broadcasts/:id/recipients
 
 ```txt
 GET    /notifications
+GET    /notifications/summary
+GET    /notifications/preferences
+PATCH  /notifications/preferences
 PATCH  /notifications/:id/read
 PATCH  /notifications/read-all
+POST   /notifications/:id/action
 POST   /notifications/device-tokens
 DELETE /notifications/device-tokens/:id
 ```
@@ -791,6 +795,34 @@ Allowed paymentMethod: `COD | PLACEHOLDER`
   "reason": "Campaign postponed."
 }
 ```
+
+## Notifications
+
+### POST /notifications/:id/action
+
+```json
+{
+  "action": "SEND_GIFT"
+}
+```
+
+Allowed actions: `SEND_GIFT | REMIND_ME_LATER | VIEW_ORDER | VIEW_CONTACT`.
+
+### PATCH /notifications/preferences
+
+```json
+{
+  "pushEnabled": true,
+  "dealUpdatesEnabled": true,
+  "birthdayRemindersEnabled": true,
+  "deliveryUpdatesEnabled": true,
+  "newContactAlertsEnabled": true
+}
+```
+
+Filters supported by `GET /notifications`: `ALL | UNREAD | BIRTHDAYS | DELIVERIES | NEW_CONTACTS`.
+
+Notification types: `BIRTHDAY_REMINDER | GIFT_DELIVERED | NEW_CONTACT_AVAILABLE | PROMOTIONAL | BROADCAST | SYSTEM | SECURITY | ORDER`.
 
 ## Notifications
 

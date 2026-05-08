@@ -195,8 +195,12 @@ GET    /broadcasts/:id/recipients
 </code></pre>
 <h3>Notifications</h3>
 <pre><code class="language-txt">GET    /notifications
+GET    /notifications/summary
+GET    /notifications/preferences
+PATCH  /notifications/preferences
 PATCH  /notifications/:id/read
 PATCH  /notifications/read-all
+POST   /notifications/:id/action
 POST   /notifications/device-tokens
 DELETE /notifications/device-tokens/:id
 </code></pre>
@@ -577,6 +581,24 @@ New password does not meet security requirements.
   &quot;reason&quot;: &quot;Campaign postponed.&quot;
 }
 </code></pre>
+<h2>Notifications</h2>
+<h3>POST /notifications/:id/action</h3>
+<pre><code class="language-json">{
+  &quot;action&quot;: &quot;SEND_GIFT&quot;
+}
+</code></pre>
+<p>Allowed actions: <code>SEND_GIFT | REMIND_ME_LATER | VIEW_ORDER | VIEW_CONTACT</code>.</p>
+<h3>PATCH /notifications/preferences</h3>
+<pre><code class="language-json">{
+  &quot;pushEnabled&quot;: true,
+  &quot;dealUpdatesEnabled&quot;: true,
+  &quot;birthdayRemindersEnabled&quot;: true,
+  &quot;deliveryUpdatesEnabled&quot;: true,
+  &quot;newContactAlertsEnabled&quot;: true
+}
+</code></pre>
+<p>Filters supported by <code>GET /notifications</code>: <code>ALL | UNREAD | BIRTHDAYS | DELIVERIES | NEW_CONTACTS</code>.</p>
+<p>Notification types: <code>BIRTHDAY_REMINDER | GIFT_DELIVERED | NEW_CONTACT_AVAILABLE | PROMOTIONAL | BROADCAST | SYSTEM | SECURITY | ORDER</code>.</p>
 <h2>Notifications</h2>
 <h3>POST /notifications/device-tokens</h3>
 <pre><code class="language-json">{
