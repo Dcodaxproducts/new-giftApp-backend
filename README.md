@@ -54,7 +54,8 @@ Base route: `/api/v1/auth`
 - Auth responses are role-shaped: registered users do not receive null admin/provider fields.
 - `isActive` means account enabled/disabled state; `isVerified` means email/OTP verification. Provider approval is returned only under `provider.approvalStatus`.
 - Guest access remains unauthenticated by design, matching the SRD requirement that all roles except Guest authenticate.
-- Exactly one backend Super Admin is bootstrapped on startup: `superadmin@giftapp.dev` / `Admin@123456` unless overridden by `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
+- The default backend Super Admin is bootstrapped on startup: `superadmin@giftapp.dev` / `Admin@123456` unless overridden by `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
+- Optional QA Super Admin seed added: `giftapp.superadmin@yopmail.com` / `Admin@123456`, controlled by `QA_SUPER_ADMIN_ENABLED`. This is for QA only and must never be enabled with Yopmail in production.
 - Login attempts are tracked in `login_attempts`; five failed attempts within 15 minutes blocks further login attempts temporarily.
 - Login requires `isVerified=true` and `isActive=true`; inactive users are blocked until reactivated by an authorized Admin/Super Admin.
 - Registration returns access/refresh tokens so the frontend can call `verify-email` or `resend-otp` before normal login is allowed.
@@ -96,6 +97,15 @@ JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
 SUPER_ADMIN_EMAIL=superadmin@giftapp.dev
 SUPER_ADMIN_PASSWORD=Admin@123456
+QA_SUPER_ADMIN_ENABLED=true
+QA_SUPER_ADMIN_EMAIL=giftapp.superadmin@yopmail.com
+QA_SUPER_ADMIN_PASSWORD=Admin@123456
+APP_NAME="Gift App"
+APP_LOGO_URL="https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/brand/gift-app-logo.png"
+APP_SUPPORT_EMAIL="support@giftapp.com"
+APP_FRONTEND_URL="https://app.giftapp.com"
+EMAIL_FROM_NAME="Gift App"
+EMAIL_FROM_ADDRESS="no-reply@giftapp.com"
 EMAIL_ENABLED=false
 MAIL_MAILER=smtp
 MAIL_HOST=
@@ -105,6 +115,13 @@ MAIL_PASSWORD=
 MAIL_ENCRYPTION=ssl
 MAIL_FROM_ADDRESS=
 ```
+
+## Email Branding
+
+- Professional branded HTML email templates added with plain-text fallbacks preserved.
+- Templates cover OTP verification, reset password, admin invite, provider approved/rejected, account suspended/status updates, and broadcast emails.
+- `APP_LOGO_URL` must point to your own public S3/CDN asset, not a third-party page URL. Temporary QA logo flow: download the selected free gift-box image, upload it to `brand/gift-app-logo.png` in your AWS bucket/CDN, then set `APP_LOGO_URL` to the final public URL.
+- Brand variables: `APP_NAME`, `APP_LOGO_URL`, `APP_SUPPORT_EMAIL`, `APP_FRONTEND_URL`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`.
 
 ## Response Envelope
 

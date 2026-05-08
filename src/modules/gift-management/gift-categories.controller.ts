@@ -21,7 +21,7 @@ export class GiftCategoriesController {
   @Post()
   @Permissions('giftCategories.create')
   @ApiOperation({ summary: 'Create gift category', description: 'RBAC permission: giftCategories.create. Slug is auto-generated and unique. backgroundColor defaults to #F3E8FF; color remains a backward-compatible alias.' })
-  @ApiBody({ type: CreateGiftCategoryDto, examples: { create: { value: { name: 'Perfumes', description: 'Premium fragrance gifts.', iconKey: 'perfume', backgroundColor: '#E9D5FF', imageUrl: 'https://cdn.example.com/gift-categories/perfumes.png', sortOrder: 1, isActive: true } } } })
+  @ApiBody({ type: CreateGiftCategoryDto, examples: { create: { value: { name: 'Perfumes', description: 'Premium fragrance gifts.', iconKey: 'perfume', backgroundColor: '#E9D5FF', imageUrl: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png', sortOrder: 1, isActive: true } } } })
   @ApiResponse({ status: 201, description: 'Gift category created successfully' })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateGiftCategoryDto) { return this.gifts.createCategory(user, dto); }
 
@@ -45,7 +45,7 @@ export class GiftCategoriesController {
   @Patch(':id')
   @Permissions('giftCategories.update')
   @ApiOperation({ summary: 'Update gift category', description: 'RBAC permission: giftCategories.update. Slug is regenerated when name changes. Soft-deleted categories are not updated.' })
-  @ApiBody({ type: UpdateGiftCategoryDto, examples: { update: { value: { backgroundColor: '#F3E8FF', imageUrl: 'https://cdn.example.com/gift-categories/perfumes.png', isActive: true } } } })
+  @ApiBody({ type: UpdateGiftCategoryDto, examples: { update: { value: { backgroundColor: '#F3E8FF', imageUrl: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png', isActive: true } } } })
   @ApiResponse({ status: 200, description: 'Gift category updated successfully' })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateGiftCategoryDto) { return this.gifts.updateCategory(user, id, dto); }
 

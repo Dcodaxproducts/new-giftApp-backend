@@ -32,7 +32,7 @@ export class CreateGiftCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() iconKey?: string;
   @ApiPropertyOptional({ example: '#8B5CF6', description: 'Deprecated alias. Use backgroundColor.' }) @IsOptional() @IsHexColor() color?: string;
   @ApiPropertyOptional({ example: '#E9D5FF' }) @IsOptional() @IsHexColor() backgroundColor?: string;
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/gift-categories/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
+  @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
@@ -42,7 +42,7 @@ export class UpdateGiftCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() iconKey?: string;
   @ApiPropertyOptional({ example: '#8B5CF6', description: 'Deprecated alias. Use backgroundColor.' }) @IsOptional() @IsHexColor() color?: string;
   @ApiPropertyOptional({ example: '#E9D5FF' }) @IsOptional() @IsHexColor() backgroundColor?: string;
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/gift-categories/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
+  @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }

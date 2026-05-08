@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
+import { MailerService } from '../mailer/mailer.service';
 import { BroadcastDeliveryService } from './broadcast-delivery.service';
 import { BroadcastQueueService } from './broadcast-queue.service';
 import { BroadcastsController } from './broadcasts.controller';
@@ -23,6 +24,7 @@ import { NotificationsService } from './notifications.service';
     BroadcastQueueService,
     BroadcastDeliveryService,
     NotificationsGateway,
+    MailerService,
     EmailNotificationAdapter,
     PushNotificationAdapter,
     InAppNotificationAdapter,

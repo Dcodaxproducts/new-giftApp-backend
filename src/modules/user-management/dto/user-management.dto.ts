@@ -125,7 +125,7 @@ export class UpdateRegisteredUserDto {
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/users/avatar.jpg' })
+  @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg' })
   @IsOptional()
   @IsUrl({ require_tld: false })
   avatarUrl?: string;

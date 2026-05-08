@@ -75,6 +75,7 @@ export class AuthService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.ensureSingleSuperAdmin();
+    await this.ensureQaSuperAdmin();
   }
 
   async registerUser(dto: RegisterUserDto) {
@@ -1312,10 +1313,6 @@ export class AuthService implements OnModuleInit {
       'SUPER_ADMIN_PASSWORD',
       'Admin@123456',
     );
-    const existingSuperAdmins = await this.prisma.user.findMany({
-      where: { role: UserRole.SUPER_ADMIN },
-      orderBy: { createdAt: 'asc' },
-    });
     const emailOwner = await this.prisma.user.findUnique({ where: { email } });
 
     if (emailOwner && emailOwner.role !== UserRole.SUPER_ADMIN) {
@@ -1354,17 +1351,64 @@ export class AuthService implements OnModuleInit {
       });
     }
 
-    const canonicalSuperAdmin = await this.prisma.user.findUnique({ where: { email } });
-    const duplicateIds = existingSuperAdmins
-      .filter((user) => user.email !== email && user.id !== canonicalSuperAdmin?.id)
-      .map((user) => user.id);
+  }
 
-    if (duplicateIds.length > 0) {
-      await this.prisma.user.updateMany({
-        where: { id: { in: duplicateIds } },
-        data: { role: UserRole.ADMIN, isApproved: false, refreshTokenHash: null },
-      });
+  private async ensureQaSuperAdmin(): Promise<void> {
+    const email = this.normalizeEmail(this.configService.get<string>('QA_SUPER_ADMIN_EMAIL', 'giftapp.superadmin@yopmail.com'));
+    const enabled = this.configService.get<string>('QA_SUPER_ADMIN_ENABLED', 'false') === 'true';
+
+    if (this.configService.get<string>('NODE_ENV') === 'production' && email.endsWith('@yopmail.com')) {
+      if (enabled) throw new ServiceUnavailableException('Yopmail QA Super Admin cannot be enabled in production');
+      return;
     }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (!enabled) {
+      if (existing?.role === UserRole.SUPER_ADMIN) {
+        await this.prisma.user.update({ where: { id: existing.id }, data: { isActive: false, refreshTokenHash: null } });
+      }
+      return;
+    }
+
+    const superAdminRole = await this.ensureSystemRole('Super Admin', UserRole.SUPER_ADMIN, 'Full platform access.', SUPER_ADMIN_PERMISSIONS);
+    const password = this.configService.get<string>('QA_SUPER_ADMIN_PASSWORD', 'Admin@123456');
+
+    if (existing && existing.role !== UserRole.SUPER_ADMIN) {
+      throw new ServiceUnavailableException('Configured QA Super Admin email is already used by another role');
+    }
+
+    if (!existing) {
+      await this.prisma.user.create({
+        data: {
+          email,
+          password: await bcrypt.hash(password, 10),
+          role: UserRole.SUPER_ADMIN,
+          firstName: 'Gift App',
+          lastName: 'Super Admin',
+          isVerified: true,
+          isActive: true,
+          isApproved: true,
+          adminRoleId: superAdminRole.id,
+          adminPermissions: SUPER_ADMIN_PERMISSIONS,
+        },
+      });
+      return;
+    }
+
+    await this.prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        firstName: 'Gift App',
+        lastName: 'Super Admin',
+        isVerified: true,
+        isActive: true,
+        isApproved: true,
+        adminRoleId: superAdminRole.id,
+        adminPermissions: SUPER_ADMIN_PERMISSIONS,
+        deletedAt: null,
+        deleteAfter: null,
+      },
+    });
   }
 
   private generateOtp(): string {

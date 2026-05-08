@@ -316,7 +316,7 @@ export class ProviderManagementService {
         salesCount: 850,
         salesPercentage: 70,
         status: ProviderItemStatus.ACTIVE,
-        imageUrl: 'https://cdn.example.com/items/gift-box.png',
+        imageUrl: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-images/gift-box.png',
       },
     ].filter((item) => query.status && query.status !== ProviderItemStatus.ALL ? item.status === query.status : true)
       .filter((item) => query.search ? item.name.toLowerCase().includes(query.search.toLowerCase()) : true);
@@ -646,6 +646,16 @@ export class ProviderManagementService {
     comment?: string,
   ): Promise<void> {
     if (!notifyProvider) {
+      return;
+    }
+
+    if (status === ProviderApprovalStatus.APPROVED) {
+      await this.mailerService.sendProviderApprovedEmail(provider.email, this.businessName(provider));
+      return;
+    }
+
+    if (status === ProviderApprovalStatus.REJECTED) {
+      await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), provider.providerRejectionReason ?? undefined, comment);
       return;
     }
 

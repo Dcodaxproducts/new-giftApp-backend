@@ -207,7 +207,7 @@ export class UpdateProviderDto {
   @IsString()
   headquarters?: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.example.com/providers/logo.png' })
+  @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png' })
   @IsOptional()
   @IsUrl({ require_tld: false })
   avatarUrl?: string;

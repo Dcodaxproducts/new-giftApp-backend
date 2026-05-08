@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Broadcast, BroadcastChannel, NotificationRecipientType, User, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { MailerService } from '../mailer/mailer.service';
 
 export interface DeliveryAdapterInput {
   broadcast: Broadcast;
@@ -11,9 +12,19 @@ export interface DeliveryAdapterInput {
 @Injectable()
 export class EmailNotificationAdapter {
   private readonly logger = new Logger(EmailNotificationAdapter.name);
-  send(input: DeliveryAdapterInput): Promise<string> {
-    this.logger.log(`Mock email delivery ${input.deliveryId} to ${input.recipient.email}`);
-    return Promise.resolve(`mock-email-${input.deliveryId}`);
+  constructor(private readonly mailerService: MailerService) {}
+
+  async send(input: DeliveryAdapterInput): Promise<string> {
+    await this.mailerService.sendBroadcastEmail({
+      to: input.recipient.email,
+      title: input.broadcast.title,
+      message: input.broadcast.message,
+      imageUrl: input.broadcast.imageUrl,
+      ctaLabel: input.broadcast.ctaLabel,
+      ctaUrl: input.broadcast.ctaUrl,
+    });
+    this.logger.log(`Email delivery ${input.deliveryId} completed for ${input.recipient.email}`);
+    return `email-${input.deliveryId}`;
   }
 }
 
