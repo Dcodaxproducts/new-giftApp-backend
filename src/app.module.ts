@@ -6,6 +6,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BroadcastNotificationsModule } from './modules/broadcast-notifications/broadcast-notifications.module';
 import { CustomerContactsModule } from './modules/customer-contacts/customer-contacts.module';
+import { CustomerEventsModule } from './modules/customer-events/customer-events.module';
 import { CustomerMarketplaceModule } from './modules/customer-marketplace/customer-marketplace.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
@@ -27,6 +28,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     PromotionalOffersModule,
     UserManagementModule,
     CustomerContactsModule,
+    CustomerEventsModule,
     CustomerMarketplaceModule,
     GiftManagementModule,
     BroadcastNotificationsModule,

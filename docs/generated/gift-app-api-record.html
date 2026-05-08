@@ -1,14 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><style>
-@page { size: A4; margin: 16mm; }
-body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; font-size: 10.5pt; }
-h1 { color: #4C1D95; font-size: 24pt; border-bottom: 2px solid #8B5CF6; padding-bottom: 8px; }
-h2 { color: #5B21B6; font-size: 17pt; margin-top: 24px; }
-h3 { color: #111827; font-size: 12.5pt; margin-top: 16px; }
-pre { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 9px; white-space: pre-wrap; word-break: break-word; font-size: 8.6pt; }
-code { font-family: Consolas, monospace; }
-p { margin: 6px 0; }
-hr { border: 0; border-top: 1px solid #E5E7EB; margin: 18px 0; }
-</style></head><body><h1>Gift App Backend API Record</h1>
+<!doctype html><html><head><meta charset="utf-8"><style>@page { size: A4; margin: 16mm; } body { font-family: Arial, sans-serif; color: #111827; line-height: 1.45; font-size: 10.5pt; } h1 { color: #4C1D95; font-size: 24pt; border-bottom: 2px solid #8B5CF6; padding-bottom: 8px; } h2 { color: #5B21B6; font-size: 17pt; margin-top: 24px; } h3 { color: #111827; font-size: 12.5pt; margin-top: 16px; } pre { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 9px; white-space: pre-wrap; word-break: break-word; font-size: 8.6pt; } code { font-family: Consolas, monospace; } p { margin: 6px 0; } hr { border: 0; border-top: 1px solid #E5E7EB; margin: 18px 0; }</style></head><body><h1>Gift App Backend API Record</h1>
 <p>Base URL: <code>/api/v1</code></p>
 <p>Auth header for protected APIs:</p>
 <pre><code class="language-txt">Authorization: Bearer &lt;accessToken&gt;
@@ -147,6 +137,17 @@ POST   /customer/contacts
 GET    /customer/contacts/:id
 PATCH  /customer/contacts/:id
 DELETE /customer/contacts/:id
+</code></pre>
+<h3>Customer Events</h3>
+<pre><code class="language-txt">GET    /customer/events
+POST   /customer/events
+GET    /customer/events/calendar
+GET    /customer/events/upcoming
+GET    /customer/events/:id
+PATCH  /customer/events/:id
+DELETE /customer/events/:id
+GET    /customer/events/:id/reminder-settings
+PATCH  /customer/events/:id/reminder-settings
 </code></pre>
 <h3>Customer Wishlist</h3>
 <pre><code class="language-txt">GET    /customer/wishlist

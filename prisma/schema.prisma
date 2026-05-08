@@ -163,6 +163,41 @@ enum CustomerDeliveryOption {
   SCHEDULED
 }
 
+enum CustomerEventType {
+  BIRTHDAY
+  ANNIVERSARY
+  HOLIDAY
+  WORK_MILESTONE
+  CUSTOM
+}
+
+enum CustomerEventReminderTiming {
+  ONE_DAY_BEFORE
+  THREE_DAYS_BEFORE
+  ONE_WEEK_BEFORE
+  ON_THE_DAY
+  CUSTOM
+}
+
+enum CustomerEventReminderFrequency {
+  ONE_TIME
+  MONTHLY
+  YEARLY
+}
+
+enum CustomerEventReminderChannel {
+  PUSH
+  EMAIL
+  SMS
+}
+
+enum CustomerEventReminderJobStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
 enum CartStatus {
   ACTIVE
   CHECKED_OUT
@@ -390,12 +425,59 @@ model CustomerContact {
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt    DateTime? @map("deleted_at") @db.Timestamptz
+  events       CustomerEvent[]
 
   @@index([userId])
   @@index([userId, name])
   @@index([userId, relationship])
   @@index([userId, deletedAt])
   @@map("customer_contacts")
+}
+
+model CustomerEvent {
+  id                String                         @id @default(cuid())
+  userId            String                         @map("user_id")
+  recipientId       String?                        @map("recipient_id")
+  eventType         CustomerEventType              @map("event_type")
+  title             String
+  eventDate         DateTime                       @map("event_date") @db.Timestamptz
+  reminderTiming    CustomerEventReminderTiming    @default(ON_THE_DAY) @map("reminder_timing")
+  reminderFrequency CustomerEventReminderFrequency @default(ONE_TIME) @map("reminder_frequency")
+  customAlertTime   String?                        @map("custom_alert_time")
+  channelsJson      Json                           @default("[\"PUSH\"]") @map("channels_json")
+  notes             String?
+  isActive          Boolean                        @default(true) @map("is_active")
+  lastReminderSentAt DateTime?                     @map("last_reminder_sent_at") @db.Timestamptz
+  nextReminderAt    DateTime?                      @map("next_reminder_at") @db.Timestamptz
+  createdAt         DateTime                       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?                      @map("deleted_at") @db.Timestamptz
+  recipient         CustomerContact?               @relation(fields: [recipientId], references: [id])
+  reminderJobs      CustomerEventReminderJob[]
+
+  @@index([userId, deletedAt])
+  @@index([userId, eventDate])
+  @@index([userId, eventType])
+  @@index([recipientId])
+  @@map("customer_events")
+}
+
+model CustomerEventReminderJob {
+  id            String                         @id @default(cuid())
+  eventId       String                         @map("event_id")
+  userId        String                         @map("user_id")
+  scheduledFor  DateTime                       @map("scheduled_for") @db.Timestamptz
+  channel       CustomerEventReminderChannel
+  status        CustomerEventReminderJobStatus @default(PENDING)
+  failureReason String?                        @map("failure_reason")
+  sentAt        DateTime?                      @map("sent_at") @db.Timestamptz
+  createdAt     DateTime                       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
+  event         CustomerEvent                  @relation(fields: [eventId], references: [id])
+
+  @@index([eventId, status])
+  @@index([userId, scheduledFor])
+  @@map("customer_event_reminder_jobs")
 }
 
 model Cart {

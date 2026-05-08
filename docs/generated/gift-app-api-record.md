@@ -188,6 +188,20 @@ PATCH  /customer/contacts/:id
 DELETE /customer/contacts/:id
 ```
 
+### Customer Events
+
+```txt
+GET    /customer/events
+POST   /customer/events
+GET    /customer/events/calendar
+GET    /customer/events/upcoming
+GET    /customer/events/:id
+PATCH  /customer/events/:id
+DELETE /customer/events/:id
+GET    /customer/events/:id/reminder-settings
+PATCH  /customer/events/:id/reminder-settings
+```
+
 ### Customer Wishlist
 
 ```txt
