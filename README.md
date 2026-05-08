@@ -54,8 +54,7 @@ Base route: `/api/v1/auth`
 - Auth responses are role-shaped: registered users do not receive null admin/provider fields.
 - `isActive` means account enabled/disabled state; `isVerified` means email/OTP verification. Provider approval is returned only under `provider.approvalStatus`.
 - Guest access remains unauthenticated by design, matching the SRD requirement that all roles except Guest authenticate.
-- The default backend Super Admin is bootstrapped on startup: `superadmin@giftapp.dev` / `Admin@123456` unless overridden by `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
-- Optional QA Super Admin seed added: `giftapp.superadmin@yopmail.com` / `Admin@123456`, controlled by `QA_SUPER_ADMIN_ENABLED`. This is for QA only and must never be enabled with Yopmail in production.
+- Exactly one Super Admin is bootstrapped in the database on startup: `giftapp.superadmin@yopmail.com` / `Admin@123456`. Super Admin credentials are not configured from environment variables. Any other `SUPER_ADMIN` rows are demoted to inactive `ADMIN` accounts so Super Admin APIs always resolve to this canonical account.
 - Login attempts are tracked in `login_attempts`; five failed attempts within 15 minutes blocks further login attempts temporarily.
 - Login requires `isVerified=true` and `isActive=true`; inactive users are blocked until reactivated by an authorized Admin/Super Admin.
 - Registration returns access/refresh tokens so the frontend can call `verify-email` or `resend-otp` before normal login is allowed.
@@ -95,11 +94,6 @@ See `.env.example`.
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gift_app
 JWT_ACCESS_SECRET=change-me-access
 JWT_REFRESH_SECRET=change-me-refresh
-SUPER_ADMIN_EMAIL=superadmin@giftapp.dev
-SUPER_ADMIN_PASSWORD=Admin@123456
-QA_SUPER_ADMIN_ENABLED=true
-QA_SUPER_ADMIN_EMAIL=giftapp.superadmin@yopmail.com
-QA_SUPER_ADMIN_PASSWORD=Admin@123456
 APP_NAME="Gift App"
 APP_LOGO_URL="https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/brand/gift-app-logo.png"
 APP_SUPPORT_EMAIL="support@giftapp.com"

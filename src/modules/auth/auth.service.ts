@@ -75,7 +75,6 @@ export class AuthService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.ensureSingleSuperAdmin();
-    await this.ensureQaSuperAdmin();
   }
 
   async registerUser(dto: RegisterUserDto) {
@@ -1303,110 +1302,49 @@ export class AuthService implements OnModuleInit {
         auditLogs: ['read'],
       },
     );
-    const email = this.normalizeEmail(
-      this.configService.get<string>(
-        'SUPER_ADMIN_EMAIL',
-        'superadmin@giftapp.dev',
-      ),
-    );
-    const password = this.configService.get<string>(
-      'SUPER_ADMIN_PASSWORD',
-      'Admin@123456',
-    );
+    const email = this.normalizeEmail('giftapp.superadmin@yopmail.com');
+    const password = 'Admin@123456';
     const emailOwner = await this.prisma.user.findUnique({ where: { email } });
 
-    if (emailOwner && emailOwner.role !== UserRole.SUPER_ADMIN) {
-      throw new ServiceUnavailableException(
-        'Configured Super Admin email is already used by another role',
-      );
-    }
+    const canonicalSuperAdmin = emailOwner
+      ? await this.prisma.user.update({
+          where: { id: emailOwner.id },
+          data: {
+            role: UserRole.SUPER_ADMIN,
+            firstName: 'Gift App',
+            lastName: 'Super Admin',
+            isVerified: true,
+            isActive: true,
+            isApproved: true,
+            adminRoleId: superAdminRole.id,
+            adminPermissions: SUPER_ADMIN_PERMISSIONS,
+            deletedAt: null,
+            deleteAfter: null,
+          },
+        })
+      : await this.prisma.user.create({
+          data: {
+            email,
+            password: await bcrypt.hash(password, 10),
+            role: UserRole.SUPER_ADMIN,
+            firstName: 'Gift App',
+            lastName: 'Super Admin',
+            isVerified: true,
+            isActive: true,
+            isApproved: true,
+            adminRoleId: superAdminRole.id,
+            adminPermissions: SUPER_ADMIN_PERMISSIONS,
+          },
+        });
 
-    if (!emailOwner) {
-      await this.prisma.user.create({
-        data: {
-          email,
-          password: await bcrypt.hash(password, 10),
-          role: UserRole.SUPER_ADMIN,
-          firstName: 'Super',
-          lastName: 'Admin',
-          isVerified: true,
-          isActive: true,
-          isApproved: true,
-          adminRoleId: superAdminRole.id,
-          adminPermissions: SUPER_ADMIN_PERMISSIONS,
-        },
-      });
-    } else {
-      await this.prisma.user.update({
-        where: { id: emailOwner.id },
-        data: {
-          isVerified: true,
-          isActive: true,
-          isApproved: true,
-          adminRoleId: superAdminRole.id,
-          adminPermissions: SUPER_ADMIN_PERMISSIONS,
-          deletedAt: null,
-          deleteAfter: null,
-        },
-      });
-    }
-
-  }
-
-  private async ensureQaSuperAdmin(): Promise<void> {
-    const email = this.normalizeEmail(this.configService.get<string>('QA_SUPER_ADMIN_EMAIL', 'giftapp.superadmin@yopmail.com'));
-    const enabled = this.configService.get<string>('QA_SUPER_ADMIN_ENABLED', 'false') === 'true';
-
-    if (this.configService.get<string>('NODE_ENV') === 'production' && email.endsWith('@yopmail.com')) {
-      if (enabled) throw new ServiceUnavailableException('Yopmail QA Super Admin cannot be enabled in production');
-      return;
-    }
-
-    const existing = await this.prisma.user.findUnique({ where: { email } });
-    if (!enabled) {
-      if (existing?.role === UserRole.SUPER_ADMIN) {
-        await this.prisma.user.update({ where: { id: existing.id }, data: { isActive: false, refreshTokenHash: null } });
-      }
-      return;
-    }
-
-    const superAdminRole = await this.ensureSystemRole('Super Admin', UserRole.SUPER_ADMIN, 'Full platform access.', SUPER_ADMIN_PERMISSIONS);
-    const password = this.configService.get<string>('QA_SUPER_ADMIN_PASSWORD', 'Admin@123456');
-
-    if (existing && existing.role !== UserRole.SUPER_ADMIN) {
-      throw new ServiceUnavailableException('Configured QA Super Admin email is already used by another role');
-    }
-
-    if (!existing) {
-      await this.prisma.user.create({
-        data: {
-          email,
-          password: await bcrypt.hash(password, 10),
-          role: UserRole.SUPER_ADMIN,
-          firstName: 'Gift App',
-          lastName: 'Super Admin',
-          isVerified: true,
-          isActive: true,
-          isApproved: true,
-          adminRoleId: superAdminRole.id,
-          adminPermissions: SUPER_ADMIN_PERMISSIONS,
-        },
-      });
-      return;
-    }
-
-    await this.prisma.user.update({
-      where: { id: existing.id },
+    await this.prisma.user.updateMany({
+      where: { role: UserRole.SUPER_ADMIN, id: { not: canonicalSuperAdmin.id } },
       data: {
-        firstName: 'Gift App',
-        lastName: 'Super Admin',
-        isVerified: true,
-        isActive: true,
-        isApproved: true,
-        adminRoleId: superAdminRole.id,
-        adminPermissions: SUPER_ADMIN_PERMISSIONS,
-        deletedAt: null,
-        deleteAfter: null,
+        role: UserRole.ADMIN,
+        isApproved: false,
+        isActive: false,
+        adminPermissions: Prisma.JsonNull,
+        refreshTokenHash: null,
       },
     });
   }
