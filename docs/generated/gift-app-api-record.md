@@ -178,6 +178,16 @@ GET    /customer/gifts/filter-options
 GET    /customer/gifts/:id
 ```
 
+### Customer Contacts
+
+```txt
+GET    /customer/contacts
+POST   /customer/contacts
+GET    /customer/contacts/:id
+PATCH  /customer/contacts/:id
+DELETE /customer/contacts/:id
+```
+
 ### Customer Wishlist
 
 ```txt
@@ -797,7 +807,7 @@ Allowed platform: `IOS | ANDROID | WEB`
 }
 ```
 
-Allowed folders: `admin-avatars`, `user-avatars`, `provider-logos`, `provider-documents`, `provider-item-images`, `gift-images`, `gift-category-images`, `broadcast-images`.
+Allowed folders: `admin-avatars`, `user-avatars`, `provider-logos`, `provider-documents`, `provider-item-images`, `gift-images`, `gift-category-images`, `customer-contact-avatars`, `broadcast-images`.
 
 For `gift-category-images`: `image/jpeg | image/png | image/webp`, max 5MB.
 

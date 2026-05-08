@@ -69,7 +69,8 @@ export class StorageService {
 
   private async assertUploadScope(user: AuthUserContext, dto: CreatePresignedUploadDto): Promise<void> {
     if (user.role === UserRole.REGISTERED_USER) {
-      if (dto.folder !== UploadFolder.USER_AVATARS || (dto.targetAccountId && dto.targetAccountId !== user.uid)) throw new ForbiddenException('Registered users can upload only their own avatar files');
+      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS];
+      if (!allowed.includes(dto.folder) || (dto.targetAccountId && dto.targetAccountId !== user.uid)) throw new ForbiddenException('Registered users can upload only their own avatar files');
       return;
     }
     if (user.role === UserRole.PROVIDER) {
@@ -88,9 +89,10 @@ export class StorageService {
   }
 
   private assertFolderFilePolicy(dto: CreatePresignedUploadDto): void {
-    if (dto.folder !== UploadFolder.GIFT_CATEGORY_IMAGES) return;
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Gift category images must be JPEG, PNG, or WEBP');
-    if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Gift category image exceeds maximum allowed size');
+    const fiveMbImageFolders = [UploadFolder.GIFT_CATEGORY_IMAGES, UploadFolder.CUSTOMER_CONTACT_AVATARS];
+    if (!fiveMbImageFolders.includes(dto.folder)) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Images must be JPEG, PNG, or WEBP');
+    if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Image exceeds maximum allowed size');
   }
 
   private scopedFolder(user: AuthUserContext, dto: CreatePresignedUploadDto): string { return `${dto.folder}/${dto.targetAccountId ?? user.uid}`; }

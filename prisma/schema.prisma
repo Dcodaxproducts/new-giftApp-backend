@@ -375,6 +375,29 @@ model CustomerReminder {
   @@map("customer_reminders")
 }
 
+model CustomerContact {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  name         String
+  relationship String?
+  phone        String?
+  email        String?
+  address      String?
+  likes        String?
+  avatarUrl    String?   @map("avatar_url")
+  birthday     DateTime? @db.Date
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@index([userId])
+  @@index([userId, name])
+  @@index([userId, relationship])
+  @@index([userId, deletedAt])
+  @@map("customer_contacts")
+}
+
 model Cart {
   id        String     @id @default(cuid())
   userId    String     @map("user_id")

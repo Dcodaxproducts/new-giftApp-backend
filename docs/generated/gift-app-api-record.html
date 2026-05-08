@@ -141,6 +141,13 @@ GET    /customer/gifts/discounted
 GET    /customer/gifts/filter-options
 GET    /customer/gifts/:id
 </code></pre>
+<h3>Customer Contacts</h3>
+<pre><code class="language-txt">GET    /customer/contacts
+POST   /customer/contacts
+GET    /customer/contacts/:id
+PATCH  /customer/contacts/:id
+DELETE /customer/contacts/:id
+</code></pre>
 <h3>Customer Wishlist</h3>
 <pre><code class="language-txt">GET    /customer/wishlist
 POST   /customer/wishlist/:giftId
@@ -589,7 +596,7 @@ New password does not meet security requirements.
   &quot;giftId&quot;: &quot;gift_id&quot;
 }
 </code></pre>
-<p>Allowed folders: <code>admin-avatars</code>, <code>user-avatars</code>, <code>provider-logos</code>, <code>provider-documents</code>, <code>provider-item-images</code>, <code>gift-images</code>, <code>gift-category-images</code>, <code>broadcast-images</code>.</p>
+<p>Allowed folders: <code>admin-avatars</code>, <code>user-avatars</code>, <code>provider-logos</code>, <code>provider-documents</code>, <code>provider-item-images</code>, <code>gift-images</code>, <code>gift-category-images</code>, <code>customer-contact-avatars</code>, <code>broadcast-images</code>.</p>
 <p>For <code>gift-category-images</code>: <code>image/jpeg | image/png | image/webp</code>, max 5MB.</p>
 <h3>POST /uploads/complete</h3>
 <pre><code class="language-json">{
