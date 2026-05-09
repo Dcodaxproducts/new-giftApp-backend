@@ -8,164 +8,27 @@ Auth header for protected APIs:
 Authorization: Bearer <accessToken>
 ```
 
-Canonical Super Admin seeded in database:
+Generated from the NestJS Swagger document with controller auto-tags disabled, so each endpoint appears under one explicit Swagger tag only.
 
-```txt
-email: giftapp.superadmin@yopmail.com
-password: Admin@123456
-```
+## Final Swagger Groups
 
-Note: `GET /admins` lists only users with role `ADMIN`; it does not include `SUPER_ADMIN` users.
-
----
+- Customer Marketplace
+- Customer Wishlist
+- Customer Addresses
+- Customer Contacts
+- Customer Events
+- Customer Event Reminder Settings
+- Customer Cart
+- Customer Orders
+- Notifications
+- Gift Categories
+- Gift Management
+- Provider Inventory
+- Promotional Offers Management
+- Provider Promotional Offers
+- Payments
 
 ## API List
-
-### Auth
-
-```txt
-POST   /auth/users/register
-POST   /auth/providers/register
-POST   /auth/guest/session
-POST   /auth/login
-POST   /auth/refresh
-POST   /auth/logout
-POST   /auth/verify-email
-POST   /auth/resend-otp
-POST   /auth/forgot-password
-POST   /auth/verify-reset-otp
-POST   /auth/reset-password
-PATCH  /auth/change-password
-GET    /auth/me
-DELETE /auth/account
-POST   /auth/cancel-deletion
-```
-
-### Admin Management
-
-```txt
-POST   /admins
-GET    /admins
-GET    /admins/:id
-PATCH  /admins/:id
-PATCH  /admins/:id/active-status
-PATCH  /admins/:id/password
-```
-
-### Admin Roles / Permissions
-
-```txt
-GET    /admin-roles
-POST   /admin-roles
-GET    /admin-roles/:id
-PATCH  /admin-roles/:id
-DELETE /admin-roles/:id
-PATCH  /admin-roles/:id/permissions
-GET    /permissions/catalog
-```
-
-### Providers
-
-```txt
-GET    /providers/export
-GET    /providers/stats
-GET    /providers
-GET    /providers/lookup
-POST   /providers
-GET    /providers/:id
-PATCH  /providers/:id
-PATCH  /providers/:id/approve
-PATCH  /providers/:id/reject
-PATCH  /providers/:id/status
-POST   /providers/:id/suspend
-POST   /providers/:id/unsuspend
-GET    /providers/:id/items
-GET    /providers/:id/activity
-POST   /providers/:id/message
-```
-
-### Provider Business Categories
-
-```txt
-GET    /provider-business-categories
-POST   /provider-business-categories
-GET    /provider-business-categories/:id
-PATCH  /provider-business-categories/:id
-DELETE /provider-business-categories/:id
-```
-
-### Provider Inventory
-
-```txt
-GET    /provider/inventory
-GET    /provider/inventory/stats
-GET    /provider/inventory/lookup
-POST   /provider/inventory
-GET    /provider/inventory/:id
-PATCH  /provider/inventory/:id
-PATCH  /provider/inventory/:id/availability
-DELETE /provider/inventory/:id
-```
-
-### Gift Categories
-
-```txt
-POST   /gift-categories
-GET    /gift-categories
-GET    /gift-categories/lookup
-GET    /gift-categories/stats
-GET    /gift-categories/:id
-PATCH  /gift-categories/:id
-DELETE /gift-categories/:id
-```
-
-### Gifts
-
-```txt
-POST   /gifts
-GET    /gifts
-GET    /gifts/stats
-GET    /gifts/export
-GET    /gifts/:id
-PATCH  /gifts/:id
-PATCH  /gifts/:id/status
-DELETE /gifts/:id
-```
-
-### Gift Moderation
-
-```txt
-GET    /gift-moderation
-PATCH  /gift-moderation/:id/approve
-PATCH  /gift-moderation/:id/reject
-PATCH  /gift-moderation/:id/flag
-```
-
-### Promotional Offers — Admin
-
-```txt
-GET    /promotional-offers/stats
-GET    /promotional-offers/export
-GET    /promotional-offers
-POST   /promotional-offers
-GET    /promotional-offers/:id
-PATCH  /promotional-offers/:id
-PATCH  /promotional-offers/:id/approve
-PATCH  /promotional-offers/:id/reject
-PATCH  /promotional-offers/:id/status
-DELETE /promotional-offers/:id
-```
-
-### Promotional Offers — Provider
-
-```txt
-GET    /provider/offers
-POST   /provider/offers
-GET    /provider/offers/:id
-PATCH  /provider/offers/:id
-PATCH  /provider/offers/:id/status
-DELETE /provider/offers/:id
-```
 
 ### Customer Marketplace
 
@@ -176,30 +39,6 @@ GET    /customer/gifts
 GET    /customer/gifts/discounted
 GET    /customer/gifts/filter-options
 GET    /customer/gifts/:id
-```
-
-### Customer Contacts
-
-```txt
-GET    /customer/contacts
-POST   /customer/contacts
-GET    /customer/contacts/:id
-PATCH  /customer/contacts/:id
-DELETE /customer/contacts/:id
-```
-
-### Customer Events
-
-```txt
-GET    /customer/events
-POST   /customer/events
-GET    /customer/events/calendar
-GET    /customer/events/upcoming
-GET    /customer/events/:id
-PATCH  /customer/events/:id
-DELETE /customer/events/:id
-GET    /customer/events/:id/reminder-settings
-PATCH  /customer/events/:id/reminder-settings
 ```
 
 ### Customer Wishlist
@@ -221,14 +60,154 @@ DELETE /customer/addresses/:id
 PATCH  /customer/addresses/:id/default
 ```
 
-### Customer Reminders
+Examples:
+
+**POST /customer/addresses**
+
+```json
+{
+  "label": "Home",
+  "fullName": "Sarah Khan",
+  "phone": "+923001234567",
+  "line1": "House 12, Street 4, F-8/2",
+  "line2": "Near Centaurus Mall",
+  "city": "Islamabad",
+  "state": "Islamabad Capital Territory",
+  "country": "Pakistan"
+}
+```
+
+**PATCH /customer/addresses/:id**
+
+```json
+{
+  "label": "Home",
+  "fullName": "Sarah Khan",
+  "phone": "+923001234567",
+  "line1": "House 12, Street 4, F-8/2",
+  "line2": "Near Centaurus Mall",
+  "city": "Islamabad",
+  "state": "Islamabad Capital Territory",
+  "country": "Pakistan"
+}
+```
+
+### Customer Contacts
 
 ```txt
-GET    /customer/reminders
-POST   /customer/reminders
-GET    /customer/reminders/:id
-PATCH  /customer/reminders/:id
-DELETE /customer/reminders/:id
+GET    /customer/contacts
+POST   /customer/contacts
+GET    /customer/contacts/:id
+PATCH  /customer/contacts/:id
+DELETE /customer/contacts/:id
+```
+
+Examples:
+
+**POST /customer/contacts**
+
+```json
+{
+  "name": "Mary Wilson",
+  "relationship": "Mother",
+  "phone": "+1234567890",
+  "email": "mary@example.com",
+  "address": "387 Merdina",
+  "likes": "Glasses, makeup, dresses",
+  "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/mary.png",
+  "birthday": "1990-05-12",
+  "notes": "Prefers elegant gifts."
+}
+```
+
+**PATCH /customer/contacts/:id**
+
+```json
+{
+  "name": "Mary Wilson",
+  "relationship": "Mother",
+  "phone": "+1234567890",
+  "email": "mary@example.com",
+  "address": "387 Merdina",
+  "likes": "Glasses, makeup, dresses",
+  "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/mary.png",
+  "birthday": "1990-05-12",
+  "notes": "Prefers elegant gifts."
+}
+```
+
+### Customer Events
+
+```txt
+GET    /customer/events
+POST   /customer/events
+GET    /customer/events/calendar
+GET    /customer/events/upcoming
+GET    /customer/events/:id
+PATCH  /customer/events/:id
+DELETE /customer/events/:id
+```
+
+Examples:
+
+**POST /customer/events**
+
+```json
+{
+  "eventType": "BIRTHDAY",
+  "title": "Sarah's Birthday",
+  "recipientId": "cmf0contactmary001",
+  "eventDate": "2026-01-31T00:00:00.000Z",
+  "reminderTiming": "ON_THE_DAY",
+  "reminderFrequency": "ONE_TIME",
+  "customAlertTime": "09:00",
+  "channels": [
+    "EMAIL",
+    "SMS"
+  ]
+}
+```
+
+**PATCH /customer/events/:id**
+
+```json
+{
+  "eventType": "ANNIVERSARY",
+  "title": "Sarah's Anniversary",
+  "recipientId": "cmf0contactmary001",
+  "eventDate": "2026-01-31T00:00:00.000Z",
+  "reminderTiming": "THREE_DAYS_BEFORE",
+  "reminderFrequency": "YEARLY",
+  "customAlertTime": "09:00",
+  "channels": [
+    "PUSH",
+    "EMAIL"
+  ]
+}
+```
+
+### Customer Event Reminder Settings
+
+```txt
+GET    /customer/events/:id/reminder-settings
+PATCH  /customer/events/:id/reminder-settings
+```
+
+Examples:
+
+**PATCH /customer/events/:id/reminder-settings**
+
+```json
+{
+  "reminderFrequency": "YEARLY",
+  "reminderTiming": "ONE_DAY_BEFORE",
+  "customAlertTime": "09:00",
+  "channels": {
+    "push": true,
+    "email": true,
+    "sms": false
+  }
+}
 ```
 
 ### Customer Cart
@@ -241,6 +220,37 @@ DELETE /customer/cart/items/:id
 DELETE /customer/cart
 ```
 
+Examples:
+
+**POST /customer/cart/items**
+
+```json
+{
+  "giftId": "cmf0giftroses001",
+  "quantity": 1,
+  "deliveryOption": "SCHEDULED",
+  "recipientName": "Sarah Khan",
+  "recipientPhone": "+923001234567",
+  "recipientAddressId": "cmf0addresshome001",
+  "giftMessage": "Happy Birthday!",
+  "scheduledDeliveryAt": "2026-06-01T12:00:00.000Z"
+}
+```
+
+**PATCH /customer/cart/items/:id**
+
+```json
+{
+  "quantity": 2,
+  "deliveryOption": "NEXT_DAY",
+  "recipientName": "Sarah Khan",
+  "recipientPhone": "+923001234567",
+  "recipientAddressId": "cmf0addresshome001",
+  "giftMessage": "Happy Birthday!",
+  "scheduledDeliveryAt": "2026-06-01T12:00:00.000Z"
+}
+```
+
 ### Customer Orders
 
 ```txt
@@ -249,228 +259,451 @@ GET    /customer/orders
 GET    /customer/orders/:id
 ```
 
-### Broadcasts
+Examples:
 
-```txt
-POST   /broadcasts
-GET    /broadcasts
-GET    /broadcasts/:id
-PATCH  /broadcasts/:id
-PATCH  /broadcasts/:id/targeting
-POST   /broadcasts/estimate-reach
-PATCH  /broadcasts/:id/schedule
-POST   /broadcasts/:id/cancel
-GET    /broadcasts/:id/report
-GET    /broadcasts/:id/recipients
+**POST /customer/orders**
+
+```json
+{
+  "deliveryAddressId": "cmf0addresshome001",
+  "paymentMethod": "COD"
+}
 ```
 
 ### Notifications
 
 ```txt
+GET    /broadcasts
+POST   /broadcasts
+POST   /broadcasts/estimate-reach
 GET    /notifications
-GET    /notifications/summary
+POST   /notifications/device-tokens
 GET    /notifications/preferences
 PATCH  /notifications/preferences
-PATCH  /notifications/:id/read
 PATCH  /notifications/read-all
+GET    /notifications/summary
+GET    /broadcasts/:id
+PATCH  /broadcasts/:id
+POST   /broadcasts/:id/cancel
+GET    /broadcasts/:id/recipients
+GET    /broadcasts/:id/report
+PATCH  /broadcasts/:id/schedule
+PATCH  /broadcasts/:id/targeting
 POST   /notifications/:id/action
-POST   /notifications/device-tokens
+PATCH  /notifications/:id/read
 DELETE /notifications/device-tokens/:id
 ```
 
-### Storage / Uploads
+Examples:
+
+**POST /broadcasts**
+
+```json
+{
+  "channels": [
+    "EMAIL"
+  ],
+  "priority": "LOW"
+}
+```
+
+**POST /broadcasts/estimate-reach**
+
+```json
+{
+  "channels": [
+    "EMAIL"
+  ],
+  "targeting": {
+    "mode": "ALL_USERS",
+    "roles": [
+      "ADMIN"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true
+    }
+  }
+}
+```
+
+**POST /notifications/device-tokens**
+
+```json
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+  "platform": "IOS",
+  "deviceId": "ios-iphone-15-pro-device-id"
+}
+```
+
+**PATCH /notifications/preferences**
+
+```json
+{
+  "pushEnabled": true,
+  "emailEnabled": true,
+  "smsEnabled": false,
+  "dealUpdatesEnabled": true,
+  "birthdayRemindersEnabled": true,
+  "deliveryUpdatesEnabled": true,
+  "newContactAlertsEnabled": true
+}
+```
+
+**PATCH /broadcasts/:id**
+
+```json
+{
+  "channels": [
+    "EMAIL"
+  ],
+  "priority": "LOW"
+}
+```
+
+**PATCH /broadcasts/:id/schedule**
+
+```json
+{
+  "sendMode": "NOW",
+  "isRecurring": true,
+  "recurrence": {}
+}
+```
+
+**PATCH /broadcasts/:id/targeting**
+
+```json
+{
+  "mode": "ALL_USERS",
+  "roles": [
+    "ADMIN"
+  ],
+  "filters": {
+    "onlyVerifiedEmails": true,
+    "excludeUnsubscribed": true,
+    "excludeSuspended": true
+  }
+}
+```
+
+**POST /notifications/:id/action**
+
+```json
+{
+  "action": "SEND_GIFT"
+}
+```
+
+### Gift Categories
 
 ```txt
-POST   /uploads/presigned-url
-POST   /uploads/complete
-GET    /uploads
-GET    /uploads/:id
-DELETE /uploads/:id
+GET    /gift-categories
+POST   /gift-categories
+GET    /gift-categories/lookup
+GET    /gift-categories/stats
+GET    /gift-categories/:id
+PATCH  /gift-categories/:id
+DELETE /gift-categories/:id
 ```
 
-### Subscription Plans
+Examples:
+
+**POST /gift-categories**
+
+```json
+{
+  "name": "Perfumes",
+  "description": "Premium fragrance gifts.",
+  "iconKey": "perfume",
+  "backgroundColor": "#E9D5FF",
+  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
+  "sortOrder": 1,
+  "isActive": true
+}
+```
+
+**PATCH /gift-categories/:id**
+
+```json
+{
+  "backgroundColor": "#F3E8FF",
+  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
+  "isActive": true
+}
+```
+
+### Gift Management
 
 ```txt
-GET    /subscription-plans
-GET    /subscription-plans/stats
-POST   /subscription-plans
-GET    /subscription-plans/:id
-PATCH  /subscription-plans/:id
-PATCH  /subscription-plans/:id/status
-PATCH  /subscription-plans/:id/visibility
-DELETE /subscription-plans/:id
-GET    /subscription-plans/:id/analytics
+GET    /gifts
+POST   /gifts
+GET    /gifts/export
+GET    /gifts/stats
+GET    /gifts/:id
+PATCH  /gifts/:id
+DELETE /gifts/:id
+PATCH  /gifts/:id/status
 ```
 
-### Plan Features
+Examples:
+
+**POST /gifts**
+
+```json
+{
+  "price": 99.5,
+  "currency": "USD",
+  "stockQuantity": 99.5,
+  "imageUrls": [
+    null
+  ],
+  "isPublished": true,
+  "isFeatured": true,
+  "tags": [
+    null
+  ],
+  "moderationStatus": "PENDING"
+}
+```
+
+**PATCH /gifts/:id**
+
+```json
+{
+  "price": 99.5,
+  "currency": "USD",
+  "stockQuantity": 99.5,
+  "imageUrls": [
+    null
+  ],
+  "isPublished": true,
+  "isFeatured": true,
+  "tags": [
+    null
+  ]
+}
+```
+
+**PATCH /gifts/:id/status**
+
+```json
+{
+  "status": "ACTIVE"
+}
+```
+
+### Provider Inventory
 
 ```txt
-GET    /plan-features/catalog
-GET    /plan-features
-POST   /plan-features
-GET    /plan-features/:id
-PATCH  /plan-features/:id
-DELETE /plan-features/:id
+GET    /provider/inventory
+POST   /provider/inventory
+GET    /provider/inventory/lookup
+GET    /provider/inventory/stats
+GET    /provider/inventory/:id
+PATCH  /provider/inventory/:id
+DELETE /provider/inventory/:id
+PATCH  /provider/inventory/:id/availability
 ```
 
-### Coupons
+Examples:
+
+**POST /provider/inventory**
+
+```json
+{
+  "price": 99.5,
+  "stockQuantity": 99.5,
+  "imageUrls": [
+    null
+  ],
+  "isAvailable": true
+}
+```
+
+**PATCH /provider/inventory/:id**
+
+```json
+{
+  "price": 99.5,
+  "stockQuantity": 99.5,
+  "imageUrls": [
+    null
+  ],
+  "isAvailable": true
+}
+```
+
+**PATCH /provider/inventory/:id/availability**
+
+```json
+{
+  "isAvailable": true
+}
+```
+
+### Promotional Offers Management
 
 ```txt
-GET    /coupons
-POST   /coupons
-GET    /coupons/:id
-PATCH  /coupons/:id
-PATCH  /coupons/:id/status
-DELETE /coupons/:id
+GET    /promotional-offers
+POST   /promotional-offers
+GET    /promotional-offers/export
+GET    /promotional-offers/stats
+GET    /promotional-offers/:id
+PATCH  /promotional-offers/:id
+DELETE /promotional-offers/:id
+PATCH  /promotional-offers/:id/approve
+PATCH  /promotional-offers/:id/reject
+PATCH  /promotional-offers/:id/status
 ```
 
-### Audit Logs
+Examples:
+
+**POST /promotional-offers**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true,
+  "approvalStatus": "PENDING"
+}
+```
+
+**PATCH /promotional-offers/:id**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /promotional-offers/:id/approve**
+
+```json
+{
+  "notifyProvider": true
+}
+```
+
+**PATCH /promotional-offers/:id/reject**
+
+```json
+{
+  "reason": "INVALID_DISCOUNT",
+  "notifyProvider": true
+}
+```
+
+**PATCH /promotional-offers/:id/status**
+
+```json
+{
+  "isActive": true
+}
+```
+
+### Provider Promotional Offers
 
 ```txt
-GET    /audit-logs/export
-GET    /audit-logs
-GET    /audit-logs/:id
+GET    /provider/offers
+POST   /provider/offers
+GET    /provider/offers/:id
+PATCH  /provider/offers/:id
+DELETE /provider/offers/:id
+PATCH  /provider/offers/:id/status
 ```
 
-### Login Attempts
+Examples:
+
+**POST /provider/offers**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /provider/offers/:id**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /provider/offers/:id/status**
+
+```json
+{
+  "isActive": true
+}
+```
+
+### Payments
+
+_No endpoints registered yet._
+
+### Admin Roles / RBAC
 
 ```txt
-GET    /login-attempts/stats
-GET    /login-attempts/export
-GET    /login-attempts
+GET    /admin-roles
+POST   /admin-roles
+GET    /permissions/catalog
+GET    /admin-roles/:id
+PATCH  /admin-roles/:id
+DELETE /admin-roles/:id
+PATCH  /admin-roles/:id/permissions
 ```
 
----
+Examples:
 
-# POST API Payloads
-
-## Auth
-
-### POST /auth/users/register
+**POST /admin-roles**
 
 ```json
 {
-  "email": "customer@example.com",
-  "password": "Password@123",
-  "firstName": "Sarah",
-  "lastName": "Khan",
-  "phone": "+15550000000"
+  "permissions": {}
 }
 ```
 
-### POST /auth/providers/register
+**PATCH /admin-roles/:id**
 
 ```json
 {
-  "email": "provider@example.com",
-  "password": "Password@123",
-  "firstName": "Ali",
-  "lastName": "Raza",
-  "phone": "+15550000001",
-  "businessName": "Premium Gifts Co",
-  "businessCategoryId": "provider_business_category_id",
-  "taxId": "TAX-12345",
-  "businessAddress": "123 Gift Street",
-  "fulfillmentMethods": ["PICKUP", "DELIVERY"],
-  "autoAcceptOrders": false
+  "isActive": true
 }
 ```
 
-### POST /auth/guest/session
+**PATCH /admin-roles/:id/permissions**
 
 ```json
 {
-  "capabilities": ["browse_gifts", "view_categories"]
+  "permissions": {}
 }
 ```
 
-### POST /auth/login
-
-```json
-{
-  "email": "giftapp.superadmin@yopmail.com",
-  "password": "Admin@123456"
-}
-```
-
-### POST /auth/refresh
-
-```json
-{
-  "refreshToken": "refresh_token_here"
-}
-```
-
-### POST /auth/logout
-
-No body.
-
-### POST /auth/verify-email
-
-```json
-{
-  "otp": "123456"
-}
-```
-
-### POST /auth/resend-otp
-
-No body.
-
-### POST /auth/forgot-password
-
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-Success message: `Password reset OTP has been sent to your email.`
-
-Unknown email message: `No account found with this email address.`
-
-Email failure message: `Unable to send password reset email. Please try again later.`
-
-### POST /auth/verify-reset-otp
-
-```json
-{
-  "email": "user@example.com",
-  "otp": "334018"
-}
-```
-
-Returns only: `OTP verified successfully.` It does not return a reset token.
-
-### POST /auth/reset-password
-
-```json
-{
-  "email": "user@example.com",
-  "otp": "334018",
-  "newPassword": "NewPassword@123"
-}
-```
-
-Success message: `Password has been reset successfully.`
-
-Failure messages include:
+### Admin Staff Management
 
 ```txt
-Invalid or expired OTP.
-No account found with this email address.
-New password does not meet security requirements.
+GET    /admins
+POST   /admins
+GET    /admins/:id
+PATCH  /admins/:id
+PATCH  /admins/:id/active-status
+PATCH  /admins/:id/password
 ```
 
-### POST /auth/cancel-deletion
+Examples:
 
-No body.
-
-## Admin Management
-
-### POST /admins
-
-Creates an `ADMIN` staff user under `SUPER_ADMIN`. `roleId` means **AdminRole.id** only. This endpoint never creates `SUPER_ADMIN`, `REGISTERED_USER`, `PROVIDER`, or `GUEST_USER` accounts, and the backend always stores `User.role = ADMIN`.
+**POST /admins**
 
 ```json
 {
@@ -489,465 +722,536 @@ Creates an `ADMIN` staff user under `SUPER_ADMIN`. `roleId` means **AdminRole.id
 }
 ```
 
-Response highlights:
-- `role` = `ADMIN`
-- `roleId` = selected `AdminRole.id`
-- `inviteEmailSent` reports email delivery success/failure
-
-## Admin Roles
-
-Admin Roles / RBAC manages permission roles for `ADMIN` staff users only. `SUPER_ADMIN` has full immutable access and does not depend on AdminRole permissions.
-
-### POST /admin-roles
+**PATCH /admins/:id**
 
 ```json
 {
-  "name": "Gift Manager",
-  "description": "Can manage gifts and categories.",
-  "permissions": {
-    "gifts": ["read", "create", "update"],
-    "giftCategories": ["read", "create", "update"]
-  },
   "isActive": true
 }
 ```
 
-Rules:
-- Custom AdminRole permissions are assigned from the backend-supported permission catalog only.
-- `SUPER_ADMIN` bypasses admin permission checks and does not rely on `roleId`.
-- The system `SUPER_ADMIN` role is read-only and cannot be modified or deleted.
-- Disabled AdminRoles immediately block assigned `ADMIN` users from protected admin APIs.
-- Custom AdminRoles cannot be deleted while staff users are assigned.
-
-### GET /permissions/catalog
-
-Read-only list of backend-supported permission keys that can be assigned to admin roles. No create/update/delete endpoints exist for the permission catalog.
-
-## Providers
-
-### POST /providers
+**PATCH /admins/:id/active-status**
 
 ```json
 {
-  "email": "provider@example.com",
-  "password": "Provider@123456",
-  "firstName": "Ali",
-  "lastName": "Raza",
-  "phone": "+15550000001",
-  "businessName": "Premium Gifts Co",
-  "businessCategoryId": "provider_business_category_id",
-  "taxId": "TAX-12345",
-  "businessAddress": "123 Gift Street",
-  "serviceArea": "London",
-  "fulfillmentMethods": ["PICKUP", "DELIVERY"],
-  "autoAcceptOrders": false,
-  "documents": [
-    {
-      "name": "Trade License",
-      "url": "https://cdn.yourdomain.com/provider-documents/license.pdf"
-    }
+  "isActive": true
+}
+```
+
+**PATCH /admins/:id/password**
+
+```json
+{
+  "generateTemporaryPassword": true,
+  "mustChangePassword": true,
+  "sendEmail": true
+}
+```
+
+### Audit Logs
+
+```txt
+GET    /audit-logs
+GET    /audit-logs/export
+GET    /audit-logs/:id
+```
+
+### Auth
+
+```txt
+DELETE /auth/account
+POST   /auth/cancel-deletion
+PATCH  /auth/change-password
+POST   /auth/forgot-password
+POST   /auth/guest/session
+POST   /auth/login
+POST   /auth/logout
+GET    /auth/me
+POST   /auth/providers/register
+POST   /auth/refresh
+POST   /auth/resend-otp
+POST   /auth/reset-password
+POST   /auth/users/register
+POST   /auth/verify-email
+POST   /auth/verify-reset-otp
+```
+
+Examples:
+
+**POST /auth/forgot-password**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**POST /auth/guest/session**
+
+```json
+{
+  "capabilities": [
+    null
   ]
 }
 ```
 
-### POST /providers/:id/suspend
+**POST /auth/providers/register**
 
 ```json
 {
-  "status": "SUSPENDED",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider documents require review.",
-  "notifyProvider": true
+  "fulfillmentMethods": [
+    "PICKUP"
+  ],
+  "autoAcceptOrders": true
 }
 ```
 
-### POST /providers/:id/unsuspend
+**POST /auth/reset-password**
 
 ```json
 {
-  "comment": "Documents verified.",
-  "notifyProvider": true
+  "email": "user@example.com",
+  "otp": "334018",
+  "newPassword": "NewPassword@123"
 }
 ```
 
-### POST /providers/:id/message
+**POST /auth/verify-reset-otp**
 
 ```json
 {
-  "subject": "Document update required",
-  "message": "Please upload your renewed business license.",
-  "channels": ["EMAIL"]
+  "email": "user@example.com",
+  "otp": "334018"
 }
 ```
 
-## Provider Business Categories
+### Coupons
 
-### POST /provider-business-categories
-
-```json
-{
-  "name": "Florists",
-  "description": "Flower and bouquet providers.",
-  "iconKey": "flowers",
-  "sortOrder": 1,
-  "isActive": true
-}
+```txt
+GET    /coupons
+POST   /coupons
+GET    /coupons/:id
+PATCH  /coupons/:id
+DELETE /coupons/:id
+PATCH  /coupons/:id/status
 ```
 
-## Provider Inventory
+Examples:
 
-### POST /provider/inventory
-
-```json
-{
-  "name": "Rose Bouquet",
-  "description": "Fresh red roses.",
-  "shortDescription": "Premium rose bouquet.",
-  "categoryId": "gift_category_id",
-  "price": 49.99,
-  "currency": "USD",
-  "stockQuantity": 20,
-  "sku": "ROSE-BOUQUET-001",
-  "imageUrls": ["https://cdn.yourdomain.com/gift-images/rose-bouquet.png"],
-  "isPublished": true,
-  "tags": ["flowers", "romantic"]
-}
-```
-
-## Gift Categories
-
-### POST /gift-categories
+**POST /coupons**
 
 ```json
 {
-  "name": "Perfumes",
-  "description": "Premium fragrance gifts.",
-  "iconKey": "perfume",
-  "backgroundColor": "#E9D5FF",
-  "imageUrl": "https://cdn.yourdomain.com/gift-category-images/perfumes.png",
-  "sortOrder": 1,
-  "isActive": true
-}
-```
-
-Backward-compatible old field:
-
-```json
-{
-  "name": "Perfumes",
-  "color": "#E9D5FF"
-}
-```
-
-## Gifts
-
-### POST /gifts
-
-```json
-{
-  "name": "Luxury Perfume",
-  "description": "Long-lasting premium fragrance.",
-  "shortDescription": "Premium fragrance gift.",
-  "categoryId": "gift_category_id",
-  "providerId": "provider_id",
-  "price": 99.99,
-  "currency": "USD",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
-  "imageUrls": ["https://cdn.yourdomain.com/gift-images/perfume.png"],
-  "isPublished": true,
-  "isFeatured": false,
-  "tags": ["perfume", "luxury"],
-  "moderationStatus": "APPROVED"
-}
-```
-
-## Promotional Offers
-
-### POST /promotional-offers
-
-```json
-{
-  "providerId": "provider_id",
-  "itemId": "gift_id",
-  "title": "20% Off Perfumes",
-  "description": "Limited-time discount on selected perfumes.",
   "discountType": "PERCENTAGE",
-  "discountValue": 20,
-  "startDate": "2026-05-10T00:00:00.000Z",
-  "endDate": "2026-05-20T23:59:59.000Z",
-  "eligibilityRules": "Valid while stock lasts.",
-  "isActive": true,
-  "approvalStatus": "APPROVED"
-}
-```
-
-### POST /provider/offers
-
-```json
-{
-  "itemId": "gift_id",
-  "title": "10 USD Off",
-  "description": "Flat discount on this item.",
-  "discountType": "FIXED_AMOUNT",
-  "discountValue": 10,
-  "startDate": "2026-05-10T00:00:00.000Z",
-  "endDate": "2026-05-20T23:59:59.000Z",
-  "eligibilityRules": "One use per customer.",
+  "discountValue": 99.5,
+  "planIds": [
+    null
+  ],
+  "maxRedemptions": 99.5,
   "isActive": true
 }
 ```
 
-## Customer Wishlist
-
-### POST /customer/wishlist/:giftId
-
-No body.
-
-## Customer Addresses
-
-### POST /customer/addresses
+**PATCH /coupons/:id**
 
 ```json
 {
-  "label": "Home",
-  "fullName": "Sarah Khan",
-  "phone": "+15550000000",
-  "line1": "221B Baker Street",
-  "line2": "Apartment 4",
-  "city": "London",
-  "state": "Greater London",
-  "country": "United Kingdom",
-  "postalCode": "NW1 6XE",
-  "latitude": 51.5237,
-  "longitude": -0.1585,
-  "deliveryInstructions": "Leave at reception.",
-  "isDefault": true
-}
-```
-
-## Customer Reminders
-
-### POST /customer/reminders
-
-```json
-{
-  "title": "Mom birthday",
-  "recipientName": "Mom",
-  "eventType": "BIRTHDAY",
-  "reminderDate": "2026-06-01T09:00:00.000Z",
-  "notes": "Buy flowers and perfume.",
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "planIds": [
+    null
+  ],
+  "maxRedemptions": 99.5,
   "isActive": true
 }
 ```
 
-Allowed eventType: `BIRTHDAY | ANNIVERSARY | HOLIDAY | CUSTOM`
-
-## Customer Cart
-
-### POST /customer/cart/items
+**PATCH /coupons/:id/status**
 
 ```json
 {
-  "giftId": "gift_id",
-  "quantity": 1,
-  "deliveryOption": "SAME_DAY",
-  "recipientName": "Sarah",
-  "recipientPhone": "+15550000000",
-  "recipientAddressId": "address_id",
-  "giftMessage": "Happy Birthday!",
-  "scheduledDeliveryAt": null
+  "status": "ACTIVE"
 }
 ```
 
-Allowed deliveryOption: `SAME_DAY | NEXT_DAY | SCHEDULED`
+### Gift Moderation
 
-## Customer Orders
+```txt
+GET    /gift-moderation
+PATCH  /gift-moderation/:id/approve
+PATCH  /gift-moderation/:id/flag
+PATCH  /gift-moderation/:id/reject
+```
 
-### POST /customer/orders
+Examples:
+
+**PATCH /gift-moderation/:id/approve**
 
 ```json
 {
-  "deliveryAddressId": "address_id",
-  "paymentMethod": "COD"
+  "publishNow": true,
+  "notifyProvider": true
 }
 ```
 
-Allowed paymentMethod: `COD | PLACEHOLDER`
-
-## Broadcasts
-
-### POST /broadcasts
+**PATCH /gift-moderation/:id/flag**
 
 ```json
 {
-  "title": "Mother's Day Gifts",
-  "message": "Explore curated gifts for Mother's Day.",
-  "imageUrl": "https://cdn.yourdomain.com/broadcast-images/mothers-day.png",
-  "ctaLabel": "Shop Now",
-  "ctaUrl": "https://app.giftapp.com/gifts",
-  "channels": ["EMAIL", "PUSH", "IN_APP"],
-  "priority": "NORMAL"
+  "reason": "NEEDS_MANUAL_REVIEW"
 }
 ```
 
-### POST /broadcasts/estimate-reach
+**PATCH /gift-moderation/:id/reject**
 
 ```json
 {
-  "channels": ["EMAIL", "PUSH", "IN_APP"],
-  "targeting": {
-    "mode": "SPECIFIC_ROLES",
-    "roles": ["REGISTERED_USER"],
-    "filters": {
-      "location": "London",
-      "onlyVerifiedEmails": true,
-      "excludeUnsubscribed": true,
-      "excludeSuspended": true
-    }
-  }
+  "reason": "INCOMPLETE_INFORMATION",
+  "notifyProvider": true
 }
 ```
 
-### POST /broadcasts/:id/cancel
+### Login Attempts
+
+```txt
+GET    /login-attempts
+GET    /login-attempts/export
+GET    /login-attempts/stats
+```
+
+### Provider Management
+
+```txt
+GET    /provider-business-categories
+POST   /provider-business-categories
+GET    /providers
+POST   /providers
+GET    /providers/export
+GET    /providers/lookup
+GET    /providers/stats
+GET    /provider-business-categories/:id
+PATCH  /provider-business-categories/:id
+DELETE /provider-business-categories/:id
+GET    /providers/:id
+PATCH  /providers/:id
+GET    /providers/:id/activity
+PATCH  /providers/:id/approve
+GET    /providers/:id/items
+POST   /providers/:id/message
+PATCH  /providers/:id/reject
+PATCH  /providers/:id/status
+POST   /providers/:id/suspend
+POST   /providers/:id/unsuspend
+```
+
+Examples:
+
+**POST /provider-business-categories**
 
 ```json
 {
-  "reason": "Campaign postponed."
+  "sortOrder": 99.5,
+  "isActive": true
 }
 ```
 
-## Notifications
-
-### POST /notifications/:id/action
+**POST /providers**
 
 ```json
 {
-  "action": "SEND_GIFT"
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "email": "contact@giftsandblooms.com",
+  "phone": "+15551234567",
+  "serviceArea": "New York, USA",
+  "headquarters": "New York, USA",
+  "documentUrls": [
+    null
+  ],
+  "generateTemporaryPassword": true,
+  "mustChangePassword": true
 }
 ```
 
-Allowed actions: `SEND_GIFT | REMIND_ME_LATER | VIEW_ORDER | VIEW_CONTACT`.
-
-### PATCH /notifications/preferences
+**PATCH /provider-business-categories/:id**
 
 ```json
 {
-  "pushEnabled": true,
-  "dealUpdatesEnabled": true,
-  "birthdayRemindersEnabled": true,
-  "deliveryUpdatesEnabled": true,
-  "newContactAlertsEnabled": true
+  "sortOrder": 99.5,
+  "isActive": true
 }
 ```
 
-Filters supported by `GET /notifications`: `ALL | UNREAD | BIRTHDAYS | DELIVERIES | NEW_CONTACTS`.
-
-Notification types: `BIRTHDAY_REMINDER | GIFT_DELIVERED | NEW_CONTACT_AVAILABLE | PROMOTIONAL | BROADCAST | SYSTEM | SECURITY | ORDER`.
-
-## Notifications
-
-### POST /notifications/device-tokens
+**PATCH /providers/:id**
 
 ```json
 {
-  "token": "device_push_token_here",
-  "platform": "IOS",
-  "deviceId": "device_id_123"
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "phone": "+15551234567",
+  "serviceArea": "New York, USA",
+  "headquarters": "New York, USA",
+  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png",
+  "documentUrls": [
+    null
+  ]
 }
 ```
 
-Allowed platform: `IOS | ANDROID | WEB`
-
-## Storage / Uploads
-
-### POST /uploads/presigned-url
+**PATCH /providers/:id/approve**
 
 ```json
 {
-  "folder": "gift-category-images",
-  "fileName": "perfumes.png",
+  "comment": "Documents verified successfully.",
+  "notifyProvider": true
+}
+```
+
+**POST /providers/:id/message**
+
+```json
+{
+  "subject": "Account update",
+  "message": "Please update your business documents.",
+  "channel": "EMAIL"
+}
+```
+
+**PATCH /providers/:id/reject**
+
+```json
+{
+  "reason": "INCOMPLETE_DOCUMENTS",
+  "comment": "Business license document is missing.",
+  "notifyProvider": true
+}
+```
+
+**PATCH /providers/:id/status**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**POST /providers/:id/suspend**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**POST /providers/:id/unsuspend**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+### Storage
+
+```txt
+GET    /uploads
+POST   /uploads/complete
+POST   /uploads/presigned-url
+GET    /uploads/:id
+DELETE /uploads/:id
+```
+
+Examples:
+
+**POST /uploads/complete**
+
+```json
+{
+  "sizeBytes": 99.5
+}
+```
+
+**POST /uploads/presigned-url**
+
+```json
+{
+  "folder": "admin-avatars",
+  "fileName": "avatar.png",
   "contentType": "image/png",
   "sizeBytes": 1048576,
-  "targetAccountId": "account_id",
+  "targetAccountId": "target_account_id",
   "giftId": "gift_id"
 }
 ```
 
-Allowed folders: `admin-avatars`, `user-avatars`, `provider-logos`, `provider-documents`, `provider-item-images`, `gift-images`, `gift-category-images`, `customer-contact-avatars`, `broadcast-images`.
+### Subscription Plans
 
-For `gift-category-images`: `image/jpeg | image/png | image/webp`, max 5MB.
-
-### POST /uploads/complete
-
-```json
-{
-  "uploadId": "upload_id",
-  "sizeBytes": 1048576
-}
+```txt
+GET    /plan-features
+POST   /plan-features
+GET    /plan-features/catalog
+GET    /subscription-plans
+POST   /subscription-plans
+GET    /subscription-plans/stats
+GET    /plan-features/:id
+PATCH  /plan-features/:id
+DELETE /plan-features/:id
+GET    /subscription-plans/:id
+PATCH  /subscription-plans/:id
+DELETE /subscription-plans/:id
+GET    /subscription-plans/:id/analytics
+PATCH  /subscription-plans/:id/status
+PATCH  /subscription-plans/:id/visibility
 ```
 
-## Subscription Plans
+Examples:
 
-### POST /subscription-plans
-
-```json
-{
-  "name": "Premium Provider",
-  "description": "Best plan for growing providers.",
-  "monthlyPrice": 29.99,
-  "yearlyPrice": 299.99,
-  "currency": "USD",
-  "billingCycle": "MONTHLY",
-  "features": {
-    "maxItems": 100,
-    "featuredPlacement": true
-  },
-  "limits": {
-    "maxItems": 100,
-    "maxOffers": 20,
-    "maxStorageMb": 1024
-  },
-  "status": "ACTIVE",
-  "visibility": "PUBLIC",
-  "trialDays": 14,
-  "sortOrder": 1
-}
-```
-
-## Plan Features
-
-### POST /plan-features
+**POST /plan-features**
 
 ```json
 {
-  "key": "featuredPlacement",
-  "label": "Featured Placement",
-  "description": "Allows provider gifts to appear in featured sections.",
   "type": "BOOLEAN",
   "isActive": true,
-  "sortOrder": 1
+  "sortOrder": 99.5
 }
 ```
 
-Allowed type: `BOOLEAN | NUMBER | TEXT`
-
-## Coupons
-
-### POST /coupons
+**POST /subscription-plans**
 
 ```json
 {
-  "code": "WELCOME20",
-  "description": "20% off first subscription.",
-  "discountType": "PERCENTAGE",
-  "discountValue": 20,
-  "planIds": ["subscription_plan_id"],
-  "startsAt": "2026-05-10T00:00:00.000Z",
-  "expiresAt": "2026-06-10T00:00:00.000Z",
-  "maxRedemptions": 100,
-  "isActive": true
+  "monthlyPrice": 99.5,
+  "yearlyPrice": 99.5,
+  "currency": "USD",
+  "visibility": "PUBLIC",
+  "status": "ACTIVE",
+  "isPopular": true,
+  "features": {},
+  "limits": {
+    "maxGiftsPerMonth": 99.5,
+    "maxGroupGiftingEvents": 99.5,
+    "maxTeamMembers": 99.5,
+    "storageGb": 99.5
+  }
 }
 ```
 
-Allowed discountType: `PERCENTAGE | FIXED_AMOUNT`
+**PATCH /plan-features/:id**
+
+```json
+{
+  "type": "BOOLEAN",
+  "isActive": true,
+  "sortOrder": 99.5
+}
+```
+
+**PATCH /subscription-plans/:id**
+
+```json
+{
+  "monthlyPrice": 99.5,
+  "yearlyPrice": 99.5,
+  "visibility": "PUBLIC",
+  "status": "ACTIVE",
+  "isPopular": true,
+  "features": {},
+  "limits": {
+    "maxGiftsPerMonth": 99.5,
+    "maxGroupGiftingEvents": 99.5,
+    "maxTeamMembers": 99.5,
+    "storageGb": 99.5
+  }
+}
+```
+
+**PATCH /subscription-plans/:id/status**
+
+```json
+{
+  "status": "ACTIVE"
+}
+```
+
+**PATCH /subscription-plans/:id/visibility**
+
+```json
+{
+  "visibility": "PUBLIC"
+}
+```
+
+### User Management
+
+```txt
+GET    /users
+GET    /users/export
+GET    /users/:id
+PATCH  /users/:id
+GET    /users/:id/activity
+POST   /users/:id/reset-password
+GET    /users/:id/stats
+PATCH  /users/:id/status
+POST   /users/:id/suspend
+POST   /users/:id/unsuspend
+```
+
+Examples:
+
+**PATCH /users/:id**
+
+```json
+{
+  "firstName": "Alex",
+  "lastName": "Johnson",
+  "phone": "+15552345678",
+  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg",
+  "location": "New York, USA"
+}
+```
+
+**POST /users/:id/reset-password**
+
+```json
+{
+  "sendEmail": true
+}
+```
+
+**PATCH /users/:id/status**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Suspicious activity detected on this account.",
+  "notifyUser": true
+}
+```
+
+**POST /users/:id/suspend**
+
+```json
+{
+  "reason": "POLICY_VIOLATION",
+  "comment": "Suspicious account activity.",
+  "notifyUser": true
+}
+```
+
+**POST /users/:id/unsuspend**
+
+```json
+{
+  "comment": "Account reviewed and restored.",
+  "notifyUser": true
+}
+```

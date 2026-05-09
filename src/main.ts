@@ -29,8 +29,25 @@ async function bootstrap(): Promise<void> {
     .setDescription('Gift App authentication and user account APIs')
     .setVersion('0.1.0')
     .addBearerAuth()
+    .addTag('Customer Marketplace')
+    .addTag('Customer Wishlist')
+    .addTag('Customer Addresses')
+    .addTag('Customer Contacts')
+    .addTag('Customer Events')
+    .addTag('Customer Event Reminder Settings')
+    .addTag('Customer Cart')
+    .addTag('Customer Orders')
+    .addTag('Notifications')
+    .addTag('Gift Categories')
+    .addTag('Gift Management')
+    .addTag('Provider Inventory')
+    .addTag('Promotional Offers Management')
+    .addTag('Provider Promotional Offers')
+    .addTag('Payments')
     .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    autoTagControllers: false,
+  });
   SwaggerModule.setup('docs', app, document);
 
   const port = configService.get<number>('PORT', 3000);

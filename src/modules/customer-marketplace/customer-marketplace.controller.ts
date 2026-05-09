@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -112,30 +112,23 @@ export class CustomerMarketplaceController {
   setDefaultAddress(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.setDefaultAddress(user, id); }
 
   @Get('reminders')
-  @ApiTags('Customer Reminders')
-  @ApiOperation({ summary: 'List customer reminders', description: 'REGISTERED_USER only. Later notification triggers can consume these reminders.' })
+  @ApiExcludeEndpoint()
   reminders(@CurrentUser() user: AuthUserContext) { return this.marketplace.reminders(user); }
 
   @Post('reminders')
-  @ApiTags('Customer Reminders')
-  @ApiOperation({ summary: 'Create customer reminder', description: 'REGISTERED_USER only. Stores future gift reminder metadata.' })
-  @ApiBody({ type: CreateCustomerReminderDto })
+  @ApiExcludeEndpoint()
   createReminder(@CurrentUser() user: AuthUserContext, @Body() dto: CreateCustomerReminderDto) { return this.marketplace.createReminder(user, dto); }
 
   @Get('reminders/:id')
-  @ApiTags('Customer Reminders')
-  @ApiOperation({ summary: 'Fetch customer reminder', description: 'REGISTERED_USER only. Reminder must belong to current customer.' })
+  @ApiExcludeEndpoint()
   reminderDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.reminderDetails(user, id); }
 
   @Patch('reminders/:id')
-  @ApiTags('Customer Reminders')
-  @ApiOperation({ summary: 'Update customer reminder', description: 'REGISTERED_USER only. Only updates current customer reminders.' })
-  @ApiBody({ type: UpdateCustomerReminderDto })
+  @ApiExcludeEndpoint()
   updateReminder(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateCustomerReminderDto) { return this.marketplace.updateReminder(user, id, dto); }
 
   @Delete('reminders/:id')
-  @ApiTags('Customer Reminders')
-  @ApiOperation({ summary: 'Soft-delete customer reminder', description: 'REGISTERED_USER only. Reminder is soft deleted and deactivated.' })
+  @ApiExcludeEndpoint()
   deleteReminder(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.deleteReminder(user, id); }
 
   @Get('cart')
