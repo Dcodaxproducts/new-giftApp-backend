@@ -10,6 +10,7 @@ import { CustomerEventsModule } from './modules/customer-events/customer-events.
 import { CustomerMarketplaceModule } from './modules/customer-marketplace/customer-marketplace.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
 import { PromotionalOffersModule } from './modules/promotional-offers/promotional-offers.module';
@@ -34,6 +35,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     BroadcastNotificationsModule,
     SubscriptionPlansModule,
     LoginAttemptsModule,
+    PaymentsModule,
     AuditLogsModule,
     StorageModule,
   ],

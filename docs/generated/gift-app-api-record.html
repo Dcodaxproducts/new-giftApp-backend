@@ -211,6 +211,8 @@ GET    /customer/orders/:id
 <p>Examples:</p>
 <p><strong>POST /customer/orders</strong></p>
 <pre><code class="language-json">{
+  &quot;cartId&quot;: &quot;cmf0cartactive001&quot;,
+  &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
   &quot;deliveryAddressId&quot;: &quot;cmf0addresshome001&quot;,
   &quot;paymentMethod&quot;: &quot;COD&quot;
 }
@@ -498,7 +500,40 @@ PATCH  /provider/offers/:id/status
 }
 </code></pre>
 <h3>Payments</h3>
-<p><em>No endpoints registered yet.</em></p>
+<pre><code class="language-txt">GET    /customer/money-gifts
+POST   /customer/money-gifts
+GET    /customer/payment-methods
+POST   /customer/payments/confirm
+POST   /customer/payments/create-intent
+POST   /payments/stripe/webhook
+GET    /customer/money-gifts/:id
+GET    /customer/payments/:id
+</code></pre>
+<p>Examples:</p>
+<p><strong>POST /customer/money-gifts</strong></p>
+<pre><code class="language-json">{
+  &quot;amount&quot;: 100,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;recipientContactId&quot;: &quot;cmf0contactmary001&quot;,
+  &quot;message&quot;: &quot;Hope this helps. Enjoy your day!&quot;,
+  &quot;messageMediaUrls&quot;: [],
+  &quot;deliveryDate&quot;: &quot;2026-12-24T00:00:00.000Z&quot;,
+  &quot;repeatAnnually&quot;: false,
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
+}
+</code></pre>
+<p><strong>POST /customer/payments/confirm</strong></p>
+<pre><code class="language-json">{
+  &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
+  &quot;stripePaymentIntentId&quot;: &quot;pi_3Pxxxxxxxxxxxxxxxx&quot;
+}
+</code></pre>
+<p><strong>POST /customer/payments/create-intent</strong></p>
+<pre><code class="language-json">{
+  &quot;cartId&quot;: &quot;cmf0cartactive001&quot;,
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
+}
+</code></pre>
 <h3>Admin Roles / RBAC</h3>
 <pre><code class="language-txt">GET    /admin-roles
 POST   /admin-roles

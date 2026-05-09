@@ -5134,7 +5134,77 @@
       "get": {
         "description": "REGISTERED_USER only. Returns orders owned by the current customer.",
         "operationId": "CustomerMarketplaceController_orders",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "GIFTS_SENT",
+                "PAYMENTS_SENT"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CONFIRMED",
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "CONFIRMED",
+                "PROCESSING",
+                "READY_FOR_PICKUP",
+                "OUT_FOR_DELIVERY",
+                "DELIVERED",
+                "CANCELLED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-12-31T23:59:59.000Z",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -7687,6 +7757,239 @@
         ]
       }
     },
+    "/api/v1/customer/payments/create-intent": {
+      "post": {
+        "description": "REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
+        "operationId": "CustomerPaymentsController_createIntent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentIntentDto"
+              },
+              "examples": {
+                "stripe": {
+                  "value": {
+                    "cartId": "cmf0cartactive001",
+                    "paymentMethod": "STRIPE_CARD"
+                  }
+                },
+                "cod": {
+                  "value": {
+                    "cartId": "cmf0cartactive001",
+                    "paymentMethod": "COD"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create payment intent from active cart",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/payments/confirm": {
+      "post": {
+        "description": "REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.",
+        "operationId": "CustomerPaymentsController_confirm",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Confirm Stripe payment",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/payments/{id}": {
+      "get": {
+        "operationId": "CustomerPaymentsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own payment details",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/payment-methods": {
+      "get": {
+        "operationId": "CustomerPaymentMethodsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List supported customer payment methods",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/v1/payments/stripe/webhook": {
+      "post": {
+        "description": "Verifies Stripe-Signature using the configured webhook secret before processing events.",
+        "operationId": "StripeWebhookController_webhook",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Stripe webhook endpoint",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/money-gifts": {
+      "post": {
+        "description": "Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.",
+        "operationId": "CustomerMoneyGiftsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMoneyGiftDto"
+              },
+              "examples": {
+                "create": {
+                  "value": {
+                    "amount": 100,
+                    "currency": "PKR",
+                    "recipientContactId": "cmf0contactmary001",
+                    "message": "Hope this helps. Enjoy your day!",
+                    "messageMediaUrls": [],
+                    "deliveryDate": "2026-12-24T00:00:00.000Z",
+                    "repeatAnnually": false,
+                    "paymentMethod": "STRIPE_CARD"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send payment as gift",
+        "tags": [
+          "Payments"
+        ]
+      },
+      "get": {
+        "operationId": "CustomerMoneyGiftsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own money gifts",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/money-gifts/{id}": {
+      "get": {
+        "operationId": "CustomerMoneyGiftsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own money gift details",
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
     "/api/v1/audit-logs/export": {
       "get": {
         "operationId": "AuditLogsController_export",
@@ -9676,6 +9979,14 @@
       "CreateOrderDto": {
         "type": "object",
         "properties": {
+          "cartId": {
+            "type": "string",
+            "example": "cmf0cartactive001"
+          },
+          "paymentId": {
+            "type": "string",
+            "example": "cmf0payment001"
+          },
           "deliveryAddressId": {
             "type": "string",
             "example": "cmf0addresshome001"
@@ -9683,6 +9994,9 @@
           "paymentMethod": {
             "type": "string",
             "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
               "COD",
               "PLACEHOLDER"
             ],
@@ -10536,6 +10850,103 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "CreatePaymentIntentDto": {
+        "type": "object",
+        "properties": {
+          "cartId": {
+            "type": "string",
+            "example": "cmf0cartactive001"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
+              "COD",
+              "PLACEHOLDER"
+            ],
+            "example": "STRIPE_CARD"
+          }
+        },
+        "required": [
+          "cartId",
+          "paymentMethod"
+        ]
+      },
+      "ConfirmPaymentDto": {
+        "type": "object",
+        "properties": {
+          "paymentId": {
+            "type": "string",
+            "example": "cmf0payment001"
+          },
+          "stripePaymentIntentId": {
+            "type": "string",
+            "example": "pi_3Pxxxxxxxxxxxxxxxx"
+          }
+        },
+        "required": [
+          "paymentId",
+          "stripePaymentIntentId"
+        ]
+      },
+      "CreateMoneyGiftDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "PKR"
+          },
+          "recipientContactId": {
+            "type": "string",
+            "example": "cmf0contactmary001"
+          },
+          "message": {
+            "type": "string",
+            "example": "Hope this helps. Enjoy your day!"
+          },
+          "messageMediaUrls": {
+            "example": [
+              "https://cdn.yourdomain.com/gift-message-media/photo.png"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deliveryDate": {
+            "type": "string",
+            "example": "2026-12-24T00:00:00.000Z"
+          },
+          "repeatAnnually": {
+            "type": "boolean",
+            "example": false
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
+              "COD",
+              "PLACEHOLDER"
+            ],
+            "example": "STRIPE_CARD"
+          }
+        },
+        "required": [
+          "amount",
+          "currency",
+          "recipientContactId",
+          "deliveryDate",
+          "paymentMethod"
         ]
       },
       "CreatePresignedUploadDto": {

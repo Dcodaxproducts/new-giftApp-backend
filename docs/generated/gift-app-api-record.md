@@ -277,6 +277,8 @@ Examples:
 
 ```json
 {
+  "cartId": "cmf0cartactive001",
+  "paymentId": "cmf0payment001",
   "deliveryAddressId": "cmf0addresshome001",
   "paymentMethod": "COD"
 }
@@ -662,7 +664,51 @@ Examples:
 
 ### Payments
 
-_No endpoints registered yet._
+```txt
+GET    /customer/money-gifts
+POST   /customer/money-gifts
+GET    /customer/payment-methods
+POST   /customer/payments/confirm
+POST   /customer/payments/create-intent
+POST   /payments/stripe/webhook
+GET    /customer/money-gifts/:id
+GET    /customer/payments/:id
+```
+
+Examples:
+
+**POST /customer/money-gifts**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "recipientContactId": "cmf0contactmary001",
+  "message": "Hope this helps. Enjoy your day!",
+  "messageMediaUrls": [],
+  "deliveryDate": "2026-12-24T00:00:00.000Z",
+  "repeatAnnually": false,
+  "paymentMethod": "STRIPE_CARD"
+}
+```
+
+**POST /customer/payments/confirm**
+
+```json
+{
+  "paymentId": "cmf0payment001",
+  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx"
+}
+```
+
+**POST /customer/payments/create-intent**
+
+```json
+{
+  "cartId": "cmf0cartactive001",
+  "paymentMethod": "STRIPE_CARD"
+}
+```
 
 ### Admin Roles / RBAC
 

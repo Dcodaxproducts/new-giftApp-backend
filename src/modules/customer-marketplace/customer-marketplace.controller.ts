@@ -6,7 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerMarketplaceService } from './customer-marketplace.service';
-import { AddCartItemDto, CreateCustomerAddressDto, CreateCustomerReminderDto, CreateOrderDto, CustomerGiftListDto, UpdateCartItemDto, UpdateCustomerAddressDto, UpdateCustomerReminderDto } from './dto/customer-marketplace.dto';
+import { AddCartItemDto, CreateCustomerAddressDto, CreateCustomerReminderDto, CreateOrderDto, CustomerGiftListDto, ListCustomerOrdersDto, UpdateCartItemDto, UpdateCustomerAddressDto, UpdateCustomerReminderDto } from './dto/customer-marketplace.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -167,7 +167,7 @@ export class CustomerMarketplaceController {
   @Get('orders')
   @ApiTags('Customer Orders')
   @ApiOperation({ summary: 'List customer orders', description: 'REGISTERED_USER only. Returns orders owned by the current customer.' })
-  orders(@CurrentUser() user: AuthUserContext) { return this.marketplace.orders(user); }
+  orders(@CurrentUser() user: AuthUserContext, @Query() query: ListCustomerOrdersDto) { return this.marketplace.orders(user, query); }
 
   @Get('orders/:id')
   @ApiTags('Customer Orders')

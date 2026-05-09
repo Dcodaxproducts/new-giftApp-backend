@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CustomerDeliveryOption, CustomerReminderEventType, PaymentMethod } from '@prisma/client';
+import { CustomerDeliveryOption, CustomerReminderEventType, OrderStatus, PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Min, MinLength } from 'class-validator';
 
@@ -107,7 +107,20 @@ export class UpdateCartItemDto {
   @ApiPropertyOptional({ example: '2026-06-01T12:00:00.000Z', nullable: true }) @IsOptional() @IsDateString() scheduledDeliveryAt?: string;
 }
 
+export enum OrderHistoryType { ALL = 'ALL', GIFTS_SENT = 'GIFTS_SENT', PAYMENTS_SENT = 'PAYMENTS_SENT' }
+
 export class CreateOrderDto {
+  @ApiPropertyOptional({ example: 'cmf0cartactive001' }) @IsOptional() @IsString() cartId?: string;
+  @ApiPropertyOptional({ example: 'cmf0payment001' }) @IsOptional() @IsString() paymentId?: string;
   @ApiProperty({ example: 'cmf0addresshome001' }) @IsString() deliveryAddressId!: string;
   @ApiPropertyOptional({ enum: PaymentMethod, default: PaymentMethod.COD, example: PaymentMethod.COD }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+}
+
+export class ListCustomerOrdersDto {
+  @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ enum: OrderHistoryType, example: OrderHistoryType.ALL }) @IsOptional() @IsEnum(OrderHistoryType) type?: OrderHistoryType;
+  @ApiPropertyOptional({ enum: OrderStatus, example: OrderStatus.CONFIRMED }) @IsOptional() @IsEnum(OrderStatus) status?: OrderStatus;
+  @ApiPropertyOptional({ example: '2026-01-01T00:00:00.000Z' }) @IsOptional() @IsDateString() fromDate?: string;
+  @ApiPropertyOptional({ example: '2026-12-31T23:59:59.000Z' }) @IsOptional() @IsDateString() toDate?: string;
 }

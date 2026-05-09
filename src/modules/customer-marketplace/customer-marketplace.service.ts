@@ -6,7 +6,7 @@ import {
   CustomerReminder,
   GiftModerationStatus,
   GiftStatus,
-  Order,
+  NotificationRecipientType,
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
@@ -25,6 +25,8 @@ import {
   CreateOrderDto,
   CustomerGiftListDto,
   CustomerGiftSortBy,
+  ListCustomerOrdersDto,
+  OrderHistoryType,
   UpdateCartItemDto,
   UpdateCustomerAddressDto,
   UpdateCustomerReminderDto,
@@ -46,6 +48,7 @@ type CartItemView = {
 };
 
 type CartView = { id: string; userId: string; status: CartStatus; items: CartItemView[]; createdAt: Date; updatedAt: Date };
+type OrderView = Prisma.OrderGetPayload<{ include: { items: { include: { gift: { select: { id: true; name: true; imageUrls: true } }; variant: { select: { id: true; name: true } } } }; providerOrders: true; payment: true } }>;
 
 @Injectable()
 export class CustomerMarketplaceService {
@@ -230,7 +233,7 @@ export class CustomerMarketplaceService {
   }
 
   async createOrder(user: AuthUserContext, dto: CreateOrderDto) {
-    const cart = await this.getActiveCart(user.uid);
+    const cart = dto.cartId ? await this.getActiveCartById(user.uid, dto.cartId) : await this.getActiveCart(user.uid);
     if (cart.items.length === 0) throw new BadRequestException('Cart is empty');
     const address = await this.getAddress(user.uid, dto.deliveryAddressId);
     const gifts = await this.prisma.gift.findMany({ where: { id: { in: cart.items.map((item) => item.giftId) }, ...this.availableGiftWhere() }, include: this.giftInclude() });
@@ -242,33 +245,47 @@ export class CustomerMarketplaceService {
       this.assertStock(gift, variant, item.quantity);
     }
     const summary = this.cartSummary(cart.items);
+    const payment = dto.paymentId ? await this.prisma.payment.findFirst({ where: { id: dto.paymentId, userId: user.uid } }) : null;
+    const paymentMethod = payment?.paymentMethod ?? dto.paymentMethod ?? PaymentMethod.COD;
+    if (paymentMethod === PaymentMethod.STRIPE_CARD && payment?.status !== PaymentStatus.SUCCEEDED) throw new BadRequestException('Successful payment is required before creating this order');
+    if (payment && (Number(payment.amount) !== summary.total || payment.currency !== summary.currency)) throw new BadRequestException('Payment amount does not match cart total');
     const order = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.order.create({ data: { userId: user.uid, orderNumber: this.nextOrderNumber(), status: OrderStatus.PENDING, paymentStatus: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod ?? PaymentMethod.COD, subtotal: new Prisma.Decimal(summary.subtotal), discountTotal: new Prisma.Decimal(summary.discountTotal), deliveryFee: new Prisma.Decimal(summary.deliveryFee), total: new Prisma.Decimal(summary.total), deliveryAddressId: address.id, recipientName: address.fullName, recipientPhone: address.phone, giftMessage: cart.items[0]?.giftMessage, scheduledDeliveryAt: cart.items[0]?.scheduledDeliveryAt ?? null } });
+      const created = await tx.order.create({ data: { userId: user.uid, orderNumber: this.nextOrderNumber(), status: paymentMethod === PaymentMethod.STRIPE_CARD ? OrderStatus.CONFIRMED : OrderStatus.PENDING, paymentStatus: payment?.status ?? PaymentStatus.PENDING, paymentMethod, paymentId: payment?.id, subtotal: new Prisma.Decimal(summary.subtotal), discountTotal: new Prisma.Decimal(summary.discountTotal), deliveryFee: new Prisma.Decimal(summary.deliveryFee), tax: new Prisma.Decimal(summary.tax), total: new Prisma.Decimal(summary.total), currency: summary.currency, deliveryAddressId: address.id, recipientName: address.fullName, recipientPhone: address.phone, giftMessage: cart.items[0]?.giftMessage, scheduledDeliveryAt: cart.items[0]?.scheduledDeliveryAt ?? null } });
       for (const item of cart.items) {
         if (item.variantId) await tx.giftVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { decrement: item.quantity } } });
         else await tx.gift.update({ where: { id: item.giftId }, data: { stockQuantity: { decrement: item.quantity } } });
-        await tx.orderItem.create({ data: { orderId: created.id, giftId: item.giftId, providerId: item.providerId, quantity: item.quantity, unitPrice: item.unitPriceSnapshot, discountAmount: item.discountAmountSnapshot, finalUnitPrice: item.finalUnitPriceSnapshot, total: new Prisma.Decimal(Number(item.finalUnitPriceSnapshot) * item.quantity), promotionalOfferId: item.promotionalOfferId, status: OrderStatus.PENDING } });
+        await tx.orderItem.create({ data: { orderId: created.id, giftId: item.giftId, variantId: item.variantId, providerId: item.providerId, quantity: item.quantity, unitPrice: item.unitPriceSnapshot, discountAmount: item.discountAmountSnapshot, finalUnitPrice: item.finalUnitPriceSnapshot, total: new Prisma.Decimal(Number(item.finalUnitPriceSnapshot) * item.quantity), promotionalOfferId: item.promotionalOfferId, status: OrderStatus.PENDING } });
       }
       for (const providerId of [...new Set(cart.items.map((item) => item.providerId))]) {
         const providerItems = cart.items.filter((item) => item.providerId === providerId);
         const providerSubtotal = providerItems.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0);
         const providerDiscount = providerItems.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0);
-        await tx.providerOrder.create({ data: { orderId: created.id, providerId, status: OrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), total: new Prisma.Decimal(providerSubtotal - providerDiscount) } });
+        await tx.providerOrder.create({ data: { orderId: created.id, providerId, status: OrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency } });
       }
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       await tx.cart.update({ where: { id: cart.id }, data: { status: CartStatus.CHECKED_OUT } });
+      if (payment) await tx.payment.update({ where: { id: payment.id }, data: { orderId: created.id } });
+      await tx.notification.create({ data: { recipientId: user.uid, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Gift order created', message: 'Your gift order has been created successfully.', type: 'ORDER', metadataJson: { orderId: created.id } } });
+      for (const providerId of [...new Set(cart.items.map((item) => item.providerId))]) await tx.notification.create({ data: { recipientId: providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New order received', message: 'You received a new gift order.', type: 'ORDER', metadataJson: { orderId: created.id } } });
       return created;
     });
     return this.orderDetails(user, order.id);
   }
 
-  async orders(user: AuthUserContext) {
-    const orders = await this.prisma.order.findMany({ where: { userId: user.uid }, include: { items: true, providerOrders: true }, orderBy: { createdAt: 'desc' } });
-    return { data: orders.map((order) => this.toOrder(order)), message: 'Orders fetched successfully' };
+  async orders(user: AuthUserContext, query: ListCustomerOrdersDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const where: Prisma.OrderWhereInput = { userId: user.uid, status: query.status, createdAt: query.fromDate || query.toDate ? { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } : undefined };
+    const [orders, total] = await this.prisma.$transaction([
+      this.prisma.order.findMany({ where, include: this.orderInclude(), orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.order.count({ where }),
+    ]);
+    const data = orders.map((order) => this.toOrderListItem(order, query.type));
+    return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Orders fetched successfully' };
   }
 
   async orderDetails(user: AuthUserContext, id: string) {
-    const order = await this.prisma.order.findFirst({ where: { id, userId: user.uid }, include: { items: true, providerOrders: true } });
+    const order = await this.prisma.order.findFirst({ where: { id, userId: user.uid }, include: this.orderInclude() });
     if (!order) throw new NotFoundException('Order not found');
     return { data: this.toOrder(order), message: 'Order fetched successfully' };
   }
@@ -292,6 +309,7 @@ export class CustomerMarketplaceService {
   private activeOfferWhere(): Prisma.PromotionalOfferWhereInput { const now = new Date(); return { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: true, deletedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }], item: this.availableGiftWhere() }; }
   private giftInclude() { return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }, provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, providerFulfillmentMethods: true } }, variants: { where: { isActive: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }], select: { id: true, name: true, price: true, originalPrice: true, stockQuantity: true, sku: true, isPopular: true, isDefault: true, sortOrder: true, isActive: true } }, promotionalOffers: { where: this.activeOfferWhere(), orderBy: { discountValue: 'desc' }, select: { id: true, title: true, discountType: true, discountValue: true, startDate: true, endDate: true } } }); }
   private cartItemInclude() { return Prisma.validator<Prisma.CartItemInclude>()({ gift: { select: { id: true, name: true, imageUrls: true, currency: true } }, variant: { select: { id: true, name: true } } }); }
+  private orderInclude() { return Prisma.validator<Prisma.OrderInclude>()({ items: { include: { gift: { select: { id: true, name: true, imageUrls: true } }, variant: { select: { id: true, name: true } } } }, providerOrders: true, payment: true }); }
   private giftOrderBy(sortBy?: CustomerGiftSortBy): Prisma.GiftOrderByWithRelationInput { if (sortBy === CustomerGiftSortBy.PRICE_LOW_TO_HIGH) return { price: 'asc' }; if (sortBy === CustomerGiftSortBy.PRICE_HIGH_TO_LOW) return { price: 'desc' }; if (sortBy === CustomerGiftSortBy.RATING) return { ratingPlaceholder: 'desc' }; return { createdAt: 'desc' }; }
 
   private async getAvailableGift(id: string): Promise<GiftView> { const gift = await this.prisma.gift.findFirst({ where: { id, ...this.availableGiftWhere() }, include: this.giftInclude() }); if (!gift) throw new NotFoundException('Gift not found or unavailable'); return gift; }
@@ -299,6 +317,7 @@ export class CustomerMarketplaceService {
   private async getReminder(userId: string, id: string): Promise<CustomerReminder> { const reminder = await this.prisma.customerReminder.findFirst({ where: { id, userId, deletedAt: null } }); if (!reminder) throw new NotFoundException('Reminder not found'); return reminder; }
   private async getOrCreateActiveCart(userId: string) { return (await this.prisma.cart.findFirst({ where: { userId, status: CartStatus.ACTIVE } })) ?? this.prisma.cart.create({ data: { userId } }); }
   private async getActiveCart(userId: string): Promise<CartView> { const cart = await this.getOrCreateActiveCart(userId); return this.prisma.cart.findUniqueOrThrow({ where: { id: cart.id }, include: { items: { orderBy: { createdAt: 'desc' }, include: this.cartItemInclude() } } }); }
+  private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: { orderBy: { createdAt: 'desc' }, include: this.cartItemInclude() } } }); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
   private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.prisma.customerWishlist.findMany({ where: { userId, giftId: { in: giftIds } }, select: { giftId: true } }); return new Set(rows.map((row) => row.giftId)); }
 
   private async assertContact(userId: string, id: string): Promise<void> { const contact = await this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!contact) throw new NotFoundException('Contact not found'); }
@@ -324,6 +343,7 @@ export class CustomerMarketplaceService {
   private toCartItem(item: CartItemView) { return { id: item.id, giftId: item.giftId, variantId: item.variantId, providerId: item.providerId, name: item.gift.name, variantName: item.variant?.name ?? null, quantity: item.quantity, unitPrice: Number(item.unitPriceSnapshot), discountAmount: Number(item.discountAmountSnapshot), finalUnitPrice: Number(item.finalUnitPriceSnapshot), lineTotal: Number(item.finalUnitPriceSnapshot) * item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), promotionalOfferId: item.promotionalOfferId, deliveryOption: item.deliveryOption, recipient: { contactId: item.recipientContactId, name: item.recipientName, phone: item.recipientPhone, addressId: item.recipientAddressId }, eventId: item.eventId, giftMessage: item.giftMessage, messageMediaUrls: this.stringArray(item.messageMediaUrlsJson), scheduledDeliveryAt: item.scheduledDeliveryAt, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
   private cartSummary(items: CartItemView[]) { const subtotal = items.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0); const discountTotal = items.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0); const deliveryFee = 0; const taxableTotal = Math.max(0, subtotal - discountTotal + deliveryFee); const tax = 0; const total = this.money(taxableTotal + tax); return { subtotal: this.money(subtotal), discountTotal: this.money(discountTotal), deliveryFee, tax, total, currency: process.env.STRIPE_CURRENCY ?? 'PKR' }; }
   private money(value: number): number { return Number(value.toFixed(2)); }
-  private toOrder(order: Order & { items: { id: string; giftId: string; providerId: string; quantity: number; unitPrice: Prisma.Decimal; discountAmount: Prisma.Decimal; finalUnitPrice: Prisma.Decimal; total: Prisma.Decimal; promotionalOfferId: string | null; status: OrderStatus }[]; providerOrders: { id: string; providerId: string; status: OrderStatus; subtotal: Prisma.Decimal; discountTotal: Prisma.Decimal; deliveryFee: Prisma.Decimal; total: Prisma.Decimal }[] }) { return { id: order.id, orderNumber: order.orderNumber, status: order.status, paymentStatus: order.paymentStatus, paymentMethod: order.paymentMethod, subtotal: Number(order.subtotal), discountTotal: Number(order.discountTotal), deliveryFee: Number(order.deliveryFee), total: Number(order.total), deliveryAddressId: order.deliveryAddressId, recipientName: order.recipientName, recipientPhone: order.recipientPhone, giftMessage: order.giftMessage, scheduledDeliveryAt: order.scheduledDeliveryAt, items: order.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice), discountAmount: Number(item.discountAmount), finalUnitPrice: Number(item.finalUnitPrice), total: Number(item.total) })), providerOrders: order.providerOrders.map((providerOrder) => ({ ...providerOrder, subtotal: Number(providerOrder.subtotal), discountTotal: Number(providerOrder.discountTotal), deliveryFee: Number(providerOrder.deliveryFee), total: Number(providerOrder.total) })), createdAt: order.createdAt, updatedAt: order.updatedAt }; }
+  private toOrderListItem(order: OrderView, type?: OrderHistoryType) { return { id: order.id, orderNumber: order.orderNumber, type: type === OrderHistoryType.PAYMENTS_SENT ? OrderHistoryType.PAYMENTS_SENT : OrderHistoryType.GIFTS_SENT, recipientName: order.recipientName, occasion: null, status: order.status, paymentStatus: order.paymentStatus, total: Number(order.total), currency: order.currency, createdAt: order.createdAt }; }
+  private toOrder(order: OrderView) { return { id: order.id, orderNumber: order.orderNumber, status: order.status, paymentStatus: order.paymentStatus, paymentMethod: order.paymentMethod, recipient: { name: order.recipientName, email: null, phone: order.recipientPhone, avatarUrl: null }, deliveryDate: order.scheduledDeliveryAt, occasion: null, giftMessage: order.giftMessage, items: order.items.map((item) => ({ giftId: item.giftId, name: item.gift.name, variantName: item.variant?.name ?? null, quantity: item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), total: Number(item.total) })), summary: { subtotal: Number(order.subtotal), deliveryFee: Number(order.deliveryFee), tax: Number(order.tax), discountTotal: Number(order.discountTotal), total: Number(order.total), currency: order.currency }, deliveryAddressId: order.deliveryAddressId, providerOrders: order.providerOrders.map((providerOrder) => ({ ...providerOrder, subtotal: Number(providerOrder.subtotal), discountTotal: Number(providerOrder.discountTotal), deliveryFee: Number(providerOrder.deliveryFee), tax: Number(providerOrder.tax), total: Number(providerOrder.total) })), createdAt: order.createdAt, updatedAt: order.updatedAt }; }
   private nextOrderNumber(): string { return `ORD-${Date.now()}`; }
 }
