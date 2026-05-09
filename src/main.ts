@@ -62,8 +62,8 @@ async function bootstrap(): Promise<void> {
 
   const swaggerConfig = applySwaggerTags(
     new DocumentBuilder()
-      .setTitle('Gift App Backend API')
-      .setDescription('Gift App authentication and user account APIs')
+      .setTitle('Gift App Backend')
+      .setDescription('Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.')
       .setVersion('0.1.0')
       .addBearerAuth(),
   ).build();

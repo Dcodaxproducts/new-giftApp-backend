@@ -10474,8 +10474,8 @@
     }
   },
   "info": {
-    "title": "Gift App Backend API",
-    "description": "Gift App authentication and user account APIs",
+    "title": "Gift App Backend",
+    "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
     "version": "0.1.0",
     "contact": {}
   },
