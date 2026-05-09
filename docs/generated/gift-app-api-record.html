@@ -171,24 +171,36 @@ DELETE /customer/cart
 <p><strong>POST /customer/cart/items</strong></p>
 <pre><code class="language-json">{
   &quot;giftId&quot;: &quot;cmf0giftroses001&quot;,
+  &quot;variantId&quot;: &quot;cmf0variant50ml001&quot;,
   &quot;quantity&quot;: 1,
-  &quot;deliveryOption&quot;: &quot;SCHEDULED&quot;,
+  &quot;deliveryOption&quot;: &quot;SAME_DAY&quot;,
+  &quot;recipientContactId&quot;: &quot;cmf0contactmary001&quot;,
   &quot;recipientName&quot;: &quot;Sarah Khan&quot;,
   &quot;recipientPhone&quot;: &quot;+923001234567&quot;,
   &quot;recipientAddressId&quot;: &quot;cmf0addresshome001&quot;,
-  &quot;giftMessage&quot;: &quot;Happy Birthday!&quot;,
-  &quot;scheduledDeliveryAt&quot;: &quot;2026-06-01T12:00:00.000Z&quot;
+  &quot;eventId&quot;: &quot;cmf0eventbirthday001&quot;,
+  &quot;giftMessage&quot;: &quot;Hope you love this special surprise!&quot;,
+  &quot;messageMediaUrls&quot;: [
+    &quot;https://cdn.yourdomain.com/gift-message-media/photo.png&quot;
+  ],
+  &quot;scheduledDeliveryAt&quot;: &quot;2026-12-24T10:00:00.000Z&quot;
 }
 </code></pre>
 <p><strong>PATCH /customer/cart/items/:id</strong></p>
 <pre><code class="language-json">{
+  &quot;variantId&quot;: &quot;cmf0variant100ml001&quot;,
   &quot;quantity&quot;: 2,
-  &quot;deliveryOption&quot;: &quot;NEXT_DAY&quot;,
+  &quot;deliveryOption&quot;: &quot;SCHEDULED&quot;,
+  &quot;recipientContactId&quot;: &quot;cmf0contactmary001&quot;,
   &quot;recipientName&quot;: &quot;Sarah Khan&quot;,
   &quot;recipientPhone&quot;: &quot;+923001234567&quot;,
   &quot;recipientAddressId&quot;: &quot;cmf0addresshome001&quot;,
-  &quot;giftMessage&quot;: &quot;Happy Birthday!&quot;,
-  &quot;scheduledDeliveryAt&quot;: &quot;2026-06-01T12:00:00.000Z&quot;
+  &quot;eventId&quot;: &quot;cmf0eventbirthday001&quot;,
+  &quot;giftMessage&quot;: &quot;Updated gift note.&quot;,
+  &quot;messageMediaUrls&quot;: [
+    &quot;https://cdn.yourdomain.com/gift-message-media/video.mp4&quot;
+  ],
+  &quot;scheduledDeliveryAt&quot;: &quot;2026-12-25T10:00:00.000Z&quot;
 }
 </code></pre>
 <h3>Customer Orders</h3>

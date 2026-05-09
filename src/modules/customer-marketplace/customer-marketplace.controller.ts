@@ -139,13 +139,13 @@ export class CustomerMarketplaceController {
   @Post('cart/items')
   @ApiTags('Customer Cart')
   @ApiOperation({ summary: 'Add item to cart', description: 'REGISTERED_USER only. Backend calculates unit price, active offer discount, final price, subtotal, delivery fee placeholder, and total.' })
-  @ApiBody({ type: AddCartItemDto })
+  @ApiBody({ type: AddCartItemDto, examples: { sendGift: { value: { giftId: 'cmf0giftroses001', variantId: 'cmf0variant50ml001', quantity: 1, deliveryOption: 'SAME_DAY', recipientContactId: 'cmf0contactmary001', recipientName: 'Sarah Khan', recipientPhone: '+923001234567', recipientAddressId: 'cmf0addresshome001', eventId: 'cmf0eventbirthday001', giftMessage: 'Hope you love this special surprise!', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/photo.png'], scheduledDeliveryAt: '2026-12-24T10:00:00.000Z' } } } })
   addCartItem(@CurrentUser() user: AuthUserContext, @Body() dto: AddCartItemDto) { return this.marketplace.addCartItem(user, dto); }
 
   @Patch('cart/items/:id')
   @ApiTags('Customer Cart')
   @ApiOperation({ summary: 'Update cart item', description: 'REGISTERED_USER only. Validates ownership through the active customer cart.' })
-  @ApiBody({ type: UpdateCartItemDto })
+  @ApiBody({ type: UpdateCartItemDto, examples: { updateSelection: { value: { variantId: 'cmf0variant100ml001', quantity: 2, deliveryOption: 'SCHEDULED', recipientContactId: 'cmf0contactmary001', recipientName: 'Sarah Khan', recipientPhone: '+923001234567', recipientAddressId: 'cmf0addresshome001', eventId: 'cmf0eventbirthday001', giftMessage: 'Updated gift note.', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/video.mp4'], scheduledDeliveryAt: '2026-12-25T10:00:00.000Z' } } } })
   updateCartItem(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateCartItemDto) { return this.marketplace.updateCartItem(user, id, dto); }
 
   @Delete('cart/items/:id')

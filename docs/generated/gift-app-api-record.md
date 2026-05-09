@@ -227,13 +227,19 @@ Examples:
 ```json
 {
   "giftId": "cmf0giftroses001",
+  "variantId": "cmf0variant50ml001",
   "quantity": 1,
-  "deliveryOption": "SCHEDULED",
+  "deliveryOption": "SAME_DAY",
+  "recipientContactId": "cmf0contactmary001",
   "recipientName": "Sarah Khan",
   "recipientPhone": "+923001234567",
   "recipientAddressId": "cmf0addresshome001",
-  "giftMessage": "Happy Birthday!",
-  "scheduledDeliveryAt": "2026-06-01T12:00:00.000Z"
+  "eventId": "cmf0eventbirthday001",
+  "giftMessage": "Hope you love this special surprise!",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/photo.png"
+  ],
+  "scheduledDeliveryAt": "2026-12-24T10:00:00.000Z"
 }
 ```
 
@@ -241,13 +247,19 @@ Examples:
 
 ```json
 {
+  "variantId": "cmf0variant100ml001",
   "quantity": 2,
-  "deliveryOption": "NEXT_DAY",
+  "deliveryOption": "SCHEDULED",
+  "recipientContactId": "cmf0contactmary001",
   "recipientName": "Sarah Khan",
   "recipientPhone": "+923001234567",
   "recipientAddressId": "cmf0addresshome001",
-  "giftMessage": "Happy Birthday!",
-  "scheduledDeliveryAt": "2026-06-01T12:00:00.000Z"
+  "eventId": "cmf0eventbirthday001",
+  "giftMessage": "Updated gift note.",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/video.mp4"
+  ],
+  "scheduledDeliveryAt": "2026-12-25T10:00:00.000Z"
 }
 ```
 

@@ -12,13 +12,14 @@ export enum UploadFolder {
   GIFT_CATEGORY_IMAGES = 'gift-category-images',
   CUSTOMER_CONTACT_AVATARS = 'customer-contact-avatars',
   BROADCAST_IMAGES = 'broadcast-images',
+  GIFT_MESSAGE_MEDIA = 'gift-message-media',
 }
 
 export class CreatePresignedUploadDto {
   @ApiProperty({ enum: UploadFolder }) @IsEnum(UploadFolder) folder!: UploadFolder;
   @ApiProperty({ example: 'avatar.png' }) @IsString() @Matches(/^[a-zA-Z0-9._-]+$/) fileName!: string;
-  @ApiProperty({ example: 'image/png' }) @IsString() @Matches(/^(image\/(png|jpeg|jpg|webp)|application\/pdf)$/) contentType!: string;
-  @ApiPropertyOptional({ example: 1048576 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(10 * 1024 * 1024) sizeBytes?: number;
+  @ApiProperty({ example: 'image/png' }) @IsString() @Matches(/^(image\/(png|jpeg|jpg|webp)|video\/mp4|application\/pdf)$/) contentType!: string;
+  @ApiPropertyOptional({ example: 1048576 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(25 * 1024 * 1024) sizeBytes?: number;
   @ApiProperty({ required: false, example: 'target_account_id' }) @IsOptional() @IsString() targetAccountId?: string;
   @ApiProperty({ required: false, example: 'gift_id' }) @IsOptional() @IsString() giftId?: string;
 }

@@ -4974,6 +4974,26 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AddCartItemDto"
+              },
+              "examples": {
+                "sendGift": {
+                  "value": {
+                    "giftId": "cmf0giftroses001",
+                    "variantId": "cmf0variant50ml001",
+                    "quantity": 1,
+                    "deliveryOption": "SAME_DAY",
+                    "recipientContactId": "cmf0contactmary001",
+                    "recipientName": "Sarah Khan",
+                    "recipientPhone": "+923001234567",
+                    "recipientAddressId": "cmf0addresshome001",
+                    "eventId": "cmf0eventbirthday001",
+                    "giftMessage": "Hope you love this special surprise!",
+                    "messageMediaUrls": [
+                      "https://cdn.yourdomain.com/gift-message-media/photo.png"
+                    ],
+                    "scheduledDeliveryAt": "2026-12-24T10:00:00.000Z"
+                  }
+                }
               }
             }
           }
@@ -5014,6 +5034,25 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateCartItemDto"
+              },
+              "examples": {
+                "updateSelection": {
+                  "value": {
+                    "variantId": "cmf0variant100ml001",
+                    "quantity": 2,
+                    "deliveryOption": "SCHEDULED",
+                    "recipientContactId": "cmf0contactmary001",
+                    "recipientName": "Sarah Khan",
+                    "recipientPhone": "+923001234567",
+                    "recipientAddressId": "cmf0addresshome001",
+                    "eventId": "cmf0eventbirthday001",
+                    "giftMessage": "Updated gift note.",
+                    "messageMediaUrls": [
+                      "https://cdn.yourdomain.com/gift-message-media/video.mp4"
+                    ],
+                    "scheduledDeliveryAt": "2026-12-25T10:00:00.000Z"
+                  }
+                }
               }
             }
           }
@@ -8009,7 +8048,8 @@
                 "gift-images",
                 "gift-category-images",
                 "customer-contact-avatars",
-                "broadcast-images"
+                "broadcast-images",
+                "gift-message-media"
               ]
             }
           },
@@ -9508,6 +9548,10 @@
             "type": "string",
             "example": "cmf0giftroses001"
           },
+          "variantId": {
+            "type": "string",
+            "example": "cmf0variant50ml001"
+          },
           "quantity": {
             "type": "number",
             "example": 1
@@ -9521,6 +9565,10 @@
             ],
             "example": "SCHEDULED"
           },
+          "recipientContactId": {
+            "type": "string",
+            "example": "cmf0contactmary001"
+          },
           "recipientName": {
             "type": "string",
             "example": "Sarah Khan"
@@ -9533,9 +9581,22 @@
             "type": "string",
             "example": "cmf0addresshome001"
           },
+          "eventId": {
+            "type": "string",
+            "example": "cmf0eventbirthday001"
+          },
           "giftMessage": {
             "type": "string",
-            "example": "Happy Birthday!"
+            "example": "Hope you love this special surprise!"
+          },
+          "messageMediaUrls": {
+            "example": [
+              "https://cdn.yourdomain.com/gift-message-media/photo.png"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "scheduledDeliveryAt": {
             "type": "string",
@@ -9555,6 +9616,10 @@
       "UpdateCartItemDto": {
         "type": "object",
         "properties": {
+          "variantId": {
+            "type": "string",
+            "example": "cmf0variant100ml001"
+          },
           "quantity": {
             "type": "number",
             "example": 2
@@ -9568,6 +9633,10 @@
             ],
             "example": "NEXT_DAY"
           },
+          "recipientContactId": {
+            "type": "string",
+            "example": "cmf0contactmary001"
+          },
           "recipientName": {
             "type": "string",
             "example": "Sarah Khan"
@@ -9580,9 +9649,22 @@
             "type": "string",
             "example": "cmf0addresshome001"
           },
+          "eventId": {
+            "type": "string",
+            "example": "cmf0eventbirthday001"
+          },
           "giftMessage": {
             "type": "string",
             "example": "Happy Birthday!"
+          },
+          "messageMediaUrls": {
+            "example": [
+              "https://cdn.yourdomain.com/gift-message-media/video.mp4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "scheduledDeliveryAt": {
             "type": "string",
@@ -10470,7 +10552,8 @@
               "gift-images",
               "gift-category-images",
               "customer-contact-avatars",
-              "broadcast-images"
+              "broadcast-images",
+              "gift-message-media"
             ]
           },
           "fileName": {

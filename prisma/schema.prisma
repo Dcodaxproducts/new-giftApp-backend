@@ -496,6 +496,7 @@ model CartItem {
   id                      String                 @id @default(cuid())
   cartId                  String                 @map("cart_id")
   giftId                  String                 @map("gift_id")
+  variantId               String?                @map("variant_id")
   providerId              String                 @map("provider_id")
   quantity                Int
   unitPriceSnapshot       Decimal                @map("unit_price_snapshot") @db.Decimal(10, 2)
@@ -503,17 +504,25 @@ model CartItem {
   finalUnitPriceSnapshot  Decimal                @map("final_unit_price_snapshot") @db.Decimal(10, 2)
   promotionalOfferId      String?                @map("promotional_offer_id")
   deliveryOption          CustomerDeliveryOption @map("delivery_option")
+  recipientContactId      String?                @map("recipient_contact_id")
   recipientName           String                 @map("recipient_name")
   recipientPhone          String                 @map("recipient_phone")
   recipientAddressId      String                 @map("recipient_address_id")
+  eventId                 String?                @map("event_id")
   giftMessage             String?                @map("gift_message")
+  messageMediaUrlsJson    Json                   @default("[]") @map("message_media_urls_json")
   scheduledDeliveryAt     DateTime?              @map("scheduled_delivery_at") @db.Timestamptz
   createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz
   updatedAt               DateTime               @updatedAt @map("updated_at") @db.Timestamptz
   cart                    Cart                   @relation(fields: [cartId], references: [id])
+  gift                    Gift                   @relation(fields: [giftId], references: [id])
+  variant                 GiftVariant?           @relation(fields: [variantId], references: [id])
 
   @@index([cartId])
   @@index([giftId])
+  @@index([variantId])
+  @@index([recipientContactId])
+  @@index([eventId])
   @@map("cart_items")
 }
 
@@ -660,6 +669,8 @@ model Gift {
   rejecter User?        @relation("GiftRejecter", fields: [rejectedBy], references: [id])
   flagger  User?        @relation("GiftFlagger", fields: [flaggedBy], references: [id])
   promotionalOffers PromotionalOffer[]
+  variants GiftVariant[]
+  cartItems CartItem[]
 
   @@index([categoryId, deletedAt])
   @@index([providerId, deletedAt])
@@ -667,6 +678,28 @@ model Gift {
   @@index([moderationStatus, deletedAt])
   @@index([isPublished, deletedAt])
   @@map("gifts")
+}
+
+model GiftVariant {
+  id            String   @id @default(cuid())
+  giftId        String   @map("gift_id")
+  name          String
+  price         Decimal  @db.Decimal(10, 2)
+  originalPrice Decimal? @map("original_price") @db.Decimal(10, 2)
+  stockQuantity Int      @default(0) @map("stock_quantity")
+  sku           String?  @unique
+  isPopular     Boolean  @default(false) @map("is_popular")
+  isDefault     Boolean  @default(false) @map("is_default")
+  sortOrder     Int      @default(0) @map("sort_order")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  gift      Gift       @relation(fields: [giftId], references: [id])
+  cartItems CartItem[]
+
+  @@index([giftId, isActive, sortOrder])
+  @@map("gift_variants")
 }
 
 model Broadcast {

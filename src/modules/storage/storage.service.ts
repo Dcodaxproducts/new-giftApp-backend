@@ -12,14 +12,14 @@ import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto, UploadFold
 @Injectable()
 export class StorageService {
   private client?: S3Client;
-  private readonly maxFileBytes = 10 * 1024 * 1024;
+  private readonly defaultMaxFileBytes = 10 * 1024 * 1024;
 
   constructor(private readonly configService: ConfigService, private readonly auditLog: AuditLogWriterService, private readonly prisma: PrismaService) {}
 
   async createPresignedUpload(user: AuthUserContext, dto: CreatePresignedUploadDto, ipAddress?: string, userAgent?: string | string[]) {
     await this.assertUploadScope(user, dto);
     this.assertFolderFilePolicy(dto);
-    if (dto.sizeBytes && dto.sizeBytes > this.maxFileBytes) throw new ForbiddenException('File exceeds maximum allowed size');
+    if (dto.sizeBytes && dto.sizeBytes > this.defaultMaxFileBytes && dto.folder !== UploadFolder.GIFT_MESSAGE_MEDIA) throw new ForbiddenException('File exceeds maximum allowed size');
     const bucket = this.required('AWS_BUCKET_NAME');
     const publicBaseUrl = this.configService.get<string>('AWS_PUBLIC_BASE_URL');
     const expiresIn = Number(this.configService.get<string>('AWS_PRESIGNED_UPLOAD_EXPIRY_SECONDS', '300'));
@@ -69,8 +69,8 @@ export class StorageService {
 
   private async assertUploadScope(user: AuthUserContext, dto: CreatePresignedUploadDto): Promise<void> {
     if (user.role === UserRole.REGISTERED_USER) {
-      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS];
-      if (!allowed.includes(dto.folder) || (dto.targetAccountId && dto.targetAccountId !== user.uid)) throw new ForbiddenException('Registered users can upload only their own avatar files');
+      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.GIFT_MESSAGE_MEDIA];
+      if (!allowed.includes(dto.folder) || (dto.targetAccountId && dto.targetAccountId !== user.uid)) throw new ForbiddenException('Registered users can upload only their own files');
       return;
     }
     if (user.role === UserRole.PROVIDER) {
@@ -89,6 +89,13 @@ export class StorageService {
   }
 
   private assertFolderFilePolicy(dto: CreatePresignedUploadDto): void {
+    if (dto.folder === UploadFolder.GIFT_MESSAGE_MEDIA) {
+      const imageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (![...imageTypes, 'video/mp4'].includes(dto.contentType)) throw new ForbiddenException('Gift message media must be JPEG, PNG, WEBP, or MP4');
+      const maxBytes = dto.contentType === 'video/mp4' ? 25 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (dto.sizeBytes && dto.sizeBytes > maxBytes) throw new ForbiddenException(dto.contentType === 'video/mp4' ? 'Video exceeds maximum allowed size' : 'Image exceeds maximum allowed size');
+      return;
+    }
     const fiveMbImageFolders = [UploadFolder.GIFT_CATEGORY_IMAGES, UploadFolder.CUSTOMER_CONTACT_AVATARS];
     if (!fiveMbImageFolders.includes(dto.folder)) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Images must be JPEG, PNG, or WEBP');
