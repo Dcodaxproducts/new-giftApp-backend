@@ -44,6 +44,6 @@ export class CustomerTransactionsController {
 
   @Get(':id/receipt')
   @ApiOperation({ summary: 'Download own transaction receipt', description: 'Receipt is generated only for the transaction owner and never exposes Stripe secret data.' })
-  @ApiResponse({ status: 200, description: 'Receipt PDF file.' })
+  @ApiResponse({ status: 200, description: 'Receipt PDF file for the authenticated transaction owner. Includes app name, transaction ID, customer, recipient, references, totals, currency, status, and support email.' })
   receipt(@CurrentUser() user: AuthUserContext, @Param('id') id: string): Promise<StreamableFile> { return this.transactions.receipt(user, id); }
 }

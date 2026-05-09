@@ -12,6 +12,18 @@ Generated from the NestJS Swagger document with controller auto-tags disabled, s
 
 ## Final Swagger Groups
 
+- Auth
+- Login Attempts
+- Admin Staff Management
+- Admin Roles / RBAC
+- User Management
+- Provider Management
+- Provider Inventory
+- Provider Promotional Offers
+- Promotional Offers Management
+- Gift Categories
+- Gift Management
+- Gift Moderation
 - Customer Marketplace
 - Customer Wishlist
 - Customer Addresses
@@ -20,16 +32,782 @@ Generated from the NestJS Swagger document with controller auto-tags disabled, s
 - Customer Event Reminder Settings
 - Customer Cart
 - Customer Orders
+- Customer Recurring Payments
+- Customer Transactions
+- Payments
 - Notifications
 - Broadcast Notifications
-- Gift Categories
-- Gift Management
-- Provider Inventory
-- Promotional Offers Management
-- Provider Promotional Offers
-- Payments
+- Subscription Plans
+- Coupons
+- Storage
+- Audit Logs
 
 ## API List
+
+### Auth
+
+```txt
+DELETE /auth/account
+POST   /auth/cancel-deletion
+PATCH  /auth/change-password
+POST   /auth/forgot-password
+POST   /auth/guest/session
+POST   /auth/login
+POST   /auth/logout
+GET    /auth/me
+POST   /auth/providers/register
+POST   /auth/refresh
+POST   /auth/resend-otp
+POST   /auth/reset-password
+POST   /auth/users/register
+POST   /auth/verify-email
+POST   /auth/verify-reset-otp
+```
+
+Examples:
+
+**POST /auth/forgot-password**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**POST /auth/guest/session**
+
+```json
+{
+  "capabilities": [
+    null
+  ]
+}
+```
+
+**POST /auth/providers/register**
+
+```json
+{
+  "fulfillmentMethods": [
+    "PICKUP"
+  ],
+  "autoAcceptOrders": true
+}
+```
+
+**POST /auth/reset-password**
+
+```json
+{
+  "email": "user@example.com",
+  "otp": "334018",
+  "newPassword": "NewPassword@123"
+}
+```
+
+**POST /auth/verify-reset-otp**
+
+```json
+{
+  "email": "user@example.com",
+  "otp": "334018"
+}
+```
+
+### Login Attempts
+
+```txt
+GET    /login-attempts
+GET    /login-attempts/export
+GET    /login-attempts/stats
+```
+
+### Admin Staff Management
+
+```txt
+GET    /admins
+POST   /admins
+GET    /admins/:id
+PATCH  /admins/:id
+PATCH  /admins/:id/active-status
+PATCH  /admins/:id/password
+```
+
+Examples:
+
+**POST /admins**
+
+```json
+{
+  "email": "staff@example.com",
+  "temporaryPassword": "Temp@123456",
+  "generateTemporaryPassword": false,
+  "mustChangePassword": true,
+  "firstName": "Operations",
+  "lastName": "Staff",
+  "phone": "+15550000002",
+  "title": "Operations Manager",
+  "roleId": "admin_role_id",
+  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/staff.png",
+  "isActive": true,
+  "sendInviteEmail": true
+}
+```
+
+**PATCH /admins/:id**
+
+```json
+{
+  "isActive": true
+}
+```
+
+**PATCH /admins/:id/active-status**
+
+```json
+{
+  "isActive": true
+}
+```
+
+**PATCH /admins/:id/password**
+
+```json
+{
+  "generateTemporaryPassword": true,
+  "mustChangePassword": true,
+  "sendEmail": true
+}
+```
+
+### Admin Roles / RBAC
+
+```txt
+GET    /admin-roles
+POST   /admin-roles
+GET    /permissions/catalog
+GET    /admin-roles/:id
+PATCH  /admin-roles/:id
+DELETE /admin-roles/:id
+PATCH  /admin-roles/:id/permissions
+```
+
+Examples:
+
+**POST /admin-roles**
+
+```json
+{
+  "permissions": {}
+}
+```
+
+**PATCH /admin-roles/:id**
+
+```json
+{
+  "isActive": true
+}
+```
+
+**PATCH /admin-roles/:id/permissions**
+
+```json
+{
+  "permissions": {}
+}
+```
+
+### User Management
+
+```txt
+GET    /users
+GET    /users/export
+GET    /users/:id
+PATCH  /users/:id
+GET    /users/:id/activity
+POST   /users/:id/reset-password
+GET    /users/:id/stats
+PATCH  /users/:id/status
+POST   /users/:id/suspend
+POST   /users/:id/unsuspend
+```
+
+Examples:
+
+**PATCH /users/:id**
+
+```json
+{
+  "firstName": "Alex",
+  "lastName": "Johnson",
+  "phone": "+15552345678",
+  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg",
+  "location": "New York, USA"
+}
+```
+
+**POST /users/:id/reset-password**
+
+```json
+{
+  "sendEmail": true
+}
+```
+
+**PATCH /users/:id/status**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Suspicious activity detected on this account.",
+  "notifyUser": true
+}
+```
+
+**POST /users/:id/suspend**
+
+```json
+{
+  "reason": "POLICY_VIOLATION",
+  "comment": "Suspicious account activity.",
+  "notifyUser": true
+}
+```
+
+**POST /users/:id/unsuspend**
+
+```json
+{
+  "comment": "Account reviewed and restored.",
+  "notifyUser": true
+}
+```
+
+### Provider Management
+
+```txt
+GET    /provider-business-categories
+POST   /provider-business-categories
+GET    /providers
+POST   /providers
+GET    /providers/export
+GET    /providers/lookup
+GET    /providers/stats
+GET    /provider-business-categories/:id
+PATCH  /provider-business-categories/:id
+DELETE /provider-business-categories/:id
+GET    /providers/:id
+PATCH  /providers/:id
+GET    /providers/:id/activity
+PATCH  /providers/:id/approve
+GET    /providers/:id/items
+POST   /providers/:id/message
+PATCH  /providers/:id/reject
+PATCH  /providers/:id/status
+POST   /providers/:id/suspend
+POST   /providers/:id/unsuspend
+```
+
+Examples:
+
+**POST /provider-business-categories**
+
+```json
+{
+  "sortOrder": 99.5,
+  "isActive": true
+}
+```
+
+**POST /providers**
+
+```json
+{
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "email": "contact@giftsandblooms.com",
+  "phone": "+15551234567",
+  "serviceArea": "New York, USA",
+  "headquarters": "New York, USA",
+  "documentUrls": [
+    null
+  ],
+  "generateTemporaryPassword": true,
+  "mustChangePassword": true
+}
+```
+
+**PATCH /provider-business-categories/:id**
+
+```json
+{
+  "sortOrder": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /providers/:id**
+
+```json
+{
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "phone": "+15551234567",
+  "serviceArea": "New York, USA",
+  "headquarters": "New York, USA",
+  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png",
+  "documentUrls": [
+    null
+  ]
+}
+```
+
+**PATCH /providers/:id/approve**
+
+```json
+{
+  "comment": "Documents verified successfully.",
+  "notifyProvider": true
+}
+```
+
+**POST /providers/:id/message**
+
+```json
+{
+  "subject": "Account update",
+  "message": "Please update your business documents.",
+  "channel": "EMAIL"
+}
+```
+
+**PATCH /providers/:id/reject**
+
+```json
+{
+  "reason": "INCOMPLETE_DOCUMENTS",
+  "comment": "Business license document is missing.",
+  "notifyProvider": true
+}
+```
+
+**PATCH /providers/:id/status**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**POST /providers/:id/suspend**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**POST /providers/:id/unsuspend**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+### Provider Inventory
+
+```txt
+GET    /provider/inventory
+POST   /provider/inventory
+GET    /provider/inventory/lookup
+GET    /provider/inventory/stats
+GET    /provider/inventory/:id
+PATCH  /provider/inventory/:id
+DELETE /provider/inventory/:id
+PATCH  /provider/inventory/:id/availability
+```
+
+Examples:
+
+**POST /provider/inventory**
+
+```json
+{
+  "name": "Luxury Perfume",
+  "description": "Long-lasting premium fragrance.",
+  "shortDescription": "Premium fragrance gift.",
+  "categoryId": "gift_category_id",
+  "price": 99.99,
+  "currency": "PKR",
+  "stockQuantity": 50,
+  "sku": "PERFUME-001",
+  "imageUrls": [
+    "https://cdn.yourdomain.com/gift-images/perfume.png"
+  ],
+  "isAvailable": true,
+  "variants": [
+    {
+      "name": "30ml",
+      "price": 89.99,
+      "originalPrice": 119.99,
+      "stockQuantity": 10,
+      "sku": "PERFUME-30ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**PATCH /provider/inventory/:id**
+
+```json
+{
+  "replaceVariants": false,
+  "variants": [
+    {
+      "id": "variant_id",
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "name": "150ml",
+      "price": 249.99,
+      "originalPrice": 299.99,
+      "stockQuantity": 5,
+      "sku": "PERFUME-150ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 4,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**PATCH /provider/inventory/:id/availability**
+
+```json
+{
+  "isAvailable": true
+}
+```
+
+### Provider Promotional Offers
+
+```txt
+GET    /provider/offers
+POST   /provider/offers
+GET    /provider/offers/:id
+PATCH  /provider/offers/:id
+DELETE /provider/offers/:id
+PATCH  /provider/offers/:id/status
+```
+
+Examples:
+
+**POST /provider/offers**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /provider/offers/:id**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /provider/offers/:id/status**
+
+```json
+{
+  "isActive": true
+}
+```
+
+### Promotional Offers Management
+
+```txt
+GET    /promotional-offers
+POST   /promotional-offers
+GET    /promotional-offers/export
+GET    /promotional-offers/stats
+GET    /promotional-offers/:id
+PATCH  /promotional-offers/:id
+DELETE /promotional-offers/:id
+PATCH  /promotional-offers/:id/approve
+PATCH  /promotional-offers/:id/reject
+PATCH  /promotional-offers/:id/status
+```
+
+Examples:
+
+**POST /promotional-offers**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true,
+  "approvalStatus": "PENDING"
+}
+```
+
+**PATCH /promotional-offers/:id**
+
+```json
+{
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "isActive": true
+}
+```
+
+**PATCH /promotional-offers/:id/approve**
+
+```json
+{
+  "notifyProvider": true
+}
+```
+
+**PATCH /promotional-offers/:id/reject**
+
+```json
+{
+  "reason": "INVALID_DISCOUNT",
+  "notifyProvider": true
+}
+```
+
+**PATCH /promotional-offers/:id/status**
+
+```json
+{
+  "isActive": true
+}
+```
+
+### Gift Categories
+
+```txt
+GET    /gift-categories
+POST   /gift-categories
+GET    /gift-categories/lookup
+GET    /gift-categories/stats
+GET    /gift-categories/:id
+PATCH  /gift-categories/:id
+DELETE /gift-categories/:id
+```
+
+Examples:
+
+**POST /gift-categories**
+
+```json
+{
+  "name": "Perfumes",
+  "description": "Premium fragrance gifts.",
+  "iconKey": "perfume",
+  "backgroundColor": "#E9D5FF",
+  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
+  "sortOrder": 1,
+  "isActive": true
+}
+```
+
+**PATCH /gift-categories/:id**
+
+```json
+{
+  "backgroundColor": "#F3E8FF",
+  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
+  "isActive": true
+}
+```
+
+### Gift Management
+
+```txt
+GET    /gifts
+POST   /gifts
+GET    /gifts/export
+GET    /gifts/stats
+GET    /gifts/:id
+PATCH  /gifts/:id
+DELETE /gifts/:id
+PATCH  /gifts/:id/status
+```
+
+Examples:
+
+**POST /gifts**
+
+```json
+{
+  "name": "Luxury Perfume",
+  "description": "Long-lasting premium fragrance.",
+  "shortDescription": "Premium fragrance gift.",
+  "categoryId": "gift_category_id",
+  "providerId": "provider_id",
+  "price": 99.99,
+  "currency": "PKR",
+  "stockQuantity": 50,
+  "sku": "PERFUME-001",
+  "imageUrls": [
+    "https://cdn.yourdomain.com/gift-images/perfume.png"
+  ],
+  "isPublished": true,
+  "isFeatured": false,
+  "tags": [
+    "perfume",
+    "luxury"
+  ],
+  "moderationStatus": "APPROVED",
+  "variants": [
+    {
+      "name": "30ml",
+      "price": 89.99,
+      "originalPrice": 119.99,
+      "stockQuantity": 10,
+      "sku": "PERFUME-30ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**PATCH /gifts/:id**
+
+```json
+{
+  "name": "Luxury Perfume Updated",
+  "replaceVariants": false,
+  "variants": [
+    {
+      "id": "variant_id",
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "name": "150ml",
+      "price": 249.99,
+      "originalPrice": 299.99,
+      "stockQuantity": 5,
+      "sku": "PERFUME-150ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 4,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**PATCH /gifts/:id/status**
+
+```json
+{
+  "status": "ACTIVE"
+}
+```
+
+### Gift Moderation
+
+```txt
+GET    /gift-moderation
+PATCH  /gift-moderation/:id/approve
+PATCH  /gift-moderation/:id/flag
+PATCH  /gift-moderation/:id/reject
+```
+
+Examples:
+
+**PATCH /gift-moderation/:id/approve**
+
+```json
+{
+  "publishNow": true,
+  "notifyProvider": true
+}
+```
+
+**PATCH /gift-moderation/:id/flag**
+
+```json
+{
+  "reason": "NEEDS_MANUAL_REVIEW"
+}
+```
+
+**PATCH /gift-moderation/:id/reject**
+
+```json
+{
+  "reason": "INCOMPLETE_INFORMATION",
+  "notifyProvider": true
+}
+```
 
 ### Customer Marketplace
 
@@ -285,6 +1063,144 @@ Examples:
 }
 ```
 
+### Customer Recurring Payments
+
+```txt
+GET    /customer/payment-methods/saved
+POST   /customer/payment-methods/setup-intent
+GET    /customer/recurring-payments
+POST   /customer/recurring-payments
+GET    /customer/recurring-payments/summary
+DELETE /customer/payment-methods/:id
+GET    /customer/recurring-payments/:id
+PATCH  /customer/recurring-payments/:id
+POST   /customer/recurring-payments/:id/cancel
+GET    /customer/recurring-payments/:id/history
+POST   /customer/recurring-payments/:id/pause
+POST   /customer/recurring-payments/:id/resume
+```
+
+Examples:
+
+**POST /customer/recurring-payments**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "frequency": "WEEKLY",
+  "schedule": {
+    "dayOfWeek": "MONDAY",
+    "dayOfMonth": null,
+    "monthOfYear": null,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "recipientContactId": "contact_id",
+  "message": "Hope you love this special surprise!",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/photo.png"
+  ],
+  "paymentMethod": "STRIPE_CARD",
+  "stripePaymentMethodId": "pm_xxx",
+  "startDate": "2026-05-10T00:00:00.000Z",
+  "endDate": null,
+  "autoSend": true
+}
+```
+
+**PATCH /customer/recurring-payments/:id**
+
+```json
+{
+  "amount": 50,
+  "frequency": "MONTHLY",
+  "schedule": {
+    "dayOfMonth": 15,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "message": "Fresh flowers every month.",
+  "messageMediaUrls": [],
+  "stripePaymentMethodId": "pm_xxx"
+}
+```
+
+**POST /customer/recurring-payments/:id/cancel**
+
+```json
+{
+  "cancelMode": "IMMEDIATELY",
+  "reason": "No longer needed."
+}
+```
+
+**POST /customer/recurring-payments/:id/pause**
+
+```json
+{
+  "reason": "User paused recurring payment."
+}
+```
+
+### Customer Transactions
+
+```txt
+GET    /customer/transactions
+GET    /customer/transactions/export
+GET    /customer/transactions/summary
+GET    /customer/transactions/:id
+GET    /customer/transactions/:id/receipt
+```
+
+### Payments
+
+```txt
+GET    /customer/money-gifts
+POST   /customer/money-gifts
+GET    /customer/payment-methods
+POST   /customer/payments/confirm
+POST   /customer/payments/create-intent
+POST   /payments/stripe/webhook
+GET    /customer/money-gifts/:id
+GET    /customer/payments/:id
+```
+
+Examples:
+
+**POST /customer/money-gifts**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "recipientContactId": "cmf0contactmary001",
+  "message": "Hope this helps. Enjoy your day!",
+  "messageMediaUrls": [],
+  "deliveryDate": "2026-12-24T00:00:00.000Z",
+  "repeatAnnually": false,
+  "paymentMethod": "STRIPE_CARD"
+}
+```
+
+**POST /customer/payments/confirm**
+
+```json
+{
+  "paymentId": "cmf0payment001",
+  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx"
+}
+```
+
+**POST /customer/payments/create-intent**
+
+```json
+{
+  "cartId": "cmf0cartactive001",
+  "paymentMethod": "STRIPE_CARD"
+}
+```
+
 ### Notifications
 
 ```txt
@@ -419,932 +1335,6 @@ Examples:
 }
 ```
 
-### Gift Categories
-
-```txt
-GET    /gift-categories
-POST   /gift-categories
-GET    /gift-categories/lookup
-GET    /gift-categories/stats
-GET    /gift-categories/:id
-PATCH  /gift-categories/:id
-DELETE /gift-categories/:id
-```
-
-Examples:
-
-**POST /gift-categories**
-
-```json
-{
-  "name": "Perfumes",
-  "description": "Premium fragrance gifts.",
-  "iconKey": "perfume",
-  "backgroundColor": "#E9D5FF",
-  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
-  "sortOrder": 1,
-  "isActive": true
-}
-```
-
-**PATCH /gift-categories/:id**
-
-```json
-{
-  "backgroundColor": "#F3E8FF",
-  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
-  "isActive": true
-}
-```
-
-### Gift Management
-
-```txt
-GET    /gifts
-POST   /gifts
-GET    /gifts/export
-GET    /gifts/stats
-GET    /gifts/:id
-PATCH  /gifts/:id
-DELETE /gifts/:id
-PATCH  /gifts/:id/status
-```
-
-Examples:
-
-**POST /gifts**
-
-```json
-{
-  "name": "Luxury Perfume",
-  "description": "Long-lasting premium fragrance.",
-  "shortDescription": "Premium fragrance gift.",
-  "categoryId": "gift_category_id",
-  "providerId": "provider_id",
-  "price": 99.99,
-  "currency": "PKR",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
-  "imageUrls": [
-    "https://cdn.yourdomain.com/gift-images/perfume.png"
-  ],
-  "isPublished": true,
-  "isFeatured": false,
-  "tags": [
-    "perfume",
-    "luxury"
-  ],
-  "moderationStatus": "APPROVED",
-  "variants": [
-    {
-      "name": "30ml",
-      "price": 89.99,
-      "originalPrice": 119.99,
-      "stockQuantity": 10,
-      "sku": "PERFUME-30ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 1,
-      "isActive": true
-    },
-    {
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**PATCH /gifts/:id**
-
-```json
-{
-  "name": "Luxury Perfume Updated",
-  "replaceVariants": false,
-  "variants": [
-    {
-      "id": "variant_id",
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    },
-    {
-      "name": "150ml",
-      "price": 249.99,
-      "originalPrice": 299.99,
-      "stockQuantity": 5,
-      "sku": "PERFUME-150ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 4,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**PATCH /gifts/:id/status**
-
-```json
-{
-  "status": "ACTIVE"
-}
-```
-
-### Provider Inventory
-
-```txt
-GET    /provider/inventory
-POST   /provider/inventory
-GET    /provider/inventory/lookup
-GET    /provider/inventory/stats
-GET    /provider/inventory/:id
-PATCH  /provider/inventory/:id
-DELETE /provider/inventory/:id
-PATCH  /provider/inventory/:id/availability
-```
-
-Examples:
-
-**POST /provider/inventory**
-
-```json
-{
-  "name": "Luxury Perfume",
-  "description": "Long-lasting premium fragrance.",
-  "shortDescription": "Premium fragrance gift.",
-  "categoryId": "gift_category_id",
-  "price": 99.99,
-  "currency": "PKR",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
-  "imageUrls": [
-    "https://cdn.yourdomain.com/gift-images/perfume.png"
-  ],
-  "isAvailable": true,
-  "variants": [
-    {
-      "name": "30ml",
-      "price": 89.99,
-      "originalPrice": 119.99,
-      "stockQuantity": 10,
-      "sku": "PERFUME-30ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 1,
-      "isActive": true
-    },
-    {
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**PATCH /provider/inventory/:id**
-
-```json
-{
-  "replaceVariants": false,
-  "variants": [
-    {
-      "id": "variant_id",
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    },
-    {
-      "name": "150ml",
-      "price": 249.99,
-      "originalPrice": 299.99,
-      "stockQuantity": 5,
-      "sku": "PERFUME-150ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 4,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**PATCH /provider/inventory/:id/availability**
-
-```json
-{
-  "isAvailable": true
-}
-```
-
-### Promotional Offers Management
-
-```txt
-GET    /promotional-offers
-POST   /promotional-offers
-GET    /promotional-offers/export
-GET    /promotional-offers/stats
-GET    /promotional-offers/:id
-PATCH  /promotional-offers/:id
-DELETE /promotional-offers/:id
-PATCH  /promotional-offers/:id/approve
-PATCH  /promotional-offers/:id/reject
-PATCH  /promotional-offers/:id/status
-```
-
-Examples:
-
-**POST /promotional-offers**
-
-```json
-{
-  "discountType": "PERCENTAGE",
-  "discountValue": 99.5,
-  "isActive": true,
-  "approvalStatus": "PENDING"
-}
-```
-
-**PATCH /promotional-offers/:id**
-
-```json
-{
-  "discountType": "PERCENTAGE",
-  "discountValue": 99.5,
-  "isActive": true
-}
-```
-
-**PATCH /promotional-offers/:id/approve**
-
-```json
-{
-  "notifyProvider": true
-}
-```
-
-**PATCH /promotional-offers/:id/reject**
-
-```json
-{
-  "reason": "INVALID_DISCOUNT",
-  "notifyProvider": true
-}
-```
-
-**PATCH /promotional-offers/:id/status**
-
-```json
-{
-  "isActive": true
-}
-```
-
-### Provider Promotional Offers
-
-```txt
-GET    /provider/offers
-POST   /provider/offers
-GET    /provider/offers/:id
-PATCH  /provider/offers/:id
-DELETE /provider/offers/:id
-PATCH  /provider/offers/:id/status
-```
-
-Examples:
-
-**POST /provider/offers**
-
-```json
-{
-  "discountType": "PERCENTAGE",
-  "discountValue": 99.5,
-  "isActive": true
-}
-```
-
-**PATCH /provider/offers/:id**
-
-```json
-{
-  "discountType": "PERCENTAGE",
-  "discountValue": 99.5,
-  "isActive": true
-}
-```
-
-**PATCH /provider/offers/:id/status**
-
-```json
-{
-  "isActive": true
-}
-```
-
-### Payments
-
-```txt
-GET    /customer/money-gifts
-POST   /customer/money-gifts
-GET    /customer/payment-methods
-POST   /customer/payments/confirm
-POST   /customer/payments/create-intent
-POST   /payments/stripe/webhook
-GET    /customer/money-gifts/:id
-GET    /customer/payments/:id
-```
-
-Examples:
-
-**POST /customer/money-gifts**
-
-```json
-{
-  "amount": 100,
-  "currency": "PKR",
-  "recipientContactId": "cmf0contactmary001",
-  "message": "Hope this helps. Enjoy your day!",
-  "messageMediaUrls": [],
-  "deliveryDate": "2026-12-24T00:00:00.000Z",
-  "repeatAnnually": false,
-  "paymentMethod": "STRIPE_CARD"
-}
-```
-
-**POST /customer/payments/confirm**
-
-```json
-{
-  "paymentId": "cmf0payment001",
-  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx"
-}
-```
-
-**POST /customer/payments/create-intent**
-
-```json
-{
-  "cartId": "cmf0cartactive001",
-  "paymentMethod": "STRIPE_CARD"
-}
-```
-
-### Admin Roles / RBAC
-
-```txt
-GET    /admin-roles
-POST   /admin-roles
-GET    /permissions/catalog
-GET    /admin-roles/:id
-PATCH  /admin-roles/:id
-DELETE /admin-roles/:id
-PATCH  /admin-roles/:id/permissions
-```
-
-Examples:
-
-**POST /admin-roles**
-
-```json
-{
-  "permissions": {}
-}
-```
-
-**PATCH /admin-roles/:id**
-
-```json
-{
-  "isActive": true
-}
-```
-
-**PATCH /admin-roles/:id/permissions**
-
-```json
-{
-  "permissions": {}
-}
-```
-
-### Admin Staff Management
-
-```txt
-GET    /admins
-POST   /admins
-GET    /admins/:id
-PATCH  /admins/:id
-PATCH  /admins/:id/active-status
-PATCH  /admins/:id/password
-```
-
-Examples:
-
-**POST /admins**
-
-```json
-{
-  "email": "staff@example.com",
-  "temporaryPassword": "Temp@123456",
-  "generateTemporaryPassword": false,
-  "mustChangePassword": true,
-  "firstName": "Operations",
-  "lastName": "Staff",
-  "phone": "+15550000002",
-  "title": "Operations Manager",
-  "roleId": "admin_role_id",
-  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/staff.png",
-  "isActive": true,
-  "sendInviteEmail": true
-}
-```
-
-**PATCH /admins/:id**
-
-```json
-{
-  "isActive": true
-}
-```
-
-**PATCH /admins/:id/active-status**
-
-```json
-{
-  "isActive": true
-}
-```
-
-**PATCH /admins/:id/password**
-
-```json
-{
-  "generateTemporaryPassword": true,
-  "mustChangePassword": true,
-  "sendEmail": true
-}
-```
-
-### Audit Logs
-
-```txt
-GET    /audit-logs
-GET    /audit-logs/export
-GET    /audit-logs/:id
-```
-
-### Auth
-
-```txt
-DELETE /auth/account
-POST   /auth/cancel-deletion
-PATCH  /auth/change-password
-POST   /auth/forgot-password
-POST   /auth/guest/session
-POST   /auth/login
-POST   /auth/logout
-GET    /auth/me
-POST   /auth/providers/register
-POST   /auth/refresh
-POST   /auth/resend-otp
-POST   /auth/reset-password
-POST   /auth/users/register
-POST   /auth/verify-email
-POST   /auth/verify-reset-otp
-```
-
-Examples:
-
-**POST /auth/forgot-password**
-
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-**POST /auth/guest/session**
-
-```json
-{
-  "capabilities": [
-    null
-  ]
-}
-```
-
-**POST /auth/providers/register**
-
-```json
-{
-  "fulfillmentMethods": [
-    "PICKUP"
-  ],
-  "autoAcceptOrders": true
-}
-```
-
-**POST /auth/reset-password**
-
-```json
-{
-  "email": "user@example.com",
-  "otp": "334018",
-  "newPassword": "NewPassword@123"
-}
-```
-
-**POST /auth/verify-reset-otp**
-
-```json
-{
-  "email": "user@example.com",
-  "otp": "334018"
-}
-```
-
-### Coupons
-
-```txt
-GET    /coupons
-POST   /coupons
-GET    /coupons/:id
-PATCH  /coupons/:id
-DELETE /coupons/:id
-PATCH  /coupons/:id/status
-```
-
-Examples:
-
-**POST /coupons**
-
-```json
-{
-  "discountType": "PERCENTAGE",
-  "discountValue": 99.5,
-  "planIds": [
-    null
-  ],
-  "maxRedemptions": 99.5,
-  "isActive": true
-}
-```
-
-**PATCH /coupons/:id**
-
-```json
-{
-  "discountType": "PERCENTAGE",
-  "discountValue": 99.5,
-  "planIds": [
-    null
-  ],
-  "maxRedemptions": 99.5,
-  "isActive": true
-}
-```
-
-**PATCH /coupons/:id/status**
-
-```json
-{
-  "status": "ACTIVE"
-}
-```
-
-### Customer Recurring Payments
-
-```txt
-GET    /customer/payment-methods/saved
-POST   /customer/payment-methods/setup-intent
-GET    /customer/recurring-payments
-POST   /customer/recurring-payments
-GET    /customer/recurring-payments/summary
-DELETE /customer/payment-methods/:id
-GET    /customer/recurring-payments/:id
-PATCH  /customer/recurring-payments/:id
-POST   /customer/recurring-payments/:id/cancel
-GET    /customer/recurring-payments/:id/history
-POST   /customer/recurring-payments/:id/pause
-POST   /customer/recurring-payments/:id/resume
-```
-
-Examples:
-
-**POST /customer/recurring-payments**
-
-```json
-{
-  "amount": 100,
-  "currency": "PKR",
-  "frequency": "WEEKLY",
-  "schedule": {
-    "dayOfWeek": "MONDAY",
-    "dayOfMonth": null,
-    "monthOfYear": null,
-    "time": "09:00",
-    "timezone": "Asia/Karachi"
-  },
-  "recipientContactId": "contact_id",
-  "message": "Hope you love this special surprise!",
-  "messageMediaUrls": [
-    "https://cdn.yourdomain.com/gift-message-media/photo.png"
-  ],
-  "paymentMethod": "STRIPE_CARD",
-  "stripePaymentMethodId": "pm_xxx",
-  "startDate": "2026-05-10T00:00:00.000Z",
-  "endDate": null,
-  "autoSend": true
-}
-```
-
-**PATCH /customer/recurring-payments/:id**
-
-```json
-{
-  "amount": 50,
-  "frequency": "MONTHLY",
-  "schedule": {
-    "dayOfMonth": 15,
-    "time": "09:00",
-    "timezone": "Asia/Karachi"
-  },
-  "message": "Fresh flowers every month.",
-  "messageMediaUrls": [],
-  "stripePaymentMethodId": "pm_xxx"
-}
-```
-
-**POST /customer/recurring-payments/:id/cancel**
-
-```json
-{
-  "cancelMode": "IMMEDIATELY",
-  "reason": "No longer needed."
-}
-```
-
-**POST /customer/recurring-payments/:id/pause**
-
-```json
-{
-  "reason": "User paused recurring payment."
-}
-```
-
-### Customer Transactions
-
-```txt
-GET    /customer/transactions
-GET    /customer/transactions/export
-GET    /customer/transactions/summary
-GET    /customer/transactions/:id
-GET    /customer/transactions/:id/receipt
-```
-
-### Gift Moderation
-
-```txt
-GET    /gift-moderation
-PATCH  /gift-moderation/:id/approve
-PATCH  /gift-moderation/:id/flag
-PATCH  /gift-moderation/:id/reject
-```
-
-Examples:
-
-**PATCH /gift-moderation/:id/approve**
-
-```json
-{
-  "publishNow": true,
-  "notifyProvider": true
-}
-```
-
-**PATCH /gift-moderation/:id/flag**
-
-```json
-{
-  "reason": "NEEDS_MANUAL_REVIEW"
-}
-```
-
-**PATCH /gift-moderation/:id/reject**
-
-```json
-{
-  "reason": "INCOMPLETE_INFORMATION",
-  "notifyProvider": true
-}
-```
-
-### Login Attempts
-
-```txt
-GET    /login-attempts
-GET    /login-attempts/export
-GET    /login-attempts/stats
-```
-
-### Provider Management
-
-```txt
-GET    /provider-business-categories
-POST   /provider-business-categories
-GET    /providers
-POST   /providers
-GET    /providers/export
-GET    /providers/lookup
-GET    /providers/stats
-GET    /provider-business-categories/:id
-PATCH  /provider-business-categories/:id
-DELETE /provider-business-categories/:id
-GET    /providers/:id
-PATCH  /providers/:id
-GET    /providers/:id/activity
-PATCH  /providers/:id/approve
-GET    /providers/:id/items
-POST   /providers/:id/message
-PATCH  /providers/:id/reject
-PATCH  /providers/:id/status
-POST   /providers/:id/suspend
-POST   /providers/:id/unsuspend
-```
-
-Examples:
-
-**POST /provider-business-categories**
-
-```json
-{
-  "sortOrder": 99.5,
-  "isActive": true
-}
-```
-
-**POST /providers**
-
-```json
-{
-  "businessName": "Gifts & Blooms Co. Ltd",
-  "email": "contact@giftsandblooms.com",
-  "phone": "+15551234567",
-  "serviceArea": "New York, USA",
-  "headquarters": "New York, USA",
-  "documentUrls": [
-    null
-  ],
-  "generateTemporaryPassword": true,
-  "mustChangePassword": true
-}
-```
-
-**PATCH /provider-business-categories/:id**
-
-```json
-{
-  "sortOrder": 99.5,
-  "isActive": true
-}
-```
-
-**PATCH /providers/:id**
-
-```json
-{
-  "businessName": "Gifts & Blooms Co. Ltd",
-  "phone": "+15551234567",
-  "serviceArea": "New York, USA",
-  "headquarters": "New York, USA",
-  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png",
-  "documentUrls": [
-    null
-  ]
-}
-```
-
-**PATCH /providers/:id/approve**
-
-```json
-{
-  "comment": "Documents verified successfully.",
-  "notifyProvider": true
-}
-```
-
-**POST /providers/:id/message**
-
-```json
-{
-  "subject": "Account update",
-  "message": "Please update your business documents.",
-  "channel": "EMAIL"
-}
-```
-
-**PATCH /providers/:id/reject**
-
-```json
-{
-  "reason": "INCOMPLETE_DOCUMENTS",
-  "comment": "Business license document is missing.",
-  "notifyProvider": true
-}
-```
-
-**PATCH /providers/:id/status**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**POST /providers/:id/suspend**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**POST /providers/:id/unsuspend**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-### Storage
-
-```txt
-GET    /uploads
-POST   /uploads/complete
-POST   /uploads/presigned-url
-GET    /uploads/:id
-DELETE /uploads/:id
-```
-
-Examples:
-
-**POST /uploads/complete**
-
-```json
-{
-  "sizeBytes": 99.5
-}
-```
-
-**POST /uploads/presigned-url**
-
-```json
-{
-  "folder": "admin-avatars",
-  "fileName": "avatar.png",
-  "contentType": "image/png",
-  "sizeBytes": 1048576,
-  "targetAccountId": "target_account_id",
-  "giftId": "gift_id"
-}
-```
-
 ### Subscription Plans
 
 ```txt
@@ -1442,69 +1432,92 @@ Examples:
 }
 ```
 
-### User Management
+### Coupons
 
 ```txt
-GET    /users
-GET    /users/export
-GET    /users/:id
-PATCH  /users/:id
-GET    /users/:id/activity
-POST   /users/:id/reset-password
-GET    /users/:id/stats
-PATCH  /users/:id/status
-POST   /users/:id/suspend
-POST   /users/:id/unsuspend
+GET    /coupons
+POST   /coupons
+GET    /coupons/:id
+PATCH  /coupons/:id
+DELETE /coupons/:id
+PATCH  /coupons/:id/status
 ```
 
 Examples:
 
-**PATCH /users/:id**
+**POST /coupons**
 
 ```json
 {
-  "firstName": "Alex",
-  "lastName": "Johnson",
-  "phone": "+15552345678",
-  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg",
-  "location": "New York, USA"
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "planIds": [
+    null
+  ],
+  "maxRedemptions": 99.5,
+  "isActive": true
 }
 ```
 
-**POST /users/:id/reset-password**
+**PATCH /coupons/:id**
 
 ```json
 {
-  "sendEmail": true
+  "discountType": "PERCENTAGE",
+  "discountValue": 99.5,
+  "planIds": [
+    null
+  ],
+  "maxRedemptions": 99.5,
+  "isActive": true
 }
 ```
 
-**PATCH /users/:id/status**
+**PATCH /coupons/:id/status**
 
 ```json
 {
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Suspicious activity detected on this account.",
-  "notifyUser": true
+  "status": "ACTIVE"
 }
 ```
 
-**POST /users/:id/suspend**
+### Storage
+
+```txt
+GET    /uploads
+POST   /uploads/complete
+POST   /uploads/presigned-url
+GET    /uploads/:id
+DELETE /uploads/:id
+```
+
+Examples:
+
+**POST /uploads/complete**
 
 ```json
 {
-  "reason": "POLICY_VIOLATION",
-  "comment": "Suspicious account activity.",
-  "notifyUser": true
+  "sizeBytes": 99.5
 }
 ```
 
-**POST /users/:id/unsuspend**
+**POST /uploads/presigned-url**
 
 ```json
 {
-  "comment": "Account reviewed and restored.",
-  "notifyUser": true
+  "folder": "admin-avatars",
+  "fileName": "avatar.png",
+  "contentType": "image/png",
+  "sizeBytes": 1048576,
+  "targetAccountId": "target_account_id",
+  "giftId": "gift_id"
 }
+```
+
+### Audit Logs
+
+```txt
+GET    /audit-logs
+GET    /audit-logs/export
+GET    /audit-logs/:id
 ```

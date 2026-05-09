@@ -9,7 +9,7 @@ import {
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -49,6 +49,8 @@ export class UserManagementController {
 
   @Get()
   @Permissions('users.read')
+  @ApiOperation({ summary: 'List registered users', description: 'SUPER_ADMIN/ADMIN with users.read permission.' })
+  @ApiResponse({ status: 200, description: 'Users fetched successfully', schema: { example: { success: true, data: [{ id: 'user_id', email: 'customer@example.com', firstName: 'Sarah', lastName: 'Johnson', phone: '+923001234567', role: 'REGISTERED_USER', isVerified: true, isActive: true, createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Users fetched successfully' } } })
   list(@Query() query: ListRegisteredUsersDto): Promise<unknown> {
     return this.userManagementService.list(query);
   }

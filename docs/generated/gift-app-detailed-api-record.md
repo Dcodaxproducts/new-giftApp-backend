@@ -1,6 +1,6 @@
 # Gift App Backend — Detailed API Record
 
-Generated: 2026-05-09 11:55 UTC
+Generated: 2026-05-09 13:07 UTC
 
 Base URL: `/api/v1`
 
@@ -15,6 +15,17 @@ Authorization: Bearer <accessToken>
 ## Contents
 
 - Auth
+- Login Attempts
+- Admin Staff Management
+- Admin Roles / RBAC
+- User Management
+- Provider Management
+- Provider Inventory
+- Provider Promotional Offers
+- Promotional Offers Management
+- Gift Categories
+- Gift Management
+- Gift Moderation
 - Customer Marketplace
 - Customer Wishlist
 - Customer Addresses
@@ -23,26 +34,15 @@ Authorization: Bearer <accessToken>
 - Customer Event Reminder Settings
 - Customer Cart
 - Customer Orders
+- Customer Recurring Payments
+- Customer Transactions
 - Payments
 - Notifications
 - Broadcast Notifications
-- Gift Categories
-- Gift Management
-- Provider Inventory
-- Promotional Offers Management
-- Provider Promotional Offers
-- Provider Management
-- User Management
-- Admin Staff Management
-- Admin Roles / RBAC
 - Subscription Plans
 - Coupons
 - Storage
 - Audit Logs
-- Login Attempts
-- Customer Recurring Payments
-- Customer Transactions
-- Gift Moderation
 
 ## Auth
 
@@ -498,6 +498,2618 @@ Authorization: Bearer <accessToken>
   "success": true,
   "data": {},
   "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Login Attempts
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/login-attempts` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/login-attempts/export` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/login-attempts/stats` | SUPER_ADMIN, ADMIN |  |
+
+### GET /login-attempts
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Login Attempts
+
+**Summary:** —
+
+**Parameters:** `email` (query, optional), `status` (query, optional), `role` (query, optional), `page` (query, optional), `limit` (query, optional), `userId` (query, optional), `from` (query, optional), `to` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /login-attempts/export
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Login Attempts
+
+**Summary:** —
+
+**Parameters:** `email` (query, optional), `status` (query, optional), `role` (query, optional), `page` (query, optional), `limit` (query, optional), `userId` (query, optional), `from` (query, optional), `to` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /login-attempts/stats
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Login Attempts
+
+**Summary:** —
+
+**Parameters:** `email` (query, optional), `status` (query, optional), `role` (query, optional), `page` (query, optional), `limit` (query, optional), `userId` (query, optional), `from` (query, optional), `to` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+## Admin Staff Management
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/admins` | SUPER_ADMIN |  |
+| `POST` | `/admins` | SUPER_ADMIN | Create admin staff user |
+| `GET` | `/admins/{id}` | SUPER_ADMIN |  |
+| `PATCH` | `/admins/{id}` | SUPER_ADMIN |  |
+| `PATCH` | `/admins/{id}/active-status` | SUPER_ADMIN |  |
+| `PATCH` | `/admins/{id}/password` | SUPER_ADMIN |  |
+
+### GET /admins
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Staff Management
+
+**Summary:** —
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `roleId` (query, optional), `role` (query, optional), `status` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /admins
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Staff Management
+
+**Summary:** Create admin staff user
+
+**Description:** Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.
+
+**Parameters:** None
+
+**Request payload example:**
+
+```json
+{
+  "email": "staff@example.com",
+  "temporaryPassword": "Temp@123456",
+  "generateTemporaryPassword": false,
+  "mustChangePassword": true,
+  "firstName": "Operations",
+  "lastName": "Staff",
+  "phone": "+15550000002",
+  "title": "Operations Manager",
+  "roleId": "admin_role_id",
+  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/staff.png",
+  "isActive": true,
+  "sendInviteEmail": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /admins/{id}
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Staff Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /admins/{id}
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Staff Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateAdminDto`
+
+**Request payload example:**
+
+```json
+{
+  "firstName": "example",
+  "lastName": "example",
+  "phone": "example",
+  "avatarUrl": "example",
+  "title": "example",
+  "roleId": "example",
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /admins/{id}/active-status
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Staff Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateAdminActiveStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /admins/{id}/password
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Staff Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `ResetAdminPasswordDto`
+
+**Request payload example:**
+
+```json
+{
+  "temporaryPassword": "example",
+  "generateTemporaryPassword": true,
+  "mustChangePassword": true,
+  "sendEmail": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Admin Roles / RBAC
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/admin-roles` | SUPER_ADMIN |  |
+| `POST` | `/admin-roles` | SUPER_ADMIN |  |
+| `GET` | `/permissions/catalog` | SUPER_ADMIN |  |
+| `GET` | `/admin-roles/{id}` | SUPER_ADMIN |  |
+| `PATCH` | `/admin-roles/{id}` | SUPER_ADMIN |  |
+| `DELETE` | `/admin-roles/{id}` | SUPER_ADMIN |  |
+| `PATCH` | `/admin-roles/{id}/permissions` | SUPER_ADMIN |  |
+
+### GET /admin-roles
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Description:** Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.
+
+**Parameters:** `search` (query, optional), `isSystem` (query, optional), `isActive` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /admin-roles
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Parameters:** None
+
+**Request DTO:** `CreateAdminRoleDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "example",
+  "description": "example",
+  "permissions": {}
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /permissions/catalog
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Description:** Read-only list of backend-supported permission keys that can be assigned to admin roles.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /admin-roles/{id}
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /admin-roles/{id}
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateAdminRoleDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "example",
+  "description": "example",
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /admin-roles/{id}
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /admin-roles/{id}/permissions
+
+**Allowed role(s):** SUPER_ADMIN
+
+**Swagger tag:** Admin Roles / RBAC
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateRolePermissionsDto`
+
+**Request payload example:**
+
+```json
+{
+  "permissions": {}
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## User Management
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/users` | SUPER_ADMIN, ADMIN | List registered users |
+| `GET` | `/users/export` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/users/{id}` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/users/{id}` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/users/{id}/activity` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/users/{id}/reset-password` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/users/{id}/stats` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/users/{id}/status` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/users/{id}/suspend` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/users/{id}/unsuspend` | SUPER_ADMIN, ADMIN |  |
+
+### GET /users
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** List registered users
+
+**Description:** SUPER_ADMIN/ADMIN with users.read permission.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `registrationFrom` (query, optional), `registrationTo` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "user_id",
+      "email": "customer@example.com",
+      "firstName": "Sarah",
+      "lastName": "Johnson",
+      "phone": "+923001234567",
+      "role": "REGISTERED_USER",
+      "isVerified": true,
+      "isActive": true,
+      "createdAt": "2026-05-09T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Users fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /users/export
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `search` (query, optional), `status` (query, optional), `registrationFrom` (query, optional), `registrationTo` (query, optional), `format` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /users/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /users/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateRegisteredUserDto`
+
+**Request payload example:**
+
+```json
+{
+  "firstName": "Alex",
+  "lastName": "Johnson",
+  "phone": "+15552345678",
+  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg",
+  "location": "New York, USA"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /users/{id}/activity
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `type` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /users/{id}/reset-password
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `ResetRegisteredUserPasswordDto`
+
+**Request payload example:**
+
+```json
+{
+  "sendEmail": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /users/{id}/stats
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /users/{id}/status
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateRegisteredUserStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Suspicious activity detected on this account.",
+  "notifyUser": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /users/{id}/suspend
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `SuspendRegisteredUserDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "POLICY_VIOLATION",
+  "comment": "Suspicious account activity.",
+  "notifyUser": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /users/{id}/unsuspend
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** User Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UnsuspendRegisteredUserDto`
+
+**Request payload example:**
+
+```json
+{
+  "comment": "Account reviewed and restored.",
+  "notifyUser": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Provider Management
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/provider-business-categories` | PUBLIC/UNSPECIFIED | List active provider business categories |
+| `POST` | `/provider-business-categories` | SUPER_ADMIN, ADMIN | Create provider business category |
+| `GET` | `/providers` | SUPER_ADMIN, ADMIN | List providers |
+| `POST` | `/providers` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/providers/export` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/providers/lookup` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/providers/stats` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/provider-business-categories/{id}` | SUPER_ADMIN, ADMIN | Fetch provider business category details |
+| `PATCH` | `/provider-business-categories/{id}` | SUPER_ADMIN, ADMIN | Update provider business category |
+| `DELETE` | `/provider-business-categories/{id}` | SUPER_ADMIN, ADMIN | Soft-delete provider business category |
+| `GET` | `/providers/{id}` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/providers/{id}` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/providers/{id}/activity` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/providers/{id}/approve` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/providers/{id}/items` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/providers/{id}/message` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/providers/{id}/reject` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/providers/{id}/status` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/providers/{id}/suspend` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/providers/{id}/unsuspend` | SUPER_ADMIN, ADMIN |  |
+
+### GET /provider-business-categories
+
+**Allowed role(s):** PUBLIC/UNSPECIFIED
+
+**Swagger tag:** Provider Management
+
+**Summary:** List active provider business categories
+
+**Description:** Public signup dropdown. Returns active, non-deleted provider business categories only.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `isActive` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /provider-business-categories
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** Create provider business category
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.
+
+**Parameters:** None
+
+**Request DTO:** `CreateProviderBusinessCategoryDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "example",
+  "description": "example",
+  "iconKey": "example",
+  "sortOrder": 100,
+  "isActive": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /providers
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** List providers
+
+**Description:** SUPER_ADMIN/ADMIN with providers.read permission.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `approvalStatus` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "provider_id",
+      "businessName": "Premium Gifts Co",
+      "email": "provider@example.com",
+      "phone": "+923001234567",
+      "approvalStatus": "APPROVED",
+      "isActive": true,
+      "businessCategory": {
+        "id": "category_id",
+        "name": "Gift Supplier"
+      },
+      "createdAt": "2026-05-09T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Providers fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /providers
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** None
+
+**Request DTO:** `CreateProviderDto`
+
+**Request payload example:**
+
+```json
+{
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "email": "contact@giftsandblooms.com",
+  "phone": "+15551234567",
+  "serviceArea": "New York, USA",
+  "headquarters": "New York, USA",
+  "documentUrls": [
+    "example"
+  ],
+  "generateTemporaryPassword": true,
+  "mustChangePassword": true,
+  "approvalStatus": "PENDING",
+  "isActive": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /providers/export
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `search` (query, optional), `status` (query, optional), `approvalStatus` (query, optional), `format` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /providers/lookup
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `search` (query, optional), `approvalStatus` (query, optional), `isActive` (query, optional), `limit` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /providers/stats
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /provider-business-categories/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** Fetch provider business category details
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /provider-business-categories/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** Update provider business category
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderBusinessCategoryDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "example",
+  "description": "example",
+  "iconKey": "example",
+  "sortOrder": 100,
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /provider-business-categories/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** Soft-delete provider business category
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /providers/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /providers/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderDto`
+
+**Request payload example:**
+
+```json
+{
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "phone": "+15551234567",
+  "serviceArea": "New York, USA",
+  "headquarters": "New York, USA",
+  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png",
+  "documentUrls": [
+    "example"
+  ]
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /providers/{id}/activity
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `type` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /providers/{id}/approve
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `ApproveProviderDto`
+
+**Request payload example:**
+
+```json
+{
+  "comment": "Documents verified successfully.",
+  "notifyProvider": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /providers/{id}/items
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /providers/{id}/message
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `MessageProviderDto`
+
+**Request payload example:**
+
+```json
+{
+  "subject": "Account update",
+  "message": "Please update your business documents.",
+  "channel": "EMAIL"
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /providers/{id}/reject
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `RejectProviderDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "INCOMPLETE_DOCUMENTS",
+  "comment": "Business license document is missing.",
+  "notifyProvider": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /providers/{id}/status
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /providers/{id}/suspend
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /providers/{id}/unsuspend
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Provider Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Provider violated platform policy.",
+  "notifyProvider": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Provider Inventory
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/provider/inventory` | PROVIDER | List provider inventory items |
+| `POST` | `/provider/inventory` | PROVIDER | Create provider inventory item with optional nested variants |
+| `GET` | `/provider/inventory/lookup` | PROVIDER | Lookup active approved provider inventory items |
+| `GET` | `/provider/inventory/stats` | PROVIDER | Fetch provider inventory stats |
+| `GET` | `/provider/inventory/{id}` | PROVIDER | Fetch own provider inventory item details |
+| `PATCH` | `/provider/inventory/{id}` | PROVIDER | Update own provider inventory item and upsert variants |
+| `DELETE` | `/provider/inventory/{id}` | PROVIDER | Soft-delete own inventory item |
+| `PATCH` | `/provider/inventory/{id}/availability` | PROVIDER | Update own inventory availability |
+
+### GET /provider/inventory
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** List provider inventory items
+
+**Description:** PROVIDER only. Returns only inventory owned by the authenticated provider.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `categoryId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "gift_id",
+      "name": "Luxury Perfume",
+      "price": 99.99,
+      "currency": "PKR",
+      "stockQuantity": 50,
+      "status": "ACTIVE",
+      "moderationStatus": "APPROVED",
+      "isAvailable": true,
+      "category": {
+        "id": "category_id",
+        "name": "Perfumes"
+      },
+      "variants": [
+        {
+          "id": "variant_id",
+          "name": "50ml",
+          "price": 129.99,
+          "stockQuantity": 20,
+          "isDefault": true
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Provider inventory fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /provider/inventory
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Create provider inventory item with optional nested variants
+
+**Description:** PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.
+
+**Parameters:** None
+
+**Request DTO:** `CreateProviderInventoryItemDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "Luxury Perfume",
+  "description": "Long-lasting premium fragrance.",
+  "shortDescription": "Premium fragrance gift.",
+  "categoryId": "gift_category_id",
+  "price": 99.99,
+  "currency": "PKR",
+  "stockQuantity": 50,
+  "sku": "PERFUME-001",
+  "imageUrls": [
+    "https://cdn.yourdomain.com/gift-images/perfume.png"
+  ],
+  "isAvailable": true,
+  "variants": [
+    {
+      "name": "30ml",
+      "price": 89.99,
+      "originalPrice": 119.99,
+      "stockQuantity": 10,
+      "sku": "PERFUME-30ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "gift_id",
+    "name": "Luxury Perfume",
+    "price": 99.99,
+    "currency": "PKR",
+    "stockQuantity": 50,
+    "status": "ACTIVE",
+    "moderationStatus": "PENDING",
+    "variants": [
+      {
+        "id": "variant_id",
+        "name": "50ml",
+        "price": 129.99,
+        "originalPrice": 159.99,
+        "stockQuantity": 20,
+        "sku": "PERFUME-50ML",
+        "isDefault": true,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Inventory item created successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /provider/inventory/lookup
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Lookup active approved provider inventory items
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /provider/inventory/stats
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Fetch provider inventory stats
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /provider/inventory/{id}
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Fetch own provider inventory item details
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "gift_id",
+    "name": "Luxury Perfume",
+    "description": "Long-lasting premium fragrance.",
+    "price": 99.99,
+    "currency": "PKR",
+    "stockQuantity": 50,
+    "status": "ACTIVE",
+    "moderationStatus": "APPROVED",
+    "imageUrls": [
+      "https://cdn.yourdomain.com/gift-images/perfume.png"
+    ],
+    "variants": [
+      {
+        "id": "variant_id",
+        "name": "50ml",
+        "price": 129.99,
+        "originalPrice": 159.99,
+        "stockQuantity": 20,
+        "sku": "PERFUME-50ML",
+        "isDefault": true,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Inventory item fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /provider/inventory/{id}
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Update own provider inventory item and upsert variants
+
+**Description:** Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderInventoryItemDto`
+
+**Request payload example:**
+
+```json
+{
+  "replaceVariants": false,
+  "variants": [
+    {
+      "id": "variant_id",
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "name": "150ml",
+      "price": 249.99,
+      "originalPrice": 299.99,
+      "stockQuantity": 5,
+      "sku": "PERFUME-150ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 4,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /provider/inventory/{id}
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Soft-delete own inventory item
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /provider/inventory/{id}/availability
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Inventory
+
+**Summary:** Update own inventory availability
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateProviderAvailabilityDto`
+
+**Request payload example:**
+
+```json
+{
+  "isAvailable": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Provider Promotional Offers
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/provider/offers` | PROVIDER |  |
+| `POST` | `/provider/offers` | PROVIDER |  |
+| `GET` | `/provider/offers/{id}` | PROVIDER |  |
+| `PATCH` | `/provider/offers/{id}` | PROVIDER |  |
+| `DELETE` | `/provider/offers/{id}` | PROVIDER |  |
+| `PATCH` | `/provider/offers/{id}/status` | PROVIDER |  |
+
+### GET /provider/offers
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Promotional Offers
+
+**Summary:** —
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `itemId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /provider/offers
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Promotional Offers
+
+**Summary:** —
+
+**Parameters:** None
+
+**Request DTO:** `CreateProviderOfferDto`
+
+**Request payload example:**
+
+```json
+{
+  "itemId": "example",
+  "title": "example",
+  "description": "example",
+  "discountType": "PERCENTAGE",
+  "discountValue": 100,
+  "startDate": "example",
+  "endDate": "example",
+  "eligibilityRules": "example",
+  "isActive": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /provider/offers/{id}
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Promotional Offers
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /provider/offers/{id}
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Promotional Offers
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdatePromotionalOfferDto`
+
+**Request payload example:**
+
+```json
+{
+  "title": "example",
+  "description": "example",
+  "discountType": "PERCENTAGE",
+  "discountValue": 100,
+  "startDate": "example",
+  "endDate": "example",
+  "eligibilityRules": "example",
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /provider/offers/{id}
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Promotional Offers
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /provider/offers/{id}/status
+
+**Allowed role(s):** PROVIDER
+
+**Swagger tag:** Provider Promotional Offers
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateOfferStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "isActive": true,
+  "reason": "example"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Promotional Offers Management
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/promotional-offers` | SUPER_ADMIN, ADMIN |  |
+| `POST` | `/promotional-offers` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/promotional-offers/export` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/promotional-offers/stats` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/promotional-offers/{id}` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/promotional-offers/{id}` | SUPER_ADMIN, ADMIN |  |
+| `DELETE` | `/promotional-offers/{id}` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/promotional-offers/{id}/approve` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/promotional-offers/{id}/reject` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/promotional-offers/{id}/status` | SUPER_ADMIN, ADMIN |  |
+
+### GET /promotional-offers
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `itemId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `providerId` (query, optional), `approvalStatus` (query, optional), `discountType` (query, optional), `startFrom` (query, optional), `startTo` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /promotional-offers
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** None
+
+**Request DTO:** `CreateAdminOfferDto`
+
+**Request payload example:**
+
+```json
+{
+  "itemId": "example",
+  "title": "example",
+  "description": "example",
+  "discountType": "PERCENTAGE",
+  "discountValue": 100,
+  "startDate": "example",
+  "endDate": "example",
+  "eligibilityRules": "example",
+  "isActive": true,
+  "providerId": "example",
+  "approvalStatus": "PENDING"
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /promotional-offers/export
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `itemId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `providerId` (query, optional), `approvalStatus` (query, optional), `discountType` (query, optional), `startFrom` (query, optional), `startTo` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /promotional-offers/stats
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /promotional-offers/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /promotional-offers/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdatePromotionalOfferDto`
+
+**Request payload example:**
+
+```json
+{
+  "title": "example",
+  "description": "example",
+  "discountType": "PERCENTAGE",
+  "discountValue": 100,
+  "startDate": "example",
+  "endDate": "example",
+  "eligibilityRules": "example",
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /promotional-offers/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /promotional-offers/{id}/approve
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `ApproveOfferDto`
+
+**Request payload example:**
+
+```json
+{
+  "comment": "example",
+  "notifyProvider": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /promotional-offers/{id}/reject
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `RejectOfferDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "INVALID_DISCOUNT",
+  "comment": "example",
+  "notifyProvider": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /promotional-offers/{id}/status
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Promotional Offers Management
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateOfferStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "isActive": true,
+  "reason": "example"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Gift Categories
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/gift-categories` | SUPER_ADMIN, ADMIN | List gift categories |
+| `POST` | `/gift-categories` | SUPER_ADMIN, ADMIN | Create gift category |
+| `GET` | `/gift-categories/lookup` | PUBLIC/UNSPECIFIED | Lookup active gift categories |
+| `GET` | `/gift-categories/stats` | SUPER_ADMIN, ADMIN | Fetch gift category stats |
+| `GET` | `/gift-categories/{id}` | SUPER_ADMIN, ADMIN | Fetch gift category details |
+| `PATCH` | `/gift-categories/{id}` | SUPER_ADMIN, ADMIN | Update gift category |
+| `DELETE` | `/gift-categories/{id}` | SUPER_ADMIN, ADMIN | Soft-delete gift category |
+
+### GET /gift-categories
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Categories
+
+**Summary:** List gift categories
+
+**Description:** RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `isActive` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Gift categories fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /gift-categories
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Categories
+
+**Summary:** Create gift category
+
+**Description:** RBAC permission: giftCategories.create. Slug is auto-generated and unique. backgroundColor defaults to #F3E8FF; color remains a backward-compatible alias.
+
+**Parameters:** None
+
+**Request DTO:** `CreateGiftCategoryDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "Perfumes",
+  "description": "Premium fragrance gifts.",
+  "iconKey": "perfume",
+  "backgroundColor": "#E9D5FF",
+  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
+  "sortOrder": 1,
+  "isActive": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Gift category created successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /gift-categories/lookup
+
+**Allowed role(s):** PUBLIC/UNSPECIFIED
+
+**Swagger tag:** Gift Categories
+
+**Summary:** Lookup active gift categories
+
+**Description:** Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Gift category lookup fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /gift-categories/stats
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Categories
+
+**Summary:** Fetch gift category stats
+
+**Description:** RBAC permission: giftCategories.read. Returns admin category inventory counters.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /gift-categories/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Categories
+
+**Summary:** Fetch gift category details
+
+**Description:** RBAC permission: giftCategories.read. Includes backgroundColor and imageUrl for customer app design support.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Gift category details fetched successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /gift-categories/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Categories
+
+**Summary:** Update gift category
+
+**Description:** RBAC permission: giftCategories.update. Slug is regenerated when name changes. Soft-deleted categories are not updated.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateGiftCategoryDto`
+
+**Request payload example:**
+
+```json
+{
+  "backgroundColor": "#F3E8FF",
+  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
+  "isActive": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /gift-categories/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Categories
+
+**Summary:** Soft-delete gift category
+
+**Description:** RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Gift Management
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/gifts` | SUPER_ADMIN, ADMIN | List admin gifts |
+| `POST` | `/gifts` | SUPER_ADMIN, ADMIN | Create admin gift with optional nested variants |
+| `GET` | `/gifts/export` | SUPER_ADMIN, ADMIN | Export gift inventory |
+| `GET` | `/gifts/stats` | SUPER_ADMIN, ADMIN | Fetch gift inventory stats |
+| `GET` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Fetch admin gift details with variants |
+| `PATCH` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Update admin gift and upsert nested variants |
+| `DELETE` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Soft-delete gift |
+| `PATCH` | `/gifts/{id}/status` | SUPER_ADMIN, ADMIN | Update gift status |
+
+### GET /gifts
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** List admin gifts
+
+**Description:** SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `categoryId` (query, optional), `providerId` (query, optional), `status` (query, optional), `moderationStatus` (query, optional), `isPublished` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /gifts
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Create admin gift with optional nested variants
+
+**Description:** SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.
+
+**Parameters:** None
+
+**Request DTO:** `CreateGiftDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "Luxury Perfume",
+  "description": "Long-lasting premium fragrance.",
+  "shortDescription": "Premium fragrance gift.",
+  "categoryId": "gift_category_id",
+  "providerId": "provider_id",
+  "price": 99.99,
+  "currency": "PKR",
+  "stockQuantity": 50,
+  "sku": "PERFUME-001",
+  "imageUrls": [
+    "https://cdn.yourdomain.com/gift-images/perfume.png"
+  ],
+  "isPublished": true,
+  "isFeatured": false,
+  "tags": [
+    "perfume",
+    "luxury"
+  ],
+  "moderationStatus": "APPROVED",
+  "variants": [
+    {
+      "name": "30ml",
+      "price": 89.99,
+      "originalPrice": 119.99,
+      "stockQuantity": 10,
+      "sku": "PERFUME-30ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "gift_id",
+    "name": "Luxury Perfume",
+    "price": 99.99,
+    "currency": "PKR",
+    "stockQuantity": 50,
+    "sku": "PERFUME-001",
+    "variants": [
+      {
+        "id": "variant_id",
+        "name": "50ml",
+        "price": 129.99,
+        "originalPrice": 159.99,
+        "stockQuantity": 20,
+        "sku": "PERFUME-50ML",
+        "isPopular": true,
+        "isDefault": true,
+        "sortOrder": 2,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Gift created successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /gifts/export
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Export gift inventory
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `categoryId` (query, optional), `providerId` (query, optional), `status` (query, optional), `moderationStatus` (query, optional), `isPublished` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `format` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /gifts/stats
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Fetch gift inventory stats
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /gifts/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Fetch admin gift details with variants
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /gifts/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Update admin gift and upsert nested variants
+
+**Description:** If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateGiftDto`
+
+**Request payload example:**
+
+```json
+{
+  "name": "Luxury Perfume Updated",
+  "replaceVariants": false,
+  "variants": [
+    {
+      "id": "variant_id",
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "name": "150ml",
+      "price": 249.99,
+      "originalPrice": 299.99,
+      "stockQuantity": 5,
+      "sku": "PERFUME-150ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 4,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### DELETE /gifts/{id}
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Soft-delete gift
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /gifts/{id}/status
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Management
+
+**Summary:** Update gift status
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateGiftStatusDto`
+
+**Request payload example:**
+
+```json
+{
+  "status": "ACTIVE",
+  "reason": "example"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Gift Moderation
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/gift-moderation` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/gift-moderation/{id}/approve` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/gift-moderation/{id}/flag` | SUPER_ADMIN, ADMIN |  |
+| `PATCH` | `/gift-moderation/{id}/reject` | SUPER_ADMIN, ADMIN |  |
+
+### GET /gift-moderation
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Moderation
+
+**Summary:** —
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `status` (query, optional), `search` (query, optional), `providerId` (query, optional), `view` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /gift-moderation/{id}/approve
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Moderation
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `ApproveGiftDto`
+
+**Request payload example:**
+
+```json
+{
+  "comment": "example",
+  "publishNow": true,
+  "notifyProvider": true
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /gift-moderation/{id}/flag
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Moderation
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `FlagGiftDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "NEEDS_MANUAL_REVIEW",
+  "comment": "example"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### PATCH /gift-moderation/{id}/reject
+
+**Allowed role(s):** SUPER_ADMIN, ADMIN
+
+**Swagger tag:** Gift Moderation
+
+**Summary:** —
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `RejectGiftDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "INCOMPLETE_INFORMATION",
+  "comment": "example",
+  "notifyProvider": true
 }
 ```
 
@@ -1705,6 +4317,645 @@ Authorization: Bearer <accessToken>
 
 **Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
 
+## Customer Recurring Payments
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/customer/payment-methods/saved` | REGISTERED_USER | List saved payment methods |
+| `POST` | `/customer/payment-methods/setup-intent` | REGISTERED_USER | Create Stripe setup intent for saving card |
+| `GET` | `/customer/recurring-payments` | REGISTERED_USER | List own recurring payments |
+| `POST` | `/customer/recurring-payments` | REGISTERED_USER | Create recurring payment |
+| `GET` | `/customer/recurring-payments/summary` | REGISTERED_USER | Fetch recurring payment summary counts |
+| `DELETE` | `/customer/payment-methods/{id}` | REGISTERED_USER | Delete own saved payment method |
+| `GET` | `/customer/recurring-payments/{id}` | REGISTERED_USER | Fetch own recurring payment details |
+| `PATCH` | `/customer/recurring-payments/{id}` | REGISTERED_USER | Update own recurring payment |
+| `POST` | `/customer/recurring-payments/{id}/cancel` | REGISTERED_USER | Cancel own recurring payment |
+| `GET` | `/customer/recurring-payments/{id}/history` | REGISTERED_USER | List own recurring payment billing history |
+| `POST` | `/customer/recurring-payments/{id}/pause` | REGISTERED_USER | Pause own active recurring payment |
+| `POST` | `/customer/recurring-payments/{id}/resume` | REGISTERED_USER | Resume own paused recurring payment |
+
+### GET /customer/payment-methods/saved
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** List saved payment methods
+
+**Description:** REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "pm_xxx",
+      "type": "CARD",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 12,
+      "expiryYear": 2026,
+      "isDefault": true
+    }
+  ],
+  "message": "Saved payment methods fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /customer/payment-methods/setup-intent
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Create Stripe setup intent for saving card
+
+**Description:** REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.
+
+**Parameters:** None
+
+**Request payload:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "setupIntentId": "seti_xxx",
+    "clientSecret": "seti_xxx_secret_xxx",
+    "publishableKey": "pk_test_xxx"
+  },
+  "message": "Setup intent created successfully."
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** List own recurring payments
+
+**Description:** REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `frequency` (query, optional), `recipientContactId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "recurring_payment_id",
+      "title": "Sarah's Birthday",
+      "recipient": {
+        "id": "contact_id",
+        "name": "Sarah Johnson",
+        "email": "sarah.j@example.com",
+        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+      },
+      "amount": 50,
+      "currency": "PKR",
+      "frequency": "MONTHLY",
+      "nextBillingAt": "2026-03-15T09:00:00.000Z",
+      "status": "ACTIVE",
+      "message": "Monthly flowers",
+      "createdAt": "2026-05-09T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Recurring payments fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /customer/recurring-payments
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Create recurring payment
+
+**Description:** REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.
+
+**Parameters:** None
+
+**Request DTO:** `CreateRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "frequency": "WEEKLY",
+  "schedule": {
+    "dayOfWeek": "MONDAY",
+    "dayOfMonth": null,
+    "monthOfYear": null,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "recipientContactId": "contact_id",
+  "message": "Hope you love this special surprise!",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/photo.png"
+  ],
+  "paymentMethod": "STRIPE_CARD",
+  "stripePaymentMethodId": "pm_xxx",
+  "startDate": "2026-05-10T00:00:00.000Z",
+  "endDate": null,
+  "autoSend": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "recurring_payment_id",
+    "amount": 100,
+    "currency": "PKR",
+    "frequency": "WEEKLY",
+    "nextBillingAt": "2026-05-12T09:00:00.000Z",
+    "status": "ACTIVE"
+  },
+  "message": "Recurring payment created successfully."
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments/summary
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Fetch recurring payment summary counts
+
+**Description:** Must stay before /customer/recurring-payments/:id route.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total": 5,
+    "active": 3,
+    "paused": 1,
+    "cancelled": 1,
+    "failed": 0
+  },
+  "message": "Recurring payment summary fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### DELETE /customer/payment-methods/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Delete own saved payment method
+
+**Description:** Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Fetch own recurring payment details
+
+**Description:** REGISTERED_USER only. Customer cannot access another user’s recurring payment.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "recurring_payment_id",
+    "title": "Monthly Flowers",
+    "recipient": {
+      "id": "contact_id",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@example.com",
+      "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+    },
+    "amount": 50,
+    "currency": "PKR",
+    "frequency": "MONTHLY",
+    "nextBillingAt": "2026-03-15T09:00:00.000Z",
+    "status": "ACTIVE",
+    "message": "Fresh seasonal bouquet delivered to her doorstep every month",
+    "messageMediaUrls": [],
+    "paymentMethod": {
+      "type": "STRIPE_CARD",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 12,
+      "expiryYear": 2026
+    },
+    "schedule": {
+      "frequency": "MONTHLY",
+      "dayOfMonth": 15,
+      "time": "09:00",
+      "timezone": "Asia/Karachi"
+    },
+    "createdAt": "2026-05-09T10:00:00.000Z"
+  },
+  "message": "Recurring payment fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /customer/recurring-payments/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Update own recurring payment
+
+**Description:** Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "amount": 50,
+  "frequency": "MONTHLY",
+  "schedule": {
+    "dayOfMonth": 15,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "message": "Fresh flowers every month.",
+  "messageMediaUrls": [],
+  "stripePaymentMethodId": "pm_xxx"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /customer/recurring-payments/{id}/cancel
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Cancel own recurring payment
+
+**Description:** IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `CancelRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "cancelMode": "IMMEDIATELY",
+  "reason": "No longer needed."
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "recurring_payment_id",
+    "status": "CANCELLED",
+    "cancelMode": "IMMEDIATELY"
+  },
+  "message": "Recurring payment cancelled successfully."
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments/{id}/history
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** List own recurring payment billing history
+
+**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `status` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "history_id",
+      "paymentId": "payment_id",
+      "amount": 50,
+      "currency": "PKR",
+      "status": "SUCCESS",
+      "billingDate": "2026-02-15T09:00:00.000Z",
+      "transactionId": "GFT-8829-XPL",
+      "failureReason": null
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Recurring payment history fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /customer/recurring-payments/{id}/pause
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Pause own active recurring payment
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `PauseRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "User paused recurring payment."
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /customer/recurring-payments/{id}/resume
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Resume own paused recurring payment
+
+**Parameters:** `id` (path, required)
+
+**Request payload:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Customer Transactions
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/customer/transactions` | REGISTERED_USER | List own customer transactions |
+| `GET` | `/customer/transactions/export` | REGISTERED_USER | Export own transactions |
+| `GET` | `/customer/transactions/summary` | REGISTERED_USER | Fetch own transaction summary |
+| `GET` | `/customer/transactions/{id}` | REGISTERED_USER | Fetch own transaction details |
+| `GET` | `/customer/transactions/{id}/receipt` | REGISTERED_USER | Download own transaction receipt |
+
+### GET /customer/transactions
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** List own customer transactions
+
+**Description:** REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `fromDate` (query, optional), `toDate` (query, optional), `type` (query, optional), `status` (query, optional), `paymentMethod` (query, optional), `minAmount` (query, optional), `maxAmount` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "payment_id",
+      "transactionId": "TXN-2026-001234",
+      "title": "Monthly Flowers",
+      "description": "Recurring payment",
+      "recipient": {
+        "id": "contact_id",
+        "name": "Sarah Johnson",
+        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+      },
+      "amount": 50,
+      "currency": "PKR",
+      "type": "RECURRING_PAYMENT",
+      "status": "SUCCESS",
+      "paymentMethod": "STRIPE_CARD",
+      "createdAt": "2026-03-01T14:34:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Transactions fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/export
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Export own transactions
+
+**Description:** CSV is supported and returned as a file. Export is scoped to the logged-in customer only.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `fromDate` (query, optional), `toDate` (query, optional), `type` (query, optional), `status` (query, optional), `paymentMethod` (query, optional), `minAmount` (query, optional), `maxAmount` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `format` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Transaction export file."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/summary
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Fetch own transaction summary
+
+**Description:** Defaults to current month when no date range is provided. Uses backend-calculated payment records only.
+
+**Parameters:** `fromDate` (query, optional), `toDate` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "totalSpentThisMonth": 255,
+    "currency": "PKR",
+    "successfulCount": 9,
+    "failedCount": 1,
+    "pendingCount": 0,
+    "refundedCount": 0
+  },
+  "message": "Transaction summary fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Fetch own transaction details
+
+**Description:** Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payment_id",
+    "transactionId": "TXN-2026-001234-ABC-XYZ",
+    "status": "SUCCESS",
+    "amount": 50,
+    "currency": "PKR",
+    "createdAt": "2026-03-01T14:34:00.000Z",
+    "type": "RECURRING_PAYMENT",
+    "giftInformation": {
+      "giftName": "Monthly Flowers Subscription",
+      "deliveryType": "Money",
+      "recipient": {
+        "id": "contact_id",
+        "name": "Sarah Johnson",
+        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+      },
+      "orderReference": null,
+      "recurringPaymentId": "recurring_payment_id"
+    },
+    "paymentInformation": {
+      "paymentMethod": "Stripe card",
+      "gatewayReference": "pi_3MmlLrLkdIwHu7ix0fhBHWqt",
+      "billingAddress": null
+    }
+  },
+  "message": "Transaction details fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/{id}/receipt
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Download own transaction receipt
+
+**Description:** Receipt is generated only for the transaction owner and never exposes Stripe secret data.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Receipt PDF file for the authenticated transaction owner. Includes app name, transaction ID, customer, recipient, references, totals, currency, status, and support email."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
 ## Payments
 
 | Method | Path | Roles | Summary |
@@ -1816,8 +5067,23 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": [
+    {
+      "key": "STRIPE_CARD",
+      "label": "Card",
+      "provider": "STRIPE",
+      "isOnline": true,
+      "isAvailable": true
+    },
+    {
+      "key": "COD",
+      "label": "Cash on Delivery",
+      "provider": "MANUAL",
+      "isOnline": false,
+      "isAvailable": true
+    }
+  ],
+  "message": "Payment methods fetched successfully."
 }
 ```
 
@@ -2023,7 +5289,25 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
+  "data": [
+    {
+      "id": "notification_id",
+      "title": "Payment successful",
+      "message": "Your payment was completed successfully.",
+      "type": "PAYMENT_SUCCEEDED",
+      "isRead": false,
+      "metadata": {
+        "paymentId": "payment_id"
+      },
+      "createdAt": "2026-05-09T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
   "message": "Notifications fetched successfully"
 }
 ```
@@ -2153,8 +5437,16 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": {
+    "total": 12,
+    "unread": 3,
+    "byType": {
+      "PAYMENT_SUCCEEDED": 2,
+      "RECURRING_PAYMENT_CHARGE_FAILED": 1,
+      "BROADCAST": 9
+    }
+  },
+  "message": "Notification summary fetched successfully"
 }
 ```
 
@@ -2527,2346 +5819,6 @@ Authorization: Bearer <accessToken>
     "excludeUnsubscribed": true,
     "excludeSuspended": true
   }
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Gift Categories
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/gift-categories` | SUPER_ADMIN, ADMIN | List gift categories |
-| `POST` | `/gift-categories` | SUPER_ADMIN, ADMIN | Create gift category |
-| `GET` | `/gift-categories/lookup` | PUBLIC/UNSPECIFIED | Lookup active gift categories |
-| `GET` | `/gift-categories/stats` | SUPER_ADMIN, ADMIN | Fetch gift category stats |
-| `GET` | `/gift-categories/{id}` | SUPER_ADMIN, ADMIN | Fetch gift category details |
-| `PATCH` | `/gift-categories/{id}` | SUPER_ADMIN, ADMIN | Update gift category |
-| `DELETE` | `/gift-categories/{id}` | SUPER_ADMIN, ADMIN | Soft-delete gift category |
-
-### GET /gift-categories
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Categories
-
-**Summary:** List gift categories
-
-**Description:** RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `isActive` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Gift categories fetched successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /gift-categories
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Categories
-
-**Summary:** Create gift category
-
-**Description:** RBAC permission: giftCategories.create. Slug is auto-generated and unique. backgroundColor defaults to #F3E8FF; color remains a backward-compatible alias.
-
-**Parameters:** None
-
-**Request DTO:** `CreateGiftCategoryDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "Perfumes",
-  "description": "Premium fragrance gifts.",
-  "iconKey": "perfume",
-  "backgroundColor": "#E9D5FF",
-  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
-  "sortOrder": 1,
-  "isActive": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Gift category created successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /gift-categories/lookup
-
-**Allowed role(s):** PUBLIC/UNSPECIFIED
-
-**Swagger tag:** Gift Categories
-
-**Summary:** Lookup active gift categories
-
-**Description:** Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Gift category lookup fetched successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /gift-categories/stats
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Categories
-
-**Summary:** Fetch gift category stats
-
-**Description:** RBAC permission: giftCategories.read. Returns admin category inventory counters.
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /gift-categories/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Categories
-
-**Summary:** Fetch gift category details
-
-**Description:** RBAC permission: giftCategories.read. Includes backgroundColor and imageUrl for customer app design support.
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Gift category details fetched successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /gift-categories/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Categories
-
-**Summary:** Update gift category
-
-**Description:** RBAC permission: giftCategories.update. Slug is regenerated when name changes. Soft-deleted categories are not updated.
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateGiftCategoryDto`
-
-**Request payload example:**
-
-```json
-{
-  "backgroundColor": "#F3E8FF",
-  "imageUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png",
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /gift-categories/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Categories
-
-**Summary:** Soft-delete gift category
-
-**Description:** RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Gift Management
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/gifts` | SUPER_ADMIN, ADMIN | List admin gifts |
-| `POST` | `/gifts` | SUPER_ADMIN, ADMIN | Create admin gift with optional nested variants |
-| `GET` | `/gifts/export` | SUPER_ADMIN, ADMIN | Export gift inventory |
-| `GET` | `/gifts/stats` | SUPER_ADMIN, ADMIN | Fetch gift inventory stats |
-| `GET` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Fetch admin gift details with variants |
-| `PATCH` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Update admin gift and upsert nested variants |
-| `DELETE` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Soft-delete gift |
-| `PATCH` | `/gifts/{id}/status` | SUPER_ADMIN, ADMIN | Update gift status |
-
-### GET /gifts
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** List admin gifts
-
-**Description:** SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `categoryId` (query, optional), `providerId` (query, optional), `status` (query, optional), `moderationStatus` (query, optional), `isPublished` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /gifts
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Create admin gift with optional nested variants
-
-**Description:** SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.
-
-**Parameters:** None
-
-**Request DTO:** `CreateGiftDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "Luxury Perfume",
-  "description": "Long-lasting premium fragrance.",
-  "shortDescription": "Premium fragrance gift.",
-  "categoryId": "gift_category_id",
-  "providerId": "provider_id",
-  "price": 99.99,
-  "currency": "PKR",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
-  "imageUrls": [
-    "https://cdn.yourdomain.com/gift-images/perfume.png"
-  ],
-  "isPublished": true,
-  "isFeatured": false,
-  "tags": [
-    "perfume",
-    "luxury"
-  ],
-  "moderationStatus": "APPROVED",
-  "variants": [
-    {
-      "name": "30ml",
-      "price": 89.99,
-      "originalPrice": 119.99,
-      "stockQuantity": 10,
-      "sku": "PERFUME-30ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 1,
-      "isActive": true
-    },
-    {
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "gift_id",
-    "name": "Luxury Perfume",
-    "price": 99.99,
-    "currency": "PKR",
-    "stockQuantity": 50,
-    "sku": "PERFUME-001",
-    "variants": [
-      {
-        "id": "variant_id",
-        "name": "50ml",
-        "price": 129.99,
-        "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
-        "isPopular": true,
-        "isDefault": true,
-        "sortOrder": 2,
-        "isActive": true
-      }
-    ]
-  },
-  "message": "Gift created successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /gifts/export
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Export gift inventory
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `categoryId` (query, optional), `providerId` (query, optional), `status` (query, optional), `moderationStatus` (query, optional), `isPublished` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `format` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /gifts/stats
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Fetch gift inventory stats
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /gifts/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Fetch admin gift details with variants
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /gifts/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Update admin gift and upsert nested variants
-
-**Description:** If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateGiftDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "Luxury Perfume Updated",
-  "replaceVariants": false,
-  "variants": [
-    {
-      "id": "variant_id",
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    },
-    {
-      "name": "150ml",
-      "price": 249.99,
-      "originalPrice": 299.99,
-      "stockQuantity": 5,
-      "sku": "PERFUME-150ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 4,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /gifts/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Soft-delete gift
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /gifts/{id}/status
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Management
-
-**Summary:** Update gift status
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateGiftStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "example"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Provider Inventory
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/provider/inventory` | PROVIDER | List provider inventory items |
-| `POST` | `/provider/inventory` | PROVIDER | Create provider inventory item with optional nested variants |
-| `GET` | `/provider/inventory/lookup` | PROVIDER | Lookup active approved provider inventory items |
-| `GET` | `/provider/inventory/stats` | PROVIDER | Fetch provider inventory stats |
-| `GET` | `/provider/inventory/{id}` | PROVIDER | Fetch own provider inventory item details |
-| `PATCH` | `/provider/inventory/{id}` | PROVIDER | Update own provider inventory item and upsert variants |
-| `DELETE` | `/provider/inventory/{id}` | PROVIDER | Soft-delete own inventory item |
-| `PATCH` | `/provider/inventory/{id}/availability` | PROVIDER | Update own inventory availability |
-
-### GET /provider/inventory
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** List provider inventory items
-
-**Description:** PROVIDER only. Returns only inventory owned by the authenticated provider.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `categoryId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /provider/inventory
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Create provider inventory item with optional nested variants
-
-**Description:** PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.
-
-**Parameters:** None
-
-**Request DTO:** `CreateProviderInventoryItemDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "Luxury Perfume",
-  "description": "Long-lasting premium fragrance.",
-  "shortDescription": "Premium fragrance gift.",
-  "categoryId": "gift_category_id",
-  "price": 99.99,
-  "currency": "PKR",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
-  "imageUrls": [
-    "https://cdn.yourdomain.com/gift-images/perfume.png"
-  ],
-  "isAvailable": true,
-  "variants": [
-    {
-      "name": "30ml",
-      "price": 89.99,
-      "originalPrice": 119.99,
-      "stockQuantity": 10,
-      "sku": "PERFUME-30ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 1,
-      "isActive": true
-    },
-    {
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "gift_id",
-    "name": "Luxury Perfume",
-    "price": 99.99,
-    "currency": "PKR",
-    "stockQuantity": 50,
-    "status": "ACTIVE",
-    "moderationStatus": "PENDING",
-    "variants": [
-      {
-        "id": "variant_id",
-        "name": "50ml",
-        "price": 129.99,
-        "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
-        "isDefault": true,
-        "isActive": true
-      }
-    ]
-  },
-  "message": "Inventory item created successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /provider/inventory/lookup
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Lookup active approved provider inventory items
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /provider/inventory/stats
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Fetch provider inventory stats
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /provider/inventory/{id}
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Fetch own provider inventory item details
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /provider/inventory/{id}
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Update own provider inventory item and upsert variants
-
-**Description:** Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderInventoryItemDto`
-
-**Request payload example:**
-
-```json
-{
-  "replaceVariants": false,
-  "variants": [
-    {
-      "id": "variant_id",
-      "name": "50ml",
-      "price": 129.99,
-      "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
-      "isPopular": true,
-      "isDefault": true,
-      "sortOrder": 2,
-      "isActive": true
-    },
-    {
-      "name": "150ml",
-      "price": 249.99,
-      "originalPrice": 299.99,
-      "stockQuantity": 5,
-      "sku": "PERFUME-150ML",
-      "isPopular": false,
-      "isDefault": false,
-      "sortOrder": 4,
-      "isActive": true
-    }
-  ]
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /provider/inventory/{id}
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Soft-delete own inventory item
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /provider/inventory/{id}/availability
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Inventory
-
-**Summary:** Update own inventory availability
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderAvailabilityDto`
-
-**Request payload example:**
-
-```json
-{
-  "isAvailable": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Promotional Offers Management
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/promotional-offers` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/promotional-offers` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/promotional-offers/export` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/promotional-offers/stats` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/promotional-offers/{id}` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/promotional-offers/{id}` | SUPER_ADMIN, ADMIN |  |
-| `DELETE` | `/promotional-offers/{id}` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/promotional-offers/{id}/approve` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/promotional-offers/{id}/reject` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/promotional-offers/{id}/status` | SUPER_ADMIN, ADMIN |  |
-
-### GET /promotional-offers
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `itemId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `providerId` (query, optional), `approvalStatus` (query, optional), `discountType` (query, optional), `startFrom` (query, optional), `startTo` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /promotional-offers
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** None
-
-**Request DTO:** `CreateAdminOfferDto`
-
-**Request payload example:**
-
-```json
-{
-  "itemId": "example",
-  "title": "example",
-  "description": "example",
-  "discountType": "PERCENTAGE",
-  "discountValue": 100,
-  "startDate": "example",
-  "endDate": "example",
-  "eligibilityRules": "example",
-  "isActive": true,
-  "providerId": "example",
-  "approvalStatus": "PENDING"
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /promotional-offers/export
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `itemId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `providerId` (query, optional), `approvalStatus` (query, optional), `discountType` (query, optional), `startFrom` (query, optional), `startTo` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /promotional-offers/stats
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /promotional-offers/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /promotional-offers/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdatePromotionalOfferDto`
-
-**Request payload example:**
-
-```json
-{
-  "title": "example",
-  "description": "example",
-  "discountType": "PERCENTAGE",
-  "discountValue": 100,
-  "startDate": "example",
-  "endDate": "example",
-  "eligibilityRules": "example",
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /promotional-offers/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /promotional-offers/{id}/approve
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `ApproveOfferDto`
-
-**Request payload example:**
-
-```json
-{
-  "comment": "example",
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /promotional-offers/{id}/reject
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `RejectOfferDto`
-
-**Request payload example:**
-
-```json
-{
-  "reason": "INVALID_DISCOUNT",
-  "comment": "example",
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /promotional-offers/{id}/status
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Promotional Offers Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateOfferStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "isActive": true,
-  "reason": "example"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Provider Promotional Offers
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/provider/offers` | PROVIDER |  |
-| `POST` | `/provider/offers` | PROVIDER |  |
-| `GET` | `/provider/offers/{id}` | PROVIDER |  |
-| `PATCH` | `/provider/offers/{id}` | PROVIDER |  |
-| `DELETE` | `/provider/offers/{id}` | PROVIDER |  |
-| `PATCH` | `/provider/offers/{id}/status` | PROVIDER |  |
-
-### GET /provider/offers
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Promotional Offers
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `itemId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /provider/offers
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Promotional Offers
-
-**Summary:** —
-
-**Parameters:** None
-
-**Request DTO:** `CreateProviderOfferDto`
-
-**Request payload example:**
-
-```json
-{
-  "itemId": "example",
-  "title": "example",
-  "description": "example",
-  "discountType": "PERCENTAGE",
-  "discountValue": 100,
-  "startDate": "example",
-  "endDate": "example",
-  "eligibilityRules": "example",
-  "isActive": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /provider/offers/{id}
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Promotional Offers
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /provider/offers/{id}
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Promotional Offers
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdatePromotionalOfferDto`
-
-**Request payload example:**
-
-```json
-{
-  "title": "example",
-  "description": "example",
-  "discountType": "PERCENTAGE",
-  "discountValue": 100,
-  "startDate": "example",
-  "endDate": "example",
-  "eligibilityRules": "example",
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /provider/offers/{id}
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Promotional Offers
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /provider/offers/{id}/status
-
-**Allowed role(s):** PROVIDER
-
-**Swagger tag:** Provider Promotional Offers
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateOfferStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "isActive": true,
-  "reason": "example"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Provider Management
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/provider-business-categories` | PUBLIC/UNSPECIFIED | List active provider business categories |
-| `POST` | `/provider-business-categories` | PUBLIC/UNSPECIFIED | Create provider business category |
-| `GET` | `/providers` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/providers` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/providers/export` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/providers/lookup` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/providers/stats` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED | Fetch provider business category details |
-| `PATCH` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED | Update provider business category |
-| `DELETE` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED | Soft-delete provider business category |
-| `GET` | `/providers/{id}` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/providers/{id}` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/providers/{id}/activity` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/providers/{id}/approve` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/providers/{id}/items` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/providers/{id}/message` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/providers/{id}/reject` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/providers/{id}/status` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/providers/{id}/suspend` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/providers/{id}/unsuspend` | SUPER_ADMIN, ADMIN |  |
-
-### GET /provider-business-categories
-
-**Allowed role(s):** PUBLIC/UNSPECIFIED
-
-**Swagger tag:** Provider Management
-
-**Summary:** List active provider business categories
-
-**Description:** Public signup dropdown. Returns active, non-deleted provider business categories only.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `isActive` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /provider-business-categories
-
-**Allowed role(s):** PUBLIC/UNSPECIFIED
-
-**Swagger tag:** Provider Management
-
-**Summary:** Create provider business category
-
-**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.
-
-**Parameters:** None
-
-**Request DTO:** `CreateProviderBusinessCategoryDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "example",
-  "description": "example",
-  "iconKey": "example",
-  "sortOrder": 100,
-  "isActive": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /providers
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `approvalStatus` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /providers
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** None
-
-**Request DTO:** `CreateProviderDto`
-
-**Request payload example:**
-
-```json
-{
-  "businessName": "Gifts & Blooms Co. Ltd",
-  "email": "contact@giftsandblooms.com",
-  "phone": "+15551234567",
-  "serviceArea": "New York, USA",
-  "headquarters": "New York, USA",
-  "documentUrls": [
-    "example"
-  ],
-  "generateTemporaryPassword": true,
-  "mustChangePassword": true,
-  "approvalStatus": "PENDING",
-  "isActive": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /providers/export
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `search` (query, optional), `status` (query, optional), `approvalStatus` (query, optional), `format` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /providers/lookup
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `search` (query, optional), `approvalStatus` (query, optional), `isActive` (query, optional), `limit` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /providers/stats
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /provider-business-categories/{id}
-
-**Allowed role(s):** PUBLIC/UNSPECIFIED
-
-**Swagger tag:** Provider Management
-
-**Summary:** Fetch provider business category details
-
-**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /provider-business-categories/{id}
-
-**Allowed role(s):** PUBLIC/UNSPECIFIED
-
-**Swagger tag:** Provider Management
-
-**Summary:** Update provider business category
-
-**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderBusinessCategoryDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "example",
-  "description": "example",
-  "iconKey": "example",
-  "sortOrder": 100,
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /provider-business-categories/{id}
-
-**Allowed role(s):** PUBLIC/UNSPECIFIED
-
-**Swagger tag:** Provider Management
-
-**Summary:** Soft-delete provider business category
-
-**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /providers/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /providers/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderDto`
-
-**Request payload example:**
-
-```json
-{
-  "businessName": "Gifts & Blooms Co. Ltd",
-  "phone": "+15551234567",
-  "serviceArea": "New York, USA",
-  "headquarters": "New York, USA",
-  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png",
-  "documentUrls": [
-    "example"
-  ]
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /providers/{id}/activity
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `type` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /providers/{id}/approve
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `ApproveProviderDto`
-
-**Request payload example:**
-
-```json
-{
-  "comment": "Documents verified successfully.",
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /providers/{id}/items
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /providers/{id}/message
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `MessageProviderDto`
-
-**Request payload example:**
-
-```json
-{
-  "subject": "Account update",
-  "message": "Please update your business documents.",
-  "channel": "EMAIL"
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /providers/{id}/reject
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `RejectProviderDto`
-
-**Request payload example:**
-
-```json
-{
-  "reason": "INCOMPLETE_DOCUMENTS",
-  "comment": "Business license document is missing.",
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /providers/{id}/status
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### POST /providers/{id}/suspend
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### POST /providers/{id}/unsuspend
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Provider Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateProviderStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## User Management
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/users` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/users/export` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/users/{id}` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/users/{id}` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/users/{id}/activity` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/users/{id}/reset-password` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/users/{id}/stats` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/users/{id}/status` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/users/{id}/suspend` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/users/{id}/unsuspend` | SUPER_ADMIN, ADMIN |  |
-
-### GET /users
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `registrationFrom` (query, optional), `registrationTo` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /users/export
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `search` (query, optional), `status` (query, optional), `registrationFrom` (query, optional), `registrationTo` (query, optional), `format` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /users/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /users/{id}
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateRegisteredUserDto`
-
-**Request payload example:**
-
-```json
-{
-  "firstName": "Alex",
-  "lastName": "Johnson",
-  "phone": "+15552345678",
-  "avatarUrl": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg",
-  "location": "New York, USA"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /users/{id}/activity
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `type` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /users/{id}/reset-password
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `ResetRegisteredUserPasswordDto`
-
-**Request payload example:**
-
-```json
-{
-  "sendEmail": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /users/{id}/stats
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /users/{id}/status
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateRegisteredUserStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "status": "ACTIVE",
-  "reason": "POLICY_VIOLATION",
-  "comment": "Suspicious activity detected on this account.",
-  "notifyUser": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### POST /users/{id}/suspend
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `SuspendRegisteredUserDto`
-
-**Request payload example:**
-
-```json
-{
-  "reason": "POLICY_VIOLATION",
-  "comment": "Suspicious account activity.",
-  "notifyUser": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### POST /users/{id}/unsuspend
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** User Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UnsuspendRegisteredUserDto`
-
-**Request payload example:**
-
-```json
-{
-  "comment": "Account reviewed and restored.",
-  "notifyUser": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Admin Staff Management
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/admins` | SUPER_ADMIN |  |
-| `POST` | `/admins` | SUPER_ADMIN | Create admin staff user |
-| `GET` | `/admins/{id}` | SUPER_ADMIN |  |
-| `PATCH` | `/admins/{id}` | SUPER_ADMIN |  |
-| `PATCH` | `/admins/{id}/active-status` | SUPER_ADMIN |  |
-| `PATCH` | `/admins/{id}/password` | SUPER_ADMIN |  |
-
-### GET /admins
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Staff Management
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `roleId` (query, optional), `role` (query, optional), `status` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /admins
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Staff Management
-
-**Summary:** Create admin staff user
-
-**Description:** Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.
-
-**Parameters:** None
-
-**Request payload example:**
-
-```json
-{
-  "email": "staff@example.com",
-  "temporaryPassword": "Temp@123456",
-  "generateTemporaryPassword": false,
-  "mustChangePassword": true,
-  "firstName": "Operations",
-  "lastName": "Staff",
-  "phone": "+15550000002",
-  "title": "Operations Manager",
-  "roleId": "admin_role_id",
-  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/staff.png",
-  "isActive": true,
-  "sendInviteEmail": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /admins/{id}
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Staff Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /admins/{id}
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Staff Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateAdminDto`
-
-**Request payload example:**
-
-```json
-{
-  "firstName": "example",
-  "lastName": "example",
-  "phone": "example",
-  "avatarUrl": "example",
-  "title": "example",
-  "roleId": "example",
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /admins/{id}/active-status
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Staff Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateAdminActiveStatusDto`
-
-**Request payload example:**
-
-```json
-{
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /admins/{id}/password
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Staff Management
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `ResetAdminPasswordDto`
-
-**Request payload example:**
-
-```json
-{
-  "temporaryPassword": "example",
-  "generateTemporaryPassword": true,
-  "mustChangePassword": true,
-  "sendEmail": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Admin Roles / RBAC
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/admin-roles` | SUPER_ADMIN |  |
-| `POST` | `/admin-roles` | SUPER_ADMIN |  |
-| `GET` | `/permissions/catalog` | SUPER_ADMIN |  |
-| `GET` | `/admin-roles/{id}` | SUPER_ADMIN |  |
-| `PATCH` | `/admin-roles/{id}` | SUPER_ADMIN |  |
-| `DELETE` | `/admin-roles/{id}` | SUPER_ADMIN |  |
-| `PATCH` | `/admin-roles/{id}/permissions` | SUPER_ADMIN |  |
-
-### GET /admin-roles
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Description:** Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.
-
-**Parameters:** `search` (query, optional), `isSystem` (query, optional), `isActive` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /admin-roles
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Parameters:** None
-
-**Request DTO:** `CreateAdminRoleDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "example",
-  "description": "example",
-  "permissions": {}
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /permissions/catalog
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Description:** Read-only list of backend-supported permission keys that can be assigned to admin roles.
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /admin-roles/{id}
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /admin-roles/{id}
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateAdminRoleDto`
-
-**Request payload example:**
-
-```json
-{
-  "name": "example",
-  "description": "example",
-  "isActive": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### DELETE /admin-roles/{id}
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /admin-roles/{id}/permissions
-
-**Allowed role(s):** SUPER_ADMIN
-
-**Swagger tag:** Admin Roles / RBAC
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateRolePermissionsDto`
-
-**Request payload example:**
-
-```json
-{
-  "permissions": {}
 }
 ```
 
@@ -5634,818 +6586,3 @@ Authorization: Bearer <accessToken>
 ```
 
 **Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-## Login Attempts
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/login-attempts` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/login-attempts/export` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/login-attempts/stats` | SUPER_ADMIN, ADMIN |  |
-
-### GET /login-attempts
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Login Attempts
-
-**Summary:** —
-
-**Parameters:** `email` (query, optional), `status` (query, optional), `role` (query, optional), `page` (query, optional), `limit` (query, optional), `userId` (query, optional), `from` (query, optional), `to` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /login-attempts/export
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Login Attempts
-
-**Summary:** —
-
-**Parameters:** `email` (query, optional), `status` (query, optional), `role` (query, optional), `page` (query, optional), `limit` (query, optional), `userId` (query, optional), `from` (query, optional), `to` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /login-attempts/stats
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Login Attempts
-
-**Summary:** —
-
-**Parameters:** `email` (query, optional), `status` (query, optional), `role` (query, optional), `page` (query, optional), `limit` (query, optional), `userId` (query, optional), `from` (query, optional), `to` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-## Customer Recurring Payments
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/customer/payment-methods/saved` | REGISTERED_USER | List saved payment methods |
-| `POST` | `/customer/payment-methods/setup-intent` | REGISTERED_USER | Create Stripe setup intent for saving card |
-| `GET` | `/customer/recurring-payments` | REGISTERED_USER | List own recurring payments |
-| `POST` | `/customer/recurring-payments` | REGISTERED_USER | Create recurring payment |
-| `GET` | `/customer/recurring-payments/summary` | REGISTERED_USER | Fetch recurring payment summary counts |
-| `DELETE` | `/customer/payment-methods/{id}` | REGISTERED_USER | Delete own saved payment method |
-| `GET` | `/customer/recurring-payments/{id}` | REGISTERED_USER | Fetch own recurring payment details |
-| `PATCH` | `/customer/recurring-payments/{id}` | REGISTERED_USER | Update own recurring payment |
-| `POST` | `/customer/recurring-payments/{id}/cancel` | REGISTERED_USER | Cancel own recurring payment |
-| `GET` | `/customer/recurring-payments/{id}/history` | REGISTERED_USER | List own recurring payment billing history |
-| `POST` | `/customer/recurring-payments/{id}/pause` | REGISTERED_USER | Pause own active recurring payment |
-| `POST` | `/customer/recurring-payments/{id}/resume` | REGISTERED_USER | Resume own paused recurring payment |
-
-### GET /customer/payment-methods/saved
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** List saved payment methods
-
-**Description:** REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "pm_xxx",
-      "type": "CARD",
-      "brand": "visa",
-      "last4": "4242",
-      "expiryMonth": 12,
-      "expiryYear": 2026,
-      "isDefault": true
-    }
-  ],
-  "message": "Saved payment methods fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /customer/payment-methods/setup-intent
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Create Stripe setup intent for saving card
-
-**Description:** REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.
-
-**Parameters:** None
-
-**Request payload:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "setupIntentId": "seti_xxx",
-    "clientSecret": "seti_xxx_secret_xxx",
-    "publishableKey": "pk_test_xxx"
-  },
-  "message": "Setup intent created successfully."
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /customer/recurring-payments
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** List own recurring payments
-
-**Description:** REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `frequency` (query, optional), `recipientContactId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "recurring_payment_id",
-      "title": "Sarah's Birthday",
-      "recipient": {
-        "id": "contact_id",
-        "name": "Sarah Johnson",
-        "email": "sarah.j@example.com",
-        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
-      },
-      "amount": 50,
-      "currency": "PKR",
-      "frequency": "MONTHLY",
-      "nextBillingAt": "2026-03-15T09:00:00.000Z",
-      "status": "ACTIVE",
-      "message": "Monthly flowers",
-      "createdAt": "2026-05-09T10:00:00.000Z"
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 1,
-    "totalPages": 1
-  },
-  "message": "Recurring payments fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /customer/recurring-payments
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Create recurring payment
-
-**Description:** REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.
-
-**Parameters:** None
-
-**Request DTO:** `CreateRecurringPaymentDto`
-
-**Request payload example:**
-
-```json
-{
-  "amount": 100,
-  "currency": "PKR",
-  "frequency": "WEEKLY",
-  "schedule": {
-    "dayOfWeek": "MONDAY",
-    "dayOfMonth": null,
-    "monthOfYear": null,
-    "time": "09:00",
-    "timezone": "Asia/Karachi"
-  },
-  "recipientContactId": "contact_id",
-  "message": "Hope you love this special surprise!",
-  "messageMediaUrls": [
-    "https://cdn.yourdomain.com/gift-message-media/photo.png"
-  ],
-  "paymentMethod": "STRIPE_CARD",
-  "stripePaymentMethodId": "pm_xxx",
-  "startDate": "2026-05-10T00:00:00.000Z",
-  "endDate": null,
-  "autoSend": true
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "recurring_payment_id",
-    "amount": 100,
-    "currency": "PKR",
-    "frequency": "WEEKLY",
-    "nextBillingAt": "2026-05-12T09:00:00.000Z",
-    "status": "ACTIVE"
-  },
-  "message": "Recurring payment created successfully."
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /customer/recurring-payments/summary
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Fetch recurring payment summary counts
-
-**Description:** Must stay before /customer/recurring-payments/:id route.
-
-**Parameters:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "total": 5,
-    "active": 3,
-    "paused": 1,
-    "cancelled": 1,
-    "failed": 0
-  },
-  "message": "Recurring payment summary fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### DELETE /customer/payment-methods/{id}
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Delete own saved payment method
-
-**Description:** Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.
-
-**Parameters:** `id` (path, required)
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /customer/recurring-payments/{id}
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Fetch own recurring payment details
-
-**Description:** REGISTERED_USER only. Customer cannot access another user’s recurring payment.
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "recurring_payment_id",
-    "title": "Monthly Flowers",
-    "recipient": {
-      "id": "contact_id",
-      "name": "Sarah Johnson",
-      "email": "sarah.j@example.com",
-      "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
-    },
-    "amount": 50,
-    "currency": "PKR",
-    "frequency": "MONTHLY",
-    "nextBillingAt": "2026-03-15T09:00:00.000Z",
-    "status": "ACTIVE",
-    "message": "Fresh seasonal bouquet delivered to her doorstep every month",
-    "messageMediaUrls": [],
-    "paymentMethod": {
-      "type": "STRIPE_CARD",
-      "brand": "visa",
-      "last4": "4242",
-      "expiryMonth": 12,
-      "expiryYear": 2026
-    },
-    "schedule": {
-      "frequency": "MONTHLY",
-      "dayOfMonth": 15,
-      "time": "09:00",
-      "timezone": "Asia/Karachi"
-    },
-    "createdAt": "2026-05-09T10:00:00.000Z"
-  },
-  "message": "Recurring payment fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /customer/recurring-payments/{id}
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Update own recurring payment
-
-**Description:** Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `UpdateRecurringPaymentDto`
-
-**Request payload example:**
-
-```json
-{
-  "amount": 50,
-  "frequency": "MONTHLY",
-  "schedule": {
-    "dayOfMonth": 15,
-    "time": "09:00",
-    "timezone": "Asia/Karachi"
-  },
-  "message": "Fresh flowers every month.",
-  "messageMediaUrls": [],
-  "stripePaymentMethodId": "pm_xxx"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### POST /customer/recurring-payments/{id}/cancel
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Cancel own recurring payment
-
-**Description:** IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `CancelRecurringPaymentDto`
-
-**Request payload example:**
-
-```json
-{
-  "cancelMode": "IMMEDIATELY",
-  "reason": "No longer needed."
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "recurring_payment_id",
-    "status": "CANCELLED",
-    "cancelMode": "IMMEDIATELY"
-  },
-  "message": "Recurring payment cancelled successfully."
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### GET /customer/recurring-payments/{id}/history
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** List own recurring payment billing history
-
-**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `status` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "history_id",
-      "paymentId": "payment_id",
-      "amount": 50,
-      "currency": "PKR",
-      "status": "SUCCESS",
-      "billingDate": "2026-02-15T09:00:00.000Z",
-      "transactionId": "GFT-8829-XPL",
-      "failureReason": null
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 1,
-    "totalPages": 1
-  },
-  "message": "Recurring payment history fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### POST /customer/recurring-payments/{id}/pause
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Pause own active recurring payment
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `PauseRecurringPaymentDto`
-
-**Request payload example:**
-
-```json
-{
-  "reason": "User paused recurring payment."
-}
-```
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### POST /customer/recurring-payments/{id}/resume
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Recurring Payments
-
-**Summary:** Resume own paused recurring payment
-
-**Parameters:** `id` (path, required)
-
-**Request payload:** None
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-## Customer Transactions
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/customer/transactions` | REGISTERED_USER | List own customer transactions |
-| `GET` | `/customer/transactions/export` | REGISTERED_USER | Export own transactions |
-| `GET` | `/customer/transactions/summary` | REGISTERED_USER | Fetch own transaction summary |
-| `GET` | `/customer/transactions/{id}` | REGISTERED_USER | Fetch own transaction details |
-| `GET` | `/customer/transactions/{id}/receipt` | REGISTERED_USER | Download own transaction receipt |
-
-### GET /customer/transactions
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Transactions
-
-**Summary:** List own customer transactions
-
-**Description:** REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `fromDate` (query, optional), `toDate` (query, optional), `type` (query, optional), `status` (query, optional), `paymentMethod` (query, optional), `minAmount` (query, optional), `maxAmount` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "payment_id",
-      "transactionId": "TXN-2026-001234",
-      "title": "Monthly Flowers",
-      "description": "Recurring payment",
-      "recipient": {
-        "id": "contact_id",
-        "name": "Sarah Johnson",
-        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
-      },
-      "amount": 50,
-      "currency": "PKR",
-      "type": "RECURRING_PAYMENT",
-      "status": "SUCCESS",
-      "paymentMethod": "STRIPE_CARD",
-      "createdAt": "2026-03-01T14:34:00.000Z"
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 1,
-    "totalPages": 1
-  },
-  "message": "Transactions fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /customer/transactions/export
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Transactions
-
-**Summary:** Export own transactions
-
-**Description:** CSV is supported and returned as a file. Export is scoped to the logged-in customer only.
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `fromDate` (query, optional), `toDate` (query, optional), `type` (query, optional), `status` (query, optional), `paymentMethod` (query, optional), `minAmount` (query, optional), `maxAmount` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `format` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Transaction export file."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /customer/transactions/summary
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Transactions
-
-**Summary:** Fetch own transaction summary
-
-**Description:** Defaults to current month when no date range is provided. Uses backend-calculated payment records only.
-
-**Parameters:** `fromDate` (query, optional), `toDate` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "totalSpentThisMonth": 255,
-    "currency": "PKR",
-    "successfulCount": 9,
-    "failedCount": 1,
-    "pendingCount": 0,
-    "refundedCount": 0
-  },
-  "message": "Transaction summary fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /customer/transactions/{id}
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Transactions
-
-**Summary:** Fetch own transaction details
-
-**Description:** Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "payment_id",
-    "transactionId": "TXN-2026-001234-ABC-XYZ",
-    "status": "SUCCESS",
-    "amount": 50,
-    "currency": "PKR",
-    "createdAt": "2026-03-01T14:34:00.000Z",
-    "type": "RECURRING_PAYMENT",
-    "giftInformation": {
-      "giftName": "Monthly Flowers Subscription",
-      "deliveryType": "Money",
-      "recipient": {
-        "id": "contact_id",
-        "name": "Sarah Johnson",
-        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
-      },
-      "orderReference": null,
-      "recurringPaymentId": "recurring_payment_id"
-    },
-    "paymentInformation": {
-      "paymentMethod": "Stripe card",
-      "gatewayReference": "pi_3MmlLrLkdIwHu7ix0fhBHWqt",
-      "billingAddress": null
-    }
-  },
-  "message": "Transaction details fetched successfully."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### GET /customer/transactions/{id}/receipt
-
-**Allowed role(s):** REGISTERED_USER
-
-**Swagger tag:** Customer Transactions
-
-**Summary:** Download own transaction receipt
-
-**Description:** Receipt is generated only for the transaction owner and never exposes Stripe secret data.
-
-**Parameters:** `id` (path, required)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Receipt PDF file."
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-## Gift Moderation
-
-| Method | Path | Roles | Summary |
-|---|---|---|---|
-| `GET` | `/gift-moderation` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/gift-moderation/{id}/approve` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/gift-moderation/{id}/flag` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/gift-moderation/{id}/reject` | SUPER_ADMIN, ADMIN |  |
-
-### GET /gift-moderation
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Moderation
-
-**Summary:** —
-
-**Parameters:** `page` (query, optional), `limit` (query, optional), `status` (query, optional), `search` (query, optional), `providerId` (query, optional), `view` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
-
-**Example response:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
-
-### PATCH /gift-moderation/{id}/approve
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Moderation
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `ApproveGiftDto`
-
-**Request payload example:**
-
-```json
-{
-  "comment": "example",
-  "publishNow": true,
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /gift-moderation/{id}/flag
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Moderation
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `FlagGiftDto`
-
-**Request payload example:**
-
-```json
-{
-  "reason": "NEEDS_MANUAL_REVIEW",
-  "comment": "example"
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
-
-### PATCH /gift-moderation/{id}/reject
-
-**Allowed role(s):** SUPER_ADMIN, ADMIN
-
-**Swagger tag:** Gift Moderation
-
-**Summary:** —
-
-**Parameters:** `id` (path, required)
-
-**Request DTO:** `RejectGiftDto`
-
-**Request payload example:**
-
-```json
-{
-  "reason": "INCOMPLETE_INFORMATION",
-  "comment": "example",
-  "notifyProvider": true
-}
-```
-
-**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.

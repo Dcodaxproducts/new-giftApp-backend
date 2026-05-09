@@ -1235,6 +1235,7 @@
     },
     "/api/v1/providers": {
       "get": {
+        "description": "SUPER_ADMIN/ADMIN with providers.read permission.",
         "operationId": "ProviderManagementController_list",
         "parameters": [
           {
@@ -1322,7 +1323,38 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Providers fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "provider_id",
+                        "businessName": "Premium Gifts Co",
+                        "email": "provider@example.com",
+                        "phone": "+923001234567",
+                        "approvalStatus": "APPROVED",
+                        "isActive": true,
+                        "businessCategory": {
+                          "id": "category_id",
+                          "name": "Gift Supplier"
+                        },
+                        "createdAt": "2026-05-09T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Providers fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1330,6 +1362,7 @@
             "bearer": []
           }
         ],
+        "summary": "List providers",
         "tags": [
           "Provider Management"
         ]
@@ -2125,7 +2158,48 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Provider inventory fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "gift_id",
+                        "name": "Luxury Perfume",
+                        "price": 99.99,
+                        "currency": "PKR",
+                        "stockQuantity": 50,
+                        "status": "ACTIVE",
+                        "moderationStatus": "APPROVED",
+                        "isAvailable": true,
+                        "category": {
+                          "id": "category_id",
+                          "name": "Perfumes"
+                        },
+                        "variants": [
+                          {
+                            "id": "variant_id",
+                            "name": "50ml",
+                            "price": 129.99,
+                            "stockQuantity": 20,
+                            "isDefault": true
+                          }
+                        ]
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Provider inventory fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2296,7 +2370,42 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Inventory item fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "name": "Luxury Perfume",
+                      "description": "Long-lasting premium fragrance.",
+                      "price": 99.99,
+                      "currency": "PKR",
+                      "stockQuantity": 50,
+                      "status": "ACTIVE",
+                      "moderationStatus": "APPROVED",
+                      "imageUrls": [
+                        "https://cdn.yourdomain.com/gift-images/perfume.png"
+                      ],
+                      "variants": [
+                        {
+                          "id": "variant_id",
+                          "name": "50ml",
+                          "price": 129.99,
+                          "originalPrice": 159.99,
+                          "stockQuantity": 20,
+                          "sku": "PERFUME-50ML",
+                          "isDefault": true,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Inventory item fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3334,6 +3443,7 @@
     },
     "/api/v1/users": {
       "get": {
+        "description": "SUPER_ADMIN/ADMIN with users.read permission.",
         "operationId": "UserManagementController_list",
         "parameters": [
           {
@@ -3424,7 +3534,36 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Users fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "user_id",
+                        "email": "customer@example.com",
+                        "firstName": "Sarah",
+                        "lastName": "Johnson",
+                        "phone": "+923001234567",
+                        "role": "REGISTERED_USER",
+                        "isVerified": true,
+                        "isActive": true,
+                        "createdAt": "2026-05-09T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Users fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3432,6 +3571,7 @@
             "bearer": []
           }
         ],
+        "summary": "List registered users",
         "tags": [
           "User Management"
         ]
@@ -6872,7 +7012,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Receipt PDF file."
+            "description": "Receipt PDF file for the authenticated transaction owner. Includes app name, transaction ID, customer, recipient, references, totals, currency, status, and support email."
           }
         },
         "security": [
@@ -8539,7 +8679,36 @@
         ],
         "responses": {
           "200": {
-            "description": "Notifications fetched successfully"
+            "description": "Notifications fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "notification_id",
+                        "title": "Payment successful",
+                        "message": "Your payment was completed successfully.",
+                        "type": "PAYMENT_SUCCEEDED",
+                        "isRead": false,
+                        "metadata": {
+                          "paymentId": "payment_id"
+                        },
+                        "createdAt": "2026-05-09T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Notifications fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8560,7 +8729,26 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Notification summary fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "total": 12,
+                      "unread": 3,
+                      "byType": {
+                        "PAYMENT_SUCCEEDED": 2,
+                        "RECURRING_PAYMENT_CHARGE_FAILED": 1,
+                        "BROADCAST": 9
+                      }
+                    },
+                    "message": "Notification summary fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9692,7 +9880,33 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Payment methods fetched successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "key": "STRIPE_CARD",
+                        "label": "Card",
+                        "provider": "STRIPE",
+                        "isOnline": true,
+                        "isAvailable": true
+                      },
+                      {
+                        "key": "COD",
+                        "label": "Cash on Delivery",
+                        "provider": "MANUAL",
+                        "isOnline": false,
+                        "isAvailable": true
+                      }
+                    ],
+                    "message": "Payment methods fetched successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -10267,40 +10481,91 @@
   },
   "tags": [
     {
-      "name": "Customer Transactions",
-      "description": ""
+      "name": "Auth"
     },
     {
-      "name": "Customer Recurring Payments",
-      "description": ""
+      "name": "Login Attempts"
     },
     {
-      "name": "Payments",
-      "description": ""
+      "name": "Admin Staff Management"
     },
     {
-      "name": "Customer Marketplace",
-      "description": ""
+      "name": "Admin Roles / RBAC"
     },
     {
-      "name": "Customer Cart",
-      "description": ""
+      "name": "User Management"
     },
     {
-      "name": "Customer Orders",
-      "description": ""
+      "name": "Provider Management"
     },
     {
-      "name": "Notifications",
-      "description": ""
+      "name": "Provider Inventory"
     },
     {
-      "name": "Gift Management",
-      "description": ""
+      "name": "Provider Promotional Offers"
     },
     {
-      "name": "Provider Inventory",
-      "description": ""
+      "name": "Promotional Offers Management"
+    },
+    {
+      "name": "Gift Categories"
+    },
+    {
+      "name": "Gift Management"
+    },
+    {
+      "name": "Gift Moderation"
+    },
+    {
+      "name": "Customer Marketplace"
+    },
+    {
+      "name": "Customer Wishlist"
+    },
+    {
+      "name": "Customer Addresses"
+    },
+    {
+      "name": "Customer Contacts"
+    },
+    {
+      "name": "Customer Events"
+    },
+    {
+      "name": "Customer Event Reminder Settings"
+    },
+    {
+      "name": "Customer Cart"
+    },
+    {
+      "name": "Customer Orders"
+    },
+    {
+      "name": "Customer Recurring Payments"
+    },
+    {
+      "name": "Customer Transactions"
+    },
+    {
+      "name": "Payments"
+    },
+    {
+      "name": "Notifications"
+    },
+    {
+      "name": "Broadcast Notifications"
+    },
+    {
+      "name": "Subscription Plans"
+    },
+    {
+      "name": "Coupons"
+    },
+    {
+      "name": "Storage"
+    },
+    {
+      "name": "Audit Logs"
     }
   ],
   "servers": [],

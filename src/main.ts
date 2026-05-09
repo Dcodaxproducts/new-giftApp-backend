@@ -7,6 +7,47 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
+export const SWAGGER_TAG_ORDER = [
+  'Auth',
+  'Login Attempts',
+  'Admin Staff Management',
+  'Admin Roles / RBAC',
+  'User Management',
+  'Provider Management',
+  'Provider Inventory',
+  'Provider Promotional Offers',
+  'Promotional Offers Management',
+  'Gift Categories',
+  'Gift Management',
+  'Gift Moderation',
+  'Customer Marketplace',
+  'Customer Wishlist',
+  'Customer Addresses',
+  'Customer Contacts',
+  'Customer Events',
+  'Customer Event Reminder Settings',
+  'Customer Cart',
+  'Customer Orders',
+  'Customer Recurring Payments',
+  'Customer Transactions',
+  'Payments',
+  'Notifications',
+  'Broadcast Notifications',
+  'Subscription Plans',
+  'Coupons',
+  'Storage',
+  'Audit Logs',
+] as const;
+
+function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
+  return SWAGGER_TAG_ORDER.reduce((current, tag) => current.addTag(tag), builder);
+}
+
+function swaggerTagIndex(tag: string): number {
+  const index = (SWAGGER_TAG_ORDER as readonly string[]).indexOf(tag);
+  return index === -1 ? SWAGGER_TAG_ORDER.length : index;
+}
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
@@ -24,34 +65,22 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Gift App Backend API')
-    .setDescription('Gift App authentication and user account APIs')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .addTag('Customer Marketplace')
-    .addTag('Customer Wishlist')
-    .addTag('Customer Addresses')
-    .addTag('Customer Contacts')
-    .addTag('Customer Events')
-    .addTag('Customer Event Reminder Settings')
-    .addTag('Customer Cart')
-    .addTag('Customer Orders')
-    .addTag('Customer Recurring Payments')
-    .addTag('Customer Transactions')
-    .addTag('Notifications')
-    .addTag('Broadcast Notifications')
-    .addTag('Gift Categories')
-    .addTag('Gift Management')
-    .addTag('Provider Inventory')
-    .addTag('Promotional Offers Management')
-    .addTag('Provider Promotional Offers')
-    .addTag('Payments')
-    .build();
+  const swaggerConfig = applySwaggerTags(
+    new DocumentBuilder()
+      .setTitle('Gift App Backend API')
+      .setDescription('Gift App authentication and user account APIs')
+      .setVersion('0.1.0')
+      .addBearerAuth(),
+  ).build();
   const document = SwaggerModule.createDocument(app, swaggerConfig, {
     autoTagControllers: false,
   });
-  SwaggerModule.setup('docs', app, document);
+  document.tags = SWAGGER_TAG_ORDER.map((name) => ({ name }));
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      tagsSorter: (a: string, b: string) => swaggerTagIndex(a) - swaggerTagIndex(b),
+    },
+  });
 
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port, '0.0.0.0');

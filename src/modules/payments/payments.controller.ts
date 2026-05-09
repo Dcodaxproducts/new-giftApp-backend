@@ -45,6 +45,7 @@ export class CustomerPaymentMethodsController {
 
   @Get()
   @ApiOperation({ summary: 'List supported customer payment methods' })
+  @ApiResponse({ status: 200, description: 'Payment methods fetched successfully.', schema: { example: { success: true, data: [{ key: 'STRIPE_CARD', label: 'Card', provider: 'STRIPE', isOnline: true, isAvailable: true }, { key: 'COD', label: 'Cash on Delivery', provider: 'MANUAL', isOnline: false, isAvailable: true }], message: 'Payment methods fetched successfully.' } } })
   list() { return this.payments.paymentMethods(); }
 }
 

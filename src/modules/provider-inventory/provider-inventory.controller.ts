@@ -18,6 +18,7 @@ export class ProviderInventoryController {
 
   @Get()
   @ApiOperation({ summary: 'List provider inventory items', description: 'PROVIDER only. Returns only inventory owned by the authenticated provider.' })
+  @ApiResponse({ status: 200, description: 'Provider inventory fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', stockQuantity: 50, status: 'ACTIVE', moderationStatus: 'APPROVED', isAvailable: true, category: { id: 'category_id', name: 'Perfumes' }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, stockQuantity: 20, isDefault: true }] }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Provider inventory fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderInventoryDto) { return this.service.list(user, query); }
 
   @Get('stats')
@@ -36,6 +37,7 @@ export class ProviderInventoryController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Fetch own provider inventory item details' })
+  @ApiResponse({ status: 200, description: 'Inventory item fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', price: 99.99, currency: 'PKR', stockQuantity: 50, status: 'ACTIVE', moderationStatus: 'APPROVED', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, stockQuantity: 20, sku: 'PERFUME-50ML', isDefault: true, isActive: true }] }, message: 'Inventory item fetched successfully' } } })
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.details(user, id); }
 
   @Patch(':id')

@@ -19,11 +19,12 @@ export class NotificationsController {
   @Get()
   @ApiOperation({ summary: 'List notifications', description: 'JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.' })
   @ApiQuery({ name: 'page', required: false }) @ApiQuery({ name: 'limit', required: false }) @ApiQuery({ name: 'filter', required: false }) @ApiQuery({ name: 'type', required: false }) @ApiQuery({ name: 'isRead', required: false }) @ApiQuery({ name: 'groupByDate', required: false }) @ApiQuery({ name: 'sortOrder', required: false })
-  @ApiResponse({ status: 200, description: 'Notifications fetched successfully' })
+  @ApiResponse({ status: 200, description: 'Notifications fetched successfully', schema: { example: { success: true, data: [{ id: 'notification_id', title: 'Payment successful', message: 'Your payment was completed successfully.', type: 'PAYMENT_SUCCEEDED', isRead: false, metadata: { paymentId: 'payment_id' }, createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Notifications fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListNotificationsDto) { return this.notifications.list(user, query); }
 
   @Get('summary')
   @ApiOperation({ summary: 'Fetch notification summary', description: 'JWT auth. Counts only notifications belonging to the logged-in account.' })
+  @ApiResponse({ status: 200, description: 'Notification summary fetched successfully', schema: { example: { success: true, data: { total: 12, unread: 3, byType: { PAYMENT_SUCCEEDED: 2, RECURRING_PAYMENT_CHARGE_FAILED: 1, BROADCAST: 9 } }, message: 'Notification summary fetched successfully' } } })
   summary(@CurrentUser() user: AuthUserContext) { return this.notifications.summary(user); }
 
   @Get('preferences')

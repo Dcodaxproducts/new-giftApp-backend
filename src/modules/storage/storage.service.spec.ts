@@ -18,9 +18,12 @@ describe('Storage upload metadata flow', () => {
 
   it('enforces upload ownership and gift message media policy', () => {
     expect(source).toContain('ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? query.ownerId : user.uid');
+    expect(source).toContain('private ownerIdForUpload');
+    expect(source).toContain('dto.targetAccountId ?? user.uid : user.uid');
     expect(source).toContain('Gift message media uploads are allowed for registered users only');
     expect(source).toContain('image/jpeg');
     expect(source).toContain('video/mp4');
     expect(source).toContain('25 * 1024 * 1024');
+    expect(source).toContain('5 * 1024 * 1024');
   });
 });

@@ -9,7 +9,7 @@ import {
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -58,6 +58,8 @@ export class ProviderManagementController {
 
   @Get()
   @Permissions('providers.read')
+  @ApiOperation({ summary: 'List providers', description: 'SUPER_ADMIN/ADMIN with providers.read permission.' })
+  @ApiResponse({ status: 200, description: 'Providers fetched successfully', schema: { example: { success: true, data: [{ id: 'provider_id', businessName: 'Premium Gifts Co', email: 'provider@example.com', phone: '+923001234567', approvalStatus: 'APPROVED', isActive: true, businessCategory: { id: 'category_id', name: 'Gift Supplier' }, createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Providers fetched successfully' } } })
   list(@Query() query: ListProvidersDto): Promise<unknown> {
     return this.providerManagementService.list(query);
   }
