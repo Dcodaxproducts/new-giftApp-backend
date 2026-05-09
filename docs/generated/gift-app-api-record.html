@@ -858,6 +858,13 @@ POST   /customer/recurring-payments/:id/resume
   &quot;reason&quot;: &quot;User paused recurring payment.&quot;
 }
 </code></pre>
+<h3>Customer Transactions</h3>
+<pre><code class="language-txt">GET    /customer/transactions
+GET    /customer/transactions/export
+GET    /customer/transactions/summary
+GET    /customer/transactions/:id
+GET    /customer/transactions/:id/receipt
+</code></pre>
 <h3>Gift Moderation</h3>
 <pre><code class="language-txt">GET    /gift-moderation
 PATCH  /gift-moderation/:id/approve

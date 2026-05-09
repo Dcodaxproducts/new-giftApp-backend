@@ -6365,6 +6365,527 @@
         ]
       }
     },
+    "/api/v1/customer/transactions": {
+      "get": {
+        "description": "REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.",
+        "operationId": "CustomerTransactionsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Sarah",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "GIFT_ORDER",
+                "MONEY_GIFT",
+                "RECURRING_PAYMENT",
+                "SUBSCRIPTION_PAYMENT",
+                "REFUND"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "FAILED",
+                "PENDING",
+                "REFUNDED",
+                "CANCELLED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentMethod",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "STRIPE_CARD",
+                "COD",
+                "E_WALLET",
+                "BANK_TRANSFER",
+                "PLACEHOLDER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "minAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 500,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "payment_id",
+                        "transactionId": "TXN-2026-001234",
+                        "title": "Monthly Flowers",
+                        "description": "Recurring payment",
+                        "recipient": {
+                          "id": "contact_id",
+                          "name": "Sarah Johnson",
+                          "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+                        },
+                        "amount": 50,
+                        "currency": "PKR",
+                        "type": "RECURRING_PAYMENT",
+                        "status": "SUCCESS",
+                        "paymentMethod": "STRIPE_CARD",
+                        "createdAt": "2026-03-01T14:34:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Transactions fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own customer transactions",
+        "tags": [
+          "Customer Transactions"
+        ]
+      }
+    },
+    "/api/v1/customer/transactions/summary": {
+      "get": {
+        "description": "Defaults to current month when no date range is provided. Uses backend-calculated payment records only.",
+        "operationId": "CustomerTransactionsController_summary",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalSpentThisMonth": 255,
+                      "currency": "PKR",
+                      "successfulCount": 9,
+                      "failedCount": 1,
+                      "pendingCount": 0,
+                      "refundedCount": 0
+                    },
+                    "message": "Transaction summary fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own transaction summary",
+        "tags": [
+          "Customer Transactions"
+        ]
+      }
+    },
+    "/api/v1/customer/transactions/export": {
+      "get": {
+        "description": "CSV is supported and returned as a file. Export is scoped to the logged-in customer only.",
+        "operationId": "CustomerTransactionsController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Sarah",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "GIFT_ORDER",
+                "MONEY_GIFT",
+                "RECURRING_PAYMENT",
+                "SUBSCRIPTION_PAYMENT",
+                "REFUND"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "FAILED",
+                "PENDING",
+                "REFUNDED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "paymentMethod",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "STRIPE_CARD",
+                "COD",
+                "E_WALLET",
+                "BANK_TRANSFER",
+                "PLACEHOLDER"
+              ]
+            }
+          },
+          {
+            "name": "minAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 500,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "CSV",
+                "PDF"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction export file."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export own transactions",
+        "tags": [
+          "Customer Transactions"
+        ]
+      }
+    },
+    "/api/v1/customer/transactions/{id}": {
+      "get": {
+        "description": "Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.",
+        "operationId": "CustomerTransactionsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "payment_id",
+                      "transactionId": "TXN-2026-001234-ABC-XYZ",
+                      "status": "SUCCESS",
+                      "amount": 50,
+                      "currency": "PKR",
+                      "createdAt": "2026-03-01T14:34:00.000Z",
+                      "type": "RECURRING_PAYMENT",
+                      "giftInformation": {
+                        "giftName": "Monthly Flowers Subscription",
+                        "deliveryType": "Money",
+                        "recipient": {
+                          "id": "contact_id",
+                          "name": "Sarah Johnson",
+                          "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+                        },
+                        "orderReference": null,
+                        "recurringPaymentId": "recurring_payment_id"
+                      },
+                      "paymentInformation": {
+                        "paymentMethod": "Stripe card",
+                        "gatewayReference": "pi_3MmlLrLkdIwHu7ix0fhBHWqt",
+                        "billingAddress": null
+                      }
+                    },
+                    "message": "Transaction details fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own transaction details",
+        "tags": [
+          "Customer Transactions"
+        ]
+      }
+    },
+    "/api/v1/customer/transactions/{id}/receipt": {
+      "get": {
+        "description": "Receipt is generated only for the transaction owner and never exposes Stripe secret data.",
+        "operationId": "CustomerTransactionsController_receipt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Receipt PDF file."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download own transaction receipt",
+        "tags": [
+          "Customer Transactions"
+        ]
+      }
+    },
     "/api/v1/gift-categories/lookup": {
       "get": {
         "description": "Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.",
@@ -9745,6 +10266,10 @@
     "contact": {}
   },
   "tags": [
+    {
+      "name": "Customer Transactions",
+      "description": ""
+    },
     {
       "name": "Customer Recurring Payments",
       "description": ""

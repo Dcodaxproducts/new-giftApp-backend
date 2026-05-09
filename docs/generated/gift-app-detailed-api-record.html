@@ -2,7 +2,7 @@
 @page { size: A4; margin: 16mm 12mm; }
 body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5px} h1{font-size:24px} h2{font-size:18px;margin-top:28px;border-bottom:1px solid #ddd;padding-bottom:4px} h3{font-size:13px;margin-top:18px;color:#0f172a} table{border-collapse:collapse;width:100%;font-size:9px;margin:8px 0 14px} th,td{border:1px solid #d1d5db;padding:4px;vertical-align:top} th{background:#f3f4f6} pre{background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px;white-space:pre-wrap;word-break:break-word;font-size:8.5px} code{font-family:Consolas,monospace} blockquote{border-left:4px solid #f59e0b;padding-left:10px;color:#374151} .page-break{page-break-before:always}
 </style></head><body><h1 id="gift-app-backend-detailed-api-record">Gift App Backend — Detailed API Record</h1>
-<p>Generated: 2026-05-09 11:39 UTC</p>
+<p>Generated: 2026-05-09 11:55 UTC</p>
 <p>Base URL: <code>/api/v1</code></p>
 <p>All protected APIs use:</p>
 <pre><code class="language-txt">Authorization: Bearer &lt;accessToken&gt;
@@ -39,6 +39,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <li>Audit Logs</li>
 <li>Login Attempts</li>
 <li>Customer Recurring Payments</li>
+<li>Customer Transactions</li>
 <li>Gift Moderation</li>
 </ul>
 <h2 id="auth">Auth</h2>
@@ -5316,6 +5317,174 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h2 id="customer-transactions">Customer Transactions</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Roles</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/transactions</code></td>
+<td>REGISTERED_USER</td>
+<td>List own customer transactions</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/transactions/export</code></td>
+<td>REGISTERED_USER</td>
+<td>Export own transactions</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/transactions/summary</code></td>
+<td>REGISTERED_USER</td>
+<td>Fetch own transaction summary</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/transactions/{id}</code></td>
+<td>REGISTERED_USER</td>
+<td>Fetch own transaction details</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/transactions/{id}/receipt</code></td>
+<td>REGISTERED_USER</td>
+<td>Download own transaction receipt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get-customertransactions">GET /customer/transactions</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Transactions</p>
+<p><strong>Summary:</strong> List own customer transactions</p>
+<p><strong>Description:</strong> REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.</p>
+<p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>fromDate</code> (query, optional), <code>toDate</code> (query, optional), <code>type</code> (query, optional), <code>status</code> (query, optional), <code>paymentMethod</code> (query, optional), <code>minAmount</code> (query, optional), <code>maxAmount</code> (query, optional), <code>sortBy</code> (query, optional), <code>sortOrder</code> (query, optional)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;payment_id&quot;,
+      &quot;transactionId&quot;: &quot;TXN-2026-001234&quot;,
+      &quot;title&quot;: &quot;Monthly Flowers&quot;,
+      &quot;description&quot;: &quot;Recurring payment&quot;,
+      &quot;recipient&quot;: {
+        &quot;id&quot;: &quot;contact_id&quot;,
+        &quot;name&quot;: &quot;Sarah Johnson&quot;,
+        &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/customer-contact-avatars/sarah.png&quot;
+      },
+      &quot;amount&quot;: 50,
+      &quot;currency&quot;: &quot;PKR&quot;,
+      &quot;type&quot;: &quot;RECURRING_PAYMENT&quot;,
+      &quot;status&quot;: &quot;SUCCESS&quot;,
+      &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;,
+      &quot;createdAt&quot;: &quot;2026-03-01T14:34:00.000Z&quot;
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Transactions fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="get-customertransactionsexport">GET /customer/transactions/export</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Transactions</p>
+<p><strong>Summary:</strong> Export own transactions</p>
+<p><strong>Description:</strong> CSV is supported and returned as a file. Export is scoped to the logged-in customer only.</p>
+<p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>fromDate</code> (query, optional), <code>toDate</code> (query, optional), <code>type</code> (query, optional), <code>status</code> (query, optional), <code>paymentMethod</code> (query, optional), <code>minAmount</code> (query, optional), <code>maxAmount</code> (query, optional), <code>sortBy</code> (query, optional), <code>sortOrder</code> (query, optional), <code>format</code> (query, optional)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Transaction export file.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="get-customertransactionssummary">GET /customer/transactions/summary</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Transactions</p>
+<p><strong>Summary:</strong> Fetch own transaction summary</p>
+<p><strong>Description:</strong> Defaults to current month when no date range is provided. Uses backend-calculated payment records only.</p>
+<p><strong>Parameters:</strong> <code>fromDate</code> (query, optional), <code>toDate</code> (query, optional)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalSpentThisMonth&quot;: 255,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;successfulCount&quot;: 9,
+    &quot;failedCount&quot;: 1,
+    &quot;pendingCount&quot;: 0,
+    &quot;refundedCount&quot;: 0
+  },
+  &quot;message&quot;: &quot;Transaction summary fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="get-customertransactionsid">GET /customer/transactions/{id}</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Transactions</p>
+<p><strong>Summary:</strong> Fetch own transaction details</p>
+<p><strong>Description:</strong> Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payment_id&quot;,
+    &quot;transactionId&quot;: &quot;TXN-2026-001234-ABC-XYZ&quot;,
+    &quot;status&quot;: &quot;SUCCESS&quot;,
+    &quot;amount&quot;: 50,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;createdAt&quot;: &quot;2026-03-01T14:34:00.000Z&quot;,
+    &quot;type&quot;: &quot;RECURRING_PAYMENT&quot;,
+    &quot;giftInformation&quot;: {
+      &quot;giftName&quot;: &quot;Monthly Flowers Subscription&quot;,
+      &quot;deliveryType&quot;: &quot;Money&quot;,
+      &quot;recipient&quot;: {
+        &quot;id&quot;: &quot;contact_id&quot;,
+        &quot;name&quot;: &quot;Sarah Johnson&quot;,
+        &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/customer-contact-avatars/sarah.png&quot;
+      },
+      &quot;orderReference&quot;: null,
+      &quot;recurringPaymentId&quot;: &quot;recurring_payment_id&quot;
+    },
+    &quot;paymentInformation&quot;: {
+      &quot;paymentMethod&quot;: &quot;Stripe card&quot;,
+      &quot;gatewayReference&quot;: &quot;pi_3MmlLrLkdIwHu7ix0fhBHWqt&quot;,
+      &quot;billingAddress&quot;: null
+    }
+  },
+  &quot;message&quot;: &quot;Transaction details fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="get-customertransactionsidreceipt">GET /customer/transactions/{id}/receipt</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Transactions</p>
+<p><strong>Summary:</strong> Download own transaction receipt</p>
+<p><strong>Description:</strong> Receipt is generated only for the transaction owner and never exposes Stripe secret data.</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Receipt PDF file.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
 <h2 id="gift-moderation">Gift Moderation</h2>
 <table>
 <thead>

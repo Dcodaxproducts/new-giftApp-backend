@@ -1118,6 +1118,16 @@ Examples:
 }
 ```
 
+### Customer Transactions
+
+```txt
+GET    /customer/transactions
+GET    /customer/transactions/export
+GET    /customer/transactions/summary
+GET    /customer/transactions/:id
+GET    /customer/transactions/:id/receipt
+```
+
 ### Gift Moderation
 
 ```txt

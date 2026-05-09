@@ -1,6 +1,6 @@
 # Gift App Backend — Detailed API Record
 
-Generated: 2026-05-09 11:39 UTC
+Generated: 2026-05-09 11:55 UTC
 
 Base URL: `/api/v1`
 
@@ -41,6 +41,7 @@ Authorization: Bearer <accessToken>
 - Audit Logs
 - Login Attempts
 - Customer Recurring Payments
+- Customer Transactions
 - Gift Moderation
 
 ## Auth
@@ -6161,6 +6162,191 @@ Authorization: Bearer <accessToken>
 ```
 
 **Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+## Customer Transactions
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/customer/transactions` | REGISTERED_USER | List own customer transactions |
+| `GET` | `/customer/transactions/export` | REGISTERED_USER | Export own transactions |
+| `GET` | `/customer/transactions/summary` | REGISTERED_USER | Fetch own transaction summary |
+| `GET` | `/customer/transactions/{id}` | REGISTERED_USER | Fetch own transaction details |
+| `GET` | `/customer/transactions/{id}/receipt` | REGISTERED_USER | Download own transaction receipt |
+
+### GET /customer/transactions
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** List own customer transactions
+
+**Description:** REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `fromDate` (query, optional), `toDate` (query, optional), `type` (query, optional), `status` (query, optional), `paymentMethod` (query, optional), `minAmount` (query, optional), `maxAmount` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "payment_id",
+      "transactionId": "TXN-2026-001234",
+      "title": "Monthly Flowers",
+      "description": "Recurring payment",
+      "recipient": {
+        "id": "contact_id",
+        "name": "Sarah Johnson",
+        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+      },
+      "amount": 50,
+      "currency": "PKR",
+      "type": "RECURRING_PAYMENT",
+      "status": "SUCCESS",
+      "paymentMethod": "STRIPE_CARD",
+      "createdAt": "2026-03-01T14:34:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Transactions fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/export
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Export own transactions
+
+**Description:** CSV is supported and returned as a file. Export is scoped to the logged-in customer only.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `fromDate` (query, optional), `toDate` (query, optional), `type` (query, optional), `status` (query, optional), `paymentMethod` (query, optional), `minAmount` (query, optional), `maxAmount` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `format` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Transaction export file."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/summary
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Fetch own transaction summary
+
+**Description:** Defaults to current month when no date range is provided. Uses backend-calculated payment records only.
+
+**Parameters:** `fromDate` (query, optional), `toDate` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "totalSpentThisMonth": 255,
+    "currency": "PKR",
+    "successfulCount": 9,
+    "failedCount": 1,
+    "pendingCount": 0,
+    "refundedCount": 0
+  },
+  "message": "Transaction summary fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Fetch own transaction details
+
+**Description:** Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payment_id",
+    "transactionId": "TXN-2026-001234-ABC-XYZ",
+    "status": "SUCCESS",
+    "amount": 50,
+    "currency": "PKR",
+    "createdAt": "2026-03-01T14:34:00.000Z",
+    "type": "RECURRING_PAYMENT",
+    "giftInformation": {
+      "giftName": "Monthly Flowers Subscription",
+      "deliveryType": "Money",
+      "recipient": {
+        "id": "contact_id",
+        "name": "Sarah Johnson",
+        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+      },
+      "orderReference": null,
+      "recurringPaymentId": "recurring_payment_id"
+    },
+    "paymentInformation": {
+      "paymentMethod": "Stripe card",
+      "gatewayReference": "pi_3MmlLrLkdIwHu7ix0fhBHWqt",
+      "billingAddress": null
+    }
+  },
+  "message": "Transaction details fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### GET /customer/transactions/{id}/receipt
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Transactions
+
+**Summary:** Download own transaction receipt
+
+**Description:** Receipt is generated only for the transaction owner and never exposes Stripe secret data.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Receipt PDF file."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
 
 ## Gift Moderation
 
