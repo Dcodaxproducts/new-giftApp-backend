@@ -13,19 +13,13 @@ import {
 } from '../auth/dto/admin-management.dto';
 import { AdminRolesService } from './admin-roles.service';
 
-export class AdminRolesBaseController {
-  constructor(protected readonly adminRolesService: AdminRolesService) {}
-}
-
 @ApiTags('Admin Roles / RBAC')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)
 @Controller('admin-roles')
-export class AdminRolesController extends AdminRolesBaseController {
-  constructor(adminRolesService: AdminRolesService) {
-    super(adminRolesService);
-  }
+export class AdminRolesController {
+  constructor(private readonly adminRolesService: AdminRolesService) {}
 
   @Get()
   @ApiOperation({ description: 'Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.' })
@@ -72,10 +66,8 @@ export class AdminRolesController extends AdminRolesBaseController {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)
 @Controller('permissions')
-export class PermissionCatalogController extends AdminRolesBaseController {
-  constructor(adminRolesService: AdminRolesService) {
-    super(adminRolesService);
-  }
+export class PermissionCatalogController {
+  constructor(private readonly adminRolesService: AdminRolesService) {}
 
   @Get('catalog')
   @ApiOperation({ description: 'Read-only list of backend-supported permission keys that can be assigned to admin roles.' })

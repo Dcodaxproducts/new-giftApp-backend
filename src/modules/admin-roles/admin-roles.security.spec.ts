@@ -8,15 +8,15 @@ describe('Admin roles RBAC security', () => {
     expect(source).toContain('@UseGuards(JwtAuthGuard, RolesGuard)');
     expect(source).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(source).toContain("@Controller('admin-roles')");
-    expect(source).toContain('constructor(adminRolesService: AdminRolesService)');
-    expect(source).toContain('super(adminRolesService)');
+    expect(source).toContain('constructor(private readonly adminRolesService: AdminRolesService)');
+    expect(source).not.toContain('extends AdminRolesBaseController');
   });
 
   it('permission catalog is read-only and SUPER_ADMIN only', () => {
     const catalogController = source.slice(source.indexOf('export class PermissionCatalogController'));
     expect(catalogController).toContain("@Get('catalog')");
-    expect(catalogController).toContain('constructor(adminRolesService: AdminRolesService)');
-    expect(catalogController).toContain('super(adminRolesService)');
+    expect(catalogController).toContain('constructor(private readonly adminRolesService: AdminRolesService)');
+    expect(catalogController).not.toContain('extends AdminRolesBaseController');
     expect(catalogController).not.toContain('@Post');
     expect(catalogController).not.toContain('@Patch');
     expect(catalogController).not.toContain('@Delete');
