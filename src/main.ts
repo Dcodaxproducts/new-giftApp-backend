@@ -43,11 +43,6 @@ function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
   return SWAGGER_TAG_ORDER.reduce((current, tag) => current.addTag(tag), builder);
 }
 
-function swaggerTagIndex(tag: string): number {
-  const index = (SWAGGER_TAG_ORDER as readonly string[]).indexOf(tag);
-  return index === -1 ? SWAGGER_TAG_ORDER.length : index;
-}
-
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
@@ -78,7 +73,42 @@ async function bootstrap(): Promise<void> {
   document.tags = SWAGGER_TAG_ORDER.map((name) => ({ name }));
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
-      tagsSorter: (a: string, b: string) => swaggerTagIndex(a) - swaggerTagIndex(b),
+      tagsSorter: (a: string, b: string) => {
+        const order = [
+          'Auth',
+          'Login Attempts',
+          'Admin Staff Management',
+          'Admin Roles / RBAC',
+          'User Management',
+          'Provider Management',
+          'Provider Inventory',
+          'Provider Promotional Offers',
+          'Promotional Offers Management',
+          'Gift Categories',
+          'Gift Management',
+          'Gift Moderation',
+          'Customer Marketplace',
+          'Customer Wishlist',
+          'Customer Addresses',
+          'Customer Contacts',
+          'Customer Events',
+          'Customer Event Reminder Settings',
+          'Customer Cart',
+          'Customer Orders',
+          'Customer Recurring Payments',
+          'Customer Transactions',
+          'Payments',
+          'Notifications',
+          'Broadcast Notifications',
+          'Subscription Plans',
+          'Coupons',
+          'Storage',
+          'Audit Logs',
+        ];
+        const left = order.indexOf(a);
+        const right = order.indexOf(b);
+        return (left === -1 ? order.length : left) - (right === -1 ? order.length : right);
+      },
     },
   });
 
