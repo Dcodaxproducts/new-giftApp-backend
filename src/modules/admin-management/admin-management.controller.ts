@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -50,6 +50,8 @@ export class AdminManagementController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'List admin staff users', description: 'SUPER_ADMIN only. Returns User.role = ADMIN staff accounts only; SUPER_ADMIN accounts are intentionally excluded.' })
+  @ApiResponse({ status: 200, description: 'Admins fetched successfully', schema: { example: { success: true, data: [{ id: 'admin_id', firstName: 'Operations', lastName: 'Staff', fullName: 'Operations Staff', email: 'staff@example.com', phone: '+15550000002', role: { id: 'admin_role_id', name: 'Gift Manager', slug: 'gift-manager' }, isActive: true, isVerified: true, createdAt: '2026-05-09T10:00:00.000Z', lastLoginAt: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Admins fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListAdminsDto) {
     return this.adminManagementService.list(user, query);
   }

@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, ServiceUnavailableException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { resetPasswordTemplate } from '../../mail/templates/reset-password.template';
 import { AuthService } from './auth.service';
@@ -287,6 +287,7 @@ function createAdminCreationService(options?: {
     user: {
       findUnique: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue(createdAdmin),
+      findMany: jest.fn().mockResolvedValue([createdAdmin]),
       count: jest.fn().mockResolvedValue(options?.assignedAdminCount ?? 1),
       update: jest.fn(),
       updateMany: jest.fn(),
@@ -296,6 +297,7 @@ function createAdminCreationService(options?: {
       update: jest.fn().mockResolvedValue({ ...adminRole, permissions: { gifts: ['read'] } }),
     },
     adminAuditLog: { create: jest.fn() },
+    $transaction: jest.fn(async (operations: Array<Promise<unknown>>) => Promise.all(operations)),
   };
   const service = new AuthService(
     prisma as unknown as ConstructorParameters<typeof AuthService>[0],
@@ -310,6 +312,17 @@ function createAdminCreationService(options?: {
 }
 
 describe('AuthService admin staff RBAC architecture', () => {
+  it('GET /admins lists only User.role = ADMIN staff, not SUPER_ADMIN accounts', async () => {
+    const { service, prisma } = createAdminCreationService();
+
+    await service.listAdmins({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, {});
+
+    const findManyCalls = prisma.user.findMany.mock.calls as Array<[{ where: Prisma.UserWhereInput }]>;
+    const countCalls = prisma.user.count.mock.calls as Array<[{ where: Prisma.UserWhereInput }]>;
+    expect(findManyCalls[0][0].where).toMatchObject({ role: UserRole.ADMIN, deletedAt: null });
+    expect(countCalls[0][0].where).toMatchObject({ role: UserRole.ADMIN, deletedAt: null });
+  });
+
   it('POST /admins creates User.role = ADMIN and roleId points to AdminRole.id', async () => {
     const { service, prisma } = createAdminCreationService();
 
