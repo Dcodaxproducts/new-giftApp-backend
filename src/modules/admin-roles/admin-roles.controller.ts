@@ -23,6 +23,10 @@ export class AdminRolesBaseController {
 @Roles(UserRole.SUPER_ADMIN)
 @Controller('admin-roles')
 export class AdminRolesController extends AdminRolesBaseController {
+  constructor(adminRolesService: AdminRolesService) {
+    super(adminRolesService);
+  }
+
   @Get()
   @ApiOperation({ description: 'Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.' })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListAdminRolesDto) {
@@ -69,6 +73,10 @@ export class AdminRolesController extends AdminRolesBaseController {
 @Roles(UserRole.SUPER_ADMIN)
 @Controller('permissions')
 export class PermissionCatalogController extends AdminRolesBaseController {
+  constructor(adminRolesService: AdminRolesService) {
+    super(adminRolesService);
+  }
+
   @Get('catalog')
   @ApiOperation({ description: 'Read-only list of backend-supported permission keys that can be assigned to admin roles.' })
   catalog() {
