@@ -247,86 +247,117 @@ enum MoneyGiftStatus {
   CANCELLED
 }
 
+enum CustomerRecurringPaymentFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum CustomerRecurringPaymentStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
+enum CustomerRecurringPaymentOccurrenceStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  SKIPPED
+  CANCELLED
+}
+
+enum CustomerRecurringPaymentCancelMode {
+  IMMEDIATELY
+  AFTER_CURRENT_BILLING_CYCLE
+}
+
 enum ProviderFulfillmentMethod {
   PICKUP
   DELIVERY
 }
 
 model User {
-  id                        String                  @id @default(cuid())
-  email                     String                  @unique
-  password                  String
-  role                      UserRole                @default(REGISTERED_USER)
-  firstName                 String                  @map("first_name")
-  lastName                  String                  @map("last_name")
-  phone                     String?
-  avatarUrl                 String?                 @map("avatar_url")
-  location                  String?
-  adminRoleId               String?                 @map("admin_role_id")
-  isVerified                Boolean                 @default(false) @map("is_verified")
-  isActive                  Boolean                 @default(true) @map("is_active")
-  isApproved                Boolean                 @default(true) @map("is_approved")
-  mustChangePassword        Boolean                 @default(false) @map("must_change_password")
-  lastLoginAt               DateTime?               @map("last_login_at") @db.Timestamptz
-  adminTitle                String?                 @map("admin_title")
-  adminPermissions          Json?                   @map("admin_permissions")
-  providerBusinessName      String?                 @map("provider_business_name")
-  providerBusinessCategoryId String?                @map("provider_business_category_id")
-  providerTaxId             String?                 @map("provider_tax_id")
-  providerBusinessAddress   String?                 @map("provider_business_address")
-  providerServiceArea       String?                 @map("provider_service_area")
-  providerFulfillmentMethods Json?                  @map("provider_fulfillment_methods")
-  providerAutoAcceptOrders  Boolean                 @default(false) @map("provider_auto_accept_orders")
-  providerDocuments         Json?                   @map("provider_documents")
-  providerApprovalStatus    ProviderApprovalStatus? @map("provider_approval_status")
-  providerApprovedAt        DateTime?               @map("provider_approved_at") @db.Timestamptz
-  providerApprovedBy        String?                 @map("provider_approved_by")
-  providerRejectedAt        DateTime?               @map("provider_rejected_at") @db.Timestamptz
-  providerRejectedBy        String?                 @map("provider_rejected_by")
-  providerRejectionReason   String?                 @map("provider_rejection_reason")
-  providerRejectionComment  String?                 @map("provider_rejection_comment")
-  verificationOtp           String?                 @map("verification_otp")
-  verificationOtpExpiresAt  DateTime?               @map("verification_otp_expires_at") @db.Timestamptz
-  verificationOtpAttempts   Int                     @default(0) @map("verification_otp_attempts")
-  resetPasswordOtp          String?                 @map("reset_password_otp")
-  resetPasswordOtpExpiresAt DateTime?               @map("reset_password_otp_expires_at") @db.Timestamptz
-  resetPasswordOtpAttempts  Int                     @default(0) @map("reset_password_otp_attempts")
-  suspensionReason          String?                 @map("suspension_reason")
-  suspensionComment         String?                 @map("suspension_comment")
-  suspendedAt               DateTime?               @map("suspended_at") @db.Timestamptz
-  suspendedBy               String?                 @map("suspended_by")
-  refreshTokenHash          String?                 @map("refresh_token_hash")
-  deletedAt                 DateTime?               @map("deleted_at") @db.Timestamptz
-  deleteAfter               DateTime?               @map("delete_after") @db.Timestamptz
-  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
-  loginAttempts             LoginAttempt[]
-  adminRole                 AdminRole?              @relation(fields: [adminRoleId], references: [id])
-  auditLogs                 AdminAuditLog[]         @relation("AuditActor")
-  accountSuspensions        AccountSuspension[]     @relation("SuspendedAccount")
-  createdSuspensions        AccountSuspension[]     @relation("SuspensionActor")
-  resolvedSuspensions       AccountSuspension[]     @relation("UnsuspensionActor")
-  providerGifts             Gift[]                  @relation("GiftProvider")
-  approvedGifts             Gift[]                  @relation("GiftApprover")
-  rejectedGifts             Gift[]                  @relation("GiftRejecter")
-  flaggedGifts              Gift[]                  @relation("GiftFlagger")
-  promotionalOffers         PromotionalOffer[]       @relation("PromotionalOfferProvider")
-  approvedPromotionalOffers PromotionalOffer[]       @relation("PromotionalOfferApprover")
-  rejectedPromotionalOffers PromotionalOffer[]       @relation("PromotionalOfferRejecter")
-  createdBroadcasts         Broadcast[]             @relation("BroadcastCreator")
-  updatedBroadcasts         Broadcast[]             @relation("BroadcastUpdater")
-  cancelledBroadcasts       Broadcast[]             @relation("BroadcastCanceller")
-  notifications             Notification[]
-  deviceTokens              NotificationDeviceToken[]
-  notificationPreference    NotificationPreference?
-  payments                  Payment[]
-  moneyGifts                MoneyGift[]
-  uploadedFiles             UploadedFile[]
-  createdSubscriptionPlans  SubscriptionPlan[]      @relation("SubscriptionPlanCreator")
-  updatedSubscriptionPlans  SubscriptionPlan[]      @relation("SubscriptionPlanUpdater")
-  createdCoupons            Coupon[]                @relation("CouponCreator")
-  updatedCoupons            Coupon[]                @relation("CouponUpdater")
-  providerBusinessCategory  ProviderBusinessCategory? @relation(fields: [providerBusinessCategoryId], references: [id])
+  id                                  String                               @id @default(cuid())
+  email                               String                               @unique
+  password                            String
+  role                                UserRole                             @default(REGISTERED_USER)
+  firstName                           String                               @map("first_name")
+  lastName                            String                               @map("last_name")
+  phone                               String?
+  avatarUrl                           String?                              @map("avatar_url")
+  location                            String?
+  adminRoleId                         String?                              @map("admin_role_id")
+  isVerified                          Boolean                              @default(false) @map("is_verified")
+  isActive                            Boolean                              @default(true) @map("is_active")
+  isApproved                          Boolean                              @default(true) @map("is_approved")
+  mustChangePassword                  Boolean                              @default(false) @map("must_change_password")
+  lastLoginAt                         DateTime?                            @map("last_login_at") @db.Timestamptz
+  adminTitle                          String?                              @map("admin_title")
+  adminPermissions                    Json?                                @map("admin_permissions")
+  providerBusinessName                String?                              @map("provider_business_name")
+  providerBusinessCategoryId          String?                              @map("provider_business_category_id")
+  providerTaxId                       String?                              @map("provider_tax_id")
+  providerBusinessAddress             String?                              @map("provider_business_address")
+  providerServiceArea                 String?                              @map("provider_service_area")
+  providerFulfillmentMethods          Json?                                @map("provider_fulfillment_methods")
+  providerAutoAcceptOrders            Boolean                              @default(false) @map("provider_auto_accept_orders")
+  providerDocuments                   Json?                                @map("provider_documents")
+  providerApprovalStatus              ProviderApprovalStatus?              @map("provider_approval_status")
+  providerApprovedAt                  DateTime?                            @map("provider_approved_at") @db.Timestamptz
+  providerApprovedBy                  String?                              @map("provider_approved_by")
+  providerRejectedAt                  DateTime?                            @map("provider_rejected_at") @db.Timestamptz
+  providerRejectedBy                  String?                              @map("provider_rejected_by")
+  providerRejectionReason             String?                              @map("provider_rejection_reason")
+  providerRejectionComment            String?                              @map("provider_rejection_comment")
+  verificationOtp                     String?                              @map("verification_otp")
+  verificationOtpExpiresAt            DateTime?                            @map("verification_otp_expires_at") @db.Timestamptz
+  verificationOtpAttempts             Int                                  @default(0) @map("verification_otp_attempts")
+  resetPasswordOtp                    String?                              @map("reset_password_otp")
+  resetPasswordOtpExpiresAt           DateTime?                            @map("reset_password_otp_expires_at") @db.Timestamptz
+  resetPasswordOtpAttempts            Int                                  @default(0) @map("reset_password_otp_attempts")
+  suspensionReason                    String?                              @map("suspension_reason")
+  suspensionComment                   String?                              @map("suspension_comment")
+  suspendedAt                         DateTime?                            @map("suspended_at") @db.Timestamptz
+  suspendedBy                         String?                              @map("suspended_by")
+  refreshTokenHash                    String?                              @map("refresh_token_hash")
+  deletedAt                           DateTime?                            @map("deleted_at") @db.Timestamptz
+  deleteAfter                         DateTime?                            @map("delete_after") @db.Timestamptz
+  createdAt                           DateTime                             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                           DateTime                             @updatedAt @map("updated_at") @db.Timestamptz
+  loginAttempts                       LoginAttempt[]
+  adminRole                           AdminRole?                           @relation(fields: [adminRoleId], references: [id])
+  auditLogs                           AdminAuditLog[]                      @relation("AuditActor")
+  accountSuspensions                  AccountSuspension[]                  @relation("SuspendedAccount")
+  createdSuspensions                  AccountSuspension[]                  @relation("SuspensionActor")
+  resolvedSuspensions                 AccountSuspension[]                  @relation("UnsuspensionActor")
+  providerGifts                       Gift[]                               @relation("GiftProvider")
+  approvedGifts                       Gift[]                               @relation("GiftApprover")
+  rejectedGifts                       Gift[]                               @relation("GiftRejecter")
+  flaggedGifts                        Gift[]                               @relation("GiftFlagger")
+  promotionalOffers                   PromotionalOffer[]                   @relation("PromotionalOfferProvider")
+  approvedPromotionalOffers           PromotionalOffer[]                   @relation("PromotionalOfferApprover")
+  rejectedPromotionalOffers           PromotionalOffer[]                   @relation("PromotionalOfferRejecter")
+  createdBroadcasts                   Broadcast[]                          @relation("BroadcastCreator")
+  updatedBroadcasts                   Broadcast[]                          @relation("BroadcastUpdater")
+  cancelledBroadcasts                 Broadcast[]                          @relation("BroadcastCanceller")
+  notifications                       Notification[]
+  deviceTokens                        NotificationDeviceToken[]
+  notificationPreference              NotificationPreference?
+  payments                            Payment[]
+  moneyGifts                          MoneyGift[]
+  customerRecurringPayments           CustomerRecurringPayment[]
+  customerRecurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
+  customerPaymentMethods              CustomerPaymentMethod[]
+  uploadedFiles                       UploadedFile[]
+  createdSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanCreator")
+  updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
+  createdCoupons                      Coupon[]                             @relation("CouponCreator")
+  updatedCoupons                      Coupon[]                             @relation("CouponUpdater")
+  providerBusinessCategory            ProviderBusinessCategory?            @relation(fields: [providerBusinessCategoryId], references: [id])
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -337,16 +368,16 @@ model User {
 }
 
 model ProviderBusinessCategory {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
   description String?
-  iconKey     String?  @map("icon_key")
-  sortOrder   Int      @default(0) @map("sort_order")
-  isActive    Boolean  @default(true) @map("is_active")
+  iconKey     String?   @map("icon_key")
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   providers User[]
 
@@ -356,19 +387,19 @@ model ProviderBusinessCategory {
 }
 
 model GiftCategory {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String?
-  iconKey     String?   @map("icon_key")
-  color       String?
-  backgroundColor String? @default("#F3E8FF") @map("background_color")
-  imageUrl    String?   @map("image_url")
-  sortOrder   Int       @default(0) @map("sort_order")
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  description     String?
+  iconKey         String?   @map("icon_key")
+  color           String?
+  backgroundColor String?   @default("#F3E8FF") @map("background_color")
+  imageUrl        String?   @map("image_url")
+  sortOrder       Int       @default(0) @map("sort_order")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz
 
   gifts Gift[]
 
@@ -433,22 +464,23 @@ model CustomerReminder {
 }
 
 model CustomerContact {
-  id           String    @id @default(cuid())
-  userId       String    @map("user_id")
-  name         String
-  relationship String?
-  phone        String?
-  email        String?
-  address      String?
-  likes        String?
-  avatarUrl    String?   @map("avatar_url")
-  birthday     DateTime? @db.Date
-  notes        String?
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz
-  events       CustomerEvent[]
-  moneyGifts   MoneyGift[]
+  id                String                     @id @default(cuid())
+  userId            String                     @map("user_id")
+  name              String
+  relationship      String?
+  phone             String?
+  email             String?
+  address           String?
+  likes             String?
+  avatarUrl         String?                    @map("avatar_url")
+  birthday          DateTime?                  @db.Date
+  notes             String?
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?                  @map("deleted_at") @db.Timestamptz
+  events            CustomerEvent[]
+  moneyGifts        MoneyGift[]
+  recurringPayments CustomerRecurringPayment[]
 
   @@index([userId])
   @@index([userId, name])
@@ -458,25 +490,25 @@ model CustomerContact {
 }
 
 model CustomerEvent {
-  id                String                         @id @default(cuid())
-  userId            String                         @map("user_id")
-  recipientId       String?                        @map("recipient_id")
-  eventType         CustomerEventType              @map("event_type")
-  title             String
-  eventDate         DateTime                       @map("event_date") @db.Timestamptz
-  reminderTiming    CustomerEventReminderTiming    @default(ON_THE_DAY) @map("reminder_timing")
-  reminderFrequency CustomerEventReminderFrequency @default(ONE_TIME) @map("reminder_frequency")
-  customAlertTime   String?                        @map("custom_alert_time")
-  channelsJson      Json                           @default("[\"PUSH\"]") @map("channels_json")
-  notes             String?
-  isActive          Boolean                        @default(true) @map("is_active")
-  lastReminderSentAt DateTime?                     @map("last_reminder_sent_at") @db.Timestamptz
-  nextReminderAt    DateTime?                      @map("next_reminder_at") @db.Timestamptz
-  createdAt         DateTime                       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt         DateTime?                      @map("deleted_at") @db.Timestamptz
-  recipient         CustomerContact?               @relation(fields: [recipientId], references: [id])
-  reminderJobs      CustomerEventReminderJob[]
+  id                 String                         @id @default(cuid())
+  userId             String                         @map("user_id")
+  recipientId        String?                        @map("recipient_id")
+  eventType          CustomerEventType              @map("event_type")
+  title              String
+  eventDate          DateTime                       @map("event_date") @db.Timestamptz
+  reminderTiming     CustomerEventReminderTiming    @default(ON_THE_DAY) @map("reminder_timing")
+  reminderFrequency  CustomerEventReminderFrequency @default(ONE_TIME) @map("reminder_frequency")
+  customAlertTime    String?                        @map("custom_alert_time")
+  channelsJson       Json                           @default("[\"PUSH\"]") @map("channels_json")
+  notes              String?
+  isActive           Boolean                        @default(true) @map("is_active")
+  lastReminderSentAt DateTime?                      @map("last_reminder_sent_at") @db.Timestamptz
+  nextReminderAt     DateTime?                      @map("next_reminder_at") @db.Timestamptz
+  createdAt          DateTime                       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt          DateTime?                      @map("deleted_at") @db.Timestamptz
+  recipient          CustomerContact?               @relation(fields: [recipientId], references: [id])
+  reminderJobs       CustomerEventReminderJob[]
 
   @@index([userId, deletedAt])
   @@index([userId, eventDate])
@@ -516,30 +548,30 @@ model Cart {
 }
 
 model CartItem {
-  id                      String                 @id @default(cuid())
-  cartId                  String                 @map("cart_id")
-  giftId                  String                 @map("gift_id")
-  variantId               String?                @map("variant_id")
-  providerId              String                 @map("provider_id")
-  quantity                Int
-  unitPriceSnapshot       Decimal                @map("unit_price_snapshot") @db.Decimal(10, 2)
-  discountAmountSnapshot  Decimal                @default(0) @map("discount_amount_snapshot") @db.Decimal(10, 2)
-  finalUnitPriceSnapshot  Decimal                @map("final_unit_price_snapshot") @db.Decimal(10, 2)
-  promotionalOfferId      String?                @map("promotional_offer_id")
-  deliveryOption          CustomerDeliveryOption @map("delivery_option")
-  recipientContactId      String?                @map("recipient_contact_id")
-  recipientName           String                 @map("recipient_name")
-  recipientPhone          String                 @map("recipient_phone")
-  recipientAddressId      String                 @map("recipient_address_id")
-  eventId                 String?                @map("event_id")
-  giftMessage             String?                @map("gift_message")
-  messageMediaUrlsJson    Json                   @default("[]") @map("message_media_urls_json")
-  scheduledDeliveryAt     DateTime?              @map("scheduled_delivery_at") @db.Timestamptz
-  createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt               DateTime               @updatedAt @map("updated_at") @db.Timestamptz
-  cart                    Cart                   @relation(fields: [cartId], references: [id])
-  gift                    Gift                   @relation(fields: [giftId], references: [id])
-  variant                 GiftVariant?           @relation(fields: [variantId], references: [id])
+  id                     String                 @id @default(cuid())
+  cartId                 String                 @map("cart_id")
+  giftId                 String                 @map("gift_id")
+  variantId              String?                @map("variant_id")
+  providerId             String                 @map("provider_id")
+  quantity               Int
+  unitPriceSnapshot      Decimal                @map("unit_price_snapshot") @db.Decimal(10, 2)
+  discountAmountSnapshot Decimal                @default(0) @map("discount_amount_snapshot") @db.Decimal(10, 2)
+  finalUnitPriceSnapshot Decimal                @map("final_unit_price_snapshot") @db.Decimal(10, 2)
+  promotionalOfferId     String?                @map("promotional_offer_id")
+  deliveryOption         CustomerDeliveryOption @map("delivery_option")
+  recipientContactId     String?                @map("recipient_contact_id")
+  recipientName          String                 @map("recipient_name")
+  recipientPhone         String                 @map("recipient_phone")
+  recipientAddressId     String                 @map("recipient_address_id")
+  eventId                String?                @map("event_id")
+  giftMessage            String?                @map("gift_message")
+  messageMediaUrlsJson   Json                   @default("[]") @map("message_media_urls_json")
+  scheduledDeliveryAt    DateTime?              @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+  cart                   Cart                   @relation(fields: [cartId], references: [id])
+  gift                   Gift                   @relation(fields: [giftId], references: [id])
+  variant                GiftVariant?           @relation(fields: [variantId], references: [id])
 
   @@index([cartId])
   @@index([giftId])
@@ -565,9 +597,10 @@ model Payment {
   createdAt               DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt               DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  user      User       @relation(fields: [userId], references: [id])
-  order     Order?     @relation(fields: [orderId], references: [id])
-  moneyGift MoneyGift? @relation(fields: [moneyGiftId], references: [id])
+  user                        User                                 @relation(fields: [userId], references: [id])
+  order                       Order?                               @relation(fields: [orderId], references: [id])
+  moneyGift                   MoneyGift?                           @relation(fields: [moneyGiftId], references: [id])
+  recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
 
   @@index([userId, status])
   @@index([status, createdAt])
@@ -575,26 +608,26 @@ model Payment {
 }
 
 model Order {
-  id                  String        @id @default(cuid())
-  userId              String        @map("user_id")
-  orderNumber         String        @unique @map("order_number")
-  status              OrderStatus   @default(PENDING)
-  paymentStatus       PaymentStatus @default(PENDING) @map("payment_status")
-  paymentMethod       PaymentMethod @default(COD) @map("payment_method")
-  paymentId           String?       @unique @map("payment_id")
-  subtotal            Decimal       @db.Decimal(10, 2)
-  discountTotal       Decimal       @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee         Decimal       @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                 Decimal       @default(0) @db.Decimal(10, 2)
-  total               Decimal       @db.Decimal(10, 2)
-  currency            String        @default("PKR")
-  deliveryAddressId   String        @map("delivery_address_id")
-  recipientName       String        @map("recipient_name")
-  recipientPhone      String        @map("recipient_phone")
-  giftMessage         String?       @map("gift_message")
-  scheduledDeliveryAt DateTime?     @map("scheduled_delivery_at") @db.Timestamptz
-  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  id                  String          @id @default(cuid())
+  userId              String          @map("user_id")
+  orderNumber         String          @unique @map("order_number")
+  status              OrderStatus     @default(PENDING)
+  paymentStatus       PaymentStatus   @default(PENDING) @map("payment_status")
+  paymentMethod       PaymentMethod   @default(COD) @map("payment_method")
+  paymentId           String?         @unique @map("payment_id")
+  subtotal            Decimal         @db.Decimal(10, 2)
+  discountTotal       Decimal         @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee         Decimal         @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                 Decimal         @default(0) @db.Decimal(10, 2)
+  total               Decimal         @db.Decimal(10, 2)
+  currency            String          @default("PKR")
+  deliveryAddressId   String          @map("delivery_address_id")
+  recipientName       String          @map("recipient_name")
+  recipientPhone      String          @map("recipient_phone")
+  giftMessage         String?         @map("gift_message")
+  scheduledDeliveryAt DateTime?       @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
   items               OrderItem[]
   providerOrders      ProviderOrder[]
   payment             Payment?
@@ -605,22 +638,22 @@ model Order {
 }
 
 model OrderItem {
-  id                 String      @id @default(cuid())
-  orderId            String      @map("order_id")
-  giftId             String      @map("gift_id")
-  variantId          String?     @map("variant_id")
-  providerId         String      @map("provider_id")
+  id                 String       @id @default(cuid())
+  orderId            String       @map("order_id")
+  giftId             String       @map("gift_id")
+  variantId          String?      @map("variant_id")
+  providerId         String       @map("provider_id")
   quantity           Int
-  unitPrice          Decimal     @map("unit_price") @db.Decimal(10, 2)
-  discountAmount     Decimal     @default(0) @map("discount_amount") @db.Decimal(10, 2)
-  finalUnitPrice     Decimal     @map("final_unit_price") @db.Decimal(10, 2)
-  total              Decimal     @db.Decimal(10, 2)
-  promotionalOfferId String?     @map("promotional_offer_id")
-  status             OrderStatus @default(PENDING)
-  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz
-  order              Order       @relation(fields: [orderId], references: [id])
-  gift               Gift        @relation(fields: [giftId], references: [id])
+  unitPrice          Decimal      @map("unit_price") @db.Decimal(10, 2)
+  discountAmount     Decimal      @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  finalUnitPrice     Decimal      @map("final_unit_price") @db.Decimal(10, 2)
+  total              Decimal      @db.Decimal(10, 2)
+  promotionalOfferId String?      @map("promotional_offer_id")
+  status             OrderStatus  @default(PENDING)
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  order              Order        @relation(fields: [orderId], references: [id])
+  gift               Gift         @relation(fields: [giftId], references: [id])
   variant            GiftVariant? @relation(fields: [variantId], references: [id])
 
   @@index([orderId])
@@ -665,43 +698,128 @@ model MoneyGift {
   createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  user             User            @relation(fields: [userId], references: [id])
-  recipientContact CustomerContact @relation(fields: [recipientContactId], references: [id])
-  payment          Payment?
+  user                        User                                 @relation(fields: [userId], references: [id])
+  recipientContact            CustomerContact                      @relation(fields: [recipientContactId], references: [id])
+  payment                     Payment?
+  recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
 
   @@index([userId, status, createdAt])
   @@index([recipientContactId])
   @@map("money_gifts")
 }
 
+model CustomerRecurringPayment {
+  id                    String                            @id @default(cuid())
+  userId                String                            @map("user_id")
+  recipientContactId    String                            @map("recipient_contact_id")
+  amount                Decimal                           @db.Decimal(10, 2)
+  currency              String
+  frequency             CustomerRecurringPaymentFrequency
+  scheduleJson          Json                              @map("schedule_json")
+  message               String?
+  messageMediaUrlsJson  Json                              @default("[]") @map("message_media_urls_json")
+  paymentMethod         PaymentMethod                     @map("payment_method")
+  stripePaymentMethodId String?                           @map("stripe_payment_method_id")
+  status                CustomerRecurringPaymentStatus    @default(ACTIVE)
+  nextBillingAt         DateTime                          @map("next_billing_at") @db.Timestamptz
+  startDate             DateTime                          @map("start_date") @db.Timestamptz
+  endDate               DateTime?                         @map("end_date") @db.Timestamptz
+  cancelAt              DateTime?                         @map("cancel_at") @db.Timestamptz
+  cancelAtPeriodEnd     Boolean                           @default(false) @map("cancel_at_period_end")
+  cancelledAt           DateTime?                         @map("cancelled_at") @db.Timestamptz
+  cancelReason          String?                           @map("cancel_reason")
+  failureCount          Int                               @default(0) @map("failure_count")
+  deletedAt             DateTime?                         @map("deleted_at") @db.Timestamptz
+  createdAt             DateTime                          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime                          @updatedAt @map("updated_at") @db.Timestamptz
+
+  user             User                                 @relation(fields: [userId], references: [id])
+  recipientContact CustomerContact                      @relation(fields: [recipientContactId], references: [id])
+  occurrences      CustomerRecurringPaymentOccurrence[]
+
+  @@index([userId, status, nextBillingAt])
+  @@index([recipientContactId])
+  @@index([status, nextBillingAt])
+  @@index([deletedAt])
+  @@map("customer_recurring_payments")
+}
+
+model CustomerRecurringPaymentOccurrence {
+  id                 String                                   @id @default(cuid())
+  recurringPaymentId String                                   @map("recurring_payment_id")
+  userId             String                                   @map("user_id")
+  paymentId          String?                                  @map("payment_id")
+  moneyGiftId        String?                                  @map("money_gift_id")
+  amount             Decimal                                  @db.Decimal(10, 2)
+  currency           String
+  scheduledFor       DateTime                                 @map("scheduled_for") @db.Timestamptz
+  processedAt        DateTime?                                @map("processed_at") @db.Timestamptz
+  status             CustomerRecurringPaymentOccurrenceStatus @default(PENDING)
+  failureReason      String?                                  @map("failure_reason")
+  createdAt          DateTime                                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                                 @updatedAt @map("updated_at") @db.Timestamptz
+
+  recurringPayment CustomerRecurringPayment @relation(fields: [recurringPaymentId], references: [id])
+  user             User                     @relation(fields: [userId], references: [id])
+  payment          Payment?                 @relation(fields: [paymentId], references: [id])
+  moneyGift        MoneyGift?               @relation(fields: [moneyGiftId], references: [id])
+
+  @@index([recurringPaymentId, status])
+  @@index([userId, scheduledFor])
+  @@index([status, scheduledFor])
+  @@map("customer_recurring_payment_occurrences")
+}
+
+model CustomerPaymentMethod {
+  id                    String    @id @default(cuid())
+  userId                String    @map("user_id")
+  stripeCustomerId      String    @map("stripe_customer_id")
+  stripePaymentMethodId String    @unique @map("stripe_payment_method_id")
+  type                  String
+  brand                 String?
+  last4                 String?
+  expiryMonth           Int?      @map("expiry_month")
+  expiryYear            Int?      @map("expiry_year")
+  isDefault             Boolean   @default(false) @map("is_default")
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt             DateTime? @map("deleted_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, deletedAt])
+  @@index([userId, isDefault])
+  @@map("customer_payment_methods")
+}
+
 model PromotionalOffer {
-  id               String                          @id @default(cuid())
-  providerId       String                          @map("provider_id")
-  itemId           String                          @map("item_id")
+  id               String                           @id @default(cuid())
+  providerId       String                           @map("provider_id")
+  itemId           String                           @map("item_id")
   title            String
   description      String?
-  discountType     PromotionalOfferDiscountType    @map("discount_type")
-  discountValue    Decimal                         @map("discount_value") @db.Decimal(10, 2)
-  startDate        DateTime                        @map("start_date") @db.Timestamptz
-  endDate          DateTime?                       @map("end_date") @db.Timestamptz
-  eligibilityRules String?                         @map("eligibility_rules")
-  isActive         Boolean                         @default(true) @map("is_active")
-  status           PromotionalOfferStatus          @default(PENDING)
-  approvalStatus   PromotionalOfferApprovalStatus  @default(PENDING) @map("approval_status")
-  approvedAt       DateTime?                       @map("approved_at") @db.Timestamptz
-  approvedBy       String?                         @map("approved_by")
-  rejectedAt       DateTime?                       @map("rejected_at") @db.Timestamptz
-  rejectedBy       String?                         @map("rejected_by")
+  discountType     PromotionalOfferDiscountType     @map("discount_type")
+  discountValue    Decimal                          @map("discount_value") @db.Decimal(10, 2)
+  startDate        DateTime                         @map("start_date") @db.Timestamptz
+  endDate          DateTime?                        @map("end_date") @db.Timestamptz
+  eligibilityRules String?                          @map("eligibility_rules")
+  isActive         Boolean                          @default(true) @map("is_active")
+  status           PromotionalOfferStatus           @default(PENDING)
+  approvalStatus   PromotionalOfferApprovalStatus   @default(PENDING) @map("approval_status")
+  approvedAt       DateTime?                        @map("approved_at") @db.Timestamptz
+  approvedBy       String?                          @map("approved_by")
+  rejectedAt       DateTime?                        @map("rejected_at") @db.Timestamptz
+  rejectedBy       String?                          @map("rejected_by")
   rejectionReason  PromotionalOfferRejectionReason? @map("rejection_reason")
-  rejectionComment String?                         @map("rejection_comment")
-  createdBy        String?                         @map("created_by")
-  updatedBy        String?                         @map("updated_by")
-  deletedAt        DateTime?                       @map("deleted_at") @db.Timestamptz
-  createdAt        DateTime                        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
+  rejectionComment String?                          @map("rejection_comment")
+  createdBy        String?                          @map("created_by")
+  updatedBy        String?                          @map("updated_by")
+  deletedAt        DateTime?                        @map("deleted_at") @db.Timestamptz
+  createdAt        DateTime                         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime                         @updatedAt @map("updated_at") @db.Timestamptz
 
-  provider User @relation("PromotionalOfferProvider", fields: [providerId], references: [id])
-  item     Gift @relation(fields: [itemId], references: [id])
+  provider User  @relation("PromotionalOfferProvider", fields: [providerId], references: [id])
+  item     Gift  @relation(fields: [itemId], references: [id])
   approver User? @relation("PromotionalOfferApprover", fields: [approvedBy], references: [id])
   rejecter User? @relation("PromotionalOfferRejecter", fields: [rejectedBy], references: [id])
 
@@ -714,47 +832,47 @@ model PromotionalOffer {
 }
 
 model Gift {
-  id               String               @id @default(cuid())
-  name             String
-  slug             String               @unique
-  description      String?
-  shortDescription String?              @map("short_description")
-  categoryId       String               @map("category_id")
-  providerId       String               @map("provider_id")
-  price            Decimal              @db.Decimal(10, 2)
-  currency         String               @default("USD")
-  stockQuantity    Int                  @default(0) @map("stock_quantity")
-  sku              String?              @unique
-  imageUrls        Json                 @default("[]") @map("image_urls")
-  status           GiftStatus           @default(INACTIVE)
-  moderationStatus GiftModerationStatus @default(PENDING) @map("moderation_status")
-  isPublished      Boolean              @default(false) @map("is_published")
-  isFeatured       Boolean              @default(false) @map("is_featured")
-  tags             Json                 @default("[]")
-  ratingPlaceholder Decimal             @default(4.8) @map("rating_placeholder") @db.Decimal(3, 2)
-  approvedAt       DateTime?            @map("approved_at") @db.Timestamptz
-  approvedBy       String?              @map("approved_by")
-  rejectedAt       DateTime?            @map("rejected_at") @db.Timestamptz
-  rejectedBy       String?              @map("rejected_by")
-  rejectionReason  String?              @map("rejection_reason")
-  rejectionComment String?              @map("rejection_comment")
-  flaggedAt        DateTime?            @map("flagged_at") @db.Timestamptz
-  flaggedBy        String?              @map("flagged_by")
-  flagReason       String?              @map("flag_reason")
-  flagComment      String?              @map("flag_comment")
-  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt        DateTime?            @map("deleted_at") @db.Timestamptz
+  id                String               @id @default(cuid())
+  name              String
+  slug              String               @unique
+  description       String?
+  shortDescription  String?              @map("short_description")
+  categoryId        String               @map("category_id")
+  providerId        String               @map("provider_id")
+  price             Decimal              @db.Decimal(10, 2)
+  currency          String               @default("USD")
+  stockQuantity     Int                  @default(0) @map("stock_quantity")
+  sku               String?              @unique
+  imageUrls         Json                 @default("[]") @map("image_urls")
+  status            GiftStatus           @default(INACTIVE)
+  moderationStatus  GiftModerationStatus @default(PENDING) @map("moderation_status")
+  isPublished       Boolean              @default(false) @map("is_published")
+  isFeatured        Boolean              @default(false) @map("is_featured")
+  tags              Json                 @default("[]")
+  ratingPlaceholder Decimal              @default(4.8) @map("rating_placeholder") @db.Decimal(3, 2)
+  approvedAt        DateTime?            @map("approved_at") @db.Timestamptz
+  approvedBy        String?              @map("approved_by")
+  rejectedAt        DateTime?            @map("rejected_at") @db.Timestamptz
+  rejectedBy        String?              @map("rejected_by")
+  rejectionReason   String?              @map("rejection_reason")
+  rejectionComment  String?              @map("rejection_comment")
+  flaggedAt         DateTime?            @map("flagged_at") @db.Timestamptz
+  flaggedBy         String?              @map("flagged_by")
+  flagReason        String?              @map("flag_reason")
+  flagComment       String?              @map("flag_comment")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?            @map("deleted_at") @db.Timestamptz
 
-  category GiftCategory @relation(fields: [categoryId], references: [id])
-  provider User         @relation("GiftProvider", fields: [providerId], references: [id])
-  approver User?        @relation("GiftApprover", fields: [approvedBy], references: [id])
-  rejecter User?        @relation("GiftRejecter", fields: [rejectedBy], references: [id])
-  flagger  User?        @relation("GiftFlagger", fields: [flaggedBy], references: [id])
+  category          GiftCategory       @relation(fields: [categoryId], references: [id])
+  provider          User               @relation("GiftProvider", fields: [providerId], references: [id])
+  approver          User?              @relation("GiftApprover", fields: [approvedBy], references: [id])
+  rejecter          User?              @relation("GiftRejecter", fields: [rejectedBy], references: [id])
+  flagger           User?              @relation("GiftFlagger", fields: [flaggedBy], references: [id])
   promotionalOffers PromotionalOffer[]
-  variants GiftVariant[]
-  cartItems CartItem[]
-  orderItems OrderItem[]
+  variants          GiftVariant[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
 
   @@index([categoryId, deletedAt])
   @@index([providerId, deletedAt])
@@ -765,23 +883,23 @@ model Gift {
 }
 
 model GiftVariant {
-  id            String   @id @default(cuid())
-  giftId        String   @map("gift_id")
+  id            String    @id @default(cuid())
+  giftId        String    @map("gift_id")
   name          String
-  price         Decimal  @db.Decimal(10, 2)
-  originalPrice Decimal? @map("original_price") @db.Decimal(10, 2)
-  stockQuantity Int      @default(0) @map("stock_quantity")
-  sku           String?  @unique
-  isPopular     Boolean  @default(false) @map("is_popular")
-  isDefault     Boolean  @default(false) @map("is_default")
-  sortOrder     Int      @default(0) @map("sort_order")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  price         Decimal   @db.Decimal(10, 2)
+  originalPrice Decimal?  @map("original_price") @db.Decimal(10, 2)
+  stockQuantity Int       @default(0) @map("stock_quantity")
+  sku           String?   @unique
+  isPopular     Boolean   @default(false) @map("is_popular")
+  isDefault     Boolean   @default(false) @map("is_default")
+  sortOrder     Int       @default(0) @map("sort_order")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt     DateTime? @map("deleted_at") @db.Timestamptz
 
-  gift      Gift       @relation(fields: [giftId], references: [id])
-  cartItems CartItem[]
+  gift       Gift        @relation(fields: [giftId], references: [id])
+  cartItems  CartItem[]
   orderItems OrderItem[]
 
   @@index([giftId, isActive, sortOrder])
@@ -790,31 +908,31 @@ model GiftVariant {
 }
 
 model Broadcast {
-  id                 String            @id @default(cuid())
+  id                 String             @id @default(cuid())
   title              String
   message            String
-  imageUrl           String?           @map("image_url")
-  ctaLabel           String?           @map("cta_label")
-  ctaUrl             String?           @map("cta_url")
+  imageUrl           String?            @map("image_url")
+  ctaLabel           String?            @map("cta_label")
+  ctaUrl             String?            @map("cta_url")
   channels           Json
-  priority           BroadcastPriority @default(NORMAL)
-  status             BroadcastStatus   @default(DRAFT)
-  targetingJson      Json?             @map("targeting_json")
-  estimatedReachJson Json?             @map("estimated_reach_json")
+  priority           BroadcastPriority  @default(NORMAL)
+  status             BroadcastStatus    @default(DRAFT)
+  targetingJson      Json?              @map("targeting_json")
+  estimatedReachJson Json?              @map("estimated_reach_json")
   sendMode           BroadcastSendMode? @map("send_mode")
-  scheduledAt        DateTime?         @map("scheduled_at") @db.Timestamptz
-  timezone           String?           @default("UTC")
-  isRecurring        Boolean           @default(false) @map("is_recurring")
-  recurrenceJson     Json?             @map("recurrence_json")
-  createdBy          String            @map("created_by")
-  updatedBy          String?           @map("updated_by")
-  cancelledAt        DateTime?         @map("cancelled_at") @db.Timestamptz
-  cancelledBy        String?           @map("cancelled_by")
-  cancelReason       String?           @map("cancel_reason")
-  startedAt          DateTime?         @map("started_at") @db.Timestamptz
-  completedAt        DateTime?         @map("completed_at") @db.Timestamptz
-  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  scheduledAt        DateTime?          @map("scheduled_at") @db.Timestamptz
+  timezone           String?            @default("UTC")
+  isRecurring        Boolean            @default(false) @map("is_recurring")
+  recurrenceJson     Json?              @map("recurrence_json")
+  createdBy          String             @map("created_by")
+  updatedBy          String?            @map("updated_by")
+  cancelledAt        DateTime?          @map("cancelled_at") @db.Timestamptz
+  cancelledBy        String?            @map("cancelled_by")
+  cancelReason       String?            @map("cancel_reason")
+  startedAt          DateTime?          @map("started_at") @db.Timestamptz
+  completedAt        DateTime?          @map("completed_at") @db.Timestamptz
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz
 
   creator   User  @relation("BroadcastCreator", fields: [createdBy], references: [id])
   updater   User? @relation("BroadcastUpdater", fields: [updatedBy], references: [id])
@@ -829,23 +947,23 @@ model Broadcast {
 }
 
 model BroadcastDelivery {
-  id                String                  @id @default(cuid())
-  broadcastId       String                  @map("broadcast_id")
-  recipientId       String                  @map("recipient_id")
+  id                String                    @id @default(cuid())
+  broadcastId       String                    @map("broadcast_id")
+  recipientId       String                    @map("recipient_id")
   recipientType     NotificationRecipientType @map("recipient_type")
   channel           BroadcastChannel
-  status            BroadcastDeliveryStatus @default(QUEUED)
+  status            BroadcastDeliveryStatus   @default(QUEUED)
   email             String?
-  deviceTokenId     String?                 @map("device_token_id")
-  failureReason     String?                 @map("failure_reason")
-  providerMessageId String?                 @map("provider_message_id")
-  queuedAt          DateTime                @default(now()) @map("queued_at") @db.Timestamptz
-  sentAt            DateTime?               @map("sent_at") @db.Timestamptz
-  deliveredAt       DateTime?               @map("delivered_at") @db.Timestamptz
-  openedAt          DateTime?               @map("opened_at") @db.Timestamptz
-  clickedAt         DateTime?               @map("clicked_at") @db.Timestamptz
-  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  deviceTokenId     String?                   @map("device_token_id")
+  failureReason     String?                   @map("failure_reason")
+  providerMessageId String?                   @map("provider_message_id")
+  queuedAt          DateTime                  @default(now()) @map("queued_at") @db.Timestamptz
+  sentAt            DateTime?                 @map("sent_at") @db.Timestamptz
+  deliveredAt       DateTime?                 @map("delivered_at") @db.Timestamptz
+  openedAt          DateTime?                 @map("opened_at") @db.Timestamptz
+  clickedAt         DateTime?                 @map("clicked_at") @db.Timestamptz
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
 
   broadcast Broadcast @relation(fields: [broadcastId], references: [id])
 
@@ -901,20 +1019,20 @@ model NotificationDeviceToken {
 }
 
 model NotificationPreference {
-  id               String   @id @default(cuid())
-  userId           String   @unique @map("user_id")
-  emailEnabled     Boolean  @default(true) @map("email_enabled")
-  pushEnabled      Boolean  @default(true) @map("push_enabled")
-  smsEnabled       Boolean  @default(false) @map("sms_enabled")
-  inAppEnabled     Boolean  @default(true) @map("in_app_enabled")
-  marketingEnabled Boolean  @default(true) @map("marketing_enabled")
-  dealUpdatesEnabled Boolean @default(true) @map("deal_updates_enabled")
-  birthdayRemindersEnabled Boolean @default(true) @map("birthday_reminders_enabled")
-  deliveryUpdatesEnabled Boolean @default(true) @map("delivery_updates_enabled")
-  newContactAlertsEnabled Boolean @default(true) @map("new_contact_alerts_enabled")
-  systemEnabled    Boolean  @default(true) @map("system_enabled")
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                       String   @id @default(cuid())
+  userId                   String   @unique @map("user_id")
+  emailEnabled             Boolean  @default(true) @map("email_enabled")
+  pushEnabled              Boolean  @default(true) @map("push_enabled")
+  smsEnabled               Boolean  @default(false) @map("sms_enabled")
+  inAppEnabled             Boolean  @default(true) @map("in_app_enabled")
+  marketingEnabled         Boolean  @default(true) @map("marketing_enabled")
+  dealUpdatesEnabled       Boolean  @default(true) @map("deal_updates_enabled")
+  birthdayRemindersEnabled Boolean  @default(true) @map("birthday_reminders_enabled")
+  deliveryUpdatesEnabled   Boolean  @default(true) @map("delivery_updates_enabled")
+  newContactAlertsEnabled  Boolean  @default(true) @map("new_contact_alerts_enabled")
+  systemEnabled            Boolean  @default(true) @map("system_enabled")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id])
 
@@ -950,16 +1068,16 @@ model SubscriptionPlan {
 }
 
 model PlanFeatureCatalog {
-  id          String   @id @default(cuid())
-  key         String   @unique
+  id          String    @id @default(cuid())
+  key         String    @unique
   label       String
   description String?
-  type        String   @default("BOOLEAN")
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
+  type        String    @default("BOOLEAN")
+  isActive    Boolean   @default(true) @map("is_active")
+  sortOrder   Int       @default(0) @map("sort_order")
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   @@index([isActive, sortOrder])
   @@index([deletedAt])
@@ -1016,16 +1134,16 @@ model Coupon {
 }
 
 model AdminRole {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String?
-  permissions Json     @map("permissions_json")
-  isSystem    Boolean  @default(false) @map("is_system")
-  isActive    Boolean  @default(true) @map("is_active")
+  permissions Json      @map("permissions_json")
+  isSystem    Boolean   @default(false) @map("is_system")
+  isActive    Boolean   @default(true) @map("is_active")
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   admins User[]
 
@@ -1046,6 +1164,7 @@ model AdminAuditLog {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   actor User? @relation("AuditActor", fields: [actorId], references: [id])
+
   @@index([actorId, createdAt])
   @@index([targetId, createdAt])
   @@index([targetType, createdAt])
@@ -1067,9 +1186,9 @@ model AccountSuspension {
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz
 
-  account       User        @relation("SuspendedAccount", fields: [accountId], references: [id])
-  suspendActor  User        @relation("SuspensionActor", fields: [suspendedBy], references: [id])
-  unsuspendActor User?      @relation("UnsuspensionActor", fields: [unsuspendedBy], references: [id])
+  account        User  @relation("SuspendedAccount", fields: [accountId], references: [id])
+  suspendActor   User  @relation("SuspensionActor", fields: [suspendedBy], references: [id])
+  unsuspendActor User? @relation("UnsuspensionActor", fields: [unsuspendedBy], references: [id])
 
   @@index([accountId, isActive])
   @@index([accountType, isActive])

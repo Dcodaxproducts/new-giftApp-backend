@@ -2,7 +2,7 @@
 @page { size: A4; margin: 16mm 12mm; }
 body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5px} h1{font-size:24px} h2{font-size:18px;margin-top:28px;border-bottom:1px solid #ddd;padding-bottom:4px} h3{font-size:13px;margin-top:18px;color:#0f172a} table{border-collapse:collapse;width:100%;font-size:9px;margin:8px 0 14px} th,td{border:1px solid #d1d5db;padding:4px;vertical-align:top} th{background:#f3f4f6} pre{background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px;white-space:pre-wrap;word-break:break-word;font-size:8.5px} code{font-family:Consolas,monospace} blockquote{border-left:4px solid #f59e0b;padding-left:10px;color:#374151} .page-break{page-break-before:always}
 </style></head><body><h1 id="gift-app-backend-detailed-api-record">Gift App Backend — Detailed API Record</h1>
-<p>Generated: 2026-05-09 09:05 UTC</p>
+<p>Generated: 2026-05-09 11:39 UTC</p>
 <p>Base URL: <code>/api/v1</code></p>
 <p>All protected APIs use:</p>
 <pre><code class="language-txt">Authorization: Bearer &lt;accessToken&gt;
@@ -38,6 +38,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <li>Storage</li>
 <li>Audit Logs</li>
 <li>Login Attempts</li>
+<li>Customer Recurring Payments</li>
 <li>Gift Moderation</li>
 </ul>
 <h2 id="auth">Auth</h2>
@@ -4922,6 +4923,399 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h2 id="customer-recurring-payments">Customer Recurring Payments</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Roles</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/payment-methods/saved</code></td>
+<td>REGISTERED_USER</td>
+<td>List saved payment methods</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/customer/payment-methods/setup-intent</code></td>
+<td>REGISTERED_USER</td>
+<td>Create Stripe setup intent for saving card</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/recurring-payments</code></td>
+<td>REGISTERED_USER</td>
+<td>List own recurring payments</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/customer/recurring-payments</code></td>
+<td>REGISTERED_USER</td>
+<td>Create recurring payment</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/recurring-payments/summary</code></td>
+<td>REGISTERED_USER</td>
+<td>Fetch recurring payment summary counts</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/customer/payment-methods/{id}</code></td>
+<td>REGISTERED_USER</td>
+<td>Delete own saved payment method</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/recurring-payments/{id}</code></td>
+<td>REGISTERED_USER</td>
+<td>Fetch own recurring payment details</td>
+</tr>
+<tr>
+<td><code>PATCH</code></td>
+<td><code>/customer/recurring-payments/{id}</code></td>
+<td>REGISTERED_USER</td>
+<td>Update own recurring payment</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/customer/recurring-payments/{id}/cancel</code></td>
+<td>REGISTERED_USER</td>
+<td>Cancel own recurring payment</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/customer/recurring-payments/{id}/history</code></td>
+<td>REGISTERED_USER</td>
+<td>List own recurring payment billing history</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/customer/recurring-payments/{id}/pause</code></td>
+<td>REGISTERED_USER</td>
+<td>Pause own active recurring payment</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/customer/recurring-payments/{id}/resume</code></td>
+<td>REGISTERED_USER</td>
+<td>Resume own paused recurring payment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get-customerpayment-methodssaved">GET /customer/payment-methods/saved</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> List saved payment methods</p>
+<p><strong>Description:</strong> REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;pm_xxx&quot;,
+      &quot;type&quot;: &quot;CARD&quot;,
+      &quot;brand&quot;: &quot;visa&quot;,
+      &quot;last4&quot;: &quot;4242&quot;,
+      &quot;expiryMonth&quot;: 12,
+      &quot;expiryYear&quot;: 2026,
+      &quot;isDefault&quot;: true
+    }
+  ],
+  &quot;message&quot;: &quot;Saved payment methods fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="post-customerpayment-methodssetup-intent">POST /customer/payment-methods/setup-intent</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Create Stripe setup intent for saving card</p>
+<p><strong>Description:</strong> REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;setupIntentId&quot;: &quot;seti_xxx&quot;,
+    &quot;clientSecret&quot;: &quot;seti_xxx_secret_xxx&quot;,
+    &quot;publishableKey&quot;: &quot;pk_test_xxx&quot;
+  },
+  &quot;message&quot;: &quot;Setup intent created successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h3 id="get-customerrecurring-payments">GET /customer/recurring-payments</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> List own recurring payments</p>
+<p><strong>Description:</strong> REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.</p>
+<p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>status</code> (query, optional), <code>frequency</code> (query, optional), <code>recipientContactId</code> (query, optional), <code>sortBy</code> (query, optional), <code>sortOrder</code> (query, optional)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;recurring_payment_id&quot;,
+      &quot;title&quot;: &quot;Sarah's Birthday&quot;,
+      &quot;recipient&quot;: {
+        &quot;id&quot;: &quot;contact_id&quot;,
+        &quot;name&quot;: &quot;Sarah Johnson&quot;,
+        &quot;email&quot;: &quot;sarah.j@example.com&quot;,
+        &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/customer-contact-avatars/sarah.png&quot;
+      },
+      &quot;amount&quot;: 50,
+      &quot;currency&quot;: &quot;PKR&quot;,
+      &quot;frequency&quot;: &quot;MONTHLY&quot;,
+      &quot;nextBillingAt&quot;: &quot;2026-03-15T09:00:00.000Z&quot;,
+      &quot;status&quot;: &quot;ACTIVE&quot;,
+      &quot;message&quot;: &quot;Monthly flowers&quot;,
+      &quot;createdAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Recurring payments fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="post-customerrecurring-payments">POST /customer/recurring-payments</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Create recurring payment</p>
+<p><strong>Description:</strong> REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Request DTO:</strong> <code>CreateRecurringPaymentDto</code></p>
+<p><strong>Request payload example:</strong></p>
+<pre><code class="language-json">{
+  &quot;amount&quot;: 100,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;frequency&quot;: &quot;WEEKLY&quot;,
+  &quot;schedule&quot;: {
+    &quot;dayOfWeek&quot;: &quot;MONDAY&quot;,
+    &quot;dayOfMonth&quot;: null,
+    &quot;monthOfYear&quot;: null,
+    &quot;time&quot;: &quot;09:00&quot;,
+    &quot;timezone&quot;: &quot;Asia/Karachi&quot;
+  },
+  &quot;recipientContactId&quot;: &quot;contact_id&quot;,
+  &quot;message&quot;: &quot;Hope you love this special surprise!&quot;,
+  &quot;messageMediaUrls&quot;: [
+    &quot;https://cdn.yourdomain.com/gift-message-media/photo.png&quot;
+  ],
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;,
+  &quot;stripePaymentMethodId&quot;: &quot;pm_xxx&quot;,
+  &quot;startDate&quot;: &quot;2026-05-10T00:00:00.000Z&quot;,
+  &quot;endDate&quot;: null,
+  &quot;autoSend&quot;: true
+}
+</code></pre>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;recurring_payment_id&quot;,
+    &quot;amount&quot;: 100,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;frequency&quot;: &quot;WEEKLY&quot;,
+    &quot;nextBillingAt&quot;: &quot;2026-05-12T09:00:00.000Z&quot;,
+    &quot;status&quot;: &quot;ACTIVE&quot;
+  },
+  &quot;message&quot;: &quot;Recurring payment created successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h3 id="get-customerrecurring-paymentssummary">GET /customer/recurring-payments/summary</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Fetch recurring payment summary counts</p>
+<p><strong>Description:</strong> Must stay before /customer/recurring-payments/:id route.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;total&quot;: 5,
+    &quot;active&quot;: 3,
+    &quot;paused&quot;: 1,
+    &quot;cancelled&quot;: 1,
+    &quot;failed&quot;: 0
+  },
+  &quot;message&quot;: &quot;Recurring payment summary fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="delete-customerpayment-methodsid">DELETE /customer/payment-methods/{id}</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Delete own saved payment method</p>
+<p><strong>Description:</strong> Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h3 id="get-customerrecurring-paymentsid">GET /customer/recurring-payments/{id}</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Fetch own recurring payment details</p>
+<p><strong>Description:</strong> REGISTERED_USER only. Customer cannot access another user’s recurring payment.</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;recurring_payment_id&quot;,
+    &quot;title&quot;: &quot;Monthly Flowers&quot;,
+    &quot;recipient&quot;: {
+      &quot;id&quot;: &quot;contact_id&quot;,
+      &quot;name&quot;: &quot;Sarah Johnson&quot;,
+      &quot;email&quot;: &quot;sarah.j@example.com&quot;,
+      &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/customer-contact-avatars/sarah.png&quot;
+    },
+    &quot;amount&quot;: 50,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;frequency&quot;: &quot;MONTHLY&quot;,
+    &quot;nextBillingAt&quot;: &quot;2026-03-15T09:00:00.000Z&quot;,
+    &quot;status&quot;: &quot;ACTIVE&quot;,
+    &quot;message&quot;: &quot;Fresh seasonal bouquet delivered to her doorstep every month&quot;,
+    &quot;messageMediaUrls&quot;: [],
+    &quot;paymentMethod&quot;: {
+      &quot;type&quot;: &quot;STRIPE_CARD&quot;,
+      &quot;brand&quot;: &quot;visa&quot;,
+      &quot;last4&quot;: &quot;4242&quot;,
+      &quot;expiryMonth&quot;: 12,
+      &quot;expiryYear&quot;: 2026
+    },
+    &quot;schedule&quot;: {
+      &quot;frequency&quot;: &quot;MONTHLY&quot;,
+      &quot;dayOfMonth&quot;: 15,
+      &quot;time&quot;: &quot;09:00&quot;,
+      &quot;timezone&quot;: &quot;Asia/Karachi&quot;
+    },
+    &quot;createdAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Recurring payment fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="patch-customerrecurring-paymentsid">PATCH /customer/recurring-payments/{id}</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Update own recurring payment</p>
+<p><strong>Description:</strong> Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Request DTO:</strong> <code>UpdateRecurringPaymentDto</code></p>
+<p><strong>Request payload example:</strong></p>
+<pre><code class="language-json">{
+  &quot;amount&quot;: 50,
+  &quot;frequency&quot;: &quot;MONTHLY&quot;,
+  &quot;schedule&quot;: {
+    &quot;dayOfMonth&quot;: 15,
+    &quot;time&quot;: &quot;09:00&quot;,
+    &quot;timezone&quot;: &quot;Asia/Karachi&quot;
+  },
+  &quot;message&quot;: &quot;Fresh flowers every month.&quot;,
+  &quot;messageMediaUrls&quot;: [],
+  &quot;stripePaymentMethodId&quot;: &quot;pm_xxx&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h3 id="post-customerrecurring-paymentsidcancel">POST /customer/recurring-payments/{id}/cancel</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Cancel own recurring payment</p>
+<p><strong>Description:</strong> IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Request DTO:</strong> <code>CancelRecurringPaymentDto</code></p>
+<p><strong>Request payload example:</strong></p>
+<pre><code class="language-json">{
+  &quot;cancelMode&quot;: &quot;IMMEDIATELY&quot;,
+  &quot;reason&quot;: &quot;No longer needed.&quot;
+}
+</code></pre>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;recurring_payment_id&quot;,
+    &quot;status&quot;: &quot;CANCELLED&quot;,
+    &quot;cancelMode&quot;: &quot;IMMEDIATELY&quot;
+  },
+  &quot;message&quot;: &quot;Recurring payment cancelled successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h3 id="get-customerrecurring-paymentsidhistory">GET /customer/recurring-payments/{id}/history</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> List own recurring payment billing history</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required), <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>status</code> (query, optional)</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;history_id&quot;,
+      &quot;paymentId&quot;: &quot;payment_id&quot;,
+      &quot;amount&quot;: 50,
+      &quot;currency&quot;: &quot;PKR&quot;,
+      &quot;status&quot;: &quot;SUCCESS&quot;,
+      &quot;billingDate&quot;: &quot;2026-02-15T09:00:00.000Z&quot;,
+      &quot;transactionId&quot;: &quot;GFT-8829-XPL&quot;,
+      &quot;failureReason&quot;: null
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Recurring payment history fetched successfully.&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
+<h3 id="post-customerrecurring-paymentsidpause">POST /customer/recurring-payments/{id}/pause</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Pause own active recurring payment</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Request DTO:</strong> <code>PauseRecurringPaymentDto</code></p>
+<p><strong>Request payload example:</strong></p>
+<pre><code class="language-json">{
+  &quot;reason&quot;: &quot;User paused recurring payment.&quot;
+}
+</code></pre>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
+<h3 id="post-customerrecurring-paymentsidresume">POST /customer/recurring-payments/{id}/resume</h3>
+<p><strong>Allowed role(s):</strong> REGISTERED_USER</p>
+<p><strong>Swagger tag:</strong> Customer Recurring Payments</p>
+<p><strong>Summary:</strong> Resume own paused recurring payment</p>
+<p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Example response:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}
+</code></pre>
+<p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
 <h2 id="gift-moderation">Gift Moderation</h2>
 <table>
 <thead>

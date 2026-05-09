@@ -37,6 +37,7 @@ async function bootstrap(): Promise<void> {
     .addTag('Customer Event Reminder Settings')
     .addTag('Customer Cart')
     .addTag('Customer Orders')
+    .addTag('Customer Recurring Payments')
     .addTag('Notifications')
     .addTag('Broadcast Notifications')
     .addTag('Gift Categories')

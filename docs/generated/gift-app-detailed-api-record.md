@@ -1,6 +1,6 @@
 # Gift App Backend — Detailed API Record
 
-Generated: 2026-05-09 09:05 UTC
+Generated: 2026-05-09 11:39 UTC
 
 Base URL: `/api/v1`
 
@@ -40,6 +40,7 @@ Authorization: Bearer <accessToken>
 - Storage
 - Audit Logs
 - Login Attempts
+- Customer Recurring Payments
 - Gift Moderation
 
 ## Auth
@@ -5706,6 +5707,460 @@ Authorization: Bearer <accessToken>
 ```
 
 **Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+## Customer Recurring Payments
+
+| Method | Path | Roles | Summary |
+|---|---|---|---|
+| `GET` | `/customer/payment-methods/saved` | REGISTERED_USER | List saved payment methods |
+| `POST` | `/customer/payment-methods/setup-intent` | REGISTERED_USER | Create Stripe setup intent for saving card |
+| `GET` | `/customer/recurring-payments` | REGISTERED_USER | List own recurring payments |
+| `POST` | `/customer/recurring-payments` | REGISTERED_USER | Create recurring payment |
+| `GET` | `/customer/recurring-payments/summary` | REGISTERED_USER | Fetch recurring payment summary counts |
+| `DELETE` | `/customer/payment-methods/{id}` | REGISTERED_USER | Delete own saved payment method |
+| `GET` | `/customer/recurring-payments/{id}` | REGISTERED_USER | Fetch own recurring payment details |
+| `PATCH` | `/customer/recurring-payments/{id}` | REGISTERED_USER | Update own recurring payment |
+| `POST` | `/customer/recurring-payments/{id}/cancel` | REGISTERED_USER | Cancel own recurring payment |
+| `GET` | `/customer/recurring-payments/{id}/history` | REGISTERED_USER | List own recurring payment billing history |
+| `POST` | `/customer/recurring-payments/{id}/pause` | REGISTERED_USER | Pause own active recurring payment |
+| `POST` | `/customer/recurring-payments/{id}/resume` | REGISTERED_USER | Resume own paused recurring payment |
+
+### GET /customer/payment-methods/saved
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** List saved payment methods
+
+**Description:** REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "pm_xxx",
+      "type": "CARD",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 12,
+      "expiryYear": 2026,
+      "isDefault": true
+    }
+  ],
+  "message": "Saved payment methods fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /customer/payment-methods/setup-intent
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Create Stripe setup intent for saving card
+
+**Description:** REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.
+
+**Parameters:** None
+
+**Request payload:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "setupIntentId": "seti_xxx",
+    "clientSecret": "seti_xxx_secret_xxx",
+    "publishableKey": "pk_test_xxx"
+  },
+  "message": "Setup intent created successfully."
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** List own recurring payments
+
+**Description:** REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.
+
+**Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `frequency` (query, optional), `recipientContactId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "recurring_payment_id",
+      "title": "Sarah's Birthday",
+      "recipient": {
+        "id": "contact_id",
+        "name": "Sarah Johnson",
+        "email": "sarah.j@example.com",
+        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+      },
+      "amount": 50,
+      "currency": "PKR",
+      "frequency": "MONTHLY",
+      "nextBillingAt": "2026-03-15T09:00:00.000Z",
+      "status": "ACTIVE",
+      "message": "Monthly flowers",
+      "createdAt": "2026-05-09T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Recurring payments fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /customer/recurring-payments
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Create recurring payment
+
+**Description:** REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.
+
+**Parameters:** None
+
+**Request DTO:** `CreateRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "frequency": "WEEKLY",
+  "schedule": {
+    "dayOfWeek": "MONDAY",
+    "dayOfMonth": null,
+    "monthOfYear": null,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "recipientContactId": "contact_id",
+  "message": "Hope you love this special surprise!",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/photo.png"
+  ],
+  "paymentMethod": "STRIPE_CARD",
+  "stripePaymentMethodId": "pm_xxx",
+  "startDate": "2026-05-10T00:00:00.000Z",
+  "endDate": null,
+  "autoSend": true
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "recurring_payment_id",
+    "amount": 100,
+    "currency": "PKR",
+    "frequency": "WEEKLY",
+    "nextBillingAt": "2026-05-12T09:00:00.000Z",
+    "status": "ACTIVE"
+  },
+  "message": "Recurring payment created successfully."
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments/summary
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Fetch recurring payment summary counts
+
+**Description:** Must stay before /customer/recurring-payments/:id route.
+
+**Parameters:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total": 5,
+    "active": 3,
+    "paused": 1,
+    "cancelled": 1,
+    "failed": 0
+  },
+  "message": "Recurring payment summary fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### DELETE /customer/payment-methods/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Delete own saved payment method
+
+**Description:** Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.
+
+**Parameters:** `id` (path, required)
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Fetch own recurring payment details
+
+**Description:** REGISTERED_USER only. Customer cannot access another user’s recurring payment.
+
+**Parameters:** `id` (path, required)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "recurring_payment_id",
+    "title": "Monthly Flowers",
+    "recipient": {
+      "id": "contact_id",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@example.com",
+      "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+    },
+    "amount": 50,
+    "currency": "PKR",
+    "frequency": "MONTHLY",
+    "nextBillingAt": "2026-03-15T09:00:00.000Z",
+    "status": "ACTIVE",
+    "message": "Fresh seasonal bouquet delivered to her doorstep every month",
+    "messageMediaUrls": [],
+    "paymentMethod": {
+      "type": "STRIPE_CARD",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 12,
+      "expiryYear": 2026
+    },
+    "schedule": {
+      "frequency": "MONTHLY",
+      "dayOfMonth": 15,
+      "time": "09:00",
+      "timezone": "Asia/Karachi"
+    },
+    "createdAt": "2026-05-09T10:00:00.000Z"
+  },
+  "message": "Recurring payment fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### PATCH /customer/recurring-payments/{id}
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Update own recurring payment
+
+**Description:** Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `UpdateRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "amount": 50,
+  "frequency": "MONTHLY",
+  "schedule": {
+    "dayOfMonth": 15,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "message": "Fresh flowers every month.",
+  "messageMediaUrls": [],
+  "stripePaymentMethodId": "pm_xxx"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /customer/recurring-payments/{id}/cancel
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Cancel own recurring payment
+
+**Description:** IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `CancelRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "cancelMode": "IMMEDIATELY",
+  "reason": "No longer needed."
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "recurring_payment_id",
+    "status": "CANCELLED",
+    "cancelMode": "IMMEDIATELY"
+  },
+  "message": "Recurring payment cancelled successfully."
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### GET /customer/recurring-payments/{id}/history
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** List own recurring payment billing history
+
+**Parameters:** `id` (path, required), `page` (query, optional), `limit` (query, optional), `status` (query, optional)
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "history_id",
+      "paymentId": "payment_id",
+      "amount": 50,
+      "currency": "PKR",
+      "status": "SUCCESS",
+      "billingDate": "2026-02-15T09:00:00.000Z",
+      "transactionId": "GFT-8829-XPL",
+      "failureReason": null
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Recurring payment history fetched successfully."
+}
+```
+
+**Common failure responses:** `401` missing/invalid token, `403` role/permission denied, `404` missing owned record when applicable.
+
+### POST /customer/recurring-payments/{id}/pause
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Pause own active recurring payment
+
+**Parameters:** `id` (path, required)
+
+**Request DTO:** `PauseRecurringPaymentDto`
+
+**Request payload example:**
+
+```json
+{
+  "reason": "User paused recurring payment."
+}
+```
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
+
+### POST /customer/recurring-payments/{id}/resume
+
+**Allowed role(s):** REGISTERED_USER
+
+**Swagger tag:** Customer Recurring Payments
+
+**Summary:** Resume own paused recurring payment
+
+**Parameters:** `id` (path, required)
+
+**Request payload:** None
+
+**Example response:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+**Common failure responses:** `400` validation/business rule failure, `401` missing/invalid token, `403` role/permission denied, `404` missing owned record.
 
 ## Gift Moderation
 

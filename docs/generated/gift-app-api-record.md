@@ -1038,6 +1038,86 @@ Examples:
 }
 ```
 
+### Customer Recurring Payments
+
+```txt
+GET    /customer/payment-methods/saved
+POST   /customer/payment-methods/setup-intent
+GET    /customer/recurring-payments
+POST   /customer/recurring-payments
+GET    /customer/recurring-payments/summary
+DELETE /customer/payment-methods/:id
+GET    /customer/recurring-payments/:id
+PATCH  /customer/recurring-payments/:id
+POST   /customer/recurring-payments/:id/cancel
+GET    /customer/recurring-payments/:id/history
+POST   /customer/recurring-payments/:id/pause
+POST   /customer/recurring-payments/:id/resume
+```
+
+Examples:
+
+**POST /customer/recurring-payments**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "frequency": "WEEKLY",
+  "schedule": {
+    "dayOfWeek": "MONDAY",
+    "dayOfMonth": null,
+    "monthOfYear": null,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "recipientContactId": "contact_id",
+  "message": "Hope you love this special surprise!",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/photo.png"
+  ],
+  "paymentMethod": "STRIPE_CARD",
+  "stripePaymentMethodId": "pm_xxx",
+  "startDate": "2026-05-10T00:00:00.000Z",
+  "endDate": null,
+  "autoSend": true
+}
+```
+
+**PATCH /customer/recurring-payments/:id**
+
+```json
+{
+  "amount": 50,
+  "frequency": "MONTHLY",
+  "schedule": {
+    "dayOfMonth": 15,
+    "time": "09:00",
+    "timezone": "Asia/Karachi"
+  },
+  "message": "Fresh flowers every month.",
+  "messageMediaUrls": [],
+  "stripePaymentMethodId": "pm_xxx"
+}
+```
+
+**POST /customer/recurring-payments/:id/cancel**
+
+```json
+{
+  "cancelMode": "IMMEDIATELY",
+  "reason": "No longer needed."
+}
+```
+
+**POST /customer/recurring-payments/:id/pause**
+
+```json
+{
+  "reason": "User paused recurring payment."
+}
+```
+
 ### Gift Moderation
 
 ```txt

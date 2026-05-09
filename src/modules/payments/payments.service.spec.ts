@@ -17,6 +17,7 @@ describe('Payments source safety', () => {
     expect(serviceSource).toContain("payment_intent.succeeded");
     expect(serviceSource).toContain("payment_intent.payment_failed");
     expect(serviceSource).toContain("payment_intent.canceled");
+    expect(serviceSource).toContain("setup_intent.succeeded");
     expect(serviceSource).toContain('PaymentStatus.SUCCEEDED');
     expect(serviceSource).toContain('PaymentStatus.FAILED');
   });
@@ -34,6 +35,12 @@ describe('Payments source safety', () => {
     expect(schemaSource).toContain('paymentId           String?');
     expect(schemaSource).toContain('tax                 Decimal');
     expect(schemaSource).toContain('currency            String');
+  });
+
+  it('setup intent webhook stores saved Stripe cards for recurring payments', () => {
+    expect(serviceSource).toContain('saveSetupIntentPaymentMethod');
+    expect(serviceSource).toContain('customerPaymentMethod.upsert');
+    expect(serviceSource).toContain('stripePaymentMethodId: paymentMethodId');
   });
 
   it('secrets are read from process.env and not hardcoded', () => {

@@ -13,6 +13,19 @@ type StripeIntentLike = {
   last_payment_error?: { message?: string | null } | null;
 };
 
+type StripeSetupIntentLike = {
+  id: string;
+  customer?: string | { id: string } | null;
+  payment_method?: string | { id: string } | null;
+  metadata?: { userId?: string } | null;
+};
+
+type StripePaymentMethodLike = {
+  id: string;
+  type: string;
+  card?: { brand?: string | null; last4?: string | null; exp_month?: number | null; exp_year?: number | null } | null;
+};
+
 @Injectable()
 export class PaymentsService {
   private stripeClient?: InstanceType<typeof Stripe>;
@@ -78,6 +91,7 @@ export class PaymentsService {
     if (event.type === 'payment_intent.succeeded') await this.updateFromStripeIntent(intent, PaymentStatus.SUCCEEDED);
     if (event.type === 'payment_intent.payment_failed') await this.updateFromStripeIntent(intent, PaymentStatus.FAILED, intent.last_payment_error?.message ?? undefined);
     if (event.type === 'payment_intent.canceled') await this.updateFromStripeIntent(intent, PaymentStatus.CANCELLED, intent.cancellation_reason ?? undefined);
+    if (event.type === 'setup_intent.succeeded') await this.saveSetupIntentPaymentMethod(event.data.object);
     return { data: { received: true }, message: 'Stripe webhook processed successfully.' };
   }
 
@@ -119,6 +133,20 @@ export class PaymentsService {
     const payment = await this.prisma.payment.findFirst({ where: { id, userId } });
     if (!payment) throw new NotFoundException('Payment not found');
     return payment;
+  }
+
+  private async saveSetupIntentPaymentMethod(intent: StripeSetupIntentLike): Promise<void> {
+    const userId = intent.metadata?.userId;
+    const paymentMethodId = typeof intent.payment_method === 'string' ? intent.payment_method : intent.payment_method?.id;
+    const stripeCustomerId = typeof intent.customer === 'string' ? intent.customer : intent.customer?.id;
+    if (!userId || !paymentMethodId || !stripeCustomerId) return;
+    const method = await this.stripe().paymentMethods.retrieve(paymentMethodId) as StripePaymentMethodLike;
+    const existingDefault = await this.prisma.customerPaymentMethod.findFirst({ where: { userId, isDefault: true, deletedAt: null } });
+    await this.prisma.customerPaymentMethod.upsert({
+      where: { stripePaymentMethodId: paymentMethodId },
+      update: { stripeCustomerId, type: method.type.toUpperCase(), brand: method.card?.brand ?? null, last4: method.card?.last4 ?? null, expiryMonth: method.card?.exp_month ?? null, expiryYear: method.card?.exp_year ?? null, deletedAt: null },
+      create: { userId, stripeCustomerId, stripePaymentMethodId: paymentMethodId, type: method.type.toUpperCase(), brand: method.card?.brand ?? null, last4: method.card?.last4 ?? null, expiryMonth: method.card?.exp_month ?? null, expiryYear: method.card?.exp_year ?? null, isDefault: !existingDefault },
+    });
   }
 
   private async updateFromStripeIntent(intent: StripeIntentLike, status: PaymentStatus, failureReason?: string) {

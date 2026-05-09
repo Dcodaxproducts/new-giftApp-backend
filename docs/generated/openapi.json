@@ -5620,6 +5620,751 @@
         ]
       }
     },
+    "/api/v1/customer/recurring-payments": {
+      "get": {
+        "description": "REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.",
+        "operationId": "CustomerRecurringPaymentsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Sarah",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "ACTIVE",
+                "PAUSED",
+                "CANCELLED",
+                "EXPIRED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "frequency",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "MONTHLY",
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "YEARLY"
+              ]
+            }
+          },
+          {
+            "name": "recipientContactId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "contact_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "nextBillingAt",
+                "amount"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "recurring_payment_id",
+                        "title": "Sarah's Birthday",
+                        "recipient": {
+                          "id": "contact_id",
+                          "name": "Sarah Johnson",
+                          "email": "sarah.j@example.com",
+                          "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+                        },
+                        "amount": 50,
+                        "currency": "PKR",
+                        "frequency": "MONTHLY",
+                        "nextBillingAt": "2026-03-15T09:00:00.000Z",
+                        "status": "ACTIVE",
+                        "message": "Monthly flowers",
+                        "createdAt": "2026-05-09T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Recurring payments fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own recurring payments",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      },
+      "post": {
+        "description": "REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.",
+        "operationId": "CustomerRecurringPaymentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRecurringPaymentDto"
+              },
+              "examples": {
+                "weeklyStripe": {
+                  "value": {
+                    "amount": 100,
+                    "currency": "PKR",
+                    "frequency": "WEEKLY",
+                    "schedule": {
+                      "dayOfWeek": "MONDAY",
+                      "dayOfMonth": null,
+                      "monthOfYear": null,
+                      "time": "09:00",
+                      "timezone": "Asia/Karachi"
+                    },
+                    "recipientContactId": "contact_id",
+                    "message": "Hope you love this special surprise!",
+                    "messageMediaUrls": [
+                      "https://cdn.yourdomain.com/gift-message-media/photo.png"
+                    ],
+                    "paymentMethod": "STRIPE_CARD",
+                    "stripePaymentMethodId": "pm_xxx",
+                    "startDate": "2026-05-10T00:00:00.000Z",
+                    "endDate": null,
+                    "autoSend": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "recurring_payment_id",
+                      "amount": 100,
+                      "currency": "PKR",
+                      "frequency": "WEEKLY",
+                      "nextBillingAt": "2026-05-12T09:00:00.000Z",
+                      "status": "ACTIVE"
+                    },
+                    "message": "Recurring payment created successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create recurring payment",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/recurring-payments/summary": {
+      "get": {
+        "description": "Must stay before /customer/recurring-payments/:id route.",
+        "operationId": "CustomerRecurringPaymentsController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "total": 5,
+                      "active": 3,
+                      "paused": 1,
+                      "cancelled": 1,
+                      "failed": 0
+                    },
+                    "message": "Recurring payment summary fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch recurring payment summary counts",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/recurring-payments/{id}": {
+      "get": {
+        "description": "REGISTERED_USER only. Customer cannot access another user’s recurring payment.",
+        "operationId": "CustomerRecurringPaymentsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "recurring_payment_id",
+                      "title": "Monthly Flowers",
+                      "recipient": {
+                        "id": "contact_id",
+                        "name": "Sarah Johnson",
+                        "email": "sarah.j@example.com",
+                        "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
+                      },
+                      "amount": 50,
+                      "currency": "PKR",
+                      "frequency": "MONTHLY",
+                      "nextBillingAt": "2026-03-15T09:00:00.000Z",
+                      "status": "ACTIVE",
+                      "message": "Fresh seasonal bouquet delivered to her doorstep every month",
+                      "messageMediaUrls": [],
+                      "paymentMethod": {
+                        "type": "STRIPE_CARD",
+                        "brand": "visa",
+                        "last4": "4242",
+                        "expiryMonth": 12,
+                        "expiryYear": 2026
+                      },
+                      "schedule": {
+                        "frequency": "MONTHLY",
+                        "dayOfMonth": 15,
+                        "time": "09:00",
+                        "timezone": "Asia/Karachi"
+                      },
+                      "createdAt": "2026-05-09T10:00:00.000Z"
+                    },
+                    "message": "Recurring payment fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own recurring payment details",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      },
+      "patch": {
+        "description": "Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.",
+        "operationId": "CustomerRecurringPaymentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRecurringPaymentDto"
+              },
+              "examples": {
+                "monthly": {
+                  "value": {
+                    "amount": 50,
+                    "frequency": "MONTHLY",
+                    "schedule": {
+                      "dayOfMonth": 15,
+                      "time": "09:00",
+                      "timezone": "Asia/Karachi"
+                    },
+                    "message": "Fresh flowers every month.",
+                    "messageMediaUrls": [],
+                    "stripePaymentMethodId": "pm_xxx"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "recurring_payment_id",
+                      "status": "ACTIVE",
+                      "nextBillingAt": "2026-03-15T09:00:00.000Z"
+                    },
+                    "message": "Recurring payment updated successfully. Changes will apply from the next billing cycle."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own recurring payment",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/recurring-payments/{id}/pause": {
+      "post": {
+        "operationId": "CustomerRecurringPaymentsController_pause",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseRecurringPaymentDto"
+              },
+              "examples": {
+                "pause": {
+                  "value": {
+                    "reason": "User paused recurring payment."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Pause own active recurring payment",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/recurring-payments/{id}/resume": {
+      "post": {
+        "operationId": "CustomerRecurringPaymentsController_resume",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resume own paused recurring payment",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/recurring-payments/{id}/cancel": {
+      "post": {
+        "description": "IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.",
+        "operationId": "CustomerRecurringPaymentsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelRecurringPaymentDto"
+              },
+              "examples": {
+                "immediately": {
+                  "value": {
+                    "cancelMode": "IMMEDIATELY",
+                    "reason": "No longer needed."
+                  }
+                },
+                "periodEnd": {
+                  "value": {
+                    "cancelMode": "AFTER_CURRENT_BILLING_CYCLE",
+                    "reason": "Finish current cycle."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "recurring_payment_id",
+                      "status": "CANCELLED",
+                      "cancelMode": "IMMEDIATELY"
+                    },
+                    "message": "Recurring payment cancelled successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel own recurring payment",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/recurring-payments/{id}/history": {
+      "get": {
+        "operationId": "CustomerRecurringPaymentsController_history",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "FAILED",
+                "PENDING"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "history_id",
+                        "paymentId": "payment_id",
+                        "amount": 50,
+                        "currency": "PKR",
+                        "status": "SUCCESS",
+                        "billingDate": "2026-02-15T09:00:00.000Z",
+                        "transactionId": "GFT-8829-XPL",
+                        "failureReason": null
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Recurring payment history fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own recurring payment billing history",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/payment-methods/setup-intent": {
+      "post": {
+        "description": "REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.",
+        "operationId": "CustomerRecurringPaymentMethodsController_setupIntent",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "setupIntentId": "seti_xxx",
+                      "clientSecret": "seti_xxx_secret_xxx",
+                      "publishableKey": "pk_test_xxx"
+                    },
+                    "message": "Setup intent created successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create Stripe setup intent for saving card",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/payment-methods/saved": {
+      "get": {
+        "description": "REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.",
+        "operationId": "CustomerRecurringPaymentMethodsController_saved",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "pm_xxx",
+                        "type": "CARD",
+                        "brand": "visa",
+                        "last4": "4242",
+                        "expiryMonth": 12,
+                        "expiryYear": 2026,
+                        "isDefault": true
+                      }
+                    ],
+                    "message": "Saved payment methods fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List saved payment methods",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
+    "/api/v1/customer/payment-methods/{id}": {
+      "delete": {
+        "description": "Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.",
+        "operationId": "CustomerRecurringPaymentMethodsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own saved payment method",
+        "tags": [
+          "Customer Recurring Payments"
+        ]
+      }
+    },
     "/api/v1/gift-categories/lookup": {
       "get": {
         "description": "Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.",
@@ -9001,27 +9746,15 @@
   },
   "tags": [
     {
+      "name": "Customer Recurring Payments",
+      "description": ""
+    },
+    {
+      "name": "Payments",
+      "description": ""
+    },
+    {
       "name": "Customer Marketplace",
-      "description": ""
-    },
-    {
-      "name": "Customer Wishlist",
-      "description": ""
-    },
-    {
-      "name": "Customer Addresses",
-      "description": ""
-    },
-    {
-      "name": "Customer Contacts",
-      "description": ""
-    },
-    {
-      "name": "Customer Events",
-      "description": ""
-    },
-    {
-      "name": "Customer Event Reminder Settings",
       "description": ""
     },
     {
@@ -9033,19 +9766,7 @@
       "description": ""
     },
     {
-      "name": "Payments",
-      "description": ""
-    },
-    {
       "name": "Notifications",
-      "description": ""
-    },
-    {
-      "name": "Broadcast Notifications",
-      "description": ""
-    },
-    {
-      "name": "Gift Categories",
       "description": ""
     },
     {
@@ -9054,14 +9775,6 @@
     },
     {
       "name": "Provider Inventory",
-      "description": ""
-    },
-    {
-      "name": "Promotional Offers Management",
-      "description": ""
-    },
-    {
-      "name": "Provider Promotional Offers",
       "description": ""
     }
   ],
@@ -10634,6 +11347,188 @@
         },
         "required": [
           "deliveryAddressId"
+        ]
+      },
+      "RecurringPaymentScheduleDto": {
+        "type": "object",
+        "properties": {
+          "dayOfWeek": {
+            "type": "string",
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ],
+            "example": "MONDAY"
+          },
+          "dayOfMonth": {
+            "type": "object",
+            "example": 15
+          },
+          "monthOfYear": {
+            "type": "object",
+            "example": 5
+          },
+          "time": {
+            "type": "string",
+            "example": "09:00"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "Asia/Karachi"
+          }
+        },
+        "required": [
+          "time",
+          "timezone"
+        ]
+      },
+      "CreateRecurringPaymentDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "PKR"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "example": "WEEKLY"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/RecurringPaymentScheduleDto"
+          },
+          "recipientContactId": {
+            "type": "string",
+            "example": "contact_id"
+          },
+          "message": {
+            "type": "string",
+            "example": "Hope you love this special surprise!"
+          },
+          "messageMediaUrls": {
+            "example": [
+              "https://cdn.yourdomain.com/gift-message-media/photo.png"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
+              "COD",
+              "PLACEHOLDER"
+            ],
+            "example": "STRIPE_CARD"
+          },
+          "stripePaymentMethodId": {
+            "type": "string",
+            "example": "pm_xxx"
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2026-05-10T00:00:00.000Z"
+          },
+          "endDate": {
+            "type": "object",
+            "example": null
+          },
+          "autoSend": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "amount",
+          "frequency",
+          "schedule",
+          "recipientContactId",
+          "paymentMethod",
+          "startDate"
+        ]
+      },
+      "UpdateRecurringPaymentDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 50
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "example": "MONTHLY"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/RecurringPaymentScheduleDto"
+          },
+          "message": {
+            "type": "string",
+            "example": "Fresh flowers every month."
+          },
+          "messageMediaUrls": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stripePaymentMethodId": {
+            "type": "string",
+            "example": "pm_xxx"
+          }
+        }
+      },
+      "PauseRecurringPaymentDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "User paused recurring payment."
+          }
+        }
+      },
+      "CancelRecurringPaymentDto": {
+        "type": "object",
+        "properties": {
+          "cancelMode": {
+            "type": "string",
+            "enum": [
+              "IMMEDIATELY",
+              "AFTER_CURRENT_BILLING_CYCLE"
+            ],
+            "example": "IMMEDIATELY"
+          },
+          "reason": {
+            "type": "string",
+            "example": "No longer needed."
+          }
+        },
+        "required": [
+          "cancelMode"
         ]
       },
       "CreateGiftCategoryDto": {

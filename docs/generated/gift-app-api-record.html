@@ -794,6 +794,70 @@ PATCH  /coupons/:id/status
   &quot;status&quot;: &quot;ACTIVE&quot;
 }
 </code></pre>
+<h3>Customer Recurring Payments</h3>
+<pre><code class="language-txt">GET    /customer/payment-methods/saved
+POST   /customer/payment-methods/setup-intent
+GET    /customer/recurring-payments
+POST   /customer/recurring-payments
+GET    /customer/recurring-payments/summary
+DELETE /customer/payment-methods/:id
+GET    /customer/recurring-payments/:id
+PATCH  /customer/recurring-payments/:id
+POST   /customer/recurring-payments/:id/cancel
+GET    /customer/recurring-payments/:id/history
+POST   /customer/recurring-payments/:id/pause
+POST   /customer/recurring-payments/:id/resume
+</code></pre>
+<p>Examples:</p>
+<p><strong>POST /customer/recurring-payments</strong></p>
+<pre><code class="language-json">{
+  &quot;amount&quot;: 100,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;frequency&quot;: &quot;WEEKLY&quot;,
+  &quot;schedule&quot;: {
+    &quot;dayOfWeek&quot;: &quot;MONDAY&quot;,
+    &quot;dayOfMonth&quot;: null,
+    &quot;monthOfYear&quot;: null,
+    &quot;time&quot;: &quot;09:00&quot;,
+    &quot;timezone&quot;: &quot;Asia/Karachi&quot;
+  },
+  &quot;recipientContactId&quot;: &quot;contact_id&quot;,
+  &quot;message&quot;: &quot;Hope you love this special surprise!&quot;,
+  &quot;messageMediaUrls&quot;: [
+    &quot;https://cdn.yourdomain.com/gift-message-media/photo.png&quot;
+  ],
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;,
+  &quot;stripePaymentMethodId&quot;: &quot;pm_xxx&quot;,
+  &quot;startDate&quot;: &quot;2026-05-10T00:00:00.000Z&quot;,
+  &quot;endDate&quot;: null,
+  &quot;autoSend&quot;: true
+}
+</code></pre>
+<p><strong>PATCH /customer/recurring-payments/:id</strong></p>
+<pre><code class="language-json">{
+  &quot;amount&quot;: 50,
+  &quot;frequency&quot;: &quot;MONTHLY&quot;,
+  &quot;schedule&quot;: {
+    &quot;dayOfMonth&quot;: 15,
+    &quot;time&quot;: &quot;09:00&quot;,
+    &quot;timezone&quot;: &quot;Asia/Karachi&quot;
+  },
+  &quot;message&quot;: &quot;Fresh flowers every month.&quot;,
+  &quot;messageMediaUrls&quot;: [],
+  &quot;stripePaymentMethodId&quot;: &quot;pm_xxx&quot;
+}
+</code></pre>
+<p><strong>POST /customer/recurring-payments/:id/cancel</strong></p>
+<pre><code class="language-json">{
+  &quot;cancelMode&quot;: &quot;IMMEDIATELY&quot;,
+  &quot;reason&quot;: &quot;No longer needed.&quot;
+}
+</code></pre>
+<p><strong>POST /customer/recurring-payments/:id/pause</strong></p>
+<pre><code class="language-json">{
+  &quot;reason&quot;: &quot;User paused recurring payment.&quot;
+}
+</code></pre>
 <h3>Gift Moderation</h3>
 <pre><code class="language-txt">GET    /gift-moderation
 PATCH  /gift-moderation/:id/approve

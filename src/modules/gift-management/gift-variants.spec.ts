@@ -9,7 +9,7 @@ describe('Nested gift variants', () => {
   it('stores variants in GiftVariant with soft delete support', () => {
     expect(schema).toContain('model GiftVariant');
     expect(schema).toContain('deletedAt');
-    expect(schema).toContain('variants GiftVariant[]');
+    expect(schema).toMatch(/variants\s+GiftVariant\[\]/);
   });
 
   it('supports nested create/update variants and replaceVariants', () => {
