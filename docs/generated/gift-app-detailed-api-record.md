@@ -1,6 +1,6 @@
 # Gift App Backend — Detailed API Record
 
-Generated: 2026-05-09 08:47 UTC
+Generated: 2026-05-09 09:05 UTC
 
 Base URL: `/api/v1`
 
@@ -553,7 +553,41 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
+  "data": [
+    {
+      "id": "gift_id",
+      "name": "Luxury Perfume",
+      "price": 99.99,
+      "currency": "PKR",
+      "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
+      "rating": 4.8,
+      "isWishlisted": false,
+      "shortDescription": "Premium fragrance gift.",
+      "reviewCount": 0,
+      "stockQuantity": 50,
+      "category": {
+        "id": "gift_category_id",
+        "name": "Perfumes",
+        "slug": "perfumes"
+      },
+      "provider": {
+        "id": "provider_id",
+        "businessName": "Dcodax Gifts"
+      },
+      "deliveryOptions": [
+        "SAME_DAY",
+        "NEXT_DAY",
+        "SCHEDULED"
+      ],
+      "activeOffer": null
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
   "message": "Customer gifts fetched successfully"
 }
 ```
@@ -649,7 +683,58 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
+  "data": {
+    "id": "gift_id",
+    "name": "Luxury Perfume",
+    "description": "Long-lasting premium fragrance.",
+    "shortDescription": "Premium fragrance gift.",
+    "price": 99.99,
+    "originalPrice": 99.99,
+    "currency": "PKR",
+    "imageUrls": [
+      "https://cdn.yourdomain.com/gift-images/perfume.png"
+    ],
+    "rating": 4.8,
+    "reviewCount": 0,
+    "stockQuantity": 50,
+    "sku": "PERFUME-001",
+    "isWishlisted": false,
+    "badges": [
+      "AUTHENTIC"
+    ],
+    "category": {
+      "id": "gift_category_id",
+      "name": "Perfumes",
+      "slug": "perfumes"
+    },
+    "provider": {
+      "id": "provider_id",
+      "businessName": "Dcodax Gifts",
+      "rating": 4.8,
+      "reviewCount": 0,
+      "fulfillmentMethods": [
+        "DELIVERY"
+      ]
+    },
+    "variants": [
+      {
+        "id": "variant_id",
+        "name": "50ml",
+        "price": 129.99,
+        "originalPrice": 159.99,
+        "stockQuantity": 20,
+        "sku": "PERFUME-50ML",
+        "isPopular": true,
+        "isDefault": true
+      }
+    ],
+    "deliveryOptions": [
+      "SAME_DAY",
+      "NEXT_DAY",
+      "SCHEDULED"
+    ],
+    "activeOffer": null
+  },
   "message": "Gift details fetched successfully"
 }
 ```
@@ -1337,41 +1422,45 @@ Authorization: Bearer <accessToken>
 {
   "success": true,
   "data": {
-    "id": "cmf0cartactive001",
+    "id": "cart_id",
+    "status": "ACTIVE",
     "items": [
       {
-        "id": "cmf0cartitem001",
-        "giftId": "cmf0giftroses001",
-        "variantId": "cmf0variant50ml001",
-        "name": "Perfume",
+        "id": "cart_item_id",
+        "giftId": "gift_id",
+        "variantId": "variant_id",
+        "name": "Luxury Perfume",
         "variantName": "50ml",
         "quantity": 1,
-        "unitPrice": 34.99,
-        "discountAmount": 7,
-        "finalUnitPrice": 27.99,
-        "lineTotal": 27.99,
-        "imageUrl": "https://cdn.example.com/gift-images/perfume.png",
+        "unitPrice": 129.99,
+        "discountAmount": 20,
+        "finalUnitPrice": 109.99,
+        "lineTotal": 109.99,
+        "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
         "deliveryOption": "SAME_DAY",
         "recipient": {
-          "contactId": "cmf0contactmary001",
+          "contactId": "contact_id",
           "name": "Sarah Khan",
           "phone": "+923001234567",
-          "addressId": "cmf0addresshome001"
+          "addressId": "address_id"
         },
         "giftMessage": "Hope you love this special surprise!",
+        "messageMediaUrls": [
+          "https://cdn.yourdomain.com/gift-message-media/photo.png"
+        ],
         "scheduledDeliveryAt": "2026-12-24T10:00:00.000Z"
       }
     ],
     "summary": {
-      "subtotal": 34.99,
-      "discountTotal": 7,
+      "subtotal": 129.99,
+      "discountTotal": 20,
       "deliveryFee": 0,
       "tax": 0,
-      "total": 27.99,
+      "total": 109.99,
       "currency": "PKR"
     }
   },
-  "message": "Request completed successfully"
+  "message": "Cart fetched successfully"
 }
 ```
 
@@ -1538,10 +1627,10 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "cartId": "cmf0cartactive001",
-  "paymentId": "cmf0payment001",
-  "deliveryAddressId": "cmf0addresshome001",
-  "paymentMethod": "COD"
+  "cartId": "cart_id",
+  "paymentId": "payment_id",
+  "deliveryAddressId": "address_id",
+  "paymentMethod": "STRIPE_CARD"
 }
 ```
 
@@ -1575,7 +1664,7 @@ Authorization: Bearer <accessToken>
 {
   "success": true,
   "data": {
-    "id": "cmf0order001",
+    "id": "order_id",
     "orderNumber": "ORD-1760000000000",
     "status": "CONFIRMED",
     "paymentStatus": "SUCCEEDED",
@@ -1591,24 +1680,24 @@ Authorization: Bearer <accessToken>
     "giftMessage": "Hope you love this special surprise!",
     "items": [
       {
-        "giftId": "cmf0giftroses001",
-        "name": "Perfume",
+        "giftId": "gift_id",
+        "name": "Luxury Perfume",
         "variantName": "50ml",
         "quantity": 1,
-        "imageUrl": "https://cdn.example.com/gift-images/perfume.png",
-        "total": 109.5
+        "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
+        "total": 109.99
       }
     ],
     "summary": {
-      "subtotal": 100,
+      "subtotal": 129.99,
+      "discountTotal": 20,
       "deliveryFee": 0,
       "tax": 0,
-      "discountTotal": 0,
-      "total": 100,
+      "total": 109.99,
       "currency": "PKR"
     }
   },
-  "message": "Request completed successfully"
+  "message": "Order fetched successfully."
 }
 ```
 
@@ -1799,14 +1888,14 @@ Authorization: Bearer <accessToken>
 {
   "success": true,
   "data": {
-    "paymentId": "cmf0payment001",
+    "paymentId": "payment_id",
     "stripePaymentIntentId": "pi_xxx",
     "clientSecret": "pi_xxx_secret_xxx",
     "publishableKey": "pk_live_or_test",
-    "amount": 10950,
+    "amount": 10999,
     "currency": "PKR"
   },
-  "message": "Request completed successfully"
+  "message": "Payment intent created successfully."
 }
 ```
 
@@ -1885,8 +1974,17 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": {
+    "paymentId": "payment_id",
+    "provider": "STRIPE",
+    "stripePaymentIntentId": "pi_xxx",
+    "amount": 109.99,
+    "currency": "PKR",
+    "status": "SUCCEEDED",
+    "paymentMethod": "STRIPE_CARD",
+    "failureReason": null
+  },
+  "message": "Payment fetched successfully."
 }
 ```
 
@@ -2624,14 +2722,14 @@ Authorization: Bearer <accessToken>
 
 | Method | Path | Roles | Summary |
 |---|---|---|---|
-| `GET` | `/gifts` | SUPER_ADMIN, ADMIN |  |
-| `POST` | `/gifts` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/gifts/export` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/gifts/stats` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/gifts/{id}` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/gifts/{id}` | SUPER_ADMIN, ADMIN |  |
-| `DELETE` | `/gifts/{id}` | SUPER_ADMIN, ADMIN |  |
-| `PATCH` | `/gifts/{id}/status` | SUPER_ADMIN, ADMIN |  |
+| `GET` | `/gifts` | SUPER_ADMIN, ADMIN | List admin gifts |
+| `POST` | `/gifts` | SUPER_ADMIN, ADMIN | Create admin gift with optional nested variants |
+| `GET` | `/gifts/export` | SUPER_ADMIN, ADMIN | Export gift inventory |
+| `GET` | `/gifts/stats` | SUPER_ADMIN, ADMIN | Fetch gift inventory stats |
+| `GET` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Fetch admin gift details with variants |
+| `PATCH` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Update admin gift and upsert nested variants |
+| `DELETE` | `/gifts/{id}` | SUPER_ADMIN, ADMIN | Soft-delete gift |
+| `PATCH` | `/gifts/{id}/status` | SUPER_ADMIN, ADMIN | Update gift status |
 
 ### GET /gifts
 
@@ -2639,7 +2737,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** List admin gifts
+
+**Description:** SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.
 
 **Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `categoryId` (query, optional), `providerId` (query, optional), `status` (query, optional), `moderationStatus` (query, optional), `isPublished` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
 
@@ -2661,7 +2761,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Create admin gift with optional nested variants
+
+**Description:** SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.
 
 **Parameters:** None
 
@@ -2722,8 +2824,29 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": {
+    "id": "gift_id",
+    "name": "Luxury Perfume",
+    "price": 99.99,
+    "currency": "PKR",
+    "stockQuantity": 50,
+    "sku": "PERFUME-001",
+    "variants": [
+      {
+        "id": "variant_id",
+        "name": "50ml",
+        "price": 129.99,
+        "originalPrice": 159.99,
+        "stockQuantity": 20,
+        "sku": "PERFUME-50ML",
+        "isPopular": true,
+        "isDefault": true,
+        "sortOrder": 2,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Gift created successfully"
 }
 ```
 
@@ -2735,7 +2858,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Export gift inventory
 
 **Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `categoryId` (query, optional), `providerId` (query, optional), `status` (query, optional), `moderationStatus` (query, optional), `isPublished` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional), `format` (query, optional)
 
@@ -2757,7 +2880,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Fetch gift inventory stats
 
 **Parameters:** None
 
@@ -2779,7 +2902,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Fetch admin gift details with variants
 
 **Parameters:** `id` (path, required)
 
@@ -2801,7 +2924,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Update admin gift and upsert nested variants
+
+**Description:** If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.
 
 **Parameters:** `id` (path, required)
 
@@ -2849,7 +2974,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Soft-delete gift
 
 **Parameters:** `id` (path, required)
 
@@ -2861,7 +2986,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Gift Management
 
-**Summary:** —
+**Summary:** Update gift status
 
 **Parameters:** `id` (path, required)
 
@@ -2882,14 +3007,14 @@ Authorization: Bearer <accessToken>
 
 | Method | Path | Roles | Summary |
 |---|---|---|---|
-| `GET` | `/provider/inventory` | PROVIDER |  |
-| `POST` | `/provider/inventory` | PROVIDER |  |
-| `GET` | `/provider/inventory/lookup` | PROVIDER |  |
-| `GET` | `/provider/inventory/stats` | PROVIDER |  |
-| `GET` | `/provider/inventory/{id}` | PROVIDER |  |
-| `PATCH` | `/provider/inventory/{id}` | PROVIDER |  |
-| `DELETE` | `/provider/inventory/{id}` | PROVIDER |  |
-| `PATCH` | `/provider/inventory/{id}/availability` | PROVIDER |  |
+| `GET` | `/provider/inventory` | PROVIDER | List provider inventory items |
+| `POST` | `/provider/inventory` | PROVIDER | Create provider inventory item with optional nested variants |
+| `GET` | `/provider/inventory/lookup` | PROVIDER | Lookup active approved provider inventory items |
+| `GET` | `/provider/inventory/stats` | PROVIDER | Fetch provider inventory stats |
+| `GET` | `/provider/inventory/{id}` | PROVIDER | Fetch own provider inventory item details |
+| `PATCH` | `/provider/inventory/{id}` | PROVIDER | Update own provider inventory item and upsert variants |
+| `DELETE` | `/provider/inventory/{id}` | PROVIDER | Soft-delete own inventory item |
+| `PATCH` | `/provider/inventory/{id}/availability` | PROVIDER | Update own inventory availability |
 
 ### GET /provider/inventory
 
@@ -2897,7 +3022,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** List provider inventory items
+
+**Description:** PROVIDER only. Returns only inventory owned by the authenticated provider.
 
 **Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `status` (query, optional), `categoryId` (query, optional), `sortBy` (query, optional), `sortOrder` (query, optional)
 
@@ -2919,7 +3046,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Create provider inventory item with optional nested variants
+
+**Description:** PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.
 
 **Parameters:** None
 
@@ -2973,8 +3102,28 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": {
+    "id": "gift_id",
+    "name": "Luxury Perfume",
+    "price": 99.99,
+    "currency": "PKR",
+    "stockQuantity": 50,
+    "status": "ACTIVE",
+    "moderationStatus": "PENDING",
+    "variants": [
+      {
+        "id": "variant_id",
+        "name": "50ml",
+        "price": 129.99,
+        "originalPrice": 159.99,
+        "stockQuantity": 20,
+        "sku": "PERFUME-50ML",
+        "isDefault": true,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Inventory item created successfully"
 }
 ```
 
@@ -2986,7 +3135,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Lookup active approved provider inventory items
 
 **Parameters:** None
 
@@ -3008,7 +3157,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Fetch provider inventory stats
 
 **Parameters:** None
 
@@ -3030,7 +3179,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Fetch own provider inventory item details
 
 **Parameters:** `id` (path, required)
 
@@ -3052,7 +3201,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Update own provider inventory item and upsert variants
+
+**Description:** Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.
 
 **Parameters:** `id` (path, required)
 
@@ -3099,7 +3250,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Soft-delete own inventory item
 
 **Parameters:** `id` (path, required)
 
@@ -3111,7 +3262,7 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Inventory
 
-**Summary:** —
+**Summary:** Update own inventory availability
 
 **Parameters:** `id` (path, required)
 
@@ -3546,16 +3697,16 @@ Authorization: Bearer <accessToken>
 
 | Method | Path | Roles | Summary |
 |---|---|---|---|
-| `GET` | `/provider-business-categories` | PUBLIC/UNSPECIFIED |  |
-| `POST` | `/provider-business-categories` | PUBLIC/UNSPECIFIED |  |
+| `GET` | `/provider-business-categories` | PUBLIC/UNSPECIFIED | List active provider business categories |
+| `POST` | `/provider-business-categories` | PUBLIC/UNSPECIFIED | Create provider business category |
 | `GET` | `/providers` | SUPER_ADMIN, ADMIN |  |
 | `POST` | `/providers` | SUPER_ADMIN, ADMIN |  |
 | `GET` | `/providers/export` | SUPER_ADMIN, ADMIN |  |
 | `GET` | `/providers/lookup` | SUPER_ADMIN, ADMIN |  |
 | `GET` | `/providers/stats` | SUPER_ADMIN, ADMIN |  |
-| `GET` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED |  |
-| `PATCH` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED |  |
-| `DELETE` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED |  |
+| `GET` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED | Fetch provider business category details |
+| `PATCH` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED | Update provider business category |
+| `DELETE` | `/provider-business-categories/{id}` | PUBLIC/UNSPECIFIED | Soft-delete provider business category |
 | `GET` | `/providers/{id}` | SUPER_ADMIN, ADMIN |  |
 | `PATCH` | `/providers/{id}` | SUPER_ADMIN, ADMIN |  |
 | `GET` | `/providers/{id}/activity` | SUPER_ADMIN, ADMIN |  |
@@ -3573,7 +3724,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Management
 
-**Summary:** —
+**Summary:** List active provider business categories
+
+**Description:** Public signup dropdown. Returns active, non-deleted provider business categories only.
 
 **Parameters:** `page` (query, optional), `limit` (query, optional), `search` (query, optional), `isActive` (query, optional)
 
@@ -3595,7 +3748,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Management
 
-**Summary:** —
+**Summary:** Create provider business category
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.
 
 **Parameters:** None
 
@@ -3762,7 +3917,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Management
 
-**Summary:** —
+**Summary:** Fetch provider business category details
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.
 
 **Parameters:** `id` (path, required)
 
@@ -3784,7 +3941,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Management
 
-**Summary:** —
+**Summary:** Update provider business category
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.
 
 **Parameters:** `id` (path, required)
 
@@ -3810,7 +3969,9 @@ Authorization: Bearer <accessToken>
 
 **Swagger tag:** Provider Management
 
-**Summary:** —
+**Summary:** Soft-delete provider business category
+
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.
 
 **Parameters:** `id` (path, required)
 

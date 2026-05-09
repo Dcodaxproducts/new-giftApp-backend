@@ -278,10 +278,10 @@ Examples:
 
 ```json
 {
-  "cartId": "cmf0cartactive001",
-  "paymentId": "cmf0payment001",
-  "deliveryAddressId": "cmf0addresshome001",
-  "paymentMethod": "COD"
+  "cartId": "cart_id",
+  "paymentId": "payment_id",
+  "deliveryAddressId": "address_id",
+  "paymentMethod": "STRIPE_CARD"
 }
 ```
 

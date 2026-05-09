@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -22,6 +22,7 @@ export class CustomerPaymentsController {
   @Post('create-intent')
   @ApiOperation({ summary: 'Create payment intent from active cart', description: 'REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.' })
   @ApiBody({ type: CreatePaymentIntentDto, examples: { stripe: { value: { cartId: 'cmf0cartactive001', paymentMethod: 'STRIPE_CARD' } }, cod: { value: { cartId: 'cmf0cartactive001', paymentMethod: 'COD' } } } })
+  @ApiResponse({ status: 201, description: 'Payment intent created successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', stripePaymentIntentId: 'pi_xxx', clientSecret: 'pi_xxx_secret_xxx', publishableKey: 'pk_live_or_test', amount: 10999, currency: 'PKR' }, message: 'Payment intent created successfully.' } } })
   createIntent(@CurrentUser() user: AuthUserContext, @Body() dto: CreatePaymentIntentDto) { return this.payments.createIntent(user, dto); }
 
   @Post('confirm')
@@ -30,6 +31,7 @@ export class CustomerPaymentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Fetch own payment details' })
+  @ApiResponse({ status: 200, description: 'Payment fetched successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', provider: 'STRIPE', stripePaymentIntentId: 'pi_xxx', amount: 109.99, currency: 'PKR', status: 'SUCCEEDED', paymentMethod: 'STRIPE_CARD', failureReason: null }, message: 'Payment fetched successfully.' } } })
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.details(user, id); }
 }
 

@@ -2,7 +2,7 @@
 @page { size: A4; margin: 16mm 12mm; }
 body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5px} h1{font-size:24px} h2{font-size:18px;margin-top:28px;border-bottom:1px solid #ddd;padding-bottom:4px} h3{font-size:13px;margin-top:18px;color:#0f172a} table{border-collapse:collapse;width:100%;font-size:9px;margin:8px 0 14px} th,td{border:1px solid #d1d5db;padding:4px;vertical-align:top} th{background:#f3f4f6} pre{background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px;white-space:pre-wrap;word-break:break-word;font-size:8.5px} code{font-family:Consolas,monospace} blockquote{border-left:4px solid #f59e0b;padding-left:10px;color:#374151} .page-break{page-break-before:always}
 </style></head><body><h1 id="gift-app-backend-detailed-api-record">Gift App Backend — Detailed API Record</h1>
-<p>Generated: 2026-05-09 08:47 UTC</p>
+<p>Generated: 2026-05-09 09:05 UTC</p>
 <p>Base URL: <code>/api/v1</code></p>
 <p>All protected APIs use:</p>
 <pre><code class="language-txt">Authorization: Bearer &lt;accessToken&gt;
@@ -482,7 +482,41 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
   &quot;success&quot;: true,
-  &quot;data&quot;: {},
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;gift_id&quot;,
+      &quot;name&quot;: &quot;Luxury Perfume&quot;,
+      &quot;price&quot;: 99.99,
+      &quot;currency&quot;: &quot;PKR&quot;,
+      &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;,
+      &quot;rating&quot;: 4.8,
+      &quot;isWishlisted&quot;: false,
+      &quot;shortDescription&quot;: &quot;Premium fragrance gift.&quot;,
+      &quot;reviewCount&quot;: 0,
+      &quot;stockQuantity&quot;: 50,
+      &quot;category&quot;: {
+        &quot;id&quot;: &quot;gift_category_id&quot;,
+        &quot;name&quot;: &quot;Perfumes&quot;,
+        &quot;slug&quot;: &quot;perfumes&quot;
+      },
+      &quot;provider&quot;: {
+        &quot;id&quot;: &quot;provider_id&quot;,
+        &quot;businessName&quot;: &quot;Dcodax Gifts&quot;
+      },
+      &quot;deliveryOptions&quot;: [
+        &quot;SAME_DAY&quot;,
+        &quot;NEXT_DAY&quot;,
+        &quot;SCHEDULED&quot;
+      ],
+      &quot;activeOffer&quot;: null
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
   &quot;message&quot;: &quot;Customer gifts fetched successfully&quot;
 }
 </code></pre>
@@ -538,7 +572,58 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
   &quot;success&quot;: true,
-  &quot;data&quot;: {},
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;gift_id&quot;,
+    &quot;name&quot;: &quot;Luxury Perfume&quot;,
+    &quot;description&quot;: &quot;Long-lasting premium fragrance.&quot;,
+    &quot;shortDescription&quot;: &quot;Premium fragrance gift.&quot;,
+    &quot;price&quot;: 99.99,
+    &quot;originalPrice&quot;: 99.99,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;imageUrls&quot;: [
+      &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;
+    ],
+    &quot;rating&quot;: 4.8,
+    &quot;reviewCount&quot;: 0,
+    &quot;stockQuantity&quot;: 50,
+    &quot;sku&quot;: &quot;PERFUME-001&quot;,
+    &quot;isWishlisted&quot;: false,
+    &quot;badges&quot;: [
+      &quot;AUTHENTIC&quot;
+    ],
+    &quot;category&quot;: {
+      &quot;id&quot;: &quot;gift_category_id&quot;,
+      &quot;name&quot;: &quot;Perfumes&quot;,
+      &quot;slug&quot;: &quot;perfumes&quot;
+    },
+    &quot;provider&quot;: {
+      &quot;id&quot;: &quot;provider_id&quot;,
+      &quot;businessName&quot;: &quot;Dcodax Gifts&quot;,
+      &quot;rating&quot;: 4.8,
+      &quot;reviewCount&quot;: 0,
+      &quot;fulfillmentMethods&quot;: [
+        &quot;DELIVERY&quot;
+      ]
+    },
+    &quot;variants&quot;: [
+      {
+        &quot;id&quot;: &quot;variant_id&quot;,
+        &quot;name&quot;: &quot;50ml&quot;,
+        &quot;price&quot;: 129.99,
+        &quot;originalPrice&quot;: 159.99,
+        &quot;stockQuantity&quot;: 20,
+        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+        &quot;isPopular&quot;: true,
+        &quot;isDefault&quot;: true
+      }
+    ],
+    &quot;deliveryOptions&quot;: [
+      &quot;SAME_DAY&quot;,
+      &quot;NEXT_DAY&quot;,
+      &quot;SCHEDULED&quot;
+    ],
+    &quot;activeOffer&quot;: null
+  },
   &quot;message&quot;: &quot;Gift details fetched successfully&quot;
 }
 </code></pre>
@@ -1171,41 +1256,45 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <pre><code class="language-json">{
   &quot;success&quot;: true,
   &quot;data&quot;: {
-    &quot;id&quot;: &quot;cmf0cartactive001&quot;,
+    &quot;id&quot;: &quot;cart_id&quot;,
+    &quot;status&quot;: &quot;ACTIVE&quot;,
     &quot;items&quot;: [
       {
-        &quot;id&quot;: &quot;cmf0cartitem001&quot;,
-        &quot;giftId&quot;: &quot;cmf0giftroses001&quot;,
-        &quot;variantId&quot;: &quot;cmf0variant50ml001&quot;,
-        &quot;name&quot;: &quot;Perfume&quot;,
+        &quot;id&quot;: &quot;cart_item_id&quot;,
+        &quot;giftId&quot;: &quot;gift_id&quot;,
+        &quot;variantId&quot;: &quot;variant_id&quot;,
+        &quot;name&quot;: &quot;Luxury Perfume&quot;,
         &quot;variantName&quot;: &quot;50ml&quot;,
         &quot;quantity&quot;: 1,
-        &quot;unitPrice&quot;: 34.99,
-        &quot;discountAmount&quot;: 7,
-        &quot;finalUnitPrice&quot;: 27.99,
-        &quot;lineTotal&quot;: 27.99,
-        &quot;imageUrl&quot;: &quot;https://cdn.example.com/gift-images/perfume.png&quot;,
+        &quot;unitPrice&quot;: 129.99,
+        &quot;discountAmount&quot;: 20,
+        &quot;finalUnitPrice&quot;: 109.99,
+        &quot;lineTotal&quot;: 109.99,
+        &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;,
         &quot;deliveryOption&quot;: &quot;SAME_DAY&quot;,
         &quot;recipient&quot;: {
-          &quot;contactId&quot;: &quot;cmf0contactmary001&quot;,
+          &quot;contactId&quot;: &quot;contact_id&quot;,
           &quot;name&quot;: &quot;Sarah Khan&quot;,
           &quot;phone&quot;: &quot;+923001234567&quot;,
-          &quot;addressId&quot;: &quot;cmf0addresshome001&quot;
+          &quot;addressId&quot;: &quot;address_id&quot;
         },
         &quot;giftMessage&quot;: &quot;Hope you love this special surprise!&quot;,
+        &quot;messageMediaUrls&quot;: [
+          &quot;https://cdn.yourdomain.com/gift-message-media/photo.png&quot;
+        ],
         &quot;scheduledDeliveryAt&quot;: &quot;2026-12-24T10:00:00.000Z&quot;
       }
     ],
     &quot;summary&quot;: {
-      &quot;subtotal&quot;: 34.99,
-      &quot;discountTotal&quot;: 7,
+      &quot;subtotal&quot;: 129.99,
+      &quot;discountTotal&quot;: 20,
       &quot;deliveryFee&quot;: 0,
       &quot;tax&quot;: 0,
-      &quot;total&quot;: 27.99,
+      &quot;total&quot;: 109.99,
       &quot;currency&quot;: &quot;PKR&quot;
     }
   },
-  &quot;message&quot;: &quot;Request completed successfully&quot;
+  &quot;message&quot;: &quot;Cart fetched successfully&quot;
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
@@ -1335,10 +1424,10 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <p><strong>Request DTO:</strong> <code>CreateOrderDto</code></p>
 <p><strong>Request payload example:</strong></p>
 <pre><code class="language-json">{
-  &quot;cartId&quot;: &quot;cmf0cartactive001&quot;,
-  &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
-  &quot;deliveryAddressId&quot;: &quot;cmf0addresshome001&quot;,
-  &quot;paymentMethod&quot;: &quot;COD&quot;
+  &quot;cartId&quot;: &quot;cart_id&quot;,
+  &quot;paymentId&quot;: &quot;payment_id&quot;,
+  &quot;deliveryAddressId&quot;: &quot;address_id&quot;,
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
 }
 </code></pre>
 <p><strong>Example response:</strong></p>
@@ -1359,7 +1448,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <pre><code class="language-json">{
   &quot;success&quot;: true,
   &quot;data&quot;: {
-    &quot;id&quot;: &quot;cmf0order001&quot;,
+    &quot;id&quot;: &quot;order_id&quot;,
     &quot;orderNumber&quot;: &quot;ORD-1760000000000&quot;,
     &quot;status&quot;: &quot;CONFIRMED&quot;,
     &quot;paymentStatus&quot;: &quot;SUCCEEDED&quot;,
@@ -1375,24 +1464,24 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
     &quot;giftMessage&quot;: &quot;Hope you love this special surprise!&quot;,
     &quot;items&quot;: [
       {
-        &quot;giftId&quot;: &quot;cmf0giftroses001&quot;,
-        &quot;name&quot;: &quot;Perfume&quot;,
+        &quot;giftId&quot;: &quot;gift_id&quot;,
+        &quot;name&quot;: &quot;Luxury Perfume&quot;,
         &quot;variantName&quot;: &quot;50ml&quot;,
         &quot;quantity&quot;: 1,
-        &quot;imageUrl&quot;: &quot;https://cdn.example.com/gift-images/perfume.png&quot;,
-        &quot;total&quot;: 109.5
+        &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;,
+        &quot;total&quot;: 109.99
       }
     ],
     &quot;summary&quot;: {
-      &quot;subtotal&quot;: 100,
+      &quot;subtotal&quot;: 129.99,
+      &quot;discountTotal&quot;: 20,
       &quot;deliveryFee&quot;: 0,
       &quot;tax&quot;: 0,
-      &quot;discountTotal&quot;: 0,
-      &quot;total&quot;: 100,
+      &quot;total&quot;: 109.99,
       &quot;currency&quot;: &quot;PKR&quot;
     }
   },
-  &quot;message&quot;: &quot;Request completed successfully&quot;
+  &quot;message&quot;: &quot;Order fetched successfully.&quot;
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
@@ -1571,14 +1660,14 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <pre><code class="language-json">{
   &quot;success&quot;: true,
   &quot;data&quot;: {
-    &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
+    &quot;paymentId&quot;: &quot;payment_id&quot;,
     &quot;stripePaymentIntentId&quot;: &quot;pi_xxx&quot;,
     &quot;clientSecret&quot;: &quot;pi_xxx_secret_xxx&quot;,
     &quot;publishableKey&quot;: &quot;pk_live_or_test&quot;,
-    &quot;amount&quot;: 10950,
+    &quot;amount&quot;: 10999,
     &quot;currency&quot;: &quot;PKR&quot;
   },
-  &quot;message&quot;: &quot;Request completed successfully&quot;
+  &quot;message&quot;: &quot;Payment intent created successfully.&quot;
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
@@ -1628,8 +1717,17 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
   &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
+  &quot;data&quot;: {
+    &quot;paymentId&quot;: &quot;payment_id&quot;,
+    &quot;provider&quot;: &quot;STRIPE&quot;,
+    &quot;stripePaymentIntentId&quot;: &quot;pi_xxx&quot;,
+    &quot;amount&quot;: 109.99,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;status&quot;: &quot;SUCCEEDED&quot;,
+    &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;,
+    &quot;failureReason&quot;: null
+  },
+  &quot;message&quot;: &quot;Payment fetched successfully.&quot;
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record when applicable.</p>
@@ -2261,56 +2359,57 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <td><code>GET</code></td>
 <td><code>/gifts</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>List admin gifts</td>
 </tr>
 <tr>
 <td><code>POST</code></td>
 <td><code>/gifts</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Create admin gift with optional nested variants</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/gifts/export</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Export gift inventory</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/gifts/stats</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Fetch gift inventory stats</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/gifts/{id}</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Fetch admin gift details with variants</td>
 </tr>
 <tr>
 <td><code>PATCH</code></td>
 <td><code>/gifts/{id}</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Update admin gift and upsert nested variants</td>
 </tr>
 <tr>
 <td><code>DELETE</code></td>
 <td><code>/gifts/{id}</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Soft-delete gift</td>
 </tr>
 <tr>
 <td><code>PATCH</code></td>
 <td><code>/gifts/{id}/status</code></td>
 <td>SUPER_ADMIN, ADMIN</td>
-<td></td>
+<td>Update gift status</td>
 </tr>
 </tbody>
 </table>
 <h3 id="get-gifts">GET /gifts</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> List admin gifts</p>
+<p><strong>Description:</strong> SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.</p>
 <p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>categoryId</code> (query, optional), <code>providerId</code> (query, optional), <code>status</code> (query, optional), <code>moderationStatus</code> (query, optional), <code>isPublished</code> (query, optional), <code>sortBy</code> (query, optional), <code>sortOrder</code> (query, optional)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2323,7 +2422,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="post-gifts">POST /gifts</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Create admin gift with optional nested variants</p>
+<p><strong>Description:</strong> SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.</p>
 <p><strong>Parameters:</strong> None</p>
 <p><strong>Request DTO:</strong> <code>CreateGiftDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -2376,15 +2476,36 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
   &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;gift_id&quot;,
+    &quot;name&quot;: &quot;Luxury Perfume&quot;,
+    &quot;price&quot;: 99.99,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;stockQuantity&quot;: 50,
+    &quot;sku&quot;: &quot;PERFUME-001&quot;,
+    &quot;variants&quot;: [
+      {
+        &quot;id&quot;: &quot;variant_id&quot;,
+        &quot;name&quot;: &quot;50ml&quot;,
+        &quot;price&quot;: 129.99,
+        &quot;originalPrice&quot;: 159.99,
+        &quot;stockQuantity&quot;: 20,
+        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+        &quot;isPopular&quot;: true,
+        &quot;isDefault&quot;: true,
+        &quot;sortOrder&quot;: 2,
+        &quot;isActive&quot;: true
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Gift created successfully&quot;
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
 <h3 id="get-giftsexport">GET /gifts/export</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Export gift inventory</p>
 <p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>categoryId</code> (query, optional), <code>providerId</code> (query, optional), <code>status</code> (query, optional), <code>moderationStatus</code> (query, optional), <code>isPublished</code> (query, optional), <code>sortBy</code> (query, optional), <code>sortOrder</code> (query, optional), <code>format</code> (query, optional)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2397,7 +2518,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="get-giftsstats">GET /gifts/stats</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Fetch gift inventory stats</p>
 <p><strong>Parameters:</strong> None</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2410,7 +2531,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="get-giftsid">GET /gifts/{id}</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Fetch admin gift details with variants</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2423,7 +2544,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="patch-giftsid">PATCH /gifts/{id}</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Update admin gift and upsert nested variants</p>
+<p><strong>Description:</strong> If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Request DTO:</strong> <code>UpdateGiftDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -2461,13 +2583,13 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="delete-giftsid">DELETE /gifts/{id}</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Soft-delete gift</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
 <h3 id="patch-giftsidstatus">PATCH /gifts/{id}/status</h3>
 <p><strong>Allowed role(s):</strong> SUPER_ADMIN, ADMIN</p>
 <p><strong>Swagger tag:</strong> Gift Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Update gift status</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Request DTO:</strong> <code>UpdateGiftStatusDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -2492,56 +2614,57 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <td><code>GET</code></td>
 <td><code>/provider/inventory</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>List provider inventory items</td>
 </tr>
 <tr>
 <td><code>POST</code></td>
 <td><code>/provider/inventory</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Create provider inventory item with optional nested variants</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/provider/inventory/lookup</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Lookup active approved provider inventory items</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/provider/inventory/stats</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Fetch provider inventory stats</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/provider/inventory/{id}</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Fetch own provider inventory item details</td>
 </tr>
 <tr>
 <td><code>PATCH</code></td>
 <td><code>/provider/inventory/{id}</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Update own provider inventory item and upsert variants</td>
 </tr>
 <tr>
 <td><code>DELETE</code></td>
 <td><code>/provider/inventory/{id}</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Soft-delete own inventory item</td>
 </tr>
 <tr>
 <td><code>PATCH</code></td>
 <td><code>/provider/inventory/{id}/availability</code></td>
 <td>PROVIDER</td>
-<td></td>
+<td>Update own inventory availability</td>
 </tr>
 </tbody>
 </table>
 <h3 id="get-providerinventory">GET /provider/inventory</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> List provider inventory items</p>
+<p><strong>Description:</strong> PROVIDER only. Returns only inventory owned by the authenticated provider.</p>
 <p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>status</code> (query, optional), <code>categoryId</code> (query, optional), <code>sortBy</code> (query, optional), <code>sortOrder</code> (query, optional)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2554,7 +2677,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="post-providerinventory">POST /provider/inventory</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Create provider inventory item with optional nested variants</p>
+<p><strong>Description:</strong> PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.</p>
 <p><strong>Parameters:</strong> None</p>
 <p><strong>Request DTO:</strong> <code>CreateProviderInventoryItemDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -2600,15 +2724,35 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
   &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;gift_id&quot;,
+    &quot;name&quot;: &quot;Luxury Perfume&quot;,
+    &quot;price&quot;: 99.99,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;stockQuantity&quot;: 50,
+    &quot;status&quot;: &quot;ACTIVE&quot;,
+    &quot;moderationStatus&quot;: &quot;PENDING&quot;,
+    &quot;variants&quot;: [
+      {
+        &quot;id&quot;: &quot;variant_id&quot;,
+        &quot;name&quot;: &quot;50ml&quot;,
+        &quot;price&quot;: 129.99,
+        &quot;originalPrice&quot;: 159.99,
+        &quot;stockQuantity&quot;: 20,
+        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+        &quot;isDefault&quot;: true,
+        &quot;isActive&quot;: true
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Inventory item created successfully&quot;
 }
 </code></pre>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
 <h3 id="get-providerinventorylookup">GET /provider/inventory/lookup</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Lookup active approved provider inventory items</p>
 <p><strong>Parameters:</strong> None</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2621,7 +2765,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="get-providerinventorystats">GET /provider/inventory/stats</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Fetch provider inventory stats</p>
 <p><strong>Parameters:</strong> None</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2634,7 +2778,7 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="get-providerinventoryid">GET /provider/inventory/{id}</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Fetch own provider inventory item details</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -2647,7 +2791,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="patch-providerinventoryid">PATCH /provider/inventory/{id}</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Update own provider inventory item and upsert variants</p>
+<p><strong>Description:</strong> Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Request DTO:</strong> <code>UpdateProviderInventoryItemDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -2684,13 +2829,13 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="delete-providerinventoryid">DELETE /provider/inventory/{id}</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Soft-delete own inventory item</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
 <h3 id="patch-providerinventoryidavailability">PATCH /provider/inventory/{id}/availability</h3>
 <p><strong>Allowed role(s):</strong> PROVIDER</p>
 <p><strong>Swagger tag:</strong> Provider Inventory</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Update own inventory availability</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Request DTO:</strong> <code>UpdateProviderAvailabilityDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -3073,13 +3218,13 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <td><code>GET</code></td>
 <td><code>/provider-business-categories</code></td>
 <td>PUBLIC/UNSPECIFIED</td>
-<td></td>
+<td>List active provider business categories</td>
 </tr>
 <tr>
 <td><code>POST</code></td>
 <td><code>/provider-business-categories</code></td>
 <td>PUBLIC/UNSPECIFIED</td>
-<td></td>
+<td>Create provider business category</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
@@ -3115,19 +3260,19 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <td><code>GET</code></td>
 <td><code>/provider-business-categories/{id}</code></td>
 <td>PUBLIC/UNSPECIFIED</td>
-<td></td>
+<td>Fetch provider business category details</td>
 </tr>
 <tr>
 <td><code>PATCH</code></td>
 <td><code>/provider-business-categories/{id}</code></td>
 <td>PUBLIC/UNSPECIFIED</td>
-<td></td>
+<td>Update provider business category</td>
 </tr>
 <tr>
 <td><code>DELETE</code></td>
 <td><code>/provider-business-categories/{id}</code></td>
 <td>PUBLIC/UNSPECIFIED</td>
-<td></td>
+<td>Soft-delete provider business category</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
@@ -3194,7 +3339,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="get-provider-business-categories">GET /provider-business-categories</h3>
 <p><strong>Allowed role(s):</strong> PUBLIC/UNSPECIFIED</p>
 <p><strong>Swagger tag:</strong> Provider Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> List active provider business categories</p>
+<p><strong>Description:</strong> Public signup dropdown. Returns active, non-deleted provider business categories only.</p>
 <p><strong>Parameters:</strong> <code>page</code> (query, optional), <code>limit</code> (query, optional), <code>search</code> (query, optional), <code>isActive</code> (query, optional)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -3207,7 +3353,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="post-provider-business-categories">POST /provider-business-categories</h3>
 <p><strong>Allowed role(s):</strong> PUBLIC/UNSPECIFIED</p>
 <p><strong>Swagger tag:</strong> Provider Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Create provider business category</p>
+<p><strong>Description:</strong> SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.</p>
 <p><strong>Parameters:</strong> None</p>
 <p><strong>Request DTO:</strong> <code>CreateProviderBusinessCategoryDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -3312,7 +3459,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="get-provider-business-categoriesid">GET /provider-business-categories/{id}</h3>
 <p><strong>Allowed role(s):</strong> PUBLIC/UNSPECIFIED</p>
 <p><strong>Swagger tag:</strong> Provider Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Fetch provider business category details</p>
+<p><strong>Description:</strong> SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Example response:</strong></p>
 <pre><code class="language-json">{
@@ -3325,7 +3473,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="patch-provider-business-categoriesid">PATCH /provider-business-categories/{id}</h3>
 <p><strong>Allowed role(s):</strong> PUBLIC/UNSPECIFIED</p>
 <p><strong>Swagger tag:</strong> Provider Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Update provider business category</p>
+<p><strong>Description:</strong> SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Request DTO:</strong> <code>UpdateProviderBusinessCategoryDto</code></p>
 <p><strong>Request payload example:</strong></p>
@@ -3341,7 +3490,8 @@ body{font-family:Arial,sans-serif;color:#111827;line-height:1.35;font-size:10.5p
 <h3 id="delete-provider-business-categoriesid">DELETE /provider-business-categories/{id}</h3>
 <p><strong>Allowed role(s):</strong> PUBLIC/UNSPECIFIED</p>
 <p><strong>Swagger tag:</strong> Provider Management</p>
-<p><strong>Summary:</strong> —</p>
+<p><strong>Summary:</strong> Soft-delete provider business category</p>
+<p><strong>Description:</strong> SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.</p>
 <p><strong>Parameters:</strong> <code>id</code> (path, required)</p>
 <p><strong>Common failure responses:</strong> <code>400</code> validation/business rule failure, <code>401</code> missing/invalid token, <code>403</code> role/permission denied, <code>404</code> missing owned record.</p>
 <h3 id="get-providersid">GET /providers/{id}</h3>

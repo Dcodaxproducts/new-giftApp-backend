@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -16,6 +16,7 @@ export class ProviderBusinessCategoriesController {
   constructor(private readonly service: ProviderBusinessCategoriesService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List active provider business categories', description: 'Public signup dropdown. Returns active, non-deleted provider business categories only.' })
   list(@Query() query: ListProviderBusinessCategoriesDto) {
     return this.service.list(query);
   }
@@ -25,6 +26,7 @@ export class ProviderBusinessCategoriesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('providerBusinessCategories.create')
   @Post()
+  @ApiOperation({ summary: 'Create provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.' })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateProviderBusinessCategoryDto) {
     return this.service.create(user, dto);
   }
@@ -34,6 +36,7 @@ export class ProviderBusinessCategoriesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('providerBusinessCategories.read')
   @Get(':id')
+  @ApiOperation({ summary: 'Fetch provider business category details', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.' })
   details(@Param('id') id: string) {
     return this.service.details(id);
   }
@@ -43,6 +46,7 @@ export class ProviderBusinessCategoriesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('providerBusinessCategories.update')
   @Patch(':id')
+  @ApiOperation({ summary: 'Update provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.' })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderBusinessCategoryDto) {
     return this.service.update(user, id, dto);
   }
@@ -52,6 +56,7 @@ export class ProviderBusinessCategoriesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('providerBusinessCategories.delete')
   @Delete(':id')
+  @ApiOperation({ summary: 'Soft-delete provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
     return this.service.delete(user, id);
   }

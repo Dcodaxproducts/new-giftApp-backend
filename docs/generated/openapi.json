@@ -1871,6 +1871,7 @@
     },
     "/api/v1/provider-business-categories": {
       "get": {
+        "description": "Public signup dropdown. Returns active, non-deleted provider business categories only.",
         "operationId": "ProviderBusinessCategoriesController_list",
         "parameters": [
           {
@@ -1911,11 +1912,13 @@
             "description": ""
           }
         },
+        "summary": "List active provider business categories",
         "tags": [
           "Provider Management"
         ]
       },
       "post": {
+        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.",
         "operationId": "ProviderBusinessCategoriesController_create",
         "parameters": [],
         "requestBody": {
@@ -1938,6 +1941,7 @@
             "bearer": []
           }
         ],
+        "summary": "Create provider business category",
         "tags": [
           "Provider Management"
         ]
@@ -1945,6 +1949,7 @@
     },
     "/api/v1/provider-business-categories/{id}": {
       "get": {
+        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.",
         "operationId": "ProviderBusinessCategoriesController_details",
         "parameters": [
           {
@@ -1966,11 +1971,13 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch provider business category details",
         "tags": [
           "Provider Management"
         ]
       },
       "patch": {
+        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.",
         "operationId": "ProviderBusinessCategoriesController_update",
         "parameters": [
           {
@@ -2002,11 +2009,13 @@
             "bearer": []
           }
         ],
+        "summary": "Update provider business category",
         "tags": [
           "Provider Management"
         ]
       },
       "delete": {
+        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.",
         "operationId": "ProviderBusinessCategoriesController_delete",
         "parameters": [
           {
@@ -2028,6 +2037,7 @@
             "bearer": []
           }
         ],
+        "summary": "Soft-delete provider business category",
         "tags": [
           "Provider Management"
         ]
@@ -2035,6 +2045,7 @@
     },
     "/api/v1/provider/inventory": {
       "get": {
+        "description": "PROVIDER only. Returns only inventory owned by the authenticated provider.",
         "operationId": "ProviderInventoryController_list",
         "parameters": [
           {
@@ -2122,11 +2133,13 @@
             "bearer": []
           }
         ],
+        "summary": "List provider inventory items",
         "tags": [
           "Provider Inventory"
         ]
       },
       "post": {
+        "description": "PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.",
         "operationId": "ProviderInventoryController_create",
         "parameters": [],
         "requestBody": {
@@ -2183,7 +2196,38 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Inventory item created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "name": "Luxury Perfume",
+                      "price": 99.99,
+                      "currency": "PKR",
+                      "stockQuantity": 50,
+                      "status": "ACTIVE",
+                      "moderationStatus": "PENDING",
+                      "variants": [
+                        {
+                          "id": "variant_id",
+                          "name": "50ml",
+                          "price": 129.99,
+                          "originalPrice": 159.99,
+                          "stockQuantity": 20,
+                          "sku": "PERFUME-50ML",
+                          "isDefault": true,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Inventory item created successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2191,6 +2235,7 @@
             "bearer": []
           }
         ],
+        "summary": "Create provider inventory item with optional nested variants",
         "tags": [
           "Provider Inventory"
         ]
@@ -2210,6 +2255,7 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch provider inventory stats",
         "tags": [
           "Provider Inventory"
         ]
@@ -2229,6 +2275,7 @@
             "bearer": []
           }
         ],
+        "summary": "Lookup active approved provider inventory items",
         "tags": [
           "Provider Inventory"
         ]
@@ -2257,11 +2304,13 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch own provider inventory item details",
         "tags": [
           "Provider Inventory"
         ]
       },
       "patch": {
+        "description": "Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.",
         "operationId": "ProviderInventoryController_update",
         "parameters": [
           {
@@ -2317,7 +2366,31 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Inventory item updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "name": "Luxury Perfume",
+                      "variants": [
+                        {
+                          "id": "variant_id",
+                          "name": "50ml",
+                          "price": 129.99,
+                          "stockQuantity": 20,
+                          "isDefault": true,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Inventory item updated successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2325,6 +2398,7 @@
             "bearer": []
           }
         ],
+        "summary": "Update own provider inventory item and upsert variants",
         "tags": [
           "Provider Inventory"
         ]
@@ -2351,6 +2425,7 @@
             "bearer": []
           }
         ],
+        "summary": "Soft-delete own inventory item",
         "tags": [
           "Provider Inventory"
         ]
@@ -2389,6 +2464,7 @@
             "bearer": []
           }
         ],
+        "summary": "Update own inventory availability",
         "tags": [
           "Provider Inventory"
         ]
@@ -4698,7 +4774,52 @@
         ],
         "responses": {
           "200": {
-            "description": "Customer gifts fetched successfully"
+            "description": "Customer gifts fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "gift_id",
+                        "name": "Luxury Perfume",
+                        "price": 99.99,
+                        "currency": "PKR",
+                        "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
+                        "rating": 4.8,
+                        "isWishlisted": false,
+                        "shortDescription": "Premium fragrance gift.",
+                        "reviewCount": 0,
+                        "stockQuantity": 50,
+                        "category": {
+                          "id": "gift_category_id",
+                          "name": "Perfumes",
+                          "slug": "perfumes"
+                        },
+                        "provider": {
+                          "id": "provider_id",
+                          "businessName": "Dcodax Gifts"
+                        },
+                        "deliveryOptions": [
+                          "SAME_DAY",
+                          "NEXT_DAY",
+                          "SCHEDULED"
+                        ],
+                        "activeOffer": null
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Customer gifts fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4728,7 +4849,69 @@
         ],
         "responses": {
           "200": {
-            "description": "Gift details fetched successfully"
+            "description": "Gift details fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "name": "Luxury Perfume",
+                      "description": "Long-lasting premium fragrance.",
+                      "shortDescription": "Premium fragrance gift.",
+                      "price": 99.99,
+                      "originalPrice": 99.99,
+                      "currency": "PKR",
+                      "imageUrls": [
+                        "https://cdn.yourdomain.com/gift-images/perfume.png"
+                      ],
+                      "rating": 4.8,
+                      "reviewCount": 0,
+                      "stockQuantity": 50,
+                      "sku": "PERFUME-001",
+                      "isWishlisted": false,
+                      "badges": [
+                        "AUTHENTIC"
+                      ],
+                      "category": {
+                        "id": "gift_category_id",
+                        "name": "Perfumes",
+                        "slug": "perfumes"
+                      },
+                      "provider": {
+                        "id": "provider_id",
+                        "businessName": "Dcodax Gifts",
+                        "rating": 4.8,
+                        "reviewCount": 0,
+                        "fulfillmentMethods": [
+                          "DELIVERY"
+                        ]
+                      },
+                      "variants": [
+                        {
+                          "id": "variant_id",
+                          "name": "50ml",
+                          "price": 129.99,
+                          "originalPrice": 159.99,
+                          "stockQuantity": 20,
+                          "sku": "PERFUME-50ML",
+                          "isPopular": true,
+                          "isDefault": true
+                        }
+                      ],
+                      "deliveryOptions": [
+                        "SAME_DAY",
+                        "NEXT_DAY",
+                        "SCHEDULED"
+                      ],
+                      "activeOffer": null
+                    },
+                    "message": "Gift details fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5004,7 +5187,56 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Cart fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "cart_id",
+                      "status": "ACTIVE",
+                      "items": [
+                        {
+                          "id": "cart_item_id",
+                          "giftId": "gift_id",
+                          "variantId": "variant_id",
+                          "name": "Luxury Perfume",
+                          "variantName": "50ml",
+                          "quantity": 1,
+                          "unitPrice": 129.99,
+                          "discountAmount": 20,
+                          "finalUnitPrice": 109.99,
+                          "lineTotal": 109.99,
+                          "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
+                          "deliveryOption": "SAME_DAY",
+                          "recipient": {
+                            "contactId": "contact_id",
+                            "name": "Sarah Khan",
+                            "phone": "+923001234567",
+                            "addressId": "address_id"
+                          },
+                          "giftMessage": "Hope you love this special surprise!",
+                          "messageMediaUrls": [
+                            "https://cdn.yourdomain.com/gift-message-media/photo.png"
+                          ],
+                          "scheduledDeliveryAt": "2026-12-24T10:00:00.000Z"
+                        }
+                      ],
+                      "summary": {
+                        "subtotal": 129.99,
+                        "discountTotal": 20,
+                        "deliveryFee": 0,
+                        "tax": 0,
+                        "total": 109.99,
+                        "currency": "PKR"
+                      }
+                    },
+                    "message": "Cart fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5186,6 +5418,25 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateOrderDto"
+              },
+              "examples": {
+                "stripeCard": {
+                  "summary": "Stripe card checkout",
+                  "value": {
+                    "cartId": "cart_id",
+                    "paymentId": "payment_id",
+                    "deliveryAddressId": "address_id",
+                    "paymentMethod": "STRIPE_CARD"
+                  }
+                },
+                "cod": {
+                  "summary": "Cash on delivery checkout",
+                  "value": {
+                    "cartId": "cart_id",
+                    "deliveryAddressId": "address_id",
+                    "paymentMethod": "COD"
+                  }
+                }
               }
             }
           }
@@ -5311,7 +5562,51 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Order fetched successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "order_id",
+                      "orderNumber": "ORD-1760000000000",
+                      "status": "CONFIRMED",
+                      "paymentStatus": "SUCCEEDED",
+                      "paymentMethod": "STRIPE_CARD",
+                      "recipient": {
+                        "name": "Sarah Khan",
+                        "email": null,
+                        "phone": "+923001234567",
+                        "avatarUrl": null
+                      },
+                      "deliveryDate": "2026-12-24T10:00:00.000Z",
+                      "occasion": null,
+                      "giftMessage": "Hope you love this special surprise!",
+                      "items": [
+                        {
+                          "giftId": "gift_id",
+                          "name": "Luxury Perfume",
+                          "variantName": "50ml",
+                          "quantity": 1,
+                          "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
+                          "total": 109.99
+                        }
+                      ],
+                      "summary": {
+                        "subtotal": 129.99,
+                        "discountTotal": 20,
+                        "deliveryFee": 0,
+                        "tax": 0,
+                        "total": 109.99,
+                        "currency": "PKR"
+                      }
+                    },
+                    "message": "Order fetched successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5591,6 +5886,7 @@
     },
     "/api/v1/gifts": {
       "post": {
+        "description": "SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.",
         "operationId": "GiftsController_create",
         "parameters": [],
         "requestBody": {
@@ -5654,7 +5950,39 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Gift created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "name": "Luxury Perfume",
+                      "price": 99.99,
+                      "currency": "PKR",
+                      "stockQuantity": 50,
+                      "sku": "PERFUME-001",
+                      "variants": [
+                        {
+                          "id": "variant_id",
+                          "name": "50ml",
+                          "price": 129.99,
+                          "originalPrice": 159.99,
+                          "stockQuantity": 20,
+                          "sku": "PERFUME-50ML",
+                          "isPopular": true,
+                          "isDefault": true,
+                          "sortOrder": 2,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Gift created successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5662,11 +5990,13 @@
             "bearer": []
           }
         ],
+        "summary": "Create admin gift with optional nested variants",
         "tags": [
           "Gift Management"
         ]
       },
       "get": {
+        "description": "SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.",
         "operationId": "GiftsController_list",
         "parameters": [
           {
@@ -5787,6 +6117,7 @@
             "bearer": []
           }
         ],
+        "summary": "List admin gifts",
         "tags": [
           "Gift Management"
         ]
@@ -5806,6 +6137,7 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch gift inventory stats",
         "tags": [
           "Gift Management"
         ]
@@ -5945,6 +6277,7 @@
             "bearer": []
           }
         ],
+        "summary": "Export gift inventory",
         "tags": [
           "Gift Management"
         ]
@@ -5973,11 +6306,13 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch admin gift details with variants",
         "tags": [
           "Gift Management"
         ]
       },
       "patch": {
+        "description": "If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.",
         "operationId": "GiftsController_update",
         "parameters": [
           {
@@ -6034,7 +6369,33 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Gift updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "name": "Luxury Perfume Updated",
+                      "variants": [
+                        {
+                          "id": "variant_id",
+                          "name": "50ml",
+                          "price": 129.99,
+                          "originalPrice": 159.99,
+                          "stockQuantity": 20,
+                          "sku": "PERFUME-50ML",
+                          "isDefault": true,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Gift updated successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6042,6 +6403,7 @@
             "bearer": []
           }
         ],
+        "summary": "Update admin gift and upsert nested variants",
         "tags": [
           "Gift Management"
         ]
@@ -6068,6 +6430,7 @@
             "bearer": []
           }
         ],
+        "summary": "Soft-delete gift",
         "tags": [
           "Gift Management"
         ]
@@ -6106,6 +6469,7 @@
             "bearer": []
           }
         ],
+        "summary": "Update gift status",
         "tags": [
           "Gift Management"
         ]
@@ -7944,7 +8308,25 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Payment intent created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "paymentId": "payment_id",
+                      "stripePaymentIntentId": "pi_xxx",
+                      "clientSecret": "pi_xxx_secret_xxx",
+                      "publishableKey": "pk_live_or_test",
+                      "amount": 10999,
+                      "currency": "PKR"
+                    },
+                    "message": "Payment intent created successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8004,7 +8386,27 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Payment fetched successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "paymentId": "payment_id",
+                      "provider": "STRIPE",
+                      "stripePaymentIntentId": "pi_xxx",
+                      "amount": 109.99,
+                      "currency": "PKR",
+                      "status": "SUCCEEDED",
+                      "paymentMethod": "STRIPE_CARD",
+                      "failureReason": null
+                    },
+                    "message": "Payment fetched successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
