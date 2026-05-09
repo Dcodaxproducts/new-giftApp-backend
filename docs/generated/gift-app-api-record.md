@@ -21,6 +21,7 @@ Generated from the NestJS Swagger document with controller auto-tags disabled, s
 - Customer Cart
 - Customer Orders
 - Notifications
+- Broadcast Notifications
 - Gift Categories
 - Gift Management
 - Provider Inventory
@@ -287,15 +288,57 @@ Examples:
 ### Notifications
 
 ```txt
-GET    /broadcasts
-POST   /broadcasts
-POST   /broadcasts/estimate-reach
 GET    /notifications
 POST   /notifications/device-tokens
 GET    /notifications/preferences
 PATCH  /notifications/preferences
 PATCH  /notifications/read-all
 GET    /notifications/summary
+POST   /notifications/:id/action
+PATCH  /notifications/:id/read
+DELETE /notifications/device-tokens/:id
+```
+
+Examples:
+
+**POST /notifications/device-tokens**
+
+```json
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+  "platform": "IOS",
+  "deviceId": "ios-iphone-15-pro-device-id"
+}
+```
+
+**PATCH /notifications/preferences**
+
+```json
+{
+  "pushEnabled": true,
+  "emailEnabled": true,
+  "smsEnabled": false,
+  "dealUpdatesEnabled": true,
+  "birthdayRemindersEnabled": true,
+  "deliveryUpdatesEnabled": true,
+  "newContactAlertsEnabled": true
+}
+```
+
+**POST /notifications/:id/action**
+
+```json
+{
+  "action": "SEND_GIFT"
+}
+```
+
+### Broadcast Notifications
+
+```txt
+GET    /broadcasts
+POST   /broadcasts
+POST   /broadcasts/estimate-reach
 GET    /broadcasts/:id
 PATCH  /broadcasts/:id
 POST   /broadcasts/:id/cancel
@@ -303,9 +346,6 @@ GET    /broadcasts/:id/recipients
 GET    /broadcasts/:id/report
 PATCH  /broadcasts/:id/schedule
 PATCH  /broadcasts/:id/targeting
-POST   /notifications/:id/action
-PATCH  /notifications/:id/read
-DELETE /notifications/device-tokens/:id
 ```
 
 Examples:
@@ -339,30 +379,6 @@ Examples:
       "excludeSuspended": true
     }
   }
-}
-```
-
-**POST /notifications/device-tokens**
-
-```json
-{
-  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
-  "platform": "IOS",
-  "deviceId": "ios-iphone-15-pro-device-id"
-}
-```
-
-**PATCH /notifications/preferences**
-
-```json
-{
-  "pushEnabled": true,
-  "emailEnabled": true,
-  "smsEnabled": false,
-  "dealUpdatesEnabled": true,
-  "birthdayRemindersEnabled": true,
-  "deliveryUpdatesEnabled": true,
-  "newContactAlertsEnabled": true
 }
 ```
 
@@ -400,14 +416,6 @@ Examples:
     "excludeUnsubscribed": true,
     "excludeSuspended": true
   }
-}
-```
-
-**POST /notifications/:id/action**
-
-```json
-{
-  "action": "SEND_GIFT"
 }
 ```
 
@@ -468,18 +476,49 @@ Examples:
 
 ```json
 {
-  "price": 99.5,
-  "currency": "USD",
-  "stockQuantity": 99.5,
+  "name": "Luxury Perfume",
+  "description": "Long-lasting premium fragrance.",
+  "shortDescription": "Premium fragrance gift.",
+  "categoryId": "gift_category_id",
+  "providerId": "provider_id",
+  "price": 99.99,
+  "currency": "PKR",
+  "stockQuantity": 50,
+  "sku": "PERFUME-001",
   "imageUrls": [
-    null
+    "https://cdn.yourdomain.com/gift-images/perfume.png"
   ],
   "isPublished": true,
-  "isFeatured": true,
+  "isFeatured": false,
   "tags": [
-    null
+    "perfume",
+    "luxury"
   ],
-  "moderationStatus": "PENDING"
+  "moderationStatus": "APPROVED",
+  "variants": [
+    {
+      "name": "30ml",
+      "price": 89.99,
+      "originalPrice": 119.99,
+      "stockQuantity": 10,
+      "sku": "PERFUME-30ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    }
+  ]
 }
 ```
 
@@ -487,16 +526,32 @@ Examples:
 
 ```json
 {
-  "price": 99.5,
-  "currency": "USD",
-  "stockQuantity": 99.5,
-  "imageUrls": [
-    null
-  ],
-  "isPublished": true,
-  "isFeatured": true,
-  "tags": [
-    null
+  "name": "Luxury Perfume Updated",
+  "replaceVariants": false,
+  "variants": [
+    {
+      "id": "variant_id",
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "name": "150ml",
+      "price": 249.99,
+      "originalPrice": 299.99,
+      "stockQuantity": 5,
+      "sku": "PERFUME-150ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 4,
+      "isActive": true
+    }
   ]
 }
 ```
@@ -528,12 +583,42 @@ Examples:
 
 ```json
 {
-  "price": 99.5,
-  "stockQuantity": 99.5,
+  "name": "Luxury Perfume",
+  "description": "Long-lasting premium fragrance.",
+  "shortDescription": "Premium fragrance gift.",
+  "categoryId": "gift_category_id",
+  "price": 99.99,
+  "currency": "PKR",
+  "stockQuantity": 50,
+  "sku": "PERFUME-001",
   "imageUrls": [
-    null
+    "https://cdn.yourdomain.com/gift-images/perfume.png"
   ],
-  "isAvailable": true
+  "isAvailable": true,
+  "variants": [
+    {
+      "name": "30ml",
+      "price": 89.99,
+      "originalPrice": 119.99,
+      "stockQuantity": 10,
+      "sku": "PERFUME-30ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    }
+  ]
 }
 ```
 
@@ -541,12 +626,32 @@ Examples:
 
 ```json
 {
-  "price": 99.5,
-  "stockQuantity": 99.5,
-  "imageUrls": [
-    null
-  ],
-  "isAvailable": true
+  "replaceVariants": false,
+  "variants": [
+    {
+      "id": "variant_id",
+      "name": "50ml",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "stockQuantity": 20,
+      "sku": "PERFUME-50ML",
+      "isPopular": true,
+      "isDefault": true,
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "name": "150ml",
+      "price": 249.99,
+      "originalPrice": 299.99,
+      "stockQuantity": 5,
+      "sku": "PERFUME-150ML",
+      "isPopular": false,
+      "isDefault": false,
+      "sortOrder": 4,
+      "isActive": true
+    }
+  ]
 }
 ```
 

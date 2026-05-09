@@ -68,6 +68,7 @@ export class StorageService {
   }
 
   private async assertUploadScope(user: AuthUserContext, dto: CreatePresignedUploadDto): Promise<void> {
+    if (dto.folder === UploadFolder.GIFT_MESSAGE_MEDIA && user.role !== UserRole.REGISTERED_USER) throw new ForbiddenException('Gift message media uploads are allowed for registered users only');
     if (user.role === UserRole.REGISTERED_USER) {
       const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.GIFT_MESSAGE_MEDIA];
       if (!allowed.includes(dto.folder) || (dto.targetAccountId && dto.targetAccountId !== user.uid)) throw new ForbiddenException('Registered users can upload only their own files');
@@ -102,7 +103,7 @@ export class StorageService {
     if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Image exceeds maximum allowed size');
   }
 
-  private scopedFolder(user: AuthUserContext, dto: CreatePresignedUploadDto): string { return `${dto.folder}/${dto.targetAccountId ?? user.uid}`; }
+  private scopedFolder(user: AuthUserContext, dto: CreatePresignedUploadDto): string { return `${dto.folder}/${user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? dto.targetAccountId ?? user.uid : user.uid}`; }
   private hasAnyPermission(user: AuthUserContext, permissions: string[]): boolean { if (user.role === UserRole.SUPER_ADMIN) return true; if (!user.permissions || typeof user.permissions !== 'object' || Array.isArray(user.permissions)) return false; const granted = new Set<string>(); for (const [module, values] of Object.entries(user.permissions)) if (Array.isArray(values)) for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`); return permissions.some((permission) => granted.has(permission)); }
   private getClient(): S3Client { if (this.client) return this.client; this.client = new S3Client({ region: this.required('AWS_REGION'), credentials: { accessKeyId: this.required('AWS_ACCESS_KEY_ID'), secretAccessKey: this.required('AWS_SECRET_ACCESS_KEY') } }); return this.client; }
   private async deleteObject(storageKey: string): Promise<void> { await this.getClient().send(new DeleteObjectCommand({ Bucket: this.required('AWS_BUCKET_NAME'), Key: storageKey })); }

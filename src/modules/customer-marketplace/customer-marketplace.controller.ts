@@ -160,7 +160,7 @@ export class CustomerMarketplaceController {
 
   @Post('orders')
   @ApiTags('Customer Orders')
-  @ApiOperation({ summary: 'Create order from active cart', description: 'REGISTERED_USER only. Prices are backend-calculated from cart snapshots. Multiple providers are split into provider sub-orders. Payment is COD/placeholder until payment module is ready.' })
+  @ApiOperation({ summary: 'Create order from active cart', description: 'REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.' })
   @ApiBody({ type: CreateOrderDto })
   createOrder(@CurrentUser() user: AuthUserContext, @Body() dto: CreateOrderDto) { return this.marketplace.createOrder(user, dto); }
 

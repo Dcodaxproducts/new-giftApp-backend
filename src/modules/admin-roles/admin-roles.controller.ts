@@ -13,14 +13,14 @@ import {
 } from '../auth/dto/admin-management.dto';
 import { AdminRolesService } from './admin-roles.service';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SUPER_ADMIN)
 export class AdminRolesBaseController {
   constructor(protected readonly adminRolesService: AdminRolesService) {}
 }
 
 @ApiTags('Admin Roles / RBAC')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('admin-roles')
 export class AdminRolesController extends AdminRolesBaseController {
   @Get()
@@ -64,6 +64,9 @@ export class AdminRolesController extends AdminRolesBaseController {
 }
 
 @ApiTags('Admin Roles / RBAC')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('permissions')
 export class PermissionCatalogController extends AdminRolesBaseController {
   @Get('catalog')

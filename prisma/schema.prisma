@@ -778,12 +778,14 @@ model GiftVariant {
   isActive      Boolean  @default(true) @map("is_active")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz
 
   gift      Gift       @relation(fields: [giftId], references: [id])
   cartItems CartItem[]
   orderItems OrderItem[]
 
   @@index([giftId, isActive, sortOrder])
+  @@index([deletedAt])
   @@map("gift_variants")
 }
 

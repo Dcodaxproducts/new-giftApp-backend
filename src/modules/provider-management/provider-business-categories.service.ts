@@ -35,7 +35,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     const where: Prisma.ProviderBusinessCategoryWhereInput = {
       deletedAt: null,
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
-      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
+      isActive: true,
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.providerBusinessCategory.findMany({

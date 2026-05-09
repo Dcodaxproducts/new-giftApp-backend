@@ -15,4 +15,12 @@ describe('Storage upload metadata flow', () => {
     expect(source).toContain("this.required('AWS_ACCESS_KEY_ID')");
     expect(source).toContain("this.required('AWS_SECRET_ACCESS_KEY')");
   });
+
+  it('enforces upload ownership and gift message media policy', () => {
+    expect(source).toContain('ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? query.ownerId : user.uid');
+    expect(source).toContain('Gift message media uploads are allowed for registered users only');
+    expect(source).toContain('image/jpeg');
+    expect(source).toContain('video/mp4');
+    expect(source).toContain('25 * 1024 * 1024');
+  });
 });

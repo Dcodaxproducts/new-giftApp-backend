@@ -15,6 +15,7 @@
 <li>Customer Cart</li>
 <li>Customer Orders</li>
 <li>Notifications</li>
+<li>Broadcast Notifications</li>
 <li>Gift Categories</li>
 <li>Gift Management</li>
 <li>Provider Inventory</li>
@@ -218,15 +219,44 @@ GET    /customer/orders/:id
 }
 </code></pre>
 <h3>Notifications</h3>
-<pre><code class="language-txt">GET    /broadcasts
-POST   /broadcasts
-POST   /broadcasts/estimate-reach
-GET    /notifications
+<pre><code class="language-txt">GET    /notifications
 POST   /notifications/device-tokens
 GET    /notifications/preferences
 PATCH  /notifications/preferences
 PATCH  /notifications/read-all
 GET    /notifications/summary
+POST   /notifications/:id/action
+PATCH  /notifications/:id/read
+DELETE /notifications/device-tokens/:id
+</code></pre>
+<p>Examples:</p>
+<p><strong>POST /notifications/device-tokens</strong></p>
+<pre><code class="language-json">{
+  &quot;token&quot;: &quot;ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]&quot;,
+  &quot;platform&quot;: &quot;IOS&quot;,
+  &quot;deviceId&quot;: &quot;ios-iphone-15-pro-device-id&quot;
+}
+</code></pre>
+<p><strong>PATCH /notifications/preferences</strong></p>
+<pre><code class="language-json">{
+  &quot;pushEnabled&quot;: true,
+  &quot;emailEnabled&quot;: true,
+  &quot;smsEnabled&quot;: false,
+  &quot;dealUpdatesEnabled&quot;: true,
+  &quot;birthdayRemindersEnabled&quot;: true,
+  &quot;deliveryUpdatesEnabled&quot;: true,
+  &quot;newContactAlertsEnabled&quot;: true
+}
+</code></pre>
+<p><strong>POST /notifications/:id/action</strong></p>
+<pre><code class="language-json">{
+  &quot;action&quot;: &quot;SEND_GIFT&quot;
+}
+</code></pre>
+<h3>Broadcast Notifications</h3>
+<pre><code class="language-txt">GET    /broadcasts
+POST   /broadcasts
+POST   /broadcasts/estimate-reach
 GET    /broadcasts/:id
 PATCH  /broadcasts/:id
 POST   /broadcasts/:id/cancel
@@ -234,9 +264,6 @@ GET    /broadcasts/:id/recipients
 GET    /broadcasts/:id/report
 PATCH  /broadcasts/:id/schedule
 PATCH  /broadcasts/:id/targeting
-POST   /notifications/:id/action
-PATCH  /notifications/:id/read
-DELETE /notifications/device-tokens/:id
 </code></pre>
 <p>Examples:</p>
 <p><strong>POST /broadcasts</strong></p>
@@ -265,24 +292,6 @@ DELETE /notifications/device-tokens/:id
   }
 }
 </code></pre>
-<p><strong>POST /notifications/device-tokens</strong></p>
-<pre><code class="language-json">{
-  &quot;token&quot;: &quot;ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]&quot;,
-  &quot;platform&quot;: &quot;IOS&quot;,
-  &quot;deviceId&quot;: &quot;ios-iphone-15-pro-device-id&quot;
-}
-</code></pre>
-<p><strong>PATCH /notifications/preferences</strong></p>
-<pre><code class="language-json">{
-  &quot;pushEnabled&quot;: true,
-  &quot;emailEnabled&quot;: true,
-  &quot;smsEnabled&quot;: false,
-  &quot;dealUpdatesEnabled&quot;: true,
-  &quot;birthdayRemindersEnabled&quot;: true,
-  &quot;deliveryUpdatesEnabled&quot;: true,
-  &quot;newContactAlertsEnabled&quot;: true
-}
-</code></pre>
 <p><strong>PATCH /broadcasts/:id</strong></p>
 <pre><code class="language-json">{
   &quot;channels&quot;: [
@@ -309,11 +318,6 @@ DELETE /notifications/device-tokens/:id
     &quot;excludeUnsubscribed&quot;: true,
     &quot;excludeSuspended&quot;: true
   }
-}
-</code></pre>
-<p><strong>POST /notifications/:id/action</strong></p>
-<pre><code class="language-json">{
-  &quot;action&quot;: &quot;SEND_GIFT&quot;
 }
 </code></pre>
 <h3>Gift Categories</h3>
@@ -357,32 +361,79 @@ PATCH  /gifts/:id/status
 <p>Examples:</p>
 <p><strong>POST /gifts</strong></p>
 <pre><code class="language-json">{
-  &quot;price&quot;: 99.5,
-  &quot;currency&quot;: &quot;USD&quot;,
-  &quot;stockQuantity&quot;: 99.5,
+  &quot;name&quot;: &quot;Luxury Perfume&quot;,
+  &quot;description&quot;: &quot;Long-lasting premium fragrance.&quot;,
+  &quot;shortDescription&quot;: &quot;Premium fragrance gift.&quot;,
+  &quot;categoryId&quot;: &quot;gift_category_id&quot;,
+  &quot;providerId&quot;: &quot;provider_id&quot;,
+  &quot;price&quot;: 99.99,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;stockQuantity&quot;: 50,
+  &quot;sku&quot;: &quot;PERFUME-001&quot;,
   &quot;imageUrls&quot;: [
-    null
+    &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;
   ],
   &quot;isPublished&quot;: true,
-  &quot;isFeatured&quot;: true,
+  &quot;isFeatured&quot;: false,
   &quot;tags&quot;: [
-    null
+    &quot;perfume&quot;,
+    &quot;luxury&quot;
   ],
-  &quot;moderationStatus&quot;: &quot;PENDING&quot;
+  &quot;moderationStatus&quot;: &quot;APPROVED&quot;,
+  &quot;variants&quot;: [
+    {
+      &quot;name&quot;: &quot;30ml&quot;,
+      &quot;price&quot;: 89.99,
+      &quot;originalPrice&quot;: 119.99,
+      &quot;stockQuantity&quot;: 10,
+      &quot;sku&quot;: &quot;PERFUME-30ML&quot;,
+      &quot;isPopular&quot;: false,
+      &quot;isDefault&quot;: false,
+      &quot;sortOrder&quot;: 1,
+      &quot;isActive&quot;: true
+    },
+    {
+      &quot;name&quot;: &quot;50ml&quot;,
+      &quot;price&quot;: 129.99,
+      &quot;originalPrice&quot;: 159.99,
+      &quot;stockQuantity&quot;: 20,
+      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+      &quot;isPopular&quot;: true,
+      &quot;isDefault&quot;: true,
+      &quot;sortOrder&quot;: 2,
+      &quot;isActive&quot;: true
+    }
+  ]
 }
 </code></pre>
 <p><strong>PATCH /gifts/:id</strong></p>
 <pre><code class="language-json">{
-  &quot;price&quot;: 99.5,
-  &quot;currency&quot;: &quot;USD&quot;,
-  &quot;stockQuantity&quot;: 99.5,
-  &quot;imageUrls&quot;: [
-    null
-  ],
-  &quot;isPublished&quot;: true,
-  &quot;isFeatured&quot;: true,
-  &quot;tags&quot;: [
-    null
+  &quot;name&quot;: &quot;Luxury Perfume Updated&quot;,
+  &quot;replaceVariants&quot;: false,
+  &quot;variants&quot;: [
+    {
+      &quot;id&quot;: &quot;variant_id&quot;,
+      &quot;name&quot;: &quot;50ml&quot;,
+      &quot;price&quot;: 129.99,
+      &quot;originalPrice&quot;: 159.99,
+      &quot;stockQuantity&quot;: 20,
+      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+      &quot;isPopular&quot;: true,
+      &quot;isDefault&quot;: true,
+      &quot;sortOrder&quot;: 2,
+      &quot;isActive&quot;: true
+    },
+    {
+      &quot;name&quot;: &quot;150ml&quot;,
+      &quot;price&quot;: 249.99,
+      &quot;originalPrice&quot;: 299.99,
+      &quot;stockQuantity&quot;: 5,
+      &quot;sku&quot;: &quot;PERFUME-150ML&quot;,
+      &quot;isPopular&quot;: false,
+      &quot;isDefault&quot;: false,
+      &quot;sortOrder&quot;: 4,
+      &quot;isActive&quot;: true
+    }
   ]
 }
 </code></pre>
@@ -404,22 +455,72 @@ PATCH  /provider/inventory/:id/availability
 <p>Examples:</p>
 <p><strong>POST /provider/inventory</strong></p>
 <pre><code class="language-json">{
-  &quot;price&quot;: 99.5,
-  &quot;stockQuantity&quot;: 99.5,
+  &quot;name&quot;: &quot;Luxury Perfume&quot;,
+  &quot;description&quot;: &quot;Long-lasting premium fragrance.&quot;,
+  &quot;shortDescription&quot;: &quot;Premium fragrance gift.&quot;,
+  &quot;categoryId&quot;: &quot;gift_category_id&quot;,
+  &quot;price&quot;: 99.99,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;stockQuantity&quot;: 50,
+  &quot;sku&quot;: &quot;PERFUME-001&quot;,
   &quot;imageUrls&quot;: [
-    null
+    &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;
   ],
-  &quot;isAvailable&quot;: true
+  &quot;isAvailable&quot;: true,
+  &quot;variants&quot;: [
+    {
+      &quot;name&quot;: &quot;30ml&quot;,
+      &quot;price&quot;: 89.99,
+      &quot;originalPrice&quot;: 119.99,
+      &quot;stockQuantity&quot;: 10,
+      &quot;sku&quot;: &quot;PERFUME-30ML&quot;,
+      &quot;isPopular&quot;: false,
+      &quot;isDefault&quot;: false,
+      &quot;sortOrder&quot;: 1,
+      &quot;isActive&quot;: true
+    },
+    {
+      &quot;name&quot;: &quot;50ml&quot;,
+      &quot;price&quot;: 129.99,
+      &quot;originalPrice&quot;: 159.99,
+      &quot;stockQuantity&quot;: 20,
+      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+      &quot;isPopular&quot;: true,
+      &quot;isDefault&quot;: true,
+      &quot;sortOrder&quot;: 2,
+      &quot;isActive&quot;: true
+    }
+  ]
 }
 </code></pre>
 <p><strong>PATCH /provider/inventory/:id</strong></p>
 <pre><code class="language-json">{
-  &quot;price&quot;: 99.5,
-  &quot;stockQuantity&quot;: 99.5,
-  &quot;imageUrls&quot;: [
-    null
-  ],
-  &quot;isAvailable&quot;: true
+  &quot;replaceVariants&quot;: false,
+  &quot;variants&quot;: [
+    {
+      &quot;id&quot;: &quot;variant_id&quot;,
+      &quot;name&quot;: &quot;50ml&quot;,
+      &quot;price&quot;: 129.99,
+      &quot;originalPrice&quot;: 159.99,
+      &quot;stockQuantity&quot;: 20,
+      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
+      &quot;isPopular&quot;: true,
+      &quot;isDefault&quot;: true,
+      &quot;sortOrder&quot;: 2,
+      &quot;isActive&quot;: true
+    },
+    {
+      &quot;name&quot;: &quot;150ml&quot;,
+      &quot;price&quot;: 249.99,
+      &quot;originalPrice&quot;: 299.99,
+      &quot;stockQuantity&quot;: 5,
+      &quot;sku&quot;: &quot;PERFUME-150ML&quot;,
+      &quot;isPopular&quot;: false,
+      &quot;isDefault&quot;: false,
+      &quot;sortOrder&quot;: 4,
+      &quot;isActive&quot;: true
+    }
+  ]
 }
 </code></pre>
 <p><strong>PATCH /provider/inventory/:id/availability</strong></p>

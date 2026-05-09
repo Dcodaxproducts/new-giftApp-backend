@@ -11,6 +11,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  ValidateNested,
   Min,
   MinLength,
 } from 'class-validator';
@@ -56,6 +57,19 @@ export class ListGiftCategoriesDto {
   @ApiPropertyOptional({ enum: SortOrder }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }
 
+export class GiftVariantDto {
+  @ApiPropertyOptional({ example: 'variant_id' }) @IsOptional() @IsString() id?: string;
+  @ApiProperty({ example: '50ml' }) @IsString() @MinLength(1) name!: string;
+  @ApiProperty({ example: 129.99 }) @Type(() => Number) @IsNumber() @Min(0) price!: number;
+  @ApiPropertyOptional({ example: 159.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) originalPrice?: number;
+  @ApiProperty({ example: 20 }) @Type(() => Number) @IsInt() @Min(0) stockQuantity!: number;
+  @ApiPropertyOptional({ example: 'PERFUME-50ML' }) @IsOptional() @IsString() sku?: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isPopular?: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isDefault?: boolean;
+  @ApiPropertyOptional({ example: 2 }) @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
 export class CreateGiftDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
@@ -71,6 +85,7 @@ export class CreateGiftDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
   @ApiPropertyOptional({ enum: GiftModerationStatus }) @IsOptional() @IsEnum(GiftModerationStatus) moderationStatus?: GiftModerationStatus;
+  @ApiPropertyOptional({ type: [GiftVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => GiftVariantDto) variants?: GiftVariantDto[];
 }
 export class UpdateGiftDto {
   @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
@@ -86,6 +101,8 @@ export class UpdateGiftDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPublished?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
+  @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() replaceVariants?: boolean;
+  @ApiPropertyOptional({ type: [GiftVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => GiftVariantDto) variants?: GiftVariantDto[];
 }
 
 

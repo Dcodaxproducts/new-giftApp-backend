@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Gift, GiftModerationStatus, GiftStatus, Prisma } from '@prisma/client';
+import { Gift, GiftModerationStatus, GiftStatus, GiftVariant, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateProviderInventoryItemDto, ListProviderInventoryDto, ProviderInventorySortBy, ProviderInventoryStatusFilter, SortOrder, UpdateProviderAvailabilityDto, UpdateProviderInventoryItemDto } from './dto/provider-inventory.dto';
+import { CreateProviderInventoryItemDto, ListProviderInventoryDto, ProviderInventorySortBy, ProviderInventoryStatusFilter, ProviderInventoryVariantDto, SortOrder, UpdateProviderAvailabilityDto, UpdateProviderInventoryItemDto } from './dto/provider-inventory.dto';
+
+type ProviderGift = Gift & { category: { id: string; name: string }; variants: GiftVariant[] };
 
 @Injectable()
 export class ProviderInventoryService {
@@ -51,6 +53,8 @@ export class ProviderInventoryService {
   async create(user: AuthUserContext, dto: CreateProviderInventoryItemDto) {
     await this.ensureCategory(dto.categoryId);
     await this.ensureUniqueSku(dto.sku);
+    await this.assertVariantSkus(dto.variants);
+    const variants = this.normalizeVariants(dto.variants);
     const status = this.toStatus(dto.isAvailable ?? true, dto.stockQuantity ?? 0);
     const gift = await this.prisma.gift.create({
       data: {
@@ -68,6 +72,7 @@ export class ProviderInventoryService {
         status,
         moderationStatus: GiftModerationStatus.PENDING,
         isPublished: false,
+        variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
       },
       include: this.include(),
     });
@@ -84,13 +89,16 @@ export class ProviderInventoryService {
     const item = await this.getOwnGift(user.uid, id);
     if (dto.categoryId) await this.ensureCategory(dto.categoryId);
     if (dto.sku) await this.ensureUniqueSku(dto.sku, id);
+    await this.assertVariantSkus(dto.variants, id);
+    this.assertSingleDefaultVariant(dto.variants);
     const before = this.toDetailItem(item);
-    const materialChange = this.isMaterialChange(item, dto);
+    const materialChange = this.isMaterialChange(item, dto) || this.hasMaterialVariantChange(dto.variants);
     const stockQuantity = dto.stockQuantity ?? item.stockQuantity;
     const availability = dto.isAvailable ?? (item.status !== GiftStatus.INACTIVE);
-    const updated = await this.prisma.gift.update({
-      where: { id },
-      data: {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const base = await tx.gift.update({
+        where: { id },
+        data: {
         name: dto.name?.trim(),
         slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined,
         description: dto.description?.trim(),
@@ -104,8 +112,10 @@ export class ProviderInventoryService {
         status: this.toStatus(availability, stockQuantity),
         moderationStatus: materialChange && item.moderationStatus === GiftModerationStatus.APPROVED ? GiftModerationStatus.PENDING : item.moderationStatus,
         isPublished: materialChange && item.moderationStatus === GiftModerationStatus.APPROVED ? false : item.isPublished,
-      },
-      include: this.include(),
+        },
+      });
+      if (dto.variants) await this.upsertVariants(tx, id, dto.variants, dto.replaceVariants ?? false);
+      return tx.gift.findUniqueOrThrow({ where: { id: base.id }, include: this.include() });
     });
     await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_UPDATED', before, this.toDetailItem(updated));
     if (materialChange && item.moderationStatus === GiftModerationStatus.APPROVED) {
@@ -167,7 +177,7 @@ export class ProviderInventoryService {
   }
 
   private include() {
-    return { category: { select: { id: true, name: true } } } as const;
+    return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true } }, variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] } });
   }
 
   private async getOwnGift(providerId: string, id: string) {
@@ -220,7 +230,7 @@ export class ProviderInventoryService {
     return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
   }
 
-  private toListItem(item: Gift & { category: { id: string; name: string } }) {
+  private toListItem(item: ProviderGift) {
     return {
       id: item.id,
       name: item.name,
@@ -238,7 +248,7 @@ export class ProviderInventoryService {
     };
   }
 
-  private toDetailItem(item: Gift & { category: { id: string; name: string } }) {
+  private toDetailItem(item: ProviderGift) {
     return {
       id: item.id,
       name: item.name,
@@ -253,10 +263,20 @@ export class ProviderInventoryService {
       status: item.status,
       moderationStatus: item.moderationStatus,
       isPublished: item.isPublished,
+      variants: item.variants.map((variant) => this.toVariant(variant)),
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };
   }
+
+  private normalizeVariants(variants?: ProviderInventoryVariantDto[]): ProviderInventoryVariantDto[] { if (!variants?.length) return []; this.assertSingleDefaultVariant(variants); const normalized = variants.map((variant) => ({ ...variant })); if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true; return normalized; }
+  private assertSingleDefaultVariant(variants?: ProviderInventoryVariantDto[]): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
+  private async assertVariantSkus(variants?: ProviderInventoryVariantDto[], giftId?: string): Promise<void> { const skus = (variants ?? []).map((variant) => variant.sku?.trim()).filter((sku): sku is string => Boolean(sku)); if (new Set(skus).size !== skus.length) throw new BadRequestException('Variant SKU must be unique'); if (!skus.length) return; const existing = await this.prisma.giftVariant.findFirst({ where: { sku: { in: skus }, deletedAt: null, giftId: giftId ? { not: giftId } : undefined } }); if (existing) throw new BadRequestException('Variant SKU already exists'); }
+  private variantCreateData(variant: ProviderInventoryVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
+  private variantUpdateData(variant: ProviderInventoryVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: ProviderInventoryVariantDto[], replaceVariants: boolean): Promise<void> { const normalized = this.normalizeVariants(variants); const incomingIds = normalized.map((variant) => variant.id).filter((id): id is string => Boolean(id)); if (replaceVariants) await tx.giftVariant.updateMany({ where: { giftId, deletedAt: null, id: { notIn: incomingIds } }, data: { deletedAt: new Date(), isActive: false, isDefault: false } }); if (normalized.some((variant) => variant.isDefault)) await tx.giftVariant.updateMany({ where: { giftId, deletedAt: null }, data: { isDefault: false } }); for (const variant of normalized) { if (variant.id) { const existing = await tx.giftVariant.findFirst({ where: { id: variant.id, giftId, deletedAt: null } }); if (!existing) throw new BadRequestException('Variant does not belong to inventory item'); await tx.giftVariant.update({ where: { id: variant.id }, data: this.variantUpdateData(variant) }); } else await tx.giftVariant.create({ data: { giftId, ...this.variantCreateData(variant) } }); } }
+  private hasMaterialVariantChange(variants?: ProviderInventoryVariantDto[]): boolean { return (variants ?? []).some((variant) => variant.name !== undefined || variant.price !== undefined || variant.originalPrice !== undefined || variant.sku !== undefined); }
+  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku, isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
 
   private async audit(actorId: string, targetId: string, action: string, beforeJson: unknown, afterJson: unknown) {
     await this.auditLog.write({ actorId, targetId, targetType: 'GIFT', action, beforeJson, afterJson });

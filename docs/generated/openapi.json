@@ -2135,6 +2135,48 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateProviderInventoryItemDto"
+              },
+              "examples": {
+                "withVariants": {
+                  "value": {
+                    "name": "Luxury Perfume",
+                    "description": "Long-lasting premium fragrance.",
+                    "shortDescription": "Premium fragrance gift.",
+                    "categoryId": "gift_category_id",
+                    "price": 99.99,
+                    "currency": "PKR",
+                    "stockQuantity": 50,
+                    "sku": "PERFUME-001",
+                    "imageUrls": [
+                      "https://cdn.yourdomain.com/gift-images/perfume.png"
+                    ],
+                    "isAvailable": true,
+                    "variants": [
+                      {
+                        "name": "30ml",
+                        "price": 89.99,
+                        "originalPrice": 119.99,
+                        "stockQuantity": 10,
+                        "sku": "PERFUME-30ML",
+                        "isPopular": false,
+                        "isDefault": false,
+                        "sortOrder": 1,
+                        "isActive": true
+                      },
+                      {
+                        "name": "50ml",
+                        "price": 129.99,
+                        "originalPrice": 159.99,
+                        "stockQuantity": 20,
+                        "sku": "PERFUME-50ML",
+                        "isPopular": true,
+                        "isDefault": true,
+                        "sortOrder": 2,
+                        "isActive": true
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -2237,6 +2279,38 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateProviderInventoryItemDto"
+              },
+              "examples": {
+                "upsertVariants": {
+                  "value": {
+                    "replaceVariants": false,
+                    "variants": [
+                      {
+                        "id": "variant_id",
+                        "name": "50ml",
+                        "price": 129.99,
+                        "originalPrice": 159.99,
+                        "stockQuantity": 20,
+                        "sku": "PERFUME-50ML",
+                        "isPopular": true,
+                        "isDefault": true,
+                        "sortOrder": 2,
+                        "isActive": true
+                      },
+                      {
+                        "name": "150ml",
+                        "price": 249.99,
+                        "originalPrice": 299.99,
+                        "stockQuantity": 5,
+                        "sku": "PERFUME-150ML",
+                        "isPopular": false,
+                        "isDefault": false,
+                        "sortOrder": 4,
+                        "isActive": true
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -5103,7 +5177,7 @@
     },
     "/api/v1/customer/orders": {
       "post": {
-        "description": "REGISTERED_USER only. Prices are backend-calculated from cart snapshots. Multiple providers are split into provider sub-orders. Payment is COD/placeholder until payment module is ready.",
+        "description": "REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.",
         "operationId": "CustomerMarketplaceController_createOrder",
         "parameters": [],
         "requestBody": {
@@ -5525,6 +5599,55 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateGiftDto"
+              },
+              "examples": {
+                "withVariants": {
+                  "value": {
+                    "name": "Luxury Perfume",
+                    "description": "Long-lasting premium fragrance.",
+                    "shortDescription": "Premium fragrance gift.",
+                    "categoryId": "gift_category_id",
+                    "providerId": "provider_id",
+                    "price": 99.99,
+                    "currency": "PKR",
+                    "stockQuantity": 50,
+                    "sku": "PERFUME-001",
+                    "imageUrls": [
+                      "https://cdn.yourdomain.com/gift-images/perfume.png"
+                    ],
+                    "isPublished": true,
+                    "isFeatured": false,
+                    "tags": [
+                      "perfume",
+                      "luxury"
+                    ],
+                    "moderationStatus": "APPROVED",
+                    "variants": [
+                      {
+                        "name": "30ml",
+                        "price": 89.99,
+                        "originalPrice": 119.99,
+                        "stockQuantity": 10,
+                        "sku": "PERFUME-30ML",
+                        "isPopular": false,
+                        "isDefault": false,
+                        "sortOrder": 1,
+                        "isActive": true
+                      },
+                      {
+                        "name": "50ml",
+                        "price": 129.99,
+                        "originalPrice": 159.99,
+                        "stockQuantity": 20,
+                        "sku": "PERFUME-50ML",
+                        "isPopular": true,
+                        "isDefault": true,
+                        "sortOrder": 2,
+                        "isActive": true
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -5872,6 +5995,39 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateGiftDto"
+              },
+              "examples": {
+                "upsertVariants": {
+                  "value": {
+                    "name": "Luxury Perfume Updated",
+                    "replaceVariants": false,
+                    "variants": [
+                      {
+                        "id": "variant_id",
+                        "name": "50ml",
+                        "price": 129.99,
+                        "originalPrice": 159.99,
+                        "stockQuantity": 20,
+                        "sku": "PERFUME-50ML",
+                        "isPopular": true,
+                        "isDefault": true,
+                        "sortOrder": 2,
+                        "isActive": true
+                      },
+                      {
+                        "name": "150ml",
+                        "price": 249.99,
+                        "originalPrice": 299.99,
+                        "stockQuantity": 5,
+                        "sku": "PERFUME-150ML",
+                        "isPopular": false,
+                        "isDefault": false,
+                        "sortOrder": 4,
+                        "isActive": true
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -6197,7 +6353,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       },
       "get": {
@@ -6341,7 +6497,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6369,7 +6525,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       },
       "patch": {
@@ -6405,7 +6561,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6443,7 +6599,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6472,7 +6628,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6510,7 +6666,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6548,7 +6704,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6576,7 +6732,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -6657,7 +6813,7 @@
           }
         ],
         "tags": [
-          "Notifications"
+          "Broadcast Notifications"
         ]
       }
     },
@@ -8475,7 +8631,15 @@
       "description": ""
     },
     {
+      "name": "Payments",
+      "description": ""
+    },
+    {
       "name": "Notifications",
+      "description": ""
+    },
+    {
+      "name": "Broadcast Notifications",
       "description": ""
     },
     {
@@ -8496,10 +8660,6 @@
     },
     {
       "name": "Provider Promotional Offers",
-      "description": ""
-    },
-    {
-      "name": "Payments",
       "description": ""
     }
   ],
@@ -9042,6 +9202,56 @@
           }
         }
       },
+      "ProviderInventoryVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "variant_id"
+          },
+          "name": {
+            "type": "string",
+            "example": "50ml"
+          },
+          "price": {
+            "type": "number",
+            "example": 129.99
+          },
+          "originalPrice": {
+            "type": "number",
+            "example": 159.99
+          },
+          "stockQuantity": {
+            "type": "number",
+            "example": 20
+          },
+          "sku": {
+            "type": "string",
+            "example": "PERFUME-50ML"
+          },
+          "isPopular": {
+            "type": "boolean",
+            "example": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 2
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "stockQuantity"
+        ]
+      },
       "CreateProviderInventoryItemDto": {
         "type": "object",
         "properties": {
@@ -9077,6 +9287,12 @@
           },
           "isAvailable": {
             "type": "boolean"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderInventoryVariantDto"
+            }
           }
         },
         "required": [
@@ -9120,6 +9336,16 @@
           },
           "isAvailable": {
             "type": "boolean"
+          },
+          "replaceVariants": {
+            "type": "boolean",
+            "example": false
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderInventoryVariantDto"
+            }
           }
         }
       },
@@ -10077,6 +10303,56 @@
           }
         }
       },
+      "GiftVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "variant_id"
+          },
+          "name": {
+            "type": "string",
+            "example": "50ml"
+          },
+          "price": {
+            "type": "number",
+            "example": 129.99
+          },
+          "originalPrice": {
+            "type": "number",
+            "example": 159.99
+          },
+          "stockQuantity": {
+            "type": "number",
+            "example": 20
+          },
+          "sku": {
+            "type": "string",
+            "example": "PERFUME-50ML"
+          },
+          "isPopular": {
+            "type": "boolean",
+            "example": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 2
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "stockQuantity"
+        ]
+      },
       "CreateGiftDto": {
         "type": "object",
         "properties": {
@@ -10134,6 +10410,12 @@
               "REJECTED",
               "FLAGGED"
             ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GiftVariantDto"
+            }
           }
         },
         "required": [
@@ -10190,6 +10472,16 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "replaceVariants": {
+            "type": "boolean",
+            "example": false
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GiftVariantDto"
             }
           }
         }

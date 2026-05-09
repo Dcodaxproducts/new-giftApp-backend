@@ -10,7 +10,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { BroadcastsService } from './broadcasts.service';
 import { BroadcastTargetingDto, CancelBroadcastDto, CreateBroadcastDto, EstimateReachDto, ListBroadcastsDto, ListRecipientsDto, ScheduleBroadcastDto, UpdateBroadcastDto } from './dto/broadcast-notifications.dto';
 
-@ApiTags('Notifications')
+@ApiTags('Broadcast Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

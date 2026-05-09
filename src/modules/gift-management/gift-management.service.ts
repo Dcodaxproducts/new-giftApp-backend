@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Gift, GiftCategory, GiftModerationStatus, GiftStatus, Prisma, UserRole } from '@prisma/client';
+import { Gift, GiftCategory, GiftModerationStatus, GiftStatus, GiftVariant, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
@@ -10,6 +10,7 @@ import {
   ExportFormat,
   ExportGiftsDto,
   FlagGiftDto,
+  GiftVariantDto,
   GiftCategorySortBy,
   GiftListStatus,
   GiftModerationFilter,
@@ -28,6 +29,7 @@ import {
 type GiftWithRelations = Gift & {
   category: Pick<GiftCategory, 'id' | 'name'>;
   provider: { id: string; email: string; providerBusinessName: string | null; firstName: string; lastName: string };
+  variants: GiftVariant[];
 };
 
 @Injectable()
@@ -137,6 +139,8 @@ export class GiftManagementService {
     await this.assertCategory(dto.categoryId);
     await this.assertProvider(providerId);
     await this.assertUniqueSku(dto.sku);
+    await this.assertVariantSkus(dto.variants);
+    const variants = this.normalizeVariants(dto.variants);
     const moderationStatus = user.role === UserRole.SUPER_ADMIN && dto.isPublished
       ? (dto.moderationStatus ?? GiftModerationStatus.APPROVED)
       : GiftModerationStatus.PENDING;
@@ -161,6 +165,7 @@ export class GiftManagementService {
         status,
         approvedAt: moderationStatus === GiftModerationStatus.APPROVED ? new Date() : null,
         approvedBy: moderationStatus === GiftModerationStatus.APPROVED ? user.uid : null,
+        variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
       },
       include: this.giftInclude(),
     });
@@ -202,13 +207,16 @@ export class GiftManagementService {
     if (dto.categoryId) await this.assertCategory(dto.categoryId);
     if (dto.providerId) await this.assertProvider(dto.providerId);
     if (dto.sku) await this.assertUniqueSku(dto.sku, id);
+    await this.assertVariantSkus(dto.variants, id);
+    this.assertSingleDefaultVariant(dto.variants);
     const providerId = user.role === UserRole.PROVIDER ? gift.providerId : dto.providerId;
     const nextModeration = user.role === UserRole.PROVIDER && gift.moderationStatus === GiftModerationStatus.APPROVED
       ? GiftModerationStatus.PENDING
       : gift.moderationStatus;
-    const updated = await this.prisma.gift.update({
-      where: { id },
-      data: {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const base = await tx.gift.update({
+        where: { id },
+        data: {
         name: dto.name?.trim(),
         slug: dto.name ? await this.uniqueGiftSlug(dto.name, id) : undefined,
         description: dto.description?.trim(),
@@ -225,8 +233,10 @@ export class GiftManagementService {
         tags: dto.tags,
         moderationStatus: nextModeration,
         status: dto.stockQuantity === 0 ? GiftStatus.OUT_OF_STOCK : undefined,
-      },
-      include: this.giftInclude(),
+        },
+      });
+      if (dto.variants) await this.upsertVariants(tx, id, dto.variants, dto.replaceVariants ?? false);
+      return tx.gift.findUniqueOrThrow({ where: { id: base.id }, include: this.giftInclude() });
     });
     await this.audit(user.uid, id, 'GIFT_UPDATED', this.toGiftDetail(gift), this.toGiftDetail(updated));
     return { data: this.toGiftDetail(updated), message: 'Gift updated successfully' };
@@ -324,11 +334,39 @@ export class GiftManagementService {
   private categoryOrderBy(sortBy?: GiftCategorySortBy, sortOrder?: SortOrder): Prisma.GiftCategoryOrderByWithRelationInput { return { [sortBy === GiftCategorySortBy.NAME || sortBy === GiftCategorySortBy.SORT_ORDER ? sortBy : 'createdAt']: this.dir(sortOrder) }; }
   private giftOrderBy(sortBy?: GiftSortBy, sortOrder?: SortOrder): Prisma.GiftOrderByWithRelationInput { const field = sortBy === GiftSortBy.NAME || sortBy === GiftSortBy.PRICE || sortBy === GiftSortBy.STOCK_QUANTITY ? sortBy : sortBy === GiftSortBy.RATING ? 'ratingPlaceholder' : 'createdAt'; return { [field]: this.dir(sortOrder) }; }
   private dir(sortOrder?: SortOrder): Prisma.SortOrder { return sortOrder === SortOrder.ASC ? 'asc' : 'desc'; }
-  private giftInclude() { return { category: { select: { id: true, name: true } }, provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } } } as const; }
+  private giftInclude() { return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true } }, provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } }, variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] } }); }
+
+  private normalizeVariants(variants?: GiftVariantDto[]): GiftVariantDto[] {
+    if (!variants?.length) return [];
+    this.assertSingleDefaultVariant(variants);
+    const normalized = variants.map((variant) => ({ ...variant }));
+    if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true;
+    return normalized;
+  }
+  private assertSingleDefaultVariant(variants?: GiftVariantDto[]): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
+  private async assertVariantSkus(variants?: GiftVariantDto[], giftId?: string): Promise<void> { const skus = (variants ?? []).map((variant) => variant.sku?.trim()).filter((sku): sku is string => Boolean(sku)); if (new Set(skus).size !== skus.length) throw new BadRequestException('Variant SKU must be unique'); if (!skus.length) return; const existing = await this.prisma.giftVariant.findFirst({ where: { sku: { in: skus }, deletedAt: null, giftId: giftId ? { not: giftId } : undefined } }); if (existing) throw new BadRequestException('Variant SKU already exists'); }
+  private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
+  private variantUpdateData(variant: GiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: GiftVariantDto[], replaceVariants: boolean): Promise<void> {
+    const normalized = this.normalizeVariants(variants);
+    const incomingIds = normalized.map((variant) => variant.id).filter((id): id is string => Boolean(id));
+    if (replaceVariants) await tx.giftVariant.updateMany({ where: { giftId, deletedAt: null, id: { notIn: incomingIds } }, data: { deletedAt: new Date(), isActive: false, isDefault: false } });
+    if (normalized.some((variant) => variant.isDefault)) await tx.giftVariant.updateMany({ where: { giftId, deletedAt: null }, data: { isDefault: false } });
+    for (const variant of normalized) {
+      if (variant.id) {
+        const existing = await tx.giftVariant.findFirst({ where: { id: variant.id, giftId, deletedAt: null } });
+        if (!existing) throw new BadRequestException('Variant does not belong to gift');
+        await tx.giftVariant.update({ where: { id: variant.id }, data: this.variantUpdateData(variant) });
+      } else {
+        await tx.giftVariant.create({ data: { giftId, ...this.variantCreateData(variant) } });
+      }
+    }
+  }
 
   private toCategory(category: GiftCategory, totalGifts: number) { const backgroundColor = category.backgroundColor ?? category.color ?? '#F3E8FF'; return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, color: category.color ?? backgroundColor, backgroundColor, imageUrl: category.imageUrl, totalGifts, isActive: category.isActive, sortOrder: category.sortOrder, createdAt: category.createdAt, updatedAt: category.updatedAt }; }
   private toGiftListItem(gift: GiftWithRelations) { return { id: gift.id, name: gift.name, shortDescription: gift.shortDescription, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: Number(gift.ratingPlaceholder), status: gift.status, moderationStatus: gift.moderationStatus, isPublished: gift.isPublished, stockQuantity: gift.stockQuantity, sku: gift.sku, imageUrl: this.firstImage(gift), createdAt: gift.createdAt }; }
-  private toGiftDetail(gift: GiftWithRelations) { return { ...this.toGiftListItem(gift), description: gift.description, imageUrls: this.stringArray(gift.imageUrls), isFeatured: gift.isFeatured, tags: this.stringArray(gift.tags), updatedAt: gift.updatedAt }; }
+  private toGiftDetail(gift: GiftWithRelations) { return { ...this.toGiftListItem(gift), description: gift.description, imageUrls: this.stringArray(gift.imageUrls), isFeatured: gift.isFeatured, tags: this.stringArray(gift.tags), variants: (gift.variants ?? []).map((variant) => this.toVariant(variant)), updatedAt: gift.updatedAt }; }
+  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku, isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
   private providerName(provider: GiftWithRelations['provider']): string { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
   private firstImage(gift: Gift): string | null { return this.stringArray(gift.imageUrls)[0] ?? null; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }

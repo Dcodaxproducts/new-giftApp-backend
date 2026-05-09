@@ -38,6 +38,7 @@ async function bootstrap(): Promise<void> {
     .addTag('Customer Cart')
     .addTag('Customer Orders')
     .addTag('Notifications')
+    .addTag('Broadcast Notifications')
     .addTag('Gift Categories')
     .addTag('Gift Management')
     .addTag('Provider Inventory')
