@@ -2832,7 +2832,7 @@
     },
     "/api/v1/provider-business-categories": {
       "get": {
-        "description": "Public signup dropdown. Returns active, non-deleted provider business categories only.",
+        "description": "Public/provider-signup dropdown. Returns active provider business categories.",
         "operationId": "ProviderBusinessCategoriesController_list",
         "parameters": [
           {
@@ -2873,9 +2873,9 @@
             "description": ""
           }
         },
-        "summary": "List active provider business categories",
+        "summary": "List provider business categories",
         "tags": [
-          "02 Admin - Provider Management"
+          "02 Admin - Provider Business Categories"
         ]
       },
       "post": {
@@ -2904,7 +2904,7 @@
         ],
         "summary": "Create provider business category",
         "tags": [
-          "02 Admin - Provider Management"
+          "02 Admin - Provider Business Categories"
         ]
       }
     },
@@ -2934,7 +2934,7 @@
         ],
         "summary": "Fetch provider business category details",
         "tags": [
-          "02 Admin - Provider Management"
+          "02 Admin - Provider Business Categories"
         ]
       },
       "patch": {
@@ -2972,11 +2972,11 @@
         ],
         "summary": "Update provider business category",
         "tags": [
-          "02 Admin - Provider Management"
+          "02 Admin - Provider Business Categories"
         ]
       },
       "delete": {
-        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.",
+        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.",
         "operationId": "ProviderBusinessCategoriesController_delete",
         "parameters": [
           {
@@ -3000,7 +3000,7 @@
         ],
         "summary": "Soft-delete provider business category",
         "tags": [
-          "02 Admin - Provider Management"
+          "02 Admin - Provider Business Categories"
         ]
       }
     },
@@ -12564,6 +12564,9 @@
     },
     {
       "name": "02 Admin - Provider Management"
+    },
+    {
+      "name": "02 Admin - Provider Business Categories"
     },
     {
       "name": "02 Admin - Referral Settings"

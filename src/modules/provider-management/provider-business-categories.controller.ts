@@ -10,13 +10,13 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateProviderBusinessCategoryDto, ListProviderBusinessCategoriesDto, UpdateProviderBusinessCategoryDto } from './dto/provider-business-categories.dto';
 import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
 
-@ApiTags('02 Admin - Provider Management')
+@ApiTags('02 Admin - Provider Business Categories')
 @Controller('provider-business-categories')
 export class ProviderBusinessCategoriesController {
   constructor(private readonly service: ProviderBusinessCategoriesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List active provider business categories', description: 'Public signup dropdown. Returns active, non-deleted provider business categories only.' })
+  @ApiOperation({ summary: 'List provider business categories', description: 'Public/provider-signup dropdown. Returns active provider business categories.' })
   list(@Query() query: ListProviderBusinessCategoriesDto) {
     return this.service.list(query);
   }
@@ -56,7 +56,7 @@ export class ProviderBusinessCategoriesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('providerBusinessCategories.delete')
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.' })
+  @ApiOperation({ summary: 'Soft-delete provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
     return this.service.delete(user, id);
   }

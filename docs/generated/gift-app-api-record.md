@@ -68,7 +68,7 @@ Total endpoints: 254
 - `GET` `/api/v1/providers/{id}/items` — Authenticated — GET /api/v1/providers/{id}/items
 - `GET` `/api/v1/providers/{id}/activity` — Authenticated — GET /api/v1/providers/{id}/activity
 - `POST` `/api/v1/providers/{id}/message` — Authenticated — POST /api/v1/providers/{id}/message
-- `GET` `/api/v1/provider-business-categories` — PUBLIC — List active provider business categories
+- `GET` `/api/v1/provider-business-categories` — PUBLIC — List provider business categories
 - `POST` `/api/v1/provider-business-categories` — SUPER_ADMIN, ADMIN — Create provider business category
 - `GET` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Fetch provider business category details
 - `PATCH` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Update provider business category
@@ -1945,13 +1945,16 @@ None
 }
 ```
 
+
+## 02 Admin - Provider Business Categories
+
 ### GET /api/v1/provider-business-categories
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** List active provider business categories
+**Summary:** List provider business categories
 
-**Description:** Public signup dropdown. Returns active, non-deleted provider business categories only.
+**Description:** Public/provider-signup dropdown. Returns active provider business categories.
 
 **Parameters:**
 
@@ -2074,7 +2077,7 @@ None
 
 **Summary:** Soft-delete provider business category
 
-**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission only. Refuses deletion when active providers are attached.
+**Description:** SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.
 
 **Parameters:**
 

@@ -10,6 +10,7 @@ describe('Provider business category security', () => {
     expect(controller).toContain('@Permissions(\'providerBusinessCategories.create\')');
     expect(controller).toContain('@Permissions(\'providerBusinessCategories.update\')');
     expect(controller).toContain('@Permissions(\'providerBusinessCategories.delete\')');
+    expect(controller).toContain("@ApiTags('02 Admin - Provider Business Categories')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
     expect(controller).toContain('@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)');
     expect(controller.indexOf('@Get()')).toBeLessThan(controller.indexOf('@Post()'));
