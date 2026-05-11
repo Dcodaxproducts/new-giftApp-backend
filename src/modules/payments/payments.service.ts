@@ -81,7 +81,7 @@ export class PaymentsService {
     const updated = await this.prisma.payment.update({ where: { id: payment.id }, data: { status, failureReason: intent.last_payment_error?.message ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status }) } });
     if (status === PaymentStatus.SUCCEEDED) {
       await this.customerWalletService.creditWalletTopUp(updated);
-      await this.customerReferralsService.awardReferralForFirstEligiblePurchase(user.uid, payment.id);
+      await this.customerReferralsService.awardReferralForFirstEligiblePurchase(user.uid, payment.id, Number(updated.amount));
       await this.notify(user.uid, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: payment.id });
     }
     if (status === PaymentStatus.FAILED) {
@@ -208,7 +208,7 @@ export class PaymentsService {
     }
     if (status === PaymentStatus.SUCCEEDED) {
       await this.customerWalletService.creditWalletTopUp(updated);
-      await this.customerReferralsService.awardReferralForFirstEligiblePurchase(updated.userId, updated.id);
+      await this.customerReferralsService.awardReferralForFirstEligiblePurchase(updated.userId, updated.id, Number(updated.amount));
       await this.notify(updated.userId, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: updated.id });
     }
     if (status === PaymentStatus.FAILED) {

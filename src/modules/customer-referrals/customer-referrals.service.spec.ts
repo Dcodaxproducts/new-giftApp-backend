@@ -48,8 +48,8 @@ describe('Customer referrals and rewards source safety', () => {
   });
 
   it('successful first eligible payment triggers one referral reward and duplicate rewards are skipped', () => {
-    expect(paymentServiceSource).toContain('awardReferralForFirstEligiblePurchase(user.uid, payment.id)');
-    expect(paymentServiceSource).toContain('awardReferralForFirstEligiblePurchase(updated.userId, updated.id)');
+    expect(paymentServiceSource).toContain('awardReferralForFirstEligiblePurchase(user.uid, payment.id, Number(updated.amount))');
+    expect(paymentServiceSource).toContain('awardReferralForFirstEligiblePurchase(updated.userId, updated.id, Number(updated.amount))');
     expect(serviceSource).toContain('referral.status === ReferralStatus.REWARDED');
     expect(serviceSource).toContain('existingReward');
     expect(serviceSource).toContain('type: RewardLedgerType.EARNED');

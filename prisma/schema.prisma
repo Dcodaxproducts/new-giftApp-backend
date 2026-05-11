@@ -296,6 +296,16 @@ enum RewardLedgerSource {
   PROMOTION
 }
 
+enum ReferralExpirationUnit {
+  DAYS
+  WEEKS
+  MONTHS
+}
+
+enum ReferralQualificationRule {
+  FIRST_SUCCESSFUL_PURCHASE
+}
+
 enum CustomerWalletLedgerType {
   TOP_UP
   GIFT_SENT
@@ -403,6 +413,7 @@ model User {
   rewardLedger                        RewardLedger[]
   uploadedFiles                       UploadedFile[]
   updatedMediaUploadPolicies          MediaUploadPolicy[]                  @relation("MediaUploadPolicyUpdater")
+  updatedReferralSettings             ReferralSettings[]                   @relation("ReferralSettingsUpdater")
   createdSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanCreator")
   updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
   createdCoupons                      Coupon[]                             @relation("CouponCreator")
@@ -419,18 +430,23 @@ model User {
 }
 
 model Referral {
-  id             String         @id @default(cuid())
-  referrerUserId String         @map("referrer_user_id")
-  referredUserId String         @unique @map("referred_user_id")
-  referralCode   String         @map("referral_code")
-  status         ReferralStatus @default(JOINED)
-  rewardAmount   Decimal        @default(0) @map("reward_amount") @db.Decimal(10, 2)
-  currency       String         @default("USD")
-  joinedAt       DateTime?      @map("joined_at") @db.Timestamptz
-  qualifiedAt    DateTime?      @map("qualified_at") @db.Timestamptz
-  rewardedAt     DateTime?      @map("rewarded_at") @db.Timestamptz
-  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  id                               String         @id @default(cuid())
+  referrerUserId                   String         @map("referrer_user_id")
+  referredUserId                   String         @unique @map("referred_user_id")
+  referralCode                     String         @map("referral_code")
+  status                           ReferralStatus @default(JOINED)
+  rewardAmount                     Decimal        @default(0) @map("reward_amount") @db.Decimal(10, 2)
+  currency                         String         @default("USD")
+  referrerRewardAmountSnapshot     Decimal        @default(0) @map("referrer_reward_amount_snapshot") @db.Decimal(10, 2)
+  newUserRewardAmountSnapshot      Decimal        @default(0) @map("new_user_reward_amount_snapshot") @db.Decimal(10, 2)
+  rewardCurrencySnapshot           String         @default("USD") @map("reward_currency_snapshot")
+  minimumTransactionAmountSnapshot Decimal        @default(0) @map("minimum_transaction_amount_snapshot") @db.Decimal(10, 2)
+  expiresAt                        DateTime?      @map("expires_at") @db.Timestamptz
+  joinedAt                         DateTime?      @map("joined_at") @db.Timestamptz
+  qualifiedAt                      DateTime?      @map("qualified_at") @db.Timestamptz
+  rewardedAt                       DateTime?      @map("rewarded_at") @db.Timestamptz
+  createdAt                        DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                        DateTime       @updatedAt @map("updated_at") @db.Timestamptz
 
   referrer User @relation("ReferralReferrer", fields: [referrerUserId], references: [id])
   referred User @relation("ReferralReferred", fields: [referredUserId], references: [id])
@@ -438,6 +454,27 @@ model Referral {
   @@index([referrerUserId, status])
   @@index([referralCode])
   @@map("referrals")
+}
+
+model ReferralSettings {
+  id                       String                    @id @default(cuid())
+  isActive                 Boolean                   @default(true) @map("is_active")
+  referrerRewardAmount     Decimal                   @default(10) @map("referrer_reward_amount") @db.Decimal(10, 2)
+  newUserRewardAmount      Decimal                   @default(0) @map("new_user_reward_amount") @db.Decimal(10, 2)
+  rewardCurrency           String                    @default("USD") @map("reward_currency")
+  minimumTransactionAmount Decimal                   @default(0) @map("minimum_transaction_amount") @db.Decimal(10, 2)
+  referralExpirationValue  Int                       @default(30) @map("referral_expiration_value")
+  referralExpirationUnit   ReferralExpirationUnit    @default(DAYS) @map("referral_expiration_unit")
+  allowSelfReferrals       Boolean                   @default(false) @map("allow_self_referrals")
+  qualificationRule        ReferralQualificationRule @default(FIRST_SUCCESSFUL_PURCHASE) @map("qualification_rule")
+  updatedById              String?                   @map("updated_by_id")
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("ReferralSettingsUpdater", fields: [updatedById], references: [id])
+
+  @@index([updatedById])
+  @@map("referral_settings")
 }
 
 model RewardLedger {

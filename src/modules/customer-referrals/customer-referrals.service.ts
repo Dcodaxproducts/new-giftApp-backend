@@ -5,6 +5,7 @@ import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { CustomerWalletService } from '../customer-wallet/customer-wallet.service';
+import { ReferralSettingsService } from '../referral-settings/referral-settings.service';
 import { ListReferralHistoryDto, ListRewardLedgerDto, RedeemRewardDto, ReferralHistoryStatus, RewardLedgerTypeFilter } from './dto/customer-referrals.dto';
 
 type ReferralWithReferred = Referral & { referred: Pick<User, 'firstName' | 'lastName' | 'avatarUrl'> };
@@ -15,6 +16,7 @@ export class CustomerReferralsService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly customerWalletService: CustomerWalletService,
+    private readonly referralSettingsService: ReferralSettingsService,
   ) {}
 
   async summary(user: AuthUserContext) {
@@ -31,7 +33,7 @@ export class CustomerReferralsService {
         successfulReferrals,
         rewardsEarned: this.sumLedger(ledger, [RewardLedgerType.EARNED]),
         availableCredit: this.availableCredit(ledger),
-        currency: this.currency(),
+        currency: ledger[0]?.currency ?? this.currency(),
         progress: {
           totalInvited: invitedFriends,
           joined: referrals.filter((item) => item.status !== ReferralStatus.PENDING).length,
@@ -95,8 +97,9 @@ export class CustomerReferralsService {
     return { data: items.map((item) => ({ id: item.id, type: item.type, amount: Number(item.amount), currency: item.currency, source: item.source, description: item.description, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reward ledger fetched successfully.' };
   }
 
-  terms() {
-    return { data: { title: 'Referral Terms', rewardAmount: this.rewardAmount(), currency: this.currency(), qualificationRule: 'Reward is credited after your referred friend completes their first gift purchase.', terms: ['Referral rewards are available only for registered users.', "Reward is credited after the referred user's first successful purchase.", 'Cancelled or refunded orders may revoke reward eligibility.', 'Referral abuse may result in reward cancellation.'] }, message: 'Referral terms fetched successfully.' };
+  async terms() {
+    const settings = await this.referralSettingsService.getActiveSettings();
+    return { data: { title: 'Referral Terms', rewardAmount: Number(settings.referrerRewardAmount), currency: settings.rewardCurrency, qualificationRule: 'Reward is credited after your referred friend completes their first gift purchase.', terms: ['Referral rewards are available only for registered users.', "Reward is credited after the referred user's first successful purchase.", 'Cancelled or refunded orders may revoke reward eligibility.', 'Referral abuse may result in reward cancellation.'] }, message: 'Referral terms fetched successfully.' };
   }
 
   async assertValidReferralCode(referralCode?: string): Promise<void> {
@@ -109,26 +112,38 @@ export class CustomerReferralsService {
   async captureSignupReferral(referredUserId: string, referralCode?: string): Promise<void> {
     const code = this.normalizeCode(referralCode);
     if (!code) return;
+    const settings = await this.referralSettingsService.getActiveSettings();
     const referrer = await this.prisma.user.findFirst({ where: { referralCode: code, role: UserRole.REGISTERED_USER, deletedAt: null, isActive: true } });
     if (!referrer) throw new BadRequestException('Invalid referral code');
-    if (referrer.id === referredUserId) throw new BadRequestException('Self-referral is not allowed');
+    if (!settings.allowSelfReferrals && referrer.id === referredUserId) throw new BadRequestException('Self-referral is not allowed');
     const existing = await this.prisma.referral.findUnique({ where: { referredUserId } });
     if (existing) return;
-    const referral = await this.prisma.referral.create({ data: { referrerUserId: referrer.id, referredUserId, referralCode: referrer.referralCode ?? code, status: ReferralStatus.JOINED, rewardAmount: new Prisma.Decimal(this.rewardAmount()), currency: this.currency(), joinedAt: new Date() } });
+    const referral = await this.prisma.referral.create({ data: { referrerUserId: referrer.id, referredUserId, referralCode: referrer.referralCode ?? code, status: ReferralStatus.JOINED, rewardAmount: settings.referrerRewardAmount, currency: settings.rewardCurrency, referrerRewardAmountSnapshot: settings.referrerRewardAmount, newUserRewardAmountSnapshot: settings.newUserRewardAmount, rewardCurrencySnapshot: settings.rewardCurrency, minimumTransactionAmountSnapshot: settings.minimumTransactionAmount, expiresAt: this.referralSettingsService.expiresAt(settings), joinedAt: new Date() } });
     await this.notify(referrer.id, 'Referral joined', 'A friend joined Gift App using your referral link.', 'REFERRAL_JOINED', { referralId: referral.id, referredUserId });
   }
 
-  async awardReferralForFirstEligiblePurchase(referredUserId: string, sourceId: string): Promise<void> {
+  async awardReferralForFirstEligiblePurchase(referredUserId: string, sourceId: string, transactionAmount = 0): Promise<void> {
     const referral = await this.prisma.referral.findUnique({ where: { referredUserId }, include: { referred: { select: { firstName: true, lastName: true } } } });
     if (!referral || referral.status === ReferralStatus.REWARDED || referral.status === ReferralStatus.EXPIRED) return;
+    const settings = await this.referralSettingsService.getActiveSettings();
+    if (!settings.isActive) return;
+    if (referral.expiresAt && referral.expiresAt < new Date()) { await this.prisma.referral.update({ where: { id: referral.id }, data: { status: ReferralStatus.EXPIRED } }); return; }
+    if (transactionAmount < Number(referral.minimumTransactionAmountSnapshot)) return;
     const existingReward = await this.prisma.rewardLedger.findFirst({ where: { userId: referral.referrerUserId, type: RewardLedgerType.EARNED, source: RewardLedgerSource.REFERRAL, sourceId: referral.id } });
     if (existingReward) return;
-    const amount = this.rewardAmount();
+    const amount = Number(referral.referrerRewardAmountSnapshot || referral.rewardAmount);
+    const newUserAmount = Number(referral.newUserRewardAmountSnapshot);
+    const currency = referral.rewardCurrencySnapshot || referral.currency;
+    const ledgers: Prisma.RewardLedgerCreateArgs[] = [
+      { data: { userId: referral.referrerUserId, type: RewardLedgerType.EARNED, amount: new Prisma.Decimal(amount), currency, source: RewardLedgerSource.REFERRAL, sourceId: referral.id, description: `Reward earned from ${this.fullName(referral.referred)} referral.` } },
+    ];
+    if (newUserAmount > 0) ledgers.push({ data: { userId: referral.referredUserId, type: RewardLedgerType.EARNED, amount: new Prisma.Decimal(newUserAmount), currency, source: RewardLedgerSource.REFERRAL, sourceId: `${referral.id}:new-user`, description: 'New user referral reward earned.' } });
     await this.prisma.$transaction([
-      this.prisma.referral.update({ where: { id: referral.id }, data: { status: ReferralStatus.REWARDED, qualifiedAt: referral.qualifiedAt ?? new Date(), rewardedAt: new Date(), rewardAmount: new Prisma.Decimal(amount), currency: this.currency() } }),
-      this.prisma.rewardLedger.create({ data: { userId: referral.referrerUserId, type: RewardLedgerType.EARNED, amount: new Prisma.Decimal(amount), currency: this.currency(), source: RewardLedgerSource.REFERRAL, sourceId: referral.id, description: `Reward earned from ${this.fullName(referral.referred)} referral.` } }),
+      this.prisma.referral.update({ where: { id: referral.id }, data: { status: ReferralStatus.REWARDED, qualifiedAt: referral.qualifiedAt ?? new Date(), rewardedAt: new Date(), rewardAmount: new Prisma.Decimal(amount), currency } }),
+      ...ledgers.map((entry) => this.prisma.rewardLedger.create(entry)),
     ]);
-    await this.notify(referral.referrerUserId, 'Referral reward earned', `You earned ${amount} ${this.currency()} referral credit.`, 'REFERRAL_REWARD_EARNED', { referralId: referral.id, sourceId });
+    await this.notify(referral.referrerUserId, 'Referral reward earned', `You earned ${amount} ${currency} referral credit.`, 'REFERRAL_REWARD_EARNED', { referralId: referral.id, sourceId });
+    if (newUserAmount > 0) await this.notify(referral.referredUserId, 'Referral reward earned', `You earned ${newUserAmount} ${currency} referral credit.`, 'REFERRAL_REWARD_EARNED', { referralId: referral.id, sourceId });
   }
 
   private async rewardBalance(userId: string) {

@@ -187,6 +187,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'referralSettings',
+    label: 'Referral Settings',
+    permissions: [
+      { key: 'read', label: 'View Referral Settings', description: 'View global referral program settings and stats.' },
+      { key: 'update', label: 'Update Referral Settings', description: 'Update global referral program settings.' },
+    ],
+  },
+  {
     module: 'loginAttempts',
     label: 'Login Attempts',
     permissions: [
