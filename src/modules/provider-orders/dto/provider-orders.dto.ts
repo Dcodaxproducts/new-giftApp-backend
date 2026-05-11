@@ -3,7 +3,7 @@ import { ProviderOrderMessageChannel, ProviderOrderRejectReason, ProviderOrderSt
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max, Min } from 'class-validator';
 
-export enum ProviderOrderStatusFilter { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', PACKED = 'PACKED', SHIPPED = 'SHIPPED', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED', REFUNDED = 'REFUNDED' }
+export enum ProviderOrderStatusFilter { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', PACKED = 'PACKED', READY_TO_FULFILL = 'READY_TO_FULFILL', SHIPPED = 'SHIPPED', OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED', REFUND_REQUESTED = 'REFUND_REQUESTED', REFUND_PROCESSING = 'REFUND_PROCESSING', REFUNDED = 'REFUNDED', REFUND_REJECTED = 'REFUND_REJECTED' }
 export enum ProviderOrderSortBy { CREATED_AT = 'createdAt', AMOUNT = 'amount', STATUS = 'status' }
 export enum ProviderOrderSortOrder { ASC = 'ASC', DESC = 'DESC' }
 
@@ -32,7 +32,7 @@ export class UpdateProviderOrderChecklistDto { @ApiPropertyOptional({ example: t
 export class MessageBuyerDto { @ApiProperty({ example: 'Your order is being prepared and will be shipped soon.' }) @IsString() message!: string; @ApiProperty({ enum: ProviderOrderMessageChannel, example: ProviderOrderMessageChannel.IN_APP }) @IsEnum(ProviderOrderMessageChannel) channel!: ProviderOrderMessageChannel; }
 export const providerOrderStatuses = Object.values(ProviderOrderStatus);
 
-export enum ProviderOrderHistoryStatus { ALL = 'ALL', COMPLETED = 'COMPLETED', PENDING = 'PENDING', CANCELLED = 'CANCELLED', REFUNDED = 'REFUNDED', DRAFT = 'DRAFT', PROCESSING = 'PROCESSING', SHIPPED = 'SHIPPED' }
+export enum ProviderOrderHistoryStatus { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', PACKED = 'PACKED', READY_TO_FULFILL = 'READY_TO_FULFILL', SHIPPED = 'SHIPPED', OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED', REFUND_REQUESTED = 'REFUND_REQUESTED', REFUND_PROCESSING = 'REFUND_PROCESSING', REFUNDED = 'REFUNDED', REFUND_REJECTED = 'REFUND_REJECTED', DRAFT = 'DRAFT' }
 export enum ProviderPerformanceRange { TODAY = 'TODAY', THIS_WEEK = 'THIS_WEEK', THIS_MONTH = 'THIS_MONTH', CUSTOM = 'CUSTOM' }
 export enum ProviderRevenueRange { DAILY = 'DAILY', WEEKLY = 'WEEKLY', MONTHLY = 'MONTHLY' }
 export enum ProviderOrderExportFormat { CSV = 'CSV' }

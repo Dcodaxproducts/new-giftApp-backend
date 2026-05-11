@@ -23,7 +23,7 @@ describe('Provider order history and performance source safety', () => {
 
   it('supports history status tabs and filters', () => {
     expect(dto).toContain('ProviderOrderHistoryStatus');
-    expect(service).toContain('historyStatuses(query.status)');
+    expect(service).toContain('applyStatusFilter(where, query.status');
     expect(service).toContain('ProviderOrderStatus.ACCEPTED');
     expect(service).toContain('ProviderOrderStatus.OUT_FOR_DELIVERY');
     expect(service).toContain('fromDate');

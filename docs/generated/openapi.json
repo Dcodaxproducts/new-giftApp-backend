@@ -3738,12 +3738,17 @@
                 "ACCEPTED",
                 "PROCESSING",
                 "PACKED",
+                "READY_TO_FULFILL",
                 "SHIPPED",
+                "OUT_FOR_DELIVERY",
                 "DELIVERED",
                 "COMPLETED",
                 "CANCELLED",
                 "REJECTED",
-                "REFUNDED"
+                "REFUND_REQUESTED",
+                "REFUND_PROCESSING",
+                "REFUNDED",
+                "REFUND_REJECTED"
               ],
               "type": "string"
             }
@@ -3884,13 +3889,22 @@
               "type": "string",
               "enum": [
                 "ALL",
-                "COMPLETED",
                 "PENDING",
-                "CANCELLED",
-                "REFUNDED",
-                "DRAFT",
+                "ACCEPTED",
                 "PROCESSING",
-                "SHIPPED"
+                "PACKED",
+                "READY_TO_FULFILL",
+                "SHIPPED",
+                "OUT_FOR_DELIVERY",
+                "DELIVERED",
+                "COMPLETED",
+                "CANCELLED",
+                "REJECTED",
+                "REFUND_REQUESTED",
+                "REFUND_PROCESSING",
+                "REFUNDED",
+                "REFUND_REJECTED",
+                "DRAFT"
               ]
             }
           },
