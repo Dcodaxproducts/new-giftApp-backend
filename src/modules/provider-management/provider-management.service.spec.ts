@@ -267,7 +267,7 @@ describe('ProviderManagementService', () => {
     const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
       action: ProviderLifecycleAction.UPDATE_STATUS,
       status: ProviderStatusUpdate.ACTIVE,
-      reason: ProviderLifecycleReason.POLICY_REVIEW_COMPLETED,
+      reason: ProviderLifecycleReason.OTHER,
       comment: 'Provider account restored after review.',
       notifyProvider: true,
     });

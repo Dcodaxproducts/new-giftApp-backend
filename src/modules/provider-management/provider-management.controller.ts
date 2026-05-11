@@ -10,7 +10,7 @@ import {
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -123,6 +123,31 @@ export class ProviderManagementController {
   @ApiOperation({
     summary: 'Update provider lifecycle status',
     description: 'SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.',
+  })
+  @ApiBody({
+    type: UpdateProviderStatusDto,
+    examples: {
+      approveProvider: {
+        summary: 'Approve Provider',
+        value: { action: 'APPROVE', comment: 'Documents verified successfully.', notifyProvider: true },
+      },
+      rejectProvider: {
+        summary: 'Reject Provider',
+        value: { action: 'REJECT', reason: 'INCOMPLETE_DOCUMENTS', comment: 'Business license document is missing.', notifyProvider: true },
+      },
+      updateStatus: {
+        summary: 'Update Status',
+        value: { action: 'UPDATE_STATUS', status: 'ACTIVE', reason: 'OTHER', comment: 'Provider account restored after review.', notifyProvider: true },
+      },
+      suspendProvider: {
+        summary: 'Suspend Provider',
+        value: { action: 'SUSPEND', reason: 'POLICY_VIOLATION', comment: 'Provider violated platform policy.', notifyProvider: true },
+      },
+      unsuspendProvider: {
+        summary: 'Unsuspend Provider',
+        value: { action: 'UNSUSPEND', comment: 'Provider account reviewed and restored.', notifyProvider: true },
+      },
+    },
   })
   @ApiResponse({
     status: 200,

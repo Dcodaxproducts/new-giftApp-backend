@@ -2097,314 +2097,6 @@ None
 ```
 
 
-## 02 Admin - Promotional Offers
-
-### GET /api/v1/promotional-offers/stats
-
-**Allowed role/access:** Authenticated
-
-**Summary:** GET /api/v1/promotional-offers/stats
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/promotional-offers/export
-
-**Allowed role/access:** Authenticated
-
-**Summary:** GET /api/v1/promotional-offers/export
-
-**Parameters:**
-
-- `page` (query, optional)
-- `limit` (query, optional)
-- `search` (query, optional)
-- `status` (query, optional)
-- `itemId` (query, optional)
-- `sortBy` (query, optional)
-- `sortOrder` (query, optional)
-- `providerId` (query, optional)
-- `approvalStatus` (query, optional)
-- `discountType` (query, optional)
-- `startFrom` (query, optional)
-- `startTo` (query, optional)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/promotional-offers
-
-**Allowed role/access:** Authenticated
-
-**Summary:** GET /api/v1/promotional-offers
-
-**Parameters:**
-
-- `page` (query, optional)
-- `limit` (query, optional)
-- `search` (query, optional)
-- `status` (query, optional)
-- `itemId` (query, optional)
-- `sortBy` (query, optional)
-- `sortOrder` (query, optional)
-- `providerId` (query, optional)
-- `approvalStatus` (query, optional)
-- `discountType` (query, optional)
-- `startFrom` (query, optional)
-- `startTo` (query, optional)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### POST /api/v1/promotional-offers
-
-**Allowed role/access:** Authenticated
-
-**Summary:** POST /api/v1/promotional-offers
-
-**Request payload example:**
-
-```json
-{
-  "itemId": "string",
-  "title": "string",
-  "description": "string",
-  "discountType": "string",
-  "discountValue": 0,
-  "startDate": "string",
-  "endDate": "string",
-  "eligibilityRules": "string",
-  "isActive": true,
-  "providerId": "string",
-  "approvalStatus": "string"
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/promotional-offers/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** GET /api/v1/promotional-offers/{id}
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/promotional-offers/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** PATCH /api/v1/promotional-offers/{id}
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "title": "string",
-  "description": "string",
-  "discountType": "string",
-  "discountValue": 0,
-  "startDate": "string",
-  "endDate": "string",
-  "eligibilityRules": "string",
-  "isActive": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### DELETE /api/v1/promotional-offers/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** DELETE /api/v1/promotional-offers/{id}
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/promotional-offers/{id}/approve
-
-**Allowed role/access:** Authenticated
-
-**Summary:** PATCH /api/v1/promotional-offers/{id}/approve
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "comment": "string",
-  "notifyProvider": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/promotional-offers/{id}/reject
-
-**Allowed role/access:** Authenticated
-
-**Summary:** PATCH /api/v1/promotional-offers/{id}/reject
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "reason": "string",
-  "comment": "string",
-  "notifyProvider": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/promotional-offers/{id}/status
-
-**Allowed role/access:** Authenticated
-
-**Summary:** PATCH /api/v1/promotional-offers/{id}/status
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "isActive": true,
-  "reason": "string"
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-
 ## 02 Admin - Referral Settings
 
 ### GET /api/v1/referral-settings
@@ -3276,6 +2968,311 @@ None
 **Allowed role/access:** Authenticated
 
 **Summary:** PATCH /api/v1/provider/offers/{id}/status
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "isActive": true,
+  "reason": "string"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers/stats
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers/stats
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers/export
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers/export
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `search` (query, optional)
+- `status` (query, optional)
+- `itemId` (query, optional)
+- `sortBy` (query, optional)
+- `sortOrder` (query, optional)
+- `providerId` (query, optional)
+- `approvalStatus` (query, optional)
+- `discountType` (query, optional)
+- `startFrom` (query, optional)
+- `startTo` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `search` (query, optional)
+- `status` (query, optional)
+- `itemId` (query, optional)
+- `sortBy` (query, optional)
+- `sortOrder` (query, optional)
+- `providerId` (query, optional)
+- `approvalStatus` (query, optional)
+- `discountType` (query, optional)
+- `startFrom` (query, optional)
+- `startTo` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/promotional-offers
+
+**Allowed role/access:** Authenticated
+
+**Summary:** POST /api/v1/promotional-offers
+
+**Request payload example:**
+
+```json
+{
+  "itemId": "string",
+  "title": "string",
+  "description": "string",
+  "discountType": "string",
+  "discountValue": 0,
+  "startDate": "string",
+  "endDate": "string",
+  "eligibilityRules": "string",
+  "isActive": true,
+  "providerId": "string",
+  "approvalStatus": "string"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "title": "string",
+  "description": "string",
+  "discountType": "string",
+  "discountValue": 0,
+  "startDate": "string",
+  "endDate": "string",
+  "eligibilityRules": "string",
+  "isActive": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### DELETE /api/v1/promotional-offers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** DELETE /api/v1/promotional-offers/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}/approve
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}/approve
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "comment": "string",
+  "notifyProvider": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}/reject
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}/reject
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "reason": "string",
+  "comment": "string",
+  "notifyProvider": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}/status
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}/status
 
 **Parameters:**
 

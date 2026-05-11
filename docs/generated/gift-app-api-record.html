@@ -480,77 +480,6 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>02 Admin - Promotional Offers</h2><h3>GET /api/v1/promotional-offers/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/stats</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/promotional-offers/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/export</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/promotional-offers</p><p>**Request payload example:**</p><p>{
-  &quot;itemId&quot;: &quot;string&quot;,
-  &quot;title&quot;: &quot;string&quot;,
-  &quot;description&quot;: &quot;string&quot;,
-  &quot;discountType&quot;: &quot;string&quot;,
-  &quot;discountValue&quot;: 0,
-  &quot;startDate&quot;: &quot;string&quot;,
-  &quot;endDate&quot;: &quot;string&quot;,
-  &quot;eligibilityRules&quot;: &quot;string&quot;,
-  &quot;isActive&quot;: true,
-  &quot;providerId&quot;: &quot;string&quot;,
-  &quot;approvalStatus&quot;: &quot;string&quot;
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;title&quot;: &quot;string&quot;,
-  &quot;description&quot;: &quot;string&quot;,
-  &quot;discountType&quot;: &quot;string&quot;,
-  &quot;discountValue&quot;: 0,
-  &quot;startDate&quot;: &quot;string&quot;,
-  &quot;endDate&quot;: &quot;string&quot;,
-  &quot;eligibilityRules&quot;: &quot;string&quot;,
-  &quot;isActive&quot;: true
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}/approve</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/approve</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;comment&quot;: &quot;string&quot;,
-  &quot;notifyProvider&quot;: true
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/reject</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;reason&quot;: &quot;string&quot;,
-  &quot;comment&quot;: &quot;string&quot;,
-  &quot;notifyProvider&quot;: true
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;isActive&quot;: true,
-  &quot;reason&quot;: &quot;string&quot;
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
 }</p><h2>02 Admin - Referral Settings</h2><h3>GET /api/v1/referral-settings</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch referral settings</p><p>**Description:** SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
@@ -836,6 +765,77 @@
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
 }</p><h3>PATCH /api/v1/provider/offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/provider/offers/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;isActive&quot;: true,
+  &quot;reason&quot;: &quot;string&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/stats</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/export</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>POST /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/promotional-offers</p><p>**Request payload example:**</p><p>{
+  &quot;itemId&quot;: &quot;string&quot;,
+  &quot;title&quot;: &quot;string&quot;,
+  &quot;description&quot;: &quot;string&quot;,
+  &quot;discountType&quot;: &quot;string&quot;,
+  &quot;discountValue&quot;: 0,
+  &quot;startDate&quot;: &quot;string&quot;,
+  &quot;endDate&quot;: &quot;string&quot;,
+  &quot;eligibilityRules&quot;: &quot;string&quot;,
+  &quot;isActive&quot;: true,
+  &quot;providerId&quot;: &quot;string&quot;,
+  &quot;approvalStatus&quot;: &quot;string&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;title&quot;: &quot;string&quot;,
+  &quot;description&quot;: &quot;string&quot;,
+  &quot;discountType&quot;: &quot;string&quot;,
+  &quot;discountValue&quot;: 0,
+  &quot;startDate&quot;: &quot;string&quot;,
+  &quot;endDate&quot;: &quot;string&quot;,
+  &quot;eligibilityRules&quot;: &quot;string&quot;,
+  &quot;isActive&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>DELETE /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}/approve</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/approve</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;comment&quot;: &quot;string&quot;,
+  &quot;notifyProvider&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/reject</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;reason&quot;: &quot;string&quot;,
+  &quot;comment&quot;: &quot;string&quot;,
+  &quot;notifyProvider&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;isActive&quot;: true,
   &quot;reason&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{

@@ -10,7 +10,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { ApproveOfferDto, CreateAdminOfferDto, ListPromotionalOffersDto, RejectOfferDto, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from './dto/promotional-offers.dto';
 import { PromotionalOffersService } from './promotional-offers.service';
 
-@ApiTags('02 Admin - Promotional Offers')
+@ApiTags('03 Provider - Promotional Offers')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
