@@ -91,8 +91,47 @@ async function bootstrap(): Promise<void> {
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       tagsSorter: (a: string, b: string) => {
-        const left = SWAGGER_TAG_ORDER.indexOf(a as typeof SWAGGER_TAG_ORDER[number]);
-        const right = SWAGGER_TAG_ORDER.indexOf(b as typeof SWAGGER_TAG_ORDER[number]);
+        // Keep this array local to the browser-executed function. Swagger UI serializes
+        // sorter functions into swagger-ui-init.js, so referencing exported server-side
+        // constants compiles to CommonJS `exports.*` and crashes in the browser.
+        const tagOrder = [
+          '01 Auth',
+          '01 Auth - Login Attempts',
+          '02 Admin - Staff Management',
+          '02 Admin - Roles & Permissions',
+          '02 Admin - User Management',
+          '02 Admin - Provider Management',
+          '02 Admin - Promotional Offers',
+          '02 Admin - Referral Settings',
+          '02 Admin - Media Upload Policy',
+          '02 Admin - Audit Logs',
+          '03 Provider - Inventory',
+          '03 Provider - Promotional Offers',
+          '03 Provider - Orders',
+          '03 Provider - Order Analytics',
+          '04 Gifts - Categories',
+          '04 Gifts - Management',
+          '04 Gifts - Moderation',
+          '05 Customer - Marketplace',
+          '05 Customer - Wishlist',
+          '05 Customer - Addresses',
+          '05 Customer - Contacts',
+          '05 Customer - Events',
+          '05 Customer - Cart',
+          '05 Customer - Orders',
+          '05 Customer - Recurring Payments',
+          '05 Customer - Transactions',
+          '05 Customer - Referrals & Rewards',
+          '05 Customer - Wallet',
+          '05 Customer - Payment Methods',
+          '06 Payments',
+          '06 Notifications',
+          '06 Broadcast Notifications',
+          '07 Plans & Coupons',
+          '07 Storage',
+        ];
+        const left = tagOrder.indexOf(a);
+        const right = tagOrder.indexOf(b);
         if (left === -1 && right === -1) return a.localeCompare(b);
         if (left === -1) return 1;
         if (right === -1) return -1;
