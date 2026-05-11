@@ -407,6 +407,7 @@ model User {
   providerTaxId                       String?                              @map("provider_tax_id")
   providerBusinessAddress             String?                              @map("provider_business_address")
   providerServiceArea                 String?                              @map("provider_service_area")
+  providerWebsite                     String?                              @map("provider_website")
   providerFulfillmentMethods          Json?                                @map("provider_fulfillment_methods")
   providerAutoAcceptOrders            Boolean                              @default(false) @map("provider_auto_accept_orders")
   providerDocuments                   Json?                                @map("provider_documents")
@@ -452,6 +453,7 @@ model User {
   notifications                       Notification[]
   deviceTokens                        NotificationDeviceToken[]
   notificationPreference              NotificationPreference?
+  authSessions                        AuthSession[]
   payments                            Payment[]
   moneyGifts                          MoneyGift[]
   customerRecurringPayments           CustomerRecurringPayment[]
@@ -1415,12 +1417,34 @@ model NotificationPreference {
   deliveryUpdatesEnabled   Boolean  @default(true) @map("delivery_updates_enabled")
   newContactAlertsEnabled  Boolean  @default(true) @map("new_contact_alerts_enabled")
   systemEnabled            Boolean  @default(true) @map("system_enabled")
+  providerOrderAlertsJson Json     @default("{}") @map("provider_order_alerts_json")
+  providerAccountActivityJson Json @default("{}") @map("provider_account_activity_json")
+  providerMarketingUpdatesJson Json @default("{}") @map("provider_marketing_updates_json")
   createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id])
 
   @@map("notification_preferences")
+}
+
+model AuthSession {
+  id                   String    @id @default(cuid())
+  userId               String    @map("user_id")
+  refreshTokenHash     String    @map("refresh_token_hash")
+  deviceName           String?   @map("device_name")
+  ipAddress            String?   @map("ip_address")
+  location             String?
+  userAgent            String?   @map("user_agent")
+  lastActiveAt         DateTime  @default(now()) @map("last_active_at") @db.Timestamptz
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, revokedAt])
+  @@map("auth_sessions")
 }
 
 model SubscriptionPlan {

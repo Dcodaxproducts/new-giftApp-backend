@@ -210,6 +210,59 @@ Includes every API developed so far with allowed roles, request payloads, and re
 
 **Response payload:** Not documented
 
+### `PATCH` `/api/v1/auth/me`
+
+**Allowed roles:** Authenticated
+
+**Summary:** PATCH /api/v1/auth/me
+
+**Description:** Access: Authenticated. Authenticated JWT required.
+
+**Request payload (application/json):**
+```json
+{
+  "$ref": "#/components/schemas/UpdateOwnProfileDto"
+}
+```
+
+**Response payload:** Not documented
+
+### `GET` `/api/v1/auth/sessions`
+
+**Allowed roles:** Authenticated
+
+**Summary:** GET /api/v1/auth/sessions
+
+**Description:** Access: Authenticated. Authenticated JWT required.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
+### `POST` `/api/v1/auth/sessions/logout-all`
+
+**Allowed roles:** Authenticated
+
+**Summary:** POST /api/v1/auth/sessions/logout-all
+
+**Description:** Access: Authenticated. Authenticated JWT required.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
+### `DELETE` `/api/v1/auth/sessions/{id}`
+
+**Allowed roles:** Authenticated
+
+**Summary:** DELETE /api/v1/auth/sessions/{id}
+
+**Description:** Access: Authenticated. Authenticated JWT required.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
 ### `DELETE` `/api/v1/auth/account`
 
 **Allowed roles:** Authenticated
@@ -1288,6 +1341,37 @@ Includes every API developed so far with allowed roles, request payloads, and re
 **Description:** Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin.
 
 **Request payload:** None
+
+**Response payload:** Not documented
+
+## 03 Provider - Business Info
+
+### `GET` `/api/v1/provider/business-info`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Fetch own provider business information
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
+### `PATCH` `/api/v1/provider/business-info`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Update own provider business information
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Cannot set approvalStatus/isActive; material business changes require verification review.
+
+**Request payload (application/json):**
+```json
+{
+  "$ref": "#/components/schemas/UpdateProviderBusinessInfoDto"
+}
+```
 
 **Response payload:** Not documented
 

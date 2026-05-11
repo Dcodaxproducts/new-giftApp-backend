@@ -16,6 +16,10 @@
 - `POST` `/api/v1/auth/reset-password` — **PUBLIC** — POST /api/v1/auth/reset-password
 - `PATCH` `/api/v1/auth/change-password` — **Authenticated** — PATCH /api/v1/auth/change-password
 - `GET` `/api/v1/auth/me` — **Authenticated** — GET /api/v1/auth/me
+- `PATCH` `/api/v1/auth/me` — **Authenticated** — PATCH /api/v1/auth/me
+- `GET` `/api/v1/auth/sessions` — **Authenticated** — GET /api/v1/auth/sessions
+- `POST` `/api/v1/auth/sessions/logout-all` — **Authenticated** — POST /api/v1/auth/sessions/logout-all
+- `DELETE` `/api/v1/auth/sessions/{id}` — **Authenticated** — DELETE /api/v1/auth/sessions/{id}
 - `DELETE` `/api/v1/auth/account` — **Authenticated** — DELETE /api/v1/auth/account
 - `POST` `/api/v1/auth/cancel-deletion` — **Authenticated** — POST /api/v1/auth/cancel-deletion
 
@@ -102,6 +106,11 @@
 - `GET` `/api/v1/audit-logs/export` — **SUPER_ADMIN** — GET /api/v1/audit-logs/export
 - `GET` `/api/v1/audit-logs` — **SUPER_ADMIN** — GET /api/v1/audit-logs
 - `GET` `/api/v1/audit-logs/{id}` — **SUPER_ADMIN** — GET /api/v1/audit-logs/{id}
+
+## 03 Provider - Business Info
+
+- `GET` `/api/v1/provider/business-info` — **PROVIDER** — Fetch own provider business information
+- `PATCH` `/api/v1/provider/business-info` — **PROVIDER** — Update own provider business information
 
 ## 03 Provider - Inventory
 

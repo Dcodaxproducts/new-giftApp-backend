@@ -14,6 +14,10 @@
 <li><code>POST</code> <code>/api/v1/auth/reset-password</code> — <strong>PUBLIC</strong> — POST /api/v1/auth/reset-password</li>
 <li><code>PATCH</code> <code>/api/v1/auth/change-password</code> — <strong>Authenticated</strong> — PATCH /api/v1/auth/change-password</li>
 <li><code>GET</code> <code>/api/v1/auth/me</code> — <strong>Authenticated</strong> — GET /api/v1/auth/me</li>
+<li><code>PATCH</code> <code>/api/v1/auth/me</code> — <strong>Authenticated</strong> — PATCH /api/v1/auth/me</li>
+<li><code>GET</code> <code>/api/v1/auth/sessions</code> — <strong>Authenticated</strong> — GET /api/v1/auth/sessions</li>
+<li><code>POST</code> <code>/api/v1/auth/sessions/logout-all</code> — <strong>Authenticated</strong> — POST /api/v1/auth/sessions/logout-all</li>
+<li><code>DELETE</code> <code>/api/v1/auth/sessions/{id}</code> — <strong>Authenticated</strong> — DELETE /api/v1/auth/sessions/{id}</li>
 <li><code>DELETE</code> <code>/api/v1/auth/account</code> — <strong>Authenticated</strong> — DELETE /api/v1/auth/account</li>
 <li><code>POST</code> <code>/api/v1/auth/cancel-deletion</code> — <strong>Authenticated</strong> — POST /api/v1/auth/cancel-deletion</li>
 </ul>
@@ -100,6 +104,11 @@
 <li><code>GET</code> <code>/api/v1/audit-logs/export</code> — <strong>SUPER_ADMIN</strong> — GET /api/v1/audit-logs/export</li>
 <li><code>GET</code> <code>/api/v1/audit-logs</code> — <strong>SUPER_ADMIN</strong> — GET /api/v1/audit-logs</li>
 <li><code>GET</code> <code>/api/v1/audit-logs/{id}</code> — <strong>SUPER_ADMIN</strong> — GET /api/v1/audit-logs/{id}</li>
+</ul>
+<h2>03 Provider - Business Info</h2>
+<ul>
+<li><code>GET</code> <code>/api/v1/provider/business-info</code> — <strong>PROVIDER</strong> — Fetch own provider business information</li>
+<li><code>PATCH</code> <code>/api/v1/provider/business-info</code> — <strong>PROVIDER</strong> — Update own provider business information</li>
 </ul>
 <h2>03 Provider - Inventory</h2>
 <ul>

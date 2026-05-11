@@ -40,16 +40,30 @@ export class JwtAuthGuard implements CanActivate {
         throw new ForbiddenException('Account is inactive');
       }
 
+      if (payload.sessionId) {
+        const session = await this.prisma.authSession.findFirst({ where: { id: payload.sessionId, userId: user.id, revokedAt: null } });
+        if (!session) throw new UnauthorizedException('Session has expired');
+      }
+
       if (user.role === UserRole.ADMIN) {
         if (!user.adminRoleId || !user.adminRole || user.adminRole.deletedAt || !user.adminRole.isActive) {
           throw new ForbiddenException('Admin role is inactive or missing');
         }
       }
 
+      if (payload.sessionId) {
+        const session = await this.prisma.authSession.findFirst({
+          where: { id: payload.sessionId, userId: user.id, revokedAt: null },
+          select: { id: true },
+        });
+        if (!session) throw new UnauthorizedException('Session expired');
+      }
+
       request.user = {
         uid: user.id,
         role: user.role,
         permissions: user.role === UserRole.ADMIN ? user.adminRole?.permissions ?? undefined : undefined,
+        sessionId: payload.sessionId,
       };
       return true;
     } catch (error) {

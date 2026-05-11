@@ -153,3 +153,10 @@ export class ChangePasswordDto {
   @MinLength(8)
   newPassword!: string;
 }
+
+export class UpdateOwnProfileDto {
+  @ApiPropertyOptional({ example: 'Julian' }) @IsOptional() @IsString() firstName?: string;
+  @ApiPropertyOptional({ example: 'Rivers' }) @IsOptional() @IsString() lastName?: string;
+  @ApiPropertyOptional({ example: '+15551234567' }) @IsOptional() @IsString() phone?: string;
+  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-avatars/julian.png' }) @IsOptional() @IsString() avatarUrl?: string;
+}

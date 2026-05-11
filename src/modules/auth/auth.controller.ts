@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -13,6 +13,7 @@ import {
   RegisterProviderDto,
   RegisterUserDto,
   ResetPasswordDto,
+  UpdateOwnProfileDto,
   VerifyEmailDto,
   VerifyResetOtpDto,
 } from './dto/auth.dto';
@@ -101,6 +102,34 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthUserContext) {
     return this.authService.me(user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  updateMe(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateOwnProfileDto) {
+    return this.authService.updateMe(user, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('sessions')
+  sessions(@CurrentUser() user: AuthUserContext) {
+    return this.authService.sessions(user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('sessions/logout-all')
+  logoutAllSessions(@CurrentUser() user: AuthUserContext) {
+    return this.authService.logoutAllSessions(user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('sessions/:id')
+  revokeSession(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
+    return this.authService.revokeSession(user, id);
   }
 
   @ApiBearerAuth()

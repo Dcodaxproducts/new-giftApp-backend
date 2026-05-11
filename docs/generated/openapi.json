@@ -358,6 +358,115 @@
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
+      },
+      "patch": {
+        "operationId": "AuthController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOwnProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "01 Auth"
+        ],
+        "summary": "PATCH /api/v1/auth/me",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "get": {
+        "operationId": "AuthController_sessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "01 Auth"
+        ],
+        "summary": "GET /api/v1/auth/sessions",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/auth/sessions/logout-all": {
+      "post": {
+        "operationId": "AuthController_logoutAllSessions",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/sessions/logout-all",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "AuthController_revokeSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "01 Auth"
+        ],
+        "summary": "DELETE /api/v1/auth/sessions/{id}",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/account": {
@@ -3178,6 +3287,60 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete",
         "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete"
+      }
+    },
+    "/api/v1/provider/business-info": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.",
+        "operationId": "ProviderBusinessInfoController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider business information",
+        "tags": [
+          "03 Provider - Business Info"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      },
+      "patch": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Cannot set approvalStatus/isActive; material business changes require verification review.",
+        "operationId": "ProviderBusinessInfoController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderBusinessInfoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own provider business information",
+        "tags": [
+          "03 Provider - Business Info"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/inventory": {
@@ -13583,6 +13746,9 @@
       "name": "02 Admin - Audit Logs"
     },
     {
+      "name": "03 Provider - Business Info"
+    },
+    {
       "name": "03 Provider - Inventory"
     },
     {
@@ -13874,6 +14040,27 @@
           "currentPassword",
           "newPassword"
         ]
+      },
+      "UpdateOwnProfileDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Julian"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Rivers"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+15551234567"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cdn.yourdomain.com/provider-avatars/julian.png"
+          }
+        }
       },
       "RedeemRewardDto": {
         "type": "object",
@@ -14419,6 +14606,53 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "UpdateProviderBusinessInfoDto": {
+        "type": "object",
+        "properties": {
+          "businessName": {
+            "type": "string",
+            "example": "Sylvia Bond Care Services"
+          },
+          "taxId": {
+            "type": "string",
+            "example": "XX-XXXXXXX"
+          },
+          "businessCategoryId": {
+            "type": "string",
+            "example": "category_id"
+          },
+          "businessAddress": {
+            "type": "string",
+            "example": "123 Main Street"
+          },
+          "serviceArea": {
+            "type": "string",
+            "example": "New York, USA"
+          },
+          "headquarters": {
+            "type": "string",
+            "example": "New York, USA"
+          },
+          "website": {
+            "type": "string",
+            "example": "https://www.sylviabond.com"
+          },
+          "fulfillmentMethods": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PICKUP",
+                "DELIVERY"
+              ]
+            }
+          },
+          "autoAcceptOrders": {
+            "type": "boolean",
+            "example": false
           }
         }
       },
@@ -16445,6 +16679,29 @@
           "newContactAlertsEnabled": {
             "type": "boolean",
             "example": true
+          },
+          "providerOrderAlerts": {
+            "type": "object",
+            "example": {
+              "newOrders": true,
+              "orderCancellations": true,
+              "orderDelays": false
+            }
+          },
+          "providerAccountActivity": {
+            "type": "object",
+            "example": {
+              "securityAlerts": true,
+              "loginFromNewDevice": true
+            }
+          },
+          "providerMarketingUpdates": {
+            "type": "object",
+            "example": {
+              "weeklyPerformanceSummary": true,
+              "newFeatureAnnouncements": false,
+              "promotionalOffers": false
+            }
           }
         }
       },

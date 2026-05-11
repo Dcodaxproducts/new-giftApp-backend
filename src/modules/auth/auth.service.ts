@@ -55,6 +55,7 @@ import {
   RegisterProviderDto,
   RegisterUserDto,
   ResetPasswordDto,
+  UpdateOwnProfileDto,
   VerifyEmailDto,
   VerifyResetOtpDto,
 } from './dto/auth.dto';
@@ -64,6 +65,7 @@ interface TokenPayload {
   role: UserRole;
   permissions?: Prisma.JsonValue;
   type?: 'refresh';
+  sessionId?: string;
 }
 
 @Injectable()
@@ -263,7 +265,7 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Admin role is inactive or missing');
     }
 
-    const tokens = await this.issueTokens(user);
+    const tokens = await this.issueTokens(user, undefined, ipAddress, this.normalizeUserAgent(userAgent));
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -753,19 +755,29 @@ export class AuthService implements OnModuleInit {
     if (!isValid) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+    if (payload.sessionId) {
+      const session = await this.prisma.authSession.findFirst({
+        where: { id: payload.sessionId, userId: user.id, revokedAt: null },
+      });
+      if (!session || !(await bcrypt.compare(dto.refreshToken, session.refreshTokenHash))) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+    }
 
     return {
-      data: await this.issueTokens(user),
+      data: await this.issueTokens(user, payload.sessionId),
       message: 'Token refreshed',
     };
   }
 
   async logout(user: AuthUserContext) {
-    await this.prisma.user.update({
-      where: { id: user.uid },
-      data: { refreshTokenHash: null },
-    });
-
+    await this.prisma.user.update({ where: { id: user.uid }, data: { refreshTokenHash: null } });
+    if (user.sessionId) {
+      await this.prisma.authSession.updateMany({
+        where: { id: user.sessionId, userId: user.uid, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    }
     return { data: null, message: 'Logout successful' };
   }
 
@@ -934,7 +946,29 @@ export class AuthService implements OnModuleInit {
 
   async me(user: AuthUserContext) {
     const dbUser = await this.getActiveUser(user.uid);
-    return { data: await this.toAuthUser(dbUser), message: 'Current user fetched' };
+    return { data: await this.toAuthUser(dbUser), message: 'Profile fetched successfully.' };
+  }
+
+  async updateMe(user: AuthUserContext, dto: UpdateOwnProfileDto) {
+    const updated = await this.prisma.user.update({ where: { id: user.uid }, data: { firstName: dto.firstName?.trim(), lastName: dto.lastName?.trim(), phone: dto.phone?.trim(), avatarUrl: dto.avatarUrl?.trim() } });
+    return { data: await this.toAuthUser(updated), message: 'Profile updated successfully.' };
+  }
+
+  async sessions(user: AuthUserContext) {
+    const sessions = await this.prisma.authSession.findMany({ where: { userId: user.uid, revokedAt: null }, orderBy: { lastActiveAt: 'desc' } });
+    return { data: sessions.map((session) => ({ id: session.id, deviceName: session.deviceName ?? 'Unknown device', location: session.location, ipAddress: session.ipAddress, isCurrent: session.id === user.sessionId, lastActiveAt: session.lastActiveAt })), message: 'Active sessions fetched successfully.' };
+  }
+
+  async logoutAllSessions(user: AuthUserContext) {
+    await this.prisma.authSession.updateMany({ where: { userId: user.uid, revokedAt: null, id: user.sessionId ? { not: user.sessionId } : undefined }, data: { revokedAt: new Date() } });
+    return { success: true, message: 'Other sessions logged out successfully.' };
+  }
+
+  async revokeSession(user: AuthUserContext, id: string) {
+    const session = await this.prisma.authSession.findFirst({ where: { id, userId: user.uid, revokedAt: null } });
+    if (!session) throw new NotFoundException('Session not found');
+    await this.prisma.authSession.update({ where: { id }, data: { revokedAt: new Date() } });
+    return { success: true, message: 'Session revoked successfully.' };
   }
 
   async deleteAccount(user: AuthUserContext) {
@@ -1121,11 +1155,24 @@ export class AuthService implements OnModuleInit {
     throw new ForbiddenException('Your role cannot change this account status');
   }
 
-  private async issueTokens(user: User) {
+  private async issueTokens(user: User, existingSessionId?: string, ipAddress?: string, userAgent?: string) {
+    const session = existingSessionId
+      ? await this.prisma.authSession.update({ where: { id: existingSessionId }, data: { lastActiveAt: new Date() } })
+      : await this.prisma.authSession.create({
+          data: {
+            userId: user.id,
+            refreshTokenHash: 'pending',
+            deviceName: userAgent ? this.deviceName(userAgent) : 'Current device',
+            ipAddress,
+            userAgent,
+            lastActiveAt: new Date(),
+          },
+        });
     const payload: TokenPayload = {
       uid: user.id,
       role: user.role,
       permissions: user.adminPermissions ?? undefined,
+      sessionId: session.id,
     };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
@@ -1145,10 +1192,11 @@ export class AuthService implements OnModuleInit {
       },
     );
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { refreshTokenHash: await bcrypt.hash(refreshToken, 10) },
-    });
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash } }),
+      this.prisma.authSession.update({ where: { id: session.id }, data: { refreshTokenHash } }),
+    ]);
 
     return { accessToken, refreshToken };
   }
@@ -1162,6 +1210,7 @@ export class AuthService implements OnModuleInit {
       lastName: user.lastName,
       phone: user.phone,
       avatarUrl: user.avatarUrl,
+      fullName: `${user.firstName} ${user.lastName}`.trim(),
       isVerified: user.isVerified,
       isActive: user.isActive,
       mustChangePassword: user.mustChangePassword,
@@ -1204,6 +1253,9 @@ export class AuthService implements OnModuleInit {
           autoAcceptOrders: user.providerAutoAcceptOrders,
           serviceArea: user.providerServiceArea,
           approvalStatus: user.providerApprovalStatus,
+          status: user.isActive ? 'ACTIVE' : 'INACTIVE',
+          isActive: user.isActive,
+          memberSince: user.createdAt,
         },
       };
     }
@@ -1358,6 +1410,14 @@ export class AuthService implements OnModuleInit {
     }
 
     return otp;
+  }
+
+  private deviceName(userAgent: string) {
+    if (/iphone|ipad/i.test(userAgent)) return 'iOS device';
+    if (/android/i.test(userAgent)) return 'Android device';
+    if (/windows/i.test(userAgent)) return 'Windows device';
+    if (/macintosh|mac os/i.test(userAgent)) return 'Mac device';
+    return 'Current device';
   }
 
   private async ensureSingleSuperAdmin(): Promise<void> {

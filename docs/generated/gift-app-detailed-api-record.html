@@ -119,6 +119,34 @@
 <p><strong>Description:</strong> Access: Authenticated. Authenticated JWT required.</p>
 <p><strong>Request payload:</strong> None</p>
 <p><strong>Response payload:</strong> Not documented</p>
+<h3><code>PATCH</code> <code>/api/v1/auth/me</code></h3>
+<p><strong>Allowed roles:</strong> Authenticated</p>
+<p><strong>Summary:</strong> PATCH /api/v1/auth/me</p>
+<p><strong>Description:</strong> Access: Authenticated. Authenticated JWT required.</p>
+<p><strong>Request payload (application/json):</strong></p>
+<pre><code class="language-json">{
+  &quot;$ref&quot;: &quot;#/components/schemas/UpdateOwnProfileDto&quot;
+}
+</code></pre>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>GET</code> <code>/api/v1/auth/sessions</code></h3>
+<p><strong>Allowed roles:</strong> Authenticated</p>
+<p><strong>Summary:</strong> GET /api/v1/auth/sessions</p>
+<p><strong>Description:</strong> Access: Authenticated. Authenticated JWT required.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>POST</code> <code>/api/v1/auth/sessions/logout-all</code></h3>
+<p><strong>Allowed roles:</strong> Authenticated</p>
+<p><strong>Summary:</strong> POST /api/v1/auth/sessions/logout-all</p>
+<p><strong>Description:</strong> Access: Authenticated. Authenticated JWT required.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>DELETE</code> <code>/api/v1/auth/sessions/{id}</code></h3>
+<p><strong>Allowed roles:</strong> Authenticated</p>
+<p><strong>Summary:</strong> DELETE /api/v1/auth/sessions/{id}</p>
+<p><strong>Description:</strong> Access: Authenticated. Authenticated JWT required.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
 <h3><code>DELETE</code> <code>/api/v1/auth/account</code></h3>
 <p><strong>Allowed roles:</strong> Authenticated</p>
 <p><strong>Summary:</strong> DELETE /api/v1/auth/account</p>
@@ -801,6 +829,23 @@
 <p><strong>Summary:</strong> GET /api/v1/audit-logs/{id}</p>
 <p><strong>Description:</strong> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin.</p>
 <p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h2>03 Provider - Business Info</h2>
+<h3><code>GET</code> <code>/api/v1/provider/business-info</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> Fetch own provider business information</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>PATCH</code> <code>/api/v1/provider/business-info</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> Update own provider business information</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Cannot set approvalStatus/isActive; material business changes require verification review.</p>
+<p><strong>Request payload (application/json):</strong></p>
+<pre><code class="language-json">{
+  &quot;$ref&quot;: &quot;#/components/schemas/UpdateProviderBusinessInfoDto&quot;
+}
+</code></pre>
 <p><strong>Response payload:</strong> Not documented</p>
 <h2>03 Provider - Inventory</h2>
 <h3><code>GET</code> <code>/api/v1/provider/inventory</code></h3>
