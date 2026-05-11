@@ -19,6 +19,7 @@ import {
   ListProviderItemsDto,
   ListProvidersDto,
   MessageProviderDto,
+  PermanentlyDeleteProviderDto,
   ProviderActivityType,
   ProviderLifecycleAction,
   ProviderLifecycleReason,
@@ -215,6 +216,63 @@ export class ProviderManagementService {
       case ProviderLifecycleAction.UPDATE_STATUS:
         return this.updateProviderStatus(user, provider, dto);
     }
+  }
+
+
+  async permanentlyDelete(user: AuthUserContext, id: string, dto: PermanentlyDeleteProviderDto) {
+    if (dto.confirmation !== 'PERMANENTLY_DELETE_PROVIDER') {
+      throw new BadRequestException('Invalid permanent delete confirmation text');
+    }
+
+    const provider = await this.getProvider(id);
+    const activeOrders = await this.prisma.providerOrder.count({
+      where: { providerId: provider.id, status: { in: ['PENDING', 'ACCEPTED', 'PROCESSING', 'PACKED', 'READY_FOR_PICKUP', 'SHIPPED', 'OUT_FOR_DELIVERY'] } },
+    });
+    if (activeOrders > 0) {
+      throw new ConflictException('Provider has active processing orders and cannot be permanently deleted');
+    }
+
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.adminAuditLog.create({
+        data: {
+          actorId: user.uid,
+          targetId: provider.id,
+          targetType: 'PROVIDER',
+          action: 'PROVIDER_PERMANENTLY_DELETED',
+          beforeJson: { id: provider.id, email: provider.email, role: provider.role },
+          afterJson: { reason: dto.reason, deleteRelatedRecords: dto.deleteRelatedRecords ?? true },
+        },
+      });
+      await tx.notification.deleteMany({ where: { recipientId: provider.id } });
+      await tx.notificationDeviceToken.deleteMany({ where: { userId: provider.id } });
+      await tx.uploadedFile.deleteMany({ where: { ownerId: provider.id } });
+      await tx.accountSuspension.deleteMany({ where: { accountId: provider.id } });
+      await tx.loginAttempt.updateMany({ where: { userId: provider.id }, data: { userId: null } });
+      await tx.promotionalOffer.updateMany({ where: { providerId: provider.id }, data: { deletedAt: new Date(), isActive: false } });
+      await tx.gift.updateMany({ where: { providerId: provider.id }, data: { deletedAt: new Date(), isPublished: false } });
+      await tx.user.update({
+        where: { id: provider.id },
+        data: {
+          email: `deleted-provider-${provider.id}@deleted.local`,
+          firstName: 'Deleted',
+          lastName: 'Provider',
+          phone: null,
+          avatarUrl: null,
+          location: null,
+          providerBusinessName: 'Deleted Provider',
+          isActive: false,
+          isApproved: false,
+          refreshTokenHash: null,
+          deletedAt: new Date(),
+          deleteAfter: new Date(),
+        },
+      });
+    });
+
+    return {
+      data: { deletedProviderId: provider.id, deletedRelatedRecords: dto.deleteRelatedRecords ?? true },
+      message: 'Provider permanently deleted successfully.',
+    };
   }
 
   async items(id: string, query: ListProviderItemsDto) {
@@ -804,8 +862,8 @@ export class ProviderManagementService {
         targetId,
         targetType: this.inferTargetType(action),
         action,
-        beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
-        afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
+        beforeJson: beforeJson === null ? undefined : (beforeJson),
+        afterJson: afterJson === null ? undefined : (afterJson),
       },
     });
   }

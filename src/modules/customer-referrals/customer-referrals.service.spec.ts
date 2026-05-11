@@ -10,7 +10,7 @@ describe('Customer referrals and rewards source safety', () => {
   const schemaSource = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
 
   it('exposes registered-user customer referral and reward APIs under one Swagger tag', () => {
-    expect(controllerSource).toContain("@ApiTags('Customer Referrals & Rewards')");
+    expect(controllerSource).toContain("@ApiTags('05 Customer - Referrals & Rewards')");
     expect(controllerSource).toContain('@Roles(UserRole.REGISTERED_USER)');
     expect(controllerSource).toContain("@Get('referrals/summary')");
     expect(controllerSource).toContain("@Get('referrals/link')");

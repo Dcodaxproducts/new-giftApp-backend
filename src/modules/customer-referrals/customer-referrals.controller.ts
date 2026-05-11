@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerReferralsService } from './customer-referrals.service';
 import { ListReferralHistoryDto, ListRewardLedgerDto, RedeemRewardDto, ReferralHistoryStatus, RewardLedgerTypeFilter } from './dto/customer-referrals.dto';
 
-@ApiTags('Customer Referrals & Rewards')
+@ApiTags('05 Customer - Referrals & Rewards')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)

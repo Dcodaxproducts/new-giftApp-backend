@@ -33,7 +33,7 @@ const provider: Record<string, unknown> = {
 function createService(overrides: Record<string, unknown> = {}) {
   const currentProvider = { ...provider, ...overrides };
   const prisma = {
-    $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
+    $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as unknown[])),
     user: {
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
@@ -41,12 +41,20 @@ function createService(overrides: Record<string, unknown> = {}) {
       update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...currentProvider, ...data })),
       create: jest.fn(),
       findUnique: jest.fn(),
+      delete: jest.fn(),
     },
     accountSuspension: {
       create: jest.fn().mockResolvedValue({ id: 'suspension_1' }),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      deleteMany: jest.fn(),
     },
-    notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
+    notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
+    notificationDeviceToken: { deleteMany: jest.fn() },
+    uploadedFile: { deleteMany: jest.fn() },
+    loginAttempt: { updateMany: jest.fn() },
+    providerOrder: { count: jest.fn().mockResolvedValue(0) },
+    promotionalOffer: { updateMany: jest.fn() },
+    gift: { updateMany: jest.fn() },
     adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
   };
   const mailer = {
@@ -215,4 +223,42 @@ describe('ProviderManagementService', () => {
     expect(controller).not.toContain("@Post(':id/suspend')");
     expect(controller).not.toContain("@Post(':id/unsuspend')");
   });
+
+  it('DELETE /providers/:id is SUPER_ADMIN only and blocks active processing orders', async () => {
+    const { service, prisma } = createService();
+    const controller = readFileSync(join(__dirname, 'provider-management.controller.ts'), 'utf8');
+    expect(controller).toContain("@Delete(':id')");
+    expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
+    expect(controller).toContain('Permanently delete provider');
+    expect(controller).toContain('DANGER:');
+
+    await expect(service.permanentlyDelete(
+      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
+      'provider_1',
+      { confirmation: 'WRONG', reason: 'Provider account removed by Super Admin.' },
+    )).rejects.toThrow(BadRequestException);
+
+    prisma.providerOrder.count.mockResolvedValueOnce(1);
+    await expect(service.permanentlyDelete(
+      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
+      'provider_1',
+      { confirmation: 'PERMANENTLY_DELETE_PROVIDER', reason: 'Provider account removed by Super Admin.' },
+    )).rejects.toThrow('Provider has active processing orders and cannot be permanently deleted');
+  });
+
+  it('DELETE /providers/:id writes audit and removes provider-owned non-financial records', async () => {
+    const { service, prisma } = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED });
+
+    await service.permanentlyDelete(
+      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
+      'provider_1',
+      { confirmation: 'PERMANENTLY_DELETE_PROVIDER', reason: 'Provider account removed by Super Admin.', deleteRelatedRecords: true },
+    );
+
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_PERMANENTLY_DELETED' }) }));
+    expect(prisma.promotionalOffer.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerId: 'provider_1' } }));
+    expect(prisma.gift.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerId: 'provider_1' } }));
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'provider_1' }, data: expect.objectContaining({ isActive: false, isApproved: false, refreshTokenHash: null }) }));
+  });
+
 });

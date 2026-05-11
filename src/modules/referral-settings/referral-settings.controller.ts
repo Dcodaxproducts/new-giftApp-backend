@@ -11,7 +11,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { DeactivateReferralSettingsDto, ListReferralSettingsAuditLogsDto, UpdateReferralSettingsDto } from './dto/referral-settings.dto';
 import { ReferralSettingsService } from './referral-settings.service';
 
-@ApiTags('Referral Settings')
+@ApiTags('02 Admin - Referral Settings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller('referral-settings')

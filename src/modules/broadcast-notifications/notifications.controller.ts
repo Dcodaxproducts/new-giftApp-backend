@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { DeviceTokenDto, ListNotificationsDto, NotificationActionRequestDto, UpdateNotificationPreferencesDto } from './dto/broadcast-notifications.dto';
 import { NotificationsService } from './notifications.service';
 
-@ApiTags('Notifications')
+@ApiTags('06 Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PROVIDER, UserRole.REGISTERED_USER)

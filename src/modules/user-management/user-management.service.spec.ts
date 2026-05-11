@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -8,7 +8,7 @@ import { UserManagementService } from './user-management.service';
 
 function createService() {
   const prisma = {
-    $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
+    $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as unknown[])),
     user: {
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
@@ -16,8 +16,26 @@ function createService() {
       update: jest.fn(),
     },
     adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
-    notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
-    loginAttempt: { findMany: jest.fn().mockResolvedValue([]) },
+    notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
+    notificationDeviceToken: { deleteMany: jest.fn() },
+    uploadedFile: { deleteMany: jest.fn() },
+    accountSuspension: { deleteMany: jest.fn() },
+    customerWishlist: { deleteMany: jest.fn() },
+    cartItem: { deleteMany: jest.fn() },
+    cart: { deleteMany: jest.fn() },
+    customerEventReminderJob: { deleteMany: jest.fn() },
+    customerEvent: { deleteMany: jest.fn() },
+    customerReminder: { deleteMany: jest.fn() },
+    customerBankAccount: { deleteMany: jest.fn() },
+    customerPaymentMethod: { deleteMany: jest.fn() },
+    customerWalletLedger: { deleteMany: jest.fn() },
+    customerWallet: { deleteMany: jest.fn() },
+    rewardLedger: { deleteMany: jest.fn() },
+    referral: { deleteMany: jest.fn() },
+    customerRecurringPaymentOccurrence: { updateMany: jest.fn() },
+    customerRecurringPayment: { updateMany: jest.fn() },
+    customerContact: { deleteMany: jest.fn() },
+    loginAttempt: { findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn() },
   };
   const mailer = {
     sendPasswordResetEmail: jest.fn(),
@@ -211,4 +229,36 @@ describe('UserManagementService', () => {
     expect(dto).toContain('reason?: string');
     expect(dto).toContain('New password does not meet security requirements.');
   });
+
+  it('DELETE /users/:id is SUPER_ADMIN only and documents danger warning', () => {
+    const controller = readFileSync(join(__dirname, 'user-management.controller.ts'), 'utf8');
+    expect(controller).toContain("@Delete(':id')");
+    expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
+    expect(controller).toContain('Permanently delete registered user');
+    expect(controller).toContain('DANGER:');
+  });
+
+  it('DELETE /users/:id requires confirmation and removes related customer records', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+    prisma.user.update.mockResolvedValue({ ...registeredUser, deletedAt: new Date() });
+
+    await expect(service.permanentlyDelete(
+      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
+      'user_1',
+      { confirmation: 'WRONG', reason: 'User requested full deletion.' },
+    )).rejects.toThrow(BadRequestException);
+
+    await service.permanentlyDelete(
+      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
+      'user_1',
+      { confirmation: 'PERMANENTLY_DELETE_USER', reason: 'User requested full deletion.', deleteRelatedRecords: true },
+    );
+
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_PERMANENTLY_DELETED' }) }));
+    expect(prisma.customerContact.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
+    expect(prisma.customerWalletLedger.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'user_1' }, data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
+  });
+
 });

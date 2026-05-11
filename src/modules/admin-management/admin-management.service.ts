@@ -4,6 +4,7 @@ import { AuthService } from '../auth/auth.service';
 import {
   CreateAdminDto,
   ListAdminsDto,
+  PermanentlyDeleteAdminDto,
   ResetAdminPasswordDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
@@ -39,5 +40,10 @@ export class AdminManagementService {
 
   resetPassword(user: AuthUserContext, id: string, dto: ResetAdminPasswordDto) {
     return this.authService.resetAdminPassword(user, id, dto);
+  }
+
+
+  permanentlyDelete(user: AuthUserContext, id: string, dto: PermanentlyDeleteAdminDto) {
+    return this.authService.permanentlyDeleteAdmin(user, id, dto);
   }
 }

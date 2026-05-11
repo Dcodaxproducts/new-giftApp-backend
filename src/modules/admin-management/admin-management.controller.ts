@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -8,13 +8,14 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import {
   CreateAdminDto,
   ListAdminsDto,
+  PermanentlyDeleteAdminDto,
   ResetAdminPasswordDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
 } from '../auth/dto/admin-management.dto';
 import { AdminManagementService } from './admin-management.service';
 
-@ApiTags('Admin Staff Management')
+@ApiTags('02 Admin - Staff Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)
@@ -77,6 +78,21 @@ export class AdminManagementController {
     @Body() dto: UpdateAdminActiveStatusDto,
   ) {
     return this.adminManagementService.updateActiveStatus(user, id, dto);
+  }
+
+
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Permanently delete admin staff user',
+    description: 'DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.',
+  })
+  @ApiResponse({ status: 200, description: 'Admin staff user permanently deleted successfully', schema: { example: { success: true, data: { deletedAdminId: 'admin_id' }, message: 'Admin staff user permanently deleted successfully.' } } })
+  permanentlyDelete(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: PermanentlyDeleteAdminDto,
+  ) {
+    return this.adminManagementService.permanentlyDelete(user, id, dto);
   }
 
   @Patch(':id/password')

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -24,13 +25,14 @@ import {
   ListProviderItemsDto,
   ListProvidersDto,
   MessageProviderDto,
+  PermanentlyDeleteProviderDto,
   ProviderLookupDto,
   UpdateProviderDto,
   UpdateProviderStatusDto,
 } from './dto/provider-management.dto';
 import { ProviderManagementService } from './provider-management.service';
 
-@ApiTags('Provider Management')
+@ApiTags('02 Admin - Provider Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -123,6 +125,22 @@ export class ProviderManagementController {
     return this.providerManagementService.updateStatus(user, id, dto);
   }
 
+
+
+  @Delete(':id')
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Permanently delete provider',
+    description: 'DANGER: This endpoint permanently deletes/anonymizes the provider and related provider data from the database. This is not a soft delete. Use only from Super Admin danger zone screens. Active processing orders block deletion.',
+  })
+  @ApiResponse({ status: 200, description: 'Provider permanently deleted successfully', schema: { example: { success: true, data: { deletedProviderId: 'provider_id', deletedRelatedRecords: true }, message: 'Provider permanently deleted successfully.' } } })
+  permanentlyDelete(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: PermanentlyDeleteProviderDto,
+  ): Promise<unknown> {
+    return this.providerManagementService.permanentlyDelete(user, id, dto);
+  }
 
   @Get(':id/items')
   @Permissions('providers.read')

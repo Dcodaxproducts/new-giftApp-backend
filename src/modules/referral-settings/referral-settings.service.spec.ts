@@ -21,7 +21,7 @@ describe('Referral settings source safety', () => {
   });
 
   it('exposes Referral Settings APIs with admin read and super admin writes', () => {
-    expect(controller).toContain("@ApiTags('Referral Settings')");
+    expect(controller).toContain("@ApiTags('02 Admin - Referral Settings')");
     expect(controller).toContain("@Controller('referral-settings')");
     expect(controller).toContain("@Permissions('referralSettings.read')");
     expect(controller).toContain("@Post('activate')");

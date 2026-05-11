@@ -10,7 +10,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateProviderBusinessCategoryDto, ListProviderBusinessCategoriesDto, UpdateProviderBusinessCategoryDto } from './dto/provider-business-categories.dto';
 import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
 
-@ApiTags('Provider Management')
+@ApiTags('02 Admin - Provider Management')
 @Controller('provider-business-categories')
 export class ProviderBusinessCategoriesController {
   constructor(private readonly service: ProviderBusinessCategoriesService) {}

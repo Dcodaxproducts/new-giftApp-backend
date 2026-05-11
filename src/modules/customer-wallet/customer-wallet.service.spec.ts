@@ -20,7 +20,7 @@ describe('Customer wallet source safety', () => {
   });
 
   it('exposes registered-user wallet APIs under Customer Wallet', () => {
-    expect(walletController).toContain("@ApiTags('Customer Wallet')");
+    expect(walletController).toContain("@ApiTags('05 Customer - Wallet')");
     expect(walletController).toContain('@Roles(UserRole.REGISTERED_USER)');
     expect(walletController).toContain("@Controller('customer/wallet')");
     expect(walletController).toContain("@Post('add-funds')");
@@ -49,7 +49,7 @@ describe('Customer wallet source safety', () => {
   });
 
   it('generalizes customer payment methods and returns masked card data only', () => {
-    expect(paymentsController).toContain("@ApiTags('Customer Payment Methods')");
+    expect(paymentsController).toContain("@ApiTags('05 Customer - Payment Methods')");
     expect(paymentsController).toContain("@Post('setup-intent')");
     expect(paymentsController).toContain("@Get('saved')");
     expect(paymentsService).toContain('setupIntents.create');

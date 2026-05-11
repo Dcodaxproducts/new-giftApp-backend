@@ -11,7 +11,7 @@ import { PaymentsService } from './payments.service';
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
-@ApiTags('Payments')
+@ApiTags('06 Payments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)
@@ -35,7 +35,7 @@ export class CustomerPaymentsController {
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.details(user, id); }
 }
 
-@ApiTags('Customer Payment Methods')
+@ApiTags('05 Customer - Payment Methods')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)
@@ -67,7 +67,7 @@ export class CustomerPaymentMethodsController {
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.deletePaymentMethod(user, id); }
 }
 
-@ApiTags('Payments')
+@ApiTags('06 Payments')
 @Controller('payments/stripe')
 export class StripeWebhookController {
   constructor(private readonly payments: PaymentsService) {}
@@ -79,7 +79,7 @@ export class StripeWebhookController {
   }
 }
 
-@ApiTags('Payments')
+@ApiTags('06 Payments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)

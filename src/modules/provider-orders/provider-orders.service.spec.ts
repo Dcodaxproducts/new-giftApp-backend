@@ -9,7 +9,7 @@ describe('Provider assigned orders source safety', () => {
   const customerMarketplace = readFileSync(join(__dirname, '../customer-marketplace/customer-marketplace.service.ts'), 'utf8');
 
   it('exposes provider-only Provider Orders APIs with static routes before :id', () => {
-    expect(controller).toContain("@ApiTags('Provider Orders')");
+    expect(controller).toContain("@ApiTags('03 Provider - Orders')");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
     expect(controller.indexOf("@Get('summary')")).toBeLessThan(controller.indexOf("@Get(':id')"));
     expect(controller.indexOf("@Get('reject-reasons')")).toBeLessThan(controller.indexOf("@Get(':id')"));

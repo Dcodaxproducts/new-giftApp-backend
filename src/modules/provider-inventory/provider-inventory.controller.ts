@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateProviderInventoryItemDto, ListProviderInventoryDto, UpdateProviderAvailabilityDto, UpdateProviderInventoryItemDto } from './dto/provider-inventory.dto';
 import { ProviderInventoryService } from './provider-inventory.service';
 
-@ApiTags('Provider Inventory')
+@ApiTags('03 Provider - Inventory')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.PROVIDER)

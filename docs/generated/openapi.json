@@ -21,8 +21,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/users/register"
       }
     },
     "/api/v1/auth/providers/register": {
@@ -45,8 +46,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/providers/register"
       }
     },
     "/api/v1/auth/guest/session": {
@@ -69,8 +71,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/guest/session"
       }
     },
     "/api/v1/auth/login": {
@@ -93,8 +96,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/login"
       }
     },
     "/api/v1/auth/refresh": {
@@ -117,8 +121,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/refresh"
       }
     },
     "/api/v1/auth/logout": {
@@ -136,8 +141,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/logout"
       }
     },
     "/api/v1/auth/verify-email": {
@@ -165,8 +171,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/verify-email"
       }
     },
     "/api/v1/auth/resend-otp": {
@@ -184,8 +191,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/resend-otp"
       }
     },
     "/api/v1/auth/forgot-password": {
@@ -208,8 +216,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/forgot-password"
       }
     },
     "/api/v1/auth/verify-reset-otp": {
@@ -232,8 +241,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/verify-reset-otp"
       }
     },
     "/api/v1/auth/reset-password": {
@@ -256,8 +266,9 @@
           }
         },
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/reset-password"
       }
     },
     "/api/v1/auth/change-password": {
@@ -285,8 +296,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "PATCH /api/v1/auth/change-password"
       }
     },
     "/api/v1/auth/me": {
@@ -304,8 +316,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "GET /api/v1/auth/me"
       }
     },
     "/api/v1/auth/account": {
@@ -323,8 +336,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "DELETE /api/v1/auth/account"
       }
     },
     "/api/v1/auth/cancel-deletion": {
@@ -342,8 +356,9 @@
           }
         ],
         "tags": [
-          "Auth"
-        ]
+          "01 Auth"
+        ],
+        "summary": "POST /api/v1/auth/cancel-deletion"
       }
     },
     "/api/v1/login-attempts/stats": {
@@ -440,8 +455,9 @@
           }
         ],
         "tags": [
-          "Login Attempts"
-        ]
+          "01 Auth - Login Attempts"
+        ],
+        "summary": "GET /api/v1/login-attempts/stats"
       }
     },
     "/api/v1/login-attempts/export": {
@@ -538,8 +554,9 @@
           }
         ],
         "tags": [
-          "Login Attempts"
-        ]
+          "01 Auth - Login Attempts"
+        ],
+        "summary": "GET /api/v1/login-attempts/export"
       }
     },
     "/api/v1/login-attempts": {
@@ -636,8 +653,9 @@
           }
         ],
         "tags": [
-          "Login Attempts"
-        ]
+          "01 Auth - Login Attempts"
+        ],
+        "summary": "GET /api/v1/login-attempts"
       }
     },
     "/api/v1/customer/referrals/summary": {
@@ -679,7 +697,7 @@
         ],
         "summary": "Fetch own referral reward summary",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -717,7 +735,7 @@
         ],
         "summary": "Fetch own referral link",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -773,7 +791,7 @@
         ],
         "summary": "List own referral history",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -819,7 +837,7 @@
         ],
         "summary": "Redeem own available reward credit",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -856,7 +874,7 @@
         ],
         "summary": "Fetch own reward balance",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -911,7 +929,7 @@
         ],
         "summary": "List own reward ledger",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -954,7 +972,7 @@
         ],
         "summary": "Fetch referral terms",
         "tags": [
-          "Customer Referrals & Rewards"
+          "05 Customer - Referrals & Rewards"
         ]
       }
     },
@@ -1006,7 +1024,7 @@
         ],
         "summary": "Fetch own wallet",
         "tags": [
-          "Customer Wallet"
+          "05 Customer - Wallet"
         ]
       }
     },
@@ -1037,7 +1055,7 @@
         ],
         "summary": "Create wallet top-up payment",
         "tags": [
-          "Customer Wallet"
+          "05 Customer - Wallet"
         ]
       }
     },
@@ -1126,7 +1144,7 @@
         ],
         "summary": "List own wallet history",
         "tags": [
-          "Customer Wallet"
+          "05 Customer - Wallet"
         ]
       }
     },
@@ -1157,7 +1175,7 @@
         ],
         "summary": "Link placeholder bank account",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       },
       "get": {
@@ -1195,7 +1213,7 @@
         ],
         "summary": "List own bank accounts",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -1224,7 +1242,7 @@
         ],
         "summary": "Set own default bank account",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -1253,7 +1271,7 @@
         ],
         "summary": "Delete own bank account",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -1296,7 +1314,7 @@
         ],
         "summary": "Fetch referral settings",
         "tags": [
-          "Referral Settings"
+          "02 Admin - Referral Settings"
         ]
       },
       "patch": {
@@ -1325,7 +1343,7 @@
         ],
         "summary": "Update referral settings",
         "tags": [
-          "Referral Settings"
+          "02 Admin - Referral Settings"
         ]
       }
     },
@@ -1346,7 +1364,7 @@
         ],
         "summary": "Activate referral program",
         "tags": [
-          "Referral Settings"
+          "02 Admin - Referral Settings"
         ]
       }
     },
@@ -1377,7 +1395,7 @@
         ],
         "summary": "Deactivate referral program",
         "tags": [
-          "Referral Settings"
+          "02 Admin - Referral Settings"
         ]
       }
     },
@@ -1398,7 +1416,7 @@
         ],
         "summary": "Fetch referral stats",
         "tags": [
-          "Referral Settings"
+          "02 Admin - Referral Settings"
         ]
       }
     },
@@ -1456,7 +1474,7 @@
         ],
         "summary": "List referral settings audit logs",
         "tags": [
-          "Referral Settings"
+          "02 Admin - Referral Settings"
         ]
       }
     },
@@ -1500,7 +1518,7 @@
         ],
         "summary": "Create admin staff user",
         "tags": [
-          "Admin Staff Management"
+          "02 Admin - Staff Management"
         ]
       },
       "get": {
@@ -1636,7 +1654,7 @@
         ],
         "summary": "List admin staff users",
         "tags": [
-          "Admin Staff Management"
+          "02 Admin - Staff Management"
         ]
       }
     },
@@ -1664,8 +1682,9 @@
           }
         ],
         "tags": [
-          "Admin Staff Management"
-        ]
+          "02 Admin - Staff Management"
+        ],
+        "summary": "GET /api/v1/admins/{id}"
       },
       "patch": {
         "operationId": "AdminManagementController_update",
@@ -1700,7 +1719,59 @@
           }
         ],
         "tags": [
-          "Admin Staff Management"
+          "02 Admin - Staff Management"
+        ],
+        "summary": "PATCH /api/v1/admins/{id}"
+      },
+      "delete": {
+        "description": "DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.",
+        "operationId": "AdminManagementController_permanentlyDelete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PermanentlyDeleteAdminDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Admin staff user permanently deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "deletedAdminId": "admin_id"
+                    },
+                    "message": "Admin staff user permanently deleted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Permanently delete admin staff user",
+        "tags": [
+          "02 Admin - Staff Management"
         ]
       }
     },
@@ -1738,8 +1809,9 @@
           }
         ],
         "tags": [
-          "Admin Staff Management"
-        ]
+          "02 Admin - Staff Management"
+        ],
+        "summary": "PATCH /api/v1/admins/{id}/active-status"
       }
     },
     "/api/v1/admins/{id}/password": {
@@ -1776,8 +1848,9 @@
           }
         ],
         "tags": [
-          "Admin Staff Management"
-        ]
+          "02 Admin - Staff Management"
+        ],
+        "summary": "PATCH /api/v1/admins/{id}/password"
       }
     },
     "/api/v1/admin-roles": {
@@ -1820,9 +1893,9 @@
             "bearer": []
           }
         ],
-        "summary": "",
+        "summary": "GET /api/v1/admin-roles",
         "tags": [
-          "Admin Roles / RBAC"
+          "02 Admin - Roles & Permissions"
         ]
       },
       "post": {
@@ -1849,8 +1922,9 @@
           }
         ],
         "tags": [
-          "Admin Roles / RBAC"
-        ]
+          "02 Admin - Roles & Permissions"
+        ],
+        "summary": "POST /api/v1/admin-roles"
       }
     },
     "/api/v1/admin-roles/{id}": {
@@ -1877,8 +1951,9 @@
           }
         ],
         "tags": [
-          "Admin Roles / RBAC"
-        ]
+          "02 Admin - Roles & Permissions"
+        ],
+        "summary": "GET /api/v1/admin-roles/{id}"
       },
       "patch": {
         "operationId": "AdminRolesController_update",
@@ -1913,8 +1988,9 @@
           }
         ],
         "tags": [
-          "Admin Roles / RBAC"
-        ]
+          "02 Admin - Roles & Permissions"
+        ],
+        "summary": "PATCH /api/v1/admin-roles/{id}"
       },
       "delete": {
         "operationId": "AdminRolesController_delete",
@@ -1939,8 +2015,9 @@
           }
         ],
         "tags": [
-          "Admin Roles / RBAC"
-        ]
+          "02 Admin - Roles & Permissions"
+        ],
+        "summary": "DELETE /api/v1/admin-roles/{id}"
       }
     },
     "/api/v1/admin-roles/{id}/permissions": {
@@ -1977,8 +2054,9 @@
           }
         ],
         "tags": [
-          "Admin Roles / RBAC"
-        ]
+          "02 Admin - Roles & Permissions"
+        ],
+        "summary": "PATCH /api/v1/admin-roles/{id}/permissions"
       }
     },
     "/api/v1/permissions/catalog": {
@@ -1996,9 +2074,9 @@
             "bearer": []
           }
         ],
-        "summary": "",
+        "summary": "GET /api/v1/permissions/catalog",
         "tags": [
-          "Admin Roles / RBAC"
+          "02 Admin - Roles & Permissions"
         ]
       }
     },
@@ -2067,8 +2145,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "GET /api/v1/providers/export"
       }
     },
     "/api/v1/providers/stats": {
@@ -2086,8 +2165,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "GET /api/v1/providers/stats"
       }
     },
     "/api/v1/providers": {
@@ -2221,7 +2301,7 @@
         ],
         "summary": "List providers",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       },
       "post": {
@@ -2248,8 +2328,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "POST /api/v1/providers"
       }
     },
     "/api/v1/providers/lookup": {
@@ -2306,8 +2387,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "GET /api/v1/providers/lookup"
       }
     },
     "/api/v1/providers/{id}": {
@@ -2334,8 +2416,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "GET /api/v1/providers/{id}"
       },
       "patch": {
         "operationId": "ProviderManagementController_update",
@@ -2370,7 +2453,60 @@
           }
         ],
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
+        ],
+        "summary": "PATCH /api/v1/providers/{id}"
+      },
+      "delete": {
+        "description": "DANGER: This endpoint permanently deletes/anonymizes the provider and related provider data from the database. This is not a soft delete. Use only from Super Admin danger zone screens. Active processing orders block deletion.",
+        "operationId": "ProviderManagementController_permanentlyDelete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PermanentlyDeleteProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Provider permanently deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "deletedProviderId": "provider_id",
+                      "deletedRelatedRecords": true
+                    },
+                    "message": "Provider permanently deleted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Permanently delete provider",
+        "tags": [
+          "02 Admin - Provider Management"
         ]
       }
     },
@@ -2426,7 +2562,7 @@
         ],
         "summary": "Update provider lifecycle status",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       }
     },
@@ -2520,8 +2656,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "GET /api/v1/providers/{id}/items"
       }
     },
     "/api/v1/providers/{id}/activity": {
@@ -2583,8 +2720,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "GET /api/v1/providers/{id}/activity"
       }
     },
     "/api/v1/providers/{id}/message": {
@@ -2621,8 +2759,9 @@
           }
         ],
         "tags": [
-          "Provider Management"
-        ]
+          "02 Admin - Provider Management"
+        ],
+        "summary": "POST /api/v1/providers/{id}/message"
       }
     },
     "/api/v1/provider-business-categories": {
@@ -2670,7 +2809,7 @@
         },
         "summary": "List active provider business categories",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       },
       "post": {
@@ -2699,7 +2838,7 @@
         ],
         "summary": "Create provider business category",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       }
     },
@@ -2729,7 +2868,7 @@
         ],
         "summary": "Fetch provider business category details",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       },
       "patch": {
@@ -2767,7 +2906,7 @@
         ],
         "summary": "Update provider business category",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       },
       "delete": {
@@ -2795,7 +2934,7 @@
         ],
         "summary": "Soft-delete provider business category",
         "tags": [
-          "Provider Management"
+          "02 Admin - Provider Management"
         ]
       }
     },
@@ -2932,7 +3071,7 @@
         ],
         "summary": "List provider inventory items",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       },
       "post": {
@@ -3034,7 +3173,7 @@
         ],
         "summary": "Create provider inventory item with optional nested variants",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       }
     },
@@ -3054,7 +3193,7 @@
         ],
         "summary": "Fetch provider inventory stats",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       }
     },
@@ -3074,7 +3213,7 @@
         ],
         "summary": "Lookup active approved provider inventory items",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       }
     },
@@ -3138,7 +3277,7 @@
         ],
         "summary": "Fetch own provider inventory item details",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       },
       "patch": {
@@ -3232,7 +3371,7 @@
         ],
         "summary": "Update own provider inventory item and upsert variants",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       },
       "delete": {
@@ -3259,7 +3398,7 @@
         ],
         "summary": "Soft-delete own inventory item",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       }
     },
@@ -3298,7 +3437,7 @@
         ],
         "summary": "Update own inventory availability",
         "tags": [
-          "Provider Inventory"
+          "03 Provider - Inventory"
         ]
       }
     },
@@ -3445,7 +3584,7 @@
         ],
         "summary": "List own assigned provider orders",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3555,7 +3694,7 @@
         ],
         "summary": "List own provider order history",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3609,7 +3748,7 @@
         ],
         "summary": "Fetch own provider order performance",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3662,7 +3801,7 @@
         ],
         "summary": "Fetch own provider revenue analytics",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3683,7 +3822,7 @@
         ],
         "summary": "Fetch own provider ratings analytics",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3714,7 +3853,7 @@
         ],
         "summary": "List recent own provider orders",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3775,7 +3914,7 @@
         ],
         "summary": "Export own provider orders as CSV",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3815,7 +3954,7 @@
         ],
         "summary": "Fetch own provider order summary",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3836,7 +3975,7 @@
         ],
         "summary": "List provider order reject reasons",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3876,7 +4015,7 @@
         ],
         "summary": "Update own provider order fulfillment status",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3906,7 +4045,7 @@
         ],
         "summary": "Fetch own provider order timeline",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -3936,7 +4075,7 @@
         ],
         "summary": "Fetch own provider order checklist",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       },
       "patch": {
@@ -3974,7 +4113,7 @@
         ],
         "summary": "Update own provider order checklist",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -4014,7 +4153,7 @@
         ],
         "summary": "Message buyer for own provider order",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -4044,7 +4183,7 @@
         ],
         "summary": "Fetch own provider order details",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -4084,7 +4223,7 @@
         ],
         "summary": "Accept own pending provider order",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -4124,7 +4263,7 @@
         ],
         "summary": "Reject own pending provider order",
         "tags": [
-          "Provider Orders"
+          "03 Provider - Orders"
         ]
       }
     },
@@ -4219,8 +4358,9 @@
           }
         ],
         "tags": [
-          "Provider Promotional Offers"
-        ]
+          "03 Provider - Promotional Offers"
+        ],
+        "summary": "GET /api/v1/provider/offers"
       },
       "post": {
         "operationId": "ProviderPromotionalOffersController_create",
@@ -4246,8 +4386,9 @@
           }
         ],
         "tags": [
-          "Provider Promotional Offers"
-        ]
+          "03 Provider - Promotional Offers"
+        ],
+        "summary": "POST /api/v1/provider/offers"
       }
     },
     "/api/v1/provider/offers/{id}": {
@@ -4274,8 +4415,9 @@
           }
         ],
         "tags": [
-          "Provider Promotional Offers"
-        ]
+          "03 Provider - Promotional Offers"
+        ],
+        "summary": "GET /api/v1/provider/offers/{id}"
       },
       "patch": {
         "operationId": "ProviderPromotionalOffersController_update",
@@ -4310,8 +4452,9 @@
           }
         ],
         "tags": [
-          "Provider Promotional Offers"
-        ]
+          "03 Provider - Promotional Offers"
+        ],
+        "summary": "PATCH /api/v1/provider/offers/{id}"
       },
       "delete": {
         "operationId": "ProviderPromotionalOffersController_delete",
@@ -4336,8 +4479,9 @@
           }
         ],
         "tags": [
-          "Provider Promotional Offers"
-        ]
+          "03 Provider - Promotional Offers"
+        ],
+        "summary": "DELETE /api/v1/provider/offers/{id}"
       }
     },
     "/api/v1/provider/offers/{id}/status": {
@@ -4374,8 +4518,9 @@
           }
         ],
         "tags": [
-          "Provider Promotional Offers"
-        ]
+          "03 Provider - Promotional Offers"
+        ],
+        "summary": "PATCH /api/v1/provider/offers/{id}/status"
       }
     },
     "/api/v1/promotional-offers/stats": {
@@ -4393,8 +4538,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "GET /api/v1/promotional-offers/stats"
       }
     },
     "/api/v1/promotional-offers/export": {
@@ -4538,8 +4684,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "GET /api/v1/promotional-offers/export"
       }
     },
     "/api/v1/promotional-offers": {
@@ -4683,8 +4830,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "GET /api/v1/promotional-offers"
       },
       "post": {
         "operationId": "PromotionalOffersManagementController_create",
@@ -4710,8 +4858,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "POST /api/v1/promotional-offers"
       }
     },
     "/api/v1/promotional-offers/{id}": {
@@ -4738,8 +4887,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "GET /api/v1/promotional-offers/{id}"
       },
       "patch": {
         "operationId": "PromotionalOffersManagementController_update",
@@ -4774,8 +4924,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "PATCH /api/v1/promotional-offers/{id}"
       },
       "delete": {
         "operationId": "PromotionalOffersManagementController_delete",
@@ -4800,8 +4951,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "DELETE /api/v1/promotional-offers/{id}"
       }
     },
     "/api/v1/promotional-offers/{id}/approve": {
@@ -4838,8 +4990,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "PATCH /api/v1/promotional-offers/{id}/approve"
       }
     },
     "/api/v1/promotional-offers/{id}/reject": {
@@ -4876,8 +5029,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "PATCH /api/v1/promotional-offers/{id}/reject"
       }
     },
     "/api/v1/promotional-offers/{id}/status": {
@@ -4914,8 +5068,9 @@
           }
         ],
         "tags": [
-          "Promotional Offers Management"
-        ]
+          "02 Admin - Promotional Offers"
+        ],
+        "summary": "PATCH /api/v1/promotional-offers/{id}/status"
       }
     },
     "/api/v1/users/export": {
@@ -4986,8 +5141,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "GET /api/v1/users/export"
       }
     },
     "/api/v1/users": {
@@ -5122,7 +5278,7 @@
         ],
         "summary": "List registered users",
         "tags": [
-          "User Management"
+          "02 Admin - User Management"
         ]
       }
     },
@@ -5150,8 +5306,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "GET /api/v1/users/{id}"
       },
       "patch": {
         "operationId": "UserManagementController_update",
@@ -5186,7 +5343,60 @@
           }
         ],
         "tags": [
-          "User Management"
+          "02 Admin - User Management"
+        ],
+        "summary": "PATCH /api/v1/users/{id}"
+      },
+      "delete": {
+        "description": "DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.",
+        "operationId": "UserManagementController_permanentlyDelete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PermanentlyDeleteRegisteredUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User permanently deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "deletedUserId": "user_id",
+                      "deletedRelatedRecords": true
+                    },
+                    "message": "User permanently deleted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Permanently delete registered user",
+        "tags": [
+          "02 Admin - User Management"
         ]
       }
     },
@@ -5224,8 +5434,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "PATCH /api/v1/users/{id}/status"
       }
     },
     "/api/v1/users/{id}/suspend": {
@@ -5262,8 +5473,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "POST /api/v1/users/{id}/suspend"
       }
     },
     "/api/v1/users/{id}/unsuspend": {
@@ -5300,8 +5512,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "POST /api/v1/users/{id}/unsuspend"
       }
     },
     "/api/v1/users/{id}/reset-password": {
@@ -5356,7 +5569,7 @@
         ],
         "summary": "Change registered user password",
         "tags": [
-          "User Management"
+          "02 Admin - User Management"
         ]
       }
     },
@@ -5418,8 +5631,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "GET /api/v1/users/{id}/activity"
       }
     },
     "/api/v1/users/{id}/stats": {
@@ -5446,8 +5660,9 @@
           }
         ],
         "tags": [
-          "User Management"
-        ]
+          "02 Admin - User Management"
+        ],
+        "summary": "GET /api/v1/users/{id}/stats"
       }
     },
     "/api/v1/customer/contacts": {
@@ -5530,7 +5745,7 @@
         ],
         "summary": "List customer contacts",
         "tags": [
-          "Customer Contacts"
+          "05 Customer - Contacts"
         ]
       },
       "post": {
@@ -5577,7 +5792,7 @@
         ],
         "summary": "Create customer contact",
         "tags": [
-          "Customer Contacts"
+          "05 Customer - Contacts"
         ]
       }
     },
@@ -5610,7 +5825,7 @@
         ],
         "summary": "Fetch customer contact",
         "tags": [
-          "Customer Contacts"
+          "05 Customer - Contacts"
         ]
       },
       "patch": {
@@ -5666,7 +5881,7 @@
         ],
         "summary": "Update customer contact",
         "tags": [
-          "Customer Contacts"
+          "05 Customer - Contacts"
         ]
       },
       "delete": {
@@ -5697,7 +5912,7 @@
         ],
         "summary": "Soft-delete customer contact",
         "tags": [
-          "Customer Contacts"
+          "05 Customer - Contacts"
         ]
       }
     },
@@ -5817,7 +6032,7 @@
         ],
         "summary": "List customer events",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       },
       "post": {
@@ -5846,7 +6061,7 @@
         ],
         "summary": "Create customer event",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       }
     },
@@ -5903,7 +6118,7 @@
         ],
         "summary": "Fetch monthly calendar events",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       }
     },
@@ -5960,7 +6175,7 @@
         ],
         "summary": "Fetch upcoming customer events",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       }
     },
@@ -5990,7 +6205,7 @@
         ],
         "summary": "Fetch event reminder settings",
         "tags": [
-          "Customer Event Reminder Settings"
+          "05 Customer - Events"
         ]
       },
       "patch": {
@@ -6028,7 +6243,7 @@
         ],
         "summary": "Update event reminder settings",
         "tags": [
-          "Customer Event Reminder Settings"
+          "05 Customer - Events"
         ]
       }
     },
@@ -6058,7 +6273,7 @@
         ],
         "summary": "Fetch customer event details",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       },
       "patch": {
@@ -6096,7 +6311,7 @@
         ],
         "summary": "Update customer event",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       },
       "delete": {
@@ -6124,7 +6339,7 @@
         ],
         "summary": "Soft-delete customer event",
         "tags": [
-          "Customer Events"
+          "05 Customer - Events"
         ]
       }
     },
@@ -6145,7 +6360,7 @@
         ],
         "summary": "Fetch customer app home",
         "tags": [
-          "Customer Marketplace"
+          "05 Customer - Marketplace"
         ]
       }
     },
@@ -6166,7 +6381,7 @@
         ],
         "summary": "List customer marketplace categories",
         "tags": [
-          "Customer Marketplace"
+          "05 Customer - Marketplace"
         ]
       }
     },
@@ -6318,7 +6533,7 @@
         ],
         "summary": "List discounted customer gifts",
         "tags": [
-          "Customer Marketplace"
+          "05 Customer - Marketplace"
         ]
       }
     },
@@ -6339,7 +6554,7 @@
         ],
         "summary": "Fetch marketplace gift filter options",
         "tags": [
-          "Customer Marketplace"
+          "05 Customer - Marketplace"
         ]
       }
     },
@@ -6536,7 +6751,7 @@
         ],
         "summary": "List customer marketplace gifts",
         "tags": [
-          "Customer Marketplace"
+          "05 Customer - Marketplace"
         ]
       }
     },
@@ -6628,7 +6843,7 @@
         ],
         "summary": "Fetch customer-safe gift details",
         "tags": [
-          "Customer Marketplace"
+          "05 Customer - Marketplace"
         ]
       }
     },
@@ -6649,7 +6864,7 @@
         ],
         "summary": "List wishlist gifts",
         "tags": [
-          "Customer Wishlist"
+          "05 Customer - Wishlist"
         ]
       }
     },
@@ -6679,7 +6894,7 @@
         ],
         "summary": "Add gift to wishlist",
         "tags": [
-          "Customer Wishlist"
+          "05 Customer - Wishlist"
         ]
       },
       "delete": {
@@ -6707,7 +6922,7 @@
         ],
         "summary": "Remove gift from wishlist",
         "tags": [
-          "Customer Wishlist"
+          "05 Customer - Wishlist"
         ]
       }
     },
@@ -6728,7 +6943,7 @@
         ],
         "summary": "List customer addresses",
         "tags": [
-          "Customer Addresses"
+          "05 Customer - Addresses"
         ]
       },
       "post": {
@@ -6757,7 +6972,7 @@
         ],
         "summary": "Create customer address",
         "tags": [
-          "Customer Addresses"
+          "05 Customer - Addresses"
         ]
       }
     },
@@ -6787,7 +7002,7 @@
         ],
         "summary": "Fetch customer address",
         "tags": [
-          "Customer Addresses"
+          "05 Customer - Addresses"
         ]
       },
       "patch": {
@@ -6825,7 +7040,7 @@
         ],
         "summary": "Update customer address",
         "tags": [
-          "Customer Addresses"
+          "05 Customer - Addresses"
         ]
       },
       "delete": {
@@ -6853,7 +7068,7 @@
         ],
         "summary": "Soft-delete customer address",
         "tags": [
-          "Customer Addresses"
+          "05 Customer - Addresses"
         ]
       }
     },
@@ -6883,7 +7098,7 @@
         ],
         "summary": "Set default customer address",
         "tags": [
-          "Customer Addresses"
+          "05 Customer - Addresses"
         ]
       }
     },
@@ -6953,7 +7168,7 @@
         ],
         "summary": "Fetch active cart",
         "tags": [
-          "Customer Cart"
+          "05 Customer - Cart"
         ]
       },
       "delete": {
@@ -6972,7 +7187,7 @@
         ],
         "summary": "Clear active cart",
         "tags": [
-          "Customer Cart"
+          "05 Customer - Cart"
         ]
       }
     },
@@ -7023,7 +7238,7 @@
         ],
         "summary": "Add item to cart",
         "tags": [
-          "Customer Cart"
+          "05 Customer - Cart"
         ]
       }
     },
@@ -7082,7 +7297,7 @@
         ],
         "summary": "Update cart item",
         "tags": [
-          "Customer Cart"
+          "05 Customer - Cart"
         ]
       },
       "delete": {
@@ -7110,7 +7325,7 @@
         ],
         "summary": "Delete cart item",
         "tags": [
-          "Customer Cart"
+          "05 Customer - Cart"
         ]
       }
     },
@@ -7160,7 +7375,7 @@
         ],
         "summary": "Create order from active cart",
         "tags": [
-          "Customer Orders"
+          "05 Customer - Orders"
         ]
       },
       "get": {
@@ -7254,7 +7469,7 @@
         ],
         "summary": "List customer orders",
         "tags": [
-          "Customer Orders"
+          "05 Customer - Orders"
         ]
       }
     },
@@ -7328,7 +7543,7 @@
         ],
         "summary": "Fetch customer order",
         "tags": [
-          "Customer Orders"
+          "05 Customer - Orders"
         ]
       }
     },
@@ -7480,7 +7695,7 @@
         ],
         "summary": "List own recurring payments",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       },
       "post": {
@@ -7553,7 +7768,7 @@
         ],
         "summary": "Create recurring payment",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -7591,7 +7806,7 @@
         ],
         "summary": "Fetch recurring payment summary counts",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -7662,7 +7877,7 @@
         ],
         "summary": "Fetch own recurring payment details",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       },
       "patch": {
@@ -7731,7 +7946,7 @@
         ],
         "summary": "Update own recurring payment",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -7777,7 +7992,7 @@
         ],
         "summary": "Pause own active recurring payment",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -7806,7 +8021,7 @@
         ],
         "summary": "Resume own paused recurring payment",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -7875,7 +8090,7 @@
         ],
         "summary": "Cancel own recurring payment",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -7965,7 +8180,7 @@
         ],
         "summary": "List own recurring payment billing history",
         "tags": [
-          "Customer Recurring Payments"
+          "05 Customer - Recurring Payments"
         ]
       }
     },
@@ -8001,7 +8216,7 @@
         ],
         "summary": "Create Stripe SetupIntent for saving card",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -8043,7 +8258,7 @@
         ],
         "summary": "List own saved payment methods",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -8073,7 +8288,7 @@
         ],
         "summary": "Delete own saved payment method",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -8266,7 +8481,7 @@
         ],
         "summary": "List own customer transactions",
         "tags": [
-          "Customer Transactions"
+          "05 Customer - Transactions"
         ]
       }
     },
@@ -8324,7 +8539,7 @@
         ],
         "summary": "Fetch own transaction summary",
         "tags": [
-          "Customer Transactions"
+          "05 Customer - Transactions"
         ]
       }
     },
@@ -8499,7 +8714,7 @@
         ],
         "summary": "Export own transactions",
         "tags": [
-          "Customer Transactions"
+          "05 Customer - Transactions"
         ]
       }
     },
@@ -8564,7 +8779,7 @@
         ],
         "summary": "Fetch own transaction details",
         "tags": [
-          "Customer Transactions"
+          "05 Customer - Transactions"
         ]
       }
     },
@@ -8594,7 +8809,7 @@
         ],
         "summary": "Download own transaction receipt",
         "tags": [
-          "Customer Transactions"
+          "05 Customer - Transactions"
         ]
       }
     },
@@ -8610,7 +8825,7 @@
         },
         "summary": "Lookup active gift categories",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       }
     },
@@ -8654,7 +8869,7 @@
         ],
         "summary": "Create gift category",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       },
       "get": {
@@ -8732,7 +8947,7 @@
         ],
         "summary": "List gift categories",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       }
     },
@@ -8753,7 +8968,7 @@
         ],
         "summary": "Fetch gift category stats",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       }
     },
@@ -8783,7 +8998,7 @@
         ],
         "summary": "Fetch gift category details",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       },
       "patch": {
@@ -8830,7 +9045,7 @@
         ],
         "summary": "Update gift category",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       },
       "delete": {
@@ -8858,7 +9073,7 @@
         ],
         "summary": "Soft-delete gift category",
         "tags": [
-          "Gift Categories"
+          "04 Gifts - Categories"
         ]
       }
     },
@@ -8970,7 +9185,7 @@
         ],
         "summary": "Create admin gift with optional nested variants",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       },
       "get": {
@@ -9097,7 +9312,7 @@
         ],
         "summary": "List admin gifts",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       }
     },
@@ -9117,7 +9332,7 @@
         ],
         "summary": "Fetch gift inventory stats",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       }
     },
@@ -9257,7 +9472,7 @@
         ],
         "summary": "Export gift inventory",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       }
     },
@@ -9286,7 +9501,7 @@
         ],
         "summary": "Fetch admin gift details with variants",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       },
       "patch": {
@@ -9383,7 +9598,7 @@
         ],
         "summary": "Update admin gift and upsert nested variants",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       },
       "delete": {
@@ -9410,7 +9625,7 @@
         ],
         "summary": "Soft-delete gift",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       }
     },
@@ -9449,7 +9664,7 @@
         ],
         "summary": "Update gift status",
         "tags": [
-          "Gift Management"
+          "04 Gifts - Management"
         ]
       }
     },
@@ -9552,8 +9767,9 @@
           }
         ],
         "tags": [
-          "Gift Moderation"
-        ]
+          "04 Gifts - Moderation"
+        ],
+        "summary": "GET /api/v1/gift-moderation"
       }
     },
     "/api/v1/gift-moderation/{id}/approve": {
@@ -9590,8 +9806,9 @@
           }
         ],
         "tags": [
-          "Gift Moderation"
-        ]
+          "04 Gifts - Moderation"
+        ],
+        "summary": "PATCH /api/v1/gift-moderation/{id}/approve"
       }
     },
     "/api/v1/gift-moderation/{id}/reject": {
@@ -9628,8 +9845,9 @@
           }
         ],
         "tags": [
-          "Gift Moderation"
-        ]
+          "04 Gifts - Moderation"
+        ],
+        "summary": "PATCH /api/v1/gift-moderation/{id}/reject"
       }
     },
     "/api/v1/gift-moderation/{id}/flag": {
@@ -9666,8 +9884,9 @@
           }
         ],
         "tags": [
-          "Gift Moderation"
-        ]
+          "04 Gifts - Moderation"
+        ],
+        "summary": "PATCH /api/v1/gift-moderation/{id}/flag"
       }
     },
     "/api/v1/broadcasts": {
@@ -9695,8 +9914,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "POST /api/v1/broadcasts"
       },
       "get": {
         "operationId": "BroadcastsController_list",
@@ -9839,8 +10059,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "GET /api/v1/broadcasts"
       }
     },
     "/api/v1/broadcasts/{id}": {
@@ -9867,8 +10088,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "GET /api/v1/broadcasts/{id}"
       },
       "patch": {
         "operationId": "BroadcastsController_update",
@@ -9903,8 +10125,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "PATCH /api/v1/broadcasts/{id}"
       }
     },
     "/api/v1/broadcasts/{id}/targeting": {
@@ -9941,8 +10164,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "PATCH /api/v1/broadcasts/{id}/targeting"
       }
     },
     "/api/v1/broadcasts/estimate-reach": {
@@ -9970,8 +10194,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "POST /api/v1/broadcasts/estimate-reach"
       }
     },
     "/api/v1/broadcasts/{id}/schedule": {
@@ -10008,8 +10233,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "PATCH /api/v1/broadcasts/{id}/schedule"
       }
     },
     "/api/v1/broadcasts/{id}/cancel": {
@@ -10046,8 +10272,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "POST /api/v1/broadcasts/{id}/cancel"
       }
     },
     "/api/v1/broadcasts/{id}/report": {
@@ -10074,8 +10301,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "GET /api/v1/broadcasts/{id}/report"
       }
     },
     "/api/v1/broadcasts/{id}/recipients": {
@@ -10155,8 +10383,9 @@
           }
         ],
         "tags": [
-          "Broadcast Notifications"
-        ]
+          "06 Broadcast Notifications"
+        ],
+        "summary": "GET /api/v1/broadcasts/{id}/recipients"
       }
     },
     "/api/v1/notifications": {
@@ -10290,7 +10519,7 @@
         ],
         "summary": "List notifications",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10330,7 +10559,7 @@
         ],
         "summary": "Fetch notification summary",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10351,7 +10580,7 @@
         ],
         "summary": "Fetch notification preferences",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       },
       "patch": {
@@ -10380,7 +10609,7 @@
         ],
         "summary": "Update notification preferences",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10401,7 +10630,7 @@
         ],
         "summary": "Mark all own notifications as read",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10431,7 +10660,7 @@
         ],
         "summary": "Mark notification as read",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10478,7 +10707,7 @@
         ],
         "summary": "Process notification action",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10509,7 +10738,7 @@
         ],
         "summary": "Save device token",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10539,7 +10768,7 @@
         ],
         "summary": "Disable device token",
         "tags": [
-          "Notifications"
+          "06 Notifications"
         ]
       }
     },
@@ -10650,8 +10879,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/subscription-plans"
       },
       "post": {
         "operationId": "SubscriptionPlansController_create",
@@ -10677,8 +10907,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "POST /api/v1/subscription-plans"
       }
     },
     "/api/v1/subscription-plans/stats": {
@@ -10696,8 +10927,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/subscription-plans/stats"
       }
     },
     "/api/v1/subscription-plans/{id}": {
@@ -10724,8 +10956,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/subscription-plans/{id}"
       },
       "patch": {
         "operationId": "SubscriptionPlansController_update",
@@ -10760,8 +10993,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "PATCH /api/v1/subscription-plans/{id}"
       },
       "delete": {
         "operationId": "SubscriptionPlansController_delete",
@@ -10786,8 +11020,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "DELETE /api/v1/subscription-plans/{id}"
       }
     },
     "/api/v1/subscription-plans/{id}/status": {
@@ -10824,8 +11059,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "PATCH /api/v1/subscription-plans/{id}/status"
       }
     },
     "/api/v1/subscription-plans/{id}/visibility": {
@@ -10862,8 +11098,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "PATCH /api/v1/subscription-plans/{id}/visibility"
       }
     },
     "/api/v1/subscription-plans/{id}/analytics": {
@@ -10890,8 +11127,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/subscription-plans/{id}/analytics"
       }
     },
     "/api/v1/plan-features/catalog": {
@@ -10909,8 +11147,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/plan-features/catalog"
       }
     },
     "/api/v1/plan-features": {
@@ -10961,8 +11200,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/plan-features"
       },
       "post": {
         "operationId": "PlanFeaturesController_create",
@@ -10988,8 +11228,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "POST /api/v1/plan-features"
       }
     },
     "/api/v1/plan-features/{id}": {
@@ -11016,8 +11257,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/plan-features/{id}"
       },
       "patch": {
         "operationId": "PlanFeaturesController_update",
@@ -11052,8 +11294,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "PATCH /api/v1/plan-features/{id}"
       },
       "delete": {
         "operationId": "PlanFeaturesController_delete",
@@ -11078,8 +11321,9 @@
           }
         ],
         "tags": [
-          "Subscription Plans"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "DELETE /api/v1/plan-features/{id}"
       }
     },
     "/api/v1/coupons": {
@@ -11144,8 +11388,9 @@
           }
         ],
         "tags": [
-          "Coupons"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/coupons"
       },
       "post": {
         "operationId": "CouponsController_create",
@@ -11171,8 +11416,9 @@
           }
         ],
         "tags": [
-          "Coupons"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "POST /api/v1/coupons"
       }
     },
     "/api/v1/coupons/{id}": {
@@ -11199,8 +11445,9 @@
           }
         ],
         "tags": [
-          "Coupons"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "GET /api/v1/coupons/{id}"
       },
       "patch": {
         "operationId": "CouponsController_update",
@@ -11235,8 +11482,9 @@
           }
         ],
         "tags": [
-          "Coupons"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "PATCH /api/v1/coupons/{id}"
       },
       "delete": {
         "operationId": "CouponsController_delete",
@@ -11261,8 +11509,9 @@
           }
         ],
         "tags": [
-          "Coupons"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "DELETE /api/v1/coupons/{id}"
       }
     },
     "/api/v1/coupons/{id}/status": {
@@ -11299,8 +11548,9 @@
           }
         ],
         "tags": [
-          "Coupons"
-        ]
+          "07 Plans & Coupons"
+        ],
+        "summary": "PATCH /api/v1/coupons/{id}/status"
       }
     },
     "/api/v1/media-upload-policy": {
@@ -11353,7 +11603,7 @@
         ],
         "summary": "Fetch global media upload policy",
         "tags": [
-          "Media Upload Policy"
+          "02 Admin - Media Upload Policy"
         ]
       },
       "patch": {
@@ -11382,7 +11632,7 @@
         ],
         "summary": "Update global media upload policy",
         "tags": [
-          "Media Upload Policy"
+          "02 Admin - Media Upload Policy"
         ]
       }
     },
@@ -11440,7 +11690,7 @@
         ],
         "summary": "List media upload policy audit logs",
         "tags": [
-          "Media Upload Policy"
+          "02 Admin - Media Upload Policy"
         ]
       }
     },
@@ -11503,7 +11753,7 @@
         ],
         "summary": "Create payment intent from active cart",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       }
     },
@@ -11534,7 +11784,7 @@
         ],
         "summary": "Confirm Stripe payment",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       }
     },
@@ -11583,7 +11833,7 @@
         ],
         "summary": "Fetch own payment details",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       }
     },
@@ -11630,7 +11880,7 @@
         ],
         "summary": "List supported customer payment methods",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -11659,7 +11909,7 @@
         ],
         "summary": "Set own default payment method",
         "tags": [
-          "Customer Payment Methods"
+          "05 Customer - Payment Methods"
         ]
       }
     },
@@ -11675,7 +11925,7 @@
         },
         "summary": "Stripe webhook endpoint",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       }
     },
@@ -11720,7 +11970,7 @@
         ],
         "summary": "Send payment as gift",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       },
       "get": {
@@ -11738,7 +11988,7 @@
         ],
         "summary": "List own money gifts",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       }
     },
@@ -11767,7 +12017,7 @@
         ],
         "summary": "Fetch own money gift details",
         "tags": [
-          "Payments"
+          "06 Payments"
         ]
       }
     },
@@ -11887,8 +12137,9 @@
           }
         ],
         "tags": [
-          "Audit Logs"
-        ]
+          "02 Admin - Audit Logs"
+        ],
+        "summary": "GET /api/v1/audit-logs/export"
       }
     },
     "/api/v1/audit-logs": {
@@ -12007,8 +12258,9 @@
           }
         ],
         "tags": [
-          "Audit Logs"
-        ]
+          "02 Admin - Audit Logs"
+        ],
+        "summary": "GET /api/v1/audit-logs"
       }
     },
     "/api/v1/audit-logs/{id}": {
@@ -12035,8 +12287,9 @@
           }
         ],
         "tags": [
-          "Audit Logs"
-        ]
+          "02 Admin - Audit Logs"
+        ],
+        "summary": "GET /api/v1/audit-logs/{id}"
       }
     },
     "/api/v1/uploads/presigned-url": {
@@ -12064,8 +12317,9 @@
           }
         ],
         "tags": [
-          "Storage"
-        ]
+          "07 Storage"
+        ],
+        "summary": "POST /api/v1/uploads/presigned-url"
       }
     },
     "/api/v1/uploads/complete": {
@@ -12093,8 +12347,9 @@
           }
         ],
         "tags": [
-          "Storage"
-        ]
+          "07 Storage"
+        ],
+        "summary": "POST /api/v1/uploads/complete"
       }
     },
     "/api/v1/uploads": {
@@ -12157,8 +12412,9 @@
           }
         ],
         "tags": [
-          "Storage"
-        ]
+          "07 Storage"
+        ],
+        "summary": "GET /api/v1/uploads"
       }
     },
     "/api/v1/uploads/{id}": {
@@ -12185,8 +12441,9 @@
           }
         ],
         "tags": [
-          "Storage"
-        ]
+          "07 Storage"
+        ],
+        "summary": "GET /api/v1/uploads/{id}"
       },
       "delete": {
         "operationId": "StorageController_delete",
@@ -12211,8 +12468,9 @@
           }
         ],
         "tags": [
-          "Storage"
-        ]
+          "07 Storage"
+        ],
+        "summary": "DELETE /api/v1/uploads/{id}"
       }
     }
   },
@@ -12224,103 +12482,106 @@
   },
   "tags": [
     {
-      "name": "Auth"
+      "name": "01 Auth"
     },
     {
-      "name": "Login Attempts"
+      "name": "01 Auth - Login Attempts"
     },
     {
-      "name": "Admin Staff Management"
+      "name": "02 Admin - Staff Management"
     },
     {
-      "name": "Admin Roles / RBAC"
+      "name": "02 Admin - Roles & Permissions"
     },
     {
-      "name": "User Management"
+      "name": "02 Admin - User Management"
     },
     {
-      "name": "Provider Management"
+      "name": "02 Admin - Provider Management"
     },
     {
-      "name": "Provider Inventory"
+      "name": "02 Admin - Promotional Offers"
     },
     {
-      "name": "Provider Promotional Offers"
+      "name": "02 Admin - Referral Settings"
     },
     {
-      "name": "Promotional Offers Management"
+      "name": "02 Admin - Media Upload Policy"
     },
     {
-      "name": "Gift Categories"
+      "name": "02 Admin - Audit Logs"
     },
     {
-      "name": "Gift Management"
+      "name": "03 Provider - Inventory"
     },
     {
-      "name": "Gift Moderation"
+      "name": "03 Provider - Promotional Offers"
     },
     {
-      "name": "Customer Marketplace"
+      "name": "03 Provider - Orders"
     },
     {
-      "name": "Customer Wishlist"
+      "name": "03 Provider - Order Analytics"
     },
     {
-      "name": "Customer Addresses"
+      "name": "04 Gifts - Categories"
     },
     {
-      "name": "Customer Contacts"
+      "name": "04 Gifts - Management"
     },
     {
-      "name": "Customer Events"
+      "name": "04 Gifts - Moderation"
     },
     {
-      "name": "Customer Event Reminder Settings"
+      "name": "05 Customer - Marketplace"
     },
     {
-      "name": "Customer Cart"
+      "name": "05 Customer - Wishlist"
     },
     {
-      "name": "Customer Orders"
+      "name": "05 Customer - Addresses"
     },
     {
-      "name": "Customer Recurring Payments"
+      "name": "05 Customer - Contacts"
     },
     {
-      "name": "Customer Transactions"
+      "name": "05 Customer - Events"
     },
     {
-      "name": "Payments"
+      "name": "05 Customer - Cart"
     },
     {
-      "name": "Customer Referrals & Rewards"
+      "name": "05 Customer - Orders"
     },
     {
-      "name": "Customer Wallet"
+      "name": "05 Customer - Recurring Payments"
     },
     {
-      "name": "Media Upload Policy"
+      "name": "05 Customer - Transactions"
     },
     {
-      "name": "Referral Settings"
+      "name": "05 Customer - Referrals & Rewards"
     },
     {
-      "name": "Notifications"
+      "name": "05 Customer - Wallet"
     },
     {
-      "name": "Broadcast Notifications"
+      "name": "05 Customer - Payment Methods"
     },
     {
-      "name": "Subscription Plans"
+      "name": "06 Payments"
     },
     {
-      "name": "Coupons"
+      "name": "06 Notifications"
     },
     {
-      "name": "Storage"
+      "name": "06 Broadcast Notifications"
     },
     {
-      "name": "Audit Logs"
+      "name": "07 Plans & Coupons"
+    },
+    {
+      "name": "07 Storage"
     }
   ],
   "servers": [],
@@ -12721,6 +12982,23 @@
           "isActive"
         ]
       },
+      "PermanentlyDeleteAdminDto": {
+        "type": "object",
+        "properties": {
+          "confirmation": {
+            "type": "string",
+            "example": "PERMANENTLY_DELETE_ADMIN"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Staff account removed."
+          }
+        },
+        "required": [
+          "confirmation",
+          "reason"
+        ]
+      },
       "ResetAdminPasswordDto": {
         "type": "object",
         "properties": {
@@ -12918,6 +13196,28 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "PermanentlyDeleteProviderDto": {
+        "type": "object",
+        "properties": {
+          "confirmation": {
+            "type": "string",
+            "example": "PERMANENTLY_DELETE_PROVIDER"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Provider account removed by Super Admin."
+          },
+          "deleteRelatedRecords": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          }
+        },
+        "required": [
+          "confirmation",
+          "reason"
         ]
       },
       "MessageProviderDto": {
@@ -13585,6 +13885,28 @@
         },
         "required": [
           "newPassword"
+        ]
+      },
+      "PermanentlyDeleteRegisteredUserDto": {
+        "type": "object",
+        "properties": {
+          "confirmation": {
+            "type": "string",
+            "example": "PERMANENTLY_DELETE_USER"
+          },
+          "reason": {
+            "type": "string",
+            "example": "User requested full deletion."
+          },
+          "deleteRelatedRecords": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          }
+        },
+        "required": [
+          "confirmation",
+          "reason"
         ]
       },
       "CreateCustomerContactDto": {

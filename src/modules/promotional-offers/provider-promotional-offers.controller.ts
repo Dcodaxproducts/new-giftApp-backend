@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateProviderOfferDto, ListProviderOffersDto, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from './dto/promotional-offers.dto';
 import { PromotionalOffersService } from './promotional-offers.service';
 
-@ApiTags('Provider Promotional Offers')
+@ApiTags('03 Provider - Promotional Offers')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.PROVIDER)

@@ -37,6 +37,7 @@ import {
   CreateAdminRoleDto,
   ListAdminRolesDto,
   ListAdminsDto,
+  PermanentlyDeleteAdminDto,
   ResetAdminPasswordDto,
   SortOrderDto,
   UpdateAdminActiveStatusDto,
@@ -453,6 +454,44 @@ export class AuthService implements OnModuleInit {
     await this.recordAudit(user.uid, admin.id, 'ADMIN_PASSWORD_RESET', null, { mustChangePassword: dto.mustChangePassword ?? true });
 
     return { data: null, message: 'Temporary password generated successfully' };
+  }
+
+
+  async permanentlyDeleteAdmin(user: AuthUserContext, adminId: string, dto: PermanentlyDeleteAdminDto) {
+    if (dto.confirmation !== 'PERMANENTLY_DELETE_ADMIN') {
+      throw new BadRequestException('Invalid permanent delete confirmation text');
+    }
+
+    if (user.uid === adminId) {
+      throw new ForbiddenException('Super Admin cannot permanently delete self');
+    }
+
+    const admin = await this.getAdmin(adminId);
+    if (admin.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only ADMIN staff users can be permanently deleted');
+    }
+
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.adminAuditLog.create({
+        data: {
+          actorId: user.uid,
+          targetId: admin.id,
+          targetType: 'ADMIN',
+          action: 'ADMIN_STAFF_PERMANENTLY_DELETED',
+          beforeJson: { id: admin.id, email: admin.email, role: admin.role },
+          afterJson: { reason: dto.reason },
+        },
+      });
+      await tx.loginAttempt.updateMany({ where: { userId: admin.id }, data: { userId: null } });
+      await tx.adminAuditLog.updateMany({ where: { actorId: admin.id }, data: { actorId: null } });
+      await tx.accountSuspension.deleteMany({ where: { accountId: admin.id } });
+      await tx.notification.deleteMany({ where: { recipientId: admin.id } });
+      await tx.notificationDeviceToken.deleteMany({ where: { userId: admin.id } });
+      await tx.uploadedFile.deleteMany({ where: { ownerId: admin.id } });
+      await tx.user.delete({ where: { id: admin.id } });
+    });
+
+    return { data: { deletedAdminId: admin.id }, message: 'Admin staff user permanently deleted successfully.' };
   }
 
   async listAdminRoles(_user: AuthUserContext, query: ListAdminRolesDto) {
@@ -1248,8 +1287,8 @@ export class AuthService implements OnModuleInit {
         targetId,
         targetType: this.inferTargetType(action),
         action,
-        beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
-        afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
+        beforeJson: beforeJson === null ? undefined : (beforeJson),
+        afterJson: afterJson === null ? undefined : (afterJson),
       },
     });
   }

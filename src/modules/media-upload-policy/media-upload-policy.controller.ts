@@ -11,7 +11,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { ListMediaUploadPolicyAuditLogsDto, UpdateMediaUploadPolicyDto } from './dto/media-upload-policy.dto';
 import { MediaUploadPolicyService } from './media-upload-policy.service';
 
-@ApiTags('Media Upload Policy')
+@ApiTags('02 Admin - Media Upload Policy')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Controller('media-upload-policy')

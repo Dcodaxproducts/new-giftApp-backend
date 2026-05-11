@@ -10,7 +10,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateCouponDto, ListCouponsDto, UpdateCouponDto, UpdateCouponStatusDto } from './dto/subscription-plans.dto';
 import { SubscriptionPlansService } from './subscription-plans.service';
 
-@ApiTags('Coupons')
+@ApiTags('07 Plans & Coupons')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

@@ -1,27 +1,27 @@
 # Gift App API Record
 
-Total endpoints: 251
+Total endpoints: 254
 
 ## Endpoint Index
 
-- `POST` `/api/v1/auth/users/register` — PUBLIC — —
-- `POST` `/api/v1/auth/providers/register` — PUBLIC — —
-- `POST` `/api/v1/auth/guest/session` — PUBLIC — —
-- `POST` `/api/v1/auth/login` — PUBLIC — —
-- `POST` `/api/v1/auth/refresh` — PUBLIC — —
-- `POST` `/api/v1/auth/logout` — Authenticated — —
-- `POST` `/api/v1/auth/verify-email` — Authenticated — —
-- `POST` `/api/v1/auth/resend-otp` — Authenticated — —
-- `POST` `/api/v1/auth/forgot-password` — PUBLIC — —
-- `POST` `/api/v1/auth/verify-reset-otp` — PUBLIC — —
-- `POST` `/api/v1/auth/reset-password` — PUBLIC — —
-- `PATCH` `/api/v1/auth/change-password` — Authenticated — —
-- `GET` `/api/v1/auth/me` — Authenticated — —
-- `DELETE` `/api/v1/auth/account` — Authenticated — —
-- `POST` `/api/v1/auth/cancel-deletion` — Authenticated — —
-- `GET` `/api/v1/login-attempts/stats` — Authenticated — —
-- `GET` `/api/v1/login-attempts/export` — Authenticated — —
-- `GET` `/api/v1/login-attempts` — Authenticated — —
+- `POST` `/api/v1/auth/users/register` — PUBLIC — POST /api/v1/auth/users/register
+- `POST` `/api/v1/auth/providers/register` — PUBLIC — POST /api/v1/auth/providers/register
+- `POST` `/api/v1/auth/guest/session` — PUBLIC — POST /api/v1/auth/guest/session
+- `POST` `/api/v1/auth/login` — PUBLIC — POST /api/v1/auth/login
+- `POST` `/api/v1/auth/refresh` — PUBLIC — POST /api/v1/auth/refresh
+- `POST` `/api/v1/auth/logout` — Authenticated — POST /api/v1/auth/logout
+- `POST` `/api/v1/auth/verify-email` — Authenticated — POST /api/v1/auth/verify-email
+- `POST` `/api/v1/auth/resend-otp` — Authenticated — POST /api/v1/auth/resend-otp
+- `POST` `/api/v1/auth/forgot-password` — PUBLIC — POST /api/v1/auth/forgot-password
+- `POST` `/api/v1/auth/verify-reset-otp` — PUBLIC — POST /api/v1/auth/verify-reset-otp
+- `POST` `/api/v1/auth/reset-password` — PUBLIC — POST /api/v1/auth/reset-password
+- `PATCH` `/api/v1/auth/change-password` — Authenticated — PATCH /api/v1/auth/change-password
+- `GET` `/api/v1/auth/me` — Authenticated — GET /api/v1/auth/me
+- `DELETE` `/api/v1/auth/account` — Authenticated — DELETE /api/v1/auth/account
+- `POST` `/api/v1/auth/cancel-deletion` — Authenticated — POST /api/v1/auth/cancel-deletion
+- `GET` `/api/v1/login-attempts/stats` — Authenticated — GET /api/v1/login-attempts/stats
+- `GET` `/api/v1/login-attempts/export` — Authenticated — GET /api/v1/login-attempts/export
+- `GET` `/api/v1/login-attempts` — Authenticated — GET /api/v1/login-attempts
 - `GET` `/api/v1/customer/referrals/summary` — REGISTERED_USER — Fetch own referral reward summary
 - `GET` `/api/v1/customer/referrals/link` — Authenticated — Fetch own referral link
 - `GET` `/api/v1/customer/referrals/history` — REGISTERED_USER — List own referral history
@@ -44,28 +44,30 @@ Total endpoints: 251
 - `GET` `/api/v1/referral-settings/audit-logs` — SUPER_ADMIN, ADMIN — List referral settings audit logs
 - `POST` `/api/v1/admins` — SUPER_ADMIN, ADMIN — Create admin staff user
 - `GET` `/api/v1/admins` — SUPER_ADMIN, ADMIN — List admin staff users
-- `GET` `/api/v1/admins/{id}` — Authenticated — —
-- `PATCH` `/api/v1/admins/{id}` — Authenticated — —
-- `PATCH` `/api/v1/admins/{id}/active-status` — Authenticated — —
-- `PATCH` `/api/v1/admins/{id}/password` — Authenticated — —
-- `GET` `/api/v1/admin-roles` — SUPER_ADMIN, ADMIN — —
-- `POST` `/api/v1/admin-roles` — Authenticated — —
-- `GET` `/api/v1/admin-roles/{id}` — Authenticated — —
-- `PATCH` `/api/v1/admin-roles/{id}` — Authenticated — —
-- `DELETE` `/api/v1/admin-roles/{id}` — Authenticated — —
-- `PATCH` `/api/v1/admin-roles/{id}/permissions` — Authenticated — —
-- `GET` `/api/v1/permissions/catalog` — Authenticated — —
-- `GET` `/api/v1/providers/export` — Authenticated — —
-- `GET` `/api/v1/providers/stats` — Authenticated — —
+- `GET` `/api/v1/admins/{id}` — Authenticated — GET /api/v1/admins/{id}
+- `PATCH` `/api/v1/admins/{id}` — Authenticated — PATCH /api/v1/admins/{id}
+- `DELETE` `/api/v1/admins/{id}` — SUPER_ADMIN, ADMIN — Permanently delete admin staff user
+- `PATCH` `/api/v1/admins/{id}/active-status` — Authenticated — PATCH /api/v1/admins/{id}/active-status
+- `PATCH` `/api/v1/admins/{id}/password` — Authenticated — PATCH /api/v1/admins/{id}/password
+- `GET` `/api/v1/admin-roles` — SUPER_ADMIN, ADMIN — GET /api/v1/admin-roles
+- `POST` `/api/v1/admin-roles` — Authenticated — POST /api/v1/admin-roles
+- `GET` `/api/v1/admin-roles/{id}` — Authenticated — GET /api/v1/admin-roles/{id}
+- `PATCH` `/api/v1/admin-roles/{id}` — Authenticated — PATCH /api/v1/admin-roles/{id}
+- `DELETE` `/api/v1/admin-roles/{id}` — Authenticated — DELETE /api/v1/admin-roles/{id}
+- `PATCH` `/api/v1/admin-roles/{id}/permissions` — Authenticated — PATCH /api/v1/admin-roles/{id}/permissions
+- `GET` `/api/v1/permissions/catalog` — Authenticated — GET /api/v1/permissions/catalog
+- `GET` `/api/v1/providers/export` — Authenticated — GET /api/v1/providers/export
+- `GET` `/api/v1/providers/stats` — Authenticated — GET /api/v1/providers/stats
 - `GET` `/api/v1/providers` — SUPER_ADMIN, ADMIN — List providers
-- `POST` `/api/v1/providers` — Authenticated — —
-- `GET` `/api/v1/providers/lookup` — Authenticated — —
-- `GET` `/api/v1/providers/{id}` — Authenticated — —
-- `PATCH` `/api/v1/providers/{id}` — Authenticated — —
+- `POST` `/api/v1/providers` — Authenticated — POST /api/v1/providers
+- `GET` `/api/v1/providers/lookup` — Authenticated — GET /api/v1/providers/lookup
+- `GET` `/api/v1/providers/{id}` — Authenticated — GET /api/v1/providers/{id}
+- `PATCH` `/api/v1/providers/{id}` — Authenticated — PATCH /api/v1/providers/{id}
+- `DELETE` `/api/v1/providers/{id}` — Authenticated — Permanently delete provider
 - `PATCH` `/api/v1/providers/{id}/status` — SUPER_ADMIN, ADMIN — Update provider lifecycle status
-- `GET` `/api/v1/providers/{id}/items` — Authenticated — —
-- `GET` `/api/v1/providers/{id}/activity` — Authenticated — —
-- `POST` `/api/v1/providers/{id}/message` — Authenticated — —
+- `GET` `/api/v1/providers/{id}/items` — Authenticated — GET /api/v1/providers/{id}/items
+- `GET` `/api/v1/providers/{id}/activity` — Authenticated — GET /api/v1/providers/{id}/activity
+- `POST` `/api/v1/providers/{id}/message` — Authenticated — POST /api/v1/providers/{id}/message
 - `GET` `/api/v1/provider-business-categories` — PUBLIC — List active provider business categories
 - `POST` `/api/v1/provider-business-categories` — SUPER_ADMIN, ADMIN — Create provider business category
 - `GET` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Fetch provider business category details
@@ -96,32 +98,33 @@ Total endpoints: 251
 - `GET` `/api/v1/provider/orders/{id}` — PROVIDER — Fetch own provider order details
 - `POST` `/api/v1/provider/orders/{id}/accept` — Authenticated — Accept own pending provider order
 - `POST` `/api/v1/provider/orders/{id}/reject` — Authenticated — Reject own pending provider order
-- `GET` `/api/v1/provider/offers` — Authenticated — —
-- `POST` `/api/v1/provider/offers` — Authenticated — —
-- `GET` `/api/v1/provider/offers/{id}` — Authenticated — —
-- `PATCH` `/api/v1/provider/offers/{id}` — Authenticated — —
-- `DELETE` `/api/v1/provider/offers/{id}` — Authenticated — —
-- `PATCH` `/api/v1/provider/offers/{id}/status` — Authenticated — —
-- `GET` `/api/v1/promotional-offers/stats` — Authenticated — —
-- `GET` `/api/v1/promotional-offers/export` — Authenticated — —
-- `GET` `/api/v1/promotional-offers` — Authenticated — —
-- `POST` `/api/v1/promotional-offers` — Authenticated — —
-- `GET` `/api/v1/promotional-offers/{id}` — Authenticated — —
-- `PATCH` `/api/v1/promotional-offers/{id}` — Authenticated — —
-- `DELETE` `/api/v1/promotional-offers/{id}` — Authenticated — —
-- `PATCH` `/api/v1/promotional-offers/{id}/approve` — Authenticated — —
-- `PATCH` `/api/v1/promotional-offers/{id}/reject` — Authenticated — —
-- `PATCH` `/api/v1/promotional-offers/{id}/status` — Authenticated — —
-- `GET` `/api/v1/users/export` — Authenticated — —
+- `GET` `/api/v1/provider/offers` — Authenticated — GET /api/v1/provider/offers
+- `POST` `/api/v1/provider/offers` — Authenticated — POST /api/v1/provider/offers
+- `GET` `/api/v1/provider/offers/{id}` — Authenticated — GET /api/v1/provider/offers/{id}
+- `PATCH` `/api/v1/provider/offers/{id}` — Authenticated — PATCH /api/v1/provider/offers/{id}
+- `DELETE` `/api/v1/provider/offers/{id}` — Authenticated — DELETE /api/v1/provider/offers/{id}
+- `PATCH` `/api/v1/provider/offers/{id}/status` — Authenticated — PATCH /api/v1/provider/offers/{id}/status
+- `GET` `/api/v1/promotional-offers/stats` — Authenticated — GET /api/v1/promotional-offers/stats
+- `GET` `/api/v1/promotional-offers/export` — Authenticated — GET /api/v1/promotional-offers/export
+- `GET` `/api/v1/promotional-offers` — Authenticated — GET /api/v1/promotional-offers
+- `POST` `/api/v1/promotional-offers` — Authenticated — POST /api/v1/promotional-offers
+- `GET` `/api/v1/promotional-offers/{id}` — Authenticated — GET /api/v1/promotional-offers/{id}
+- `PATCH` `/api/v1/promotional-offers/{id}` — Authenticated — PATCH /api/v1/promotional-offers/{id}
+- `DELETE` `/api/v1/promotional-offers/{id}` — Authenticated — DELETE /api/v1/promotional-offers/{id}
+- `PATCH` `/api/v1/promotional-offers/{id}/approve` — Authenticated — PATCH /api/v1/promotional-offers/{id}/approve
+- `PATCH` `/api/v1/promotional-offers/{id}/reject` — Authenticated — PATCH /api/v1/promotional-offers/{id}/reject
+- `PATCH` `/api/v1/promotional-offers/{id}/status` — Authenticated — PATCH /api/v1/promotional-offers/{id}/status
+- `GET` `/api/v1/users/export` — Authenticated — GET /api/v1/users/export
 - `GET` `/api/v1/users` — SUPER_ADMIN, ADMIN — List registered users
-- `GET` `/api/v1/users/{id}` — Authenticated — —
-- `PATCH` `/api/v1/users/{id}` — Authenticated — —
-- `PATCH` `/api/v1/users/{id}/status` — Authenticated — —
-- `POST` `/api/v1/users/{id}/suspend` — Authenticated — —
-- `POST` `/api/v1/users/{id}/unsuspend` — Authenticated — —
+- `GET` `/api/v1/users/{id}` — Authenticated — GET /api/v1/users/{id}
+- `PATCH` `/api/v1/users/{id}` — Authenticated — PATCH /api/v1/users/{id}
+- `DELETE` `/api/v1/users/{id}` — Authenticated — Permanently delete registered user
+- `PATCH` `/api/v1/users/{id}/status` — Authenticated — PATCH /api/v1/users/{id}/status
+- `POST` `/api/v1/users/{id}/suspend` — Authenticated — POST /api/v1/users/{id}/suspend
+- `POST` `/api/v1/users/{id}/unsuspend` — Authenticated — POST /api/v1/users/{id}/unsuspend
 - `POST` `/api/v1/users/{id}/reset-password` — SUPER_ADMIN; ADMIN with users.resetPassword — Change registered user password
-- `GET` `/api/v1/users/{id}/activity` — Authenticated — —
-- `GET` `/api/v1/users/{id}/stats` — Authenticated — —
+- `GET` `/api/v1/users/{id}/activity` — Authenticated — GET /api/v1/users/{id}/activity
+- `GET` `/api/v1/users/{id}/stats` — Authenticated — GET /api/v1/users/{id}/stats
 - `GET` `/api/v1/customer/contacts` — REGISTERED_USER — List customer contacts
 - `POST` `/api/v1/customer/contacts` — REGISTERED_USER — Create customer contact
 - `GET` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Fetch customer contact
@@ -191,20 +194,20 @@ Total endpoints: 251
 - `PATCH` `/api/v1/gifts/{id}` — Authenticated — Update admin gift and upsert nested variants
 - `DELETE` `/api/v1/gifts/{id}` — Authenticated — Soft-delete gift
 - `PATCH` `/api/v1/gifts/{id}/status` — Authenticated — Update gift status
-- `GET` `/api/v1/gift-moderation` — Authenticated — —
-- `PATCH` `/api/v1/gift-moderation/{id}/approve` — Authenticated — —
-- `PATCH` `/api/v1/gift-moderation/{id}/reject` — Authenticated — —
-- `PATCH` `/api/v1/gift-moderation/{id}/flag` — Authenticated — —
-- `POST` `/api/v1/broadcasts` — Authenticated — —
-- `GET` `/api/v1/broadcasts` — Authenticated — —
-- `GET` `/api/v1/broadcasts/{id}` — Authenticated — —
-- `PATCH` `/api/v1/broadcasts/{id}` — Authenticated — —
-- `PATCH` `/api/v1/broadcasts/{id}/targeting` — Authenticated — —
-- `POST` `/api/v1/broadcasts/estimate-reach` — Authenticated — —
-- `PATCH` `/api/v1/broadcasts/{id}/schedule` — Authenticated — —
-- `POST` `/api/v1/broadcasts/{id}/cancel` — Authenticated — —
-- `GET` `/api/v1/broadcasts/{id}/report` — Authenticated — —
-- `GET` `/api/v1/broadcasts/{id}/recipients` — Authenticated — —
+- `GET` `/api/v1/gift-moderation` — Authenticated — GET /api/v1/gift-moderation
+- `PATCH` `/api/v1/gift-moderation/{id}/approve` — Authenticated — PATCH /api/v1/gift-moderation/{id}/approve
+- `PATCH` `/api/v1/gift-moderation/{id}/reject` — Authenticated — PATCH /api/v1/gift-moderation/{id}/reject
+- `PATCH` `/api/v1/gift-moderation/{id}/flag` — Authenticated — PATCH /api/v1/gift-moderation/{id}/flag
+- `POST` `/api/v1/broadcasts` — Authenticated — POST /api/v1/broadcasts
+- `GET` `/api/v1/broadcasts` — Authenticated — GET /api/v1/broadcasts
+- `GET` `/api/v1/broadcasts/{id}` — Authenticated — GET /api/v1/broadcasts/{id}
+- `PATCH` `/api/v1/broadcasts/{id}` — Authenticated — PATCH /api/v1/broadcasts/{id}
+- `PATCH` `/api/v1/broadcasts/{id}/targeting` — Authenticated — PATCH /api/v1/broadcasts/{id}/targeting
+- `POST` `/api/v1/broadcasts/estimate-reach` — Authenticated — POST /api/v1/broadcasts/estimate-reach
+- `PATCH` `/api/v1/broadcasts/{id}/schedule` — Authenticated — PATCH /api/v1/broadcasts/{id}/schedule
+- `POST` `/api/v1/broadcasts/{id}/cancel` — Authenticated — POST /api/v1/broadcasts/{id}/cancel
+- `GET` `/api/v1/broadcasts/{id}/report` — Authenticated — GET /api/v1/broadcasts/{id}/report
+- `GET` `/api/v1/broadcasts/{id}/recipients` — Authenticated — GET /api/v1/broadcasts/{id}/recipients
 - `GET` `/api/v1/notifications` — Authenticated — List notifications
 - `GET` `/api/v1/notifications/summary` — Authenticated — Fetch notification summary
 - `GET` `/api/v1/notifications/preferences` — Authenticated — Fetch notification preferences
@@ -214,27 +217,27 @@ Total endpoints: 251
 - `POST` `/api/v1/notifications/{id}/action` — Authenticated — Process notification action
 - `POST` `/api/v1/notifications/device-tokens` — Authenticated — Save device token
 - `DELETE` `/api/v1/notifications/device-tokens/{id}` — Authenticated — Disable device token
-- `GET` `/api/v1/subscription-plans` — Authenticated — —
-- `POST` `/api/v1/subscription-plans` — Authenticated — —
-- `GET` `/api/v1/subscription-plans/stats` — Authenticated — —
-- `GET` `/api/v1/subscription-plans/{id}` — Authenticated — —
-- `PATCH` `/api/v1/subscription-plans/{id}` — Authenticated — —
-- `DELETE` `/api/v1/subscription-plans/{id}` — Authenticated — —
-- `PATCH` `/api/v1/subscription-plans/{id}/status` — Authenticated — —
-- `PATCH` `/api/v1/subscription-plans/{id}/visibility` — Authenticated — —
-- `GET` `/api/v1/subscription-plans/{id}/analytics` — Authenticated — —
-- `GET` `/api/v1/plan-features/catalog` — Authenticated — —
-- `GET` `/api/v1/plan-features` — Authenticated — —
-- `POST` `/api/v1/plan-features` — Authenticated — —
-- `GET` `/api/v1/plan-features/{id}` — Authenticated — —
-- `PATCH` `/api/v1/plan-features/{id}` — Authenticated — —
-- `DELETE` `/api/v1/plan-features/{id}` — Authenticated — —
-- `GET` `/api/v1/coupons` — Authenticated — —
-- `POST` `/api/v1/coupons` — Authenticated — —
-- `GET` `/api/v1/coupons/{id}` — Authenticated — —
-- `PATCH` `/api/v1/coupons/{id}` — Authenticated — —
-- `DELETE` `/api/v1/coupons/{id}` — Authenticated — —
-- `PATCH` `/api/v1/coupons/{id}/status` — Authenticated — —
+- `GET` `/api/v1/subscription-plans` — Authenticated — GET /api/v1/subscription-plans
+- `POST` `/api/v1/subscription-plans` — Authenticated — POST /api/v1/subscription-plans
+- `GET` `/api/v1/subscription-plans/stats` — Authenticated — GET /api/v1/subscription-plans/stats
+- `GET` `/api/v1/subscription-plans/{id}` — Authenticated — GET /api/v1/subscription-plans/{id}
+- `PATCH` `/api/v1/subscription-plans/{id}` — Authenticated — PATCH /api/v1/subscription-plans/{id}
+- `DELETE` `/api/v1/subscription-plans/{id}` — Authenticated — DELETE /api/v1/subscription-plans/{id}
+- `PATCH` `/api/v1/subscription-plans/{id}/status` — Authenticated — PATCH /api/v1/subscription-plans/{id}/status
+- `PATCH` `/api/v1/subscription-plans/{id}/visibility` — Authenticated — PATCH /api/v1/subscription-plans/{id}/visibility
+- `GET` `/api/v1/subscription-plans/{id}/analytics` — Authenticated — GET /api/v1/subscription-plans/{id}/analytics
+- `GET` `/api/v1/plan-features/catalog` — Authenticated — GET /api/v1/plan-features/catalog
+- `GET` `/api/v1/plan-features` — Authenticated — GET /api/v1/plan-features
+- `POST` `/api/v1/plan-features` — Authenticated — POST /api/v1/plan-features
+- `GET` `/api/v1/plan-features/{id}` — Authenticated — GET /api/v1/plan-features/{id}
+- `PATCH` `/api/v1/plan-features/{id}` — Authenticated — PATCH /api/v1/plan-features/{id}
+- `DELETE` `/api/v1/plan-features/{id}` — Authenticated — DELETE /api/v1/plan-features/{id}
+- `GET` `/api/v1/coupons` — Authenticated — GET /api/v1/coupons
+- `POST` `/api/v1/coupons` — Authenticated — POST /api/v1/coupons
+- `GET` `/api/v1/coupons/{id}` — Authenticated — GET /api/v1/coupons/{id}
+- `PATCH` `/api/v1/coupons/{id}` — Authenticated — PATCH /api/v1/coupons/{id}
+- `DELETE` `/api/v1/coupons/{id}` — Authenticated — DELETE /api/v1/coupons/{id}
+- `PATCH` `/api/v1/coupons/{id}/status` — Authenticated — PATCH /api/v1/coupons/{id}/status
 - `GET` `/api/v1/media-upload-policy` — SUPER_ADMIN, ADMIN — Fetch global media upload policy
 - `PATCH` `/api/v1/media-upload-policy` — SUPER_ADMIN, ADMIN — Update global media upload policy
 - `GET` `/api/v1/media-upload-policy/audit-logs` — SUPER_ADMIN, ADMIN — List media upload policy audit logs
@@ -247,22 +250,22 @@ Total endpoints: 251
 - `POST` `/api/v1/customer/money-gifts` — Authenticated — Send payment as gift
 - `GET` `/api/v1/customer/money-gifts` — Authenticated — List own money gifts
 - `GET` `/api/v1/customer/money-gifts/{id}` — Authenticated — Fetch own money gift details
-- `GET` `/api/v1/audit-logs/export` — Authenticated — —
-- `GET` `/api/v1/audit-logs` — Authenticated — —
-- `GET` `/api/v1/audit-logs/{id}` — Authenticated — —
-- `POST` `/api/v1/uploads/presigned-url` — Authenticated — —
-- `POST` `/api/v1/uploads/complete` — Authenticated — —
-- `GET` `/api/v1/uploads` — Authenticated — —
-- `GET` `/api/v1/uploads/{id}` — Authenticated — —
-- `DELETE` `/api/v1/uploads/{id}` — Authenticated — —
+- `GET` `/api/v1/audit-logs/export` — Authenticated — GET /api/v1/audit-logs/export
+- `GET` `/api/v1/audit-logs` — Authenticated — GET /api/v1/audit-logs
+- `GET` `/api/v1/audit-logs/{id}` — Authenticated — GET /api/v1/audit-logs/{id}
+- `POST` `/api/v1/uploads/presigned-url` — Authenticated — POST /api/v1/uploads/presigned-url
+- `POST` `/api/v1/uploads/complete` — Authenticated — POST /api/v1/uploads/complete
+- `GET` `/api/v1/uploads` — Authenticated — GET /api/v1/uploads
+- `GET` `/api/v1/uploads/{id}` — Authenticated — GET /api/v1/uploads/{id}
+- `DELETE` `/api/v1/uploads/{id}` — Authenticated — DELETE /api/v1/uploads/{id}
 
-## Auth
+## 01 Auth
 
 ### POST /api/v1/auth/users/register
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/users/register
 
 **Request payload example:**
 
@@ -291,7 +294,7 @@ Total endpoints: 251
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/providers/register
 
 **Request payload example:**
 
@@ -326,7 +329,7 @@ Total endpoints: 251
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/guest/session
 
 **Request payload example:**
 
@@ -350,7 +353,7 @@ Total endpoints: 251
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/login
 
 **Request payload example:**
 
@@ -375,7 +378,7 @@ Total endpoints: 251
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/refresh
 
 **Request payload example:**
 
@@ -399,7 +402,7 @@ Total endpoints: 251
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/logout
 
 **Request payload example:**
 
@@ -421,7 +424,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/verify-email
 
 **Request payload example:**
 
@@ -445,7 +448,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/resend-otp
 
 **Request payload example:**
 
@@ -467,7 +470,7 @@ None
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/forgot-password
 
 **Request payload example:**
 
@@ -491,7 +494,7 @@ None
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/verify-reset-otp
 
 **Request payload example:**
 
@@ -516,7 +519,7 @@ None
 
 **Allowed role/access:** PUBLIC
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/reset-password
 
 **Request payload example:**
 
@@ -542,7 +545,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/auth/change-password
 
 **Request payload example:**
 
@@ -567,7 +570,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/auth/me
 
 **Request payload example:**
 
@@ -589,7 +592,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** DELETE /api/v1/auth/account
 
 **Request payload example:**
 
@@ -611,7 +614,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/auth/cancel-deletion
 
 **Request payload example:**
 
@@ -630,13 +633,13 @@ None
 ```
 
 
-## Login Attempts
+## 01 Auth - Login Attempts
 
 ### GET /api/v1/login-attempts/stats
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/login-attempts/stats
 
 **Parameters:**
 
@@ -669,7 +672,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/login-attempts/export
 
 **Parameters:**
 
@@ -702,7 +705,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/login-attempts
 
 **Parameters:**
 
@@ -732,7 +735,7 @@ None
 ```
 
 
-## Admin Staff Management
+## 02 Admin - Staff Management
 
 ### POST /api/v1/admins
 
@@ -821,7 +824,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/admins/{id}
 
 **Parameters:**
 
@@ -847,7 +850,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/admins/{id}
 
 **Parameters:**
 
@@ -877,11 +880,44 @@ None
 }
 ```
 
+### DELETE /api/v1/admins/{id}
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Permanently delete admin staff user
+
+**Description:** DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "confirmation": "PERMANENTLY_DELETE_ADMIN",
+  "reason": "Staff account removed."
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "deletedAdminId": "admin_id"
+  },
+  "message": "Admin staff user permanently deleted successfully."
+}
+```
+
 ### PATCH /api/v1/admins/{id}/active-status
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/admins/{id}/active-status
 
 **Parameters:**
 
@@ -909,7 +945,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/admins/{id}/password
 
 **Parameters:**
 
@@ -937,13 +973,13 @@ None
 ```
 
 
-## Admin Roles / RBAC
+## 02 Admin - Roles & Permissions
 
 ### GET /api/v1/admin-roles
 
 **Allowed role/access:** SUPER_ADMIN, ADMIN
 
-**Summary:** —
+**Summary:** GET /api/v1/admin-roles
 
 **Description:** Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.
 
@@ -973,7 +1009,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/admin-roles
 
 **Request payload example:**
 
@@ -999,7 +1035,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/admin-roles/{id}
 
 **Parameters:**
 
@@ -1025,7 +1061,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/admin-roles/{id}
 
 **Parameters:**
 
@@ -1055,7 +1091,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** DELETE /api/v1/admin-roles/{id}
 
 **Parameters:**
 
@@ -1081,7 +1117,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/admin-roles/{id}/permissions
 
 **Parameters:**
 
@@ -1109,7 +1145,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/permissions/catalog
 
 **Description:** Read-only list of backend-supported permission keys that can be assigned to admin roles.
 
@@ -1130,13 +1166,13 @@ None
 ```
 
 
-## User Management
+## 02 Admin - User Management
 
 ### GET /api/v1/users/export
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/users/export
 
 **Parameters:**
 
@@ -1219,7 +1255,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/users/{id}
 
 **Parameters:**
 
@@ -1245,7 +1281,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/users/{id}
 
 **Parameters:**
 
@@ -1273,11 +1309,46 @@ None
 }
 ```
 
+### DELETE /api/v1/users/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Permanently delete registered user
+
+**Description:** DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "confirmation": "PERMANENTLY_DELETE_USER",
+  "reason": "User requested full deletion.",
+  "deleteRelatedRecords": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "deletedUserId": "user_id",
+    "deletedRelatedRecords": true
+  },
+  "message": "User permanently deleted successfully."
+}
+```
+
 ### PATCH /api/v1/users/{id}/status
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/users/{id}/status
 
 **Parameters:**
 
@@ -1308,7 +1379,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/users/{id}/suspend
 
 **Parameters:**
 
@@ -1338,7 +1409,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/users/{id}/unsuspend
 
 **Parameters:**
 
@@ -1405,7 +1476,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/users/{id}/activity
 
 **Parameters:**
 
@@ -1434,7 +1505,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/users/{id}/stats
 
 **Parameters:**
 
@@ -1457,13 +1528,13 @@ None
 ```
 
 
-## Provider Management
+## 02 Admin - Provider Management
 
 ### GET /api/v1/providers/export
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/providers/export
 
 **Parameters:**
 
@@ -1492,7 +1563,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/providers/stats
 
 **Request payload example:**
 
@@ -1568,7 +1639,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/providers
 
 **Request payload example:**
 
@@ -1601,7 +1672,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/providers/lookup
 
 **Parameters:**
 
@@ -1630,7 +1701,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/providers/{id}
 
 **Parameters:**
 
@@ -1656,7 +1727,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/providers/{id}
 
 **Parameters:**
 
@@ -1682,6 +1753,41 @@ None
   "success": true,
   "data": {},
   "message": "Request completed successfully"
+}
+```
+
+### DELETE /api/v1/providers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Permanently delete provider
+
+**Description:** DANGER: This endpoint permanently deletes/anonymizes the provider and related provider data from the database. This is not a soft delete. Use only from Super Admin danger zone screens. Active processing orders block deletion.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "confirmation": "PERMANENTLY_DELETE_PROVIDER",
+  "reason": "Provider account removed by Super Admin.",
+  "deleteRelatedRecords": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "deletedProviderId": "provider_id",
+    "deletedRelatedRecords": true
+  },
+  "message": "Provider permanently deleted successfully."
 }
 ```
 
@@ -1728,7 +1834,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/providers/{id}/items
 
 **Parameters:**
 
@@ -1760,7 +1866,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/providers/{id}/activity
 
 **Parameters:**
 
@@ -1789,7 +1895,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/providers/{id}/message
 
 **Parameters:**
 
@@ -1967,7 +2073,703 @@ None
 ```
 
 
-## Provider Inventory
+## 02 Admin - Promotional Offers
+
+### GET /api/v1/promotional-offers/stats
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers/stats
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers/export
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers/export
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `search` (query, optional)
+- `status` (query, optional)
+- `itemId` (query, optional)
+- `sortBy` (query, optional)
+- `sortOrder` (query, optional)
+- `providerId` (query, optional)
+- `approvalStatus` (query, optional)
+- `discountType` (query, optional)
+- `startFrom` (query, optional)
+- `startTo` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `search` (query, optional)
+- `status` (query, optional)
+- `itemId` (query, optional)
+- `sortBy` (query, optional)
+- `sortOrder` (query, optional)
+- `providerId` (query, optional)
+- `approvalStatus` (query, optional)
+- `discountType` (query, optional)
+- `startFrom` (query, optional)
+- `startTo` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/promotional-offers
+
+**Allowed role/access:** Authenticated
+
+**Summary:** POST /api/v1/promotional-offers
+
+**Request payload example:**
+
+```json
+{
+  "itemId": "string",
+  "title": "string",
+  "description": "string",
+  "discountType": "string",
+  "discountValue": 0,
+  "startDate": "string",
+  "endDate": "string",
+  "eligibilityRules": "string",
+  "isActive": true,
+  "providerId": "string",
+  "approvalStatus": "string"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/promotional-offers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/promotional-offers/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "title": "string",
+  "description": "string",
+  "discountType": "string",
+  "discountValue": 0,
+  "startDate": "string",
+  "endDate": "string",
+  "eligibilityRules": "string",
+  "isActive": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### DELETE /api/v1/promotional-offers/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** DELETE /api/v1/promotional-offers/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}/approve
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}/approve
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "comment": "string",
+  "notifyProvider": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}/reject
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}/reject
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "reason": "string",
+  "comment": "string",
+  "notifyProvider": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/promotional-offers/{id}/status
+
+**Allowed role/access:** Authenticated
+
+**Summary:** PATCH /api/v1/promotional-offers/{id}/status
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "isActive": true,
+  "reason": "string"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+
+## 02 Admin - Referral Settings
+
+### GET /api/v1/referral-settings
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Fetch referral settings
+
+**Description:** SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "isActive": true,
+    "referrerRewardAmount": 25,
+    "newUserRewardAmount": 10,
+    "rewardCurrency": "USD",
+    "minimumTransactionAmount": 50,
+    "referralExpirationValue": 30,
+    "referralExpirationUnit": "DAYS",
+    "allowSelfReferrals": false,
+    "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE",
+    "updatedAt": "2026-05-09T10:00:00.000Z"
+  },
+  "message": "Referral settings fetched successfully."
+}
+```
+
+### PATCH /api/v1/referral-settings
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Update referral settings
+
+**Description:** SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.
+
+**Request payload example:**
+
+```json
+{
+  "referrerRewardAmount": 25,
+  "newUserRewardAmount": 10,
+  "rewardCurrency": "USD",
+  "minimumTransactionAmount": 50,
+  "referralExpirationValue": 30,
+  "referralExpirationUnit": "DAYS",
+  "allowSelfReferrals": false,
+  "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/referral-settings/activate
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Activate referral program
+
+**Description:** SUPER_ADMIN only. Existing earned rewards remain redeemable.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/referral-settings/deactivate
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Deactivate referral program
+
+**Description:** SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.
+
+**Request payload example:**
+
+```json
+{
+  "reason": "Temporarily paused by Super Admin."
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/referral-settings/stats
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Fetch referral stats
+
+**Description:** SUPER_ADMIN or ADMIN with referralSettings.read.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/referral-settings/audit-logs
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** List referral settings audit logs
+
+**Description:** SUPER_ADMIN only.
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+
+## 02 Admin - Media Upload Policy
+
+### GET /api/v1/media-upload-policy
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Fetch global media upload policy
+
+**Description:** SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "allowedFileTypes": {
+      "jpeg": true,
+      "jpg": true,
+      "png": true,
+      "gif": false,
+      "mp4": true,
+      "mov": true,
+      "mp3": true,
+      "wav": false,
+      "svg": false
+    },
+    "maxImageSizeMb": 10,
+    "maxVideoSizeMb": 500,
+    "maxAudioSizeMb": 50,
+    "scanUploads": true,
+    "blockSvgUploads": true,
+    "updatedAt": "2026-05-09T10:00:00.000Z",
+    "updatedBy": {
+      "id": "admin_id",
+      "name": "Alex Rivera"
+    }
+  },
+  "message": "Media upload policy fetched successfully."
+}
+```
+
+### PATCH /api/v1/media-upload-policy
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** Update global media upload policy
+
+**Description:** SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.
+
+**Request payload example:**
+
+```json
+{
+  "allowedFileTypes": "string",
+  "maxImageSizeMb": 10,
+  "maxVideoSizeMb": 500,
+  "maxAudioSizeMb": 50,
+  "scanUploads": true,
+  "blockSvgUploads": true
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/media-upload-policy/audit-logs
+
+**Allowed role/access:** SUPER_ADMIN, ADMIN
+
+**Summary:** List media upload policy audit logs
+
+**Description:** SUPER_ADMIN only.
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+
+## 02 Admin - Audit Logs
+
+### GET /api/v1/audit-logs/export
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/audit-logs/export
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `actorId` (query, optional)
+- `targetId` (query, optional)
+- `action` (query, optional)
+- `targetType` (query, optional)
+- `module` (query, optional)
+- `from` (query, optional)
+- `to` (query, optional)
+- `sortBy` (query, optional)
+- `sortOrder` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/audit-logs
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/audit-logs
+
+**Parameters:**
+
+- `page` (query, optional)
+- `limit` (query, optional)
+- `actorId` (query, optional)
+- `targetId` (query, optional)
+- `action` (query, optional)
+- `targetType` (query, optional)
+- `module` (query, optional)
+- `from` (query, optional)
+- `to` (query, optional)
+- `sortBy` (query, optional)
+- `sortOrder` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/audit-logs/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** GET /api/v1/audit-logs/{id}
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+
+## 03 Provider - Inventory
 
 ### GET /api/v1/provider/inventory
 
@@ -2292,13 +3094,13 @@ None
 ```
 
 
-## Provider Promotional Offers
+## 03 Provider - Promotional Offers
 
 ### GET /api/v1/provider/offers
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/provider/offers
 
 **Parameters:**
 
@@ -2330,7 +3132,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/provider/offers
 
 **Request payload example:**
 
@@ -2362,7 +3164,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/provider/offers/{id}
 
 **Parameters:**
 
@@ -2388,7 +3190,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/provider/offers/{id}
 
 **Parameters:**
 
@@ -2423,7 +3225,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** DELETE /api/v1/provider/offers/{id}
 
 **Parameters:**
 
@@ -2449,7 +3251,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/provider/offers/{id}/status
 
 **Parameters:**
 
@@ -2475,50 +3277,26 @@ None
 ```
 
 
-## Promotional Offers Management
+## 03 Provider - Orders
 
-### GET /api/v1/promotional-offers/stats
+### GET /api/v1/provider/orders
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** PROVIDER
 
-**Summary:** —
+**Summary:** List own assigned provider orders
 
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/promotional-offers/export
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
+**Description:** PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.
 
 **Parameters:**
 
 - `page` (query, optional)
 - `limit` (query, optional)
-- `search` (query, optional)
 - `status` (query, optional)
-- `itemId` (query, optional)
+- `search` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
 - `sortBy` (query, optional)
 - `sortOrder` (query, optional)
-- `providerId` (query, optional)
-- `approvalStatus` (query, optional)
-- `discountType` (query, optional)
-- `startFrom` (query, optional)
-- `startTo` (query, optional)
 
 **Request payload example:**
 
@@ -2531,31 +3309,52 @@ None
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": [
+    {
+      "id": "provider_order_id",
+      "orderId": "order_id",
+      "orderNumber": "ORD-10293",
+      "status": "PENDING",
+      "paymentStatus": "SUCCEEDED",
+      "customer": {
+        "name": "Sarah Jenkins",
+        "phone": "+15551234567"
+      },
+      "itemPreview": [
+        {
+          "name": "Premium Sneakers",
+          "imageUrl": "https://cdn.yourdomain.com/gifts/sneaker.png"
+        }
+      ],
+      "itemCount": 3,
+      "totalPayout": 142,
+      "currency": "PKR",
+      "createdAt": "2026-10-24T10:45:00.000Z",
+      "receivedAgoText": "5m ago"
+    }
+  ],
+  "message": "Provider orders fetched successfully."
 }
 ```
 
-### GET /api/v1/promotional-offers
+### GET /api/v1/provider/orders/history
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** PROVIDER
 
-**Summary:** —
+**Summary:** List own provider order history
+
+**Description:** PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.
 
 **Parameters:**
 
 - `page` (query, optional)
 - `limit` (query, optional)
-- `search` (query, optional)
 - `status` (query, optional)
-- `itemId` (query, optional)
+- `search` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
 - `sortBy` (query, optional)
 - `sortOrder` (query, optional)
-- `providerId` (query, optional)
-- `approvalStatus` (query, optional)
-- `discountType` (query, optional)
-- `startFrom` (query, optional)
-- `startTo` (query, optional)
 
 **Request payload example:**
 
@@ -2573,27 +3372,223 @@ None
 }
 ```
 
-### POST /api/v1/promotional-offers
+### GET /api/v1/provider/orders/performance
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Fetch own provider order performance
+
+**Description:** PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.
+
+**Parameters:**
+
+- `range` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/provider/orders/analytics/revenue
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Fetch own provider revenue analytics
+
+**Description:** PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.
+
+**Parameters:**
+
+- `range` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/provider/orders/analytics/ratings
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Fetch own provider ratings analytics
+
+**Description:** PROVIDER only. Returns stable zero values until reviews module is available.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/provider/orders/recent
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** List recent own provider orders
+
+**Description:** PROVIDER only. Defaults to 5 latest orders.
+
+**Parameters:**
+
+- `limit` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/provider/orders/export
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Export own provider orders as CSV
+
+**Description:** PROVIDER only. Export is scoped to logged-in provider orders.
+
+**Parameters:**
+
+- `status` (query, optional)
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
+- `format` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/provider/orders/summary
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Fetch own provider order summary
+
+**Description:** Route intentionally declared before :id. PROVIDER only.
+
+**Parameters:**
+
+- `fromDate` (query, optional)
+- `toDate` (query, optional)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/provider/orders/reject-reasons
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** List provider order reject reasons
+
+**Description:** Route intentionally declared before :id.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/provider/orders/{id}/status
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Update own provider order fulfillment status
+
+**Description:** PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.
+
+**Parameters:**
+
+- `id` (path, required)
 
 **Request payload example:**
 
 ```json
 {
-  "itemId": "string",
-  "title": "string",
-  "description": "string",
-  "discountType": "string",
-  "discountValue": 0,
-  "startDate": "string",
-  "endDate": "string",
-  "eligibilityRules": "string",
-  "isActive": true,
-  "providerId": "string",
-  "approvalStatus": "string"
+  "status": "SHIPPED",
+  "note": "Package handed over to courier.",
+  "trackingNumber": "FDX-123456",
+  "carrier": "FedEx",
+  "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z"
 }
 ```
 
@@ -2607,11 +3602,13 @@ None
 }
 ```
 
-### GET /api/v1/promotional-offers/{id}
+### GET /api/v1/provider/orders/{id}/timeline
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** PROVIDER
 
-**Summary:** —
+**Summary:** Fetch own provider order timeline
+
+**Description:** PROVIDER only. Timeline is scoped to the authenticated provider order.
 
 **Parameters:**
 
@@ -2633,46 +3630,13 @@ None
 }
 ```
 
-### PATCH /api/v1/promotional-offers/{id}
+### GET /api/v1/provider/orders/{id}/checklist
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** PROVIDER
 
-**Summary:** —
+**Summary:** Fetch own provider order checklist
 
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "title": "string",
-  "description": "string",
-  "discountType": "string",
-  "discountValue": 0,
-  "startDate": "string",
-  "endDate": "string",
-  "eligibilityRules": "string",
-  "isActive": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### DELETE /api/v1/promotional-offers/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
+**Description:** PROVIDER only. Checklist is operational and does not change status automatically.
 
 **Parameters:**
 
@@ -2694,11 +3658,13 @@ None
 }
 ```
 
-### PATCH /api/v1/promotional-offers/{id}/approve
+### PATCH /api/v1/provider/orders/{id}/checklist
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** PROVIDER
 
-**Summary:** —
+**Summary:** Update own provider order checklist
+
+**Description:** PROVIDER only. Checklist updates do not directly change order status.
 
 **Parameters:**
 
@@ -2708,8 +3674,18 @@ None
 
 ```json
 {
-  "comment": "string",
-  "notifyProvider": true
+  "itemsPacked": true,
+  "giftMessageAttached": true,
+  "addressVerified": true,
+  "customerContactChecked": true,
+  "readyForCourier": false,
+  "customItems": [
+    {
+      "id": "checklist_item_id",
+      "label": "Include gift wrap",
+      "isCompleted": true
+    }
+  ]
 }
 ```
 
@@ -2723,11 +3699,13 @@ None
 }
 ```
 
-### PATCH /api/v1/promotional-offers/{id}/reject
+### POST /api/v1/provider/orders/{id}/message-buyer
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** PROVIDER
 
-**Summary:** —
+**Summary:** Message buyer for own provider order
+
+**Description:** PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.
 
 **Parameters:**
 
@@ -2737,9 +3715,8 @@ None
 
 ```json
 {
-  "reason": "string",
-  "comment": "string",
-  "notifyProvider": true
+  "message": "Your order is being prepared and will be shipped soon.",
+  "channel": "IN_APP"
 }
 ```
 
@@ -2753,11 +3730,41 @@ None
 }
 ```
 
-### PATCH /api/v1/promotional-offers/{id}/status
+### GET /api/v1/provider/orders/{id}
+
+**Allowed role/access:** PROVIDER
+
+**Summary:** Fetch own provider order details
+
+**Description:** PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/provider/orders/{id}/accept
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** Accept own pending provider order
+
+**Description:** Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.
 
 **Parameters:**
 
@@ -2767,8 +3774,38 @@ None
 
 ```json
 {
-  "isActive": true,
-  "reason": "string"
+  "note": "Order accepted and will be processed shortly."
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/provider/orders/{id}/reject
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Reject own pending provider order
+
+**Description:** Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "reason": "OUT_OF_STOCK",
+  "comment": "The selected size is currently unavailable."
 }
 ```
 
@@ -2783,7 +3820,7 @@ None
 ```
 
 
-## Gift Categories
+## 04 Gifts - Categories
 
 ### GET /api/v1/gift-categories/lookup
 
@@ -2993,7 +4030,7 @@ None
 ```
 
 
-## Gift Management
+## 04 Gifts - Management
 
 ### POST /api/v1/gifts
 
@@ -3292,13 +4329,13 @@ None
 ```
 
 
-## Gift Moderation
+## 04 Gifts - Moderation
 
 ### GET /api/v1/gift-moderation
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/gift-moderation
 
 **Parameters:**
 
@@ -3331,7 +4368,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/gift-moderation/{id}/approve
 
 **Parameters:**
 
@@ -3361,7 +4398,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/gift-moderation/{id}/reject
 
 **Parameters:**
 
@@ -3391,7 +4428,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/gift-moderation/{id}/flag
 
 **Parameters:**
 
@@ -3417,7 +4454,7 @@ None
 ```
 
 
-## Customer Marketplace
+## 05 Customer - Marketplace
 
 ### GET /api/v1/customer/home
 
@@ -3685,7 +4722,7 @@ None
 ```
 
 
-## Customer Wishlist
+## 05 Customer - Wishlist
 
 ### GET /api/v1/customer/wishlist
 
@@ -3768,7 +4805,7 @@ None
 ```
 
 
-## Customer Addresses
+## 05 Customer - Addresses
 
 ### GET /api/v1/customer/addresses
 
@@ -3959,7 +4996,7 @@ None
 ```
 
 
-## Customer Contacts
+## 05 Customer - Contacts
 
 ### GET /api/v1/customer/contacts
 
@@ -4123,7 +5160,7 @@ None
 ```
 
 
-## Customer Events
+## 05 Customer - Events
 
 ### GET /api/v1/customer/events
 
@@ -4259,6 +5296,71 @@ None
 }
 ```
 
+### GET /api/v1/customer/events/{id}/reminder-settings
+
+**Allowed role/access:** REGISTERED_USER
+
+**Summary:** Fetch event reminder settings
+
+**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### PATCH /api/v1/customer/events/{id}/reminder-settings
+
+**Allowed role/access:** REGISTERED_USER
+
+**Summary:** Update event reminder settings
+
+**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```json
+{
+  "reminderFrequency": "YEARLY",
+  "reminderTiming": "ONE_DAY_BEFORE",
+  "customAlertTime": "09:00",
+  "channels": {
+    "push": true,
+    "email": true,
+    "sms": false
+  }
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
 ### GET /api/v1/customer/events/{id}
 
 **Allowed role/access:** REGISTERED_USER
@@ -4358,75 +5460,7 @@ None
 ```
 
 
-## Customer Event Reminder Settings
-
-### GET /api/v1/customer/events/{id}/reminder-settings
-
-**Allowed role/access:** REGISTERED_USER
-
-**Summary:** Fetch event reminder settings
-
-**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/customer/events/{id}/reminder-settings
-
-**Allowed role/access:** REGISTERED_USER
-
-**Summary:** Update event reminder settings
-
-**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "reminderFrequency": "YEARLY",
-  "reminderTiming": "ONE_DAY_BEFORE",
-  "customAlertTime": "09:00",
-  "channels": {
-    "push": true,
-    "email": true,
-    "sms": false
-  }
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-
-## Customer Cart
+## 05 Customer - Cart
 
 ### GET /api/v1/customer/cart
 
@@ -4624,7 +5658,7 @@ None
 ```
 
 
-## Customer Orders
+## 05 Customer - Orders
 
 ### POST /api/v1/customer/orders
 
@@ -4750,7 +5784,7 @@ None
 ```
 
 
-## Customer Recurring Payments
+## 05 Customer - Recurring Payments
 
 ### GET /api/v1/customer/recurring-payments
 
@@ -5120,7 +6154,7 @@ None
 ```
 
 
-## Customer Transactions
+## 05 Customer - Transactions
 
 ### GET /api/v1/customer/transactions
 
@@ -5342,213 +6376,7 @@ None
 ```
 
 
-## Payments
-
-### POST /api/v1/customer/payments/create-intent
-
-**Allowed role/access:** REGISTERED_USER
-
-**Summary:** Create payment intent from active cart
-
-**Description:** REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.
-
-**Request payload example:**
-
-```json
-{
-  "cartId": "cmf0cartactive001",
-  "paymentMethod": "STRIPE_CARD"
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "paymentId": "payment_id",
-    "stripePaymentIntentId": "pi_xxx",
-    "clientSecret": "pi_xxx_secret_xxx",
-    "publishableKey": "pk_live_or_test",
-    "amount": 10999,
-    "currency": "PKR"
-  },
-  "message": "Payment intent created successfully."
-}
-```
-
-### POST /api/v1/customer/payments/confirm
-
-**Allowed role/access:** REGISTERED_USER
-
-**Summary:** Confirm Stripe payment
-
-**Description:** REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.
-
-**Request payload example:**
-
-```json
-{
-  "paymentId": "cmf0payment001",
-  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx"
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/customer/payments/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** Fetch own payment details
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "paymentId": "payment_id",
-    "provider": "STRIPE",
-    "stripePaymentIntentId": "pi_xxx",
-    "amount": 109.99,
-    "currency": "PKR",
-    "status": "SUCCEEDED",
-    "paymentMethod": "STRIPE_CARD",
-    "failureReason": null
-  },
-  "message": "Payment fetched successfully."
-}
-```
-
-### POST /api/v1/payments/stripe/webhook
-
-**Allowed role/access:** PUBLIC
-
-**Summary:** Stripe webhook endpoint
-
-**Description:** Verifies Stripe-Signature using the configured webhook secret before processing events.
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### POST /api/v1/customer/money-gifts
-
-**Allowed role/access:** Authenticated
-
-**Summary:** Send payment as gift
-
-**Description:** Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.
-
-**Request payload example:**
-
-```json
-{
-  "amount": 100,
-  "currency": "PKR",
-  "recipientContactId": "cmf0contactmary001",
-  "message": "Hope this helps. Enjoy your day!",
-  "messageMediaUrls": [
-    "https://cdn.yourdomain.com/gift-message-media/photo.png"
-  ],
-  "deliveryDate": "2026-12-24T00:00:00.000Z",
-  "repeatAnnually": false,
-  "paymentMethod": "STRIPE_CARD"
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/customer/money-gifts
-
-**Allowed role/access:** Authenticated
-
-**Summary:** List own money gifts
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/customer/money-gifts/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** Fetch own money gift details
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-
-## Customer Referrals & Rewards
+## 05 Customer - Referrals & Rewards
 
 ### GET /api/v1/customer/referrals/summary
 
@@ -5771,7 +6599,7 @@ None
 ```
 
 
-## Customer Wallet
+## 05 Customer - Wallet
 
 ### GET /api/v1/customer/wallet
 
@@ -5880,15 +6708,42 @@ None
 ```
 
 
-## Media Upload Policy
+## 05 Customer - Payment Methods
 
-### GET /api/v1/media-upload-policy
+### POST /api/v1/customer/bank-accounts
 
-**Allowed role/access:** SUPER_ADMIN, ADMIN
+**Allowed role/access:** Authenticated
 
-**Summary:** Fetch global media upload policy
+**Summary:** Link placeholder bank account
 
-**Description:** SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.
+**Description:** Stores only masked display data. Full IBAN/account number is never returned.
+
+**Request payload example:**
+
+```json
+{
+  "accountHolderName": "John Smith",
+  "bankName": "Chase Bank",
+  "ibanOrAccountNumber": "1234567890",
+  "isDefault": false
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/customer/bank-accounts
+
+**Allowed role/access:** Authenticated
+
+**Summary:** List own bank accounts
 
 **Request payload example:**
 
@@ -5901,78 +6756,29 @@ None
 ```json
 {
   "success": true,
-  "data": {
-    "allowedFileTypes": {
-      "jpeg": true,
-      "jpg": true,
-      "png": true,
-      "gif": false,
-      "mp4": true,
-      "mov": true,
-      "mp3": true,
-      "wav": false,
-      "svg": false
-    },
-    "maxImageSizeMb": 10,
-    "maxVideoSizeMb": 500,
-    "maxAudioSizeMb": 50,
-    "scanUploads": true,
-    "blockSvgUploads": true,
-    "updatedAt": "2026-05-09T10:00:00.000Z",
-    "updatedBy": {
-      "id": "admin_id",
-      "name": "Alex Rivera"
+  "data": [
+    {
+      "id": "bank_account_id",
+      "accountHolderName": "John Smith",
+      "bankName": "Chase Bank",
+      "last4": "8821",
+      "maskedAccount": "**** 8821",
+      "isDefault": false
     }
-  },
-  "message": "Media upload policy fetched successfully."
+  ],
+  "message": "Bank accounts fetched successfully."
 }
 ```
 
-### PATCH /api/v1/media-upload-policy
+### PATCH /api/v1/customer/bank-accounts/{id}/default
 
-**Allowed role/access:** SUPER_ADMIN, ADMIN
+**Allowed role/access:** Authenticated
 
-**Summary:** Update global media upload policy
-
-**Description:** SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.
-
-**Request payload example:**
-
-```json
-{
-  "allowedFileTypes": "string",
-  "maxImageSizeMb": 10,
-  "maxVideoSizeMb": 500,
-  "maxAudioSizeMb": 50,
-  "scanUploads": true,
-  "blockSvgUploads": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/media-upload-policy/audit-logs
-
-**Allowed role/access:** SUPER_ADMIN, ADMIN
-
-**Summary:** List media upload policy audit logs
-
-**Description:** SUPER_ADMIN only.
+**Summary:** Set own default bank account
 
 **Parameters:**
 
-- `page` (query, optional)
-- `limit` (query, optional)
-- `fromDate` (query, optional)
-- `toDate` (query, optional)
+- `id` (path, required)
 
 **Request payload example:**
 
@@ -5990,16 +6796,39 @@ None
 }
 ```
 
+### DELETE /api/v1/customer/bank-accounts/{id}
 
-## Referral Settings
+**Allowed role/access:** Authenticated
 
-### GET /api/v1/referral-settings
+**Summary:** Delete own bank account
 
-**Allowed role/access:** SUPER_ADMIN, ADMIN
+**Parameters:**
 
-**Summary:** Fetch referral settings
+- `id` (path, required)
 
-**Description:** SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/customer/payment-methods/setup-intent
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Create Stripe SetupIntent for saving card
+
+**Description:** Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.
 
 **Request payload example:**
 
@@ -6013,61 +6842,21 @@ None
 {
   "success": true,
   "data": {
-    "isActive": true,
-    "referrerRewardAmount": 25,
-    "newUserRewardAmount": 10,
-    "rewardCurrency": "USD",
-    "minimumTransactionAmount": 50,
-    "referralExpirationValue": 30,
-    "referralExpirationUnit": "DAYS",
-    "allowSelfReferrals": false,
-    "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE",
-    "updatedAt": "2026-05-09T10:00:00.000Z"
+    "setupIntentId": "seti_xxx",
+    "clientSecret": "seti_xxx_secret_xxx",
+    "publishableKey": "pk_test_xxx"
   },
-  "message": "Referral settings fetched successfully."
+  "message": "Setup intent created successfully."
 }
 ```
 
-### PATCH /api/v1/referral-settings
+### GET /api/v1/customer/payment-methods/saved
 
-**Allowed role/access:** SUPER_ADMIN, ADMIN
+**Allowed role/access:** Authenticated
 
-**Summary:** Update referral settings
+**Summary:** List own saved payment methods
 
-**Description:** SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.
-
-**Request payload example:**
-
-```json
-{
-  "referrerRewardAmount": 25,
-  "newUserRewardAmount": 10,
-  "rewardCurrency": "USD",
-  "minimumTransactionAmount": 50,
-  "referralExpirationValue": 30,
-  "referralExpirationUnit": "DAYS",
-  "allowSelfReferrals": false,
-  "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE"
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### POST /api/v1/referral-settings/activate
-
-**Allowed role/access:** SUPER_ADMIN, ADMIN
-
-**Summary:** Activate referral program
-
-**Description:** SUPER_ADMIN only. Existing earned rewards remain redeemable.
+**Description:** Returns masked Stripe card metadata only.
 
 **Request payload example:**
 
@@ -6080,75 +6869,96 @@ None
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": [
+    {
+      "id": "pm_xxx",
+      "type": "CARD",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 9,
+      "expiryYear": 2025,
+      "isDefault": true
+    }
+  ],
+  "message": "Saved payment methods fetched successfully."
 }
 ```
 
-### POST /api/v1/referral-settings/deactivate
+### DELETE /api/v1/customer/payment-methods/{id}
 
-**Allowed role/access:** SUPER_ADMIN, ADMIN
+**Allowed role/access:** Authenticated
 
-**Summary:** Deactivate referral program
+**Summary:** Delete own saved payment method
 
-**Description:** SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.
-
-**Request payload example:**
-
-```json
-{
-  "reason": "Temporarily paused by Super Admin."
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/referral-settings/stats
-
-**Allowed role/access:** SUPER_ADMIN, ADMIN
-
-**Summary:** Fetch referral stats
-
-**Description:** SUPER_ADMIN or ADMIN with referralSettings.read.
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/referral-settings/audit-logs
-
-**Allowed role/access:** SUPER_ADMIN, ADMIN
-
-**Summary:** List referral settings audit logs
-
-**Description:** SUPER_ADMIN only.
+**Description:** Rejects deletion when the method is used by an active recurring payment.
 
 **Parameters:**
 
-- `page` (query, optional)
-- `limit` (query, optional)
-- `fromDate` (query, optional)
-- `toDate` (query, optional)
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/customer/payment-methods
+
+**Allowed role/access:** Authenticated
+
+**Summary:** List supported customer payment methods
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "key": "STRIPE_CARD",
+      "label": "Credit/Debit Card",
+      "enabled": true
+    },
+    {
+      "key": "BANK_TRANSFER",
+      "label": "Bank Payment",
+      "enabled": true
+    },
+    {
+      "key": "E_WALLET",
+      "label": "E-Wallet",
+      "enabled": false
+    }
+  ],
+  "message": "Payment methods fetched successfully."
+}
+```
+
+### PATCH /api/v1/customer/payment-methods/{id}/default
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Set own default payment method
+
+**Parameters:**
+
+- `id` (path, required)
 
 **Request payload example:**
 
@@ -6167,7 +6977,213 @@ None
 ```
 
 
-## Notifications
+## 06 Payments
+
+### POST /api/v1/customer/payments/create-intent
+
+**Allowed role/access:** REGISTERED_USER
+
+**Summary:** Create payment intent from active cart
+
+**Description:** REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.
+
+**Request payload example:**
+
+```json
+{
+  "cartId": "cmf0cartactive001",
+  "paymentMethod": "STRIPE_CARD"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "paymentId": "payment_id",
+    "stripePaymentIntentId": "pi_xxx",
+    "clientSecret": "pi_xxx_secret_xxx",
+    "publishableKey": "pk_live_or_test",
+    "amount": 10999,
+    "currency": "PKR"
+  },
+  "message": "Payment intent created successfully."
+}
+```
+
+### POST /api/v1/customer/payments/confirm
+
+**Allowed role/access:** REGISTERED_USER
+
+**Summary:** Confirm Stripe payment
+
+**Description:** REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.
+
+**Request payload example:**
+
+```json
+{
+  "paymentId": "cmf0payment001",
+  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/customer/payments/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Fetch own payment details
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "paymentId": "payment_id",
+    "provider": "STRIPE",
+    "stripePaymentIntentId": "pi_xxx",
+    "amount": 109.99,
+    "currency": "PKR",
+    "status": "SUCCEEDED",
+    "paymentMethod": "STRIPE_CARD",
+    "failureReason": null
+  },
+  "message": "Payment fetched successfully."
+}
+```
+
+### POST /api/v1/payments/stripe/webhook
+
+**Allowed role/access:** PUBLIC
+
+**Summary:** Stripe webhook endpoint
+
+**Description:** Verifies Stripe-Signature using the configured webhook secret before processing events.
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### POST /api/v1/customer/money-gifts
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Send payment as gift
+
+**Description:** Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.
+
+**Request payload example:**
+
+```json
+{
+  "amount": 100,
+  "currency": "PKR",
+  "recipientContactId": "cmf0contactmary001",
+  "message": "Hope this helps. Enjoy your day!",
+  "messageMediaUrls": [
+    "https://cdn.yourdomain.com/gift-message-media/photo.png"
+  ],
+  "deliveryDate": "2026-12-24T00:00:00.000Z",
+  "repeatAnnually": false,
+  "paymentMethod": "STRIPE_CARD"
+}
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/customer/money-gifts
+
+**Allowed role/access:** Authenticated
+
+**Summary:** List own money gifts
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+### GET /api/v1/customer/money-gifts/{id}
+
+**Allowed role/access:** Authenticated
+
+**Summary:** Fetch own money gift details
+
+**Parameters:**
+
+- `id` (path, required)
+
+**Request payload example:**
+
+```text
+None
+```
+
+**Response example:**
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Request completed successfully"
+}
+```
+
+
+## 06 Notifications
 
 ### GET /api/v1/notifications
 
@@ -6448,13 +7464,13 @@ None
 ```
 
 
-## Broadcast Notifications
+## 06 Broadcast Notifications
 
 ### POST /api/v1/broadcasts
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/broadcasts
 
 **Request payload example:**
 
@@ -6484,7 +7500,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/broadcasts
 
 **Parameters:**
 
@@ -6521,7 +7537,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/broadcasts/{id}
 
 **Parameters:**
 
@@ -6547,7 +7563,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/broadcasts/{id}
 
 **Parameters:**
 
@@ -6581,7 +7597,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/broadcasts/{id}/targeting
 
 **Parameters:**
 
@@ -6611,7 +7627,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/broadcasts/estimate-reach
 
 **Request payload example:**
 
@@ -6636,7 +7652,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/broadcasts/{id}/schedule
 
 **Parameters:**
 
@@ -6668,7 +7684,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/broadcasts/{id}/cancel
 
 **Parameters:**
 
@@ -6696,7 +7712,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/broadcasts/{id}/report
 
 **Parameters:**
 
@@ -6722,7 +7738,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/broadcasts/{id}/recipients
 
 **Parameters:**
 
@@ -6750,13 +7766,13 @@ None
 ```
 
 
-## Subscription Plans
+## 07 Plans & Coupons
 
 ### GET /api/v1/subscription-plans
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/subscription-plans
 
 **Parameters:**
 
@@ -6789,7 +7805,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/subscription-plans
 
 **Request payload example:**
 
@@ -6822,7 +7838,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/subscription-plans/stats
 
 **Request payload example:**
 
@@ -6844,7 +7860,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/subscription-plans/{id}
 
 **Parameters:**
 
@@ -6870,7 +7886,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/subscription-plans/{id}
 
 **Parameters:**
 
@@ -6907,7 +7923,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** DELETE /api/v1/subscription-plans/{id}
 
 **Parameters:**
 
@@ -6933,7 +7949,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/subscription-plans/{id}/status
 
 **Parameters:**
 
@@ -6962,7 +7978,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/subscription-plans/{id}/visibility
 
 **Parameters:**
 
@@ -6990,7 +8006,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/subscription-plans/{id}/analytics
 
 **Parameters:**
 
@@ -7016,7 +8032,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/plan-features/catalog
 
 **Request payload example:**
 
@@ -7038,7 +8054,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/plan-features
 
 **Parameters:**
 
@@ -7067,7 +8083,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/plan-features
 
 **Request payload example:**
 
@@ -7096,7 +8112,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/plan-features/{id}
 
 **Parameters:**
 
@@ -7122,7 +8138,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/plan-features/{id}
 
 **Parameters:**
 
@@ -7155,7 +8171,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** DELETE /api/v1/plan-features/{id}
 
 **Parameters:**
 
@@ -7177,14 +8193,11 @@ None
 }
 ```
 
-
-## Coupons
-
 ### GET /api/v1/coupons
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/coupons
 
 **Parameters:**
 
@@ -7214,7 +8227,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/coupons
 
 **Request payload example:**
 
@@ -7246,7 +8259,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/coupons/{id}
 
 **Parameters:**
 
@@ -7272,7 +8285,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/coupons/{id}
 
 **Parameters:**
 
@@ -7308,7 +8321,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** DELETE /api/v1/coupons/{id}
 
 **Parameters:**
 
@@ -7334,7 +8347,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** PATCH /api/v1/coupons/{id}/status
 
 **Parameters:**
 
@@ -7360,13 +8373,13 @@ None
 ```
 
 
-## Storage
+## 07 Storage
 
 ### POST /api/v1/uploads/presigned-url
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/uploads/presigned-url
 
 **Request payload example:**
 
@@ -7395,7 +8408,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** POST /api/v1/uploads/complete
 
 **Request payload example:**
 
@@ -7420,7 +8433,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/uploads
 
 **Parameters:**
 
@@ -7449,7 +8462,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
+**Summary:** GET /api/v1/uploads/{id}
 
 **Parameters:**
 
@@ -7475,108 +8488,7 @@ None
 
 **Allowed role/access:** Authenticated
 
-**Summary:** —
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-
-## Audit Logs
-
-### GET /api/v1/audit-logs/export
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
-
-**Parameters:**
-
-- `page` (query, optional)
-- `limit` (query, optional)
-- `actorId` (query, optional)
-- `targetId` (query, optional)
-- `action` (query, optional)
-- `targetType` (query, optional)
-- `module` (query, optional)
-- `from` (query, optional)
-- `to` (query, optional)
-- `sortBy` (query, optional)
-- `sortOrder` (query, optional)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/audit-logs
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
-
-**Parameters:**
-
-- `page` (query, optional)
-- `limit` (query, optional)
-- `actorId` (query, optional)
-- `targetId` (query, optional)
-- `action` (query, optional)
-- `targetType` (query, optional)
-- `module` (query, optional)
-- `from` (query, optional)
-- `to` (query, optional)
-- `sortBy` (query, optional)
-- `sortOrder` (query, optional)
-
-**Request payload example:**
-
-```text
-None
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### GET /api/v1/audit-logs/{id}
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
+**Summary:** DELETE /api/v1/uploads/{id}
 
 **Parameters:**
 

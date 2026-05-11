@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerTransactionsService } from './customer-transactions.service';
 import { CustomerTransactionExportFormat, CustomerTransactionPaymentMethod, CustomerTransactionSortBy, CustomerTransactionSortOrder, CustomerTransactionStatus, CustomerTransactionSummaryDto, CustomerTransactionType, ExportCustomerTransactionsDto, ListCustomerTransactionsDto } from './dto/customer-transactions.dto';
 
-@ApiTags('Customer Transactions')
+@ApiTags('05 Customer - Transactions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)

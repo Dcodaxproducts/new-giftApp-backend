@@ -10,7 +10,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { ApproveGiftDto, FlagGiftDto, ListGiftModerationDto, RejectGiftDto } from './dto/gift-management.dto';
 import { GiftManagementService } from './gift-management.service';
 
-@ApiTags('Gift Moderation')
+@ApiTags('04 Gifts - Moderation')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

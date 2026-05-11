@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerContactsService } from './customer-contacts.service';
 import { CreateCustomerContactDto, ListCustomerContactsDto, UpdateCustomerContactDto } from './dto/customer-contacts.dto';
 
-@ApiTags('Customer Contacts')
+@ApiTags('05 Customer - Contacts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)

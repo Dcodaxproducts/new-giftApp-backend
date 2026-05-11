@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -22,6 +23,7 @@ import {
   ExportRegisteredUsersDto,
   ListRegisteredUsersDto,
   ListUserActivityDto,
+  PermanentlyDeleteRegisteredUserDto,
   ResetRegisteredUserPasswordDto,
   SuspendRegisteredUserDto,
   UnsuspendRegisteredUserDto,
@@ -30,7 +32,7 @@ import {
 } from './dto/user-management.dto';
 import { UserManagementService } from './user-management.service';
 
-@ApiTags('User Management')
+@ApiTags('02 Admin - User Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -131,6 +133,22 @@ export class UserManagementController {
     @Body() dto: ResetRegisteredUserPasswordDto,
   ): Promise<unknown> {
     return this.userManagementService.resetPassword(user, id, dto);
+  }
+
+
+  @Delete(':id')
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Permanently delete registered user',
+    description: 'DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.',
+  })
+  @ApiResponse({ status: 200, description: 'User permanently deleted successfully', schema: { example: { success: true, data: { deletedUserId: 'user_id', deletedRelatedRecords: true }, message: 'User permanently deleted successfully.' } } })
+  permanentlyDelete(
+    @CurrentUser() user: AuthUserContext,
+    @Param('id') id: string,
+    @Body() dto: PermanentlyDeleteRegisteredUserDto,
+  ): Promise<unknown> {
+    return this.userManagementService.permanentlyDelete(user, id, dto);
   }
 
   @Get(':id/activity')

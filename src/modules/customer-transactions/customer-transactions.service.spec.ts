@@ -82,7 +82,7 @@ describe('Customer Transactions module', () => {
   });
 
   it('uses Customer Transactions Swagger group and app module registration', () => {
-    expect(controller).toContain("@ApiTags('Customer Transactions')");
+    expect(controller).toContain("@ApiTags('05 Customer - Transactions')");
     expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
     expect(appModule).toContain('CustomerTransactionsModule');
   });

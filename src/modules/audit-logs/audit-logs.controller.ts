@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { ListAuditLogsDto } from '../auth/dto/audit-logs.dto';
 import { AuditLogsService } from './audit-logs.service';
 
-@ApiTags('Audit Logs')
+@ApiTags('02 Admin - Audit Logs')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)

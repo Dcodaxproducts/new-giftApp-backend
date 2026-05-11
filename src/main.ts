@@ -1,46 +1,62 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 export const SWAGGER_TAG_ORDER = [
-  'Auth',
-  'Login Attempts',
-  'Admin Staff Management',
-  'Admin Roles / RBAC',
-  'User Management',
-  'Provider Management',
-  'Provider Inventory',
-  'Provider Promotional Offers',
-  'Promotional Offers Management',
-  'Gift Categories',
-  'Gift Management',
-  'Gift Moderation',
-  'Customer Marketplace',
-  'Customer Wishlist',
-  'Customer Addresses',
-  'Customer Contacts',
-  'Customer Events',
-  'Customer Event Reminder Settings',
-  'Customer Cart',
-  'Customer Orders',
-  'Customer Recurring Payments',
-  'Customer Transactions',
-  'Payments',
-  'Notifications',
-  'Broadcast Notifications',
-  'Subscription Plans',
-  'Coupons',
-  'Storage',
-  'Audit Logs',
+  '01 Auth',
+  '01 Auth - Login Attempts',
+  '02 Admin - Staff Management',
+  '02 Admin - Roles & Permissions',
+  '02 Admin - User Management',
+  '02 Admin - Provider Management',
+  '02 Admin - Promotional Offers',
+  '02 Admin - Referral Settings',
+  '02 Admin - Media Upload Policy',
+  '02 Admin - Audit Logs',
+  '03 Provider - Inventory',
+  '03 Provider - Promotional Offers',
+  '03 Provider - Orders',
+  '03 Provider - Order Analytics',
+  '04 Gifts - Categories',
+  '04 Gifts - Management',
+  '04 Gifts - Moderation',
+  '05 Customer - Marketplace',
+  '05 Customer - Wishlist',
+  '05 Customer - Addresses',
+  '05 Customer - Contacts',
+  '05 Customer - Events',
+  '05 Customer - Cart',
+  '05 Customer - Orders',
+  '05 Customer - Recurring Payments',
+  '05 Customer - Transactions',
+  '05 Customer - Referrals & Rewards',
+  '05 Customer - Wallet',
+  '05 Customer - Payment Methods',
+  '06 Payments',
+  '06 Notifications',
+  '06 Broadcast Notifications',
+  '07 Plans & Coupons',
+  '07 Storage',
 ] as const;
 
 function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
   return SWAGGER_TAG_ORDER.reduce((current, tag) => current.addTag(tag), builder);
+}
+
+export function fillMissingOperationSummaries(document: OpenAPIObject): void {
+  for (const [path, pathItem] of Object.entries(document.paths)) {
+    for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
+      const operation = pathItem?.[method];
+      if (operation && !operation.summary) {
+        operation.summary = `${method.toUpperCase()} ${path}`;
+      }
+    }
+  }
 }
 
 async function bootstrap(): Promise<void> {
@@ -70,45 +86,19 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, swaggerConfig, {
     autoTagControllers: false,
   });
+  fillMissingOperationSummaries(document);
   document.tags = SWAGGER_TAG_ORDER.map((name) => ({ name }));
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       tagsSorter: (a: string, b: string) => {
-        const order = [
-          'Auth',
-          'Login Attempts',
-          'Admin Staff Management',
-          'Admin Roles / RBAC',
-          'User Management',
-          'Provider Management',
-          'Provider Inventory',
-          'Provider Promotional Offers',
-          'Promotional Offers Management',
-          'Gift Categories',
-          'Gift Management',
-          'Gift Moderation',
-          'Customer Marketplace',
-          'Customer Wishlist',
-          'Customer Addresses',
-          'Customer Contacts',
-          'Customer Events',
-          'Customer Event Reminder Settings',
-          'Customer Cart',
-          'Customer Orders',
-          'Customer Recurring Payments',
-          'Customer Transactions',
-          'Payments',
-          'Notifications',
-          'Broadcast Notifications',
-          'Subscription Plans',
-          'Coupons',
-          'Storage',
-          'Audit Logs',
-        ];
-        const left = order.indexOf(a);
-        const right = order.indexOf(b);
-        return (left === -1 ? order.length : left) - (right === -1 ? order.length : right);
+        const left = SWAGGER_TAG_ORDER.indexOf(a as typeof SWAGGER_TAG_ORDER[number]);
+        const right = SWAGGER_TAG_ORDER.indexOf(b as typeof SWAGGER_TAG_ORDER[number]);
+        if (left === -1 && right === -1) return a.localeCompare(b);
+        if (left === -1) return 1;
+        if (right === -1) return -1;
+        return left - right;
       },
+      operationsSorter: 'method',
     },
   });
 

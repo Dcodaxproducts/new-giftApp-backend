@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerRecurringPaymentsService } from './customer-recurring-payments.service';
 import { CancelRecurringPaymentDto, CreateRecurringPaymentDto, ListRecurringPaymentsDto, PauseRecurringPaymentDto, RecurringPaymentHistoryDto, UpdateRecurringPaymentDto } from './dto/customer-recurring-payments.dto';
 
-@ApiTags('Customer Recurring Payments')
+@ApiTags('05 Customer - Recurring Payments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)
@@ -64,7 +64,7 @@ export class CustomerRecurringPaymentsController {
   history(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Query() query: RecurringPaymentHistoryDto) { return this.service.history(user, id, query); }
 }
 
-@ApiTags('Customer Recurring Payments')
+@ApiTags('05 Customer - Recurring Payments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)

@@ -19,7 +19,7 @@ describe('Media upload policy source safety', () => {
   });
 
   it('exposes Media Upload Policy APIs with required access rules', () => {
-    expect(controller).toContain("@ApiTags('Media Upload Policy')");
+    expect(controller).toContain("@ApiTags('02 Admin - Media Upload Policy')");
     expect(controller).toContain("@Controller('media-upload-policy')");
     expect(controller).toContain("@Permissions('mediaPolicy.read')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');

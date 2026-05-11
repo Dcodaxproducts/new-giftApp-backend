@@ -17,7 +17,7 @@ import {
   VerifyResetOtpDto,
 } from './dto/auth.dto';
 
-@ApiTags('Auth')
+@ApiTags('01 Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

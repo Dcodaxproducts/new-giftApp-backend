@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AccountType, LoginAttemptStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
@@ -13,6 +13,7 @@ import {
   RegisteredUserSortBy,
   RegisteredUserStatusFilter,
   RegisteredUserStatusUpdate,
+  PermanentlyDeleteRegisteredUserDto,
   ResetRegisteredUserPasswordDto,
   SortOrder,
   SuspendRegisteredUserDto,
@@ -195,6 +196,68 @@ export class UserManagementService {
       message: emailRequested && !emailSent
         ? 'User password changed successfully, but email could not be sent.'
         : 'User password changed successfully.',
+    };
+  }
+
+
+  async permanentlyDelete(user: AuthUserContext, id: string, dto: PermanentlyDeleteRegisteredUserDto) {
+    if (dto.confirmation !== 'PERMANENTLY_DELETE_USER') {
+      throw new BadRequestException('Invalid permanent delete confirmation text');
+    }
+
+    const target = await this.getRegisteredUser(id);
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.adminAuditLog.create({
+        data: {
+          actorId: user.uid,
+          targetId: target.id,
+          targetType: 'REGISTERED_USER',
+          action: 'REGISTERED_USER_PERMANENTLY_DELETED',
+          beforeJson: { id: target.id, email: target.email, role: target.role },
+          afterJson: { reason: dto.reason, deleteRelatedRecords: dto.deleteRelatedRecords ?? true },
+        },
+      });
+
+      await tx.notification.deleteMany({ where: { recipientId: target.id } });
+      await tx.notificationDeviceToken.deleteMany({ where: { userId: target.id } });
+      await tx.uploadedFile.deleteMany({ where: { ownerId: target.id } });
+      await tx.accountSuspension.deleteMany({ where: { accountId: target.id } });
+      await tx.loginAttempt.updateMany({ where: { userId: target.id }, data: { userId: null } });
+      await tx.customerWishlist.deleteMany({ where: { userId: target.id } });
+      await tx.cartItem.deleteMany({ where: { cart: { userId: target.id } } });
+      await tx.cart.deleteMany({ where: { userId: target.id } });
+      await tx.customerEventReminderJob.deleteMany({ where: { userId: target.id } });
+      await tx.customerEvent.deleteMany({ where: { userId: target.id } });
+      await tx.customerReminder.deleteMany({ where: { userId: target.id } });
+      await tx.customerBankAccount.deleteMany({ where: { userId: target.id } });
+      await tx.customerPaymentMethod.deleteMany({ where: { userId: target.id } });
+      await tx.customerWalletLedger.deleteMany({ where: { userId: target.id } });
+      await tx.customerWallet.deleteMany({ where: { userId: target.id } });
+      await tx.rewardLedger.deleteMany({ where: { userId: target.id } });
+      await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: target.id }, { referredUserId: target.id }] } });
+      await tx.customerRecurringPaymentOccurrence.updateMany({ where: { userId: target.id }, data: { failureReason: 'User permanently deleted' } });
+      await tx.customerRecurringPayment.updateMany({ where: { userId: target.id }, data: { deletedAt: new Date(), cancelReason: 'User permanently deleted' } });
+      await tx.customerContact.deleteMany({ where: { userId: target.id } });
+      await tx.user.update({
+        where: { id: target.id },
+        data: {
+          email: `deleted-user-${target.id}@deleted.local`,
+          firstName: 'Deleted',
+          lastName: 'User',
+          phone: null,
+          avatarUrl: null,
+          location: null,
+          isActive: false,
+          refreshTokenHash: null,
+          deletedAt: new Date(),
+          deleteAfter: new Date(),
+        },
+      });
+    });
+
+    return {
+      data: { deletedUserId: target.id, deletedRelatedRecords: dto.deleteRelatedRecords ?? true },
+      message: 'User permanently deleted successfully.',
     };
   }
 
@@ -620,8 +683,8 @@ export class UserManagementService {
         targetId,
         targetType: this.inferTargetType(action),
         action,
-        beforeJson: beforeJson === null ? undefined : (beforeJson as Prisma.InputJsonValue),
-        afterJson: afterJson === null ? undefined : (afterJson as Prisma.InputJsonValue),
+        beforeJson: beforeJson === null ? undefined : (beforeJson),
+        afterJson: afterJson === null ? undefined : (afterJson),
       },
     });
   }

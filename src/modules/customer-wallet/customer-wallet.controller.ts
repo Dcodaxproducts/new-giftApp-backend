@@ -8,7 +8,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerWalletService } from './customer-wallet.service';
 import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
 
-@ApiTags('Customer Wallet')
+@ApiTags('05 Customer - Wallet')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)
@@ -32,7 +32,7 @@ export class CustomerWalletController {
   history(@CurrentUser() user: AuthUserContext, @Query() query: ListWalletHistoryDto) { return this.wallet.history(user, query); }
 }
 
-@ApiTags('Customer Payment Methods')
+@ApiTags('05 Customer - Payment Methods')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)

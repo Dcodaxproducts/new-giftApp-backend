@@ -9,7 +9,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { ListLoginAttemptsDto } from './dto/list-login-attempts.dto';
 import { LoginAttemptsService } from './login-attempts.service';
 
-@ApiTags('Login Attempts')
+@ApiTags('01 Auth - Login Attempts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

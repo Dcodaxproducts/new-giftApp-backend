@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><title>Gift App API Record</title><style>body{font-family:Arial;margin:32px;}pre{background:#f5f5f5;padding:12px;border-radius:8px;white-space:pre-wrap;}code{background:#eee;padding:2px 4px;border-radius:4px;}h1,h2{color:#111827}</style></head><body><h1>Gift App API Record</h1><p>Total endpoints: 251</p><h2>Endpoint Index</h2><p>- `POST` `/api/v1/auth/users/register` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/providers/register` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/guest/session` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/login` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/refresh` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/logout` — Authenticated — —</p><p>- `POST` `/api/v1/auth/verify-email` — Authenticated — —</p><p>- `POST` `/api/v1/auth/resend-otp` — Authenticated — —</p><p>- `POST` `/api/v1/auth/forgot-password` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/verify-reset-otp` — PUBLIC — —</p><p>- `POST` `/api/v1/auth/reset-password` — PUBLIC — —</p><p>- `PATCH` `/api/v1/auth/change-password` — Authenticated — —</p><p>- `GET` `/api/v1/auth/me` — Authenticated — —</p><p>- `DELETE` `/api/v1/auth/account` — Authenticated — —</p><p>- `POST` `/api/v1/auth/cancel-deletion` — Authenticated — —</p><p>- `GET` `/api/v1/login-attempts/stats` — Authenticated — —</p><p>- `GET` `/api/v1/login-attempts/export` — Authenticated — —</p><p>- `GET` `/api/v1/login-attempts` — Authenticated — —</p><p>- `GET` `/api/v1/customer/referrals/summary` — REGISTERED_USER — Fetch own referral reward summary</p><p>- `GET` `/api/v1/customer/referrals/link` — Authenticated — Fetch own referral link</p><p>- `GET` `/api/v1/customer/referrals/history` — REGISTERED_USER — List own referral history</p><p>- `POST` `/api/v1/customer/referrals/redeem` — Authenticated — Redeem own available reward credit</p><p>- `GET` `/api/v1/customer/rewards/balance` — Authenticated — Fetch own reward balance</p><p>- `GET` `/api/v1/customer/rewards/ledger` — REGISTERED_USER — List own reward ledger</p><p>- `GET` `/api/v1/customer/referrals/terms` — Authenticated — Fetch referral terms</p><p>- `GET` `/api/v1/customer/wallet` — REGISTERED_USER — Fetch own wallet</p><p>- `POST` `/api/v1/customer/wallet/add-funds` — Authenticated — Create wallet top-up payment</p><p>- `GET` `/api/v1/customer/wallet/history` — Authenticated — List own wallet history</p><p>- `POST` `/api/v1/customer/bank-accounts` — Authenticated — Link placeholder bank account</p><p>- `GET` `/api/v1/customer/bank-accounts` — Authenticated — List own bank accounts</p><p>- `PATCH` `/api/v1/customer/bank-accounts/{id}/default` — Authenticated — Set own default bank account</p><p>- `DELETE` `/api/v1/customer/bank-accounts/{id}` — Authenticated — Delete own bank account</p><p>- `GET` `/api/v1/referral-settings` — SUPER_ADMIN, ADMIN — Fetch referral settings</p><p>- `PATCH` `/api/v1/referral-settings` — SUPER_ADMIN, ADMIN — Update referral settings</p><p>- `POST` `/api/v1/referral-settings/activate` — SUPER_ADMIN, ADMIN — Activate referral program</p><p>- `POST` `/api/v1/referral-settings/deactivate` — SUPER_ADMIN, ADMIN — Deactivate referral program</p><p>- `GET` `/api/v1/referral-settings/stats` — SUPER_ADMIN, ADMIN — Fetch referral stats</p><p>- `GET` `/api/v1/referral-settings/audit-logs` — SUPER_ADMIN, ADMIN — List referral settings audit logs</p><p>- `POST` `/api/v1/admins` — SUPER_ADMIN, ADMIN — Create admin staff user</p><p>- `GET` `/api/v1/admins` — SUPER_ADMIN, ADMIN — List admin staff users</p><p>- `GET` `/api/v1/admins/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/admins/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/admins/{id}/active-status` — Authenticated — —</p><p>- `PATCH` `/api/v1/admins/{id}/password` — Authenticated — —</p><p>- `GET` `/api/v1/admin-roles` — SUPER_ADMIN, ADMIN — —</p><p>- `POST` `/api/v1/admin-roles` — Authenticated — —</p><p>- `GET` `/api/v1/admin-roles/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/admin-roles/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/admin-roles/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/admin-roles/{id}/permissions` — Authenticated — —</p><p>- `GET` `/api/v1/permissions/catalog` — Authenticated — —</p><p>- `GET` `/api/v1/providers/export` — Authenticated — —</p><p>- `GET` `/api/v1/providers/stats` — Authenticated — —</p><p>- `GET` `/api/v1/providers` — SUPER_ADMIN, ADMIN — List providers</p><p>- `POST` `/api/v1/providers` — Authenticated — —</p><p>- `GET` `/api/v1/providers/lookup` — Authenticated — —</p><p>- `GET` `/api/v1/providers/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/providers/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/providers/{id}/status` — SUPER_ADMIN, ADMIN — Update provider lifecycle status</p><p>- `GET` `/api/v1/providers/{id}/items` — Authenticated — —</p><p>- `GET` `/api/v1/providers/{id}/activity` — Authenticated — —</p><p>- `POST` `/api/v1/providers/{id}/message` — Authenticated — —</p><p>- `GET` `/api/v1/provider-business-categories` — PUBLIC — List active provider business categories</p><p>- `POST` `/api/v1/provider-business-categories` — SUPER_ADMIN, ADMIN — Create provider business category</p><p>- `GET` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Fetch provider business category details</p><p>- `PATCH` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Update provider business category</p><p>- `DELETE` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Soft-delete provider business category</p><p>- `GET` `/api/v1/provider/inventory` — PROVIDER — List provider inventory items</p><p>- `POST` `/api/v1/provider/inventory` — PROVIDER — Create provider inventory item with optional nested variants</p><p>- `GET` `/api/v1/provider/inventory/stats` — Authenticated — Fetch provider inventory stats</p><p>- `GET` `/api/v1/provider/inventory/lookup` — Authenticated — Lookup active approved provider inventory items</p><p>- `GET` `/api/v1/provider/inventory/{id}` — Authenticated — Fetch own provider inventory item details</p><p>- `PATCH` `/api/v1/provider/inventory/{id}` — Authenticated — Update own provider inventory item and upsert variants</p><p>- `DELETE` `/api/v1/provider/inventory/{id}` — Authenticated — Soft-delete own inventory item</p><p>- `PATCH` `/api/v1/provider/inventory/{id}/availability` — Authenticated — Update own inventory availability</p><p>- `GET` `/api/v1/provider/orders` — PROVIDER — List own assigned provider orders</p><p>- `GET` `/api/v1/provider/orders/history` — PROVIDER — List own provider order history</p><p>- `GET` `/api/v1/provider/orders/performance` — PROVIDER — Fetch own provider order performance</p><p>- `GET` `/api/v1/provider/orders/analytics/revenue` — PROVIDER — Fetch own provider revenue analytics</p><p>- `GET` `/api/v1/provider/orders/analytics/ratings` — PROVIDER — Fetch own provider ratings analytics</p><p>- `GET` `/api/v1/provider/orders/recent` — PROVIDER — List recent own provider orders</p><p>- `GET` `/api/v1/provider/orders/export` — PROVIDER — Export own provider orders as CSV</p><p>- `GET` `/api/v1/provider/orders/summary` — PROVIDER — Fetch own provider order summary</p><p>- `GET` `/api/v1/provider/orders/reject-reasons` — Authenticated — List provider order reject reasons</p><p>- `PATCH` `/api/v1/provider/orders/{id}/status` — PROVIDER — Update own provider order fulfillment status</p><p>- `GET` `/api/v1/provider/orders/{id}/timeline` — PROVIDER — Fetch own provider order timeline</p><p>- `GET` `/api/v1/provider/orders/{id}/checklist` — PROVIDER — Fetch own provider order checklist</p><p>- `PATCH` `/api/v1/provider/orders/{id}/checklist` — PROVIDER — Update own provider order checklist</p><p>- `POST` `/api/v1/provider/orders/{id}/message-buyer` — PROVIDER — Message buyer for own provider order</p><p>- `GET` `/api/v1/provider/orders/{id}` — PROVIDER — Fetch own provider order details</p><p>- `POST` `/api/v1/provider/orders/{id}/accept` — Authenticated — Accept own pending provider order</p><p>- `POST` `/api/v1/provider/orders/{id}/reject` — Authenticated — Reject own pending provider order</p><p>- `GET` `/api/v1/provider/offers` — Authenticated — —</p><p>- `POST` `/api/v1/provider/offers` — Authenticated — —</p><p>- `GET` `/api/v1/provider/offers/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/provider/offers/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/provider/offers/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/provider/offers/{id}/status` — Authenticated — —</p><p>- `GET` `/api/v1/promotional-offers/stats` — Authenticated — —</p><p>- `GET` `/api/v1/promotional-offers/export` — Authenticated — —</p><p>- `GET` `/api/v1/promotional-offers` — Authenticated — —</p><p>- `POST` `/api/v1/promotional-offers` — Authenticated — —</p><p>- `GET` `/api/v1/promotional-offers/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/promotional-offers/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/promotional-offers/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/promotional-offers/{id}/approve` — Authenticated — —</p><p>- `PATCH` `/api/v1/promotional-offers/{id}/reject` — Authenticated — —</p><p>- `PATCH` `/api/v1/promotional-offers/{id}/status` — Authenticated — —</p><p>- `GET` `/api/v1/users/export` — Authenticated — —</p><p>- `GET` `/api/v1/users` — SUPER_ADMIN, ADMIN — List registered users</p><p>- `GET` `/api/v1/users/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/users/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/users/{id}/status` — Authenticated — —</p><p>- `POST` `/api/v1/users/{id}/suspend` — Authenticated — —</p><p>- `POST` `/api/v1/users/{id}/unsuspend` — Authenticated — —</p><p>- `POST` `/api/v1/users/{id}/reset-password` — SUPER_ADMIN; ADMIN with users.resetPassword — Change registered user password</p><p>- `GET` `/api/v1/users/{id}/activity` — Authenticated — —</p><p>- `GET` `/api/v1/users/{id}/stats` — Authenticated — —</p><p>- `GET` `/api/v1/customer/contacts` — REGISTERED_USER — List customer contacts</p><p>- `POST` `/api/v1/customer/contacts` — REGISTERED_USER — Create customer contact</p><p>- `GET` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Fetch customer contact</p><p>- `PATCH` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Update customer contact</p><p>- `DELETE` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Soft-delete customer contact</p><p>- `GET` `/api/v1/customer/events` — REGISTERED_USER — List customer events</p><p>- `POST` `/api/v1/customer/events` — REGISTERED_USER — Create customer event</p><p>- `GET` `/api/v1/customer/events/calendar` — REGISTERED_USER — Fetch monthly calendar events</p><p>- `GET` `/api/v1/customer/events/upcoming` — REGISTERED_USER — Fetch upcoming customer events</p><p>- `GET` `/api/v1/customer/events/{id}/reminder-settings` — REGISTERED_USER — Fetch event reminder settings</p><p>- `PATCH` `/api/v1/customer/events/{id}/reminder-settings` — REGISTERED_USER — Update event reminder settings</p><p>- `GET` `/api/v1/customer/events/{id}` — REGISTERED_USER — Fetch customer event details</p><p>- `PATCH` `/api/v1/customer/events/{id}` — REGISTERED_USER — Update customer event</p><p>- `DELETE` `/api/v1/customer/events/{id}` — REGISTERED_USER — Soft-delete customer event</p><p>- `GET` `/api/v1/customer/home` — REGISTERED_USER — Fetch customer app home</p><p>- `GET` `/api/v1/customer/categories` — REGISTERED_USER — List customer marketplace categories</p><p>- `GET` `/api/v1/customer/gifts/discounted` — REGISTERED_USER — List discounted customer gifts</p><p>- `GET` `/api/v1/customer/gifts/filter-options` — REGISTERED_USER — Fetch marketplace gift filter options</p><p>- `GET` `/api/v1/customer/gifts` — REGISTERED_USER — List customer marketplace gifts</p><p>- `GET` `/api/v1/customer/gifts/{id}` — REGISTERED_USER — Fetch customer-safe gift details</p><p>- `GET` `/api/v1/customer/wishlist` — REGISTERED_USER — List wishlist gifts</p><p>- `POST` `/api/v1/customer/wishlist/{giftId}` — REGISTERED_USER — Add gift to wishlist</p><p>- `DELETE` `/api/v1/customer/wishlist/{giftId}` — REGISTERED_USER — Remove gift from wishlist</p><p>- `GET` `/api/v1/customer/addresses` — REGISTERED_USER — List customer addresses</p><p>- `POST` `/api/v1/customer/addresses` — REGISTERED_USER — Create customer address</p><p>- `GET` `/api/v1/customer/addresses/{id}` — REGISTERED_USER — Fetch customer address</p><p>- `PATCH` `/api/v1/customer/addresses/{id}` — REGISTERED_USER — Update customer address</p><p>- `DELETE` `/api/v1/customer/addresses/{id}` — REGISTERED_USER — Soft-delete customer address</p><p>- `PATCH` `/api/v1/customer/addresses/{id}/default` — REGISTERED_USER — Set default customer address</p><p>- `GET` `/api/v1/customer/cart` — REGISTERED_USER — Fetch active cart</p><p>- `DELETE` `/api/v1/customer/cart` — REGISTERED_USER — Clear active cart</p><p>- `POST` `/api/v1/customer/cart/items` — REGISTERED_USER — Add item to cart</p><p>- `PATCH` `/api/v1/customer/cart/items/{id}` — REGISTERED_USER — Update cart item</p><p>- `DELETE` `/api/v1/customer/cart/items/{id}` — REGISTERED_USER — Delete cart item</p><p>- `POST` `/api/v1/customer/orders` — REGISTERED_USER — Create order from active cart</p><p>- `GET` `/api/v1/customer/orders` — REGISTERED_USER — List customer orders</p><p>- `GET` `/api/v1/customer/orders/{id}` — REGISTERED_USER — Fetch customer order</p><p>- `GET` `/api/v1/customer/recurring-payments` — REGISTERED_USER — List own recurring payments</p><p>- `POST` `/api/v1/customer/recurring-payments` — REGISTERED_USER — Create recurring payment</p><p>- `GET` `/api/v1/customer/recurring-payments/summary` — Authenticated — Fetch recurring payment summary counts</p><p>- `GET` `/api/v1/customer/recurring-payments/{id}` — REGISTERED_USER — Fetch own recurring payment details</p><p>- `PATCH` `/api/v1/customer/recurring-payments/{id}` — Authenticated — Update own recurring payment</p><p>- `POST` `/api/v1/customer/recurring-payments/{id}/pause` — Authenticated — Pause own active recurring payment</p><p>- `POST` `/api/v1/customer/recurring-payments/{id}/resume` — Authenticated — Resume own paused recurring payment</p><p>- `POST` `/api/v1/customer/recurring-payments/{id}/cancel` — Authenticated — Cancel own recurring payment</p><p>- `GET` `/api/v1/customer/recurring-payments/{id}/history` — Authenticated — List own recurring payment billing history</p><p>- `POST` `/api/v1/customer/payment-methods/setup-intent` — Authenticated — Create Stripe SetupIntent for saving card</p><p>- `GET` `/api/v1/customer/payment-methods/saved` — Authenticated — List own saved payment methods</p><p>- `DELETE` `/api/v1/customer/payment-methods/{id}` — Authenticated — Delete own saved payment method</p><p>- `GET` `/api/v1/customer/transactions` — REGISTERED_USER — List own customer transactions</p><p>- `GET` `/api/v1/customer/transactions/summary` — Authenticated — Fetch own transaction summary</p><p>- `GET` `/api/v1/customer/transactions/export` — Authenticated — Export own transactions</p><p>- `GET` `/api/v1/customer/transactions/{id}` — Authenticated — Fetch own transaction details</p><p>- `GET` `/api/v1/customer/transactions/{id}/receipt` — Authenticated — Download own transaction receipt</p><p>- `GET` `/api/v1/gift-categories/lookup` — PUBLIC — Lookup active gift categories</p><p>- `POST` `/api/v1/gift-categories` — Authenticated — Create gift category</p><p>- `GET` `/api/v1/gift-categories` — Authenticated — List gift categories</p><p>- `GET` `/api/v1/gift-categories/stats` — Authenticated — Fetch gift category stats</p><p>- `GET` `/api/v1/gift-categories/{id}` — Authenticated — Fetch gift category details</p><p>- `PATCH` `/api/v1/gift-categories/{id}` — Authenticated — Update gift category</p><p>- `DELETE` `/api/v1/gift-categories/{id}` — Authenticated — Soft-delete gift category</p><p>- `POST` `/api/v1/gifts` — SUPER_ADMIN, ADMIN — Create admin gift with optional nested variants</p><p>- `GET` `/api/v1/gifts` — SUPER_ADMIN, ADMIN — List admin gifts</p><p>- `GET` `/api/v1/gifts/stats` — Authenticated — Fetch gift inventory stats</p><p>- `GET` `/api/v1/gifts/export` — Authenticated — Export gift inventory</p><p>- `GET` `/api/v1/gifts/{id}` — Authenticated — Fetch admin gift details with variants</p><p>- `PATCH` `/api/v1/gifts/{id}` — Authenticated — Update admin gift and upsert nested variants</p><p>- `DELETE` `/api/v1/gifts/{id}` — Authenticated — Soft-delete gift</p><p>- `PATCH` `/api/v1/gifts/{id}/status` — Authenticated — Update gift status</p><p>- `GET` `/api/v1/gift-moderation` — Authenticated — —</p><p>- `PATCH` `/api/v1/gift-moderation/{id}/approve` — Authenticated — —</p><p>- `PATCH` `/api/v1/gift-moderation/{id}/reject` — Authenticated — —</p><p>- `PATCH` `/api/v1/gift-moderation/{id}/flag` — Authenticated — —</p><p>- `POST` `/api/v1/broadcasts` — Authenticated — —</p><p>- `GET` `/api/v1/broadcasts` — Authenticated — —</p><p>- `GET` `/api/v1/broadcasts/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/broadcasts/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/broadcasts/{id}/targeting` — Authenticated — —</p><p>- `POST` `/api/v1/broadcasts/estimate-reach` — Authenticated — —</p><p>- `PATCH` `/api/v1/broadcasts/{id}/schedule` — Authenticated — —</p><p>- `POST` `/api/v1/broadcasts/{id}/cancel` — Authenticated — —</p><p>- `GET` `/api/v1/broadcasts/{id}/report` — Authenticated — —</p><p>- `GET` `/api/v1/broadcasts/{id}/recipients` — Authenticated — —</p><p>- `GET` `/api/v1/notifications` — Authenticated — List notifications</p><p>- `GET` `/api/v1/notifications/summary` — Authenticated — Fetch notification summary</p><p>- `GET` `/api/v1/notifications/preferences` — Authenticated — Fetch notification preferences</p><p>- `PATCH` `/api/v1/notifications/preferences` — Authenticated — Update notification preferences</p><p>- `PATCH` `/api/v1/notifications/read-all` — Authenticated — Mark all own notifications as read</p><p>- `PATCH` `/api/v1/notifications/{id}/read` — Authenticated — Mark notification as read</p><p>- `POST` `/api/v1/notifications/{id}/action` — Authenticated — Process notification action</p><p>- `POST` `/api/v1/notifications/device-tokens` — Authenticated — Save device token</p><p>- `DELETE` `/api/v1/notifications/device-tokens/{id}` — Authenticated — Disable device token</p><p>- `GET` `/api/v1/subscription-plans` — Authenticated — —</p><p>- `POST` `/api/v1/subscription-plans` — Authenticated — —</p><p>- `GET` `/api/v1/subscription-plans/stats` — Authenticated — —</p><p>- `GET` `/api/v1/subscription-plans/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/subscription-plans/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/subscription-plans/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/subscription-plans/{id}/status` — Authenticated — —</p><p>- `PATCH` `/api/v1/subscription-plans/{id}/visibility` — Authenticated — —</p><p>- `GET` `/api/v1/subscription-plans/{id}/analytics` — Authenticated — —</p><p>- `GET` `/api/v1/plan-features/catalog` — Authenticated — —</p><p>- `GET` `/api/v1/plan-features` — Authenticated — —</p><p>- `POST` `/api/v1/plan-features` — Authenticated — —</p><p>- `GET` `/api/v1/plan-features/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/plan-features/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/plan-features/{id}` — Authenticated — —</p><p>- `GET` `/api/v1/coupons` — Authenticated — —</p><p>- `POST` `/api/v1/coupons` — Authenticated — —</p><p>- `GET` `/api/v1/coupons/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/coupons/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/coupons/{id}` — Authenticated — —</p><p>- `PATCH` `/api/v1/coupons/{id}/status` — Authenticated — —</p><p>- `GET` `/api/v1/media-upload-policy` — SUPER_ADMIN, ADMIN — Fetch global media upload policy</p><p>- `PATCH` `/api/v1/media-upload-policy` — SUPER_ADMIN, ADMIN — Update global media upload policy</p><p>- `GET` `/api/v1/media-upload-policy/audit-logs` — SUPER_ADMIN, ADMIN — List media upload policy audit logs</p><p>- `POST` `/api/v1/customer/payments/create-intent` — REGISTERED_USER — Create payment intent from active cart</p><p>- `POST` `/api/v1/customer/payments/confirm` — REGISTERED_USER — Confirm Stripe payment</p><p>- `GET` `/api/v1/customer/payments/{id}` — Authenticated — Fetch own payment details</p><p>- `GET` `/api/v1/customer/payment-methods` — Authenticated — List supported customer payment methods</p><p>- `PATCH` `/api/v1/customer/payment-methods/{id}/default` — Authenticated — Set own default payment method</p><p>- `POST` `/api/v1/payments/stripe/webhook` — PUBLIC — Stripe webhook endpoint</p><p>- `POST` `/api/v1/customer/money-gifts` — Authenticated — Send payment as gift</p><p>- `GET` `/api/v1/customer/money-gifts` — Authenticated — List own money gifts</p><p>- `GET` `/api/v1/customer/money-gifts/{id}` — Authenticated — Fetch own money gift details</p><p>- `GET` `/api/v1/audit-logs/export` — Authenticated — —</p><p>- `GET` `/api/v1/audit-logs` — Authenticated — —</p><p>- `GET` `/api/v1/audit-logs/{id}` — Authenticated — —</p><p>- `POST` `/api/v1/uploads/presigned-url` — Authenticated — —</p><p>- `POST` `/api/v1/uploads/complete` — Authenticated — —</p><p>- `GET` `/api/v1/uploads` — Authenticated — —</p><p>- `GET` `/api/v1/uploads/{id}` — Authenticated — —</p><p>- `DELETE` `/api/v1/uploads/{id}` — Authenticated — —</p><h2>Auth</h2><h3>POST /api/v1/auth/users/register</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+<html><head><meta charset="utf-8"><title>Gift App API Record</title><style>body{font-family:Arial;margin:32px;}pre{background:#f5f5f5;padding:12px;border-radius:8px;white-space:pre-wrap;}code{background:#eee;padding:2px 4px;border-radius:4px;}h1,h2{color:#111827}</style></head><body><h1>Gift App API Record</h1><p>Total endpoints: 254</p><h2>Endpoint Index</h2><p>- `POST` `/api/v1/auth/users/register` — PUBLIC — POST /api/v1/auth/users/register</p><p>- `POST` `/api/v1/auth/providers/register` — PUBLIC — POST /api/v1/auth/providers/register</p><p>- `POST` `/api/v1/auth/guest/session` — PUBLIC — POST /api/v1/auth/guest/session</p><p>- `POST` `/api/v1/auth/login` — PUBLIC — POST /api/v1/auth/login</p><p>- `POST` `/api/v1/auth/refresh` — PUBLIC — POST /api/v1/auth/refresh</p><p>- `POST` `/api/v1/auth/logout` — Authenticated — POST /api/v1/auth/logout</p><p>- `POST` `/api/v1/auth/verify-email` — Authenticated — POST /api/v1/auth/verify-email</p><p>- `POST` `/api/v1/auth/resend-otp` — Authenticated — POST /api/v1/auth/resend-otp</p><p>- `POST` `/api/v1/auth/forgot-password` — PUBLIC — POST /api/v1/auth/forgot-password</p><p>- `POST` `/api/v1/auth/verify-reset-otp` — PUBLIC — POST /api/v1/auth/verify-reset-otp</p><p>- `POST` `/api/v1/auth/reset-password` — PUBLIC — POST /api/v1/auth/reset-password</p><p>- `PATCH` `/api/v1/auth/change-password` — Authenticated — PATCH /api/v1/auth/change-password</p><p>- `GET` `/api/v1/auth/me` — Authenticated — GET /api/v1/auth/me</p><p>- `DELETE` `/api/v1/auth/account` — Authenticated — DELETE /api/v1/auth/account</p><p>- `POST` `/api/v1/auth/cancel-deletion` — Authenticated — POST /api/v1/auth/cancel-deletion</p><p>- `GET` `/api/v1/login-attempts/stats` — Authenticated — GET /api/v1/login-attempts/stats</p><p>- `GET` `/api/v1/login-attempts/export` — Authenticated — GET /api/v1/login-attempts/export</p><p>- `GET` `/api/v1/login-attempts` — Authenticated — GET /api/v1/login-attempts</p><p>- `GET` `/api/v1/customer/referrals/summary` — REGISTERED_USER — Fetch own referral reward summary</p><p>- `GET` `/api/v1/customer/referrals/link` — Authenticated — Fetch own referral link</p><p>- `GET` `/api/v1/customer/referrals/history` — REGISTERED_USER — List own referral history</p><p>- `POST` `/api/v1/customer/referrals/redeem` — Authenticated — Redeem own available reward credit</p><p>- `GET` `/api/v1/customer/rewards/balance` — Authenticated — Fetch own reward balance</p><p>- `GET` `/api/v1/customer/rewards/ledger` — REGISTERED_USER — List own reward ledger</p><p>- `GET` `/api/v1/customer/referrals/terms` — Authenticated — Fetch referral terms</p><p>- `GET` `/api/v1/customer/wallet` — REGISTERED_USER — Fetch own wallet</p><p>- `POST` `/api/v1/customer/wallet/add-funds` — Authenticated — Create wallet top-up payment</p><p>- `GET` `/api/v1/customer/wallet/history` — Authenticated — List own wallet history</p><p>- `POST` `/api/v1/customer/bank-accounts` — Authenticated — Link placeholder bank account</p><p>- `GET` `/api/v1/customer/bank-accounts` — Authenticated — List own bank accounts</p><p>- `PATCH` `/api/v1/customer/bank-accounts/{id}/default` — Authenticated — Set own default bank account</p><p>- `DELETE` `/api/v1/customer/bank-accounts/{id}` — Authenticated — Delete own bank account</p><p>- `GET` `/api/v1/referral-settings` — SUPER_ADMIN, ADMIN — Fetch referral settings</p><p>- `PATCH` `/api/v1/referral-settings` — SUPER_ADMIN, ADMIN — Update referral settings</p><p>- `POST` `/api/v1/referral-settings/activate` — SUPER_ADMIN, ADMIN — Activate referral program</p><p>- `POST` `/api/v1/referral-settings/deactivate` — SUPER_ADMIN, ADMIN — Deactivate referral program</p><p>- `GET` `/api/v1/referral-settings/stats` — SUPER_ADMIN, ADMIN — Fetch referral stats</p><p>- `GET` `/api/v1/referral-settings/audit-logs` — SUPER_ADMIN, ADMIN — List referral settings audit logs</p><p>- `POST` `/api/v1/admins` — SUPER_ADMIN, ADMIN — Create admin staff user</p><p>- `GET` `/api/v1/admins` — SUPER_ADMIN, ADMIN — List admin staff users</p><p>- `GET` `/api/v1/admins/{id}` — Authenticated — GET /api/v1/admins/{id}</p><p>- `PATCH` `/api/v1/admins/{id}` — Authenticated — PATCH /api/v1/admins/{id}</p><p>- `DELETE` `/api/v1/admins/{id}` — SUPER_ADMIN, ADMIN — Permanently delete admin staff user</p><p>- `PATCH` `/api/v1/admins/{id}/active-status` — Authenticated — PATCH /api/v1/admins/{id}/active-status</p><p>- `PATCH` `/api/v1/admins/{id}/password` — Authenticated — PATCH /api/v1/admins/{id}/password</p><p>- `GET` `/api/v1/admin-roles` — SUPER_ADMIN, ADMIN — GET /api/v1/admin-roles</p><p>- `POST` `/api/v1/admin-roles` — Authenticated — POST /api/v1/admin-roles</p><p>- `GET` `/api/v1/admin-roles/{id}` — Authenticated — GET /api/v1/admin-roles/{id}</p><p>- `PATCH` `/api/v1/admin-roles/{id}` — Authenticated — PATCH /api/v1/admin-roles/{id}</p><p>- `DELETE` `/api/v1/admin-roles/{id}` — Authenticated — DELETE /api/v1/admin-roles/{id}</p><p>- `PATCH` `/api/v1/admin-roles/{id}/permissions` — Authenticated — PATCH /api/v1/admin-roles/{id}/permissions</p><p>- `GET` `/api/v1/permissions/catalog` — Authenticated — GET /api/v1/permissions/catalog</p><p>- `GET` `/api/v1/providers/export` — Authenticated — GET /api/v1/providers/export</p><p>- `GET` `/api/v1/providers/stats` — Authenticated — GET /api/v1/providers/stats</p><p>- `GET` `/api/v1/providers` — SUPER_ADMIN, ADMIN — List providers</p><p>- `POST` `/api/v1/providers` — Authenticated — POST /api/v1/providers</p><p>- `GET` `/api/v1/providers/lookup` — Authenticated — GET /api/v1/providers/lookup</p><p>- `GET` `/api/v1/providers/{id}` — Authenticated — GET /api/v1/providers/{id}</p><p>- `PATCH` `/api/v1/providers/{id}` — Authenticated — PATCH /api/v1/providers/{id}</p><p>- `DELETE` `/api/v1/providers/{id}` — Authenticated — Permanently delete provider</p><p>- `PATCH` `/api/v1/providers/{id}/status` — SUPER_ADMIN, ADMIN — Update provider lifecycle status</p><p>- `GET` `/api/v1/providers/{id}/items` — Authenticated — GET /api/v1/providers/{id}/items</p><p>- `GET` `/api/v1/providers/{id}/activity` — Authenticated — GET /api/v1/providers/{id}/activity</p><p>- `POST` `/api/v1/providers/{id}/message` — Authenticated — POST /api/v1/providers/{id}/message</p><p>- `GET` `/api/v1/provider-business-categories` — PUBLIC — List active provider business categories</p><p>- `POST` `/api/v1/provider-business-categories` — SUPER_ADMIN, ADMIN — Create provider business category</p><p>- `GET` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Fetch provider business category details</p><p>- `PATCH` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Update provider business category</p><p>- `DELETE` `/api/v1/provider-business-categories/{id}` — SUPER_ADMIN, ADMIN — Soft-delete provider business category</p><p>- `GET` `/api/v1/provider/inventory` — PROVIDER — List provider inventory items</p><p>- `POST` `/api/v1/provider/inventory` — PROVIDER — Create provider inventory item with optional nested variants</p><p>- `GET` `/api/v1/provider/inventory/stats` — Authenticated — Fetch provider inventory stats</p><p>- `GET` `/api/v1/provider/inventory/lookup` — Authenticated — Lookup active approved provider inventory items</p><p>- `GET` `/api/v1/provider/inventory/{id}` — Authenticated — Fetch own provider inventory item details</p><p>- `PATCH` `/api/v1/provider/inventory/{id}` — Authenticated — Update own provider inventory item and upsert variants</p><p>- `DELETE` `/api/v1/provider/inventory/{id}` — Authenticated — Soft-delete own inventory item</p><p>- `PATCH` `/api/v1/provider/inventory/{id}/availability` — Authenticated — Update own inventory availability</p><p>- `GET` `/api/v1/provider/orders` — PROVIDER — List own assigned provider orders</p><p>- `GET` `/api/v1/provider/orders/history` — PROVIDER — List own provider order history</p><p>- `GET` `/api/v1/provider/orders/performance` — PROVIDER — Fetch own provider order performance</p><p>- `GET` `/api/v1/provider/orders/analytics/revenue` — PROVIDER — Fetch own provider revenue analytics</p><p>- `GET` `/api/v1/provider/orders/analytics/ratings` — PROVIDER — Fetch own provider ratings analytics</p><p>- `GET` `/api/v1/provider/orders/recent` — PROVIDER — List recent own provider orders</p><p>- `GET` `/api/v1/provider/orders/export` — PROVIDER — Export own provider orders as CSV</p><p>- `GET` `/api/v1/provider/orders/summary` — PROVIDER — Fetch own provider order summary</p><p>- `GET` `/api/v1/provider/orders/reject-reasons` — Authenticated — List provider order reject reasons</p><p>- `PATCH` `/api/v1/provider/orders/{id}/status` — PROVIDER — Update own provider order fulfillment status</p><p>- `GET` `/api/v1/provider/orders/{id}/timeline` — PROVIDER — Fetch own provider order timeline</p><p>- `GET` `/api/v1/provider/orders/{id}/checklist` — PROVIDER — Fetch own provider order checklist</p><p>- `PATCH` `/api/v1/provider/orders/{id}/checklist` — PROVIDER — Update own provider order checklist</p><p>- `POST` `/api/v1/provider/orders/{id}/message-buyer` — PROVIDER — Message buyer for own provider order</p><p>- `GET` `/api/v1/provider/orders/{id}` — PROVIDER — Fetch own provider order details</p><p>- `POST` `/api/v1/provider/orders/{id}/accept` — Authenticated — Accept own pending provider order</p><p>- `POST` `/api/v1/provider/orders/{id}/reject` — Authenticated — Reject own pending provider order</p><p>- `GET` `/api/v1/provider/offers` — Authenticated — GET /api/v1/provider/offers</p><p>- `POST` `/api/v1/provider/offers` — Authenticated — POST /api/v1/provider/offers</p><p>- `GET` `/api/v1/provider/offers/{id}` — Authenticated — GET /api/v1/provider/offers/{id}</p><p>- `PATCH` `/api/v1/provider/offers/{id}` — Authenticated — PATCH /api/v1/provider/offers/{id}</p><p>- `DELETE` `/api/v1/provider/offers/{id}` — Authenticated — DELETE /api/v1/provider/offers/{id}</p><p>- `PATCH` `/api/v1/provider/offers/{id}/status` — Authenticated — PATCH /api/v1/provider/offers/{id}/status</p><p>- `GET` `/api/v1/promotional-offers/stats` — Authenticated — GET /api/v1/promotional-offers/stats</p><p>- `GET` `/api/v1/promotional-offers/export` — Authenticated — GET /api/v1/promotional-offers/export</p><p>- `GET` `/api/v1/promotional-offers` — Authenticated — GET /api/v1/promotional-offers</p><p>- `POST` `/api/v1/promotional-offers` — Authenticated — POST /api/v1/promotional-offers</p><p>- `GET` `/api/v1/promotional-offers/{id}` — Authenticated — GET /api/v1/promotional-offers/{id}</p><p>- `PATCH` `/api/v1/promotional-offers/{id}` — Authenticated — PATCH /api/v1/promotional-offers/{id}</p><p>- `DELETE` `/api/v1/promotional-offers/{id}` — Authenticated — DELETE /api/v1/promotional-offers/{id}</p><p>- `PATCH` `/api/v1/promotional-offers/{id}/approve` — Authenticated — PATCH /api/v1/promotional-offers/{id}/approve</p><p>- `PATCH` `/api/v1/promotional-offers/{id}/reject` — Authenticated — PATCH /api/v1/promotional-offers/{id}/reject</p><p>- `PATCH` `/api/v1/promotional-offers/{id}/status` — Authenticated — PATCH /api/v1/promotional-offers/{id}/status</p><p>- `GET` `/api/v1/users/export` — Authenticated — GET /api/v1/users/export</p><p>- `GET` `/api/v1/users` — SUPER_ADMIN, ADMIN — List registered users</p><p>- `GET` `/api/v1/users/{id}` — Authenticated — GET /api/v1/users/{id}</p><p>- `PATCH` `/api/v1/users/{id}` — Authenticated — PATCH /api/v1/users/{id}</p><p>- `DELETE` `/api/v1/users/{id}` — Authenticated — Permanently delete registered user</p><p>- `PATCH` `/api/v1/users/{id}/status` — Authenticated — PATCH /api/v1/users/{id}/status</p><p>- `POST` `/api/v1/users/{id}/suspend` — Authenticated — POST /api/v1/users/{id}/suspend</p><p>- `POST` `/api/v1/users/{id}/unsuspend` — Authenticated — POST /api/v1/users/{id}/unsuspend</p><p>- `POST` `/api/v1/users/{id}/reset-password` — SUPER_ADMIN; ADMIN with users.resetPassword — Change registered user password</p><p>- `GET` `/api/v1/users/{id}/activity` — Authenticated — GET /api/v1/users/{id}/activity</p><p>- `GET` `/api/v1/users/{id}/stats` — Authenticated — GET /api/v1/users/{id}/stats</p><p>- `GET` `/api/v1/customer/contacts` — REGISTERED_USER — List customer contacts</p><p>- `POST` `/api/v1/customer/contacts` — REGISTERED_USER — Create customer contact</p><p>- `GET` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Fetch customer contact</p><p>- `PATCH` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Update customer contact</p><p>- `DELETE` `/api/v1/customer/contacts/{id}` — REGISTERED_USER — Soft-delete customer contact</p><p>- `GET` `/api/v1/customer/events` — REGISTERED_USER — List customer events</p><p>- `POST` `/api/v1/customer/events` — REGISTERED_USER — Create customer event</p><p>- `GET` `/api/v1/customer/events/calendar` — REGISTERED_USER — Fetch monthly calendar events</p><p>- `GET` `/api/v1/customer/events/upcoming` — REGISTERED_USER — Fetch upcoming customer events</p><p>- `GET` `/api/v1/customer/events/{id}/reminder-settings` — REGISTERED_USER — Fetch event reminder settings</p><p>- `PATCH` `/api/v1/customer/events/{id}/reminder-settings` — REGISTERED_USER — Update event reminder settings</p><p>- `GET` `/api/v1/customer/events/{id}` — REGISTERED_USER — Fetch customer event details</p><p>- `PATCH` `/api/v1/customer/events/{id}` — REGISTERED_USER — Update customer event</p><p>- `DELETE` `/api/v1/customer/events/{id}` — REGISTERED_USER — Soft-delete customer event</p><p>- `GET` `/api/v1/customer/home` — REGISTERED_USER — Fetch customer app home</p><p>- `GET` `/api/v1/customer/categories` — REGISTERED_USER — List customer marketplace categories</p><p>- `GET` `/api/v1/customer/gifts/discounted` — REGISTERED_USER — List discounted customer gifts</p><p>- `GET` `/api/v1/customer/gifts/filter-options` — REGISTERED_USER — Fetch marketplace gift filter options</p><p>- `GET` `/api/v1/customer/gifts` — REGISTERED_USER — List customer marketplace gifts</p><p>- `GET` `/api/v1/customer/gifts/{id}` — REGISTERED_USER — Fetch customer-safe gift details</p><p>- `GET` `/api/v1/customer/wishlist` — REGISTERED_USER — List wishlist gifts</p><p>- `POST` `/api/v1/customer/wishlist/{giftId}` — REGISTERED_USER — Add gift to wishlist</p><p>- `DELETE` `/api/v1/customer/wishlist/{giftId}` — REGISTERED_USER — Remove gift from wishlist</p><p>- `GET` `/api/v1/customer/addresses` — REGISTERED_USER — List customer addresses</p><p>- `POST` `/api/v1/customer/addresses` — REGISTERED_USER — Create customer address</p><p>- `GET` `/api/v1/customer/addresses/{id}` — REGISTERED_USER — Fetch customer address</p><p>- `PATCH` `/api/v1/customer/addresses/{id}` — REGISTERED_USER — Update customer address</p><p>- `DELETE` `/api/v1/customer/addresses/{id}` — REGISTERED_USER — Soft-delete customer address</p><p>- `PATCH` `/api/v1/customer/addresses/{id}/default` — REGISTERED_USER — Set default customer address</p><p>- `GET` `/api/v1/customer/cart` — REGISTERED_USER — Fetch active cart</p><p>- `DELETE` `/api/v1/customer/cart` — REGISTERED_USER — Clear active cart</p><p>- `POST` `/api/v1/customer/cart/items` — REGISTERED_USER — Add item to cart</p><p>- `PATCH` `/api/v1/customer/cart/items/{id}` — REGISTERED_USER — Update cart item</p><p>- `DELETE` `/api/v1/customer/cart/items/{id}` — REGISTERED_USER — Delete cart item</p><p>- `POST` `/api/v1/customer/orders` — REGISTERED_USER — Create order from active cart</p><p>- `GET` `/api/v1/customer/orders` — REGISTERED_USER — List customer orders</p><p>- `GET` `/api/v1/customer/orders/{id}` — REGISTERED_USER — Fetch customer order</p><p>- `GET` `/api/v1/customer/recurring-payments` — REGISTERED_USER — List own recurring payments</p><p>- `POST` `/api/v1/customer/recurring-payments` — REGISTERED_USER — Create recurring payment</p><p>- `GET` `/api/v1/customer/recurring-payments/summary` — Authenticated — Fetch recurring payment summary counts</p><p>- `GET` `/api/v1/customer/recurring-payments/{id}` — REGISTERED_USER — Fetch own recurring payment details</p><p>- `PATCH` `/api/v1/customer/recurring-payments/{id}` — Authenticated — Update own recurring payment</p><p>- `POST` `/api/v1/customer/recurring-payments/{id}/pause` — Authenticated — Pause own active recurring payment</p><p>- `POST` `/api/v1/customer/recurring-payments/{id}/resume` — Authenticated — Resume own paused recurring payment</p><p>- `POST` `/api/v1/customer/recurring-payments/{id}/cancel` — Authenticated — Cancel own recurring payment</p><p>- `GET` `/api/v1/customer/recurring-payments/{id}/history` — Authenticated — List own recurring payment billing history</p><p>- `POST` `/api/v1/customer/payment-methods/setup-intent` — Authenticated — Create Stripe SetupIntent for saving card</p><p>- `GET` `/api/v1/customer/payment-methods/saved` — Authenticated — List own saved payment methods</p><p>- `DELETE` `/api/v1/customer/payment-methods/{id}` — Authenticated — Delete own saved payment method</p><p>- `GET` `/api/v1/customer/transactions` — REGISTERED_USER — List own customer transactions</p><p>- `GET` `/api/v1/customer/transactions/summary` — Authenticated — Fetch own transaction summary</p><p>- `GET` `/api/v1/customer/transactions/export` — Authenticated — Export own transactions</p><p>- `GET` `/api/v1/customer/transactions/{id}` — Authenticated — Fetch own transaction details</p><p>- `GET` `/api/v1/customer/transactions/{id}/receipt` — Authenticated — Download own transaction receipt</p><p>- `GET` `/api/v1/gift-categories/lookup` — PUBLIC — Lookup active gift categories</p><p>- `POST` `/api/v1/gift-categories` — Authenticated — Create gift category</p><p>- `GET` `/api/v1/gift-categories` — Authenticated — List gift categories</p><p>- `GET` `/api/v1/gift-categories/stats` — Authenticated — Fetch gift category stats</p><p>- `GET` `/api/v1/gift-categories/{id}` — Authenticated — Fetch gift category details</p><p>- `PATCH` `/api/v1/gift-categories/{id}` — Authenticated — Update gift category</p><p>- `DELETE` `/api/v1/gift-categories/{id}` — Authenticated — Soft-delete gift category</p><p>- `POST` `/api/v1/gifts` — SUPER_ADMIN, ADMIN — Create admin gift with optional nested variants</p><p>- `GET` `/api/v1/gifts` — SUPER_ADMIN, ADMIN — List admin gifts</p><p>- `GET` `/api/v1/gifts/stats` — Authenticated — Fetch gift inventory stats</p><p>- `GET` `/api/v1/gifts/export` — Authenticated — Export gift inventory</p><p>- `GET` `/api/v1/gifts/{id}` — Authenticated — Fetch admin gift details with variants</p><p>- `PATCH` `/api/v1/gifts/{id}` — Authenticated — Update admin gift and upsert nested variants</p><p>- `DELETE` `/api/v1/gifts/{id}` — Authenticated — Soft-delete gift</p><p>- `PATCH` `/api/v1/gifts/{id}/status` — Authenticated — Update gift status</p><p>- `GET` `/api/v1/gift-moderation` — Authenticated — GET /api/v1/gift-moderation</p><p>- `PATCH` `/api/v1/gift-moderation/{id}/approve` — Authenticated — PATCH /api/v1/gift-moderation/{id}/approve</p><p>- `PATCH` `/api/v1/gift-moderation/{id}/reject` — Authenticated — PATCH /api/v1/gift-moderation/{id}/reject</p><p>- `PATCH` `/api/v1/gift-moderation/{id}/flag` — Authenticated — PATCH /api/v1/gift-moderation/{id}/flag</p><p>- `POST` `/api/v1/broadcasts` — Authenticated — POST /api/v1/broadcasts</p><p>- `GET` `/api/v1/broadcasts` — Authenticated — GET /api/v1/broadcasts</p><p>- `GET` `/api/v1/broadcasts/{id}` — Authenticated — GET /api/v1/broadcasts/{id}</p><p>- `PATCH` `/api/v1/broadcasts/{id}` — Authenticated — PATCH /api/v1/broadcasts/{id}</p><p>- `PATCH` `/api/v1/broadcasts/{id}/targeting` — Authenticated — PATCH /api/v1/broadcasts/{id}/targeting</p><p>- `POST` `/api/v1/broadcasts/estimate-reach` — Authenticated — POST /api/v1/broadcasts/estimate-reach</p><p>- `PATCH` `/api/v1/broadcasts/{id}/schedule` — Authenticated — PATCH /api/v1/broadcasts/{id}/schedule</p><p>- `POST` `/api/v1/broadcasts/{id}/cancel` — Authenticated — POST /api/v1/broadcasts/{id}/cancel</p><p>- `GET` `/api/v1/broadcasts/{id}/report` — Authenticated — GET /api/v1/broadcasts/{id}/report</p><p>- `GET` `/api/v1/broadcasts/{id}/recipients` — Authenticated — GET /api/v1/broadcasts/{id}/recipients</p><p>- `GET` `/api/v1/notifications` — Authenticated — List notifications</p><p>- `GET` `/api/v1/notifications/summary` — Authenticated — Fetch notification summary</p><p>- `GET` `/api/v1/notifications/preferences` — Authenticated — Fetch notification preferences</p><p>- `PATCH` `/api/v1/notifications/preferences` — Authenticated — Update notification preferences</p><p>- `PATCH` `/api/v1/notifications/read-all` — Authenticated — Mark all own notifications as read</p><p>- `PATCH` `/api/v1/notifications/{id}/read` — Authenticated — Mark notification as read</p><p>- `POST` `/api/v1/notifications/{id}/action` — Authenticated — Process notification action</p><p>- `POST` `/api/v1/notifications/device-tokens` — Authenticated — Save device token</p><p>- `DELETE` `/api/v1/notifications/device-tokens/{id}` — Authenticated — Disable device token</p><p>- `GET` `/api/v1/subscription-plans` — Authenticated — GET /api/v1/subscription-plans</p><p>- `POST` `/api/v1/subscription-plans` — Authenticated — POST /api/v1/subscription-plans</p><p>- `GET` `/api/v1/subscription-plans/stats` — Authenticated — GET /api/v1/subscription-plans/stats</p><p>- `GET` `/api/v1/subscription-plans/{id}` — Authenticated — GET /api/v1/subscription-plans/{id}</p><p>- `PATCH` `/api/v1/subscription-plans/{id}` — Authenticated — PATCH /api/v1/subscription-plans/{id}</p><p>- `DELETE` `/api/v1/subscription-plans/{id}` — Authenticated — DELETE /api/v1/subscription-plans/{id}</p><p>- `PATCH` `/api/v1/subscription-plans/{id}/status` — Authenticated — PATCH /api/v1/subscription-plans/{id}/status</p><p>- `PATCH` `/api/v1/subscription-plans/{id}/visibility` — Authenticated — PATCH /api/v1/subscription-plans/{id}/visibility</p><p>- `GET` `/api/v1/subscription-plans/{id}/analytics` — Authenticated — GET /api/v1/subscription-plans/{id}/analytics</p><p>- `GET` `/api/v1/plan-features/catalog` — Authenticated — GET /api/v1/plan-features/catalog</p><p>- `GET` `/api/v1/plan-features` — Authenticated — GET /api/v1/plan-features</p><p>- `POST` `/api/v1/plan-features` — Authenticated — POST /api/v1/plan-features</p><p>- `GET` `/api/v1/plan-features/{id}` — Authenticated — GET /api/v1/plan-features/{id}</p><p>- `PATCH` `/api/v1/plan-features/{id}` — Authenticated — PATCH /api/v1/plan-features/{id}</p><p>- `DELETE` `/api/v1/plan-features/{id}` — Authenticated — DELETE /api/v1/plan-features/{id}</p><p>- `GET` `/api/v1/coupons` — Authenticated — GET /api/v1/coupons</p><p>- `POST` `/api/v1/coupons` — Authenticated — POST /api/v1/coupons</p><p>- `GET` `/api/v1/coupons/{id}` — Authenticated — GET /api/v1/coupons/{id}</p><p>- `PATCH` `/api/v1/coupons/{id}` — Authenticated — PATCH /api/v1/coupons/{id}</p><p>- `DELETE` `/api/v1/coupons/{id}` — Authenticated — DELETE /api/v1/coupons/{id}</p><p>- `PATCH` `/api/v1/coupons/{id}/status` — Authenticated — PATCH /api/v1/coupons/{id}/status</p><p>- `GET` `/api/v1/media-upload-policy` — SUPER_ADMIN, ADMIN — Fetch global media upload policy</p><p>- `PATCH` `/api/v1/media-upload-policy` — SUPER_ADMIN, ADMIN — Update global media upload policy</p><p>- `GET` `/api/v1/media-upload-policy/audit-logs` — SUPER_ADMIN, ADMIN — List media upload policy audit logs</p><p>- `POST` `/api/v1/customer/payments/create-intent` — REGISTERED_USER — Create payment intent from active cart</p><p>- `POST` `/api/v1/customer/payments/confirm` — REGISTERED_USER — Confirm Stripe payment</p><p>- `GET` `/api/v1/customer/payments/{id}` — Authenticated — Fetch own payment details</p><p>- `GET` `/api/v1/customer/payment-methods` — Authenticated — List supported customer payment methods</p><p>- `PATCH` `/api/v1/customer/payment-methods/{id}/default` — Authenticated — Set own default payment method</p><p>- `POST` `/api/v1/payments/stripe/webhook` — PUBLIC — Stripe webhook endpoint</p><p>- `POST` `/api/v1/customer/money-gifts` — Authenticated — Send payment as gift</p><p>- `GET` `/api/v1/customer/money-gifts` — Authenticated — List own money gifts</p><p>- `GET` `/api/v1/customer/money-gifts/{id}` — Authenticated — Fetch own money gift details</p><p>- `GET` `/api/v1/audit-logs/export` — Authenticated — GET /api/v1/audit-logs/export</p><p>- `GET` `/api/v1/audit-logs` — Authenticated — GET /api/v1/audit-logs</p><p>- `GET` `/api/v1/audit-logs/{id}` — Authenticated — GET /api/v1/audit-logs/{id}</p><p>- `POST` `/api/v1/uploads/presigned-url` — Authenticated — POST /api/v1/uploads/presigned-url</p><p>- `POST` `/api/v1/uploads/complete` — Authenticated — POST /api/v1/uploads/complete</p><p>- `GET` `/api/v1/uploads` — Authenticated — GET /api/v1/uploads</p><p>- `GET` `/api/v1/uploads/{id}` — Authenticated — GET /api/v1/uploads/{id}</p><p>- `DELETE` `/api/v1/uploads/{id}` — Authenticated — DELETE /api/v1/uploads/{id}</p><h2>01 Auth</h2><h3>POST /api/v1/auth/users/register</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/users/register</p><p>**Request payload example:**</p><p>{
   &quot;email&quot;: &quot;string&quot;,
   &quot;password&quot;: &quot;string&quot;,
   &quot;firstName&quot;: &quot;string&quot;,
@@ -9,7 +9,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/providers/register</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/providers/register</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/providers/register</p><p>**Request payload example:**</p><p>{
   &quot;email&quot;: &quot;string&quot;,
   &quot;password&quot;: &quot;string&quot;,
   &quot;firstName&quot;: &quot;string&quot;,
@@ -26,53 +26,53 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/guest/session</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/guest/session</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/guest/session</p><p>**Request payload example:**</p><p>{
   &quot;capabilities&quot;: []
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/login</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/login</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/login</p><p>**Request payload example:**</p><p>{
   &quot;email&quot;: &quot;string&quot;,
   &quot;password&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/refresh</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/refresh</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/refresh</p><p>**Request payload example:**</p><p>{
   &quot;refreshToken&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/logout</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>POST /api/v1/auth/logout</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/auth/logout</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/verify-email</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/verify-email</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/auth/verify-email</p><p>**Request payload example:**</p><p>{
   &quot;otp&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/resend-otp</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>POST /api/v1/auth/resend-otp</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/auth/resend-otp</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/forgot-password</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/forgot-password</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/forgot-password</p><p>**Request payload example:**</p><p>{
   &quot;email&quot;: &quot;user@example.com&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/verify-reset-otp</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/verify-reset-otp</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/verify-reset-otp</p><p>**Request payload example:**</p><p>{
   &quot;email&quot;: &quot;user@example.com&quot;,
   &quot;otp&quot;: &quot;334018&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/reset-password</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/auth/reset-password</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** POST /api/v1/auth/reset-password</p><p>**Request payload example:**</p><p>{
   &quot;email&quot;: &quot;user@example.com&quot;,
   &quot;otp&quot;: &quot;334018&quot;,
   &quot;newPassword&quot;: &quot;NewPassword@123&quot;
@@ -80,38 +80,38 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/auth/change-password</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/auth/change-password</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/auth/change-password</p><p>**Request payload example:**</p><p>{
   &quot;currentPassword&quot;: &quot;string&quot;,
   &quot;newPassword&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/auth/me</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/auth/me</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/auth/me</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/auth/account</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/auth/account</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/auth/account</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/auth/cancel-deletion</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>POST /api/v1/auth/cancel-deletion</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/auth/cancel-deletion</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Login Attempts</h2><h3>GET /api/v1/login-attempts/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `email` (query, optional)</p><p>- `status` (query, optional)</p><p>- `role` (query, optional)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `userId` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>01 Auth - Login Attempts</h2><h3>GET /api/v1/login-attempts/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/login-attempts/stats</p><p>**Parameters:**</p><p>- `email` (query, optional)</p><p>- `status` (query, optional)</p><p>- `role` (query, optional)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `userId` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/login-attempts/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `email` (query, optional)</p><p>- `status` (query, optional)</p><p>- `role` (query, optional)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `userId` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/login-attempts/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/login-attempts/export</p><p>**Parameters:**</p><p>- `email` (query, optional)</p><p>- `status` (query, optional)</p><p>- `role` (query, optional)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `userId` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/login-attempts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `email` (query, optional)</p><p>- `status` (query, optional)</p><p>- `role` (query, optional)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `userId` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/login-attempts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/login-attempts</p><p>**Parameters:**</p><p>- `email` (query, optional)</p><p>- `status` (query, optional)</p><p>- `role` (query, optional)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `userId` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Admin Staff Management</h2><h3>POST /api/v1/admins</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Create admin staff user</p><p>**Description:** Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user&#x27;s permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.</p><p>**Request payload example:**</p><p>{}</p><p>**Response example:**</p><p>{
+}</p><h2>02 Admin - Staff Management</h2><h3>POST /api/v1/admins</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Create admin staff user</p><p>**Description:** Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user&#x27;s permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.</p><p>**Request payload example:**</p><p>{}</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -143,11 +143,11 @@
     &quot;totalPages&quot;: 1
   },
   &quot;message&quot;: &quot;Admins fetched successfully&quot;
-}</p><h3>GET /api/v1/admins/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/admins/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/admins/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/admins/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/admins/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/admins/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;firstName&quot;: &quot;string&quot;,
   &quot;lastName&quot;: &quot;string&quot;,
   &quot;phone&quot;: &quot;string&quot;,
@@ -159,13 +159,22 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/admins/{id}/active-status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>DELETE /api/v1/admins/{id}</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Permanently delete admin staff user</p><p>**Description:** DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;confirmation&quot;: &quot;PERMANENTLY_DELETE_ADMIN&quot;,
+  &quot;reason&quot;: &quot;Staff account removed.&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;deletedAdminId&quot;: &quot;admin_id&quot;
+  },
+  &quot;message&quot;: &quot;Admin staff user permanently deleted successfully.&quot;
+}</p><h3>PATCH /api/v1/admins/{id}/active-status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/admins/{id}/active-status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;isActive&quot;: true
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/admins/{id}/password</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/admins/{id}/password</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/admins/{id}/password</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;temporaryPassword&quot;: &quot;string&quot;,
   &quot;generateTemporaryPassword&quot;: true,
   &quot;mustChangePassword&quot;: true,
@@ -174,11 +183,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Admin Roles / RBAC</h2><h3>GET /api/v1/admin-roles</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** —</p><p>**Description:** Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `isSystem` (query, optional)</p><p>- `isActive` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>02 Admin - Roles &amp; Permissions</h2><h3>GET /api/v1/admin-roles</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** GET /api/v1/admin-roles</p><p>**Description:** Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `isSystem` (query, optional)</p><p>- `isActive` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/admin-roles</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/admin-roles</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/admin-roles</p><p>**Request payload example:**</p><p>{
   &quot;name&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;permissions&quot;: &quot;string&quot;
@@ -186,11 +195,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/admin-roles/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/admin-roles/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/admin-roles/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/admin-roles/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/admin-roles/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/admin-roles/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;name&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;isActive&quot;: true
@@ -198,21 +207,21 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/admin-roles/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/admin-roles/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/admin-roles/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/admin-roles/{id}/permissions</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/admin-roles/{id}/permissions</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/admin-roles/{id}/permissions</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;permissions&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/permissions/catalog</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Description:** Read-only list of backend-supported permission keys that can be assigned to admin roles.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/permissions/catalog</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/permissions/catalog</p><p>**Description:** Read-only list of backend-supported permission keys that can be assigned to admin roles.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>User Management</h2><h3>GET /api/v1/users/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `registrationFrom` (query, optional)</p><p>- `registrationTo` (query, optional)</p><p>- `format` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>02 Admin - User Management</h2><h3>GET /api/v1/users/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/users/export</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `registrationFrom` (query, optional)</p><p>- `registrationTo` (query, optional)</p><p>- `format` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -238,11 +247,11 @@
     &quot;totalPages&quot;: 1
   },
   &quot;message&quot;: &quot;Users fetched successfully&quot;
-}</p><h3>GET /api/v1/users/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/users/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/users/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/users/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/users/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/users/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;firstName&quot;: &quot;Alex&quot;,
   &quot;lastName&quot;: &quot;Johnson&quot;,
   &quot;phone&quot;: &quot;+15552345678&quot;,
@@ -252,7 +261,18 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/users/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>DELETE /api/v1/users/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Permanently delete registered user</p><p>**Description:** DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;confirmation&quot;: &quot;PERMANENTLY_DELETE_USER&quot;,
+  &quot;reason&quot;: &quot;User requested full deletion.&quot;,
+  &quot;deleteRelatedRecords&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;deletedUserId&quot;: &quot;user_id&quot;,
+    &quot;deletedRelatedRecords&quot;: true
+  },
+  &quot;message&quot;: &quot;User permanently deleted successfully.&quot;
+}</p><h3>PATCH /api/v1/users/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/users/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;status&quot;: &quot;string&quot;,
   &quot;reason&quot;: &quot;string&quot;,
   &quot;comment&quot;: &quot;Suspicious activity detected on this account.&quot;,
@@ -261,7 +281,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/users/{id}/suspend</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/users/{id}/suspend</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/users/{id}/suspend</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;reason&quot;: &quot;string&quot;,
   &quot;comment&quot;: &quot;Suspicious account activity.&quot;,
   &quot;notifyUser&quot;: true
@@ -269,7 +289,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/users/{id}/unsuspend</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/users/{id}/unsuspend</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/users/{id}/unsuspend</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;comment&quot;: &quot;Account reviewed and restored.&quot;,
   &quot;notifyUser&quot;: true
 }</p><p>**Response example:**</p><p>{
@@ -290,19 +310,19 @@
     &quot;notificationSent&quot;: true
   },
   &quot;message&quot;: &quot;User password changed successfully.&quot;
-}</p><h3>GET /api/v1/users/{id}/activity</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `type` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/users/{id}/activity</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/users/{id}/activity</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `type` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/users/{id}/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/users/{id}/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/users/{id}/stats</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Provider Management</h2><h3>GET /api/v1/providers/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `format` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>02 Admin - Provider Management</h2><h3>GET /api/v1/providers/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/providers/export</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `format` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/providers/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/providers/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/providers/stats</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -330,7 +350,7 @@
     &quot;totalPages&quot;: 1
   },
   &quot;message&quot;: &quot;Providers fetched successfully&quot;
-}</p><h3>POST /api/v1/providers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/providers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/providers</p><p>**Request payload example:**</p><p>{
   &quot;businessName&quot;: &quot;Gifts &amp; Blooms Co. Ltd&quot;,
   &quot;email&quot;: &quot;contact@giftsandblooms.com&quot;,
   &quot;phone&quot;: &quot;+15551234567&quot;,
@@ -345,15 +365,15 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/providers/lookup</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `isActive` (query, optional)</p><p>- `limit` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/providers/lookup</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/providers/lookup</p><p>**Parameters:**</p><p>- `search` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `isActive` (query, optional)</p><p>- `limit` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/providers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/providers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/providers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/providers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/providers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/providers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;businessName&quot;: &quot;Gifts &amp; Blooms Co. Ltd&quot;,
   &quot;phone&quot;: &quot;+15551234567&quot;,
   &quot;serviceArea&quot;: &quot;New York, USA&quot;,
@@ -364,6 +384,17 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>DELETE /api/v1/providers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Permanently delete provider</p><p>**Description:** DANGER: This endpoint permanently deletes/anonymizes the provider and related provider data from the database. This is not a soft delete. Use only from Super Admin danger zone screens. Active processing orders block deletion.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;confirmation&quot;: &quot;PERMANENTLY_DELETE_PROVIDER&quot;,
+  &quot;reason&quot;: &quot;Provider account removed by Super Admin.&quot;,
+  &quot;deleteRelatedRecords&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;deletedProviderId&quot;: &quot;provider_id&quot;,
+    &quot;deletedRelatedRecords&quot;: true
+  },
+  &quot;message&quot;: &quot;Provider permanently deleted successfully.&quot;
 }</p><h3>PATCH /api/v1/providers/{id}/status</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Update provider lifecycle status</p><p>**Description:** SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;action&quot;: &quot;APPROVE&quot;,
   &quot;status&quot;: &quot;ACTIVE&quot;,
@@ -379,15 +410,15 @@
     &quot;isActive&quot;: true
   },
   &quot;message&quot;: &quot;Provider approved successfully.&quot;
-}</p><h3>GET /api/v1/providers/{id}/items</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/providers/{id}/items</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/providers/{id}/items</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/providers/{id}/activity</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `type` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/providers/{id}/activity</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/providers/{id}/activity</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `type` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/providers/{id}/message</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/providers/{id}/message</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/providers/{id}/message</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;subject&quot;: &quot;Account update&quot;,
   &quot;message&quot;: &quot;Please update your business documents.&quot;,
   &quot;channel&quot;: &quot;string&quot;
@@ -427,7 +458,177 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Provider Inventory</h2><h3>GET /api/v1/provider/inventory</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** List provider inventory items</p><p>**Description:** PROVIDER only. Returns only inventory owned by the authenticated provider.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `categoryId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>02 Admin - Promotional Offers</h2><h3>GET /api/v1/promotional-offers/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/stats</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/export</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>POST /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/promotional-offers</p><p>**Request payload example:**</p><p>{
+  &quot;itemId&quot;: &quot;string&quot;,
+  &quot;title&quot;: &quot;string&quot;,
+  &quot;description&quot;: &quot;string&quot;,
+  &quot;discountType&quot;: &quot;string&quot;,
+  &quot;discountValue&quot;: 0,
+  &quot;startDate&quot;: &quot;string&quot;,
+  &quot;endDate&quot;: &quot;string&quot;,
+  &quot;eligibilityRules&quot;: &quot;string&quot;,
+  &quot;isActive&quot;: true,
+  &quot;providerId&quot;: &quot;string&quot;,
+  &quot;approvalStatus&quot;: &quot;string&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;title&quot;: &quot;string&quot;,
+  &quot;description&quot;: &quot;string&quot;,
+  &quot;discountType&quot;: &quot;string&quot;,
+  &quot;discountValue&quot;: 0,
+  &quot;startDate&quot;: &quot;string&quot;,
+  &quot;endDate&quot;: &quot;string&quot;,
+  &quot;eligibilityRules&quot;: &quot;string&quot;,
+  &quot;isActive&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>DELETE /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/promotional-offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}/approve</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/approve</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;comment&quot;: &quot;string&quot;,
+  &quot;notifyProvider&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/reject</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;reason&quot;: &quot;string&quot;,
+  &quot;comment&quot;: &quot;string&quot;,
+  &quot;notifyProvider&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/promotional-offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/promotional-offers/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;isActive&quot;: true,
+  &quot;reason&quot;: &quot;string&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h2>02 Admin - Referral Settings</h2><h3>GET /api/v1/referral-settings</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch referral settings</p><p>**Description:** SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;isActive&quot;: true,
+    &quot;referrerRewardAmount&quot;: 25,
+    &quot;newUserRewardAmount&quot;: 10,
+    &quot;rewardCurrency&quot;: &quot;USD&quot;,
+    &quot;minimumTransactionAmount&quot;: 50,
+    &quot;referralExpirationValue&quot;: 30,
+    &quot;referralExpirationUnit&quot;: &quot;DAYS&quot;,
+    &quot;allowSelfReferrals&quot;: false,
+    &quot;qualificationRule&quot;: &quot;FIRST_SUCCESSFUL_PURCHASE&quot;,
+    &quot;updatedAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Referral settings fetched successfully.&quot;
+}</p><h3>PATCH /api/v1/referral-settings</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Update referral settings</p><p>**Description:** SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.</p><p>**Request payload example:**</p><p>{
+  &quot;referrerRewardAmount&quot;: 25,
+  &quot;newUserRewardAmount&quot;: 10,
+  &quot;rewardCurrency&quot;: &quot;USD&quot;,
+  &quot;minimumTransactionAmount&quot;: 50,
+  &quot;referralExpirationValue&quot;: 30,
+  &quot;referralExpirationUnit&quot;: &quot;DAYS&quot;,
+  &quot;allowSelfReferrals&quot;: false,
+  &quot;qualificationRule&quot;: &quot;FIRST_SUCCESSFUL_PURCHASE&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>POST /api/v1/referral-settings/activate</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Activate referral program</p><p>**Description:** SUPER_ADMIN only. Existing earned rewards remain redeemable.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>POST /api/v1/referral-settings/deactivate</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Deactivate referral program</p><p>**Description:** SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.</p><p>**Request payload example:**</p><p>{
+  &quot;reason&quot;: &quot;Temporarily paused by Super Admin.&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/referral-settings/stats</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch referral stats</p><p>**Description:** SUPER_ADMIN or ADMIN with referralSettings.read.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/referral-settings/audit-logs</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** List referral settings audit logs</p><p>**Description:** SUPER_ADMIN only.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h2>02 Admin - Media Upload Policy</h2><h3>GET /api/v1/media-upload-policy</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch global media upload policy</p><p>**Description:** SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;allowedFileTypes&quot;: {
+      &quot;jpeg&quot;: true,
+      &quot;jpg&quot;: true,
+      &quot;png&quot;: true,
+      &quot;gif&quot;: false,
+      &quot;mp4&quot;: true,
+      &quot;mov&quot;: true,
+      &quot;mp3&quot;: true,
+      &quot;wav&quot;: false,
+      &quot;svg&quot;: false
+    },
+    &quot;maxImageSizeMb&quot;: 10,
+    &quot;maxVideoSizeMb&quot;: 500,
+    &quot;maxAudioSizeMb&quot;: 50,
+    &quot;scanUploads&quot;: true,
+    &quot;blockSvgUploads&quot;: true,
+    &quot;updatedAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;,
+    &quot;updatedBy&quot;: {
+      &quot;id&quot;: &quot;admin_id&quot;,
+      &quot;name&quot;: &quot;Alex Rivera&quot;
+    }
+  },
+  &quot;message&quot;: &quot;Media upload policy fetched successfully.&quot;
+}</p><h3>PATCH /api/v1/media-upload-policy</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Update global media upload policy</p><p>**Description:** SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.</p><p>**Request payload example:**</p><p>{
+  &quot;allowedFileTypes&quot;: &quot;string&quot;,
+  &quot;maxImageSizeMb&quot;: 10,
+  &quot;maxVideoSizeMb&quot;: 500,
+  &quot;maxAudioSizeMb&quot;: 50,
+  &quot;scanUploads&quot;: true,
+  &quot;blockSvgUploads&quot;: true
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/media-upload-policy/audit-logs</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** List media upload policy audit logs</p><p>**Description:** SUPER_ADMIN only.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h2>02 Admin - Audit Logs</h2><h3>GET /api/v1/audit-logs/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/audit-logs/export</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `actorId` (query, optional)</p><p>- `targetId` (query, optional)</p><p>- `action` (query, optional)</p><p>- `targetType` (query, optional)</p><p>- `module` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/audit-logs</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/audit-logs</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `actorId` (query, optional)</p><p>- `targetId` (query, optional)</p><p>- `action` (query, optional)</p><p>- `targetType` (query, optional)</p><p>- `module` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/audit-logs/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/audit-logs/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h2>03 Provider - Inventory</h2><h3>GET /api/v1/provider/inventory</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** List provider inventory items</p><p>**Description:** PROVIDER only. Returns only inventory owned by the authenticated provider.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `categoryId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: [
     {
@@ -573,11 +774,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Provider Promotional Offers</h2><h3>GET /api/v1/provider/offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>03 Provider - Promotional Offers</h2><h3>GET /api/v1/provider/offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/provider/offers</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/provider/offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/provider/offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/provider/offers</p><p>**Request payload example:**</p><p>{
   &quot;itemId&quot;: &quot;string&quot;,
   &quot;title&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
@@ -591,11 +792,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/provider/offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/provider/offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/provider/offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/provider/offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/provider/offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/provider/offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;title&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;discountType&quot;: &quot;string&quot;,
@@ -608,89 +809,136 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/provider/offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/provider/offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/provider/offers/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/provider/offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/provider/offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/provider/offers/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;isActive&quot;: true,
   &quot;reason&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Promotional Offers Management</h2><h3>GET /api/v1/promotional-offers/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>03 Provider - Orders</h2><h3>GET /api/v1/provider/orders</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** List own assigned provider orders</p><p>**Description:** PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `status` (query, optional)</p><p>- `search` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;provider_order_id&quot;,
+      &quot;orderId&quot;: &quot;order_id&quot;,
+      &quot;orderNumber&quot;: &quot;ORD-10293&quot;,
+      &quot;status&quot;: &quot;PENDING&quot;,
+      &quot;paymentStatus&quot;: &quot;SUCCEEDED&quot;,
+      &quot;customer&quot;: {
+        &quot;name&quot;: &quot;Sarah Jenkins&quot;,
+        &quot;phone&quot;: &quot;+15551234567&quot;
+      },
+      &quot;itemPreview&quot;: [
+        {
+          &quot;name&quot;: &quot;Premium Sneakers&quot;,
+          &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/gifts/sneaker.png&quot;
+        }
+      ],
+      &quot;itemCount&quot;: 3,
+      &quot;totalPayout&quot;: 142,
+      &quot;currency&quot;: &quot;PKR&quot;,
+      &quot;createdAt&quot;: &quot;2026-10-24T10:45:00.000Z&quot;,
+      &quot;receivedAgoText&quot;: &quot;5m ago&quot;
+    }
+  ],
+  &quot;message&quot;: &quot;Provider orders fetched successfully.&quot;
+}</p><h3>GET /api/v1/provider/orders/history</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** List own provider order history</p><p>**Description:** PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `status` (query, optional)</p><p>- `search` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/promotional-offers/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/provider/orders/performance</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider order performance</p><p>**Description:** PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.</p><p>**Parameters:**</p><p>- `range` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `itemId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `approvalStatus` (query, optional)</p><p>- `discountType` (query, optional)</p><p>- `startFrom` (query, optional)</p><p>- `startTo` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/provider/orders/analytics/revenue</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider revenue analytics</p><p>**Description:** PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.</p><p>**Parameters:**</p><p>- `range` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/promotional-offers</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
-  &quot;itemId&quot;: &quot;string&quot;,
-  &quot;title&quot;: &quot;string&quot;,
-  &quot;description&quot;: &quot;string&quot;,
-  &quot;discountType&quot;: &quot;string&quot;,
-  &quot;discountValue&quot;: 0,
-  &quot;startDate&quot;: &quot;string&quot;,
-  &quot;endDate&quot;: &quot;string&quot;,
-  &quot;eligibilityRules&quot;: &quot;string&quot;,
-  &quot;isActive&quot;: true,
-  &quot;providerId&quot;: &quot;string&quot;,
-  &quot;approvalStatus&quot;: &quot;string&quot;
+}</p><h3>GET /api/v1/provider/orders/analytics/ratings</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider ratings analytics</p><p>**Description:** PROVIDER only. Returns stable zero values until reviews module is available.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/provider/orders/recent</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** List recent own provider orders</p><p>**Description:** PROVIDER only. Defaults to 5 latest orders.</p><p>**Parameters:**</p><p>- `limit` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/provider/orders/export</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Export own provider orders as CSV</p><p>**Description:** PROVIDER only. Export is scoped to logged-in provider orders.</p><p>**Parameters:**</p><p>- `status` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `format` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/provider/orders/summary</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider order summary</p><p>**Description:** Route intentionally declared before :id. PROVIDER only.</p><p>**Parameters:**</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/provider/orders/reject-reasons</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List provider order reject reasons</p><p>**Description:** Route intentionally declared before :id.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/provider/orders/{id}/status</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Update own provider order fulfillment status</p><p>**Description:** PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;status&quot;: &quot;SHIPPED&quot;,
+  &quot;note&quot;: &quot;Package handed over to courier.&quot;,
+  &quot;trackingNumber&quot;: &quot;FDX-123456&quot;,
+  &quot;carrier&quot;: &quot;FedEx&quot;,
+  &quot;estimatedDeliveryAt&quot;: &quot;2026-10-26T10:00:00.000Z&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/provider/orders/{id}/timeline</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider order timeline</p><p>**Description:** PROVIDER only. Timeline is scoped to the authenticated provider order.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;title&quot;: &quot;string&quot;,
-  &quot;description&quot;: &quot;string&quot;,
-  &quot;discountType&quot;: &quot;string&quot;,
-  &quot;discountValue&quot;: 0,
-  &quot;startDate&quot;: &quot;string&quot;,
-  &quot;endDate&quot;: &quot;string&quot;,
-  &quot;eligibilityRules&quot;: &quot;string&quot;,
-  &quot;isActive&quot;: true
+}</p><h3>GET /api/v1/provider/orders/{id}/checklist</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider order checklist</p><p>**Description:** PROVIDER only. Checklist is operational and does not change status automatically.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/provider/orders/{id}/checklist</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Update own provider order checklist</p><p>**Description:** PROVIDER only. Checklist updates do not directly change order status.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;itemsPacked&quot;: true,
+  &quot;giftMessageAttached&quot;: true,
+  &quot;addressVerified&quot;: true,
+  &quot;customerContactChecked&quot;: true,
+  &quot;readyForCourier&quot;: false,
+  &quot;customItems&quot;: [
+    {
+      &quot;id&quot;: &quot;checklist_item_id&quot;,
+      &quot;label&quot;: &quot;Include gift wrap&quot;,
+      &quot;isCompleted&quot;: true
+    }
+  ]
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/promotional-offers/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}/approve</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;comment&quot;: &quot;string&quot;,
-  &quot;notifyProvider&quot;: true
+}</p><h3>POST /api/v1/provider/orders/{id}/message-buyer</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Message buyer for own provider order</p><p>**Description:** PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;message&quot;: &quot;Your order is being prepared and will be shipped soon.&quot;,
+  &quot;channel&quot;: &quot;IN_APP&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;reason&quot;: &quot;string&quot;,
-  &quot;comment&quot;: &quot;string&quot;,
-  &quot;notifyProvider&quot;: true
+}</p><h3>GET /api/v1/provider/orders/{id}</h3><p>**Allowed role/access:** PROVIDER</p><p>**Summary:** Fetch own provider order details</p><p>**Description:** PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>POST /api/v1/provider/orders/{id}/accept</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Accept own pending provider order</p><p>**Description:** Allowed transition: PENDING -&gt; ACCEPTED. Creates timeline entry and customer notification.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;note&quot;: &quot;Order accepted and will be processed shortly.&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/promotional-offers/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;isActive&quot;: true,
-  &quot;reason&quot;: &quot;string&quot;
+}</p><h3>POST /api/v1/provider/orders/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Reject own pending provider order</p><p>**Description:** Allowed transition: PENDING -&gt; REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;reason&quot;: &quot;OUT_OF_STOCK&quot;,
+  &quot;comment&quot;: &quot;The selected size is currently unavailable.&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Gift Categories</h2><h3>GET /api/v1/gift-categories/lookup</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** Lookup active gift categories</p><p>**Description:** Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>04 Gifts - Categories</h2><h3>GET /api/v1/gift-categories/lookup</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** Lookup active gift categories</p><p>**Description:** Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -736,7 +984,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Gift Management</h2><h3>POST /api/v1/gifts</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Create admin gift with optional nested variants</p><p>**Description:** SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.</p><p>**Request payload example:**</p><p>{
+}</p><h2>04 Gifts - Management</h2><h3>POST /api/v1/gifts</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Create admin gift with optional nested variants</p><p>**Description:** SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.</p><p>**Request payload example:**</p><p>{
   &quot;name&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;shortDescription&quot;: &quot;string&quot;,
@@ -839,11 +1087,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Gift Moderation</h2><h3>GET /api/v1/gift-moderation</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `status` (query, optional)</p><p>- `search` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `view` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>04 Gifts - Moderation</h2><h3>GET /api/v1/gift-moderation</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/gift-moderation</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `status` (query, optional)</p><p>- `search` (query, optional)</p><p>- `providerId` (query, optional)</p><p>- `view` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/gift-moderation/{id}/approve</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/gift-moderation/{id}/approve</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/gift-moderation/{id}/approve</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;comment&quot;: &quot;string&quot;,
   &quot;publishNow&quot;: true,
   &quot;notifyProvider&quot;: true
@@ -851,7 +1099,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/gift-moderation/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/gift-moderation/{id}/reject</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/gift-moderation/{id}/reject</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;reason&quot;: &quot;string&quot;,
   &quot;comment&quot;: &quot;string&quot;,
   &quot;notifyProvider&quot;: true
@@ -859,14 +1107,14 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/gift-moderation/{id}/flag</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/gift-moderation/{id}/flag</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/gift-moderation/{id}/flag</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;reason&quot;: &quot;string&quot;,
   &quot;comment&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Marketplace</h2><h3>GET /api/v1/customer/home</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch customer app home</p><p>**Description:** REGISTERED_USER only. Returns safe marketplace categories, discounted gifts, default address, and upcoming reminder.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Marketplace</h2><h3>GET /api/v1/customer/home</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch customer app home</p><p>**Description:** REGISTERED_USER only. Returns safe marketplace categories, discounted gifts, default address, and upcoming reminder.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -975,7 +1223,7 @@
     &quot;activeOffer&quot;: null
   },
   &quot;message&quot;: &quot;Gift details fetched successfully&quot;
-}</p><h2>Customer Wishlist</h2><h3>GET /api/v1/customer/wishlist</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List wishlist gifts</p><p>**Description:** REGISTERED_USER only. Returns customer-safe available gifts.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Wishlist</h2><h3>GET /api/v1/customer/wishlist</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List wishlist gifts</p><p>**Description:** REGISTERED_USER only. Returns customer-safe available gifts.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -987,7 +1235,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Addresses</h2><h3>GET /api/v1/customer/addresses</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List customer addresses</p><p>**Description:** REGISTERED_USER only. Customers can only view their own non-deleted addresses.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Addresses</h2><h3>GET /api/v1/customer/addresses</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List customer addresses</p><p>**Description:** REGISTERED_USER only. Customers can only view their own non-deleted addresses.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -1039,7 +1287,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Contacts</h2><h3>GET /api/v1/customer/contacts</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List customer contacts</p><p>**Description:** REGISTERED_USER only. Lists only contacts owned by the authenticated customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `relationship` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Contacts</h2><h3>GET /api/v1/customer/contacts</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List customer contacts</p><p>**Description:** REGISTERED_USER only. Lists only contacts owned by the authenticated customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `relationship` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -1079,7 +1327,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Events</h2><h3>GET /api/v1/customer/events</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List customer events</p><p>**Description:** REGISTERED_USER only. Lists only events owned by the authenticated customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `eventType` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `recipientId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Events</h2><h3>GET /api/v1/customer/events</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List customer events</p><p>**Description:** REGISTERED_USER only. Lists only events owned by the authenticated customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `eventType` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `recipientId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
@@ -1109,6 +1357,23 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/customer/events/{id}/reminder-settings</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch event reminder settings</p><p>**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>PATCH /api/v1/customer/events/{id}/reminder-settings</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Update event reminder settings</p><p>**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+  &quot;reminderFrequency&quot;: &quot;YEARLY&quot;,
+  &quot;reminderTiming&quot;: &quot;ONE_DAY_BEFORE&quot;,
+  &quot;customAlertTime&quot;: &quot;09:00&quot;,
+  &quot;channels&quot;: {
+    &quot;push&quot;: true,
+    &quot;email&quot;: true,
+    &quot;sms&quot;: false
+  }
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
 }</p><h3>GET /api/v1/customer/events/{id}</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch customer event details</p><p>**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
@@ -1135,24 +1400,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Event Reminder Settings</h2><h3>GET /api/v1/customer/events/{id}/reminder-settings</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch event reminder settings</p><p>**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/customer/events/{id}/reminder-settings</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Update event reminder settings</p><p>**Description:** REGISTERED_USER only. Event must belong to the authenticated customer.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
-  &quot;reminderFrequency&quot;: &quot;YEARLY&quot;,
-  &quot;reminderTiming&quot;: &quot;ONE_DAY_BEFORE&quot;,
-  &quot;customAlertTime&quot;: &quot;09:00&quot;,
-  &quot;channels&quot;: {
-    &quot;push&quot;: true,
-    &quot;email&quot;: true,
-    &quot;sms&quot;: false
-  }
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Cart</h2><h3>GET /api/v1/customer/cart</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch active cart</p><p>**Description:** REGISTERED_USER only. Totals are backend calculated from price snapshots.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Cart</h2><h3>GET /api/v1/customer/cart</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch active cart</p><p>**Description:** REGISTERED_USER only. Totals are backend calculated from price snapshots.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;id&quot;: &quot;cart_id&quot;,
@@ -1239,7 +1487,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Orders</h2><h3>POST /api/v1/customer/orders</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Create order from active cart</p><p>**Description:** REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.</p><p>**Request payload example:**</p><p>{
+}</p><h2>05 Customer - Orders</h2><h3>POST /api/v1/customer/orders</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Create order from active cart</p><p>**Description:** REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.</p><p>**Request payload example:**</p><p>{
   &quot;cartId&quot;: &quot;cmf0cartactive001&quot;,
   &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
   &quot;deliveryAddressId&quot;: &quot;cmf0addresshome001&quot;,
@@ -1289,7 +1537,7 @@
     }
   },
   &quot;message&quot;: &quot;Order fetched successfully.&quot;
-}</p><h2>Customer Recurring Payments</h2><h3>GET /api/v1/customer/recurring-payments</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List own recurring payments</p><p>**Description:** REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `frequency` (query, optional)</p><p>- `recipientContactId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Recurring Payments</h2><h3>GET /api/v1/customer/recurring-payments</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List own recurring payments</p><p>**Description:** REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `frequency` (query, optional)</p><p>- `recipientContactId` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: [
     {
@@ -1444,7 +1692,7 @@
     &quot;totalPages&quot;: 1
   },
   &quot;message&quot;: &quot;Recurring payment history fetched successfully.&quot;
-}</p><h2>Customer Transactions</h2><h3>GET /api/v1/customer/transactions</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List own customer transactions</p><p>**Description:** REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `type` (query, optional)</p><p>- `status` (query, optional)</p><p>- `paymentMethod` (query, optional)</p><p>- `minAmount` (query, optional)</p><p>- `maxAmount` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Transactions</h2><h3>GET /api/v1/customer/transactions</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** List own customer transactions</p><p>**Description:** REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>- `type` (query, optional)</p><p>- `status` (query, optional)</p><p>- `paymentMethod` (query, optional)</p><p>- `minAmount` (query, optional)</p><p>- `maxAmount` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: [
     {
@@ -1519,68 +1767,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Payments</h2><h3>POST /api/v1/customer/payments/create-intent</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Create payment intent from active cart</p><p>**Description:** REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.</p><p>**Request payload example:**</p><p>{
-  &quot;cartId&quot;: &quot;cmf0cartactive001&quot;,
-  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {
-    &quot;paymentId&quot;: &quot;payment_id&quot;,
-    &quot;stripePaymentIntentId&quot;: &quot;pi_xxx&quot;,
-    &quot;clientSecret&quot;: &quot;pi_xxx_secret_xxx&quot;,
-    &quot;publishableKey&quot;: &quot;pk_live_or_test&quot;,
-    &quot;amount&quot;: 10999,
-    &quot;currency&quot;: &quot;PKR&quot;
-  },
-  &quot;message&quot;: &quot;Payment intent created successfully.&quot;
-}</p><h3>POST /api/v1/customer/payments/confirm</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Confirm Stripe payment</p><p>**Description:** REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.</p><p>**Request payload example:**</p><p>{
-  &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
-  &quot;stripePaymentIntentId&quot;: &quot;pi_3Pxxxxxxxxxxxxxxxx&quot;
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/customer/payments/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Fetch own payment details</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {
-    &quot;paymentId&quot;: &quot;payment_id&quot;,
-    &quot;provider&quot;: &quot;STRIPE&quot;,
-    &quot;stripePaymentIntentId&quot;: &quot;pi_xxx&quot;,
-    &quot;amount&quot;: 109.99,
-    &quot;currency&quot;: &quot;PKR&quot;,
-    &quot;status&quot;: &quot;SUCCEEDED&quot;,
-    &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;,
-    &quot;failureReason&quot;: null
-  },
-  &quot;message&quot;: &quot;Payment fetched successfully.&quot;
-}</p><h3>POST /api/v1/payments/stripe/webhook</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** Stripe webhook endpoint</p><p>**Description:** Verifies Stripe-Signature using the configured webhook secret before processing events.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/customer/money-gifts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Send payment as gift</p><p>**Description:** Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.</p><p>**Request payload example:**</p><p>{
-  &quot;amount&quot;: 100,
-  &quot;currency&quot;: &quot;PKR&quot;,
-  &quot;recipientContactId&quot;: &quot;cmf0contactmary001&quot;,
-  &quot;message&quot;: &quot;Hope this helps. Enjoy your day!&quot;,
-  &quot;messageMediaUrls&quot;: [
-    &quot;https://cdn.yourdomain.com/gift-message-media/photo.png&quot;
-  ],
-  &quot;deliveryDate&quot;: &quot;2026-12-24T00:00:00.000Z&quot;,
-  &quot;repeatAnnually&quot;: false,
-  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
-}</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/customer/money-gifts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List own money gifts</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/customer/money-gifts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Fetch own money gift details</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Customer Referrals &amp; Rewards</h2><h3>GET /api/v1/customer/referrals/summary</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch own referral reward summary</p><p>**Description:** REGISTERED_USER only. Customers can view only their own referral progress and ledger-derived balances.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Referrals &amp; Rewards</h2><h3>GET /api/v1/customer/referrals/summary</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch own referral reward summary</p><p>**Description:** REGISTERED_USER only. Customers can view only their own referral progress and ledger-derived balances.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;invitedFriends&quot;: 3,
@@ -1648,7 +1835,7 @@
     ]
   },
   &quot;message&quot;: &quot;Referral terms fetched successfully.&quot;
-}</p><h2>Customer Wallet</h2><h3>GET /api/v1/customer/wallet</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch own wallet</p><p>**Description:** REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Wallet</h2><h3>GET /api/v1/customer/wallet</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Fetch own wallet</p><p>**Description:** REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;totalBalance&quot;: 1240.5,
@@ -1685,94 +1872,148 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Media Upload Policy</h2><h3>GET /api/v1/media-upload-policy</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch global media upload policy</p><p>**Description:** SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>05 Customer - Payment Methods</h2><h3>POST /api/v1/customer/bank-accounts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Link placeholder bank account</p><p>**Description:** Stores only masked display data. Full IBAN/account number is never returned.</p><p>**Request payload example:**</p><p>{
+  &quot;accountHolderName&quot;: &quot;John Smith&quot;,
+  &quot;bankName&quot;: &quot;Chase Bank&quot;,
+  &quot;ibanOrAccountNumber&quot;: &quot;1234567890&quot;,
+  &quot;isDefault&quot;: false
+}</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
-  &quot;data&quot;: {
-    &quot;allowedFileTypes&quot;: {
-      &quot;jpeg&quot;: true,
-      &quot;jpg&quot;: true,
-      &quot;png&quot;: true,
-      &quot;gif&quot;: false,
-      &quot;mp4&quot;: true,
-      &quot;mov&quot;: true,
-      &quot;mp3&quot;: true,
-      &quot;wav&quot;: false,
-      &quot;svg&quot;: false
-    },
-    &quot;maxImageSizeMb&quot;: 10,
-    &quot;maxVideoSizeMb&quot;: 500,
-    &quot;maxAudioSizeMb&quot;: 50,
-    &quot;scanUploads&quot;: true,
-    &quot;blockSvgUploads&quot;: true,
-    &quot;updatedAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;,
-    &quot;updatedBy&quot;: {
-      &quot;id&quot;: &quot;admin_id&quot;,
-      &quot;name&quot;: &quot;Alex Rivera&quot;
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/customer/bank-accounts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List own bank accounts</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;bank_account_id&quot;,
+      &quot;accountHolderName&quot;: &quot;John Smith&quot;,
+      &quot;bankName&quot;: &quot;Chase Bank&quot;,
+      &quot;last4&quot;: &quot;8821&quot;,
+      &quot;maskedAccount&quot;: &quot;**** 8821&quot;,
+      &quot;isDefault&quot;: false
     }
-  },
-  &quot;message&quot;: &quot;Media upload policy fetched successfully.&quot;
-}</p><h3>PATCH /api/v1/media-upload-policy</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Update global media upload policy</p><p>**Description:** SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.</p><p>**Request payload example:**</p><p>{
-  &quot;allowedFileTypes&quot;: &quot;string&quot;,
-  &quot;maxImageSizeMb&quot;: 10,
-  &quot;maxVideoSizeMb&quot;: 500,
-  &quot;maxAudioSizeMb&quot;: 50,
-  &quot;scanUploads&quot;: true,
-  &quot;blockSvgUploads&quot;: true
-}</p><p>**Response example:**</p><p>{
+  ],
+  &quot;message&quot;: &quot;Bank accounts fetched successfully.&quot;
+}</p><h3>PATCH /api/v1/customer/bank-accounts/{id}/default</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Set own default bank account</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/media-upload-policy/audit-logs</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** List media upload policy audit logs</p><p>**Description:** SUPER_ADMIN only.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/customer/bank-accounts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Delete own bank account</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Referral Settings</h2><h3>GET /api/v1/referral-settings</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch referral settings</p><p>**Description:** SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>POST /api/v1/customer/payment-methods/setup-intent</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Create Stripe SetupIntent for saving card</p><p>**Description:** Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
-    &quot;isActive&quot;: true,
-    &quot;referrerRewardAmount&quot;: 25,
-    &quot;newUserRewardAmount&quot;: 10,
-    &quot;rewardCurrency&quot;: &quot;USD&quot;,
-    &quot;minimumTransactionAmount&quot;: 50,
-    &quot;referralExpirationValue&quot;: 30,
-    &quot;referralExpirationUnit&quot;: &quot;DAYS&quot;,
-    &quot;allowSelfReferrals&quot;: false,
-    &quot;qualificationRule&quot;: &quot;FIRST_SUCCESSFUL_PURCHASE&quot;,
-    &quot;updatedAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;
+    &quot;setupIntentId&quot;: &quot;seti_xxx&quot;,
+    &quot;clientSecret&quot;: &quot;seti_xxx_secret_xxx&quot;,
+    &quot;publishableKey&quot;: &quot;pk_test_xxx&quot;
   },
-  &quot;message&quot;: &quot;Referral settings fetched successfully.&quot;
-}</p><h3>PATCH /api/v1/referral-settings</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Update referral settings</p><p>**Description:** SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.</p><p>**Request payload example:**</p><p>{
-  &quot;referrerRewardAmount&quot;: 25,
-  &quot;newUserRewardAmount&quot;: 10,
-  &quot;rewardCurrency&quot;: &quot;USD&quot;,
-  &quot;minimumTransactionAmount&quot;: 50,
-  &quot;referralExpirationValue&quot;: 30,
-  &quot;referralExpirationUnit&quot;: &quot;DAYS&quot;,
-  &quot;allowSelfReferrals&quot;: false,
-  &quot;qualificationRule&quot;: &quot;FIRST_SUCCESSFUL_PURCHASE&quot;
+  &quot;message&quot;: &quot;Setup intent created successfully.&quot;
+}</p><h3>GET /api/v1/customer/payment-methods/saved</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List own saved payment methods</p><p>**Description:** Returns masked Stripe card metadata only.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;pm_xxx&quot;,
+      &quot;type&quot;: &quot;CARD&quot;,
+      &quot;brand&quot;: &quot;visa&quot;,
+      &quot;last4&quot;: &quot;4242&quot;,
+      &quot;expiryMonth&quot;: 9,
+      &quot;expiryYear&quot;: 2025,
+      &quot;isDefault&quot;: true
+    }
+  ],
+  &quot;message&quot;: &quot;Saved payment methods fetched successfully.&quot;
+}</p><h3>DELETE /api/v1/customer/payment-methods/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Delete own saved payment method</p><p>**Description:** Rejects deletion when the method is used by an active recurring payment.</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h3>GET /api/v1/customer/payment-methods</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List supported customer payment methods</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;key&quot;: &quot;STRIPE_CARD&quot;,
+      &quot;label&quot;: &quot;Credit/Debit Card&quot;,
+      &quot;enabled&quot;: true
+    },
+    {
+      &quot;key&quot;: &quot;BANK_TRANSFER&quot;,
+      &quot;label&quot;: &quot;Bank Payment&quot;,
+      &quot;enabled&quot;: true
+    },
+    {
+      &quot;key&quot;: &quot;E_WALLET&quot;,
+      &quot;label&quot;: &quot;E-Wallet&quot;,
+      &quot;enabled&quot;: false
+    }
+  ],
+  &quot;message&quot;: &quot;Payment methods fetched successfully.&quot;
+}</p><h3>PATCH /api/v1/customer/payment-methods/{id}/default</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Set own default payment method</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Request completed successfully&quot;
+}</p><h2>06 Payments</h2><h3>POST /api/v1/customer/payments/create-intent</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Create payment intent from active cart</p><p>**Description:** REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.</p><p>**Request payload example:**</p><p>{
+  &quot;cartId&quot;: &quot;cmf0cartactive001&quot;,
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
+}</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;paymentId&quot;: &quot;payment_id&quot;,
+    &quot;stripePaymentIntentId&quot;: &quot;pi_xxx&quot;,
+    &quot;clientSecret&quot;: &quot;pi_xxx_secret_xxx&quot;,
+    &quot;publishableKey&quot;: &quot;pk_live_or_test&quot;,
+    &quot;amount&quot;: 10999,
+    &quot;currency&quot;: &quot;PKR&quot;
+  },
+  &quot;message&quot;: &quot;Payment intent created successfully.&quot;
+}</p><h3>POST /api/v1/customer/payments/confirm</h3><p>**Allowed role/access:** REGISTERED_USER</p><p>**Summary:** Confirm Stripe payment</p><p>**Description:** REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.</p><p>**Request payload example:**</p><p>{
+  &quot;paymentId&quot;: &quot;cmf0payment001&quot;,
+  &quot;stripePaymentIntentId&quot;: &quot;pi_3Pxxxxxxxxxxxxxxxx&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/referral-settings/activate</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Activate referral program</p><p>**Description:** SUPER_ADMIN only. Existing earned rewards remain redeemable.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/customer/payments/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Fetch own payment details</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;paymentId&quot;: &quot;payment_id&quot;,
+    &quot;provider&quot;: &quot;STRIPE&quot;,
+    &quot;stripePaymentIntentId&quot;: &quot;pi_xxx&quot;,
+    &quot;amount&quot;: 109.99,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;status&quot;: &quot;SUCCEEDED&quot;,
+    &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;,
+    &quot;failureReason&quot;: null
+  },
+  &quot;message&quot;: &quot;Payment fetched successfully.&quot;
+}</p><h3>POST /api/v1/payments/stripe/webhook</h3><p>**Allowed role/access:** PUBLIC</p><p>**Summary:** Stripe webhook endpoint</p><p>**Description:** Verifies Stripe-Signature using the configured webhook secret before processing events.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/referral-settings/deactivate</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Deactivate referral program</p><p>**Description:** SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.</p><p>**Request payload example:**</p><p>{
-  &quot;reason&quot;: &quot;Temporarily paused by Super Admin.&quot;
+}</p><h3>POST /api/v1/customer/money-gifts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Send payment as gift</p><p>**Description:** Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.</p><p>**Request payload example:**</p><p>{
+  &quot;amount&quot;: 100,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;recipientContactId&quot;: &quot;cmf0contactmary001&quot;,
+  &quot;message&quot;: &quot;Hope this helps. Enjoy your day!&quot;,
+  &quot;messageMediaUrls&quot;: [
+    &quot;https://cdn.yourdomain.com/gift-message-media/photo.png&quot;
+  ],
+  &quot;deliveryDate&quot;: &quot;2026-12-24T00:00:00.000Z&quot;,
+  &quot;repeatAnnually&quot;: false,
+  &quot;paymentMethod&quot;: &quot;STRIPE_CARD&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/referral-settings/stats</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** Fetch referral stats</p><p>**Description:** SUPER_ADMIN or ADMIN with referralSettings.read.</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/customer/money-gifts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List own money gifts</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/referral-settings/audit-logs</h3><p>**Allowed role/access:** SUPER_ADMIN, ADMIN</p><p>**Summary:** List referral settings audit logs</p><p>**Description:** SUPER_ADMIN only.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `fromDate` (query, optional)</p><p>- `toDate` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/customer/money-gifts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** Fetch own money gift details</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Notifications</h2><h3>GET /api/v1/notifications</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List notifications</p><p>**Description:** JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `filter` (query, optional)</p><p>- `type` (query, optional)</p><p>- `isRead` (query, optional)</p><p>- `groupByDate` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>06 Notifications</h2><h3>GET /api/v1/notifications</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** List notifications</p><p>**Description:** JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `filter` (query, optional)</p><p>- `type` (query, optional)</p><p>- `isRead` (query, optional)</p><p>- `groupByDate` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: [
     {
@@ -1848,7 +2089,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Broadcast Notifications</h2><h3>POST /api/v1/broadcasts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h2>06 Broadcast Notifications</h2><h3>POST /api/v1/broadcasts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/broadcasts</p><p>**Request payload example:**</p><p>{
   &quot;title&quot;: &quot;string&quot;,
   &quot;message&quot;: &quot;string&quot;,
   &quot;imageUrl&quot;: &quot;string&quot;,
@@ -1860,15 +2101,15 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/broadcasts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `channel` (query, optional)</p><p>- `priority` (query, optional)</p><p>- `createdFrom` (query, optional)</p><p>- `createdTo` (query, optional)</p><p>- `scheduledFrom` (query, optional)</p><p>- `scheduledTo` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/broadcasts</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/broadcasts</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `channel` (query, optional)</p><p>- `priority` (query, optional)</p><p>- `createdFrom` (query, optional)</p><p>- `createdTo` (query, optional)</p><p>- `scheduledFrom` (query, optional)</p><p>- `scheduledTo` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/broadcasts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/broadcasts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/broadcasts/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/broadcasts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/broadcasts/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/broadcasts/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;title&quot;: &quot;string&quot;,
   &quot;message&quot;: &quot;string&quot;,
   &quot;imageUrl&quot;: &quot;string&quot;,
@@ -1880,7 +2121,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/broadcasts/{id}/targeting</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/broadcasts/{id}/targeting</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/broadcasts/{id}/targeting</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;mode&quot;: &quot;string&quot;,
   &quot;roles&quot;: [],
   &quot;filters&quot;: &quot;string&quot;
@@ -1888,14 +2129,14 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/broadcasts/estimate-reach</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/broadcasts/estimate-reach</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/broadcasts/estimate-reach</p><p>**Request payload example:**</p><p>{
   &quot;channels&quot;: [],
   &quot;targeting&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/broadcasts/{id}/schedule</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/broadcasts/{id}/schedule</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/broadcasts/{id}/schedule</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;sendMode&quot;: &quot;string&quot;,
   &quot;scheduledAt&quot;: &quot;string&quot;,
   &quot;timezone&quot;: &quot;string&quot;,
@@ -1905,25 +2146,25 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/broadcasts/{id}/cancel</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/broadcasts/{id}/cancel</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/broadcasts/{id}/cancel</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;reason&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/broadcasts/{id}/report</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/broadcasts/{id}/report</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/broadcasts/{id}/report</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/broadcasts/{id}/recipients</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `channel` (query, optional)</p><p>- `status` (query, optional)</p><p>- `search` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/broadcasts/{id}/recipients</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/broadcasts/{id}/recipients</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `channel` (query, optional)</p><p>- `status` (query, optional)</p><p>- `search` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Subscription Plans</h2><h3>GET /api/v1/subscription-plans</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `visibility` (query, optional)</p><p>- `billingCycle` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h2>07 Plans &amp; Coupons</h2><h3>GET /api/v1/subscription-plans</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/subscription-plans</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `visibility` (query, optional)</p><p>- `billingCycle` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/subscription-plans</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/subscription-plans</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/subscription-plans</p><p>**Request payload example:**</p><p>{
   &quot;name&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;monthlyPrice&quot;: 0,
@@ -1938,15 +2179,15 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/subscription-plans/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/subscription-plans/stats</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/subscription-plans/stats</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/subscription-plans/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/subscription-plans/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/subscription-plans/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/subscription-plans/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/subscription-plans/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/subscription-plans/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;name&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;monthlyPrice&quot;: 0,
@@ -1961,36 +2202,36 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/subscription-plans/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/subscription-plans/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/subscription-plans/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/subscription-plans/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/subscription-plans/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/subscription-plans/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;status&quot;: &quot;string&quot;,
   &quot;reason&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/subscription-plans/{id}/visibility</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/subscription-plans/{id}/visibility</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/subscription-plans/{id}/visibility</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;visibility&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/subscription-plans/{id}/analytics</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/subscription-plans/{id}/analytics</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/subscription-plans/{id}/analytics</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/plan-features/catalog</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/plan-features/catalog</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/plan-features/catalog</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/plan-features</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `isActive` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/plan-features</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/plan-features</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `isActive` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/plan-features</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/plan-features</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/plan-features</p><p>**Request payload example:**</p><p>{
   &quot;key&quot;: &quot;string&quot;,
   &quot;label&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
@@ -2001,11 +2242,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/plan-features/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/plan-features/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/plan-features/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/plan-features/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/plan-features/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/plan-features/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;key&quot;: &quot;string&quot;,
   &quot;label&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
@@ -2016,15 +2257,15 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/plan-features/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/plan-features/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/plan-features/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Coupons</h2><h3>GET /api/v1/coupons</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `planId` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/coupons</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/coupons</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `search` (query, optional)</p><p>- `status` (query, optional)</p><p>- `planId` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/coupons</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/coupons</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/coupons</p><p>**Request payload example:**</p><p>{
   &quot;code&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;discountType&quot;: &quot;string&quot;,
@@ -2038,11 +2279,11 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/coupons/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/coupons/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/coupons/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/coupons/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/coupons/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/coupons/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;code&quot;: &quot;string&quot;,
   &quot;description&quot;: &quot;string&quot;,
   &quot;discountType&quot;: &quot;string&quot;,
@@ -2056,18 +2297,18 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/coupons/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/coupons/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/coupons/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>PATCH /api/v1/coupons/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
+}</p><h3>PATCH /api/v1/coupons/{id}/status</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** PATCH /api/v1/coupons/{id}/status</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>{
   &quot;status&quot;: &quot;string&quot;,
   &quot;reason&quot;: &quot;string&quot;
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Storage</h2><h3>POST /api/v1/uploads/presigned-url</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h2>07 Storage</h2><h3>POST /api/v1/uploads/presigned-url</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/uploads/presigned-url</p><p>**Request payload example:**</p><p>{
   &quot;folder&quot;: &quot;string&quot;,
   &quot;fileName&quot;: &quot;avatar.png&quot;,
   &quot;contentType&quot;: &quot;image/png&quot;,
@@ -2078,34 +2319,22 @@
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>POST /api/v1/uploads/complete</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Request payload example:**</p><p>{
+}</p><h3>POST /api/v1/uploads/complete</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** POST /api/v1/uploads/complete</p><p>**Request payload example:**</p><p>{
   &quot;uploadId&quot;: &quot;string&quot;,
   &quot;sizeBytes&quot;: 0
 }</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/uploads</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `folder` (query, optional)</p><p>- `ownerId` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/uploads</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/uploads</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `folder` (query, optional)</p><p>- `ownerId` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/uploads/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>GET /api/v1/uploads/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** GET /api/v1/uploads/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>DELETE /api/v1/uploads/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h2>Audit Logs</h2><h3>GET /api/v1/audit-logs/export</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `actorId` (query, optional)</p><p>- `targetId` (query, optional)</p><p>- `action` (query, optional)</p><p>- `targetType` (query, optional)</p><p>- `module` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/audit-logs</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `page` (query, optional)</p><p>- `limit` (query, optional)</p><p>- `actorId` (query, optional)</p><p>- `targetId` (query, optional)</p><p>- `action` (query, optional)</p><p>- `targetType` (query, optional)</p><p>- `module` (query, optional)</p><p>- `from` (query, optional)</p><p>- `to` (query, optional)</p><p>- `sortBy` (query, optional)</p><p>- `sortOrder` (query, optional)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {},
-  &quot;message&quot;: &quot;Request completed successfully&quot;
-}</p><h3>GET /api/v1/audit-logs/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** —</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
+}</p><h3>DELETE /api/v1/uploads/{id}</h3><p>**Allowed role/access:** Authenticated</p><p>**Summary:** DELETE /api/v1/uploads/{id}</p><p>**Parameters:**</p><p>- `id` (path, required)</p><p>**Request payload example:**</p><p>None</p><p>**Response example:**</p><p>{
   &quot;success&quot;: true,
   &quot;data&quot;: {},
   &quot;message&quot;: &quot;Request completed successfully&quot;

@@ -13,7 +13,7 @@ import {
 } from '../auth/dto/admin-management.dto';
 import { AdminRolesService } from './admin-roles.service';
 
-@ApiTags('Admin Roles / RBAC')
+@ApiTags('02 Admin - Roles & Permissions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)
@@ -61,7 +61,7 @@ export class AdminRolesController {
   }
 }
 
-@ApiTags('Admin Roles / RBAC')
+@ApiTags('02 Admin - Roles & Permissions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)

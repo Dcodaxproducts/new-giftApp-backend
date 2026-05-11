@@ -9,7 +9,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto } from './dto/create-presigned-upload.dto';
 import { StorageService } from './storage.service';
 
-@ApiTags('Storage')
+@ApiTags('07 Storage')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTERED_USER, UserRole.PROVIDER)

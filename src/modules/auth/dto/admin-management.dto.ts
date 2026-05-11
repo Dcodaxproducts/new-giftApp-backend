@@ -264,3 +264,13 @@ export class ListAdminRolesDto {
   @IsBoolean()
   isActive?: boolean;
 }
+
+export class PermanentlyDeleteAdminDto {
+  @ApiProperty({ example: 'PERMANENTLY_DELETE_ADMIN' })
+  @IsString()
+  confirmation!: string;
+
+  @ApiProperty({ example: 'Staff account removed.' })
+  @IsString()
+  reason!: string;
+}

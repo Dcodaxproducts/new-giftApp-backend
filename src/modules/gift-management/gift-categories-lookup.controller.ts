@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PrismaService } from '../../database/prisma.service';
 
-@ApiTags('Gift Categories')
+@ApiTags('04 Gifts - Categories')
 @Controller('gift-categories/lookup')
 export class GiftCategoriesLookupController {
   constructor(private readonly prisma: PrismaService) {}
