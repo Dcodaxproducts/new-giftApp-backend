@@ -59,7 +59,7 @@ Total endpoints: 254
 - `GET` `/api/v1/providers/export` — Authenticated — GET /api/v1/providers/export
 - `GET` `/api/v1/providers/stats` — Authenticated — GET /api/v1/providers/stats
 - `GET` `/api/v1/providers` — SUPER_ADMIN, ADMIN — List providers
-- `POST` `/api/v1/providers` — Authenticated — POST /api/v1/providers
+- `POST` `/api/v1/providers` — SUPER_ADMIN, ADMIN — Create provider from admin dashboard
 - `GET` `/api/v1/providers/lookup` — Authenticated — GET /api/v1/providers/lookup
 - `GET` `/api/v1/providers/{id}` — Authenticated — GET /api/v1/providers/{id}
 - `PATCH` `/api/v1/providers/{id}` — Authenticated — PATCH /api/v1/providers/{id}
@@ -1637,23 +1637,39 @@ None
 
 ### POST /api/v1/providers
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** SUPER_ADMIN, ADMIN
 
-**Summary:** POST /api/v1/providers
+**Summary:** Create provider from admin dashboard
+
+**Description:** SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.
 
 **Request payload example:**
 
 ```json
 {
-  "businessName": "Gifts & Blooms Co. Ltd",
   "email": "contact@giftsandblooms.com",
+  "firstName": "Ali",
+  "lastName": "Raza",
   "phone": "+15551234567",
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "businessCategoryId": "provider_business_category_id",
+  "taxId": "TAX-12345",
+  "businessAddress": "123 Gift Street",
   "serviceArea": "New York, USA",
   "headquarters": "New York, USA",
-  "documentUrls": [],
+  "fulfillmentMethods": [
+    "PICKUP",
+    "DELIVERY"
+  ],
+  "autoAcceptOrders": false,
+  "documentUrls": [
+    "https://cdn.yourdomain.com/provider-documents/license.pdf"
+  ],
   "generateTemporaryPassword": true,
+  "temporaryPassword": "Provider@123456",
   "mustChangePassword": true,
-  "approvalStatus": "string",
+  "sendInviteEmail": true,
+  "approvalStatus": "PENDING",
   "isActive": true
 }
 ```
@@ -1663,8 +1679,16 @@ None
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": {
+    "id": "provider_id",
+    "userId": "provider_id",
+    "email": "contact@giftsandblooms.com",
+    "businessName": "Gifts & Blooms Co. Ltd",
+    "approvalStatus": "PENDING",
+    "isActive": true,
+    "inviteEmailSent": true
+  },
+  "message": "Provider created successfully and invite email sent."
 }
 ```
 

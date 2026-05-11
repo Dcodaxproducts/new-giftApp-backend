@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from './dto/provider-management.dto';
+import { AdminProviderFulfillmentMethodDto, ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from './dto/provider-management.dto';
 import { ProviderManagementService } from './provider-management.service';
 
 const provider: Record<string, unknown> = {
@@ -39,7 +39,7 @@ function createService(overrides: Record<string, unknown> = {}) {
       count: jest.fn().mockResolvedValue(0),
       findFirst: jest.fn().mockResolvedValue(currentProvider),
       update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...currentProvider, ...data })),
-      create: jest.fn(),
+      create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'provider_new', ...data })),
       findUnique: jest.fn(),
       delete: jest.fn(),
     },
@@ -53,15 +53,17 @@ function createService(overrides: Record<string, unknown> = {}) {
     uploadedFile: { deleteMany: jest.fn() },
     loginAttempt: { updateMany: jest.fn() },
     providerOrder: { count: jest.fn().mockResolvedValue(0) },
+    providerBusinessCategory: { findUnique: jest.fn().mockResolvedValue({ id: 'provider_business_category_id', isActive: true }) },
     promotionalOffer: { updateMany: jest.fn() },
     gift: { updateMany: jest.fn() },
-    adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+    adminAuditLog: { create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'provider_new', ...data })), findMany: jest.fn().mockResolvedValue([]) },
   };
   const mailer = {
     sendAccountStatusEmail: jest.fn(),
     sendProviderApprovedEmail: jest.fn(),
     sendProviderRejectedEmail: jest.fn(),
     sendProviderMessageEmail: jest.fn(),
+    sendProviderInviteEmail: jest.fn(),
   };
   const service = new ProviderManagementService(
     prisma as unknown as ConstructorParameters<typeof ProviderManagementService>[0],
@@ -80,6 +82,120 @@ describe('ProviderManagementService', () => {
     expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ role: UserRole.PROVIDER }),
     }));
+  });
+
+
+
+  it('admin provider creation supports self-registration business fields and invite flow', async () => {
+    const { service, prisma, mailer } = createService();
+
+    const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      email: 'contact@giftsandblooms.com',
+      firstName: 'Ali',
+      lastName: 'Raza',
+      phone: '+15551234567',
+      businessName: 'Gifts & Blooms Co. Ltd',
+      businessCategoryId: 'provider_business_category_id',
+      taxId: 'TAX-12345',
+      businessAddress: '123 Gift Street',
+      serviceArea: 'New York, USA',
+      headquarters: 'New York, USA',
+      fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP, AdminProviderFulfillmentMethodDto.DELIVERY],
+      autoAcceptOrders: false,
+      documentUrls: ['https://cdn.yourdomain.com/provider-documents/license.pdf'],
+      generateTemporaryPassword: false,
+      temporaryPassword: 'Provider@123456',
+      mustChangePassword: true,
+      sendInviteEmail: true,
+      approvalStatus: ProviderApprovalStatus.PENDING,
+      isActive: true,
+    });
+
+    expect(prisma.providerBusinessCategory.findUnique).toHaveBeenCalledWith({ where: { id: 'provider_business_category_id' } });
+    expect(prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        email: 'contact@giftsandblooms.com',
+        firstName: 'Ali',
+        lastName: 'Raza',
+        phone: '+15551234567',
+        role: UserRole.PROVIDER,
+        providerBusinessName: 'Gifts & Blooms Co. Ltd',
+        providerBusinessCategoryId: 'provider_business_category_id',
+        providerTaxId: 'TAX-12345',
+        providerBusinessAddress: '123 Gift Street',
+        providerServiceArea: 'New York, USA',
+        providerFulfillmentMethods: ['PICKUP', 'DELIVERY'],
+        providerAutoAcceptOrders: false,
+        providerDocuments: ['https://cdn.yourdomain.com/provider-documents/license.pdf'],
+      }),
+    }));
+    expect(mailer.sendProviderInviteEmail).toHaveBeenCalledWith(expect.objectContaining({
+      email: 'contact@giftsandblooms.com',
+      providerName: 'Ali Raza',
+      businessName: 'Gifts & Blooms Co. Ltd',
+      temporaryPassword: 'Provider@123456',
+      approvalStatus: ProviderApprovalStatus.PENDING,
+    }));
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_CREATED_BY_ADMIN' }) }));
+    expect(JSON.stringify(prisma.adminAuditLog.create.mock.calls)).not.toContain('Provider@123456');
+    expect(JSON.stringify(result)).not.toContain('Provider@123456');
+    expect(result).toEqual(expect.objectContaining({
+      data: expect.objectContaining({ email: 'contact@giftsandblooms.com', businessName: 'Gifts & Blooms Co. Ltd', inviteEmailSent: true }),
+      message: 'Provider created successfully and invite email sent.',
+    }));
+  });
+
+  it('admin provider creation generates password and handles invite email failure without returning password', async () => {
+    const { service, prisma, mailer } = createService();
+    mailer.sendProviderInviteEmail.mockRejectedValue(new Error('smtp down'));
+
+    const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      email: 'provider@example.com',
+      firstName: 'Ali',
+      lastName: 'Raza',
+      phone: '+15551234567',
+      businessName: 'Premium Gifts Co',
+      businessCategoryId: 'provider_business_category_id',
+      businessAddress: '123 Gift Street',
+      fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP],
+      generateTemporaryPassword: true,
+      sendInviteEmail: true,
+    });
+
+    expect(prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ password: expect.any(String) as string }) }));
+    expect(result.data).toEqual(expect.objectContaining({ inviteEmailSent: false }));
+    expect(result.message).toBe('Provider created successfully, but invite email could not be sent.');
+    expect(JSON.stringify(result)).not.toContain('Gift-');
+  });
+
+  it('admin provider creation requires temporaryPassword when generation is disabled', async () => {
+    const { service } = createService();
+    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      email: 'provider@example.com',
+      firstName: 'Ali',
+      lastName: 'Raza',
+      phone: '+15551234567',
+      businessName: 'Premium Gifts Co',
+      businessCategoryId: 'provider_business_category_id',
+      businessAddress: '123 Gift Street',
+      fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP],
+      generateTemporaryPassword: false,
+    })).rejects.toThrow(BadRequestException);
+  });
+
+  it('Swagger shows consistent admin provider create payload and self-registration remains unchanged', () => {
+    const controller = readFileSync(join(__dirname, 'provider-management.controller.ts'), 'utf8');
+    const dto = readFileSync(join(__dirname, 'dto/provider-management.dto.ts'), 'utf8');
+    const authDto = readFileSync(join(__dirname, '../auth/dto/auth.dto.ts'), 'utf8');
+    expect(controller).toContain('Create provider from admin dashboard');
+    expect(dto).toContain('firstName!: string');
+    expect(dto).toContain('businessCategoryId!: string');
+    expect(dto).toContain('taxId?: string');
+    expect(dto).toContain('businessAddress!: string');
+    expect(dto).toContain('fulfillmentMethods!: AdminProviderFulfillmentMethodDto[]');
+    expect(dto).toContain('autoAcceptOrders?: boolean');
+    expect(authDto).toContain('export class RegisterProviderDto extends RegisterUserDto');
+    expect(authDto).toContain('password!: string');
   });
 
   it('PATCH /providers/:id/status with action APPROVE approves provider and clears rejection fields', async () => {

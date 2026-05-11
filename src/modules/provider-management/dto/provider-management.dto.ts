@@ -2,15 +2,18 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProviderApprovalStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   ValidateIf,
   IsString,
   IsUrl,
+  Matches,
   Max,
   Min,
   MinLength,
@@ -34,6 +37,12 @@ export enum ProviderSortBy {
 export enum SortOrder {
   ASC = 'ASC',
   DESC = 'DESC',
+}
+
+
+export enum AdminProviderFulfillmentMethodDto {
+  PICKUP = 'PICKUP',
+  DELIVERY = 'DELIVERY',
 }
 
 export enum ProviderStatusUpdate {
@@ -141,18 +150,44 @@ export class ListProvidersDto {
 }
 
 export class CreateProviderDto {
-  @ApiProperty({ example: 'Gifts & Blooms Co. Ltd' })
-  @IsString()
-  businessName!: string;
-
   @ApiProperty({ example: 'contact@giftsandblooms.com' })
   @IsEmail()
   email!: string;
 
-  @ApiPropertyOptional({ example: '+15551234567' })
+  @ApiProperty({ example: 'Ali' })
+  @IsString()
+  @IsNotEmpty()
+  firstName!: string;
+
+  @ApiProperty({ example: 'Raza' })
+  @IsString()
+  @IsNotEmpty()
+  lastName!: string;
+
+  @ApiProperty({ example: '+15551234567' })
+  @IsString()
+  @IsNotEmpty()
+  phone!: string;
+
+  @ApiProperty({ example: 'Gifts & Blooms Co. Ltd' })
+  @IsString()
+  @IsNotEmpty()
+  businessName!: string;
+
+  @ApiProperty({ example: 'provider_business_category_id' })
+  @IsString()
+  @IsNotEmpty()
+  businessCategoryId!: string;
+
+  @ApiPropertyOptional({ example: 'TAX-12345' })
   @IsOptional()
   @IsString()
-  phone?: string;
+  taxId?: string;
+
+  @ApiProperty({ example: '123 Gift Street' })
+  @IsString()
+  @IsNotEmpty()
+  businessAddress!: string;
 
   @ApiPropertyOptional({ example: 'New York, USA' })
   @IsOptional()
@@ -164,28 +199,53 @@ export class CreateProviderDto {
   @IsString()
   headquarters?: string;
 
-  @ApiPropertyOptional({ type: [String] })
+  @ApiProperty({ enum: AdminProviderFulfillmentMethodDto, isArray: true, example: [AdminProviderFulfillmentMethodDto.PICKUP, AdminProviderFulfillmentMethodDto.DELIVERY] })
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsEnum(AdminProviderFulfillmentMethodDto, { each: true })
+  fulfillmentMethods!: AdminProviderFulfillmentMethodDto[];
+
+  @ApiPropertyOptional({ example: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  autoAcceptOrders?: boolean;
+
+  @ApiPropertyOptional({ type: [String], example: ['https://cdn.yourdomain.com/provider-documents/license.pdf'] })
   @IsOptional()
   @IsArray()
   @IsUrl({ require_tld: false }, { each: true })
   documentUrls?: string[];
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()
   generateTemporaryPassword?: boolean;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: 'Provider@123456' })
+  @ValidateIf((dto: CreateProviderDto) => dto.generateTemporaryPassword === false)
+  @IsString()
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
+    message: 'Temporary password does not meet security requirements.',
+  })
+  temporaryPassword?: string;
+
+  @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()
   mustChangePassword?: boolean;
 
-  @ApiPropertyOptional({ enum: ProviderApprovalStatus })
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  @IsBoolean()
+  sendInviteEmail?: boolean;
+
+  @ApiPropertyOptional({ enum: ProviderApprovalStatus, default: ProviderApprovalStatus.PENDING })
   @IsOptional()
   @IsEnum(ProviderApprovalStatus)
   approvalStatus?: ProviderApprovalStatus;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

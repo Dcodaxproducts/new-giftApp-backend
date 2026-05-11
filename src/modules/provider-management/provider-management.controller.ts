@@ -72,6 +72,29 @@ export class ProviderManagementController {
 
   @Post()
   @Permissions('providers.create')
+  @ApiOperation({
+    summary: 'Create provider from admin dashboard',
+    description: 'SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Provider created successfully',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          id: 'provider_id',
+          userId: 'provider_id',
+          email: 'contact@giftsandblooms.com',
+          businessName: 'Gifts & Blooms Co. Ltd',
+          approvalStatus: 'PENDING',
+          isActive: true,
+          inviteEmailSent: true,
+        },
+        message: 'Provider created successfully and invite email sent.',
+      },
+    },
+  })
   create(
     @CurrentUser() user: AuthUserContext,
     @Body() dto: CreateProviderDto,

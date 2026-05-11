@@ -9,6 +9,7 @@ import { broadcastEmailTemplate } from '../../mail/templates/broadcast-email.tem
 import { EmailTemplateResult, EmailTemplateVariables, layoutTemplate, buildPlainText } from '../../mail/templates/layout.template';
 import { otpEmailTemplate } from '../../mail/templates/otp-email.template';
 import { providerApprovedTemplate } from '../../mail/templates/provider-approved.template';
+import { providerInviteTemplate } from '../../mail/templates/provider-invite.template';
 import { providerRejectedTemplate } from '../../mail/templates/provider-rejected.template';
 import { resetPasswordTemplate } from '../../mail/templates/reset-password.template';
 
@@ -55,6 +56,22 @@ export class MailerService {
 
   async sendProviderRejectedEmail(email: string, businessName: string, reason?: string, comment?: string): Promise<void> {
     await this.sendTemplate(email, providerRejectedTemplate({ ...this.brand(), title: 'Provider account update', message: 'Your provider application needs attention before it can be approved.', businessName, reason, comment, ctaText: 'Review application', ctaUrl: this.frontendUrl() }));
+  }
+
+  async sendProviderInviteEmail(input: { email: string; providerName: string; businessName: string; temporaryPassword?: string; mustChangePassword?: boolean; approvalStatus: string; ctaUrl?: string }): Promise<void> {
+    await this.sendTemplate(input.email, providerInviteTemplate({
+      ...this.brand(),
+      providerName: input.providerName,
+      businessName: input.businessName,
+      userEmail: input.email,
+      temporaryPassword: input.temporaryPassword,
+      mustChangePassword: input.mustChangePassword,
+      approvalStatus: input.approvalStatus,
+      title: 'You have been invited to Gift App Provider Portal',
+      message: 'A provider account has been created for you.',
+      ctaText: 'Open Provider Portal',
+      ctaUrl: input.ctaUrl ?? this.frontendUrl(),
+    }));
   }
 
   async sendProviderMessageEmail(email: string, subject: string, message: string): Promise<void> {

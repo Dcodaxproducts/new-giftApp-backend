@@ -144,16 +144,26 @@ export class ProviderManagementService {
     if (existing && !existing.deletedAt) {
       throw new ConflictException('Email already exists');
     }
+    await this.getProviderBusinessCategory(dto.businessCategoryId);
+
+    const shouldGeneratePassword = dto.generateTemporaryPassword ?? true;
+    if (!shouldGeneratePassword && !dto.temporaryPassword) {
+      throw new BadRequestException('Temporary password is required when generateTemporaryPassword is false');
+    }
+    const temporaryPassword = shouldGeneratePassword ? this.generateTemporaryPassword() : dto.temporaryPassword;
+    if (!temporaryPassword) {
+      throw new BadRequestException('Temporary password is required');
+    }
+    this.assertPasswordMeetsSecurity(temporaryPassword);
 
     const approvalStatus = dto.approvalStatus ?? ProviderApprovalStatus.PENDING;
-    const password = this.generateTemporaryPassword();
     const provider = await this.prisma.user.create({
       data: {
         email,
-        password: await bcrypt.hash(password, 10),
-        firstName: dto.businessName.trim(),
-        lastName: 'Provider',
-        phone: dto.phone?.trim(),
+        password: await bcrypt.hash(temporaryPassword, 10),
+        firstName: dto.firstName.trim(),
+        lastName: dto.lastName.trim(),
+        phone: dto.phone.trim(),
         role: UserRole.PROVIDER,
         isActive: dto.isActive ?? true,
         isApproved: approvalStatus === ProviderApprovalStatus.APPROVED,
@@ -161,18 +171,46 @@ export class ProviderManagementService {
         mustChangePassword: dto.mustChangePassword ?? true,
         location: dto.headquarters?.trim(),
         providerBusinessName: dto.businessName.trim(),
+        providerBusinessCategoryId: dto.businessCategoryId,
+        providerTaxId: dto.taxId?.trim(),
+        providerBusinessAddress: dto.businessAddress.trim(),
         providerServiceArea: dto.serviceArea?.trim(),
+        providerFulfillmentMethods: dto.fulfillmentMethods,
+        providerAutoAcceptOrders: dto.autoAcceptOrders ?? false,
         providerDocuments: dto.documentUrls ?? [],
         providerApprovalStatus: approvalStatus,
         providerApprovedAt: approvalStatus === ProviderApprovalStatus.APPROVED ? new Date() : null,
         providerApprovedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
       },
     });
-    await this.recordAudit(user.uid, provider.id, 'PROVIDER_CREATED', null, this.toDetail(provider, this.emptyProviderStats()));
+
+    const inviteEmailSent = dto.sendInviteEmail ?? true
+      ? await this.sendProviderInvite(provider, temporaryPassword, approvalStatus)
+      : false;
+
+    await this.recordAudit(user.uid, provider.id, 'PROVIDER_CREATED_BY_ADMIN', null, {
+      actorId: user.uid,
+      targetId: provider.id,
+      action: 'PROVIDER_CREATED_BY_ADMIN',
+      approvalStatus,
+      inviteEmailSent,
+    });
 
     return {
-      data: this.toDetail(provider, this.emptyProviderStats()),
-      message: 'Provider created successfully',
+      data: {
+        id: provider.id,
+        userId: provider.id,
+        email: provider.email,
+        businessName: this.businessName(provider),
+        approvalStatus: provider.providerApprovalStatus,
+        isActive: provider.isActive,
+        inviteEmailSent,
+      },
+      message: (dto.sendInviteEmail ?? true) && !inviteEmailSent
+        ? 'Provider created successfully, but invite email could not be sent.'
+        : inviteEmailSent
+          ? 'Provider created successfully and invite email sent.'
+          : 'Provider created successfully.',
     };
   }
 
@@ -612,6 +650,36 @@ export class ProviderManagementService {
       .replaceAll("'", '&apos;');
   }
 
+
+
+  private async sendProviderInvite(provider: User, temporaryPassword: string, approvalStatus: ProviderApprovalStatus): Promise<boolean> {
+    try {
+      await this.mailerService.sendProviderInviteEmail({
+        email: provider.email,
+        providerName: `${provider.firstName} ${provider.lastName}`.trim(),
+        businessName: this.businessName(provider),
+        temporaryPassword,
+        mustChangePassword: provider.mustChangePassword,
+        approvalStatus,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private assertPasswordMeetsSecurity(password: string): void {
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      throw new BadRequestException('Temporary password does not meet security requirements.');
+    }
+  }
+
+  private async getProviderBusinessCategory(categoryId: string): Promise<void> {
+    const category = await this.prisma.providerBusinessCategory.findUnique({ where: { id: categoryId } });
+    if (!category || !category.isActive) {
+      throw new NotFoundException('Provider business category not found');
+    }
+  }
 
   private validateLifecycleAction(provider: User, dto: UpdateProviderStatusDto): void {
     if (dto.action === ProviderLifecycleAction.REJECT && !dto.reason) {

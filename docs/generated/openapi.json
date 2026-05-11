@@ -2305,6 +2305,7 @@
         ]
       },
       "post": {
+        "description": "SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.",
         "operationId": "ProviderManagementController_create",
         "parameters": [],
         "requestBody": {
@@ -2319,7 +2320,26 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Provider created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_id",
+                      "userId": "provider_id",
+                      "email": "contact@giftsandblooms.com",
+                      "businessName": "Gifts & Blooms Co. Ltd",
+                      "approvalStatus": "PENDING",
+                      "isActive": true,
+                      "inviteEmailSent": true
+                    },
+                    "message": "Provider created successfully and invite email sent."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2327,10 +2347,10 @@
             "bearer": []
           }
         ],
+        "summary": "Create provider from admin dashboard",
         "tags": [
           "02 Admin - Provider Management"
-        ],
-        "summary": "POST /api/v1/providers"
+        ]
       }
     },
     "/api/v1/providers/lookup": {
@@ -13065,17 +13085,37 @@
       "CreateProviderDto": {
         "type": "object",
         "properties": {
-          "businessName": {
-            "type": "string",
-            "example": "Gifts & Blooms Co. Ltd"
-          },
           "email": {
             "type": "string",
             "example": "contact@giftsandblooms.com"
           },
+          "firstName": {
+            "type": "string",
+            "example": "Ali"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Raza"
+          },
           "phone": {
             "type": "string",
             "example": "+15551234567"
+          },
+          "businessName": {
+            "type": "string",
+            "example": "Gifts & Blooms Co. Ltd"
+          },
+          "businessCategoryId": {
+            "type": "string",
+            "example": "provider_business_category_id"
+          },
+          "taxId": {
+            "type": "string",
+            "example": "TAX-12345"
+          },
+          "businessAddress": {
+            "type": "string",
+            "example": "123 Gift Street"
           },
           "serviceArea": {
             "type": "string",
@@ -13085,7 +13125,29 @@
             "type": "string",
             "example": "New York, USA"
           },
+          "fulfillmentMethods": {
+            "type": "array",
+            "example": [
+              "PICKUP",
+              "DELIVERY"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "PICKUP",
+                "DELIVERY"
+              ]
+            }
+          },
+          "autoAcceptOrders": {
+            "type": "boolean",
+            "example": false,
+            "default": false
+          },
           "documentUrls": {
+            "example": [
+              "https://cdn.yourdomain.com/provider-documents/license.pdf"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -13093,11 +13155,22 @@
           },
           "generateTemporaryPassword": {
             "type": "boolean",
-            "example": true
+            "example": true,
+            "default": true
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "example": "Provider@123456"
           },
           "mustChangePassword": {
             "type": "boolean",
-            "example": true
+            "example": true,
+            "default": true
+          },
+          "sendInviteEmail": {
+            "type": "boolean",
+            "example": true,
+            "default": true
           },
           "approvalStatus": {
             "type": "string",
@@ -13105,16 +13178,24 @@
               "PENDING",
               "APPROVED",
               "REJECTED"
-            ]
+            ],
+            "default": "PENDING"
           },
           "isActive": {
             "type": "boolean",
-            "example": true
+            "example": true,
+            "default": true
           }
         },
         "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "phone",
           "businessName",
-          "email"
+          "businessCategoryId",
+          "businessAddress",
+          "fulfillmentMethods"
         ]
       },
       "UpdateProviderDto": {
