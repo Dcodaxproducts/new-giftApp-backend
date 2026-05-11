@@ -142,7 +142,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/media-upload-policy/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Media upload policy audit logs.' },
 };
 
-const providerPrefixes = ['/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders'];
+const providerPrefixes = ['/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders', '/api/v1/provider/refund-requests'];
 const customerPrefixes = ['/api/v1/customer/'];
 const allAccountPrefixes = ['/api/v1/notifications', '/api/v1/uploads'];
 

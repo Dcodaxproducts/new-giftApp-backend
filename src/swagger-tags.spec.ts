@@ -11,6 +11,7 @@ describe('Swagger professional tag grouping', () => {
       '02 Admin - Provider Management',
       '02 Admin - Provider Business Categories',
       '03 Provider - Orders',
+      '03 Provider - Refund Requests',
       '04 Gifts - Management',
       '05 Customer - Wallet',
       '06 Payments',
@@ -28,6 +29,7 @@ describe('Swagger professional tag grouping', () => {
       'provider-management/provider-management.controller.ts',
       'provider-management/provider-business-categories.controller.ts',
       'provider-orders/provider-orders.controller.ts',
+      'provider-refund-requests/provider-refund-requests.controller.ts',
       'customer-wallet/customer-wallet.controller.ts',
     ];
     const source = files.map((file) => readFileSync(join(root, file), 'utf8')).join('\n');
@@ -38,5 +40,6 @@ describe('Swagger professional tag grouping', () => {
     expect(source).toContain("@ApiTags('02 Admin - User Management')");
     expect(source).toContain("@ApiTags('02 Admin - Provider Management')");
     expect(source).toContain("@ApiTags('02 Admin - Provider Business Categories')");
+    expect(source).toContain("@ApiTags('03 Provider - Refund Requests')");
   });
 });

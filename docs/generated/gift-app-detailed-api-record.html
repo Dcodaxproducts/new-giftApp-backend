@@ -1325,6 +1325,79 @@
 }
 </code></pre>
 <p><strong>Response payload:</strong> Not documented</p>
+<h2>03 Provider - Refund Requests</h2>
+<h3><code>GET</code> <code>/api/v1/provider/refund-requests</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> List own provider refund requests</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns refund requests for provider orders assigned to the authenticated provider. Search supports order number, customer name, and customer email.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload — 200 (application/json):</strong></p>
+<pre><code class="language-json">{
+  &quot;example&quot;: {
+    &quot;success&quot;: true,
+    &quot;data&quot;: [
+      {
+        &quot;id&quot;: &quot;refund_request_id&quot;,
+        &quot;providerOrderId&quot;: &quot;provider_order_id&quot;,
+        &quot;orderNumber&quot;: &quot;88417&quot;,
+        &quot;customer&quot;: {
+          &quot;name&quot;: &quot;Jane Cooper&quot;,
+          &quot;email&quot;: &quot;jane.cooper@example.com&quot;,
+          &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/customer-avatar.jpg&quot;
+        },
+        &quot;requestedAmount&quot;: 45,
+        &quot;currency&quot;: &quot;PKR&quot;,
+        &quot;status&quot;: &quot;REQUESTED&quot;,
+        &quot;customerReason&quot;: &quot;Item was damaged on arrival&quot;,
+        &quot;createdAt&quot;: &quot;2026-10-23T18:10:00.000Z&quot;
+      }
+    ],
+    &quot;message&quot;: &quot;Provider refund requests fetched successfully.&quot;
+  }
+}
+</code></pre>
+<h3><code>GET</code> <code>/api/v1/provider/refund-requests/summary</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> Fetch own refund request summary</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route intentionally declared before :id. PROVIDER only.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>GET</code> <code>/api/v1/provider/refund-requests/reject-reasons</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> List refund rejection reasons</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route intentionally declared before :id. PROVIDER only.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>GET</code> <code>/api/v1/provider/refund-requests/{id}</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> Fetch own refund request details</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Refund request must belong to the authenticated provider order and never exposes Stripe secrets or raw card data.</p>
+<p><strong>Request payload:</strong> None</p>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>POST</code> <code>/api/v1/provider/refund-requests/{id}/approve</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> Approve own requested refund</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Validates ownership, REQUESTED status, requested amount, refundable amount, creates refund transaction marker, timeline entry, and customer notification.</p>
+<p><strong>Request payload (application/json):</strong></p>
+<pre><code class="language-json">{
+  &quot;comment&quot;: &quot;Refund approved after reviewing evidence.&quot;,
+  &quot;refundAmount&quot;: 45,
+  &quot;notifyCustomer&quot;: true
+}
+</code></pre>
+<p><strong>Response payload:</strong> Not documented</p>
+<h3><code>POST</code> <code>/api/v1/provider/refund-requests/{id}/reject</code></h3>
+<p><strong>Allowed roles:</strong> PROVIDER</p>
+<p><strong>Summary:</strong> Reject own requested refund</p>
+<p><strong>Description:</strong> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Validates ownership and REQUESTED status. Creates timeline entry and optional customer notification. No Stripe refund is created.</p>
+<p><strong>Request payload (application/json):</strong></p>
+<pre><code class="language-json">{
+  &quot;reason&quot;: &quot;REFUND_WINDOW_EXPIRED&quot;,
+  &quot;comment&quot;: &quot;The request was submitted after the allowed refund period.&quot;,
+  &quot;notifyCustomer&quot;: true
+}
+</code></pre>
+<p><strong>Response payload:</strong> Not documented</p>
 <h2>04 Gifts - Categories</h2>
 <h3><code>GET</code> <code>/api/v1/gift-categories/lookup</code></h3>
 <p><strong>Allowed roles:</strong> PUBLIC</p>

@@ -153,6 +153,15 @@
 - `POST` `/api/v1/provider/orders/{id}/accept` — **PROVIDER** — Accept own pending provider order
 - `POST` `/api/v1/provider/orders/{id}/reject` — **PROVIDER** — Reject own pending provider order
 
+## 03 Provider - Refund Requests
+
+- `GET` `/api/v1/provider/refund-requests` — **PROVIDER** — List own provider refund requests
+- `GET` `/api/v1/provider/refund-requests/summary` — **PROVIDER** — Fetch own refund request summary
+- `GET` `/api/v1/provider/refund-requests/reject-reasons` — **PROVIDER** — List refund rejection reasons
+- `GET` `/api/v1/provider/refund-requests/{id}` — **PROVIDER** — Fetch own refund request details
+- `POST` `/api/v1/provider/refund-requests/{id}/approve` — **PROVIDER** — Approve own requested refund
+- `POST` `/api/v1/provider/refund-requests/{id}/reject` — **PROVIDER** — Reject own requested refund
+
 ## 04 Gifts - Categories
 
 - `GET` `/api/v1/gift-categories/lookup` — **PUBLIC** — Lookup active gift categories

@@ -2084,6 +2084,119 @@ Includes every API developed so far with allowed roles, request payloads, and re
 
 **Response payload:** Not documented
 
+## 03 Provider - Refund Requests
+
+### `GET` `/api/v1/provider/refund-requests`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** List own provider refund requests
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns refund requests for provider orders assigned to the authenticated provider. Search supports order number, customer name, and customer email.
+
+**Request payload:** None
+
+**Response payload — 200 (application/json):**
+```json
+{
+  "example": {
+    "success": true,
+    "data": [
+      {
+        "id": "refund_request_id",
+        "providerOrderId": "provider_order_id",
+        "orderNumber": "88417",
+        "customer": {
+          "name": "Jane Cooper",
+          "email": "jane.cooper@example.com",
+          "avatarUrl": "https://cdn.yourdomain.com/customer-avatar.jpg"
+        },
+        "requestedAmount": 45,
+        "currency": "PKR",
+        "status": "REQUESTED",
+        "customerReason": "Item was damaged on arrival",
+        "createdAt": "2026-10-23T18:10:00.000Z"
+      }
+    ],
+    "message": "Provider refund requests fetched successfully."
+  }
+}
+```
+
+### `GET` `/api/v1/provider/refund-requests/summary`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Fetch own refund request summary
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route intentionally declared before :id. PROVIDER only.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
+### `GET` `/api/v1/provider/refund-requests/reject-reasons`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** List refund rejection reasons
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route intentionally declared before :id. PROVIDER only.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
+### `GET` `/api/v1/provider/refund-requests/{id}`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Fetch own refund request details
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Refund request must belong to the authenticated provider order and never exposes Stripe secrets or raw card data.
+
+**Request payload:** None
+
+**Response payload:** Not documented
+
+### `POST` `/api/v1/provider/refund-requests/{id}/approve`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Approve own requested refund
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Validates ownership, REQUESTED status, requested amount, refundable amount, creates refund transaction marker, timeline entry, and customer notification.
+
+**Request payload (application/json):**
+```json
+{
+  "comment": "Refund approved after reviewing evidence.",
+  "refundAmount": 45,
+  "notifyCustomer": true
+}
+```
+
+**Response payload:** Not documented
+
+### `POST` `/api/v1/provider/refund-requests/{id}/reject`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Reject own requested refund
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Validates ownership and REQUESTED status. Creates timeline entry and optional customer notification. No Stripe refund is created.
+
+**Request payload (application/json):**
+```json
+{
+  "reason": "REFUND_WINDOW_EXPIRED",
+  "comment": "The request was submitted after the allowed refund period.",
+  "notifyCustomer": true
+}
+```
+
+**Response payload:** Not documented
+
 ## 04 Gifts - Categories
 
 ### `GET` `/api/v1/gift-categories/lookup`

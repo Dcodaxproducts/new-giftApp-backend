@@ -151,6 +151,15 @@
 <li><code>POST</code> <code>/api/v1/provider/orders/{id}/accept</code> — <strong>PROVIDER</strong> — Accept own pending provider order</li>
 <li><code>POST</code> <code>/api/v1/provider/orders/{id}/reject</code> — <strong>PROVIDER</strong> — Reject own pending provider order</li>
 </ul>
+<h2>03 Provider - Refund Requests</h2>
+<ul>
+<li><code>GET</code> <code>/api/v1/provider/refund-requests</code> — <strong>PROVIDER</strong> — List own provider refund requests</li>
+<li><code>GET</code> <code>/api/v1/provider/refund-requests/summary</code> — <strong>PROVIDER</strong> — Fetch own refund request summary</li>
+<li><code>GET</code> <code>/api/v1/provider/refund-requests/reject-reasons</code> — <strong>PROVIDER</strong> — List refund rejection reasons</li>
+<li><code>GET</code> <code>/api/v1/provider/refund-requests/{id}</code> — <strong>PROVIDER</strong> — Fetch own refund request details</li>
+<li><code>POST</code> <code>/api/v1/provider/refund-requests/{id}/approve</code> — <strong>PROVIDER</strong> — Approve own requested refund</li>
+<li><code>POST</code> <code>/api/v1/provider/refund-requests/{id}/reject</code> — <strong>PROVIDER</strong> — Reject own requested refund</li>
+</ul>
 <h2>04 Gifts - Categories</h2>
 <ul>
 <li><code>GET</code> <code>/api/v1/gift-categories/lookup</code> — <strong>PUBLIC</strong> — Lookup active gift categories</li>

@@ -258,6 +258,23 @@ enum ProviderOrderRejectReason {
   OTHER
 }
 
+enum RefundRequestStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  REFUND_PROCESSING
+  REFUNDED
+  FAILED
+}
+
+enum RefundRejectReason {
+  ITEM_DELIVERED_AS_DESCRIBED
+  NO_DAMAGE_EVIDENCE
+  REFUND_WINDOW_EXPIRED
+  NOT_COVERED_BY_POLICY
+  OTHER
+}
+
 enum PaymentMethod {
   STRIPE_CARD
   E_WALLET
@@ -454,6 +471,8 @@ model User {
   updatedCoupons                      Coupon[]                             @relation("CouponUpdater")
   providerBusinessCategory            ProviderBusinessCategory?            @relation(fields: [providerBusinessCategoryId], references: [id])
   providerOrders                      ProviderOrder[]
+  customerRefundRequests              RefundRequest[]                     @relation("RefundRequestCustomer")
+  providerRefundRequests              RefundRequest[]                     @relation("RefundRequestProvider")
   providerOrderTimelines              ProviderOrderTimeline[]
   sentOrderMessages                   OrderMessage[]                       @relation("OrderMessageSender")
   receivedOrderMessages               OrderMessage[]                       @relation("OrderMessageRecipient")
@@ -829,6 +848,7 @@ model Payment {
   order                       Order?                               @relation(fields: [orderId], references: [id])
   moneyGift                   MoneyGift?                           @relation(fields: [moneyGiftId], references: [id])
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
+  refundRequests              RefundRequest[]
 
   @@index([userId, status])
   @@index([status, createdAt])
@@ -858,6 +878,7 @@ model Order {
   updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
   items               OrderItem[]
   providerOrders      ProviderOrder[]
+  refundRequests      RefundRequest[]
   messages            OrderMessage[]
   payment             Payment?
 
@@ -922,6 +943,7 @@ model ProviderOrder {
   timeline            ProviderOrderTimeline[]
   checklist           ProviderOrderChecklist?
   messages            OrderMessage[]
+  refundRequests      RefundRequest[]
 
   @@index([orderId])
   @@index([providerId, status])
@@ -982,6 +1004,43 @@ model ProviderOrderChecklist {
   providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
 
   @@map("provider_order_checklists")
+}
+
+model RefundRequest {
+  id               String              @id @default(cuid())
+  orderId          String              @map("order_id")
+  providerOrderId  String              @map("provider_order_id")
+  userId           String              @map("user_id")
+  providerId       String              @map("provider_id")
+  paymentId        String?             @map("payment_id")
+  requestedAmount  Decimal             @map("requested_amount") @db.Decimal(10, 2)
+  approvedAmount   Decimal?            @map("approved_amount") @db.Decimal(10, 2)
+  currency         String              @default("PKR")
+  customerReason   String              @map("customer_reason")
+  evidenceUrlsJson Json                @default("[]") @map("evidence_urls_json")
+  status           RefundRequestStatus @default(REQUESTED)
+  rejectionReason  RefundRejectReason? @map("rejection_reason")
+  providerComment  String?             @map("provider_comment")
+  stripeRefundId   String?             @map("stripe_refund_id")
+  transactionId    String?             @unique @map("transaction_id")
+  requestedAt      DateTime            @default(now()) @map("requested_at") @db.Timestamptz
+  approvedAt       DateTime?           @map("approved_at") @db.Timestamptz
+  rejectedAt       DateTime?           @map("rejected_at") @db.Timestamptz
+  refundedAt       DateTime?           @map("refunded_at") @db.Timestamptz
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  order         Order         @relation(fields: [orderId], references: [id])
+  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
+  user          User          @relation("RefundRequestCustomer", fields: [userId], references: [id])
+  provider      User          @relation("RefundRequestProvider", fields: [providerId], references: [id])
+  payment       Payment?      @relation(fields: [paymentId], references: [id])
+
+  @@index([providerId, status, createdAt])
+  @@index([providerOrderId])
+  @@index([orderId])
+  @@index([userId])
+  @@map("refund_requests")
 }
 
 model OrderMessage {
