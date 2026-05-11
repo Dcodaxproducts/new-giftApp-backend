@@ -14,6 +14,7 @@ import { CustomerTransactionsModule } from './modules/customer-transactions/cust
 import { CustomerWalletModule } from './modules/customer-wallet/customer-wallet.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
+import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upload-policy.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
@@ -42,6 +43,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     GiftManagementModule,
     BroadcastNotificationsModule,
     SubscriptionPlansModule,
+    MediaUploadPolicyModule,
     LoginAttemptsModule,
     PaymentsModule,
     AuditLogsModule,

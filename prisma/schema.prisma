@@ -402,6 +402,7 @@ model User {
   receivedReferrals                   Referral[]                           @relation("ReferralReferred")
   rewardLedger                        RewardLedger[]
   uploadedFiles                       UploadedFile[]
+  updatedMediaUploadPolicies          MediaUploadPolicy[]                  @relation("MediaUploadPolicyUpdater")
   createdSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanCreator")
   updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
   createdCoupons                      Coupon[]                             @relation("CouponCreator")
@@ -1257,6 +1258,24 @@ model UploadedFile {
   @@index([folder, createdAt])
   @@index([deletedAt])
   @@map("uploaded_files")
+}
+
+model MediaUploadPolicy {
+  id                   String   @id @default(cuid())
+  allowedFileTypesJson Json     @default("{}") @map("allowed_file_types_json")
+  maxImageSizeMb       Int      @default(10) @map("max_image_size_mb")
+  maxVideoSizeMb       Int      @default(500) @map("max_video_size_mb")
+  maxAudioSizeMb       Int      @default(50) @map("max_audio_size_mb")
+  scanUploads          Boolean  @default(true) @map("scan_uploads")
+  blockSvgUploads      Boolean  @default(true) @map("block_svg_uploads")
+  updatedById          String?  @map("updated_by_id")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("MediaUploadPolicyUpdater", fields: [updatedById], references: [id])
+
+  @@index([updatedById])
+  @@map("media_upload_policies")
 }
 
 model Coupon {

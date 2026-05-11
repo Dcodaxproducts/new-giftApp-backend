@@ -7,6 +7,7 @@ import { Prisma, UploadedFile, UploadedFileStatus, UserRole } from '@prisma/clie
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
+import { MediaUploadPolicyService } from '../media-upload-policy/media-upload-policy.service';
 import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto, UploadFolder } from './dto/create-presigned-upload.dto';
 
 @Injectable()
@@ -14,10 +15,11 @@ export class StorageService {
   private client?: S3Client;
   private readonly defaultMaxFileBytes = 10 * 1024 * 1024;
 
-  constructor(private readonly configService: ConfigService, private readonly auditLog: AuditLogWriterService, private readonly prisma: PrismaService) {}
+  constructor(private readonly configService: ConfigService, private readonly auditLog: AuditLogWriterService, private readonly prisma: PrismaService, private readonly mediaUploadPolicy: MediaUploadPolicyService) {}
 
   async createPresignedUpload(user: AuthUserContext, dto: CreatePresignedUploadDto, ipAddress?: string, userAgent?: string | string[]) {
     await this.assertUploadScope(user, dto);
+    await this.mediaUploadPolicy.assertUploadAllowed(dto);
     this.assertFolderFilePolicy(dto);
     if (dto.sizeBytes && dto.sizeBytes > this.defaultMaxFileBytes && dto.folder !== UploadFolder.GIFT_MESSAGE_MEDIA) throw new ForbiddenException('File exceeds maximum allowed size');
     const bucket = this.required('AWS_BUCKET_NAME');
