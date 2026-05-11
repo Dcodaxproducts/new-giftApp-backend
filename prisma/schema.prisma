@@ -208,9 +208,14 @@ enum OrderStatus {
   PENDING
   CONFIRMED
   PROCESSING
+  PARTIALLY_PROCESSING
+  PARTIALLY_SHIPPED
+  PARTIALLY_COMPLETED
+  NEEDS_REVIEW
   READY_FOR_PICKUP
   OUT_FOR_DELIVERY
   DELIVERED
+  COMPLETED
   CANCELLED
   FAILED
 }
@@ -229,12 +234,20 @@ enum ProviderOrderStatus {
   ACCEPTED
   PROCESSING
   PACKED
+  READY_FOR_PICKUP
   SHIPPED
+  OUT_FOR_DELIVERY
   DELIVERED
   COMPLETED
   CANCELLED
   REJECTED
   REFUNDED
+}
+
+enum ProviderOrderMessageChannel {
+  IN_APP
+  EMAIL
+  SMS_PLACEHOLDER
 }
 
 enum ProviderOrderRejectReason {
@@ -442,6 +455,8 @@ model User {
   providerBusinessCategory            ProviderBusinessCategory?            @relation(fields: [providerBusinessCategoryId], references: [id])
   providerOrders                      ProviderOrder[]
   providerOrderTimelines              ProviderOrderTimeline[]
+  sentOrderMessages                   OrderMessage[]                       @relation("OrderMessageSender")
+  receivedOrderMessages               OrderMessage[]                       @relation("OrderMessageRecipient")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -843,6 +858,7 @@ model Order {
   updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
   items               OrderItem[]
   providerOrders      ProviderOrder[]
+  messages            OrderMessage[]
   payment             Payment?
 
   @@index([userId, createdAt])
@@ -878,29 +894,34 @@ model OrderItem {
 }
 
 model ProviderOrder {
-  id               String                     @id @default(cuid())
-  orderId          String                     @map("order_id")
-  providerId       String                     @map("provider_id")
-  orderNumber      String?                    @map("order_number")
-  status           ProviderOrderStatus        @default(PENDING)
-  subtotal         Decimal                    @db.Decimal(10, 2)
-  discountTotal    Decimal                    @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee      Decimal                    @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax              Decimal                    @default(0) @db.Decimal(10, 2)
-  platformFee      Decimal                    @default(0) @map("platform_fee") @db.Decimal(10, 2)
-  totalPayout      Decimal?                   @map("total_payout") @db.Decimal(10, 2)
-  total            Decimal                    @db.Decimal(10, 2)
-  currency         String                     @default("PKR")
-  acceptedAt       DateTime?                  @map("accepted_at") @db.Timestamptz
-  rejectedAt       DateTime?                  @map("rejected_at") @db.Timestamptz
-  rejectionReason  ProviderOrderRejectReason? @map("rejection_reason")
-  rejectionComment String?                    @map("rejection_comment")
-  createdAt        DateTime                   @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
-  order            Order                      @relation(fields: [orderId], references: [id])
-  provider         User                       @relation(fields: [providerId], references: [id])
-  items            ProviderOrderItem[]
-  timeline         ProviderOrderTimeline[]
+  id                  String                     @id @default(cuid())
+  orderId             String                     @map("order_id")
+  providerId          String                     @map("provider_id")
+  orderNumber         String?                    @map("order_number")
+  status              ProviderOrderStatus        @default(PENDING)
+  subtotal            Decimal                    @db.Decimal(10, 2)
+  discountTotal       Decimal                    @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee         Decimal                    @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                 Decimal                    @default(0) @db.Decimal(10, 2)
+  platformFee         Decimal                    @default(0) @map("platform_fee") @db.Decimal(10, 2)
+  totalPayout         Decimal?                   @map("total_payout") @db.Decimal(10, 2)
+  total               Decimal                    @db.Decimal(10, 2)
+  currency            String                     @default("PKR")
+  acceptedAt          DateTime?                  @map("accepted_at") @db.Timestamptz
+  rejectedAt          DateTime?                  @map("rejected_at") @db.Timestamptz
+  rejectionReason     ProviderOrderRejectReason? @map("rejection_reason")
+  rejectionComment    String?                    @map("rejection_comment")
+  trackingNumber      String?                    @map("tracking_number")
+  carrier             String?
+  estimatedDeliveryAt DateTime?                  @map("estimated_delivery_at") @db.Timestamptz
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+  order               Order                      @relation(fields: [orderId], references: [id])
+  provider            User                       @relation(fields: [providerId], references: [id])
+  items               ProviderOrderItem[]
+  timeline            ProviderOrderTimeline[]
+  checklist           ProviderOrderChecklist?
+  messages            OrderMessage[]
 
   @@index([orderId])
   @@index([providerId, status])
@@ -932,16 +953,56 @@ model ProviderOrderItem {
 model ProviderOrderTimeline {
   id              String              @id @default(cuid())
   providerOrderId String              @map("provider_order_id")
-  actorId         String              @map("actor_id")
   status          ProviderOrderStatus
-  note            String?
+  title           String
+  description     String
+  metadataJson    Json?               @map("metadata_json")
+  createdById     String              @map("created_by_id")
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
 
   providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-  actor         User          @relation(fields: [actorId], references: [id])
+  createdBy     User          @relation(fields: [createdById], references: [id])
 
   @@index([providerOrderId, createdAt])
   @@map("provider_order_timelines")
+}
+
+model ProviderOrderChecklist {
+  id                     String   @id @default(cuid())
+  providerOrderId        String   @unique @map("provider_order_id")
+  itemsPacked            Boolean  @default(false) @map("items_packed")
+  giftMessageAttached    Boolean  @default(false) @map("gift_message_attached")
+  addressVerified        Boolean  @default(false) @map("address_verified")
+  customerContactChecked Boolean  @default(false) @map("customer_contact_checked")
+  readyForCourier        Boolean  @default(false) @map("ready_for_courier")
+  customItemsJson        Json     @default("[]") @map("custom_items_json")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
+
+  @@map("provider_order_checklists")
+}
+
+model OrderMessage {
+  id              String                      @id @default(cuid())
+  orderId         String                      @map("order_id")
+  providerOrderId String                      @map("provider_order_id")
+  senderId        String                      @map("sender_id")
+  senderRole      UserRole                    @map("sender_role")
+  recipientId     String                      @map("recipient_id")
+  message         String
+  channel         ProviderOrderMessageChannel
+  createdAt       DateTime                    @default(now()) @map("created_at") @db.Timestamptz
+
+  order         Order         @relation(fields: [orderId], references: [id])
+  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
+  sender        User          @relation("OrderMessageSender", fields: [senderId], references: [id])
+  recipient     User          @relation("OrderMessageRecipient", fields: [recipientId], references: [id])
+
+  @@index([orderId, createdAt])
+  @@index([providerOrderId, createdAt])
+  @@map("order_messages")
 }
 
 model MoneyGift {

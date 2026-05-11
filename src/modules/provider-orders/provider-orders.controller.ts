@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { AcceptProviderOrderDto, ListProviderOrdersDto, ProviderOrderStatusFilter, ProviderOrdersSummaryDto, RejectProviderOrderDto } from './dto/provider-orders.dto';
+import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderStatusFilter, ProviderOrdersSummaryDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { ProviderOrdersService } from './provider-orders.service';
 
 @ApiTags('Provider Orders')
@@ -29,6 +29,27 @@ export class ProviderOrdersController {
   @Get('reject-reasons')
   @ApiOperation({ summary: 'List provider order reject reasons', description: 'Route intentionally declared before :id.' })
   rejectReasons() { return this.providerOrders.rejectReasons(); }
+
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Update own provider order fulfillment status', description: 'PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.' })
+  updateStatus(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderStatusDto) { return this.providerOrders.updateStatus(user, id, dto); }
+
+  @Get(':id/timeline')
+  @ApiOperation({ summary: 'Fetch own provider order timeline', description: 'PROVIDER only. Timeline is scoped to the authenticated provider order.' })
+  timeline(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.providerOrders.timeline(user, id); }
+
+  @Get(':id/checklist')
+  @ApiOperation({ summary: 'Fetch own provider order checklist', description: 'PROVIDER only. Checklist is operational and does not change status automatically.' })
+  checklist(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.providerOrders.checklist(user, id); }
+
+  @Patch(':id/checklist')
+  @ApiOperation({ summary: 'Update own provider order checklist', description: 'PROVIDER only. Checklist updates do not directly change order status.' })
+  updateChecklist(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderChecklistDto) { return this.providerOrders.updateChecklist(user, id, dto); }
+
+  @Post(':id/message-buyer')
+  @ApiOperation({ summary: 'Message buyer for own provider order', description: 'PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.' })
+  messageBuyer(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: MessageBuyerDto) { return this.providerOrders.messageBuyer(user, id, dto); }
 
   @Get(':id')
   @ApiOperation({ summary: 'Fetch own provider order details', description: 'PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.' })
