@@ -5,11 +5,14 @@ import {
   IsDateString,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
   Max,
   Min,
+  MinLength,
 } from 'class-validator';
 
 export enum RegisteredUserStatusFilter {
@@ -186,10 +189,29 @@ export class UnsuspendRegisteredUserDto {
 }
 
 export class ResetRegisteredUserPasswordDto {
-  @ApiPropertyOptional({ example: true })
+  @ApiProperty({ example: 'NewUser@123456' })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
+    message: 'New password does not meet security requirements.',
+  })
+  newPassword!: string;
+
+  @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()
   sendEmail?: boolean;
+
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  @IsBoolean()
+  sendNotification?: boolean;
+
+  @ApiPropertyOptional({ example: 'Password changed by support request.' })
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }
 
 export class ListUserActivityDto {

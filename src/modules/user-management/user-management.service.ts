@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { AccountType, LoginAttemptStatus, Prisma, User, UserRole } from '@prisma/client';
-import { randomInt } from 'crypto';
+import * as bcrypt from 'bcrypt';
+import { AccountType, LoginAttemptStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AccountStatusService } from '../../common/services/account-status.service';
 import { PrismaService } from '../../database/prisma.service';
@@ -13,6 +13,7 @@ import {
   RegisteredUserSortBy,
   RegisteredUserStatusFilter,
   RegisteredUserStatusUpdate,
+  ResetRegisteredUserPasswordDto,
   SortOrder,
   SuspendRegisteredUserDto,
   UserActivityType,
@@ -151,26 +152,50 @@ export class UserManagementService {
   async resetPassword(
     user: AuthUserContext,
     id: string,
-    dto: { sendEmail?: boolean },
+    dto: ResetRegisteredUserPasswordDto,
   ) {
     const target = await this.getRegisteredUser(id);
-    const otp = this.generateOtp();
+    const emailRequested = dto.sendEmail ?? true;
+    const notificationRequested = dto.sendNotification ?? true;
+
     await this.prisma.user.update({
       where: { id: target.id },
       data: {
-        resetPasswordOtp: otp,
-        resetPasswordOtpExpiresAt: this.generateOtpExpiry(),
+        password: await bcrypt.hash(dto.newPassword, 10),
+        resetPasswordOtp: null,
+        resetPasswordOtpExpiresAt: null,
         resetPasswordOtpAttempts: 0,
         refreshTokenHash: null,
       },
     });
-    await this.recordAudit(user.uid, target.id, 'REGISTERED_USER_PASSWORD_RESET_REQUESTED', null, { sendEmail: dto.sendEmail ?? true });
 
-    if (dto.sendEmail ?? true) {
-      await this.mailerService.sendPasswordResetEmail(target.email, otp);
-    }
+    const notificationSent = notificationRequested
+      ? await this.createPasswordChangedNotification(target.id)
+      : false;
+    const emailSent = emailRequested
+      ? await this.sendPasswordChangedEmail(target, dto.newPassword)
+      : false;
 
-    return { data: null, message: 'Password reset email sent successfully' };
+    await this.recordAudit(user.uid, target.id, 'USER_PASSWORD_CHANGED_BY_ADMIN', null, {
+      actorId: user.uid,
+      targetId: target.id,
+      action: 'USER_PASSWORD_CHANGED_BY_ADMIN',
+      reason: dto.reason,
+      emailSent,
+      notificationSent,
+    });
+
+    return {
+      data: {
+        userId: target.id,
+        email: target.email,
+        emailSent,
+        notificationSent,
+      },
+      message: emailRequested && !emailSent
+        ? 'User password changed successfully, but email could not be sent.'
+        : 'User password changed successfully.',
+    };
   }
 
   async activity(id: string, query: ListUserActivityDto) {
@@ -554,12 +579,32 @@ export class UserManagementService {
     return `${user.firstName} ${user.lastName}`.trim();
   }
 
-  private generateOtp(): string {
-    return String(randomInt(100000, 1000000));
+
+  private async sendPasswordChangedEmail(user: User, newPassword: string): Promise<boolean> {
+    try {
+      await this.mailerService.sendAdminChangedPasswordEmail({
+        email: user.email,
+        userName: this.fullName(user) || user.email,
+        newPassword,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  private generateOtpExpiry(): Date {
-    return new Date(Date.now() + 10 * 60 * 1000);
+  private async createPasswordChangedNotification(userId: string): Promise<boolean> {
+    await this.prisma.notification.create({
+      data: {
+        recipientId: userId,
+        recipientType: NotificationRecipientType.REGISTERED_USER,
+        type: 'SECURITY',
+        title: 'Password changed',
+        message: 'Your account password was changed by the support team.',
+        metadataJson: { action: 'PASSWORD_CHANGED_BY_ADMIN' },
+      },
+    });
+    return true;
   }
 
   private async recordAudit(
@@ -590,7 +635,7 @@ export class UserManagementService {
       return 'ADMIN';
     }
 
-    if (action.startsWith('REGISTERED_USER')) {
+    if (action.startsWith('REGISTERED_USER') || action.startsWith('USER_')) {
       return 'REGISTERED_USER';
     }
 

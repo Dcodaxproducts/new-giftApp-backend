@@ -640,6 +640,826 @@
         ]
       }
     },
+    "/api/v1/customer/referrals/summary": {
+      "get": {
+        "description": "REGISTERED_USER only. Customers can view only their own referral progress and ledger-derived balances.",
+        "operationId": "CustomerReferralsController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "invitedFriends": 3,
+                      "successfulReferrals": 2,
+                      "rewardsEarned": 20,
+                      "availableCredit": 20,
+                      "currency": "USD",
+                      "progress": {
+                        "totalInvited": 3,
+                        "joined": 2,
+                        "pending": 1
+                      }
+                    },
+                    "message": "Referral summary fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own referral reward summary",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/referrals/link": {
+      "get": {
+        "description": "Generates a unique customer referral code when missing. The link never exposes internal user IDs.",
+        "operationId": "CustomerReferralsController_link",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "referralCode": "SARAH-M",
+                      "referralLink": "https://giftapp.com/share/sarah-m",
+                      "shareTitle": "Invite Friends, Earn Rewards",
+                      "shareMessage": "Join Gift App with my referral link and we both earn rewards after your first gift purchase.",
+                      "rewardText": "Get $10 credit after your friend's first gift purchase."
+                    },
+                    "message": "Referral link fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own referral link",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/referrals/history": {
+      "get": {
+        "description": "REGISTERED_USER only. History is scoped to referrals created by the logged-in customer.",
+        "operationId": "CustomerReferralsController_history",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "PENDING",
+                "JOINED",
+                "QUALIFIED",
+                "REWARDED",
+                "EXPIRED"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own referral history",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/referrals/redeem": {
+      "post": {
+        "description": "Creates a REDEEMED reward ledger entry. Redemption cannot exceed ledger-derived available credit.",
+        "operationId": "CustomerReferralsController_redeem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "redeemedAmount": 20,
+                      "currency": "USD",
+                      "walletBalance": 20
+                    },
+                    "message": "Reward redeemed successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Redeem own available reward credit",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/rewards/balance": {
+      "get": {
+        "description": "Balance is calculated from RewardLedger entries, not a mutable user balance field.",
+        "operationId": "CustomerReferralsController_balance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "availableCredit": 20,
+                      "lifetimeEarned": 20,
+                      "lifetimeRedeemed": 0,
+                      "currency": "USD"
+                    },
+                    "message": "Reward balance fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own reward balance",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/rewards/ledger": {
+      "get": {
+        "description": "REGISTERED_USER only. Returns ledger entries owned by the logged-in customer.",
+        "operationId": "CustomerReferralsController_ledger",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "EARNED",
+                "REDEEMED",
+                "EXPIRED",
+                "ADJUSTED"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own reward ledger",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/referrals/terms": {
+      "get": {
+        "description": "Returns config/env based customer referral terms for the mobile app.",
+        "operationId": "CustomerReferralsController_terms",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "title": "Referral Terms",
+                      "rewardAmount": 10,
+                      "currency": "USD",
+                      "qualificationRule": "Reward is credited after your referred friend completes their first gift purchase.",
+                      "terms": [
+                        "Referral rewards are available only for registered users.",
+                        "Reward is credited after the referred user's first successful purchase.",
+                        "Cancelled or refunded orders may revoke reward eligibility.",
+                        "Referral abuse may result in reward cancellation."
+                      ]
+                    },
+                    "message": "Referral terms fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch referral terms",
+        "tags": [
+          "Customer Referrals & Rewards"
+        ]
+      }
+    },
+    "/api/v1/customer/wallet": {
+      "get": {
+        "description": "REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.",
+        "operationId": "CustomerWalletController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalBalance": 1240.5,
+                      "giftCredits": 350,
+                      "cashBalance": 890.5,
+                      "currency": "USD",
+                      "defaultPaymentMethod": {
+                        "id": "pm_xxx",
+                        "type": "CARD",
+                        "brand": "visa",
+                        "last4": "4242",
+                        "expiryMonth": 9,
+                        "expiryYear": 2025,
+                        "isDefault": true
+                      },
+                      "defaultBankAccount": {
+                        "id": "bank_account_id",
+                        "bankName": "Chase Bank",
+                        "last4": "8821",
+                        "isDefault": false
+                      }
+                    },
+                    "message": "Wallet fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own wallet",
+        "tags": [
+          "Customer Wallet"
+        ]
+      }
+    },
+    "/api/v1/customer/wallet/add-funds": {
+      "post": {
+        "description": "Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.",
+        "operationId": "CustomerWalletController_addFunds",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWalletFundsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create wallet top-up payment",
+        "tags": [
+          "Customer Wallet"
+        ]
+      }
+    },
+    "/api/v1/customer/wallet/history": {
+      "get": {
+        "description": "Positive amounts are credits, negative amounts are debits. Results are scoped to the logged-in customer.",
+        "operationId": "CustomerWalletController_history",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "TOP_UP",
+                "GIFT_SENT",
+                "MONEY_GIFT_SENT",
+                "REWARD_CREDIT",
+                "REFUND",
+                "ADJUSTMENT"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "PENDING",
+                "FAILED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own wallet history",
+        "tags": [
+          "Customer Wallet"
+        ]
+      }
+    },
+    "/api/v1/customer/bank-accounts": {
+      "post": {
+        "description": "Stores only masked display data. Full IBAN/account number is never returned.",
+        "operationId": "CustomerBankAccountsController_link",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link placeholder bank account",
+        "tags": [
+          "Customer Payment Methods"
+        ]
+      },
+      "get": {
+        "operationId": "CustomerBankAccountsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "bank_account_id",
+                        "accountHolderName": "John Smith",
+                        "bankName": "Chase Bank",
+                        "last4": "8821",
+                        "maskedAccount": "**** 8821",
+                        "isDefault": false
+                      }
+                    ],
+                    "message": "Bank accounts fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own bank accounts",
+        "tags": [
+          "Customer Payment Methods"
+        ]
+      }
+    },
+    "/api/v1/customer/bank-accounts/{id}/default": {
+      "patch": {
+        "operationId": "CustomerBankAccountsController_setDefault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set own default bank account",
+        "tags": [
+          "Customer Payment Methods"
+        ]
+      }
+    },
+    "/api/v1/customer/bank-accounts/{id}": {
+      "delete": {
+        "operationId": "CustomerBankAccountsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own bank account",
+        "tags": [
+          "Customer Payment Methods"
+        ]
+      }
+    },
+    "/api/v1/referral-settings": {
+      "get": {
+        "description": "SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.",
+        "operationId": "ReferralSettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "isActive": true,
+                      "referrerRewardAmount": 25,
+                      "newUserRewardAmount": 10,
+                      "rewardCurrency": "USD",
+                      "minimumTransactionAmount": 50,
+                      "referralExpirationValue": 30,
+                      "referralExpirationUnit": "DAYS",
+                      "allowSelfReferrals": false,
+                      "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE",
+                      "updatedAt": "2026-05-09T10:00:00.000Z"
+                    },
+                    "message": "Referral settings fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch referral settings",
+        "tags": [
+          "Referral Settings"
+        ]
+      },
+      "patch": {
+        "description": "SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.",
+        "operationId": "ReferralSettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReferralSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update referral settings",
+        "tags": [
+          "Referral Settings"
+        ]
+      }
+    },
+    "/api/v1/referral-settings/activate": {
+      "post": {
+        "description": "SUPER_ADMIN only. Existing earned rewards remain redeemable.",
+        "operationId": "ReferralSettingsController_activate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate referral program",
+        "tags": [
+          "Referral Settings"
+        ]
+      }
+    },
+    "/api/v1/referral-settings/deactivate": {
+      "post": {
+        "description": "SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.",
+        "operationId": "ReferralSettingsController_deactivate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeactivateReferralSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deactivate referral program",
+        "tags": [
+          "Referral Settings"
+        ]
+      }
+    },
+    "/api/v1/referral-settings/stats": {
+      "get": {
+        "description": "SUPER_ADMIN or ADMIN with referralSettings.read.",
+        "operationId": "ReferralSettingsController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch referral stats",
+        "tags": [
+          "Referral Settings"
+        ]
+      }
+    },
+    "/api/v1/referral-settings/audit-logs": {
+      "get": {
+        "description": "SUPER_ADMIN only.",
+        "operationId": "ReferralSettingsController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List referral settings audit logs",
+        "tags": [
+          "Referral Settings"
+        ]
+      }
+    },
     "/api/v1/admins": {
       "post": {
         "description": "Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
@@ -684,6 +1504,7 @@
         ]
       },
       "get": {
+        "description": "SUPER_ADMIN only. Returns User.role = ADMIN staff accounts only; SUPER_ADMIN accounts are intentionally excluded.",
         "operationId": "AdminManagementController_list",
         "parameters": [
           {
@@ -770,7 +1591,42 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Admins fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "admin_id",
+                        "firstName": "Operations",
+                        "lastName": "Staff",
+                        "fullName": "Operations Staff",
+                        "email": "staff@example.com",
+                        "phone": "+15550000002",
+                        "role": {
+                          "id": "admin_role_id",
+                          "name": "Gift Manager",
+                          "slug": "gift-manager"
+                        },
+                        "isActive": true,
+                        "isVerified": true,
+                        "createdAt": "2026-05-09T10:00:00.000Z",
+                        "lastLoginAt": null
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 10,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Admins fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -778,6 +1634,7 @@
             "bearer": []
           }
         ],
+        "summary": "List admin staff users",
         "tags": [
           "Admin Staff Management"
         ]
@@ -2579,6 +3436,832 @@
         ]
       }
     },
+    "/api/v1/provider/orders": {
+      "get": {
+        "description": "PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.",
+        "operationId": "ProviderOrdersController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "PENDING",
+                "ACCEPTED",
+                "PROCESSING",
+                "PACKED",
+                "SHIPPED",
+                "DELIVERED",
+                "COMPLETED",
+                "CANCELLED",
+                "REJECTED",
+                "REFUNDED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ORD-10293",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "provider_order_id",
+                        "orderId": "order_id",
+                        "orderNumber": "ORD-10293",
+                        "status": "PENDING",
+                        "paymentStatus": "SUCCEEDED",
+                        "customer": {
+                          "name": "Sarah Jenkins",
+                          "phone": "+15551234567"
+                        },
+                        "itemPreview": [
+                          {
+                            "name": "Premium Sneakers",
+                            "imageUrl": "https://cdn.yourdomain.com/gifts/sneaker.png"
+                          }
+                        ],
+                        "itemCount": 3,
+                        "totalPayout": 142,
+                        "currency": "PKR",
+                        "createdAt": "2026-10-24T10:45:00.000Z",
+                        "receivedAgoText": "5m ago"
+                      }
+                    ],
+                    "message": "Provider orders fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own assigned provider orders",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/history": {
+      "get": {
+        "description": "PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.",
+        "operationId": "ProviderOrdersController_history",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "COMPLETED",
+                "PENDING",
+                "CANCELLED",
+                "REFUNDED",
+                "DRAFT",
+                "PROCESSING",
+                "SHIPPED"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ORD-88425",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own provider order history",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/performance": {
+      "get": {
+        "description": "PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.",
+        "operationId": "ProviderOrdersController_performance",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "THIS_WEEK",
+                "THIS_MONTH",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider order performance",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/analytics/revenue": {
+      "get": {
+        "description": "PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.",
+        "operationId": "ProviderOrdersController_revenueAnalytics",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider revenue analytics",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/analytics/ratings": {
+      "get": {
+        "description": "PROVIDER only. Returns stable zero values until reviews module is available.",
+        "operationId": "ProviderOrdersController_ratingsAnalytics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider ratings analytics",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/recent": {
+      "get": {
+        "description": "PROVIDER only. Defaults to 5 latest orders.",
+        "operationId": "ProviderOrdersController_recent",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List recent own provider orders",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/export": {
+      "get": {
+        "description": "PROVIDER only. Export is scoped to logged-in provider orders.",
+        "operationId": "ProviderOrdersController_export",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "COMPLETED",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CSV",
+              "type": "string",
+              "enum": [
+                "CSV"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export own provider orders as CSV",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/summary": {
+      "get": {
+        "description": "Route intentionally declared before :id. PROVIDER only.",
+        "operationId": "ProviderOrdersController_summary",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider order summary",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/reject-reasons": {
+      "get": {
+        "description": "Route intentionally declared before :id.",
+        "operationId": "ProviderOrdersController_rejectReasons",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List provider order reject reasons",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}/status": {
+      "patch": {
+        "description": "PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.",
+        "operationId": "ProviderOrdersController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own provider order fulfillment status",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}/timeline": {
+      "get": {
+        "description": "PROVIDER only. Timeline is scoped to the authenticated provider order.",
+        "operationId": "ProviderOrdersController_timeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider order timeline",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}/checklist": {
+      "get": {
+        "description": "PROVIDER only. Checklist is operational and does not change status automatically.",
+        "operationId": "ProviderOrdersController_checklist",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider order checklist",
+        "tags": [
+          "Provider Orders"
+        ]
+      },
+      "patch": {
+        "description": "PROVIDER only. Checklist updates do not directly change order status.",
+        "operationId": "ProviderOrdersController_updateChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderOrderChecklistDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own provider order checklist",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}/message-buyer": {
+      "post": {
+        "description": "PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.",
+        "operationId": "ProviderOrdersController_messageBuyer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageBuyerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Message buyer for own provider order",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}": {
+      "get": {
+        "description": "PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.",
+        "operationId": "ProviderOrdersController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider order details",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}/accept": {
+      "post": {
+        "description": "Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.",
+        "operationId": "ProviderOrdersController_accept",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptProviderOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Accept own pending provider order",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
+    "/api/v1/provider/orders/{id}/reject": {
+      "post": {
+        "description": "Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.",
+        "operationId": "ProviderOrdersController_reject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectProviderOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reject own pending provider order",
+        "tags": [
+          "Provider Orders"
+        ]
+      }
+    },
     "/api/v1/provider/offers": {
       "get": {
         "operationId": "ProviderPromotionalOffersController_list",
@@ -3757,6 +5440,7 @@
     },
     "/api/v1/users/{id}/reset-password": {
       "post": {
+        "description": "SUPER_ADMIN or ADMIN with users.resetPassword permission can change a REGISTERED_USER password from the dashboard. Optionally sends email and in-app notification to the user.",
         "operationId": "UserManagementController_resetPassword",
         "parameters": [
           {
@@ -3779,8 +5463,24 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "User password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "userId": "user_id",
+                      "email": "user@example.com",
+                      "emailSent": true,
+                      "notificationSent": true
+                    },
+                    "message": "User password changed successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3788,6 +5488,7 @@
             "bearer": []
           }
         ],
+        "summary": "Change registered user password",
         "tags": [
           "User Management"
         ]
@@ -5643,9 +7344,14 @@
                 "PENDING",
                 "CONFIRMED",
                 "PROCESSING",
+                "PARTIALLY_PROCESSING",
+                "PARTIALLY_SHIPPED",
+                "PARTIALLY_COMPLETED",
+                "NEEDS_REVIEW",
                 "READY_FOR_PICKUP",
                 "OUT_FOR_DELIVERY",
                 "DELIVERED",
+                "COMPLETED",
                 "CANCELLED",
                 "FAILED"
               ]
@@ -6399,8 +8105,8 @@
     },
     "/api/v1/customer/payment-methods/setup-intent": {
       "post": {
-        "description": "REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.",
-        "operationId": "CustomerRecurringPaymentMethodsController_setupIntent",
+        "description": "Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.",
+        "operationId": "CustomerPaymentMethodsController_setupIntent",
         "parameters": [],
         "responses": {
           "201": {
@@ -6427,16 +8133,16 @@
             "bearer": []
           }
         ],
-        "summary": "Create Stripe setup intent for saving card",
+        "summary": "Create Stripe SetupIntent for saving card",
         "tags": [
-          "Customer Recurring Payments"
+          "Customer Payment Methods"
         ]
       }
     },
     "/api/v1/customer/payment-methods/saved": {
       "get": {
-        "description": "REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.",
-        "operationId": "CustomerRecurringPaymentMethodsController_saved",
+        "description": "Returns masked Stripe card metadata only.",
+        "operationId": "CustomerPaymentMethodsController_saved",
         "parameters": [],
         "responses": {
           "200": {
@@ -6452,8 +8158,8 @@
                         "type": "CARD",
                         "brand": "visa",
                         "last4": "4242",
-                        "expiryMonth": 12,
-                        "expiryYear": 2026,
+                        "expiryMonth": 9,
+                        "expiryYear": 2025,
                         "isDefault": true
                       }
                     ],
@@ -6469,16 +8175,16 @@
             "bearer": []
           }
         ],
-        "summary": "List saved payment methods",
+        "summary": "List own saved payment methods",
         "tags": [
-          "Customer Recurring Payments"
+          "Customer Payment Methods"
         ]
       }
     },
     "/api/v1/customer/payment-methods/{id}": {
       "delete": {
-        "description": "Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.",
-        "operationId": "CustomerRecurringPaymentMethodsController_delete",
+        "description": "Rejects deletion when the method is used by an active recurring payment.",
+        "operationId": "CustomerPaymentMethodsController_delete",
         "parameters": [
           {
             "name": "id",
@@ -6501,7 +8207,7 @@
         ],
         "summary": "Delete own saved payment method",
         "tags": [
-          "Customer Recurring Payments"
+          "Customer Payment Methods"
         ]
       }
     },
@@ -9731,6 +11437,147 @@
         ]
       }
     },
+    "/api/v1/media-upload-policy": {
+      "get": {
+        "description": "SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.",
+        "operationId": "MediaUploadPolicyController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "allowedFileTypes": {
+                        "jpeg": true,
+                        "jpg": true,
+                        "png": true,
+                        "gif": false,
+                        "mp4": true,
+                        "mov": true,
+                        "mp3": true,
+                        "wav": false,
+                        "svg": false
+                      },
+                      "maxImageSizeMb": 10,
+                      "maxVideoSizeMb": 500,
+                      "maxAudioSizeMb": 50,
+                      "scanUploads": true,
+                      "blockSvgUploads": true,
+                      "updatedAt": "2026-05-09T10:00:00.000Z",
+                      "updatedBy": {
+                        "id": "admin_id",
+                        "name": "Alex Rivera"
+                      }
+                    },
+                    "message": "Media upload policy fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch global media upload policy",
+        "tags": [
+          "Media Upload Policy"
+        ]
+      },
+      "patch": {
+        "description": "SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.",
+        "operationId": "MediaUploadPolicyController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMediaUploadPolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update global media upload policy",
+        "tags": [
+          "Media Upload Policy"
+        ]
+      }
+    },
+    "/api/v1/media-upload-policy/audit-logs": {
+      "get": {
+        "description": "SUPER_ADMIN only.",
+        "operationId": "MediaUploadPolicyController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List media upload policy audit logs",
+        "tags": [
+          "Media Upload Policy"
+        ]
+      }
+    },
     "/api/v1/customer/payments/create-intent": {
       "post": {
         "description": "REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
@@ -9889,17 +11736,18 @@
                     "data": [
                       {
                         "key": "STRIPE_CARD",
-                        "label": "Card",
-                        "provider": "STRIPE",
-                        "isOnline": true,
-                        "isAvailable": true
+                        "label": "Credit/Debit Card",
+                        "enabled": true
                       },
                       {
-                        "key": "COD",
-                        "label": "Cash on Delivery",
-                        "provider": "MANUAL",
-                        "isOnline": false,
-                        "isAvailable": true
+                        "key": "BANK_TRANSFER",
+                        "label": "Bank Payment",
+                        "enabled": true
+                      },
+                      {
+                        "key": "E_WALLET",
+                        "label": "E-Wallet",
+                        "enabled": false
                       }
                     ],
                     "message": "Payment methods fetched successfully."
@@ -9916,7 +11764,36 @@
         ],
         "summary": "List supported customer payment methods",
         "tags": [
-          "Payments"
+          "Customer Payment Methods"
+        ]
+      }
+    },
+    "/api/v1/customer/payment-methods/{id}/default": {
+      "patch": {
+        "operationId": "CustomerPaymentMethodsController_setDefault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set own default payment method",
+        "tags": [
+          "Customer Payment Methods"
         ]
       }
     },
@@ -10550,6 +12427,18 @@
       "name": "Payments"
     },
     {
+      "name": "Customer Referrals & Rewards"
+    },
+    {
+      "name": "Customer Wallet"
+    },
+    {
+      "name": "Media Upload Policy"
+    },
+    {
+      "name": "Referral Settings"
+    },
+    {
       "name": "Notifications"
     },
     {
@@ -10595,6 +12484,10 @@
           },
           "phone": {
             "type": "string"
+          },
+          "referralCode": {
+            "type": "string",
+            "example": "SARAH-M"
           }
         },
         "required": [
@@ -10621,6 +12514,10 @@
           },
           "phone": {
             "type": "string"
+          },
+          "referralCode": {
+            "type": "string",
+            "example": "SARAH-M"
           },
           "businessName": {
             "type": "string"
@@ -10776,6 +12673,150 @@
           "currentPassword",
           "newPassword"
         ]
+      },
+      "RedeemRewardDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 20
+          },
+          "redeemTo": {
+            "type": "string",
+            "enum": [
+              "WALLET",
+              "GIFT_CREDIT"
+            ],
+            "example": "WALLET"
+          }
+        },
+        "required": [
+          "amount",
+          "redeemTo"
+        ]
+      },
+      "AddWalletFundsDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
+              "COD",
+              "PLACEHOLDER"
+            ],
+            "example": "STRIPE_CARD"
+          },
+          "stripePaymentMethodId": {
+            "type": "string",
+            "example": "pm_xxx"
+          }
+        },
+        "required": [
+          "amount",
+          "currency",
+          "paymentMethod"
+        ]
+      },
+      "CreateBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountHolderName": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "bankName": {
+            "type": "string",
+            "example": "Chase Bank"
+          },
+          "ibanOrAccountNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "accountHolderName",
+          "bankName",
+          "ibanOrAccountNumber"
+        ]
+      },
+      "UpdateReferralSettingsDto": {
+        "type": "object",
+        "properties": {
+          "referrerRewardAmount": {
+            "type": "number",
+            "example": 25
+          },
+          "newUserRewardAmount": {
+            "type": "number",
+            "example": 10
+          },
+          "rewardCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "minimumTransactionAmount": {
+            "type": "number",
+            "example": 50
+          },
+          "referralExpirationValue": {
+            "type": "number",
+            "example": 30
+          },
+          "referralExpirationUnit": {
+            "type": "string",
+            "enum": [
+              "DAYS",
+              "WEEKS",
+              "MONTHS"
+            ],
+            "example": "DAYS"
+          },
+          "allowSelfReferrals": {
+            "type": "boolean",
+            "example": false
+          },
+          "qualificationRule": {
+            "type": "string",
+            "enum": [
+              "FIRST_SUCCESSFUL_PURCHASE"
+            ],
+            "example": "FIRST_SUCCESSFUL_PURCHASE"
+          }
+        },
+        "required": [
+          "referrerRewardAmount",
+          "newUserRewardAmount",
+          "rewardCurrency",
+          "minimumTransactionAmount",
+          "referralExpirationValue",
+          "referralExpirationUnit",
+          "allowSelfReferrals",
+          "qualificationRule"
+        ]
+      },
+      "DeactivateReferralSettingsDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Temporarily paused by Super Admin."
+          }
+        }
       },
       "UpdateAdminDto": {
         "type": "object",
@@ -11265,6 +13306,140 @@
           "isAvailable"
         ]
       },
+      "UpdateProviderOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "PROCESSING",
+              "PACKED",
+              "READY_FOR_PICKUP",
+              "SHIPPED",
+              "OUT_FOR_DELIVERY",
+              "DELIVERED",
+              "COMPLETED",
+              "CANCELLED",
+              "REJECTED",
+              "REFUNDED"
+            ],
+            "example": "SHIPPED"
+          },
+          "note": {
+            "type": "string",
+            "example": "Package handed over to courier."
+          },
+          "trackingNumber": {
+            "type": "string",
+            "example": "FDX-123456"
+          },
+          "carrier": {
+            "type": "string",
+            "example": "FedEx"
+          },
+          "estimatedDeliveryAt": {
+            "type": "string",
+            "example": "2026-10-26T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UpdateProviderOrderChecklistDto": {
+        "type": "object",
+        "properties": {
+          "itemsPacked": {
+            "type": "boolean",
+            "example": true
+          },
+          "giftMessageAttached": {
+            "type": "boolean",
+            "example": true
+          },
+          "addressVerified": {
+            "type": "boolean",
+            "example": true
+          },
+          "customerContactChecked": {
+            "type": "boolean",
+            "example": true
+          },
+          "readyForCourier": {
+            "type": "boolean",
+            "example": false
+          },
+          "customItems": {
+            "example": [
+              {
+                "id": "checklist_item_id",
+                "label": "Include gift wrap",
+                "isCompleted": true
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MessageBuyerDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Your order is being prepared and will be shipped soon."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "IN_APP",
+              "EMAIL",
+              "SMS_PLACEHOLDER"
+            ],
+            "example": "IN_APP"
+          }
+        },
+        "required": [
+          "message",
+          "channel"
+        ]
+      },
+      "AcceptProviderOrderDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Order accepted and will be processed shortly."
+          }
+        }
+      },
+      "RejectProviderOrderDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "OUT_OF_STOCK",
+              "BUSINESS_CLOSED",
+              "CANNOT_DELIVER_TO_AREA",
+              "PRICING_ERROR",
+              "OTHER"
+            ],
+            "example": "OUT_OF_STOCK"
+          },
+          "comment": {
+            "type": "string",
+            "example": "The selected size is currently unavailable."
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
       "CreateProviderOfferDto": {
         "type": "object",
         "properties": {
@@ -11549,11 +13724,28 @@
       "ResetRegisteredUserPasswordDto": {
         "type": "object",
         "properties": {
+          "newPassword": {
+            "type": "string",
+            "example": "NewUser@123456"
+          },
           "sendEmail": {
             "type": "boolean",
-            "example": true
+            "example": true,
+            "default": true
+          },
+          "sendNotification": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "reason": {
+            "type": "string",
+            "example": "Password changed by support request."
           }
-        }
+        },
+        "required": [
+          "newPassword"
+        ]
       },
       "CreateCustomerContactDto": {
         "type": "object",
@@ -13229,6 +15421,100 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "AllowedFileTypesDto": {
+        "type": "object",
+        "properties": {
+          "jpeg": {
+            "type": "boolean",
+            "example": true
+          },
+          "jpg": {
+            "type": "boolean",
+            "example": true
+          },
+          "png": {
+            "type": "boolean",
+            "example": true
+          },
+          "gif": {
+            "type": "boolean",
+            "example": false
+          },
+          "mp4": {
+            "type": "boolean",
+            "example": true
+          },
+          "mov": {
+            "type": "boolean",
+            "example": true
+          },
+          "mp3": {
+            "type": "boolean",
+            "example": true
+          },
+          "wav": {
+            "type": "boolean",
+            "example": false
+          },
+          "svg": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "jpeg",
+          "jpg",
+          "png",
+          "gif",
+          "mp4",
+          "mov",
+          "mp3",
+          "wav",
+          "svg"
+        ]
+      },
+      "UpdateMediaUploadPolicyDto": {
+        "type": "object",
+        "properties": {
+          "allowedFileTypes": {
+            "$ref": "#/components/schemas/AllowedFileTypesDto"
+          },
+          "maxImageSizeMb": {
+            "type": "number",
+            "example": 10,
+            "minimum": 1,
+            "maximum": 50
+          },
+          "maxVideoSizeMb": {
+            "type": "number",
+            "example": 500,
+            "minimum": 1,
+            "maximum": 1024
+          },
+          "maxAudioSizeMb": {
+            "type": "number",
+            "example": 50,
+            "minimum": 1,
+            "maximum": 200
+          },
+          "scanUploads": {
+            "type": "boolean",
+            "example": true
+          },
+          "blockSvgUploads": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "allowedFileTypes",
+          "maxImageSizeMb",
+          "maxVideoSizeMb",
+          "maxAudioSizeMb",
+          "scanUploads",
+          "blockSvgUploads"
         ]
       },
       "CreatePaymentIntentDto": {

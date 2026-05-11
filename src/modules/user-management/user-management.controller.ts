@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -102,7 +103,28 @@ export class UserManagementController {
   }
 
   @Post(':id/reset-password')
+  @HttpCode(200)
   @Permissions('users.resetPassword')
+  @ApiOperation({
+    summary: 'Change registered user password',
+    description: 'SUPER_ADMIN or ADMIN with users.resetPassword permission can change a REGISTERED_USER password from the dashboard. Optionally sends email and in-app notification to the user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User password changed successfully',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          userId: 'user_id',
+          email: 'user@example.com',
+          emailSent: true,
+          notificationSent: true,
+        },
+        message: 'User password changed successfully.',
+      },
+    },
+  })
   resetPassword(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,

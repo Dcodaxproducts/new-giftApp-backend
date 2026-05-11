@@ -8,7 +8,7 @@ export const PERMISSION_CATALOG = [
       { key: 'status.update', label: 'Update User Status', description: 'Enable or disable user access.' },
       { key: 'suspend', label: 'Suspend Users', description: 'Suspend registered user accounts.' },
       { key: 'unsuspend', label: 'Unsuspend Users', description: 'Restore suspended registered user accounts.' },
-      { key: 'resetPassword', label: 'Reset User Password', description: 'Send registered user password reset emails.' },
+      { key: 'resetPassword', label: 'Reset User Password', description: 'Change registered user passwords from the dashboard.' },
       { key: 'export', label: 'Export Users', description: 'Export registered user data.' },
     ],
   },

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
 import { accountSuspendedTemplate } from '../../mail/templates/account-suspended.template';
+import { adminPasswordChangedTemplate } from '../../mail/templates/admin-password-changed.template';
 import { adminInviteTemplate } from '../../mail/templates/admin-invite.template';
 import { broadcastEmailTemplate } from '../../mail/templates/broadcast-email.template';
 import { EmailTemplateResult, EmailTemplateVariables, layoutTemplate, buildPlainText } from '../../mail/templates/layout.template';
@@ -24,6 +25,18 @@ export class MailerService {
 
   async sendPasswordResetEmail(email: string, otp: string): Promise<void> {
     await this.sendTemplate(email, resetPasswordTemplate({ ...this.brand(), title: 'Reset your password', message: 'Use this code to reset your Gift App password.', otp, expiryMinutes: 10 }));
+  }
+
+  async sendAdminChangedPasswordEmail(input: { email: string; userName: string; newPassword: string }): Promise<void> {
+    await this.sendTemplate(input.email, adminPasswordChangedTemplate({
+      ...this.brand(),
+      userName: input.userName,
+      newPassword: input.newPassword,
+      title: 'Your Gift App password has been changed',
+      message: 'Your Gift App password was changed by the support/admin team.',
+      ctaText: 'Open Gift App',
+      ctaUrl: this.frontendUrl(),
+    }));
   }
 
   async sendAccountStatusEmail(email: string, status: string, comment?: string): Promise<void> {
