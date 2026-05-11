@@ -23,7 +23,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/users/register"
+        "summary": "POST /api/v1/auth/users/register",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/providers/register": {
@@ -48,7 +51,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/providers/register"
+        "summary": "POST /api/v1/auth/providers/register",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/guest/session": {
@@ -73,7 +79,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/guest/session"
+        "summary": "POST /api/v1/auth/guest/session",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/login": {
@@ -98,7 +107,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/login"
+        "summary": "POST /api/v1/auth/login",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/refresh": {
@@ -123,7 +135,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/refresh"
+        "summary": "POST /api/v1/auth/refresh",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/logout": {
@@ -143,7 +158,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/logout"
+        "summary": "POST /api/v1/auth/logout",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/verify-email": {
@@ -173,7 +191,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/verify-email"
+        "summary": "POST /api/v1/auth/verify-email",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/resend-otp": {
@@ -193,7 +214,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/resend-otp"
+        "summary": "POST /api/v1/auth/resend-otp",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/forgot-password": {
@@ -218,7 +242,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/forgot-password"
+        "summary": "POST /api/v1/auth/forgot-password",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/verify-reset-otp": {
@@ -243,7 +270,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/verify-reset-otp"
+        "summary": "POST /api/v1/auth/verify-reset-otp",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/reset-password": {
@@ -268,7 +298,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/reset-password"
+        "summary": "POST /api/v1/auth/reset-password",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC. PUBLIC."
       }
     },
     "/api/v1/auth/change-password": {
@@ -298,7 +331,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "PATCH /api/v1/auth/change-password"
+        "summary": "PATCH /api/v1/auth/change-password",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/me": {
@@ -318,7 +354,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "GET /api/v1/auth/me"
+        "summary": "GET /api/v1/auth/me",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/account": {
@@ -338,7 +377,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "DELETE /api/v1/auth/account"
+        "summary": "DELETE /api/v1/auth/account",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/auth/cancel-deletion": {
@@ -358,7 +400,10 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/cancel-deletion"
+        "summary": "POST /api/v1/auth/cancel-deletion",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/login-attempts/stats": {
@@ -457,7 +502,10 @@
         "tags": [
           "01 Auth - Login Attempts"
         ],
-        "summary": "GET /api/v1/login-attempts/stats"
+        "summary": "GET /api/v1/login-attempts/stats",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with loginAttempts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with loginAttempts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission."
       }
     },
     "/api/v1/login-attempts/export": {
@@ -556,7 +604,10 @@
         "tags": [
           "01 Auth - Login Attempts"
         ],
-        "summary": "GET /api/v1/login-attempts/export"
+        "summary": "GET /api/v1/login-attempts/export",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with loginAttempts.export",
+        "x-access": "SUPER_ADMIN or ADMIN with loginAttempts.export",
+        "description": "Access: SUPER_ADMIN or ADMIN with loginAttempts.export. SUPER_ADMIN or ADMIN with loginAttempts.export permission."
       }
     },
     "/api/v1/login-attempts": {
@@ -655,12 +706,15 @@
         "tags": [
           "01 Auth - Login Attempts"
         ],
-        "summary": "GET /api/v1/login-attempts"
+        "summary": "GET /api/v1/login-attempts",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with loginAttempts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with loginAttempts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission."
       }
     },
     "/api/v1/customer/referrals/summary": {
       "get": {
-        "description": "REGISTERED_USER only. Customers can view only their own referral progress and ledger-derived balances.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customers can view only their own referral progress and ledger-derived balances.",
         "operationId": "CustomerReferralsController_summary",
         "parameters": [],
         "responses": {
@@ -698,12 +752,14 @@
         "summary": "Fetch own referral reward summary",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/referrals/link": {
       "get": {
-        "description": "Generates a unique customer referral code when missing. The link never exposes internal user IDs.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Generates a unique customer referral code when missing. The link never exposes internal user IDs.",
         "operationId": "CustomerReferralsController_link",
         "parameters": [],
         "responses": {
@@ -736,12 +792,14 @@
         "summary": "Fetch own referral link",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/referrals/history": {
       "get": {
-        "description": "REGISTERED_USER only. History is scoped to referrals created by the logged-in customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. History is scoped to referrals created by the logged-in customer.",
         "operationId": "CustomerReferralsController_history",
         "parameters": [
           {
@@ -792,12 +850,14 @@
         "summary": "List own referral history",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/referrals/redeem": {
       "post": {
-        "description": "Creates a REDEEMED reward ledger entry. Redemption cannot exceed ledger-derived available credit.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Creates a REDEEMED reward ledger entry. Redemption cannot exceed ledger-derived available credit.",
         "operationId": "CustomerReferralsController_redeem",
         "parameters": [],
         "requestBody": {
@@ -838,12 +898,14 @@
         "summary": "Redeem own available reward credit",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/rewards/balance": {
       "get": {
-        "description": "Balance is calculated from RewardLedger entries, not a mutable user balance field.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Balance is calculated from RewardLedger entries, not a mutable user balance field.",
         "operationId": "CustomerReferralsController_balance",
         "parameters": [],
         "responses": {
@@ -875,12 +937,14 @@
         "summary": "Fetch own reward balance",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/rewards/ledger": {
       "get": {
-        "description": "REGISTERED_USER only. Returns ledger entries owned by the logged-in customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns ledger entries owned by the logged-in customer.",
         "operationId": "CustomerReferralsController_ledger",
         "parameters": [
           {
@@ -930,12 +994,14 @@
         "summary": "List own reward ledger",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/referrals/terms": {
       "get": {
-        "description": "Returns config/env based customer referral terms for the mobile app.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Returns config/env based customer referral terms for the mobile app.",
         "operationId": "CustomerReferralsController_terms",
         "parameters": [],
         "responses": {
@@ -973,12 +1039,14 @@
         "summary": "Fetch referral terms",
         "tags": [
           "05 Customer - Referrals & Rewards"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/wallet": {
       "get": {
-        "description": "REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.",
         "operationId": "CustomerWalletController_overview",
         "parameters": [],
         "responses": {
@@ -1025,12 +1093,14 @@
         "summary": "Fetch own wallet",
         "tags": [
           "05 Customer - Wallet"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/wallet/add-funds": {
       "post": {
-        "description": "Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.",
         "operationId": "CustomerWalletController_addFunds",
         "parameters": [],
         "requestBody": {
@@ -1056,12 +1126,14 @@
         "summary": "Create wallet top-up payment",
         "tags": [
           "05 Customer - Wallet"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/wallet/history": {
       "get": {
-        "description": "Positive amounts are credits, negative amounts are debits. Results are scoped to the logged-in customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Positive amounts are credits, negative amounts are debits. Results are scoped to the logged-in customer.",
         "operationId": "CustomerWalletController_history",
         "parameters": [
           {
@@ -1145,12 +1217,14 @@
         "summary": "List own wallet history",
         "tags": [
           "05 Customer - Wallet"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/bank-accounts": {
       "post": {
-        "description": "Stores only masked display data. Full IBAN/account number is never returned.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Stores only masked display data. Full IBAN/account number is never returned.",
         "operationId": "CustomerBankAccountsController_link",
         "parameters": [],
         "requestBody": {
@@ -1176,7 +1250,9 @@
         "summary": "Link placeholder bank account",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "get": {
         "operationId": "CustomerBankAccountsController_list",
@@ -1214,7 +1290,10 @@
         "summary": "List own bank accounts",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/bank-accounts/{id}/default": {
@@ -1243,7 +1322,10 @@
         "summary": "Set own default bank account",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/bank-accounts/{id}": {
@@ -1272,12 +1354,15 @@
         "summary": "Delete own bank account",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/referral-settings": {
       "get": {
-        "description": "SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.",
+        "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.",
         "operationId": "ReferralSettingsController_get",
         "parameters": [],
         "responses": {
@@ -1315,10 +1400,12 @@
         "summary": "Fetch referral settings",
         "tags": [
           "02 Admin - Referral Settings"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with referralSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with referralSettings.read"
       },
       "patch": {
-        "description": "SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.",
         "operationId": "ReferralSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -1344,12 +1431,14 @@
         "summary": "Update referral settings",
         "tags": [
           "02 Admin - Referral Settings"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/referral-settings/activate": {
       "post": {
-        "description": "SUPER_ADMIN only. Existing earned rewards remain redeemable.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Activates referral program. SUPER_ADMIN only. Existing earned rewards remain redeemable.",
         "operationId": "ReferralSettingsController_activate",
         "parameters": [],
         "responses": {
@@ -1365,12 +1454,14 @@
         "summary": "Activate referral program",
         "tags": [
           "02 Admin - Referral Settings"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/referral-settings/deactivate": {
       "post": {
-        "description": "SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Deactivates referral program. SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.",
         "operationId": "ReferralSettingsController_deactivate",
         "parameters": [],
         "requestBody": {
@@ -1396,12 +1487,14 @@
         "summary": "Deactivate referral program",
         "tags": [
           "02 Admin - Referral Settings"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/referral-settings/stats": {
       "get": {
-        "description": "SUPER_ADMIN or ADMIN with referralSettings.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read.",
         "operationId": "ReferralSettingsController_stats",
         "parameters": [],
         "responses": {
@@ -1417,12 +1510,14 @@
         "summary": "Fetch referral stats",
         "tags": [
           "02 Admin - Referral Settings"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with referralSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with referralSettings.read"
       }
     },
     "/api/v1/referral-settings/audit-logs": {
       "get": {
-        "description": "SUPER_ADMIN only.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Referral settings audit logs. SUPER_ADMIN only.",
         "operationId": "ReferralSettingsController_auditLogs",
         "parameters": [
           {
@@ -1475,12 +1570,14 @@
         "summary": "List referral settings audit logs",
         "tags": [
           "02 Admin - Referral Settings"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/admins": {
       "post": {
-        "description": "Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Creates ADMIN staff users only. Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
         "operationId": "AdminManagementController_create",
         "parameters": [],
         "requestBody": {
@@ -1519,10 +1616,12 @@
         "summary": "Create admin staff user",
         "tags": [
           "02 Admin - Staff Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       },
       "get": {
-        "description": "SUPER_ADMIN only. Returns User.role = ADMIN staff accounts only; SUPER_ADMIN accounts are intentionally excluded.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Admin staff management is controlled by Super Admin only. SUPER_ADMIN only. Returns User.role = ADMIN staff accounts only; SUPER_ADMIN accounts are intentionally excluded.",
         "operationId": "AdminManagementController_list",
         "parameters": [
           {
@@ -1655,7 +1754,9 @@
         "summary": "List admin staff users",
         "tags": [
           "02 Admin - Staff Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/admins/{id}": {
@@ -1684,7 +1785,10 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "GET /api/v1/admins/{id}"
+        "summary": "GET /api/v1/admins/{id}",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches ADMIN staff details."
       },
       "patch": {
         "operationId": "AdminManagementController_update",
@@ -1721,10 +1825,13 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "PATCH /api/v1/admins/{id}"
+        "summary": "PATCH /api/v1/admins/{id}",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details."
       },
       "delete": {
-        "description": "DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanently deletes an ADMIN staff account. DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.",
         "operationId": "AdminManagementController_permanentlyDelete",
         "parameters": [
           {
@@ -1772,7 +1879,9 @@
         "summary": "Permanently delete admin staff user",
         "tags": [
           "02 Admin - Staff Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/admins/{id}/active-status": {
@@ -1811,7 +1920,10 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "PATCH /api/v1/admins/{id}/active-status"
+        "summary": "PATCH /api/v1/admins/{id}/active-status",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff active status."
       }
     },
     "/api/v1/admins/{id}/password": {
@@ -1850,12 +1962,15 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "PATCH /api/v1/admins/{id}/password"
+        "summary": "PATCH /api/v1/admins/{id}/password",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard."
       }
     },
     "/api/v1/admin-roles": {
       "get": {
-        "description": "Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.",
         "operationId": "AdminRolesController_list",
         "parameters": [
           {
@@ -1896,7 +2011,9 @@
         "summary": "GET /api/v1/admin-roles",
         "tags": [
           "02 Admin - Roles & Permissions"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       },
       "post": {
         "operationId": "AdminRolesController_create",
@@ -1924,7 +2041,10 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "POST /api/v1/admin-roles"
+        "summary": "POST /api/v1/admin-roles",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot create roles."
       }
     },
     "/api/v1/admin-roles/{id}": {
@@ -1953,7 +2073,10 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "GET /api/v1/admin-roles/{id}"
+        "summary": "GET /api/v1/admin-roles/{id}",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot view role details."
       },
       "patch": {
         "operationId": "AdminRolesController_update",
@@ -1990,7 +2113,10 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "PATCH /api/v1/admin-roles/{id}"
+        "summary": "PATCH /api/v1/admin-roles/{id}",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update roles."
       },
       "delete": {
         "operationId": "AdminRolesController_delete",
@@ -2017,7 +2143,10 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "DELETE /api/v1/admin-roles/{id}"
+        "summary": "DELETE /api/v1/admin-roles/{id}",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot delete roles."
       }
     },
     "/api/v1/admin-roles/{id}/permissions": {
@@ -2056,12 +2185,15 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "PATCH /api/v1/admin-roles/{id}/permissions"
+        "summary": "PATCH /api/v1/admin-roles/{id}/permissions",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update role permissions."
       }
     },
     "/api/v1/permissions/catalog": {
       "get": {
-        "description": "Read-only list of backend-supported permission keys that can be assigned to admin roles.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Read-only backend permission catalog. Read-only list of backend-supported permission keys that can be assigned to admin roles.",
         "operationId": "PermissionCatalogController_catalog",
         "parameters": [],
         "responses": {
@@ -2077,7 +2209,9 @@
         "summary": "GET /api/v1/permissions/catalog",
         "tags": [
           "02 Admin - Roles & Permissions"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/providers/export": {
@@ -2147,7 +2281,10 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/export"
+        "summary": "GET /api/v1/providers/export",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.export",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.export",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.export. SUPER_ADMIN or ADMIN with providers.export permission."
       }
     },
     "/api/v1/providers/stats": {
@@ -2167,12 +2304,15 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/stats"
+        "summary": "GET /api/v1/providers/stats",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
       }
     },
     "/api/v1/providers": {
       "get": {
-        "description": "SUPER_ADMIN/ADMIN with providers.read permission.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission. SUPER_ADMIN/ADMIN with providers.read permission.",
         "operationId": "ProviderManagementController_list",
         "parameters": [
           {
@@ -2302,10 +2442,12 @@
         "summary": "List providers",
         "tags": [
           "02 Admin - Provider Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.read"
       },
       "post": {
-        "description": "SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.",
         "operationId": "ProviderManagementController_create",
         "parameters": [],
         "requestBody": {
@@ -2350,7 +2492,9 @@
         "summary": "Create provider from admin dashboard",
         "tags": [
           "02 Admin - Provider Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.create",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.create"
       }
     },
     "/api/v1/providers/lookup": {
@@ -2409,7 +2553,10 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/lookup"
+        "summary": "GET /api/v1/providers/lookup",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
       }
     },
     "/api/v1/providers/{id}": {
@@ -2438,7 +2585,10 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/{id}"
+        "summary": "GET /api/v1/providers/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
       },
       "patch": {
         "operationId": "ProviderManagementController_update",
@@ -2475,10 +2625,13 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "PATCH /api/v1/providers/{id}"
+        "summary": "PATCH /api/v1/providers/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.update",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.update. SUPER_ADMIN or ADMIN with providers.update permission."
       },
       "delete": {
-        "description": "DANGER: This endpoint permanently deletes/anonymizes the provider and related provider data from the database. This is not a soft delete. Use only from Super Admin danger zone screens. Active processing orders block deletion.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanent delete danger-zone endpoint. DANGER: This endpoint permanently deletes/anonymizes the provider and related provider data from the database. This is not a soft delete. Use only from Super Admin danger zone screens. Active processing orders block deletion.",
         "operationId": "ProviderManagementController_permanentlyDelete",
         "parameters": [
           {
@@ -2527,12 +2680,14 @@
         "summary": "Permanently delete provider",
         "tags": [
           "02 Admin - Provider Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/providers/{id}/status": {
       "patch": {
-        "description": "SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.",
+        "description": "Access: SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers.approve, REJECT=>providers.reject, SUSPEND=>providers.suspend, UNSUSPEND=>providers.suspend, UPDATE_STATUS=>providers.updateStatus). SUPER_ADMIN or ADMIN with lifecycle permission. APPROVE requires providers.approve; REJECT requires providers.reject; SUSPEND and UNSUSPEND require providers.suspend; UPDATE_STATUS requires providers.updateStatus. SUPER_ADMIN or ADMIN with provider lifecycle permission. APPROVE requires providers.approve, REJECT requires providers.reject, SUSPEND and UNSUSPEND require providers.suspend, UPDATE_STATUS requires providers.updateStatus. Uses action-based request body.",
         "operationId": "ProviderManagementController_updateStatus",
         "parameters": [
           {
@@ -2629,7 +2784,9 @@
         "summary": "Update provider lifecycle status",
         "tags": [
           "02 Admin - Provider Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers.approve, REJECT=>providers.reject, SUSPEND=>providers.suspend, UNSUSPEND=>providers.suspend, UPDATE_STATUS=>providers.updateStatus)",
+        "x-access": "SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers.approve, REJECT=>providers.reject, SUSPEND=>providers.suspend, UNSUSPEND=>providers.suspend, UPDATE_STATUS=>providers.updateStatus)"
       }
     },
     "/api/v1/providers/{id}/items": {
@@ -2724,7 +2881,10 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/{id}/items"
+        "summary": "GET /api/v1/providers/{id}/items",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
       }
     },
     "/api/v1/providers/{id}/activity": {
@@ -2788,7 +2948,10 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/{id}/activity"
+        "summary": "GET /api/v1/providers/{id}/activity",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
       }
     },
     "/api/v1/providers/{id}/message": {
@@ -2827,12 +2990,15 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "POST /api/v1/providers/{id}/message"
+        "summary": "POST /api/v1/providers/{id}/message",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.message",
+        "x-access": "SUPER_ADMIN or ADMIN with providers.message",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.message. SUPER_ADMIN or ADMIN with providers.message permission."
       }
     },
     "/api/v1/provider-business-categories": {
       "get": {
-        "description": "Public/provider-signup dropdown. Returns active provider business categories.",
+        "description": "Access: PUBLIC. PUBLIC. Active provider business category lookup for provider signup. Public/provider-signup dropdown. Returns active provider business categories.",
         "operationId": "ProviderBusinessCategoriesController_list",
         "parameters": [
           {
@@ -2876,10 +3042,12 @@
         "summary": "List provider business categories",
         "tags": [
           "02 Admin - Provider Business Categories"
-        ]
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
       },
       "post": {
-        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.create. SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.",
         "operationId": "ProviderBusinessCategoriesController_create",
         "parameters": [],
         "requestBody": {
@@ -2905,12 +3073,14 @@
         "summary": "Create provider business category",
         "tags": [
           "02 Admin - Provider Business Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerBusinessCategories.create",
+        "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.create"
       }
     },
     "/api/v1/provider-business-categories/{id}": {
       "get": {
-        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.read. SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.",
         "operationId": "ProviderBusinessCategoriesController_details",
         "parameters": [
           {
@@ -2935,10 +3105,12 @@
         "summary": "Fetch provider business category details",
         "tags": [
           "02 Admin - Provider Business Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerBusinessCategories.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.read"
       },
       "patch": {
-        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.update. SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.",
         "operationId": "ProviderBusinessCategoriesController_update",
         "parameters": [
           {
@@ -2973,10 +3145,12 @@
         "summary": "Update provider business category",
         "tags": [
           "02 Admin - Provider Business Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerBusinessCategories.update",
+        "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.update"
       },
       "delete": {
-        "description": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.delete. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.",
         "operationId": "ProviderBusinessCategoriesController_delete",
         "parameters": [
           {
@@ -3001,12 +3175,14 @@
         "summary": "Soft-delete provider business category",
         "tags": [
           "02 Admin - Provider Business Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete"
       }
     },
     "/api/v1/provider/inventory": {
       "get": {
-        "description": "PROVIDER only. Returns only inventory owned by the authenticated provider.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns only inventory owned by the authenticated provider.",
         "operationId": "ProviderInventoryController_list",
         "parameters": [
           {
@@ -3138,10 +3314,12 @@
         "summary": "List provider inventory items",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       },
       "post": {
-        "description": "PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.",
         "operationId": "ProviderInventoryController_create",
         "parameters": [],
         "requestBody": {
@@ -3240,7 +3418,9 @@
         "summary": "Create provider inventory item with optional nested variants",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/inventory/stats": {
@@ -3260,7 +3440,10 @@
         "summary": "Fetch provider inventory stats",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/provider/inventory/lookup": {
@@ -3280,7 +3463,10 @@
         "summary": "Lookup active approved provider inventory items",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/provider/inventory/{id}": {
@@ -3344,10 +3530,13 @@
         "summary": "Fetch own provider inventory item details",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "patch": {
-        "description": "Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.",
         "operationId": "ProviderInventoryController_update",
         "parameters": [
           {
@@ -3438,7 +3627,9 @@
         "summary": "Update own provider inventory item and upsert variants",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       },
       "delete": {
         "operationId": "ProviderInventoryController_delete",
@@ -3465,7 +3656,10 @@
         "summary": "Soft-delete own inventory item",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/provider/inventory/{id}/availability": {
@@ -3504,12 +3698,15 @@
         "summary": "Update own inventory availability",
         "tags": [
           "03 Provider - Inventory"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/provider/orders": {
       "get": {
-        "description": "PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.",
         "operationId": "ProviderOrdersController_list",
         "parameters": [
           {
@@ -3651,12 +3848,14 @@
         "summary": "List own assigned provider orders",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/history": {
       "get": {
-        "description": "PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.",
         "operationId": "ProviderOrdersController_history",
         "parameters": [
           {
@@ -3761,12 +3960,14 @@
         "summary": "List own provider order history",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/performance": {
       "get": {
-        "description": "PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.",
         "operationId": "ProviderOrdersController_performance",
         "parameters": [
           {
@@ -3815,12 +4016,14 @@
         "summary": "Fetch own provider order performance",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/analytics/revenue": {
       "get": {
-        "description": "PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.",
         "operationId": "ProviderOrdersController_revenueAnalytics",
         "parameters": [
           {
@@ -3868,12 +4071,14 @@
         "summary": "Fetch own provider revenue analytics",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/analytics/ratings": {
       "get": {
-        "description": "PROVIDER only. Returns stable zero values until reviews module is available.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns stable zero values until reviews module is available.",
         "operationId": "ProviderOrdersController_ratingsAnalytics",
         "parameters": [],
         "responses": {
@@ -3889,12 +4094,14 @@
         "summary": "Fetch own provider ratings analytics",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/recent": {
       "get": {
-        "description": "PROVIDER only. Defaults to 5 latest orders.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Defaults to 5 latest orders.",
         "operationId": "ProviderOrdersController_recent",
         "parameters": [
           {
@@ -3920,12 +4127,14 @@
         "summary": "List recent own provider orders",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/export": {
       "get": {
-        "description": "PROVIDER only. Export is scoped to logged-in provider orders.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Export is scoped to logged-in provider orders.",
         "operationId": "ProviderOrdersController_export",
         "parameters": [
           {
@@ -3981,12 +4190,14 @@
         "summary": "Export own provider orders as CSV",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/summary": {
       "get": {
-        "description": "Route intentionally declared before :id. PROVIDER only.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route intentionally declared before :id. PROVIDER only.",
         "operationId": "ProviderOrdersController_summary",
         "parameters": [
           {
@@ -4021,12 +4232,14 @@
         "summary": "Fetch own provider order summary",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/reject-reasons": {
       "get": {
-        "description": "Route intentionally declared before :id.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route intentionally declared before :id.",
         "operationId": "ProviderOrdersController_rejectReasons",
         "parameters": [],
         "responses": {
@@ -4042,12 +4255,14 @@
         "summary": "List provider order reject reasons",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/status": {
       "patch": {
-        "description": "PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.",
         "operationId": "ProviderOrdersController_updateStatus",
         "parameters": [
           {
@@ -4082,12 +4297,14 @@
         "summary": "Update own provider order fulfillment status",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/timeline": {
       "get": {
-        "description": "PROVIDER only. Timeline is scoped to the authenticated provider order.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Timeline is scoped to the authenticated provider order.",
         "operationId": "ProviderOrdersController_timeline",
         "parameters": [
           {
@@ -4112,12 +4329,14 @@
         "summary": "Fetch own provider order timeline",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/checklist": {
       "get": {
-        "description": "PROVIDER only. Checklist is operational and does not change status automatically.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Checklist is operational and does not change status automatically.",
         "operationId": "ProviderOrdersController_checklist",
         "parameters": [
           {
@@ -4142,10 +4361,12 @@
         "summary": "Fetch own provider order checklist",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       },
       "patch": {
-        "description": "PROVIDER only. Checklist updates do not directly change order status.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Checklist updates do not directly change order status.",
         "operationId": "ProviderOrdersController_updateChecklist",
         "parameters": [
           {
@@ -4180,12 +4401,14 @@
         "summary": "Update own provider order checklist",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/message-buyer": {
       "post": {
-        "description": "PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.",
         "operationId": "ProviderOrdersController_messageBuyer",
         "parameters": [
           {
@@ -4220,12 +4443,14 @@
         "summary": "Message buyer for own provider order",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}": {
       "get": {
-        "description": "PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.",
         "operationId": "ProviderOrdersController_details",
         "parameters": [
           {
@@ -4250,12 +4475,14 @@
         "summary": "Fetch own provider order details",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/accept": {
       "post": {
-        "description": "Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.",
         "operationId": "ProviderOrdersController_accept",
         "parameters": [
           {
@@ -4290,12 +4517,14 @@
         "summary": "Accept own pending provider order",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/reject": {
       "post": {
-        "description": "Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.",
         "operationId": "ProviderOrdersController_reject",
         "parameters": [
           {
@@ -4330,7 +4559,9 @@
         "summary": "Reject own pending provider order",
         "tags": [
           "03 Provider - Orders"
-        ]
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/offers": {
@@ -4426,7 +4657,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/provider/offers"
+        "summary": "GET /api/v1/provider/offers",
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "post": {
         "operationId": "ProviderPromotionalOffersController_create",
@@ -4454,7 +4688,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "POST /api/v1/provider/offers"
+        "summary": "POST /api/v1/provider/offers",
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/provider/offers/{id}": {
@@ -4483,7 +4720,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/provider/offers/{id}"
+        "summary": "GET /api/v1/provider/offers/{id}",
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "patch": {
         "operationId": "ProviderPromotionalOffersController_update",
@@ -4520,7 +4760,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/provider/offers/{id}"
+        "summary": "PATCH /api/v1/provider/offers/{id}",
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "delete": {
         "operationId": "ProviderPromotionalOffersController_delete",
@@ -4547,7 +4790,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "DELETE /api/v1/provider/offers/{id}"
+        "summary": "DELETE /api/v1/provider/offers/{id}",
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/provider/offers/{id}/status": {
@@ -4586,7 +4832,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/provider/offers/{id}/status"
+        "summary": "PATCH /api/v1/provider/offers/{id}/status",
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       }
     },
     "/api/v1/promotional-offers/stats": {
@@ -4606,7 +4855,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/promotional-offers/stats"
+        "summary": "GET /api/v1/promotional-offers/stats",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
       }
     },
     "/api/v1/promotional-offers/export": {
@@ -4752,7 +5004,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/promotional-offers/export"
+        "summary": "GET /api/v1/promotional-offers/export",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.export",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.export",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.export. SUPER_ADMIN or ADMIN with promotionalOffers.export permission."
       }
     },
     "/api/v1/promotional-offers": {
@@ -4898,7 +5153,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/promotional-offers"
+        "summary": "GET /api/v1/promotional-offers",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
       },
       "post": {
         "operationId": "PromotionalOffersManagementController_create",
@@ -4926,7 +5184,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "POST /api/v1/promotional-offers"
+        "summary": "POST /api/v1/promotional-offers",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.create",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.create",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.create. SUPER_ADMIN or ADMIN with promotionalOffers.create permission."
       }
     },
     "/api/v1/promotional-offers/{id}": {
@@ -4955,7 +5216,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/promotional-offers/{id}"
+        "summary": "GET /api/v1/promotional-offers/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
       },
       "patch": {
         "operationId": "PromotionalOffersManagementController_update",
@@ -4992,7 +5256,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}"
+        "summary": "PATCH /api/v1/promotional-offers/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.update",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.update. SUPER_ADMIN or ADMIN with promotionalOffers.update permission."
       },
       "delete": {
         "operationId": "PromotionalOffersManagementController_delete",
@@ -5019,7 +5286,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "DELETE /api/v1/promotional-offers/{id}"
+        "summary": "DELETE /api/v1/promotional-offers/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.delete",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.delete. SUPER_ADMIN or ADMIN with promotionalOffers.delete permission."
       }
     },
     "/api/v1/promotional-offers/{id}/approve": {
@@ -5058,7 +5328,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}/approve"
+        "summary": "PATCH /api/v1/promotional-offers/{id}/approve",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.approve",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.approve",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission."
       }
     },
     "/api/v1/promotional-offers/{id}/reject": {
@@ -5097,7 +5370,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}/reject"
+        "summary": "PATCH /api/v1/promotional-offers/{id}/reject",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.reject",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.reject",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission."
       }
     },
     "/api/v1/promotional-offers/{id}/status": {
@@ -5136,7 +5412,10 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}/status"
+        "summary": "PATCH /api/v1/promotional-offers/{id}/status",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission."
       }
     },
     "/api/v1/users/export": {
@@ -5209,12 +5488,15 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/export"
+        "summary": "GET /api/v1/users/export",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.export",
+        "x-access": "SUPER_ADMIN or ADMIN with users.export",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.export. SUPER_ADMIN or ADMIN with users.export permission."
       }
     },
     "/api/v1/users": {
       "get": {
-        "description": "SUPER_ADMIN/ADMIN with users.read permission.",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission. SUPER_ADMIN/ADMIN with users.read permission.",
         "operationId": "UserManagementController_list",
         "parameters": [
           {
@@ -5345,7 +5627,9 @@
         "summary": "List registered users",
         "tags": [
           "02 Admin - User Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read"
       }
     },
     "/api/v1/users/{id}": {
@@ -5374,7 +5658,10 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/{id}"
+        "summary": "GET /api/v1/users/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
       },
       "patch": {
         "operationId": "UserManagementController_update",
@@ -5411,10 +5698,13 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "PATCH /api/v1/users/{id}"
+        "summary": "PATCH /api/v1/users/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.update",
+        "x-access": "SUPER_ADMIN or ADMIN with users.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.update. SUPER_ADMIN or ADMIN with users.update permission."
       },
       "delete": {
-        "description": "DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanent delete danger-zone endpoint. DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.",
         "operationId": "UserManagementController_permanentlyDelete",
         "parameters": [
           {
@@ -5463,7 +5753,9 @@
         "summary": "Permanently delete registered user",
         "tags": [
           "02 Admin - User Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/users/{id}/status": {
@@ -5502,7 +5794,10 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "PATCH /api/v1/users/{id}/status"
+        "summary": "PATCH /api/v1/users/{id}/status",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.status.update",
+        "x-access": "SUPER_ADMIN or ADMIN with users.status.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission."
       }
     },
     "/api/v1/users/{id}/suspend": {
@@ -5541,7 +5836,10 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "POST /api/v1/users/{id}/suspend"
+        "summary": "POST /api/v1/users/{id}/suspend",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.suspend",
+        "x-access": "SUPER_ADMIN or ADMIN with users.suspend",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission."
       }
     },
     "/api/v1/users/{id}/unsuspend": {
@@ -5580,12 +5878,15 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "POST /api/v1/users/{id}/unsuspend"
+        "summary": "POST /api/v1/users/{id}/unsuspend",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.unsuspend",
+        "x-access": "SUPER_ADMIN or ADMIN with users.unsuspend",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission."
       }
     },
     "/api/v1/users/{id}/reset-password": {
       "post": {
-        "description": "SUPER_ADMIN or ADMIN with users.resetPassword permission can change a REGISTERED_USER password from the dashboard. Optionally sends email and in-app notification to the user.",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.resetPassword. SUPER_ADMIN or ADMIN with users.resetPassword permission. SUPER_ADMIN or ADMIN with users.resetPassword permission can change a REGISTERED_USER password from the dashboard. Optionally sends email and in-app notification to the user.",
         "operationId": "UserManagementController_resetPassword",
         "parameters": [
           {
@@ -5636,7 +5937,9 @@
         "summary": "Change registered user password",
         "tags": [
           "02 Admin - User Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.resetPassword",
+        "x-access": "SUPER_ADMIN or ADMIN with users.resetPassword"
       }
     },
     "/api/v1/users/{id}/activity": {
@@ -5699,7 +6002,10 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/{id}/activity"
+        "summary": "GET /api/v1/users/{id}/activity",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
       }
     },
     "/api/v1/users/{id}/stats": {
@@ -5728,12 +6034,15 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/{id}/stats"
+        "summary": "GET /api/v1/users/{id}/stats",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
       }
     },
     "/api/v1/customer/contacts": {
       "get": {
-        "description": "REGISTERED_USER only. Lists only contacts owned by the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Lists only contacts owned by the authenticated customer.",
         "operationId": "CustomerContactsController_list",
         "parameters": [
           {
@@ -5812,10 +6121,12 @@
         "summary": "List customer contacts",
         "tags": [
           "05 Customer - Contacts"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "post": {
-        "description": "REGISTERED_USER only. Creates a personal gift contact owned by the authenticated customer. Requires at least one contact method: phone, email, or address.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Creates a personal gift contact owned by the authenticated customer. Requires at least one contact method: phone, email, or address.",
         "operationId": "CustomerContactsController_create",
         "parameters": [],
         "requestBody": {
@@ -5859,12 +6170,14 @@
         "summary": "Create customer contact",
         "tags": [
           "05 Customer - Contacts"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/contacts/{id}": {
       "get": {
-        "description": "REGISTERED_USER only. Contact must belong to the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Contact must belong to the authenticated customer.",
         "operationId": "CustomerContactsController_details",
         "parameters": [
           {
@@ -5892,10 +6205,12 @@
         "summary": "Fetch customer contact",
         "tags": [
           "05 Customer - Contacts"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "patch": {
-        "description": "REGISTERED_USER only. Updates only contacts owned by the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Updates only contacts owned by the authenticated customer.",
         "operationId": "CustomerContactsController_update",
         "parameters": [
           {
@@ -5948,10 +6263,12 @@
         "summary": "Update customer contact",
         "tags": [
           "05 Customer - Contacts"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "REGISTERED_USER only. Soft deletes only contacts owned by the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Soft deletes only contacts owned by the authenticated customer.",
         "operationId": "CustomerContactsController_delete",
         "parameters": [
           {
@@ -5979,12 +6296,14 @@
         "summary": "Soft-delete customer contact",
         "tags": [
           "05 Customer - Contacts"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/events": {
       "get": {
-        "description": "REGISTERED_USER only. Lists only events owned by the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Lists only events owned by the authenticated customer.",
         "operationId": "CustomerEventsController_list",
         "parameters": [
           {
@@ -6099,10 +6418,12 @@
         "summary": "List customer events",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "post": {
-        "description": "REGISTERED_USER only. recipientId must belong to the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. recipientId must belong to the authenticated customer.",
         "operationId": "CustomerEventsController_create",
         "parameters": [],
         "requestBody": {
@@ -6128,12 +6449,14 @@
         "summary": "Create customer event",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/events/calendar": {
       "get": {
-        "description": "REGISTERED_USER only. Returns marked dates and own events.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns marked dates and own events.",
         "operationId": "CustomerEventsController_calendar",
         "parameters": [
           {
@@ -6185,12 +6508,14 @@
         "summary": "Fetch monthly calendar events",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/events/upcoming": {
       "get": {
-        "description": "REGISTERED_USER only. Defaults to 10 events within 30 days.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Defaults to 10 events within 30 days.",
         "operationId": "CustomerEventsController_upcoming",
         "parameters": [
           {
@@ -6242,12 +6567,14 @@
         "summary": "Fetch upcoming customer events",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/events/{id}/reminder-settings": {
       "get": {
-        "description": "REGISTERED_USER only. Event must belong to the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Event must belong to the authenticated customer.",
         "operationId": "CustomerEventsController_reminderSettings",
         "parameters": [
           {
@@ -6272,10 +6599,12 @@
         "summary": "Fetch event reminder settings",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "patch": {
-        "description": "REGISTERED_USER only. Event must belong to the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Event must belong to the authenticated customer.",
         "operationId": "CustomerEventsController_updateReminderSettings",
         "parameters": [
           {
@@ -6310,12 +6639,14 @@
         "summary": "Update event reminder settings",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/events/{id}": {
       "get": {
-        "description": "REGISTERED_USER only. Event must belong to the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Event must belong to the authenticated customer.",
         "operationId": "CustomerEventsController_details",
         "parameters": [
           {
@@ -6340,10 +6671,12 @@
         "summary": "Fetch customer event details",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "patch": {
-        "description": "REGISTERED_USER only. Event and recipient contact must belong to the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Event and recipient contact must belong to the authenticated customer.",
         "operationId": "CustomerEventsController_update",
         "parameters": [
           {
@@ -6378,10 +6711,12 @@
         "summary": "Update customer event",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "REGISTERED_USER only. Soft deletes only own event and cancels pending reminder jobs.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Soft deletes only own event and cancels pending reminder jobs.",
         "operationId": "CustomerEventsController_delete",
         "parameters": [
           {
@@ -6406,12 +6741,14 @@
         "summary": "Soft-delete customer event",
         "tags": [
           "05 Customer - Events"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/home": {
       "get": {
-        "description": "REGISTERED_USER only. Returns safe marketplace categories, discounted gifts, default address, and upcoming reminder.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns safe marketplace categories, discounted gifts, default address, and upcoming reminder.",
         "operationId": "CustomerMarketplaceController_home",
         "parameters": [],
         "responses": {
@@ -6427,12 +6764,14 @@
         "summary": "Fetch customer app home",
         "tags": [
           "05 Customer - Marketplace"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/categories": {
       "get": {
-        "description": "REGISTERED_USER only. Returns active categories that have available approved gifts.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have available approved gifts.",
         "operationId": "CustomerMarketplaceController_categories",
         "parameters": [],
         "responses": {
@@ -6448,12 +6787,14 @@
         "summary": "List customer marketplace categories",
         "tags": [
           "05 Customer - Marketplace"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts/discounted": {
       "get": {
-        "description": "REGISTERED_USER only. Reuses marketplace gift filters with offerOnly=true.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Reuses marketplace gift filters with offerOnly=true.",
         "operationId": "CustomerMarketplaceController_discountedGifts",
         "parameters": [
           {
@@ -6600,12 +6941,14 @@
         "summary": "List discounted customer gifts",
         "tags": [
           "05 Customer - Marketplace"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts/filter-options": {
       "get": {
-        "description": "REGISTERED_USER only. Brands are derived from approved active provider business names.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Brands are derived from approved active provider business names.",
         "operationId": "CustomerMarketplaceController_filterOptions",
         "parameters": [],
         "responses": {
@@ -6621,12 +6964,14 @@
         "summary": "Fetch marketplace gift filter options",
         "tags": [
           "05 Customer - Marketplace"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts": {
       "get": {
-        "description": "REGISTERED_USER only. Only approved, published, active, in-stock gifts from approved active providers are returned. Active offers are calculated by the backend.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Only approved, published, active, in-stock gifts from approved active providers are returned. Active offers are calculated by the backend.",
         "operationId": "CustomerMarketplaceController_gifts",
         "parameters": [
           {
@@ -6818,12 +7163,14 @@
         "summary": "List customer marketplace gifts",
         "tags": [
           "05 Customer - Marketplace"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts/{id}": {
       "get": {
-        "description": "REGISTERED_USER only. Hidden/admin-only gift records are never returned.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned.",
         "operationId": "CustomerMarketplaceController_giftDetails",
         "parameters": [
           {
@@ -6910,12 +7257,14 @@
         "summary": "Fetch customer-safe gift details",
         "tags": [
           "05 Customer - Marketplace"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/wishlist": {
       "get": {
-        "description": "REGISTERED_USER only. Returns customer-safe available gifts.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-safe available gifts.",
         "operationId": "CustomerMarketplaceController_wishlist",
         "parameters": [],
         "responses": {
@@ -6931,12 +7280,14 @@
         "summary": "List wishlist gifts",
         "tags": [
           "05 Customer - Wishlist"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/wishlist/{giftId}": {
       "post": {
-        "description": "REGISTERED_USER only. Gift must be active, approved, published, and in stock. Duplicate wishlist entries are ignored.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be active, approved, published, and in stock. Duplicate wishlist entries are ignored.",
         "operationId": "CustomerMarketplaceController_addWishlist",
         "parameters": [
           {
@@ -6961,10 +7312,12 @@
         "summary": "Add gift to wishlist",
         "tags": [
           "05 Customer - Wishlist"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "REGISTERED_USER only. Removes only the current customer wishlist row.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Removes only the current customer wishlist row.",
         "operationId": "CustomerMarketplaceController_removeWishlist",
         "parameters": [
           {
@@ -6989,12 +7342,14 @@
         "summary": "Remove gift from wishlist",
         "tags": [
           "05 Customer - Wishlist"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/addresses": {
       "get": {
-        "description": "REGISTERED_USER only. Customers can only view their own non-deleted addresses.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customers can only view their own non-deleted addresses.",
         "operationId": "CustomerMarketplaceController_addresses",
         "parameters": [],
         "responses": {
@@ -7010,10 +7365,12 @@
         "summary": "List customer addresses",
         "tags": [
           "05 Customer - Addresses"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "post": {
-        "description": "REGISTERED_USER only. Maintains one default address per customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Maintains one default address per customer.",
         "operationId": "CustomerMarketplaceController_createAddress",
         "parameters": [],
         "requestBody": {
@@ -7039,12 +7396,14 @@
         "summary": "Create customer address",
         "tags": [
           "05 Customer - Addresses"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/addresses/{id}": {
       "get": {
-        "description": "REGISTERED_USER only. Address must belong to the current customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Address must belong to the current customer.",
         "operationId": "CustomerMarketplaceController_addressDetails",
         "parameters": [
           {
@@ -7069,10 +7428,12 @@
         "summary": "Fetch customer address",
         "tags": [
           "05 Customer - Addresses"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "patch": {
-        "description": "REGISTERED_USER only. Maintains one default address per customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Maintains one default address per customer.",
         "operationId": "CustomerMarketplaceController_updateAddress",
         "parameters": [
           {
@@ -7107,10 +7468,12 @@
         "summary": "Update customer address",
         "tags": [
           "05 Customer - Addresses"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "REGISTERED_USER only. Address is soft deleted and removed from default status.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Address is soft deleted and removed from default status.",
         "operationId": "CustomerMarketplaceController_deleteAddress",
         "parameters": [
           {
@@ -7135,12 +7498,14 @@
         "summary": "Soft-delete customer address",
         "tags": [
           "05 Customer - Addresses"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/addresses/{id}/default": {
       "patch": {
-        "description": "REGISTERED_USER only. Clears default flag from all other customer addresses.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Clears default flag from all other customer addresses.",
         "operationId": "CustomerMarketplaceController_setDefaultAddress",
         "parameters": [
           {
@@ -7165,12 +7530,14 @@
         "summary": "Set default customer address",
         "tags": [
           "05 Customer - Addresses"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/cart": {
       "get": {
-        "description": "REGISTERED_USER only. Totals are backend calculated from price snapshots.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Totals are backend calculated from price snapshots.",
         "operationId": "CustomerMarketplaceController_cart",
         "parameters": [],
         "responses": {
@@ -7235,10 +7602,12 @@
         "summary": "Fetch active cart",
         "tags": [
           "05 Customer - Cart"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "REGISTERED_USER only. Removes all items from active cart.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Removes all items from active cart.",
         "operationId": "CustomerMarketplaceController_clearCart",
         "parameters": [],
         "responses": {
@@ -7254,12 +7623,14 @@
         "summary": "Clear active cart",
         "tags": [
           "05 Customer - Cart"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/cart/items": {
       "post": {
-        "description": "REGISTERED_USER only. Backend calculates unit price, active offer discount, final price, subtotal, delivery fee placeholder, and total.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Backend calculates unit price, active offer discount, final price, subtotal, delivery fee placeholder, and total.",
         "operationId": "CustomerMarketplaceController_addCartItem",
         "parameters": [],
         "requestBody": {
@@ -7305,12 +7676,14 @@
         "summary": "Add item to cart",
         "tags": [
           "05 Customer - Cart"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/cart/items/{id}": {
       "patch": {
-        "description": "REGISTERED_USER only. Validates ownership through the active customer cart.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Validates ownership through the active customer cart.",
         "operationId": "CustomerMarketplaceController_updateCartItem",
         "parameters": [
           {
@@ -7364,10 +7737,12 @@
         "summary": "Update cart item",
         "tags": [
           "05 Customer - Cart"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "REGISTERED_USER only. Deletes only items in the current customer active cart.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Deletes only items in the current customer active cart.",
         "operationId": "CustomerMarketplaceController_deleteCartItem",
         "parameters": [
           {
@@ -7392,12 +7767,14 @@
         "summary": "Delete cart item",
         "tags": [
           "05 Customer - Cart"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/orders": {
       "post": {
-        "description": "REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.",
         "operationId": "CustomerMarketplaceController_createOrder",
         "parameters": [],
         "requestBody": {
@@ -7442,10 +7819,12 @@
         "summary": "Create order from active cart",
         "tags": [
           "05 Customer - Orders"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "get": {
-        "description": "REGISTERED_USER only. Returns orders owned by the current customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns orders owned by the current customer.",
         "operationId": "CustomerMarketplaceController_orders",
         "parameters": [
           {
@@ -7536,12 +7915,14 @@
         "summary": "List customer orders",
         "tags": [
           "05 Customer - Orders"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/orders/{id}": {
       "get": {
-        "description": "REGISTERED_USER only. Order must belong to the current customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Order must belong to the current customer.",
         "operationId": "CustomerMarketplaceController_orderDetails",
         "parameters": [
           {
@@ -7610,12 +7991,14 @@
         "summary": "Fetch customer order",
         "tags": [
           "05 Customer - Orders"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/recurring-payments": {
       "get": {
-        "description": "REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.",
         "operationId": "CustomerRecurringPaymentsController_list",
         "parameters": [
           {
@@ -7762,10 +8145,12 @@
         "summary": "List own recurring payments",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "post": {
-        "description": "REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.",
         "operationId": "CustomerRecurringPaymentsController_create",
         "parameters": [],
         "requestBody": {
@@ -7835,12 +8220,14 @@
         "summary": "Create recurring payment",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/recurring-payments/summary": {
       "get": {
-        "description": "Must stay before /customer/recurring-payments/:id route.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Must stay before /customer/recurring-payments/:id route.",
         "operationId": "CustomerRecurringPaymentsController_summary",
         "parameters": [],
         "responses": {
@@ -7873,12 +8260,14 @@
         "summary": "Fetch recurring payment summary counts",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/recurring-payments/{id}": {
       "get": {
-        "description": "REGISTERED_USER only. Customer cannot access another user’s recurring payment.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customer cannot access another user’s recurring payment.",
         "operationId": "CustomerRecurringPaymentsController_details",
         "parameters": [
           {
@@ -7944,10 +8333,12 @@
         "summary": "Fetch own recurring payment details",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "patch": {
-        "description": "Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Cannot edit CANCELLED recurring payments. Changes apply from the next billing cycle and nextBillingAt is recalculated.",
         "operationId": "CustomerRecurringPaymentsController_update",
         "parameters": [
           {
@@ -8013,7 +8404,9 @@
         "summary": "Update own recurring payment",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/recurring-payments/{id}/pause": {
@@ -8059,7 +8452,10 @@
         "summary": "Pause own active recurring payment",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/recurring-payments/{id}/resume": {
@@ -8088,12 +8484,15 @@
         "summary": "Resume own paused recurring payment",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/recurring-payments/{id}/cancel": {
       "post": {
-        "description": "IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.",
         "operationId": "CustomerRecurringPaymentsController_cancel",
         "parameters": [
           {
@@ -8157,7 +8556,9 @@
         "summary": "Cancel own recurring payment",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/recurring-payments/{id}/history": {
@@ -8247,12 +8648,15 @@
         "summary": "List own recurring payment billing history",
         "tags": [
           "05 Customer - Recurring Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/payment-methods/setup-intent": {
       "post": {
-        "description": "Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.",
         "operationId": "CustomerPaymentMethodsController_setupIntent",
         "parameters": [],
         "responses": {
@@ -8283,12 +8687,14 @@
         "summary": "Create Stripe SetupIntent for saving card",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/payment-methods/saved": {
       "get": {
-        "description": "Returns masked Stripe card metadata only.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Returns masked Stripe card metadata only.",
         "operationId": "CustomerPaymentMethodsController_saved",
         "parameters": [],
         "responses": {
@@ -8325,12 +8731,14 @@
         "summary": "List own saved payment methods",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/payment-methods/{id}": {
       "delete": {
-        "description": "Rejects deletion when the method is used by an active recurring payment.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Rejects deletion when the method is used by an active recurring payment.",
         "operationId": "CustomerPaymentMethodsController_delete",
         "parameters": [
           {
@@ -8355,12 +8763,14 @@
         "summary": "Delete own saved payment method",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/transactions": {
       "get": {
-        "description": "REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.",
         "operationId": "CustomerTransactionsController_list",
         "parameters": [
           {
@@ -8548,12 +8958,14 @@
         "summary": "List own customer transactions",
         "tags": [
           "05 Customer - Transactions"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/transactions/summary": {
       "get": {
-        "description": "Defaults to current month when no date range is provided. Uses backend-calculated payment records only.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Defaults to current month when no date range is provided. Uses backend-calculated payment records only.",
         "operationId": "CustomerTransactionsController_summary",
         "parameters": [
           {
@@ -8606,12 +9018,14 @@
         "summary": "Fetch own transaction summary",
         "tags": [
           "05 Customer - Transactions"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/transactions/export": {
       "get": {
-        "description": "CSV is supported and returned as a file. Export is scoped to the logged-in customer only.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. CSV is supported and returned as a file. Export is scoped to the logged-in customer only.",
         "operationId": "CustomerTransactionsController_export",
         "parameters": [
           {
@@ -8781,12 +9195,14 @@
         "summary": "Export own transactions",
         "tags": [
           "05 Customer - Transactions"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/transactions/{id}": {
       "get": {
-        "description": "Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Includes order, money gift, recurring payment, and payment gateway references when available. Billing address returns null until available.",
         "operationId": "CustomerTransactionsController_details",
         "parameters": [
           {
@@ -8846,12 +9262,14 @@
         "summary": "Fetch own transaction details",
         "tags": [
           "05 Customer - Transactions"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/transactions/{id}/receipt": {
       "get": {
-        "description": "Receipt is generated only for the transaction owner and never exposes Stripe secret data.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Receipt is generated only for the transaction owner and never exposes Stripe secret data.",
         "operationId": "CustomerTransactionsController_receipt",
         "parameters": [
           {
@@ -8876,12 +9294,14 @@
         "summary": "Download own transaction receipt",
         "tags": [
           "05 Customer - Transactions"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/gift-categories/lookup": {
       "get": {
-        "description": "Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.",
+        "description": "Access: PUBLIC. PUBLIC. Active gift category lookup. Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.",
         "operationId": "GiftCategoriesLookupController_lookup",
         "parameters": [],
         "responses": {
@@ -8892,12 +9312,14 @@
         "summary": "Lookup active gift categories",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/gift-categories": {
       "post": {
-        "description": "RBAC permission: giftCategories.create. Slug is auto-generated and unique. backgroundColor defaults to #F3E8FF; color remains a backward-compatible alias.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.create. SUPER_ADMIN or ADMIN with giftCategories.create permission. RBAC permission: giftCategories.create. Slug is auto-generated and unique. backgroundColor defaults to #F3E8FF; color remains a backward-compatible alias.",
         "operationId": "GiftCategoriesController_create",
         "parameters": [],
         "requestBody": {
@@ -8936,10 +9358,12 @@
         "summary": "Create gift category",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftCategories.create",
+        "x-access": "SUPER_ADMIN or ADMIN with giftCategories.create"
       },
       "get": {
-        "description": "RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.",
         "operationId": "GiftCategoriesController_list",
         "parameters": [
           {
@@ -9014,12 +9438,14 @@
         "summary": "List gift categories",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftCategories.read",
+        "x-access": "SUPER_ADMIN or ADMIN with giftCategories.read"
       }
     },
     "/api/v1/gift-categories/stats": {
       "get": {
-        "description": "RBAC permission: giftCategories.read. Returns admin category inventory counters.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. Returns admin category inventory counters.",
         "operationId": "GiftCategoriesController_stats",
         "parameters": [],
         "responses": {
@@ -9035,12 +9461,14 @@
         "summary": "Fetch gift category stats",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftCategories.read",
+        "x-access": "SUPER_ADMIN or ADMIN with giftCategories.read"
       }
     },
     "/api/v1/gift-categories/{id}": {
       "get": {
-        "description": "RBAC permission: giftCategories.read. Includes backgroundColor and imageUrl for customer app design support.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. Includes backgroundColor and imageUrl for customer app design support.",
         "operationId": "GiftCategoriesController_details",
         "parameters": [
           {
@@ -9065,10 +9493,12 @@
         "summary": "Fetch gift category details",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftCategories.read",
+        "x-access": "SUPER_ADMIN or ADMIN with giftCategories.read"
       },
       "patch": {
-        "description": "RBAC permission: giftCategories.update. Slug is regenerated when name changes. Soft-deleted categories are not updated.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.update. SUPER_ADMIN or ADMIN with giftCategories.update permission. RBAC permission: giftCategories.update. Slug is regenerated when name changes. Soft-deleted categories are not updated.",
         "operationId": "GiftCategoriesController_update",
         "parameters": [
           {
@@ -9112,10 +9542,12 @@
         "summary": "Update gift category",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftCategories.update",
+        "x-access": "SUPER_ADMIN or ADMIN with giftCategories.update"
       },
       "delete": {
-        "description": "RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.delete. SUPER_ADMIN or ADMIN with giftCategories.delete permission. RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.",
         "operationId": "GiftCategoriesController_delete",
         "parameters": [
           {
@@ -9140,12 +9572,14 @@
         "summary": "Soft-delete gift category",
         "tags": [
           "04 Gifts - Categories"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftCategories.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with giftCategories.delete"
       }
     },
     "/api/v1/gifts": {
       "post": {
-        "description": "SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.create. SUPER_ADMIN or ADMIN with gifts.create permission. SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.",
         "operationId": "GiftsController_create",
         "parameters": [],
         "requestBody": {
@@ -9252,10 +9686,12 @@
         "summary": "Create admin gift with optional nested variants",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.create",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.create"
       },
       "get": {
-        "description": "SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.read. SUPER_ADMIN or ADMIN with gifts.read permission. SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.",
         "operationId": "GiftsController_list",
         "parameters": [
           {
@@ -9379,7 +9815,9 @@
         "summary": "List admin gifts",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.read"
       }
     },
     "/api/v1/gifts/stats": {
@@ -9399,7 +9837,10 @@
         "summary": "Fetch gift inventory stats",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.read. SUPER_ADMIN or ADMIN with gifts.read permission."
       }
     },
     "/api/v1/gifts/export": {
@@ -9539,7 +9980,10 @@
         "summary": "Export gift inventory",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.export",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.export",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.export. SUPER_ADMIN or ADMIN with gifts.export permission."
       }
     },
     "/api/v1/gifts/{id}": {
@@ -9568,10 +10012,13 @@
         "summary": "Fetch admin gift details with variants",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.read. SUPER_ADMIN or ADMIN with gifts.read permission."
       },
       "patch": {
-        "description": "If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.update. SUPER_ADMIN or ADMIN with gifts.update permission. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.",
         "operationId": "GiftsController_update",
         "parameters": [
           {
@@ -9665,7 +10112,9 @@
         "summary": "Update admin gift and upsert nested variants",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.update",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.update"
       },
       "delete": {
         "operationId": "GiftsController_delete",
@@ -9692,7 +10141,10 @@
         "summary": "Soft-delete gift",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.delete",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.delete. SUPER_ADMIN or ADMIN with gifts.delete permission."
       }
     },
     "/api/v1/gifts/{id}/status": {
@@ -9731,7 +10183,10 @@
         "summary": "Update gift status",
         "tags": [
           "04 Gifts - Management"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.status.update",
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.status.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.status.update. SUPER_ADMIN or ADMIN with gifts.status.update permission."
       }
     },
     "/api/v1/gift-moderation": {
@@ -9835,7 +10290,10 @@
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "GET /api/v1/gift-moderation"
+        "summary": "GET /api/v1/gift-moderation",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission."
       }
     },
     "/api/v1/gift-moderation/{id}/approve": {
@@ -9874,7 +10332,10 @@
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "PATCH /api/v1/gift-moderation/{id}/approve"
+        "summary": "PATCH /api/v1/gift-moderation/{id}/approve",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.approve",
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.approve",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission."
       }
     },
     "/api/v1/gift-moderation/{id}/reject": {
@@ -9913,7 +10374,10 @@
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "PATCH /api/v1/gift-moderation/{id}/reject"
+        "summary": "PATCH /api/v1/gift-moderation/{id}/reject",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.reject",
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.reject",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission."
       }
     },
     "/api/v1/gift-moderation/{id}/flag": {
@@ -9952,7 +10416,10 @@
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "PATCH /api/v1/gift-moderation/{id}/flag"
+        "summary": "PATCH /api/v1/gift-moderation/{id}/flag",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.flag",
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.flag",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission."
       }
     },
     "/api/v1/broadcasts": {
@@ -9982,7 +10449,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "POST /api/v1/broadcasts"
+        "summary": "POST /api/v1/broadcasts",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.create",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.create",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission."
       },
       "get": {
         "operationId": "BroadcastsController_list",
@@ -10127,7 +10597,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts"
+        "summary": "GET /api/v1/broadcasts",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
       }
     },
     "/api/v1/broadcasts/{id}": {
@@ -10156,7 +10629,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts/{id}"
+        "summary": "GET /api/v1/broadcasts/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
       },
       "patch": {
         "operationId": "BroadcastsController_update",
@@ -10193,7 +10669,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "PATCH /api/v1/broadcasts/{id}"
+        "summary": "PATCH /api/v1/broadcasts/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
       }
     },
     "/api/v1/broadcasts/{id}/targeting": {
@@ -10232,7 +10711,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "PATCH /api/v1/broadcasts/{id}/targeting"
+        "summary": "PATCH /api/v1/broadcasts/{id}/targeting",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
       }
     },
     "/api/v1/broadcasts/estimate-reach": {
@@ -10262,7 +10744,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "POST /api/v1/broadcasts/estimate-reach"
+        "summary": "POST /api/v1/broadcasts/estimate-reach",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
       }
     },
     "/api/v1/broadcasts/{id}/schedule": {
@@ -10301,7 +10786,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "PATCH /api/v1/broadcasts/{id}/schedule"
+        "summary": "PATCH /api/v1/broadcasts/{id}/schedule",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission."
       }
     },
     "/api/v1/broadcasts/{id}/cancel": {
@@ -10340,7 +10828,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "POST /api/v1/broadcasts/{id}/cancel"
+        "summary": "POST /api/v1/broadcasts/{id}/cancel",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission."
       }
     },
     "/api/v1/broadcasts/{id}/report": {
@@ -10369,7 +10860,10 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts/{id}/report"
+        "summary": "GET /api/v1/broadcasts/{id}/report",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
       }
     },
     "/api/v1/broadcasts/{id}/recipients": {
@@ -10451,12 +10945,15 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts/{id}/recipients"
+        "summary": "GET /api/v1/broadcasts/{id}/recipients",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
       }
     },
     "/api/v1/notifications": {
       "get": {
-        "description": "JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.",
         "operationId": "NotificationsController_list",
         "parameters": [
           {
@@ -10586,12 +11083,14 @@
         "summary": "List notifications",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/summary": {
       "get": {
-        "description": "JWT auth. Counts only notifications belonging to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.",
         "operationId": "NotificationsController_summary",
         "parameters": [],
         "responses": {
@@ -10626,12 +11125,14 @@
         "summary": "Fetch notification summary",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/preferences": {
       "get": {
-        "description": "JWT auth. Preferences belong only to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.",
         "operationId": "NotificationsController_preferences",
         "parameters": [],
         "responses": {
@@ -10647,10 +11148,12 @@
         "summary": "Fetch notification preferences",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       },
       "patch": {
-        "description": "JWT auth. Push toggle does not delete device tokens. No group gift preference exists.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.",
         "operationId": "NotificationsController_updatePreferences",
         "parameters": [],
         "requestBody": {
@@ -10676,12 +11179,14 @@
         "summary": "Update notification preferences",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/read-all": {
       "patch": {
-        "description": "JWT auth. Marks only notifications belonging to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.",
         "operationId": "NotificationsController_markAllRead",
         "parameters": [],
         "responses": {
@@ -10697,12 +11202,14 @@
         "summary": "Mark all own notifications as read",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/{id}/read": {
       "patch": {
-        "description": "JWT auth. Notification must belong to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.",
         "operationId": "NotificationsController_markRead",
         "parameters": [
           {
@@ -10727,12 +11234,14 @@
         "summary": "Mark notification as read",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/{id}/action": {
       "post": {
-        "description": "JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.",
         "operationId": "NotificationsController_action",
         "parameters": [
           {
@@ -10774,12 +11283,14 @@
         "summary": "Process notification action",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/device-tokens": {
       "post": {
-        "description": "JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.",
         "operationId": "NotificationsController_saveDeviceToken",
         "parameters": [],
         "requestBody": {
@@ -10805,12 +11316,14 @@
         "summary": "Save device token",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/notifications/device-tokens/{id}": {
       "delete": {
-        "description": "JWT auth. Users can disable only their own device tokens.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.",
         "operationId": "NotificationsController_deleteDeviceToken",
         "parameters": [
           {
@@ -10835,7 +11348,9 @@
         "summary": "Disable device token",
         "tags": [
           "06 Notifications"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/subscription-plans": {
@@ -10947,7 +11462,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans"
+        "summary": "GET /api/v1/subscription-plans",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission."
       },
       "post": {
         "operationId": "SubscriptionPlansController_create",
@@ -10975,7 +11493,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "POST /api/v1/subscription-plans"
+        "summary": "POST /api/v1/subscription-plans",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.create",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.create",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.create. SUPER_ADMIN or ADMIN with subscriptionPlans.create permission."
       }
     },
     "/api/v1/subscription-plans/stats": {
@@ -10995,7 +11516,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans/stats"
+        "summary": "GET /api/v1/subscription-plans/stats",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission."
       }
     },
     "/api/v1/subscription-plans/{id}": {
@@ -11024,7 +11548,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans/{id}"
+        "summary": "GET /api/v1/subscription-plans/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission."
       },
       "patch": {
         "operationId": "SubscriptionPlansController_update",
@@ -11061,7 +11588,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/subscription-plans/{id}"
+        "summary": "PATCH /api/v1/subscription-plans/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.update",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update. SUPER_ADMIN or ADMIN with subscriptionPlans.update permission."
       },
       "delete": {
         "operationId": "SubscriptionPlansController_delete",
@@ -11088,7 +11618,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "DELETE /api/v1/subscription-plans/{id}"
+        "summary": "DELETE /api/v1/subscription-plans/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.delete",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.delete. SUPER_ADMIN or ADMIN with subscriptionPlans.delete permission."
       }
     },
     "/api/v1/subscription-plans/{id}/status": {
@@ -11127,7 +11660,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/subscription-plans/{id}/status"
+        "summary": "PATCH /api/v1/subscription-plans/{id}/status",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update. SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission."
       }
     },
     "/api/v1/subscription-plans/{id}/visibility": {
@@ -11166,7 +11702,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/subscription-plans/{id}/visibility"
+        "summary": "PATCH /api/v1/subscription-plans/{id}/visibility",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update. SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission."
       }
     },
     "/api/v1/subscription-plans/{id}/analytics": {
@@ -11195,7 +11734,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans/{id}/analytics"
+        "summary": "GET /api/v1/subscription-plans/{id}/analytics",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission."
       }
     },
     "/api/v1/plan-features/catalog": {
@@ -11215,7 +11757,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/plan-features/catalog"
+        "summary": "GET /api/v1/plan-features/catalog",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
       }
     },
     "/api/v1/plan-features": {
@@ -11268,7 +11813,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/plan-features"
+        "summary": "GET /api/v1/plan-features",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
       },
       "post": {
         "operationId": "PlanFeaturesController_create",
@@ -11296,7 +11844,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "POST /api/v1/plan-features"
+        "summary": "POST /api/v1/plan-features",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.create",
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.create",
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.create. SUPER_ADMIN or ADMIN with planFeatures.create permission."
       }
     },
     "/api/v1/plan-features/{id}": {
@@ -11325,7 +11876,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/plan-features/{id}"
+        "summary": "GET /api/v1/plan-features/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
       },
       "patch": {
         "operationId": "PlanFeaturesController_update",
@@ -11362,7 +11916,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/plan-features/{id}"
+        "summary": "PATCH /api/v1/plan-features/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.update",
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.update. SUPER_ADMIN or ADMIN with planFeatures.update permission."
       },
       "delete": {
         "operationId": "PlanFeaturesController_delete",
@@ -11389,7 +11946,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "DELETE /api/v1/plan-features/{id}"
+        "summary": "DELETE /api/v1/plan-features/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.delete",
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.delete. SUPER_ADMIN or ADMIN with planFeatures.delete permission."
       }
     },
     "/api/v1/coupons": {
@@ -11456,7 +12016,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/coupons"
+        "summary": "GET /api/v1/coupons",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.read",
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission."
       },
       "post": {
         "operationId": "CouponsController_create",
@@ -11484,7 +12047,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "POST /api/v1/coupons"
+        "summary": "POST /api/v1/coupons",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.create",
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.create",
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.create. SUPER_ADMIN or ADMIN with coupons.create permission."
       }
     },
     "/api/v1/coupons/{id}": {
@@ -11513,7 +12079,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/coupons/{id}"
+        "summary": "GET /api/v1/coupons/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.read",
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission."
       },
       "patch": {
         "operationId": "CouponsController_update",
@@ -11550,7 +12119,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/coupons/{id}"
+        "summary": "PATCH /api/v1/coupons/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.update",
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.update. SUPER_ADMIN or ADMIN with coupons.update permission."
       },
       "delete": {
         "operationId": "CouponsController_delete",
@@ -11577,7 +12149,10 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "DELETE /api/v1/coupons/{id}"
+        "summary": "DELETE /api/v1/coupons/{id}",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.delete",
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.delete. SUPER_ADMIN or ADMIN with coupons.delete permission."
       }
     },
     "/api/v1/coupons/{id}/status": {
@@ -11616,12 +12191,15 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/coupons/{id}/status"
+        "summary": "PATCH /api/v1/coupons/{id}/status",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.status.update",
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.status.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission."
       }
     },
     "/api/v1/media-upload-policy": {
       "get": {
-        "description": "SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.",
+        "description": "Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.",
         "operationId": "MediaUploadPolicyController_get",
         "parameters": [],
         "responses": {
@@ -11670,10 +12248,12 @@
         "summary": "Fetch global media upload policy",
         "tags": [
           "02 Admin - Media Upload Policy"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with mediaPolicy.read",
+        "x-access": "SUPER_ADMIN or ADMIN with mediaPolicy.read"
       },
       "patch": {
-        "description": "SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global media upload policy. SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.",
         "operationId": "MediaUploadPolicyController_update",
         "parameters": [],
         "requestBody": {
@@ -11699,12 +12279,14 @@
         "summary": "Update global media upload policy",
         "tags": [
           "02 Admin - Media Upload Policy"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/media-upload-policy/audit-logs": {
       "get": {
-        "description": "SUPER_ADMIN only.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Media upload policy audit logs. SUPER_ADMIN only.",
         "operationId": "MediaUploadPolicyController_auditLogs",
         "parameters": [
           {
@@ -11757,12 +12339,14 @@
         "summary": "List media upload policy audit logs",
         "tags": [
           "02 Admin - Media Upload Policy"
-        ]
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/customer/payments/create-intent": {
       "post": {
-        "description": "REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
         "operationId": "CustomerPaymentsController_createIntent",
         "parameters": [],
         "requestBody": {
@@ -11820,12 +12404,14 @@
         "summary": "Create payment intent from active cart",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/payments/confirm": {
       "post": {
-        "description": "REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Retrieves Stripe PaymentIntent server-side before updating local payment status.",
         "operationId": "CustomerPaymentsController_confirm",
         "parameters": [],
         "requestBody": {
@@ -11851,7 +12437,9 @@
         "summary": "Confirm Stripe payment",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/payments/{id}": {
@@ -11900,7 +12488,10 @@
         "summary": "Fetch own payment details",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/payment-methods": {
@@ -11947,7 +12538,10 @@
         "summary": "List supported customer payment methods",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/payment-methods/{id}/default": {
@@ -11976,12 +12570,15 @@
         "summary": "Set own default payment method",
         "tags": [
           "05 Customer - Payment Methods"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/payments/stripe/webhook": {
       "post": {
-        "description": "Verifies Stripe-Signature using the configured webhook secret before processing events.",
+        "description": "Access: PUBLIC. PUBLIC. Verifies Stripe-Signature using the configured webhook secret before processing events.",
         "operationId": "StripeWebhookController_webhook",
         "parameters": [],
         "responses": {
@@ -11992,12 +12589,14 @@
         "summary": "Stripe webhook endpoint",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/customer/money-gifts": {
       "post": {
-        "description": "Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Creates a customer-to-recipient money gift record and Stripe PaymentIntent for STRIPE_CARD.",
         "operationId": "CustomerMoneyGiftsController_create",
         "parameters": [],
         "requestBody": {
@@ -12037,7 +12636,9 @@
         "summary": "Send payment as gift",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       },
       "get": {
         "operationId": "CustomerMoneyGiftsController_list",
@@ -12055,7 +12656,10 @@
         "summary": "List own money gifts",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/customer/money-gifts/{id}": {
@@ -12084,7 +12688,10 @@
         "summary": "Fetch own money gift details",
         "tags": [
           "06 Payments"
-        ]
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/audit-logs/export": {
@@ -12205,7 +12812,10 @@
         "tags": [
           "02 Admin - Audit Logs"
         ],
-        "summary": "GET /api/v1/audit-logs/export"
+        "summary": "GET /api/v1/audit-logs/export",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin."
       }
     },
     "/api/v1/audit-logs": {
@@ -12326,7 +12936,10 @@
         "tags": [
           "02 Admin - Audit Logs"
         ],
-        "summary": "GET /api/v1/audit-logs"
+        "summary": "GET /api/v1/audit-logs",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin."
       }
     },
     "/api/v1/audit-logs/{id}": {
@@ -12355,7 +12968,10 @@
         "tags": [
           "02 Admin - Audit Logs"
         ],
-        "summary": "GET /api/v1/audit-logs/{id}"
+        "summary": "GET /api/v1/audit-logs/{id}",
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin."
       }
     },
     "/api/v1/uploads/presigned-url": {
@@ -12385,7 +13001,10 @@
         "tags": [
           "07 Storage"
         ],
-        "summary": "POST /api/v1/uploads/presigned-url"
+        "summary": "POST /api/v1/uploads/presigned-url",
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
       }
     },
     "/api/v1/uploads/complete": {
@@ -12415,7 +13034,10 @@
         "tags": [
           "07 Storage"
         ],
-        "summary": "POST /api/v1/uploads/complete"
+        "summary": "POST /api/v1/uploads/complete",
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
       }
     },
     "/api/v1/uploads": {
@@ -12480,7 +13102,10 @@
         "tags": [
           "07 Storage"
         ],
-        "summary": "GET /api/v1/uploads"
+        "summary": "GET /api/v1/uploads",
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
       }
     },
     "/api/v1/uploads/{id}": {
@@ -12509,7 +13134,10 @@
         "tags": [
           "07 Storage"
         ],
-        "summary": "GET /api/v1/uploads/{id}"
+        "summary": "GET /api/v1/uploads/{id}",
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
       },
       "delete": {
         "operationId": "StorageController_delete",
@@ -12536,7 +13164,10 @@
         "tags": [
           "07 Storage"
         ],
-        "summary": "DELETE /api/v1/uploads/{id}"
+        "summary": "DELETE /api/v1/uploads/{id}",
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
       }
     }
   },

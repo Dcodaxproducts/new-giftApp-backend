@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminProviderFulfillmentMethodDto, ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from './dto/provider-management.dto';
 import { ProviderManagementService } from './provider-management.service';
+
+
+const providerLifecycleAdmin = {
+  uid: 'admin_1',
+  role: UserRole.ADMIN,
+  permissions: { providers: ['approve', 'reject', 'suspend', 'updateStatus'] },
+};
 
 const provider: Record<string, unknown> = {
   id: 'provider_1',
@@ -205,7 +212,7 @@ describe('ProviderManagementService', () => {
       providerRejectionComment: 'Missing docs',
     });
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.APPROVE,
       comment: 'Documents verified successfully.',
       notifyProvider: true,
@@ -228,14 +235,28 @@ describe('ProviderManagementService', () => {
     expect(result.data).toEqual(expect.objectContaining({ id: 'provider_1', approvalStatus: ProviderApprovalStatus.APPROVED, status: 'ACTIVE', isActive: true }));
   });
 
+  it('provider lifecycle action requires the mapped admin permission', async () => {
+    const { service } = createService();
+
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providers: ['read'] } }, 'provider_1', {
+      action: ProviderLifecycleAction.APPROVE,
+      comment: 'Documents verified successfully.',
+    })).rejects.toThrow(ForbiddenException);
+
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providers: ['approve'] } }, 'provider_1', {
+      action: ProviderLifecycleAction.APPROVE,
+      comment: 'Documents verified successfully.',
+    })).resolves.toEqual(expect.objectContaining({ data: expect.objectContaining({ approvalStatus: ProviderApprovalStatus.APPROVED }) }));
+  });
+
   it('PATCH /providers/:id/status with action REJECT rejects provider and requires reason', async () => {
     const { service, prisma, mailer } = createService();
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    await expect(service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.REJECT,
     })).rejects.toThrow(BadRequestException);
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.REJECT,
       reason: ProviderLifecycleReason.INCOMPLETE_DOCUMENTS,
       comment: 'Business license document is missing.',
@@ -260,11 +281,11 @@ describe('ProviderManagementService', () => {
   it('PATCH /providers/:id/status with action UPDATE_STATUS updates status only', async () => {
     const { service, prisma } = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: false });
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    await expect(service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.UPDATE_STATUS,
     })).rejects.toThrow(BadRequestException);
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.UPDATE_STATUS,
       status: ProviderStatusUpdate.ACTIVE,
       reason: ProviderLifecycleReason.OTHER,
@@ -282,11 +303,11 @@ describe('ProviderManagementService', () => {
   it('PATCH /providers/:id/status with action SUSPEND suspends provider and requires reason', async () => {
     const { service, prisma } = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: true });
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    await expect(service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.SUSPEND,
     })).rejects.toThrow(BadRequestException);
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.SUSPEND,
       reason: ProviderLifecycleReason.POLICY_VIOLATION,
       comment: 'Provider violated platform policy.',
@@ -306,7 +327,7 @@ describe('ProviderManagementService', () => {
       suspensionReason: ProviderLifecycleReason.POLICY_VIOLATION,
     });
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.UNSUSPEND,
       comment: 'Provider account reviewed and restored.',
     });
@@ -319,12 +340,12 @@ describe('ProviderManagementService', () => {
 
   it('UNSUSPEND rejects non-approved or already active provider', async () => {
     const pending = createService({ providerApprovalStatus: ProviderApprovalStatus.PENDING, isActive: false, suspendedAt: new Date() });
-    await expect(pending.service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    await expect(pending.service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.UNSUSPEND,
     })).rejects.toThrow(BadRequestException);
 
     const active = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: true, suspendedAt: null });
-    await expect(active.service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN }, 'provider_1', {
+    await expect(active.service.updateStatus(providerLifecycleAdmin, 'provider_1', {
       action: ProviderLifecycleAction.UNSUSPEND,
     })).rejects.toThrow(BadRequestException);
   });
@@ -332,7 +353,8 @@ describe('ProviderManagementService', () => {
   it('only unified provider status route remains in controller swagger surface', () => {
     const controller = readFileSync(join(__dirname, 'provider-management.controller.ts'), 'utf8');
     expect(controller).toContain("@Patch(':id/status')");
-    expect(controller).toContain("@Permissions('providers.updateStatus')");
+    expect(controller).not.toContain("@Permissions('providers.updateStatus')");
+    expect(controller).toContain('APPROVE requires providers.approve');
     expect(controller).toContain('Update provider lifecycle status');
     expect(controller).not.toContain("@Patch(':id/approve')");
     expect(controller).not.toContain("@Patch(':id/reject')");

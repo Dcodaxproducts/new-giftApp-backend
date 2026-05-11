@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -239,6 +240,7 @@ export class ProviderManagementService {
   }
 
   async updateStatus(user: AuthUserContext, id: string, dto: UpdateProviderStatusDto) {
+    this.assertCanRunLifecycleAction(user, dto.action);
     const provider = await this.getProvider(id);
     this.validateLifecycleAction(provider, dto);
 
@@ -254,6 +256,70 @@ export class ProviderManagementService {
       case ProviderLifecycleAction.UPDATE_STATUS:
         return this.updateProviderStatus(user, provider, dto);
     }
+  }
+
+  private assertCanRunLifecycleAction(user: AuthUserContext, action: ProviderLifecycleAction): void {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return;
+    }
+
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Your role does not have the required provider lifecycle permission');
+    }
+
+    const requiredPermission = this.lifecyclePermission(action);
+    const grantedPermissions = this.flattenPermissions(user.permissions);
+    if (!grantedPermissions.has(requiredPermission)) {
+      throw new ForbiddenException('Your role does not have the required provider lifecycle permission');
+    }
+  }
+
+  private lifecyclePermission(action: ProviderLifecycleAction): string {
+    switch (action) {
+      case ProviderLifecycleAction.APPROVE:
+        return 'providers.approve';
+      case ProviderLifecycleAction.REJECT:
+        return 'providers.reject';
+      case ProviderLifecycleAction.SUSPEND:
+      case ProviderLifecycleAction.UNSUSPEND:
+        return 'providers.suspend';
+      case ProviderLifecycleAction.UPDATE_STATUS:
+        return 'providers.updateStatus';
+    }
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) {
+      return granted;
+    }
+
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) {
+        continue;
+      }
+
+      for (const value of values) {
+        if (typeof value === 'string') {
+          granted.add(`${module}.${value}`);
+          granted.add(`${module}.${this.normalizePermission(value)}`);
+        }
+      }
+    }
+
+    return granted;
+  }
+
+  private normalizePermission(permission: string): string {
+    if (permission === 'updateStatus') {
+      return 'status.update';
+    }
+
+    if (permission === 'status.update') {
+      return 'updateStatus';
+    }
+
+    return permission;
   }
 
 

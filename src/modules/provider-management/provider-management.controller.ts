@@ -119,10 +119,9 @@ export class ProviderManagementController {
   }
 
   @Patch(':id/status')
-  @Permissions('providers.updateStatus')
   @ApiOperation({
     summary: 'Update provider lifecycle status',
-    description: 'SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.',
+    description: 'SUPER_ADMIN or ADMIN with provider lifecycle permission. APPROVE requires providers.approve, REJECT requires providers.reject, SUSPEND and UNSUSPEND require providers.suspend, UPDATE_STATUS requires providers.updateStatus. Uses action-based request body.',
   })
   @ApiBody({
     type: UpdateProviderStatusDto,

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { applySwaggerAccessMetadata } from './swagger-access';
 
 export const SWAGGER_TAG_ORDER = [
   '01 Auth',
@@ -87,6 +88,7 @@ async function bootstrap(): Promise<void> {
     autoTagControllers: false,
   });
   fillMissingOperationSummaries(document);
+  applySwaggerAccessMetadata(document);
   document.tags = SWAGGER_TAG_ORDER.map((name) => ({ name }));
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
@@ -148,4 +150,6 @@ async function bootstrap(): Promise<void> {
   new Logger('Bootstrap').log(`Swagger docs: http://localhost:${port}/docs`);
 }
 
-void bootstrap();
+if (require.main === module) {
+  void bootstrap();
+}
