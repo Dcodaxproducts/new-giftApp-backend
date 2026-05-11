@@ -275,6 +275,27 @@ enum CustomerRecurringPaymentCancelMode {
   AFTER_CURRENT_BILLING_CYCLE
 }
 
+enum ReferralStatus {
+  PENDING
+  JOINED
+  QUALIFIED
+  REWARDED
+  EXPIRED
+}
+
+enum RewardLedgerType {
+  EARNED
+  REDEEMED
+  EXPIRED
+  ADJUSTED
+}
+
+enum RewardLedgerSource {
+  REFERRAL
+  ADMIN_ADJUSTMENT
+  PROMOTION
+}
+
 enum ProviderFulfillmentMethod {
   PICKUP
   DELIVERY
@@ -324,6 +345,7 @@ model User {
   suspendedAt                         DateTime?                            @map("suspended_at") @db.Timestamptz
   suspendedBy                         String?                              @map("suspended_by")
   refreshTokenHash                    String?                              @map("refresh_token_hash")
+  referralCode                        String?                              @unique @map("referral_code")
   deletedAt                           DateTime?                            @map("deleted_at") @db.Timestamptz
   deleteAfter                         DateTime?                            @map("delete_after") @db.Timestamptz
   createdAt                           DateTime                             @default(now()) @map("created_at") @db.Timestamptz
@@ -352,6 +374,9 @@ model User {
   customerRecurringPayments           CustomerRecurringPayment[]
   customerRecurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   customerPaymentMethods              CustomerPaymentMethod[]
+  sentReferrals                       Referral[]                           @relation("ReferralReferrer")
+  receivedReferrals                   Referral[]                           @relation("ReferralReferred")
+  rewardLedger                        RewardLedger[]
   uploadedFiles                       UploadedFile[]
   createdSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanCreator")
   updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
@@ -364,7 +389,49 @@ model User {
   @@index([adminRoleId])
   @@index([providerApprovalStatus])
   @@index([providerBusinessCategoryId])
+  @@index([referralCode])
   @@map("users")
+}
+
+model Referral {
+  id             String         @id @default(cuid())
+  referrerUserId String         @map("referrer_user_id")
+  referredUserId String         @unique @map("referred_user_id")
+  referralCode   String         @map("referral_code")
+  status         ReferralStatus @default(JOINED)
+  rewardAmount   Decimal        @default(0) @map("reward_amount") @db.Decimal(10, 2)
+  currency       String         @default("USD")
+  joinedAt       DateTime?      @map("joined_at") @db.Timestamptz
+  qualifiedAt    DateTime?      @map("qualified_at") @db.Timestamptz
+  rewardedAt     DateTime?      @map("rewarded_at") @db.Timestamptz
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  referrer User @relation("ReferralReferrer", fields: [referrerUserId], references: [id])
+  referred User @relation("ReferralReferred", fields: [referredUserId], references: [id])
+
+  @@index([referrerUserId, status])
+  @@index([referralCode])
+  @@map("referrals")
+}
+
+model RewardLedger {
+  id          String             @id @default(cuid())
+  userId      String             @map("user_id")
+  type        RewardLedgerType
+  amount      Decimal            @db.Decimal(10, 2)
+  currency    String             @default("USD")
+  source      RewardLedgerSource
+  sourceId    String?            @map("source_id")
+  description String
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type, source, sourceId])
+  @@index([userId, type, createdAt])
+  @@index([source, sourceId])
+  @@map("reward_ledgers")
 }
 
 model ProviderBusinessCategory {

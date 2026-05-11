@@ -8,6 +8,7 @@ import { BroadcastNotificationsModule } from './modules/broadcast-notifications/
 import { CustomerContactsModule } from './modules/customer-contacts/customer-contacts.module';
 import { CustomerEventsModule } from './modules/customer-events/customer-events.module';
 import { CustomerMarketplaceModule } from './modules/customer-marketplace/customer-marketplace.module';
+import { CustomerReferralsModule } from './modules/customer-referrals/customer-referrals.module';
 import { CustomerRecurringPaymentsModule } from './modules/customer-recurring-payments/customer-recurring-payments.module';
 import { CustomerTransactionsModule } from './modules/customer-transactions/customer-transactions.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
@@ -33,6 +34,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     CustomerContactsModule,
     CustomerEventsModule,
     CustomerMarketplaceModule,
+    CustomerReferralsModule,
     CustomerRecurringPaymentsModule,
     CustomerTransactionsModule,
     GiftManagementModule,

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
   OnModuleInit,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -24,6 +25,7 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { PrismaService } from '../../database/prisma.service';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
 import { MailerService } from '../mailer/mailer.service';
+import { CustomerReferralsService } from '../customer-referrals/customer-referrals.service';
 import {
   GuestSessionDto,
   RejectProviderDto,
@@ -71,6 +73,7 @@ export class AuthService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly loginAttemptsService: LoginAttemptsService,
     private readonly mailerService: MailerService,
+    @Optional() private readonly customerReferralsService?: CustomerReferralsService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -78,6 +81,7 @@ export class AuthService implements OnModuleInit {
   }
 
   async registerUser(dto: RegisterUserDto) {
+    await this.customerReferralsService?.assertValidReferralCode(dto.referralCode);
     const user = await this.createUser({
       email: dto.email,
       password: dto.password,
@@ -88,6 +92,7 @@ export class AuthService implements OnModuleInit {
       isApproved: true,
       providerApprovalStatus: null,
     });
+    await this.customerReferralsService?.captureSignupReferral(user.id, dto.referralCode);
     await this.mailerService.sendVerificationEmail(
       user.email,
       this.requiredOtp(user.verificationOtp),

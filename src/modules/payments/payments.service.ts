@@ -3,6 +3,7 @@ import { CartStatus, MoneyGiftStatus, NotificationRecipientType, Payment, Paymen
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { CustomerReferralsService } from '../customer-referrals/customer-referrals.service';
 import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from './dto/payments.dto';
 
 type CartWithItems = Prisma.CartGetPayload<{ include: { items: true } }>;
@@ -30,7 +31,10 @@ type StripePaymentMethodLike = {
 export class PaymentsService {
   private stripeClient?: InstanceType<typeof Stripe>;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly customerReferralsService: CustomerReferralsService,
+  ) {}
 
   paymentMethods() {
     return {
@@ -72,7 +76,10 @@ export class PaymentsService {
     const intent = await this.stripe().paymentIntents.retrieve(dto.stripePaymentIntentId) as StripeIntentLike;
     const status = this.statusFromStripe(intent.status);
     const updated = await this.prisma.payment.update({ where: { id: payment.id }, data: { status, failureReason: intent.last_payment_error?.message ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status }) } });
-    if (status === PaymentStatus.SUCCEEDED) await this.notify(user.uid, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: payment.id });
+    if (status === PaymentStatus.SUCCEEDED) {
+      await this.customerReferralsService.awardReferralForFirstEligiblePurchase(user.uid, payment.id);
+      await this.notify(user.uid, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: payment.id });
+    }
     if (status === PaymentStatus.FAILED) await this.notify(user.uid, 'Payment failed', 'Your payment could not be completed.', 'PAYMENT_FAILED', { paymentId: payment.id });
     return { data: { paymentId: updated.id, status: updated.status }, message: 'Payment confirmed successfully.' };
   }
@@ -160,7 +167,10 @@ export class PaymentsService {
       await this.prisma.moneyGift.update({ where: { id: updated.moneyGiftId }, data: { status: deliveryDate && deliveryDate.deliveryDate > new Date() ? MoneyGiftStatus.SCHEDULED : MoneyGiftStatus.SENT } });
       await this.notify(updated.userId, 'Money gift paid', 'Your money gift payment was completed.', 'MONEY_GIFT_SENT', { paymentId: updated.id, moneyGiftId: updated.moneyGiftId });
     }
-    if (status === PaymentStatus.SUCCEEDED) await this.notify(updated.userId, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: updated.id });
+    if (status === PaymentStatus.SUCCEEDED) {
+      await this.customerReferralsService.awardReferralForFirstEligiblePurchase(updated.userId, updated.id);
+      await this.notify(updated.userId, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: updated.id });
+    }
     if (status === PaymentStatus.FAILED) await this.notify(updated.userId, 'Payment failed', 'Your payment could not be completed.', 'PAYMENT_FAILED', { paymentId: updated.id });
   }
 

@@ -41,6 +41,11 @@ export class RegisterUserDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ example: 'SARAH-M' })
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
 }
 
 export class RegisterProviderDto extends RegisterUserDto {
