@@ -67,8 +67,14 @@ export class PermissionsGuard implements CanActivate {
   }
 
   private normalizePermission(permission: string): string {
-    return permission
-      .replace(/^updateStatus$/, 'status.update')
-      .replace(/^resetPassword$/, 'resetPassword');
+    if (permission === 'updateStatus') {
+      return 'status.update';
+    }
+
+    if (permission === 'status.update') {
+      return 'updateStatus';
+    }
+
+    return permission.replace(/^resetPassword$/, 'resetPassword');
   }
 }

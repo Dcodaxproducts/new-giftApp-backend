@@ -1,9 +1,10 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AccountType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
+import { AccountType, NotificationRecipientType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
@@ -11,7 +12,6 @@ import { AccountStatusService } from '../../common/services/account-status.servi
 import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
 import {
-  ApproveProviderDto,
   CreateProviderDto,
   ExportFormat,
   ExportProvidersDto,
@@ -20,12 +20,13 @@ import {
   ListProvidersDto,
   MessageProviderDto,
   ProviderActivityType,
+  ProviderLifecycleAction,
+  ProviderLifecycleReason,
   ProviderItemStatus,
   ProviderLookupDto,
   ProviderSortBy,
   ProviderStatusFilter,
   ProviderStatusUpdate,
-  RejectProviderDto,
   SortOrder,
   UpdateProviderDto,
   UpdateProviderStatusDto,
@@ -198,108 +199,22 @@ export class ProviderManagementService {
     };
   }
 
-  async approve(user: AuthUserContext, id: string, dto: ApproveProviderDto) {
-    const provider = await this.getProvider(id);
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
-        isApproved: true,
-        isActive: true,
-        providerApprovalStatus: ProviderApprovalStatus.APPROVED,
-        providerApprovedAt: new Date(),
-        providerApprovedBy: user.uid,
-        providerRejectedAt: null,
-        providerRejectedBy: null,
-        providerRejectionReason: null,
-        providerRejectionComment: null,
-      },
-    });
-    const response = {
-      id: updated.id,
-      approvalStatus: updated.providerApprovalStatus,
-      status: this.toStatus(updated),
-      approvedAt: updated.providerApprovedAt,
-      approvedBy: updated.providerApprovedBy,
-    };
-    await this.recordAudit(user.uid, provider.id, 'PROVIDER_APPROVED', null, response);
-    await this.notifyProvider(updated, dto.notifyProvider, 'APPROVED', dto.comment);
-
-    return { data: response, message: 'Provider approved successfully' };
-  }
-
-  async reject(user: AuthUserContext, id: string, dto: RejectProviderDto) {
-    const provider = await this.getProvider(id);
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
-        isApproved: false,
-        providerApprovalStatus: ProviderApprovalStatus.REJECTED,
-        providerRejectedAt: new Date(),
-        providerRejectedBy: user.uid,
-        providerRejectionReason: dto.reason,
-        providerRejectionComment: dto.comment?.trim(),
-      },
-    });
-    const response = {
-      id: updated.id,
-      approvalStatus: updated.providerApprovalStatus,
-      rejectedAt: updated.providerRejectedAt,
-      rejectedBy: updated.providerRejectedBy,
-      rejectionReason: updated.providerRejectionReason,
-      rejectionComment: updated.providerRejectionComment,
-    };
-    await this.recordAudit(user.uid, provider.id, 'PROVIDER_REJECTED', null, response);
-    await this.notifyProvider(updated, dto.notifyProvider, 'REJECTED', dto.comment);
-
-    return { data: response, message: 'Provider rejected successfully' };
-  }
-
   async updateStatus(user: AuthUserContext, id: string, dto: UpdateProviderStatusDto) {
-    const response = await this.accountStatusService.updateStatus({
-      actorId: user.uid,
-      accountId: id,
-      accountType: AccountType.PROVIDER,
-      status: dto.status,
-      reason: dto.reason,
-      comment: dto.comment,
-      notify: dto.notifyProvider,
-      activeStatuses: [ProviderStatusUpdate.ACTIVE],
-      suspendedStatus: ProviderStatusUpdate.SUSPENDED,
-      actionPrefix: 'PROVIDER',
-      targetType: 'PROVIDER',
-    });
+    const provider = await this.getProvider(id);
+    this.validateLifecycleAction(provider, dto);
 
-    return {
-      data: response,
-      message: dto.status === ProviderStatusUpdate.SUSPENDED
-        ? 'Provider suspended successfully'
-        : 'Provider status updated successfully',
-    };
-  }
-
-  async suspend(user: AuthUserContext, id: string, dto: UpdateProviderStatusDto) {
-    return this.updateStatus(user, id, {
-      status: ProviderStatusUpdate.SUSPENDED,
-      reason: dto.reason,
-      comment: dto.comment,
-      notifyProvider: dto.notifyProvider,
-    });
-  }
-
-  async unsuspend(user: AuthUserContext, id: string, dto: { comment?: string; notifyProvider?: boolean }) {
-    const response = await this.accountStatusService.unsuspend({
-      actorId: user.uid,
-      accountId: id,
-      accountType: AccountType.PROVIDER,
-      comment: dto.comment,
-      notify: dto.notifyProvider,
-      activeStatuses: [ProviderStatusUpdate.ACTIVE],
-      suspendedStatus: ProviderStatusUpdate.SUSPENDED,
-      actionPrefix: 'PROVIDER',
-      targetType: 'PROVIDER',
-    });
-
-    return { data: response, message: 'Provider unsuspended successfully' };
+    switch (dto.action) {
+      case ProviderLifecycleAction.APPROVE:
+        return this.approveProvider(user, provider, dto);
+      case ProviderLifecycleAction.REJECT:
+        return this.rejectProvider(user, provider, dto);
+      case ProviderLifecycleAction.SUSPEND:
+        return this.suspendProvider(user, provider, dto);
+      case ProviderLifecycleAction.UNSUSPEND:
+        return this.unsuspendProvider(user, provider, dto);
+      case ProviderLifecycleAction.UPDATE_STATUS:
+        return this.updateProviderStatus(user, provider, dto);
+    }
   }
 
   async items(id: string, query: ListProviderItemsDto) {
@@ -483,7 +398,7 @@ export class ProviderManagementService {
     }
 
     if (!provider.isActive) {
-      return ProviderStatusFilter.DISABLED;
+      return ProviderStatusFilter.INACTIVE;
     }
 
     return provider.providerApprovalStatus === ProviderApprovalStatus.APPROVED
@@ -639,6 +554,179 @@ export class ProviderManagementService {
       .replaceAll("'", '&apos;');
   }
 
+
+  private validateLifecycleAction(provider: User, dto: UpdateProviderStatusDto): void {
+    if (dto.action === ProviderLifecycleAction.REJECT && !dto.reason) {
+      throw new BadRequestException('Reason is required when rejecting a provider');
+    }
+
+    if (dto.action === ProviderLifecycleAction.SUSPEND && !dto.reason) {
+      throw new BadRequestException('Reason is required when suspending a provider');
+    }
+
+    if (dto.action === ProviderLifecycleAction.UPDATE_STATUS && !dto.status) {
+      throw new BadRequestException('Status is required when updating provider status');
+    }
+
+    if (dto.action === ProviderLifecycleAction.UPDATE_STATUS && dto.status === ProviderStatusUpdate.SUSPENDED && !dto.reason) {
+      throw new BadRequestException('Reason is required when suspending a provider');
+    }
+
+    if (dto.action === ProviderLifecycleAction.UNSUSPEND) {
+      if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED) {
+        throw new BadRequestException('Only approved providers can be unsuspended');
+      }
+
+      if (provider.isActive && !provider.suspendedAt) {
+        throw new BadRequestException('Provider is not suspended or inactive');
+      }
+    }
+  }
+
+  private async approveProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+    const before = this.toLifecycleResponse(provider);
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isApproved: true,
+        isActive: true,
+        providerApprovalStatus: ProviderApprovalStatus.APPROVED,
+        providerApprovedAt: new Date(),
+        providerApprovedBy: user.uid,
+        providerRejectedAt: null,
+        providerRejectedBy: null,
+        providerRejectionReason: null,
+        providerRejectionComment: null,
+        suspensionReason: null,
+        suspensionComment: null,
+        suspendedAt: null,
+        suspendedBy: null,
+      },
+    });
+    await this.prisma.accountSuspension.updateMany({ where: { accountId: provider.id, isActive: true }, data: { isActive: false, unsuspendedBy: user.uid, unsuspendedAt: new Date() } });
+    return this.completeLifecycleAction(user, provider.id, 'PROVIDER_APPROVED', before, updated, dto, 'Provider approved successfully.');
+  }
+
+  private async rejectProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+    const before = this.toLifecycleResponse(provider);
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isApproved: false,
+        isActive: false,
+        providerApprovalStatus: ProviderApprovalStatus.REJECTED,
+        providerRejectedAt: new Date(),
+        providerRejectedBy: user.uid,
+        providerRejectionReason: dto.reason,
+        providerRejectionComment: dto.comment?.trim(),
+        refreshTokenHash: null,
+      },
+    });
+    return this.completeLifecycleAction(user, provider.id, 'PROVIDER_REJECTED', before, updated, dto, 'Provider rejected successfully.');
+  }
+
+  private async updateProviderStatus(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+    if (dto.status === ProviderStatusUpdate.SUSPENDED) {
+      return this.suspendProvider(user, provider, { ...dto, action: ProviderLifecycleAction.SUSPEND });
+    }
+
+    const before = this.toLifecycleResponse(provider);
+    if (provider.suspendedAt && dto.status === ProviderStatusUpdate.ACTIVE) {
+      await this.prisma.accountSuspension.updateMany({ where: { accountId: provider.id, isActive: true }, data: { isActive: false, unsuspendedBy: user.uid, unsuspendedAt: new Date() } });
+    }
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isActive: dto.status === ProviderStatusUpdate.ACTIVE,
+        suspensionReason: null,
+        suspensionComment: null,
+        suspendedAt: null,
+        suspendedBy: null,
+        refreshTokenHash: dto.status === ProviderStatusUpdate.ACTIVE ? provider.refreshTokenHash : null,
+      },
+    });
+    return this.completeLifecycleAction(user, provider.id, 'PROVIDER_STATUS_UPDATED', before, updated, dto, 'Provider status updated successfully.');
+  }
+
+  private async suspendProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+    const before = this.toLifecycleResponse(provider);
+    await this.prisma.accountSuspension.create({
+      data: {
+        accountId: provider.id,
+        accountType: AccountType.PROVIDER,
+        reason: dto.reason ?? ProviderLifecycleReason.OTHER,
+        comment: dto.comment?.trim(),
+        suspendedBy: user.uid,
+        isActive: true,
+      },
+    });
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isActive: false,
+        suspensionReason: dto.reason,
+        suspensionComment: dto.comment?.trim(),
+        suspendedAt: new Date(),
+        suspendedBy: user.uid,
+        refreshTokenHash: null,
+      },
+    });
+    return this.completeLifecycleAction(user, provider.id, 'PROVIDER_SUSPENDED', before, updated, dto, 'Provider suspended successfully.');
+  }
+
+  private async unsuspendProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+    const before = this.toLifecycleResponse(provider);
+    await this.prisma.accountSuspension.updateMany({ where: { accountId: provider.id, isActive: true }, data: { isActive: false, unsuspendedBy: user.uid, unsuspendedAt: new Date() } });
+    const updated = await this.prisma.user.update({
+      where: { id: provider.id },
+      data: {
+        isActive: true,
+        suspensionReason: null,
+        suspensionComment: null,
+        suspendedAt: null,
+        suspendedBy: null,
+      },
+    });
+    return this.completeLifecycleAction(user, provider.id, 'PROVIDER_UNSUSPENDED', before, updated, dto, 'Provider unsuspended successfully.');
+  }
+
+  private async completeLifecycleAction(
+    user: AuthUserContext,
+    providerId: string,
+    action: string,
+    beforeJson: unknown,
+    updated: User,
+    dto: UpdateProviderStatusDto,
+    message: string,
+  ) {
+    const response = this.toLifecycleResponse(updated);
+    await this.recordAudit(user.uid, providerId, action, beforeJson, {
+      ...response,
+      actorId: user.uid,
+      targetId: providerId,
+      action,
+      reason: dto.reason,
+      comment: dto.comment,
+      notifyProvider: dto.notifyProvider ?? true,
+    });
+    await this.notifyProvider(updated, dto.notifyProvider ?? true, action, dto.comment);
+    return { data: response, message };
+  }
+
+  private toLifecycleResponse(provider: User) {
+    return {
+      id: provider.id,
+      approvalStatus: provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
+      status: this.toStatus(provider),
+      isActive: provider.isActive,
+      rejectionReason: provider.providerRejectionReason,
+      suspensionReason: provider.suspensionReason,
+      approvedAt: provider.providerApprovedAt,
+      rejectedAt: provider.providerRejectedAt,
+      suspendedAt: provider.suspendedAt,
+    };
+  }
+
   private async notifyProvider(
     provider: User,
     notifyProvider: boolean | undefined,
@@ -649,17 +737,58 @@ export class ProviderManagementService {
       return;
     }
 
-    if (status === ProviderApprovalStatus.APPROVED) {
+    await this.prisma.notification.create({
+      data: {
+        recipientId: provider.id,
+        recipientType: NotificationRecipientType.PROVIDER,
+        title: this.providerNotificationTitle(status),
+        message: this.providerNotificationMessage(status),
+        type: status,
+        metadataJson: { action: status },
+      },
+    });
+
+    if (status === 'PROVIDER_APPROVED') {
       await this.mailerService.sendProviderApprovedEmail(provider.email, this.businessName(provider));
       return;
     }
 
-    if (status === ProviderApprovalStatus.REJECTED) {
+    if (status === 'PROVIDER_REJECTED') {
       await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), provider.providerRejectionReason ?? undefined, comment);
       return;
     }
 
-    await this.mailerService.sendAccountStatusEmail(provider.email, status, comment);
+    await this.mailerService.sendAccountStatusEmail(provider.email, this.providerNotificationTitle(status), comment);
+  }
+
+  private providerNotificationTitle(action: string): string {
+    switch (action) {
+      case 'PROVIDER_APPROVED':
+        return 'Provider approved';
+      case 'PROVIDER_REJECTED':
+        return 'Provider rejected';
+      case 'PROVIDER_SUSPENDED':
+        return 'Provider suspended';
+      case 'PROVIDER_UNSUSPENDED':
+        return 'Provider unsuspended';
+      default:
+        return 'Provider status updated';
+    }
+  }
+
+  private providerNotificationMessage(action: string): string {
+    switch (action) {
+      case 'PROVIDER_APPROVED':
+        return 'Your provider account has been approved.';
+      case 'PROVIDER_REJECTED':
+        return 'Your provider account application was rejected.';
+      case 'PROVIDER_SUSPENDED':
+        return 'Your provider account has been suspended.';
+      case 'PROVIDER_UNSUSPENDED':
+        return 'Your provider account has been restored.';
+      default:
+        return 'Your provider account status has been updated.';
+    }
   }
 
   private async recordAudit(

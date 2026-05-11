@@ -1,6 +1,6 @@
 # Gift App API Record
 
-Total endpoints: 255
+Total endpoints: 251
 
 ## Endpoint Index
 
@@ -62,11 +62,7 @@ Total endpoints: 255
 - `GET` `/api/v1/providers/lookup` — Authenticated — —
 - `GET` `/api/v1/providers/{id}` — Authenticated — —
 - `PATCH` `/api/v1/providers/{id}` — Authenticated — —
-- `PATCH` `/api/v1/providers/{id}/approve` — Authenticated — —
-- `PATCH` `/api/v1/providers/{id}/reject` — Authenticated — —
-- `PATCH` `/api/v1/providers/{id}/status` — Authenticated — —
-- `POST` `/api/v1/providers/{id}/suspend` — Authenticated — —
-- `POST` `/api/v1/providers/{id}/unsuspend` — Authenticated — —
+- `PATCH` `/api/v1/providers/{id}/status` — SUPER_ADMIN, ADMIN — Update provider lifecycle status
 - `GET` `/api/v1/providers/{id}/items` — Authenticated — —
 - `GET` `/api/v1/providers/{id}/activity` — Authenticated — —
 - `POST` `/api/v1/providers/{id}/message` — Authenticated — —
@@ -1689,11 +1685,13 @@ None
 }
 ```
 
-### PATCH /api/v1/providers/{id}/approve
+### PATCH /api/v1/providers/{id}/status
 
-**Allowed role/access:** Authenticated
+**Allowed role/access:** SUPER_ADMIN, ADMIN
 
-**Summary:** —
+**Summary:** Update provider lifecycle status
+
+**Description:** SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.
 
 **Parameters:**
 
@@ -1703,6 +1701,9 @@ None
 
 ```json
 {
+  "action": "APPROVE",
+  "status": "ACTIVE",
+  "reason": "INCOMPLETE_DOCUMENTS",
   "comment": "Documents verified successfully.",
   "notifyProvider": true
 }
@@ -1713,131 +1714,13 @@ None
 ```json
 {
   "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/providers/{id}/reject
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "reason": "string",
-  "comment": "Business license document is missing.",
-  "notifyProvider": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### PATCH /api/v1/providers/{id}/status
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "status": "string",
-  "reason": "string",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### POST /api/v1/providers/{id}/suspend
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "status": "string",
-  "reason": "string",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
-}
-```
-
-### POST /api/v1/providers/{id}/unsuspend
-
-**Allowed role/access:** Authenticated
-
-**Summary:** —
-
-**Parameters:**
-
-- `id` (path, required)
-
-**Request payload example:**
-
-```json
-{
-  "status": "string",
-  "reason": "string",
-  "comment": "Provider violated platform policy.",
-  "notifyProvider": true
-}
-```
-
-**Response example:**
-
-```json
-{
-  "success": true,
-  "data": {},
-  "message": "Request completed successfully"
+  "data": {
+    "id": "provider_id",
+    "approvalStatus": "APPROVED",
+    "status": "ACTIVE",
+    "isActive": true
+  },
+  "message": "Provider approved successfully."
 }
 ```
 

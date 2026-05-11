@@ -18,7 +18,6 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import {
-  ApproveProviderDto,
   CreateProviderDto,
   ExportProvidersDto,
   ListProviderActivityDto,
@@ -26,7 +25,6 @@ import {
   ListProvidersDto,
   MessageProviderDto,
   ProviderLookupDto,
-  RejectProviderDto,
   UpdateProviderDto,
   UpdateProviderStatusDto,
 } from './dto/provider-management.dto';
@@ -95,28 +93,28 @@ export class ProviderManagementController {
     return this.providerManagementService.update(user, id, dto);
   }
 
-  @Patch(':id/approve')
-  @Permissions('providers.approve')
-  approve(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: ApproveProviderDto,
-  ): Promise<unknown> {
-    return this.providerManagementService.approve(user, id, dto);
-  }
-
-  @Patch(':id/reject')
-  @Permissions('providers.reject')
-  reject(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: RejectProviderDto,
-  ): Promise<unknown> {
-    return this.providerManagementService.reject(user, id, dto);
-  }
-
   @Patch(':id/status')
-  @Permissions('providers.status.update')
+  @Permissions('providers.updateStatus')
+  @ApiOperation({
+    summary: 'Update provider lifecycle status',
+    description: 'SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Provider lifecycle status updated successfully',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          id: 'provider_id',
+          approvalStatus: 'APPROVED',
+          status: 'ACTIVE',
+          isActive: true,
+        },
+        message: 'Provider approved successfully.',
+      },
+    },
+  })
   updateStatus(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,
@@ -125,26 +123,6 @@ export class ProviderManagementController {
     return this.providerManagementService.updateStatus(user, id, dto);
   }
 
-
-  @Post(':id/suspend')
-  @Permissions('providers.suspend')
-  suspend(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: UpdateProviderStatusDto,
-  ): Promise<unknown> {
-    return this.providerManagementService.suspend(user, id, dto);
-  }
-
-  @Post(':id/unsuspend')
-  @Permissions('providers.unsuspend')
-  unsuspend(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: UpdateProviderStatusDto,
-  ): Promise<unknown> {
-    return this.providerManagementService.unsuspend(user, id, dto);
-  }
 
   @Get(':id/items')
   @Permissions('providers.read')

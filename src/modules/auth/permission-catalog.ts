@@ -31,7 +31,7 @@ export const PERMISSION_CATALOG = [
       { key: 'update', label: 'Edit Providers', description: 'Update provider profile fields.' },
       { key: 'approve', label: 'Approve Providers', description: 'Approve provider onboarding.' },
       { key: 'reject', label: 'Reject Providers', description: 'Reject provider onboarding.' },
-      { key: 'status.update', label: 'Update Provider Status', description: 'Enable or disable provider access.' },
+      { key: 'updateStatus', label: 'Update Provider Status', description: 'Manage provider lifecycle status from the unified status endpoint.' },
       { key: 'suspend', label: 'Suspend Providers', description: 'Suspend provider accounts.' },
       { key: 'unsuspend', label: 'Unsuspend Providers', description: 'Restore suspended provider accounts.' },
       { key: 'export', label: 'Export Providers', description: 'Export provider data.' },

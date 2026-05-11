@@ -2374,84 +2374,9 @@
         ]
       }
     },
-    "/api/v1/providers/{id}/approve": {
-      "patch": {
-        "operationId": "ProviderManagementController_approve",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApproveProviderDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Provider Management"
-        ]
-      }
-    },
-    "/api/v1/providers/{id}/reject": {
-      "patch": {
-        "operationId": "ProviderManagementController_reject",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectProviderDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Provider Management"
-        ]
-      }
-    },
     "/api/v1/providers/{id}/status": {
       "patch": {
+        "description": "SUPER_ADMIN or ADMIN with providers.updateStatus permission can use this unified provider lifecycle endpoint for approving, rejecting, activating, deactivating, suspending, and unsuspending providers. Uses action-based request body.",
         "operationId": "ProviderManagementController_updateStatus",
         "parameters": [
           {
@@ -2475,90 +2400,31 @@
         },
         "responses": {
           "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Provider Management"
-        ]
-      }
-    },
-    "/api/v1/providers/{id}/suspend": {
-      "post": {
-        "operationId": "ProviderManagementController_suspend",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProviderStatusDto"
+            "description": "Provider lifecycle status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_id",
+                      "approvalStatus": "APPROVED",
+                      "status": "ACTIVE",
+                      "isActive": true
+                    },
+                    "message": "Provider approved successfully."
+                  }
+                }
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
         "security": [
           {
             "bearer": []
           }
         ],
-        "tags": [
-          "Provider Management"
-        ]
-      }
-    },
-    "/api/v1/providers/{id}/unsuspend": {
-      "post": {
-        "operationId": "ProviderManagementController_unsuspend",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProviderStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
+        "summary": "Update provider lifecycle status",
         "tags": [
           "Provider Management"
         ]
@@ -13004,80 +12870,54 @@
           }
         }
       },
-      "ApproveProviderDto": {
+      "UpdateProviderStatusDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "UPDATE_STATUS",
+              "SUSPEND",
+              "UNSUSPEND"
+            ],
+            "example": "APPROVE"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "SUSPENDED"
+            ],
+            "example": "ACTIVE"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "INCOMPLETE_DOCUMENTS",
+              "INVALID_BUSINESS_DETAILS",
+              "POLICY_VIOLATION",
+              "DUPLICATE_PROVIDER",
+              "BUSINESS_NOT_ELIGIBLE",
+              "POLICY_REVIEW_COMPLETED",
+              "OTHER"
+            ],
+            "example": "INCOMPLETE_DOCUMENTS"
+          },
           "comment": {
             "type": "string",
             "example": "Documents verified successfully."
           },
           "notifyProvider": {
             "type": "boolean",
-            "example": true
-          }
-        }
-      },
-      "RejectProviderDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "INCOMPLETE_DOCUMENTS",
-              "INVALID_DOCUMENTS",
-              "BUSINESS_NOT_ELIGIBLE",
-              "DUPLICATE_APPLICATION",
-              "POLICY_VIOLATION",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string",
-            "example": "Business license document is missing."
-          },
-          "notifyProvider": {
-            "type": "boolean",
-            "example": true
+            "example": true,
+            "default": true
           }
         },
         "required": [
-          "reason"
-        ]
-      },
-      "UpdateProviderStatusDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "INACTIVE",
-              "SUSPENDED",
-              "DISABLED"
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "POLICY_VIOLATION",
-              "PAYMENT_ISSUE",
-              "FRAUD_SUSPECTED",
-              "USER_REQUEST",
-              "ABUSE_REPORT",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string",
-            "example": "Provider violated platform policy."
-          },
-          "notifyProvider": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "status"
+          "action"
         ]
       },
       "MessageProviderDto": {

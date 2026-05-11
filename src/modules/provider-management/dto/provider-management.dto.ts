@@ -8,6 +8,7 @@ import {
   IsEnum,
   IsInt,
   IsOptional,
+  ValidateIf,
   IsString,
   IsUrl,
   Max,
@@ -39,26 +40,30 @@ export enum ProviderStatusUpdate {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   SUSPENDED = 'SUSPENDED',
-  DISABLED = 'DISABLED',
 }
 
-export enum ProviderSuspensionReason {
-  POLICY_VIOLATION = 'POLICY_VIOLATION',
-  PAYMENT_ISSUE = 'PAYMENT_ISSUE',
-  FRAUD_SUSPECTED = 'FRAUD_SUSPECTED',
-  USER_REQUEST = 'USER_REQUEST',
-  ABUSE_REPORT = 'ABUSE_REPORT',
-  OTHER = 'OTHER',
+export enum ProviderLifecycleAction {
+  APPROVE = 'APPROVE',
+  REJECT = 'REJECT',
+  UPDATE_STATUS = 'UPDATE_STATUS',
+  SUSPEND = 'SUSPEND',
+  UNSUSPEND = 'UNSUSPEND',
 }
 
-export enum ProviderRejectionReason {
+export enum ProviderLifecycleReason {
   INCOMPLETE_DOCUMENTS = 'INCOMPLETE_DOCUMENTS',
-  INVALID_DOCUMENTS = 'INVALID_DOCUMENTS',
-  BUSINESS_NOT_ELIGIBLE = 'BUSINESS_NOT_ELIGIBLE',
-  DUPLICATE_APPLICATION = 'DUPLICATE_APPLICATION',
+  INVALID_BUSINESS_DETAILS = 'INVALID_BUSINESS_DETAILS',
   POLICY_VIOLATION = 'POLICY_VIOLATION',
+  DUPLICATE_PROVIDER = 'DUPLICATE_PROVIDER',
+  BUSINESS_NOT_ELIGIBLE = 'BUSINESS_NOT_ELIGIBLE',
+  POLICY_REVIEW_COMPLETED = 'POLICY_REVIEW_COMPLETED',
   OTHER = 'OTHER',
 }
+
+export const ProviderSuspensionReason = ProviderLifecycleReason;
+export type ProviderSuspensionReason = ProviderLifecycleReason;
+export const ProviderRejectionReason = ProviderLifecycleReason;
+export type ProviderRejectionReason = ProviderLifecycleReason;
 
 export enum ProviderItemStatus {
   ALL = 'ALL',
@@ -248,21 +253,26 @@ export class RejectProviderDto {
 }
 
 export class UpdateProviderStatusDto {
-  @ApiProperty({ enum: ProviderStatusUpdate })
+  @ApiProperty({ enum: ProviderLifecycleAction, example: ProviderLifecycleAction.APPROVE })
+  @IsEnum(ProviderLifecycleAction)
+  action!: ProviderLifecycleAction;
+
+  @ApiPropertyOptional({ enum: ProviderStatusUpdate, example: ProviderStatusUpdate.ACTIVE })
+  @ValidateIf((dto: UpdateProviderStatusDto) => dto.action === ProviderLifecycleAction.UPDATE_STATUS)
   @IsEnum(ProviderStatusUpdate)
-  status!: ProviderStatusUpdate;
+  status?: ProviderStatusUpdate;
 
-  @ApiPropertyOptional({ enum: ProviderSuspensionReason })
+  @ApiPropertyOptional({ enum: ProviderLifecycleReason, example: ProviderLifecycleReason.INCOMPLETE_DOCUMENTS })
   @IsOptional()
-  @IsEnum(ProviderSuspensionReason)
-  reason?: ProviderSuspensionReason;
+  @IsEnum(ProviderLifecycleReason)
+  reason?: ProviderLifecycleReason;
 
-  @ApiPropertyOptional({ example: 'Provider violated platform policy.' })
+  @ApiPropertyOptional({ example: 'Documents verified successfully.' })
   @IsOptional()
   @IsString()
   comment?: string;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()
   notifyProvider?: boolean;
