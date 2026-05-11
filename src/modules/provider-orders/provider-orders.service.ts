@@ -1,8 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
-import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersSummaryDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 
 type ProviderOrderView = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true } }>;
 type ProviderOrderDetail = ProviderOrderView;
@@ -21,6 +21,63 @@ export class ProviderOrdersService {
       this.prisma.providerOrder.count({ where }),
     ]);
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider orders fetched successfully.' };
+  }
+
+
+  async history(user: AuthUserContext, query: ProviderOrderHistoryDto) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 20, 100);
+    const where = this.historyWhere(user.uid, query);
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.providerOrder.findMany({ where, include: this.listInclude(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
+      this.prisma.providerOrder.count({ where }),
+    ]);
+    return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider order history fetched successfully.' };
+  }
+
+  async recent(user: AuthUserContext, query: ProviderRecentOrdersDto) {
+    const limit = Math.min(query.limit ?? 5, 50);
+    const items = await this.prisma.providerOrder.findMany({ where: { providerId: user.uid }, orderBy: { createdAt: 'desc' }, take: limit });
+    return { data: items.map((item) => ({ id: item.id, orderNumber: item.orderNumber ?? item.id, status: item.status, amount: Number(item.totalPayout ?? item.total), currency: item.currency, createdAt: item.createdAt })), message: 'Recent provider orders fetched successfully.' };
+  }
+
+  async performance(user: AuthUserContext, query: ProviderPerformanceDto) {
+    const range = this.performanceRange(query);
+    const previous = this.previousRange(range.from, range.to);
+    const [orders, previousOrders] = await Promise.all([
+      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: range.from, lte: range.to } } }),
+      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: previous.from, lte: previous.to } } }),
+    ]);
+    const completedOrders = orders.filter((item) => (new Set<ProviderOrderStatus>([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED])).has(item.status)).length;
+    const nonCancelled = orders.filter((item) => !(new Set<ProviderOrderStatus>([ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED, ProviderOrderStatus.REFUNDED])).has(item.status)).length;
+    const previousCompleted = previousOrders.filter((item) => (new Set<ProviderOrderStatus>([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED])).has(item.status)).length;
+    const previousNonCancelled = previousOrders.filter((item) => !(new Set<ProviderOrderStatus>([ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED, ProviderOrderStatus.REFUNDED])).has(item.status)).length;
+    const completionRate = nonCancelled === 0 ? 0 : this.money((completedOrders / nonCancelled) * 100);
+    const previousCompletionRate = previousNonCancelled === 0 ? 0 : this.money((previousCompleted / previousNonCancelled) * 100);
+    const weeklyRevenue = this.money(orders.reduce((sum, item) => sum + this.revenueValue(item), 0));
+    const previousRevenue = this.money(previousOrders.reduce((sum, item) => sum + this.revenueValue(item), 0));
+    return { data: { completionRate, completionRateTarget: 95, completionDelta: this.money(completionRate - previousCompletionRate), weeklyRevenue, weeklyRevenueDelta: this.deltaPercent(weeklyRevenue, previousRevenue), totalOrders: orders.length, completedOrders, pendingOrders: orders.filter((item) => item.status === ProviderOrderStatus.PENDING).length, cancelledOrders: orders.filter((item) => (new Set<ProviderOrderStatus>([ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED])).has(item.status)).length, currency: orders[0]?.currency ?? 'PKR' }, message: 'Provider order performance fetched successfully.' };
+  }
+
+  async revenueAnalytics(user: AuthUserContext, query: ProviderRevenueAnalyticsDto) {
+    const range = this.revenueRange(query);
+    const previous = this.previousRange(range.from, range.to);
+    const [orders, previousOrders] = await Promise.all([
+      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: range.from, lte: range.to }, status: { in: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] } } }),
+      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: previous.from, lte: previous.to }, status: { in: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] } } }),
+    ]);
+    const totalRevenue = this.money(orders.reduce((sum, item) => sum + this.revenueValue(item), 0));
+    const previousRevenue = this.money(previousOrders.reduce((sum, item) => sum + this.revenueValue(item), 0));
+    return { data: { totalRevenue, currency: orders[0]?.currency ?? 'PKR', deltaPercent: this.deltaPercent(totalRevenue, previousRevenue), points: this.revenuePoints(orders, query.range ?? ProviderRevenueRange.DAILY, range.from) }, message: 'Provider revenue analytics fetched successfully.' };
+  }
+
+  ratingsAnalytics() { return { data: { averageRating: 0, reviewCount: 0, distribution: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 } }, message: 'Provider ratings analytics fetched successfully.' }; }
+
+  async export(user: AuthUserContext, query: ProviderOrdersExportDto): Promise<StreamableFile> {
+    const where = this.exportWhere(user.uid, query);
+    const items = await this.prisma.providerOrder.findMany({ where, include: this.listInclude(), orderBy: { createdAt: 'desc' } });
+    const rows = [['Order Number', 'Customer', 'Status', 'Amount', 'Currency', 'Created At'], ...items.map((item) => [item.orderNumber ?? item.order.orderNumber, item.order.recipientName, item.status, String(Number(item.totalPayout ?? item.total)), item.currency, item.createdAt.toISOString()])];
+    return new StreamableFile(Buffer.from(rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n')), { type: 'text/csv', disposition: 'attachment; filename="provider-orders.csv"' });
   }
 
   async summary(user: AuthUserContext, query: ProviderOrdersSummaryDto) {
@@ -128,6 +185,19 @@ export class ProviderOrdersService {
   rejectReasons() {
     return { data: [{ key: ProviderOrderRejectReason.OUT_OF_STOCK, label: 'Out of Stock' }, { key: ProviderOrderRejectReason.BUSINESS_CLOSED, label: 'Business Closed' }, { key: ProviderOrderRejectReason.CANNOT_DELIVER_TO_AREA, label: 'Cannot deliver to area' }, { key: ProviderOrderRejectReason.PRICING_ERROR, label: 'Pricing Error' }, { key: ProviderOrderRejectReason.OTHER, label: 'Other' }], message: 'Reject reasons fetched successfully.' };
   }
+
+
+  private historyWhere(providerId: string, query: ProviderOrderHistoryDto): Prisma.ProviderOrderWhereInput { const where = this.where(providerId, { ...query, status: ProviderOrderStatusFilter.ALL }); const statuses = this.historyStatuses(query.status); if (statuses) where.status = { in: statuses }; return where; }
+  private exportWhere(providerId: string, query: ProviderOrdersExportDto): Prisma.ProviderOrderWhereInput { const where: Prisma.ProviderOrderWhereInput = { providerId, createdAt: query.fromDate || query.toDate ? { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } : undefined }; if (query.status && query.status !== 'ALL') where.status = query.status as ProviderOrderStatus; return where; }
+  private historyStatuses(status?: ProviderOrderHistoryStatus): ProviderOrderStatus[] | undefined { if (!status || status === ProviderOrderHistoryStatus.ALL) return undefined; if (status === ProviderOrderHistoryStatus.COMPLETED) return [ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED]; if (status === ProviderOrderHistoryStatus.PENDING || status === ProviderOrderHistoryStatus.DRAFT) return [ProviderOrderStatus.PENDING]; if (status === ProviderOrderHistoryStatus.CANCELLED) return [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED]; if (status === ProviderOrderHistoryStatus.REFUNDED) return [ProviderOrderStatus.REFUNDED]; if (status === ProviderOrderHistoryStatus.PROCESSING) return [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP]; if (status === ProviderOrderHistoryStatus.SHIPPED) return [ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY]; return undefined; }
+  private toHistoryItem(item: ProviderOrderView) { return { id: item.id, orderNumber: item.orderNumber ?? item.order.orderNumber, customerName: item.order.recipientName, amount: Number(item.totalPayout ?? item.total), currency: item.currency, status: item.status, createdAt: item.createdAt, badges: [], groupGift: null, fundingProgress: null }; }
+  private revenueValue(item: { totalPayout: Prisma.Decimal | null; total: Prisma.Decimal }): number { return Number(item.totalPayout ?? item.total); }
+  private deltaPercent(current: number, previous: number): number { if (previous === 0) return current === 0 ? 0 : 100; return this.money(((current - previous) / previous) * 100); }
+  private performanceRange(query: ProviderPerformanceDto): { from: Date; to: Date } { const now = new Date(); if (query.range === ProviderPerformanceRange.CUSTOM && query.fromDate && query.toDate) return { from: new Date(query.fromDate), to: new Date(query.toDate) }; if (query.range === ProviderPerformanceRange.TODAY) return { from: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())), to: now }; if (query.range === ProviderPerformanceRange.THIS_MONTH) return { from: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)), to: now }; const day = now.getUTCDay(); const diff = (day + 6) % 7; return { from: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - diff)), to: now }; }
+  private revenueRange(query: ProviderRevenueAnalyticsDto): { from: Date; to: Date } { const now = new Date(); if (query.fromDate && query.toDate) return { from: new Date(query.fromDate), to: new Date(query.toDate) }; if (query.range === ProviderRevenueRange.MONTHLY) return { from: new Date(Date.UTC(now.getUTCFullYear(), 0, 1)), to: now }; if (query.range === ProviderRevenueRange.WEEKLY) return { from: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 28)), to: now }; return { from: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6)), to: now }; }
+  private previousRange(from: Date, to: Date): { from: Date; to: Date } { const span = to.getTime() - from.getTime(); return { from: new Date(from.getTime() - span), to: new Date(from.getTime() - 1) }; }
+  private revenuePoints(items: { createdAt: Date; totalPayout: Prisma.Decimal | null; total: Prisma.Decimal }[], range: ProviderRevenueRange, from: Date) { const buckets = new Map<string, number>(); for (const item of items) { const label = this.pointLabel(item.createdAt, range); buckets.set(label, (buckets.get(label) ?? 0) + this.revenueValue(item)); } if (buckets.size === 0) buckets.set(this.pointLabel(from, range), 0); return [...buckets.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([label, value]) => ({ label, value: this.money(value) })); }
+  private pointLabel(date: Date, range: ProviderRevenueRange): string { if (range === ProviderRevenueRange.MONTHLY) return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`; if (range === ProviderRevenueRange.WEEKLY) return `W${Math.ceil(date.getUTCDate() / 7)}`; return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getUTCDay()]; }
 
   private where(providerId: string, query: ListProviderOrdersDto): Prisma.ProviderOrderWhereInput {
     const where: Prisma.ProviderOrderWhereInput = { providerId };

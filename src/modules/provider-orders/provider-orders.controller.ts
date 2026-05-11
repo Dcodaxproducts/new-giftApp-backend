@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../common/decorators/current-us
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderStatusFilter, ProviderOrdersSummaryDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { ProviderOrdersService } from './provider-orders.service';
 
 @ApiTags('Provider Orders')
@@ -21,6 +21,31 @@ export class ProviderOrdersController {
   @ApiQuery({ name: 'status', enum: ProviderOrderStatusFilter, required: false })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'provider_order_id', orderId: 'order_id', orderNumber: 'ORD-10293', status: 'PENDING', paymentStatus: 'SUCCEEDED', customer: { name: 'Sarah Jenkins', phone: '+15551234567' }, itemPreview: [{ name: 'Premium Sneakers', imageUrl: 'https://cdn.yourdomain.com/gifts/sneaker.png' }], itemCount: 3, totalPayout: 142, currency: 'PKR', createdAt: '2026-10-24T10:45:00.000Z', receivedAgoText: '5m ago' }], message: 'Provider orders fetched successfully.' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderOrdersDto) { return this.providerOrders.list(user, query); }
+
+
+  @Get('history')
+  @ApiOperation({ summary: 'List own provider order history', description: 'PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.' })
+  history(@CurrentUser() user: AuthUserContext, @Query() query: ProviderOrderHistoryDto) { return this.providerOrders.history(user, query); }
+
+  @Get('performance')
+  @ApiOperation({ summary: 'Fetch own provider order performance', description: 'PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.' })
+  performance(@CurrentUser() user: AuthUserContext, @Query() query: ProviderPerformanceDto) { return this.providerOrders.performance(user, query); }
+
+  @Get('analytics/revenue')
+  @ApiOperation({ summary: 'Fetch own provider revenue analytics', description: 'PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.' })
+  revenueAnalytics(@CurrentUser() user: AuthUserContext, @Query() query: ProviderRevenueAnalyticsDto) { return this.providerOrders.revenueAnalytics(user, query); }
+
+  @Get('analytics/ratings')
+  @ApiOperation({ summary: 'Fetch own provider ratings analytics', description: 'PROVIDER only. Returns stable zero values until reviews module is available.' })
+  ratingsAnalytics() { return this.providerOrders.ratingsAnalytics(); }
+
+  @Get('recent')
+  @ApiOperation({ summary: 'List recent own provider orders', description: 'PROVIDER only. Defaults to 5 latest orders.' })
+  recent(@CurrentUser() user: AuthUserContext, @Query() query: ProviderRecentOrdersDto) { return this.providerOrders.recent(user, query); }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Export own provider orders as CSV', description: 'PROVIDER only. Export is scoped to logged-in provider orders.' })
+  export(@CurrentUser() user: AuthUserContext, @Query() query: ProviderOrdersExportDto) { return this.providerOrders.export(user, query); }
 
   @Get('summary')
   @ApiOperation({ summary: 'Fetch own provider order summary', description: 'Route intentionally declared before :id. PROVIDER only.' })
