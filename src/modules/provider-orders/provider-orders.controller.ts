@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../common/decorators/current-us
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { ProviderOrdersService } from './provider-orders.service';
 
 @ApiTags('03 Provider - Orders')
@@ -59,6 +59,10 @@ export class ProviderOrdersController {
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update own provider order fulfillment status', description: 'PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.' })
   updateStatus(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderStatusDto) { return this.providerOrders.updateStatus(user, id, dto); }
+
+  @Post(':id/fulfill')
+  @ApiOperation({ summary: 'Fulfill own provider order with dispatch details', description: 'PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.' })
+  fulfill(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: FulfillProviderOrderDto) { return this.providerOrders.fulfill(user, id, dto); }
 
   @Get(':id/timeline')
   @ApiOperation({ summary: 'Fetch own provider order timeline', description: 'PROVIDER only. Timeline is scoped to the authenticated provider order.' })

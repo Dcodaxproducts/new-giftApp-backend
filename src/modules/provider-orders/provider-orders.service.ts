@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
-import { AcceptProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 
 type ProviderOrderView = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true } }>;
 type ProviderOrderDetail = ProviderOrderView;
@@ -151,6 +151,25 @@ export class ProviderOrdersService {
     return { data: { id: updated.id, orderNumber: updated.orderNumber ?? order.order.orderNumber, status: updated.status, trackingNumber: updated.trackingNumber, carrier: updated.carrier }, message: 'Order status updated successfully.' };
   }
 
+  async fulfill(user: AuthUserContext, id: string, dto: FulfillProviderOrderDto) {
+    const order = await this.getOwnedProviderOrder(user.uid, id);
+    this.assertCanFulfill(order);
+    const carrier = dto.carrier.trim();
+    const trackingNumber = dto.trackingNumber.trim();
+    if (!carrier) throw new BadRequestException('Carrier is required');
+    if (!trackingNumber) throw new BadRequestException('Tracking number is required');
+    const dispatchAt = new Date(dto.dispatchAt);
+    const estimatedDeliveryAt = dto.estimatedDeliveryAt ? new Date(dto.estimatedDeliveryAt) : null;
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const item = await tx.providerOrder.update({ where: { id: order.id }, data: { status: ProviderOrderStatus.SHIPPED, dispatchAt, fulfilledAt: new Date(), estimatedDeliveryAt, carrier, trackingNumber } });
+      await tx.providerOrderTimeline.create({ data: { providerOrderId: order.id, createdById: user.uid, status: ProviderOrderStatus.SHIPPED, title: 'Order fulfilled', description: dto.note?.trim() ?? `Order dispatched via ${carrier}.`, metadataJson: { carrier, trackingNumber, estimatedDeliveryAt: estimatedDeliveryAt?.toISOString() } } });
+      await this.syncParentOrder(tx, order.orderId);
+      if (dto.notifyCustomer ?? true) await tx.notification.create({ data: { recipientId: order.order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Your order is on the way', message: `Order #${order.orderNumber ?? order.order.orderNumber} has been dispatched. Tracking number: ${trackingNumber}.`, type: 'ORDER_SHIPPED', metadataJson: { orderId: order.orderId, providerOrderId: order.id, trackingNumber } } });
+      return item;
+    });
+    return { data: { id: updated.id, orderNumber: updated.orderNumber ?? order.order.orderNumber, status: updated.status, dispatchAt: updated.dispatchAt, estimatedDeliveryAt: updated.estimatedDeliveryAt, carrier: updated.carrier, trackingNumber: updated.trackingNumber }, message: 'Order fulfilled successfully.' };
+  }
+
   async timeline(user: AuthUserContext, id: string) {
     const order = await this.getOwnedProviderOrder(user.uid, id);
     const timeline = await this.prisma.providerOrderTimeline.findMany({ where: { providerOrderId: order.id }, orderBy: { createdAt: 'asc' } });
@@ -212,7 +231,16 @@ export class ProviderOrdersService {
   private listInclude() { return Prisma.validator<Prisma.ProviderOrderInclude>()({ order: true, items: true }); }
   private async getOwnedProviderOrder(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.prisma.providerOrder.findFirst({ where: { id, providerId }, include: this.listInclude() }); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private toListItem(item: ProviderOrderView) { return { id: item.id, orderId: item.orderId, orderNumber: item.orderNumber ?? item.order.orderNumber, status: item.status, paymentStatus: item.order.paymentStatus, customer: { name: item.order.recipientName, phone: item.order.recipientPhone }, itemPreview: item.items.slice(0, 2).map((orderItem) => ({ name: orderItem.nameSnapshot, imageUrl: orderItem.imageUrl })), itemCount: item.items.reduce((sum, orderItem) => sum + orderItem.quantity, 0), totalPayout: Number(item.totalPayout ?? item.total), currency: item.currency, createdAt: item.createdAt, receivedAgoText: this.timeAgo(item.createdAt) }; }
-  private toDetails(item: ProviderOrderDetail, address: { line1: string; city: string; state: string | null; postalCode: string | null; deliveryInstructions: string | null } | null) { return { id: item.id, orderNumber: item.orderNumber ?? item.order.orderNumber, status: item.status, paymentStatus: item.order.paymentStatus, receivedAt: item.createdAt, receivedAgoText: this.timeAgo(item.createdAt), customer: { name: item.order.recipientName, phone: item.order.recipientPhone }, deliveryAddress: address ? { line1: address.line1, city: address.city, state: address.state, postalCode: address.postalCode, gateCode: address.deliveryInstructions } : null, items: item.items.map((orderItem) => ({ id: orderItem.orderItemId, giftId: orderItem.giftId, variantId: orderItem.variantId, name: orderItem.nameSnapshot, variantName: orderItem.variantNameSnapshot, quantity: orderItem.quantity, unitPrice: Number(orderItem.unitPrice), total: Number(orderItem.total), imageUrl: orderItem.imageUrl })), summary: { subtotal: Number(item.subtotal), tax: Number(item.tax), deliveryFee: Number(item.deliveryFee), platformFee: Number(item.platformFee), totalPayout: Number(item.totalPayout ?? item.total), currency: item.currency }, giftMessage: item.order.giftMessage, scheduledDeliveryAt: item.order.scheduledDeliveryAt }; }
+  private toDetails(item: ProviderOrderDetail, address: { line1: string; city: string; state: string | null; postalCode: string | null; deliveryInstructions: string | null } | null) { return { id: item.id, orderNumber: item.orderNumber ?? item.order.orderNumber, status: item.status, paymentStatus: item.order.paymentStatus, receivedAt: item.createdAt, receivedAgoText: this.timeAgo(item.createdAt), customer: { name: item.order.recipientName, phone: item.order.recipientPhone }, deliveryAddress: address ? { line1: address.line1, city: address.city, state: address.state, postalCode: address.postalCode, gateCode: address.deliveryInstructions } : null, items: item.items.map((orderItem) => ({ id: orderItem.orderItemId, giftId: orderItem.giftId, variantId: orderItem.variantId, name: orderItem.nameSnapshot, variantName: orderItem.variantNameSnapshot, quantity: orderItem.quantity, unitPrice: Number(orderItem.unitPrice), total: Number(orderItem.total), imageUrl: orderItem.imageUrl })), summary: { subtotal: Number(item.subtotal), tax: Number(item.tax), deliveryFee: Number(item.deliveryFee), platformFee: Number(item.platformFee), totalPayout: Number(item.totalPayout ?? item.total), currency: item.currency }, fulfillment: { dispatchAt: item.dispatchAt, estimatedDeliveryAt: item.estimatedDeliveryAt, carrier: item.carrier, trackingNumber: item.trackingNumber }, giftMessage: item.order.giftMessage, scheduledDeliveryAt: item.order.scheduledDeliveryAt }; }
+
+  private assertCanFulfill(order: ProviderOrderDetail): void {
+    const eligible = new Set<ProviderOrderStatus>([ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP]);
+    if (!eligible.has(order.status)) throw new BadRequestException('Only accepted or prepared provider orders can be fulfilled');
+    if ((new Set<ProviderOrderStatus>([ProviderOrderStatus.REJECTED, ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REFUNDED])).has(order.status)) throw new BadRequestException('Cannot fulfill a closed provider order');
+    const isPaid = order.order.paymentStatus === PaymentStatus.SUCCEEDED;
+    const isCodPending = order.order.paymentMethod === PaymentMethod.COD && order.order.paymentStatus === PaymentStatus.PENDING;
+    if (!isPaid && !isCodPending) throw new BadRequestException('Cannot fulfill unpaid order');
+  }
 
   private assertTransition(current: ProviderOrderStatus, next: ProviderOrderStatus): void {
     const allowed: Record<ProviderOrderStatus, ProviderOrderStatus[]> = {
@@ -249,7 +277,7 @@ export class ProviderOrdersService {
   private toParentStatus(status: ProviderOrderStatus): OrderStatus {
     if (status === ProviderOrderStatus.ACCEPTED || status === ProviderOrderStatus.PROCESSING || status === ProviderOrderStatus.PACKED) return OrderStatus.PROCESSING;
     if (status === ProviderOrderStatus.READY_FOR_PICKUP) return OrderStatus.READY_FOR_PICKUP;
-    if (status === ProviderOrderStatus.SHIPPED) return OrderStatus.OUT_FOR_DELIVERY;
+    if (status === ProviderOrderStatus.SHIPPED) return OrderStatus.SHIPPED;
     if (status === ProviderOrderStatus.OUT_FOR_DELIVERY) return OrderStatus.OUT_FOR_DELIVERY;
     if (status === ProviderOrderStatus.DELIVERED) return OrderStatus.DELIVERED;
     if (status === ProviderOrderStatus.COMPLETED) return OrderStatus.COMPLETED;

@@ -1980,6 +1980,23 @@ Includes every API developed so far with allowed roles, request payloads, and re
 
 **Response payload:** Not documented
 
+### `POST` `/api/v1/provider/orders/{id}/fulfill`
+
+**Allowed roles:** PROVIDER
+
+**Summary:** Fulfill own provider order with dispatch details
+
+**Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.
+
+**Request payload (application/json):**
+```json
+{
+  "$ref": "#/components/schemas/FulfillProviderOrderDto"
+}
+```
+
+**Response payload:** Not documented
+
 ### `GET` `/api/v1/provider/orders/{id}/timeline`
 
 **Allowed roles:** PROVIDER

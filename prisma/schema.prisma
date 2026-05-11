@@ -210,6 +210,7 @@ enum OrderStatus {
   PROCESSING
   PARTIALLY_PROCESSING
   PARTIALLY_SHIPPED
+  SHIPPED
   PARTIALLY_COMPLETED
   NEEDS_REVIEW
   READY_FOR_PICKUP
@@ -932,6 +933,8 @@ model ProviderOrder {
   rejectedAt          DateTime?                  @map("rejected_at") @db.Timestamptz
   rejectionReason     ProviderOrderRejectReason? @map("rejection_reason")
   rejectionComment    String?                    @map("rejection_comment")
+  dispatchAt          DateTime?                  @map("dispatch_at") @db.Timestamptz
+  fulfilledAt         DateTime?                  @map("fulfilled_at") @db.Timestamptz
   trackingNumber      String?                    @map("tracking_number")
   carrier             String?
   estimatedDeliveryAt DateTime?                  @map("estimated_delivery_at") @db.Timestamptz

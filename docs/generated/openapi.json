@@ -4302,6 +4302,48 @@
         "x-access": "PROVIDER"
       }
     },
+    "/api/v1/provider/orders/{id}/fulfill": {
+      "post": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.",
+        "operationId": "ProviderOrdersController_fulfill",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FulfillProviderOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fulfill own provider order with dispatch details",
+        "tags": [
+          "03 Provider - Orders"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
     "/api/v1/provider/orders/{id}/timeline": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Timeline is scoped to the authenticated provider order.",
@@ -8189,6 +8231,7 @@
                 "PROCESSING",
                 "PARTIALLY_PROCESSING",
                 "PARTIALLY_SHIPPED",
+                "SHIPPED",
                 "PARTIALLY_COMPLETED",
                 "NEEDS_REVIEW",
                 "READY_FOR_PICKUP",
@@ -14563,6 +14606,41 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "FulfillProviderOrderDto": {
+        "type": "object",
+        "properties": {
+          "dispatchAt": {
+            "type": "string",
+            "example": "2026-04-23T14:45:00.000Z"
+          },
+          "estimatedDeliveryAt": {
+            "type": "string",
+            "example": "2026-04-28T10:00:00.000Z"
+          },
+          "carrier": {
+            "type": "string",
+            "example": "Express Delivery Co."
+          },
+          "trackingNumber": {
+            "type": "string",
+            "example": "TRK-8842-4567-9023"
+          },
+          "notifyCustomer": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "note": {
+            "type": "string",
+            "example": "Order dispatched successfully."
+          }
+        },
+        "required": [
+          "dispatchAt",
+          "carrier",
+          "trackingNumber"
         ]
       },
       "UpdateProviderOrderChecklistDto": {

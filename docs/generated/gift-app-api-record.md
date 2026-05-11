@@ -145,6 +145,7 @@
 - `GET` `/api/v1/provider/orders/summary` — **PROVIDER** — Fetch own provider order summary
 - `GET` `/api/v1/provider/orders/reject-reasons` — **PROVIDER** — List provider order reject reasons
 - `PATCH` `/api/v1/provider/orders/{id}/status` — **PROVIDER** — Update own provider order fulfillment status
+- `POST` `/api/v1/provider/orders/{id}/fulfill` — **PROVIDER** — Fulfill own provider order with dispatch details
 - `GET` `/api/v1/provider/orders/{id}/timeline` — **PROVIDER** — Fetch own provider order timeline
 - `GET` `/api/v1/provider/orders/{id}/checklist` — **PROVIDER** — Fetch own provider order checklist
 - `PATCH` `/api/v1/provider/orders/{id}/checklist` — **PROVIDER** — Update own provider order checklist

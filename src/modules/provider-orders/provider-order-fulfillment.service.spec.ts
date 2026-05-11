@@ -13,6 +13,7 @@ describe('Provider order fulfillment source safety', () => {
     expect(controller).toContain("@Get(':id/checklist')");
     expect(controller).toContain("@Patch(':id/checklist')");
     expect(controller).toContain("@Post(':id/message-buyer')");
+    expect(controller).toContain("@Post(':id/fulfill')");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
   });
 
@@ -20,6 +21,8 @@ describe('Provider order fulfillment source safety', () => {
     expect(schema).toContain('model ProviderOrderChecklist');
     expect(schema).toContain('model OrderMessage');
     expect(schema).toContain('trackingNumber');
+    expect(schema).toContain('dispatchAt');
+    expect(schema).toContain('fulfilledAt');
     expect(schema).toContain('estimatedDeliveryAt');
     expect(schema).toContain('metadataJson');
     expect(schema).toContain('createdById');
@@ -31,6 +34,28 @@ describe('Provider order fulfillment source safety', () => {
     expect(service).toContain('Cannot update a closed provider order');
     expect(service).toContain('Cannot mark unpaid order as fulfilled');
     expect(service).toContain('Invalid status transition');
+  });
+
+  it('dedicated fulfill action validates ownership/payment, stores dispatch fields, and ships', () => {
+    expect(dto).toContain('class FulfillProviderOrderDto');
+    expect(dto).toContain('dispatchAt!: string');
+    expect(dto).toContain('carrier!: string');
+    expect(dto).toContain('trackingNumber!: string');
+    expect(service).toContain('async fulfill(user: AuthUserContext, id: string');
+    expect(service).toContain('getOwnedProviderOrder(user.uid, id)');
+    expect(service).toContain('assertCanFulfill(order)');
+    expect(service).toContain('Cannot fulfill unpaid order');
+    expect(service).toContain('status: ProviderOrderStatus.SHIPPED');
+    expect(service).toContain('dispatchAt');
+    expect(service).toContain('fulfilledAt');
+  });
+
+  it('fulfill action creates timeline, notification, and parent order sync', () => {
+    expect(service).toContain("title: 'Order fulfilled'");
+    expect(service).toContain("type: 'ORDER_SHIPPED'");
+    expect(service).toContain('Tracking number');
+    expect(service).toContain('syncParentOrder(tx, order.orderId)');
+    expect(service).toContain('OrderStatus.SHIPPED');
   });
 
   it('status updates create timeline and notifications', () => {
