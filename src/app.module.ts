@@ -18,6 +18,7 @@ import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upl
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
+import { ProviderOrdersModule } from './modules/provider-orders/provider-orders.module';
 import { ReferralSettingsModule } from './modules/referral-settings/referral-settings.module';
 import { PromotionalOffersModule } from './modules/promotional-offers/promotional-offers.module';
 import { StorageModule } from './modules/storage/storage.module';
@@ -32,6 +33,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminRolesModule,
     ProviderManagementModule,
     ProviderInventoryModule,
+    ProviderOrdersModule,
     PromotionalOffersModule,
     UserManagementModule,
     CustomerContactsModule,

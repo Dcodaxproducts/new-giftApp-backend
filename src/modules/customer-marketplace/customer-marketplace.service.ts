@@ -8,6 +8,7 @@ import {
   GiftStatus,
   NotificationRecipientType,
   OrderStatus,
+  ProviderOrderStatus,
   PaymentMethod,
   PaymentStatus,
   Prisma,
@@ -260,7 +261,9 @@ export class CustomerMarketplaceService {
         const providerItems = cart.items.filter((item) => item.providerId === providerId);
         const providerSubtotal = providerItems.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0);
         const providerDiscount = providerItems.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0);
-        await tx.providerOrder.create({ data: { orderId: created.id, providerId, status: OrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency } });
+        const providerOrder = await tx.providerOrder.create({ data: { orderId: created.id, providerId, orderNumber: created.orderNumber, status: ProviderOrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), platformFee: new Prisma.Decimal(0), totalPayout: new Prisma.Decimal(providerSubtotal - providerDiscount), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency } });
+        const orderItems = await tx.orderItem.findMany({ where: { orderId: created.id, providerId }, include: { gift: { select: { name: true, imageUrls: true } }, variant: { select: { name: true } } } });
+        for (const orderItem of orderItems) await tx.providerOrderItem.create({ data: { providerOrderId: providerOrder.id, orderItemId: orderItem.id, giftId: orderItem.giftId, variantId: orderItem.variantId, nameSnapshot: orderItem.gift.name, variantNameSnapshot: orderItem.variant?.name, quantity: orderItem.quantity, unitPrice: orderItem.finalUnitPrice, total: orderItem.total, imageUrl: this.firstImage(orderItem.gift.imageUrls) } });
       }
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       await tx.cart.update({ where: { id: cart.id }, data: { status: CartStatus.CHECKED_OUT } });
