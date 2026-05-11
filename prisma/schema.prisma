@@ -296,6 +296,27 @@ enum RewardLedgerSource {
   PROMOTION
 }
 
+enum CustomerWalletLedgerType {
+  TOP_UP
+  GIFT_SENT
+  MONEY_GIFT_SENT
+  REWARD_CREDIT
+  REFUND
+  ADJUSTMENT
+}
+
+enum CustomerWalletLedgerDirection {
+  CREDIT
+  DEBIT
+}
+
+enum CustomerWalletLedgerStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
 enum ProviderFulfillmentMethod {
   PICKUP
   DELIVERY
@@ -374,6 +395,9 @@ model User {
   customerRecurringPayments           CustomerRecurringPayment[]
   customerRecurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   customerPaymentMethods              CustomerPaymentMethod[]
+  customerWallet                      CustomerWallet?
+  customerWalletLedger                CustomerWalletLedger[]
+  customerBankAccounts                CustomerBankAccount[]
   sentReferrals                       Referral[]                           @relation("ReferralReferrer")
   receivedReferrals                   Referral[]                           @relation("ReferralReferred")
   rewardLedger                        RewardLedger[]
@@ -432,6 +456,67 @@ model RewardLedger {
   @@index([userId, type, createdAt])
   @@index([source, sourceId])
   @@map("reward_ledgers")
+}
+
+model CustomerWallet {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  cashBalance Decimal  @default(0) @map("cash_balance") @db.Decimal(10, 2)
+  giftCredits Decimal  @default(0) @map("gift_credits") @db.Decimal(10, 2)
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user   User                   @relation(fields: [userId], references: [id])
+  ledger CustomerWalletLedger[]
+
+  @@map("customer_wallets")
+}
+
+model CustomerWalletLedger {
+  id             String                        @id @default(cuid())
+  userId         String                        @map("user_id")
+  walletId       String                        @map("wallet_id")
+  type           CustomerWalletLedgerType
+  direction      CustomerWalletLedgerDirection
+  amount         Decimal                       @db.Decimal(10, 2)
+  currency       String                        @default("USD")
+  status         CustomerWalletLedgerStatus    @default(PENDING)
+  paymentId      String?                       @map("payment_id")
+  orderId        String?                       @map("order_id")
+  moneyGiftId    String?                       @map("money_gift_id")
+  rewardLedgerId String?                       @map("reward_ledger_id")
+  transactionId  String                        @unique @map("transaction_id")
+  description    String
+  createdAt      DateTime                      @default(now()) @map("created_at") @db.Timestamptz
+
+  user   User           @relation(fields: [userId], references: [id])
+  wallet CustomerWallet @relation(fields: [walletId], references: [id])
+
+  @@index([userId, type, status, createdAt])
+  @@index([walletId, createdAt])
+  @@index([paymentId])
+  @@index([rewardLedgerId])
+  @@map("customer_wallet_ledgers")
+}
+
+model CustomerBankAccount {
+  id                String    @id @default(cuid())
+  userId            String    @map("user_id")
+  accountHolderName String    @map("account_holder_name")
+  bankName          String    @map("bank_name")
+  maskedAccount     String    @map("masked_account")
+  last4             String
+  isDefault         Boolean   @default(false) @map("is_default")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, deletedAt])
+  @@index([userId, isDefault])
+  @@map("customer_bank_accounts")
 }
 
 model ProviderBusinessCategory {

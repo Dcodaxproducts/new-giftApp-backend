@@ -4,6 +4,7 @@ import { NotificationRecipientType, Prisma, Referral, ReferralStatus, RewardLedg
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { CustomerWalletService } from '../customer-wallet/customer-wallet.service';
 import { ListReferralHistoryDto, ListRewardLedgerDto, RedeemRewardDto, ReferralHistoryStatus, RewardLedgerTypeFilter } from './dto/customer-referrals.dto';
 
 type ReferralWithReferred = Referral & { referred: Pick<User, 'firstName' | 'lastName' | 'avatarUrl'> };
@@ -13,6 +14,7 @@ export class CustomerReferralsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly customerWalletService: CustomerWalletService,
   ) {}
 
   async summary(user: AuthUserContext) {
@@ -72,6 +74,7 @@ export class CustomerReferralsService {
     const amount = this.money(dto.amount);
     if (amount > balance.availableCredit) throw new BadRequestException('Insufficient reward credit');
     const entry = await this.prisma.rewardLedger.create({ data: { userId: user.uid, type: RewardLedgerType.REDEEMED, amount: new Prisma.Decimal(amount), currency: balance.currency, source: RewardLedgerSource.REFERRAL, sourceId: `redeem:${user.uid}:${Date.now()}:${randomInt(1000, 9999)}`, description: `Reward redeemed to ${dto.redeemTo}.` } });
+    await this.customerWalletService.creditRewardRedemption(user.uid, entry);
     await this.notify(user.uid, 'Reward redeemed', `${amount} ${balance.currency} reward credit was redeemed.`, 'REWARD_REDEEMED', { ledgerId: entry.id, redeemTo: dto.redeemTo });
     return { data: { redeemedAmount: amount, currency: balance.currency, walletBalance: amount }, message: 'Reward redeemed successfully.' };
   }

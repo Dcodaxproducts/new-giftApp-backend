@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
@@ -35,7 +35,7 @@ export class CustomerPaymentsController {
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.details(user, id); }
 }
 
-@ApiTags('Payments')
+@ApiTags('Customer Payment Methods')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER)
@@ -45,8 +45,26 @@ export class CustomerPaymentMethodsController {
 
   @Get()
   @ApiOperation({ summary: 'List supported customer payment methods' })
-  @ApiResponse({ status: 200, description: 'Payment methods fetched successfully.', schema: { example: { success: true, data: [{ key: 'STRIPE_CARD', label: 'Card', provider: 'STRIPE', isOnline: true, isAvailable: true }, { key: 'COD', label: 'Cash on Delivery', provider: 'MANUAL', isOnline: false, isAvailable: true }], message: 'Payment methods fetched successfully.' } } })
+  @ApiResponse({ status: 200, description: 'Payment methods fetched successfully.', schema: { example: { success: true, data: [{ key: 'STRIPE_CARD', label: 'Credit/Debit Card', enabled: true }, { key: 'BANK_TRANSFER', label: 'Bank Payment', enabled: true }, { key: 'E_WALLET', label: 'E-Wallet', enabled: false }], message: 'Payment methods fetched successfully.' } } })
   list() { return this.payments.paymentMethods(); }
+
+  @Post('setup-intent')
+  @ApiOperation({ summary: 'Create Stripe SetupIntent for saving card', description: 'Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { setupIntentId: 'seti_xxx', clientSecret: 'seti_xxx_secret_xxx', publishableKey: 'pk_test_xxx' }, message: 'Setup intent created successfully.' } } })
+  setupIntent(@CurrentUser() user: AuthUserContext) { return this.payments.createSetupIntent(user); }
+
+  @Get('saved')
+  @ApiOperation({ summary: 'List own saved payment methods', description: 'Returns masked Stripe card metadata only.' })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'pm_xxx', type: 'CARD', brand: 'visa', last4: '4242', expiryMonth: 9, expiryYear: 2025, isDefault: true }], message: 'Saved payment methods fetched successfully.' } } })
+  saved(@CurrentUser() user: AuthUserContext) { return this.payments.savedPaymentMethods(user); }
+
+  @Patch(':id/default')
+  @ApiOperation({ summary: 'Set own default payment method' })
+  setDefault(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.setDefaultPaymentMethod(user, id); }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete own saved payment method', description: 'Rejects deletion when the method is used by an active recurring payment.' })
+  delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.deletePaymentMethod(user, id); }
 }
 
 @ApiTags('Payments')
