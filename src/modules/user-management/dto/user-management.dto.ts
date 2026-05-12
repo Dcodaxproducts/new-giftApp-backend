@@ -263,17 +263,3 @@ export class ExportRegisteredUsersDto {
   format?: ExportFormat;
 }
 
-export class PermanentlyDeleteRegisteredUserDto {
-  @ApiProperty({ example: 'PERMANENTLY_DELETE_USER' })
-  @IsString()
-  confirmation!: string;
-
-  @ApiProperty({ example: 'User requested full deletion.' })
-  @IsString()
-  reason!: string;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  deleteRelatedRecords?: boolean;
-}

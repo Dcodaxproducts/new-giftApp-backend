@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AccountType, LoginAttemptStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
@@ -13,7 +13,6 @@ import {
   RegisteredUserSortBy,
   RegisteredUserStatusFilter,
   RegisteredUserStatusUpdate,
-  PermanentlyDeleteRegisteredUserDto,
   ResetRegisteredUserPasswordDto,
   SortOrder,
   SuspendRegisteredUserDto,
@@ -200,11 +199,7 @@ export class UserManagementService {
   }
 
 
-  async permanentlyDelete(user: AuthUserContext, id: string, dto: PermanentlyDeleteRegisteredUserDto) {
-    if (dto.confirmation !== 'PERMANENTLY_DELETE_USER') {
-      throw new BadRequestException('Invalid permanent delete confirmation text');
-    }
-
+  async permanentlyDelete(user: AuthUserContext, id: string) {
     const target = await this.getRegisteredUser(id);
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.adminAuditLog.create({
@@ -214,7 +209,7 @@ export class UserManagementService {
           targetType: 'REGISTERED_USER',
           action: 'REGISTERED_USER_PERMANENTLY_DELETED',
           beforeJson: { id: target.id, email: target.email, role: target.role },
-          afterJson: { reason: dto.reason, deleteRelatedRecords: dto.deleteRelatedRecords ?? true },
+          afterJson: { reason: 'Permanent delete requested from user management.', deleteRelatedRecords: true },
         },
       });
 
@@ -256,7 +251,7 @@ export class UserManagementService {
     });
 
     return {
-      data: { deletedUserId: target.id, deletedRelatedRecords: dto.deleteRelatedRecords ?? true },
+      data: { deletedUserId: target.id, deletedRelatedRecords: true },
       message: 'User permanently deleted successfully.',
     };
   }

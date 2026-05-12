@@ -23,7 +23,6 @@ import {
   ExportRegisteredUsersDto,
   ListRegisteredUsersDto,
   ListUserActivityDto,
-  PermanentlyDeleteRegisteredUserDto,
   ResetRegisteredUserPasswordDto,
   SuspendRegisteredUserDto,
   UnsuspendRegisteredUserDto,
@@ -146,9 +145,8 @@ export class UserManagementController {
   permanentlyDelete(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,
-    @Body() dto: PermanentlyDeleteRegisteredUserDto,
   ): Promise<unknown> {
-    return this.userManagementService.permanentlyDelete(user, id, dto);
+    return this.userManagementService.permanentlyDelete(user, id);
   }
 
   @Get(':id/activity')

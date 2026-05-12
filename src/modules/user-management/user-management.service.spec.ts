@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -238,24 +238,17 @@ describe('UserManagementService', () => {
     expect(controller).toContain('DANGER:');
   });
 
-  it('DELETE /users/:id requires confirmation and removes related customer records', async () => {
+  it('DELETE /users/:id removes related customer records without a request body', async () => {
     const { service, prisma } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
     prisma.user.update.mockResolvedValue({ ...registeredUser, deletedAt: new Date() });
 
-    await expect(service.permanentlyDelete(
-      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
-      'user_1',
-      { confirmation: 'WRONG', reason: 'User requested full deletion.' },
-    )).rejects.toThrow(BadRequestException);
-
     await service.permanentlyDelete(
       { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
       'user_1',
-      { confirmation: 'PERMANENTLY_DELETE_USER', reason: 'User requested full deletion.', deleteRelatedRecords: true },
     );
 
-    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_PERMANENTLY_DELETED' }) }));
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_PERMANENTLY_DELETED', afterJson: expect.objectContaining({ deleteRelatedRecords: true }) }) }));
     expect(prisma.customerContact.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
     expect(prisma.customerWalletLedger.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'user_1' }, data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
