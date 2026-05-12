@@ -319,6 +319,23 @@ describe('ProviderManagementService', () => {
     expect(result.data).toEqual(expect.objectContaining({ status: 'SUSPENDED', isActive: false, suspensionReason: ProviderLifecycleReason.POLICY_VIOLATION }));
   });
 
+  it('does not fail provider suspension when lifecycle email is unavailable', async () => {
+    const { service, prisma, mailer } = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: true });
+    mailer.sendAccountStatusEmail.mockRejectedValue(new Error('smtp down'));
+
+    const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
+      action: ProviderLifecycleAction.SUSPEND,
+      reason: ProviderLifecycleReason.POLICY_VIOLATION,
+      comment: 'Provider violated platform policy.',
+      notifyProvider: true,
+    });
+
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false, suspendedBy: 'admin_1' }) }));
+    expect(prisma.notification.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'PROVIDER_SUSPENDED' }) }));
+    expect(mailer.sendAccountStatusEmail).toHaveBeenCalled();
+    expect(result).toEqual(expect.objectContaining({ message: 'Provider suspended successfully.' }));
+  });
+
   it('PATCH /providers/:id/status with action UNSUSPEND restores approved provider', async () => {
     const { service, prisma } = createService({
       providerApprovalStatus: ProviderApprovalStatus.APPROVED,

@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { AccountType, NotificationRecipientType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
@@ -56,6 +57,8 @@ interface ProviderActivityItem {
 
 @Injectable()
 export class ProviderManagementService {
+  private readonly logger = new Logger(ProviderManagementService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
@@ -940,17 +943,21 @@ export class ProviderManagementService {
       },
     });
 
-    if (status === 'PROVIDER_APPROVED') {
-      await this.mailerService.sendProviderApprovedEmail(provider.email, this.businessName(provider));
-      return;
-    }
+    try {
+      if (status === 'PROVIDER_APPROVED') {
+        await this.mailerService.sendProviderApprovedEmail(provider.email, this.businessName(provider));
+        return;
+      }
 
-    if (status === 'PROVIDER_REJECTED') {
-      await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), provider.providerRejectionReason ?? undefined, comment);
-      return;
-    }
+      if (status === 'PROVIDER_REJECTED') {
+        await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), provider.providerRejectionReason ?? undefined, comment);
+        return;
+      }
 
-    await this.mailerService.sendAccountStatusEmail(provider.email, this.providerNotificationTitle(status), comment);
+      await this.mailerService.sendAccountStatusEmail(provider.email, this.providerNotificationTitle(status), comment);
+    } catch (error) {
+      this.logger.warn(`Provider lifecycle email skipped for ${provider.id} (${status}): ${error instanceof Error ? error.message : 'unknown email error'}`);
+    }
   }
 
   private providerNotificationTitle(action: string): string {
