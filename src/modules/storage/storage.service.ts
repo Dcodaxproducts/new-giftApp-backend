@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -25,11 +25,11 @@ export class StorageService {
     const bucket = this.required('AWS_BUCKET_NAME');
     const publicBaseUrl = this.configService.get<string>('AWS_PUBLIC_BASE_URL');
     const expiresIn = Number(this.configService.get<string>('AWS_PRESIGNED_UPLOAD_EXPIRY_SECONDS', '300'));
-    const objectKey = `${this.scopedFolder(user, dto)}/${randomUUID()}-${dto.fileName}`;
+    const ownerId = await this.ownerIdForUpload(user, dto);
+    const objectKey = `${this.scopedFolder(dto, ownerId)}/${randomUUID()}-${dto.fileName}`;
     const command = new PutObjectCommand({ Bucket: bucket, Key: objectKey, ContentType: dto.contentType });
     const uploadUrl = await getSignedUrl(this.getClient(), command, { expiresIn });
     const fileUrl = publicBaseUrl ? `${publicBaseUrl.replace(/\/$/, '')}/${objectKey}` : `https://${bucket}.s3.${this.required('AWS_REGION')}.amazonaws.com/${objectKey}`;
-    const ownerId = this.ownerIdForUpload(user, dto);
     const file = await this.prisma.uploadedFile.create({ data: { ownerId, ownerRole: user.role, folder: dto.folder, fileName: dto.fileName, contentType: dto.contentType, sizeBytes: dto.sizeBytes, fileUrl, storageKey: objectKey, status: UploadedFileStatus.PENDING } });
     await this.auditLog.write({ actorId: user.uid, targetId: file.id, targetType: 'UPLOAD', action: 'PRESIGNED_UPLOAD_URL_GENERATED', afterJson: { folder: dto.folder, objectKey, contentType: dto.contentType }, ipAddress, userAgent: this.normalizeUserAgent(userAgent) });
     return { data: { id: file.id, uploadUrl, fileUrl, objectKey, expiresIn }, message: 'Presigned upload URL generated successfully' };
@@ -105,8 +105,14 @@ export class StorageService {
     if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Image exceeds maximum allowed size');
   }
 
-  private ownerIdForUpload(user: AuthUserContext, dto: CreatePresignedUploadDto): string { return user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? dto.targetAccountId ?? user.uid : user.uid; }
-  private scopedFolder(user: AuthUserContext, dto: CreatePresignedUploadDto): string { return `${dto.folder}/${this.ownerIdForUpload(user, dto)}`; }
+  private async ownerIdForUpload(user: AuthUserContext, dto: CreatePresignedUploadDto): Promise<string> {
+    const ownerId = user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? dto.targetAccountId ?? user.uid : user.uid;
+    const owner = await this.prisma.user.findUnique({ where: { id: ownerId }, select: { id: true, deletedAt: true } });
+    if (!owner || owner.deletedAt) throw new BadRequestException('Upload owner account does not exist');
+    return owner.id;
+  }
+
+  private scopedFolder(dto: CreatePresignedUploadDto, ownerId: string): string { return `${dto.folder}/${ownerId}`; }
   private hasAnyPermission(user: AuthUserContext, permissions: string[]): boolean { if (user.role === UserRole.SUPER_ADMIN) return true; if (!user.permissions || typeof user.permissions !== 'object' || Array.isArray(user.permissions)) return false; const granted = new Set<string>(); for (const [module, values] of Object.entries(user.permissions)) if (Array.isArray(values)) for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`); return permissions.some((permission) => granted.has(permission)); }
   private getClient(): S3Client { if (this.client) return this.client; this.client = new S3Client({ region: this.required('AWS_REGION'), credentials: { accessKeyId: this.required('AWS_ACCESS_KEY_ID'), secretAccessKey: this.required('AWS_SECRET_ACCESS_KEY') } }); return this.client; }
   private async deleteObject(storageKey: string): Promise<void> { await this.getClient().send(new DeleteObjectCommand({ Bucket: this.required('AWS_BUCKET_NAME'), Key: storageKey })); }

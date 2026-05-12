@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
 import { AdminManagementModule } from './modules/admin-management/admin-management.module';
 import { AdminRolesModule } from './modules/admin-roles/admin-roles.module';
@@ -57,5 +59,6 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AuditLogsModule,
     StorageModule,
   ],
+  providers: [MediaUrlSignerService, ResponseInterceptor],
 })
 export class AppModule {}

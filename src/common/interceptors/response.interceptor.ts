@@ -5,7 +5,8 @@ import {
   NestInterceptor,
   StreamableFile,
 } from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+import { Observable, mergeMap } from 'rxjs';
+import { MediaUrlSignerService } from '../services/media-url-signer.service';
 
 export interface ApiResult<T> {
   data: T;
@@ -24,19 +25,26 @@ type ApiEnvelope<T> = {
 export class ResponseInterceptor<T>
   implements NestInterceptor<ApiResult<T> | StreamableFile, ApiEnvelope<T> | StreamableFile>
 {
+  constructor(private readonly mediaUrlSigner: MediaUrlSignerService) {}
+
   intercept(
-    _context: ExecutionContext,
+    context: ExecutionContext,
     next: CallHandler<ApiResult<T> | StreamableFile>,
   ): Observable<ApiEnvelope<T> | StreamableFile> {
+    const request = context.switchToHttp().getRequest<{ method?: string }>();
+    const shouldSignMediaUrls = request.method === 'GET';
+
     return next.handle().pipe(
-      map((result) => {
+      mergeMap(async (result) => {
         if (result instanceof StreamableFile) {
           return result;
         }
 
+        const data = shouldSignMediaUrls ? await this.mediaUrlSigner.signResponseImages(result.data) : result.data;
+
         return {
-          success: true,
-          data: result.data,
+          success: true as const,
+          data,
           message: result.message ?? 'OK',
           ...(result.meta ? { meta: result.meta } : {}),
         };

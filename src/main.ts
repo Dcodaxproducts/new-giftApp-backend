@@ -76,7 +76,7 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(app.get(ResponseInterceptor));
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const swaggerConfig = applySwaggerTags(
