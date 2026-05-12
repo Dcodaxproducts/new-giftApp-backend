@@ -37,7 +37,8 @@ describe('Media upload policy source safety', () => {
 
   it('applies global policy before presigned URLs are generated', () => {
     expect(storage).toContain('mediaUploadPolicy.assertUploadAllowed(dto)');
-    expect(storage).toContain('assertUploadScope(user, dto)');
+    expect(storage).toContain('resolveUploadOwnership(user, dto)');
+    expect(storage).toContain('this.assertUploadScope(user, dto, targetAccountId)');
     expect(storageDto).toContain('image\\/(png|jpeg|jpg|gif|webp|svg\\+xml)');
     expect(storageDto).toContain('audio\\/(mpeg|wav|x-wav)');
   });

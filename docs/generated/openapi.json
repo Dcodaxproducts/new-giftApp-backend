@@ -6252,16 +6252,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PermanentlyDeleteRegisteredUserDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "User permanently deleted successfully",
@@ -13513,6 +13503,7 @@
     },
     "/api/v1/uploads/presigned-url": {
       "post": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is optional and allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Normal users/providers should not send targetAccountId. Include giftId only for gift image uploads.",
         "operationId": "StorageController_createPresignedUpload",
         "parameters": [],
         "requestBody": {
@@ -13521,6 +13512,37 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreatePresignedUploadDto"
+              },
+              "examples": {
+                "giftUpload": {
+                  "summary": "Normal gift image upload",
+                  "value": {
+                    "folder": "gift-images",
+                    "fileName": "perfume.png",
+                    "contentType": "image/png",
+                    "sizeBytes": 1048576,
+                    "giftId": "gift_id"
+                  }
+                },
+                "normalUpload": {
+                  "summary": "Normal profile/media upload",
+                  "value": {
+                    "folder": "provider-avatars",
+                    "fileName": "avatar.png",
+                    "contentType": "image/png",
+                    "sizeBytes": 1048576
+                  }
+                },
+                "adminOnBehalf": {
+                  "summary": "Admin-only dashboard upload on behalf of provider",
+                  "value": {
+                    "folder": "provider-logos",
+                    "fileName": "logo.png",
+                    "contentType": "image/png",
+                    "sizeBytes": 1048576,
+                    "targetAccountId": "provider_user_id"
+                  }
+                }
               }
             }
           }
@@ -13535,13 +13557,12 @@
             "bearer": []
           }
         ],
+        "summary": "Create presigned upload URL",
         "tags": [
           "07 Storage"
         ],
-        "summary": "POST /api/v1/uploads/presigned-url",
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/uploads/complete": {
@@ -13606,6 +13627,7 @@
               "enum": [
                 "admin-avatars",
                 "user-avatars",
+                "provider-avatars",
                 "provider-logos",
                 "provider-documents",
                 "provider-item-images",
@@ -13613,7 +13635,9 @@
                 "gift-category-images",
                 "customer-contact-avatars",
                 "broadcast-images",
-                "gift-message-media"
+                "gift-message-media",
+                "chat-attachments",
+                "provider-support-attachments"
               ]
             }
           },
@@ -15337,28 +15361,6 @@
         },
         "required": [
           "newPassword"
-        ]
-      },
-      "PermanentlyDeleteRegisteredUserDto": {
-        "type": "object",
-        "properties": {
-          "confirmation": {
-            "type": "string",
-            "example": "PERMANENTLY_DELETE_USER"
-          },
-          "reason": {
-            "type": "string",
-            "example": "User requested full deletion."
-          },
-          "deleteRelatedRecords": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          }
-        },
-        "required": [
-          "confirmation",
-          "reason"
         ]
       },
       "CreateCustomerContactDto": {
@@ -17259,6 +17261,7 @@
             "enum": [
               "admin-avatars",
               "user-avatars",
+              "provider-avatars",
               "provider-logos",
               "provider-documents",
               "provider-item-images",
@@ -17266,12 +17269,16 @@
               "gift-category-images",
               "customer-contact-avatars",
               "broadcast-images",
-              "gift-message-media"
-            ]
+              "gift-message-media",
+              "chat-attachments",
+              "provider-support-attachments"
+            ],
+            "example": "gift-images",
+            "description": "Upload folder. Normal users/providers should send only folder, fileName, contentType, and sizeBytes. Add giftId only for gift image uploads."
           },
           "fileName": {
             "type": "string",
-            "example": "avatar.png"
+            "example": "perfume.png"
           },
           "contentType": {
             "type": "string",
@@ -17283,11 +17290,13 @@
           },
           "targetAccountId": {
             "type": "string",
-            "example": "target_account_id"
+            "example": "provider_user_id",
+            "description": "Admin-only. Allowed only for SUPER_ADMIN or authorized ADMIN dashboard uploads. Normal users/providers must not send this; backend derives ownerId from JWT."
           },
           "giftId": {
             "type": "string",
-            "example": "gift_id"
+            "example": "gift_id",
+            "description": "Optional and only allowed for gift-images uploads."
           }
         },
         "required": [

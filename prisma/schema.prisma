@@ -1493,23 +1493,28 @@ model PlanFeatureCatalog {
 }
 
 model UploadedFile {
-  id          String             @id @default(cuid())
-  ownerId     String             @map("owner_id")
-  ownerRole   UserRole           @map("owner_role")
-  folder      String
-  fileName    String             @map("file_name")
-  contentType String             @map("content_type")
-  sizeBytes   Int?               @map("size_bytes")
-  fileUrl     String             @map("file_url")
-  storageKey  String             @unique @map("storage_key")
-  status      UploadedFileStatus @default(PENDING)
-  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt   DateTime?          @map("deleted_at") @db.Timestamptz
+  id              String             @id @default(cuid())
+  ownerId         String             @map("owner_id")
+  ownerRole       UserRole           @map("owner_role")
+  targetAccountId String?            @map("target_account_id")
+  folder          String
+  fileName        String             @map("file_name")
+  contentType     String             @map("content_type")
+  sizeBytes       Int?               @map("size_bytes")
+  fileUrl         String             @map("file_url")
+  storageKey      String             @unique @map("storage_key")
+  status          UploadedFileStatus @default(PENDING)
+  giftId          String?            @map("gift_id")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  completedAt     DateTime?          @map("completed_at") @db.Timestamptz
+  deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz
 
   owner User @relation(fields: [ownerId], references: [id])
 
   @@index([ownerId, status])
+  @@index([targetAccountId])
+  @@index([giftId])
   @@index([folder, createdAt])
   @@index([deletedAt])
   @@map("uploaded_files")
