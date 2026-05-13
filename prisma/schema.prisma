@@ -429,6 +429,36 @@ enum ReviewModerationAction {
   AUTO_FLAGGED
 }
 
+enum ChatSenderType {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum ChatMessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  FILE
+}
+
+enum ProviderReportReason {
+  FRAUDULENT_ACTIVITY
+  INAPPROPRIATE_CONTENT
+  FAKE_REVIEWS
+  POOR_SERVICE_QUALITY
+  NOT_RESPONSIVE
+  OTHER
+}
+
+enum ProviderReportStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -529,6 +559,12 @@ model User {
   reviewResponses                     ReviewResponse[]                     @relation("ReviewResponseProvider")
   reviewModerationLogs                ReviewModerationLog[]                @relation("ReviewModerationActor")
   updatedReviewPolicies               ReviewPolicy[]                       @relation("ReviewPolicyUpdater")
+  customerChatThreads                 ChatThread[]                         @relation("CustomerChatThread")
+  providerChatThreads                 ChatThread[]                         @relation("ProviderChatThread")
+  sentChatMessages                    ChatMessage[]                        @relation("ChatMessageSender")
+  submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
+  receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
+  reviewedProviderReports             ProviderReport[]                     @relation("ProviderReportReviewer")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -935,6 +971,8 @@ model Order {
   messages            OrderMessage[]
   payment             Payment?
   reviews             Review[]
+  chatThreads         ChatThread[]
+  providerReports     ProviderReport[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1001,6 +1039,7 @@ model ProviderOrder {
   messages            OrderMessage[]
   refundRequests      RefundRequest[]
   reviews             Review[]
+  chatThread          ChatThread?
 
   @@index([orderId])
   @@index([providerId, status])
@@ -1573,6 +1612,76 @@ model ReviewPolicy {
 
   @@index([updatedById])
   @@map("review_policies")
+}
+
+model ChatThread {
+  id              String   @id @default(cuid())
+  orderId         String   @map("order_id")
+  providerOrderId String   @unique @map("provider_order_id")
+  providerId      String   @map("provider_id")
+  customerId      String   @map("customer_id")
+  lastMessageId   String?  @unique @map("last_message_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  order         Order         @relation(fields: [orderId], references: [id])
+  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
+  provider      User          @relation("ProviderChatThread", fields: [providerId], references: [id])
+  customer      User          @relation("CustomerChatThread", fields: [customerId], references: [id])
+  lastMessage   ChatMessage?  @relation("ThreadLastMessage", fields: [lastMessageId], references: [id])
+  messages      ChatMessage[] @relation("ThreadMessages")
+
+  @@index([customerId, updatedAt])
+  @@index([providerId, updatedAt])
+  @@index([orderId])
+  @@map("chat_threads")
+}
+
+model ChatMessage {
+  id               String          @id @default(cuid())
+  threadId         String          @map("thread_id")
+  senderId         String          @map("sender_id")
+  senderType       ChatSenderType  @map("sender_type")
+  messageType      ChatMessageType @default(TEXT) @map("message_type")
+  body             String?
+  attachmentUrlsJson Json          @default("[]") @map("attachment_urls_json")
+  isReadByCustomer Boolean         @default(false) @map("is_read_by_customer")
+  isReadByProvider Boolean         @default(false) @map("is_read_by_provider")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  thread         ChatThread  @relation("ThreadMessages", fields: [threadId], references: [id])
+  sender         User        @relation("ChatMessageSender", fields: [senderId], references: [id])
+  lastForThread  ChatThread? @relation("ThreadLastMessage")
+
+  @@index([threadId, createdAt])
+  @@index([senderId, createdAt])
+  @@map("chat_messages")
+}
+
+model ProviderReport {
+  id               String               @id @default(cuid())
+  reporterUserId   String               @map("reporter_user_id")
+  providerId       String               @map("provider_id")
+  orderId          String?              @map("order_id")
+  reason           ProviderReportReason
+  details          String
+  evidenceUrlsJson Json                 @default("[]") @map("evidence_urls_json")
+  status           ProviderReportStatus @default(SUBMITTED)
+  adminNotes       String?              @map("admin_notes")
+  reviewedById     String?              @map("reviewed_by_id")
+  reviewedAt       DateTime?            @map("reviewed_at") @db.Timestamptz
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  reporter User   @relation("ProviderReportReporter", fields: [reporterUserId], references: [id])
+  provider User   @relation("ProviderReportProvider", fields: [providerId], references: [id])
+  order    Order? @relation(fields: [orderId], references: [id])
+  reviewer User?  @relation("ProviderReportReviewer", fields: [reviewedById], references: [id])
+
+  @@index([reporterUserId, createdAt])
+  @@index([providerId, status])
+  @@index([orderId])
+  @@map("provider_reports")
 }
 
 model AuthSession {

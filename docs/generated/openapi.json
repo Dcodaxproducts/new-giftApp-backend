@@ -2077,6 +2077,865 @@
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard."
       }
     },
+    "/api/v1/admin/reviews/dashboard": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.",
+        "operationId": "AdminReviewsController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "health": {
+                        "averageRating": 4.62,
+                        "averageRatingDelta": 0,
+                        "totalReviews": 12847,
+                        "newReviewsThisWeek": 842,
+                        "flaggedQueueCount": 34,
+                        "criticalFlaggedCount": 12,
+                        "autoModeratedCount": 1203,
+                        "autoModerationAccuracy": 82
+                      },
+                      "systemWarning": {
+                        "enabled": true,
+                        "title": "System Warning",
+                        "message": "Auto-moderation confidence dropped to 82%. Review recommended.",
+                        "severity": "WARNING"
+                      }
+                    },
+                    "message": "Review dashboard fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch platform review dashboard",
+        "tags": [
+          "02 Admin - Reviews Management"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/reviews/stats": {
+      "get": {
+        "operationId": "AdminReviewsController_stats",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_7_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management"
+        ],
+        "summary": "GET /api/v1/admin/reviews/stats",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews/export": {
+      "get": {
+        "operationId": "AdminReviewsController_export",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CSV",
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PUBLISHED",
+                "PENDING",
+                "FLAGGED",
+                "HIDDEN",
+                "REMOVED",
+                "PENALIZED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW"
+              ]
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management"
+        ],
+        "summary": "GET /api/v1/admin/reviews/export",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews/flagged-summary": {
+      "get": {
+        "operationId": "AdminReviewsController_flaggedSummary",
+        "parameters": [
+          {
+            "name": "window",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_24H",
+              "type": "string",
+              "enum": [
+                "LAST_24H",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management",
+          "02 Admin - Review Moderation"
+        ],
+        "summary": "GET /api/v1/admin/reviews/flagged-summary",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews/moderation-queue": {
+      "get": {
+        "operationId": "AdminReviewsController_moderationQueue",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CRITICAL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "FLAGGED",
+              "type": "string",
+              "enum": [
+                "FLAGGED",
+                "PENDING"
+              ]
+            }
+          },
+          {
+            "name": "reason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "SPAM",
+              "type": "string",
+              "enum": [
+                "SPAM",
+                "ABUSE",
+                "FAKE_REVIEW",
+                "POLICY_VIOLATION",
+                "FALSE_POSITIVE",
+                "OFF_TOPIC",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "severity"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management",
+          "02 Admin - Review Moderation"
+        ],
+        "summary": "GET /api/v1/admin/reviews/moderation-queue",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews/moderation-logs": {
+      "get": {
+        "operationId": "AdminReviewsController_moderationLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "reviewId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "APPROVE",
+                "HIDE",
+                "REMOVE",
+                "PENALIZE",
+                "RESTORE",
+                "MARK_SPAM",
+                "MARK_FAKE",
+                "AUTO_HIDDEN",
+                "AUTO_APPROVED",
+                "AUTO_FLAGGED"
+              ]
+            }
+          },
+          {
+            "name": "actorId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management",
+          "02 Admin - Review Moderation"
+        ],
+        "summary": "GET /api/v1/admin/reviews/moderation-logs",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews": {
+      "get": {
+        "operationId": "AdminReviewsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "spam",
+              "type": "string"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "FLAGGED",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PUBLISHED",
+                "PENDING",
+                "FLAGGED",
+                "HIDDEN",
+                "REMOVED",
+                "PENALIZED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CRITICAL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW"
+              ]
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasProviderResponse",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "rating",
+                "severity"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management"
+        ],
+        "summary": "GET /api/v1/admin/reviews",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews/{id}": {
+      "get": {
+        "operationId": "AdminReviewsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - Reviews Management"
+        ],
+        "summary": "GET /api/v1/admin/reviews/{id}",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/reviews/{id}/moderate": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.moderate/specific moderation permissions. Creates ReviewModerationLog and admin audit log. Does not physically delete reviews.",
+        "operationId": "AdminReviewsController_moderate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewDto"
+              },
+              "examples": {
+                "approve": {
+                  "value": {
+                    "action": "APPROVE",
+                    "reason": "FALSE_POSITIVE",
+                    "comment": "Review checked manually and approved.",
+                    "notifyProvider": true,
+                    "notifyCustomer": false
+                  }
+                },
+                "remove": {
+                  "value": {
+                    "action": "REMOVE",
+                    "reason": "POLICY_VIOLATION",
+                    "comment": "Violates review policy.",
+                    "notifyProvider": true,
+                    "notifyCustomer": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Moderate a review",
+        "tags": [
+          "02 Admin - Reviews Management",
+          "02 Admin - Review Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/review-policies": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviewPolicies.read. AI moderation fields are config-only until external AI is configured.",
+        "operationId": "ReviewPoliciesController_policies",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "autoApprovalRules": {
+                        "enabled": true,
+                        "minRating": 4,
+                        "minConfidence": 90
+                      },
+                      "spamDetection": {
+                        "enabled": true,
+                        "autoHideConfidenceThreshold": 85
+                      },
+                      "abuseThresholds": {
+                        "enabled": true,
+                        "warningThreshold": 3,
+                        "autoRemoveThreshold": 5,
+                        "status": "WARNING"
+                      },
+                      "visibilityRules": {
+                        "enabled": true,
+                        "hideUntilModerated": true
+                      },
+                      "autoModeration": {
+                        "enabled": true,
+                        "confidenceWarningThreshold": 85,
+                        "currentConfidence": 82
+                      }
+                    },
+                    "message": "Review policies fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch review moderation policies",
+        "tags": [
+          "02 Admin - Review Policies"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "patch": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or delegated ADMIN with reviewPolicies.update. Creates an audit log and never exposes AI provider secrets.",
+        "operationId": "ReviewPoliciesController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReviewPoliciesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update review moderation policies",
+        "tags": [
+          "02 Admin - Review Policies"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/review-policies/test": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. Deterministic rule-based placeholder. No external AI call is made unless future configuration enables it.",
+        "operationId": "ReviewPoliciesController_test",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestReviewPolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Test review policy result",
+        "tags": [
+          "02 Admin - Review Policies"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/admin-roles": {
       "get": {
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.",
@@ -8523,6 +9382,705 @@
         "x-access": "REGISTERED_USER"
       }
     },
+    "/api/v1/customer/chats": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses shared ChatThread/ChatMessage records with provider buyer chat. Customer sees only own order threads.",
+        "operationId": "CustomerProviderInteractionsController_chats",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Global Logistics",
+              "type": "string"
+            }
+          },
+          {
+            "name": "unreadOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List customer provider chats",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/chats/quick-replies": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Declared before /customer/chats/:threadId.",
+        "operationId": "CustomerProviderInteractionsController_quickReplies",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider chat quick replies",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/chats/{threadId}": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Thread must belong to the current customer.",
+        "operationId": "CustomerProviderInteractionsController_chatDetails",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-24T10:33:00.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch customer chat messages",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/chats/{threadId}/messages": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customer can send only in own order thread. Creates provider notification and updates read receipts.",
+        "operationId": "CustomerProviderInteractionsController_sendMessage",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendChatMessageDto"
+              },
+              "examples": {
+                "text": {
+                  "value": {
+                    "messageType": "TEXT",
+                    "body": "Can you confirm delivery time?",
+                    "attachmentUrls": []
+                  }
+                },
+                "image": {
+                  "value": {
+                    "messageType": "IMAGE",
+                    "attachmentUrls": [
+                      "https://cdn.yourdomain.com/chat-attachments/package.png"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send message to provider",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/chats/{threadId}/read": {
+      "patch": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Marks provider messages as read for the customer in the owned thread.",
+        "operationId": "CustomerProviderInteractionsController_markRead",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark provider messages read",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/orders/{id}/chat": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Order must belong to the logged-in customer and have an attached provider order.",
+        "operationId": "CustomerProviderInteractionsController_getOrderChat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "createIfMissing",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get or optionally create order chat",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      },
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Reuses existing ChatThread if already created for the provider order.",
+        "operationId": "CustomerProviderInteractionsController_createOrderChat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create order chat",
+        "tags": [
+          "05 Customer - Provider Chat"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/orders/{id}/reviews": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses shared Review records consumed by provider reviews and admin review management.",
+        "operationId": "CustomerProviderInteractionsController_submitReview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "review_id",
+                      "rating": 5,
+                      "comment": "Great service and fast delivery.",
+                      "status": "PUBLISHED",
+                      "providerId": "provider_id",
+                      "orderId": "order_id",
+                      "createdAt": "2026-05-11T10:00:00.000Z"
+                    },
+                    "message": "Review submitted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit provider review for an order",
+        "tags": [
+          "05 Customer - Reviews"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/reviews": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customer sees only their own non-deleted reviews.",
+        "operationId": "CustomerProviderInteractionsController_reviews",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "PUBLISHED",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PUBLISHED",
+                "PENDING",
+                "FLAGGED",
+                "HIDDEN",
+                "REMOVED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own provider reviews",
+        "tags": [
+          "05 Customer - Reviews"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/reviews/{id}": {
+      "get": {
+        "operationId": "CustomerProviderInteractionsController_reviewDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "05 Customer - Reviews"
+        ],
+        "summary": "GET /api/v1/customer/reviews/{id}",
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      },
+      "patch": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Cannot update deleted/removed reviews; updated content is re-run through deterministic moderation.",
+        "operationId": "CustomerProviderInteractionsController_updateReview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own review",
+        "tags": [
+          "05 Customer - Reviews"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      },
+      "delete": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Does not physically delete provider response.",
+        "operationId": "CustomerProviderInteractionsController_deleteReview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft-delete own review",
+        "tags": [
+          "05 Customer - Reviews"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/provider-report-reasons": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Declared before /customer/provider-reports/:id.",
+        "operationId": "CustomerProviderInteractionsController_providerReportReasons",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider report reasons",
+        "tags": [
+          "05 Customer - Provider Reports"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/providers/{providerId}/reports": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customer must have an order, chat, or review relationship with provider. Duplicate active provider/order/reason reports are blocked.",
+        "operationId": "CustomerProviderInteractionsController_reportProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProviderReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Report provider",
+        "tags": [
+          "05 Customer - Provider Reports"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/provider-reports": {
+      "get": {
+        "operationId": "CustomerProviderInteractionsController_providerReports",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "SUBMITTED",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "RESOLVED",
+                "REJECTED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "05 Customer - Provider Reports"
+        ],
+        "summary": "GET /api/v1/customer/provider-reports",
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/provider-reports/{id}": {
+      "get": {
+        "operationId": "CustomerProviderInteractionsController_providerReportDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "05 Customer - Provider Reports"
+        ],
+        "summary": "GET /api/v1/customer/provider-reports/{id}",
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
     "/api/v1/customer/recurring-payments": {
       "get": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.",
@@ -13637,6 +15195,7 @@
                 "broadcast-images",
                 "gift-message-media",
                 "chat-attachments",
+                "provider-report-evidence",
                 "provider-support-attachments"
               ]
             }
@@ -13816,6 +15375,15 @@
     },
     {
       "name": "05 Customer - Orders"
+    },
+    {
+      "name": "05 Customer - Provider Chat"
+    },
+    {
+      "name": "05 Customer - Reviews"
+    },
+    {
+      "name": "05 Customer - Provider Reports"
     },
     {
       "name": "05 Customer - Recurring Payments"
@@ -14303,6 +15871,192 @@
             "default": true
           }
         }
+      },
+      "ModerateReviewDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "HIDE",
+              "REMOVE",
+              "PENALIZE",
+              "RESTORE",
+              "MARK_SPAM",
+              "MARK_FAKE"
+            ],
+            "example": "APPROVE"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "SPAM",
+              "ABUSE",
+              "FAKE_REVIEW",
+              "POLICY_VIOLATION",
+              "FALSE_POSITIVE",
+              "OFF_TOPIC",
+              "OTHER"
+            ],
+            "example": "FALSE_POSITIVE"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Review checked manually and approved."
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
+          },
+          "notifyCustomer": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "action",
+          "reason"
+        ]
+      },
+      "AutoApprovalRulesDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "minRating": {
+            "type": "number",
+            "example": 4
+          },
+          "minConfidence": {
+            "type": "number",
+            "example": 90
+          }
+        },
+        "required": [
+          "enabled",
+          "minRating",
+          "minConfidence"
+        ]
+      },
+      "SpamDetectionDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "autoHideConfidenceThreshold": {
+            "type": "number",
+            "example": 85
+          }
+        },
+        "required": [
+          "enabled",
+          "autoHideConfidenceThreshold"
+        ]
+      },
+      "AbuseThresholdsDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "warningThreshold": {
+            "type": "number",
+            "example": 3
+          },
+          "autoRemoveThreshold": {
+            "type": "number",
+            "example": 5
+          }
+        },
+        "required": [
+          "enabled",
+          "warningThreshold",
+          "autoRemoveThreshold"
+        ]
+      },
+      "VisibilityRulesDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "hideUntilModerated": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "enabled",
+          "hideUntilModerated"
+        ]
+      },
+      "AutoModerationDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "confidenceWarningThreshold": {
+            "type": "number",
+            "example": 85
+          }
+        },
+        "required": [
+          "enabled",
+          "confidenceWarningThreshold"
+        ]
+      },
+      "UpdateReviewPoliciesDto": {
+        "type": "object",
+        "properties": {
+          "autoApprovalRules": {
+            "$ref": "#/components/schemas/AutoApprovalRulesDto"
+          },
+          "spamDetection": {
+            "$ref": "#/components/schemas/SpamDetectionDto"
+          },
+          "abuseThresholds": {
+            "$ref": "#/components/schemas/AbuseThresholdsDto"
+          },
+          "visibilityRules": {
+            "$ref": "#/components/schemas/VisibilityRulesDto"
+          },
+          "autoModeration": {
+            "$ref": "#/components/schemas/AutoModerationDto"
+          }
+        },
+        "required": [
+          "autoApprovalRules",
+          "spamDetection",
+          "abuseThresholds",
+          "visibilityRules",
+          "autoModeration"
+        ]
+      },
+      "TestReviewPolicyDto": {
+        "type": "object",
+        "properties": {
+          "sampleReviewText": {
+            "type": "string",
+            "example": "This is a fake spam review."
+          },
+          "rating": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "sampleReviewText",
+          "rating"
+        ]
       },
       "CreateAdminRoleDto": {
         "type": "object",
@@ -15947,6 +17701,109 @@
           "deliveryAddressId"
         ]
       },
+      "SendChatMessageDto": {
+        "type": "object",
+        "properties": {
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "IMAGE",
+              "AUDIO",
+              "VIDEO",
+              "FILE"
+            ],
+            "example": "TEXT"
+          },
+          "body": {
+            "type": "string",
+            "example": "Can you confirm delivery time?"
+          },
+          "attachmentUrls": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "messageType"
+        ]
+      },
+      "CreateReviewDto": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "example": "provider_id"
+          },
+          "rating": {
+            "type": "number",
+            "example": 5,
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Great service and fast delivery. The package arrived in perfect condition."
+          }
+        },
+        "required": [
+          "providerId",
+          "rating",
+          "comment"
+        ]
+      },
+      "UpdateReviewDto": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
+          "comment": {
+            "type": "string",
+            "example": "Updated review text."
+          }
+        }
+      },
+      "CreateProviderReportDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "FRAUDULENT_ACTIVITY",
+              "INAPPROPRIATE_CONTENT",
+              "FAKE_REVIEWS",
+              "POOR_SERVICE_QUALITY",
+              "NOT_RESPONSIVE",
+              "OTHER"
+            ],
+            "example": "POOR_SERVICE_QUALITY"
+          },
+          "details": {
+            "type": "string",
+            "example": "The provider did not respond and the order was delayed."
+          },
+          "orderId": {
+            "type": "string",
+            "example": "order_id"
+          },
+          "evidenceUrls": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "reason",
+          "details"
+        ]
+      },
       "RecurringPaymentScheduleDto": {
         "type": "object",
         "properties": {
@@ -17271,6 +19128,7 @@
               "broadcast-images",
               "gift-message-media",
               "chat-attachments",
+              "provider-report-evidence",
               "provider-support-attachments"
             ],
             "example": "gift-images",

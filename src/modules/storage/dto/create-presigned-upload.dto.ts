@@ -15,6 +15,7 @@ export enum UploadFolder {
   BROADCAST_IMAGES = 'broadcast-images',
   GIFT_MESSAGE_MEDIA = 'gift-message-media',
   CHAT_ATTACHMENTS = 'chat-attachments',
+  PROVIDER_REPORT_EVIDENCE = 'provider-report-evidence',
   PROVIDER_SUPPORT_ATTACHMENTS = 'provider-support-attachments',
 }
 
