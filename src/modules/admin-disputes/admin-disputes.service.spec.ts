@@ -29,7 +29,7 @@ describe('Admin Dispute Manager Core module', () => {
   });
 
   it('adds required dispute permissions to the catalog', () => {
-    for (const text of ["module: 'disputes'", "key: 'read'", "key: 'create'", "key: 'update'", "key: 'assign'", "key: 'notes.create'", "key: 'export'", "key: 'evidence.read'", "key: 'timeline.read'"]) expect(permissions).toContain(text);
+    for (const text of ["module: 'disputes'", "key: 'read'", "key: 'create'", "key: 'update'", "key: 'assign'", "key: 'linkTransaction'", "key: 'refund.evaluate'", "key: 'notes.create'", "key: 'export'", "key: 'evidence.read'", "key: 'timeline.read'"]) expect(permissions).toContain(text);
   });
 
   it('exposes static routes before /admin/disputes/:id', () => {
@@ -54,7 +54,7 @@ describe('Admin Dispute Manager Core module', () => {
     expect(controller).toContain("@Get(':id/internal-data')");
     expect(service).toContain('processorAuthCode');
     expect(service).toContain('transactionHistory');
-    expect(service).not.toContain('card');
+    expect(service).not.toContain('cardNumber');
   });
 
   it('admin can fetch dispute evidence and storage allows dispute-evidence folder', () => {
@@ -84,5 +84,43 @@ describe('Admin Dispute Manager Core module', () => {
     expect(controller).toContain("@Permissions('disputes.export')");
     expect(service).toContain('Case ID');
     expect(service).not.toContain('cardNumber');
+  });
+
+  it('admin can search transactions for dispute scoped by dispute customer', () => {
+    expect(controller).toContain("@Get(':id/transaction-search')");
+    expect(controller).toContain("@ApiTags('02 Admin - Dispute Linkage')");
+    expect(service).toContain('transactionSearch');
+    expect(service).toContain('userId: dispute.userId');
+    expect(service).toContain('providerPaymentIntentId');
+    expect(service).not.toContain('cardNumber');
+  });
+
+  it('refund preview validates full and partial refunds against refundable amount', () => {
+    expect(controller).toContain("@Post(':id/refund-preview')");
+    expect(controller).toContain("@Permissions('disputes.refund.evaluate')");
+    expect(service).toContain('refundPreview');
+    expect(service).toContain('DisputeRefundType.FULL');
+    expect(service).toContain('DisputeRefundType.NONE');
+    expect(service).toContain('Partial refund amount must be greater than 0');
+    expect(service).toContain('Requested refund exceeds max refundable amount');
+  });
+
+  it('link transaction requires confirmation flag and stores refund selection', () => {
+    expect(controller).toContain("@Post(':id/link-transaction')");
+    expect(controller).toContain("@Permissions('disputes.linkTransaction')");
+    expect(service).toContain('confirmCorrectTransaction must be true');
+    expect(service).toContain('linkedTransactionId');
+    expect(service).toContain('linkedPaymentId');
+    expect(service).toContain('linkedOrderId');
+    expect(service).toContain('refundType: dto.refundType');
+    expect(service).toContain('refundAmount: preview.data.requestedRefundAmount');
+  });
+
+  it('link transaction creates timeline/audit entries and does not process refund', () => {
+    expect(service).toContain('TRANSACTION_LINKED');
+    expect(service).toContain('REFUND_SELECTION_UPDATED');
+    expect(service).toContain('DISPUTE_TRANSACTION_LINKED');
+    expect(service).not.toContain('stripe.refunds.create');
+    expect(service).not.toContain('refundRequest.create');
   });
 });

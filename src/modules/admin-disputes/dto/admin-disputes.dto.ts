@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DisputeNoteVisibility, DisputePriority, DisputeStatus } from '@prisma/client';
+import { DisputeNoteVisibility, DisputePriority, DisputeRefundType, DisputeStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export enum DisputeRange { TODAY = 'TODAY', LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS', CUSTOM = 'CUSTOM' }
 export enum DisputeStatusFilter { ALL = 'ALL', OPEN = 'OPEN', IN_REVIEW = 'IN_REVIEW', ESCALATED = 'ESCALATED', RESOLVED = 'RESOLVED', REJECTED = 'REJECTED', APPROVED = 'APPROVED' }
@@ -37,4 +37,20 @@ export class ExportDisputesDto {
   @ApiPropertyOptional() @IsOptional() @IsISO8601() fromDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() toDate?: string;
   @ApiPropertyOptional({ enum: ExportFormat }) @IsOptional() @IsEnum(ExportFormat) format?: ExportFormat;
+}
+
+export class TransactionSearchDto {
+  @ApiPropertyOptional({ example: 'TXN-789012' }) @IsOptional() @IsString() query?: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() recentOnly?: boolean;
+  @ApiPropertyOptional({ example: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) limit?: number;
+}
+
+export class RefundPreviewDto {
+  @ApiProperty({ example: 'transaction_id' }) @IsString() transactionId!: string;
+  @ApiProperty({ enum: DisputeRefundType, example: DisputeRefundType.FULL }) @IsEnum(DisputeRefundType) refundType!: DisputeRefundType;
+  @ApiPropertyOptional({ example: 129.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) refundAmount?: number;
+}
+
+export class LinkTransactionDto extends RefundPreviewDto {
+  @ApiProperty({ example: true }) @IsBoolean() confirmCorrectTransaction!: boolean;
 }

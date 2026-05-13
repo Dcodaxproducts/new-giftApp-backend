@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminDisputesService } from './admin-disputes.service';
-import { AddDisputeNoteDto, DisputeDateRangeDto, ExportDisputesDto, ListDisputesDto } from './dto/admin-disputes.dto';
+import { AddDisputeNoteDto, DisputeDateRangeDto, ExportDisputesDto, LinkTransactionDto, ListDisputesDto, RefundPreviewDto, TransactionSearchDto } from './dto/admin-disputes.dto';
 
 @ApiTags('02 Admin - Dispute Manager')
 @ApiBearerAuth()
@@ -33,6 +33,33 @@ export class AdminDisputesController {
   @Permissions('disputes.read')
   @ApiOperation({ summary: 'List dispute queue', description: 'SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.' })
   list(@Query() query: ListDisputesDto) { return this.disputes.list(query); }
+
+  @Get(':id/linkage')
+  @ApiTags('02 Admin - Dispute Linkage')
+  @Permissions('disputes.read')
+  @ApiOperation({ summary: 'Fetch current dispute transaction linkage state', description: 'SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.' })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: { dispute: { id: 'dispute_id', caseId: 'DSP-1024', customer: { id: 'customer_id', name: 'Jane Doe' }, disputeAmount: 129.99, currency: 'PKR', claimDetails: 'Item never arrived. Tracking shows delivered but not at my address.', status: 'IN_REVIEW' }, linkedTransaction: { id: 'transaction_id', transactionId: 'TXN-789012', orderId: 'order_id', orderDate: '2026-04-01T00:00:00.000Z', paymentMethod: 'VISA **** 1234', amount: 129.99, currency: 'PKR', status: 'SETTLED', refundEligible: true, eligibilityText: 'Eligible within 30-day window' }, refundSelection: { type: 'FULL', amount: 129.99, recommended: true } }, message: 'Dispute linkage fetched successfully.' } } })
+  linkage(@Param('id') id: string) { return this.disputes.linkage(id); }
+
+  @Get(':id/transaction-search')
+  @ApiTags('02 Admin - Dispute Linkage')
+  @Permissions('disputes.read')
+  @ApiOperation({ summary: 'Search original transaction for a dispute', description: 'SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.' })
+  transactionSearch(@Param('id') id: string, @Query() query: TransactionSearchDto) { return this.disputes.transactionSearch(id, query); }
+
+  @Post(':id/link-transaction')
+  @ApiTags('02 Admin - Dispute Linkage')
+  @Permissions('disputes.linkTransaction')
+  @ApiOperation({ summary: 'Confirm dispute transaction linkage', description: 'SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.' })
+  @ApiBody({ type: LinkTransactionDto, examples: { full: { value: { transactionId: 'transaction_id', refundType: 'FULL', refundAmount: 129.99, confirmCorrectTransaction: true } }, none: { value: { transactionId: 'transaction_id', refundType: 'NONE', confirmCorrectTransaction: true } } } })
+  linkTransaction(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: LinkTransactionDto) { return this.disputes.linkTransaction(user, id, dto); }
+
+  @Post(':id/refund-preview')
+  @ApiTags('02 Admin - Dispute Linkage')
+  @Permissions('disputes.refund.evaluate')
+  @ApiOperation({ summary: 'Preview dispute refund selection', description: 'SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.' })
+  @ApiBody({ type: RefundPreviewDto, examples: { full: { value: { transactionId: 'transaction_id', refundType: 'FULL', refundAmount: 129.99 } }, partial: { value: { transactionId: 'transaction_id', refundType: 'PARTIAL', refundAmount: 50 } }, none: { value: { transactionId: 'transaction_id', refundType: 'NONE' } } } })
+  refundPreview(@Param('id') id: string, @Body() dto: RefundPreviewDto) { return this.disputes.refundPreview(id, dto); }
 
   @Get(':id/evidence')
   @ApiTags('02 Admin - Dispute Evidence')

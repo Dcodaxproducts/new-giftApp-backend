@@ -178,6 +178,8 @@ export const PERMISSION_CATALOG = [
       { key: 'create', label: 'Create Disputes', description: 'Create dispute cases.' },
       { key: 'update', label: 'Update Disputes', description: 'Update dispute cases.' },
       { key: 'assign', label: 'Assign Disputes', description: 'Assign disputes to admin users.' },
+      { key: 'linkTransaction', label: 'Link Dispute Transaction', description: 'Link disputes to original transactions.' },
+      { key: 'refund.evaluate', label: 'Evaluate Dispute Refunds', description: 'Preview and validate dispute refund selection.' },
       { key: 'notes.create', label: 'Create Dispute Notes', description: 'Add internal notes to dispute cases.' },
       { key: 'export', label: 'Export Disputes', description: 'Export dispute cases.' },
       { key: 'evidence.read', label: 'View Dispute Evidence', description: 'View dispute evidence files.' },

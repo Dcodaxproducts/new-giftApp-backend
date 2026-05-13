@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T06:21:33.041Z_
+_Generated from OpenAPI: 2026-05-13T06:38:39.078Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -84,6 +84,22 @@ Access: "Authenticated"
 
 ## 02 Admin - Dispute Manager
 
+### `POST` `/api/v1/admin/disputes/{id}/link-transaction`
+
+Summary: Confirm dispute transaction linkage
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/linkage`
+
+Summary: Fetch current dispute transaction linkage state
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
 ### `GET` `/api/v1/admin/disputes/{id}/notes`
 
 Summary: Fetch internal dispute notes
@@ -100,10 +116,26 @@ Access: "Authenticated"
 
 ## 02 Admin - Dispute Manager
 
+### `POST` `/api/v1/admin/disputes/{id}/refund-preview`
+
+Summary: Preview dispute refund selection
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
 ### `GET` `/api/v1/admin/disputes/{id}/timeline`
 
 Summary: Fetch dispute timeline
 Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/transaction-search`
+
+Summary: Search original transaction for a dispute
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.
 Access: "Authenticated"
 
 ## 02 Admin - Dispute Manager

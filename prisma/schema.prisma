@@ -523,6 +523,12 @@ enum DisputeNoteVisibility {
   INTERNAL
 }
 
+enum DisputeRefundType {
+  FULL
+  PARTIAL
+  NONE
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -637,6 +643,7 @@ model User {
   disputeEvidenceUploads              DisputeEvidence[]                    @relation("DisputeEvidenceUploader")
   disputeNotes                        DisputeNote[]                        @relation("DisputeNoteAuthor")
   disputeTimelineEvents               DisputeTimeline[]                    @relation("DisputeTimelineActor")
+  linkedDisputes                      DisputeCase[]                        @relation("DisputeLinker")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -1814,32 +1821,39 @@ model ProviderReport {
 }
 
 model DisputeCase {
-  id             String          @id @default(cuid())
-  caseId         String          @unique @map("case_id")
-  userId         String          @map("user_id")
-  orderId        String          @map("order_id")
-  transactionId  String?         @map("transaction_id")
-  paymentId      String?         @map("payment_id")
-  providerId     String?         @map("provider_id")
-  amount         Decimal         @db.Decimal(10, 2)
-  currency       String          @default("PKR")
-  reason         DisputeReason
-  claimDetails   String          @map("claim_details")
-  priority       DisputePriority @default(MEDIUM)
-  status         DisputeStatus   @default(OPEN)
-  slaDeadlineAt  DateTime        @map("sla_deadline_at") @db.Timestamptz
-  assignedToId   String?         @map("assigned_to_id")
-  linkedRefundId String?         @map("linked_refund_id")
-  linkedAt       DateTime?       @map("linked_at") @db.Timestamptz
-  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
-  resolvedAt     DateTime?       @map("resolved_at") @db.Timestamptz
+  id                  String             @id @default(cuid())
+  caseId              String             @unique @map("case_id")
+  userId              String             @map("user_id")
+  orderId             String             @map("order_id")
+  transactionId       String?            @map("transaction_id")
+  paymentId           String?            @map("payment_id")
+  providerId          String?            @map("provider_id")
+  linkedTransactionId String?            @map("linked_transaction_id")
+  linkedPaymentId     String?            @map("linked_payment_id")
+  linkedOrderId       String?            @map("linked_order_id")
+  refundType          DisputeRefundType? @map("refund_type")
+  refundAmount        Decimal?           @map("refund_amount") @db.Decimal(10, 2)
+  linkedById          String?            @map("linked_by_id")
+  amount              Decimal            @db.Decimal(10, 2)
+  currency            String             @default("PKR")
+  reason              DisputeReason
+  claimDetails        String             @map("claim_details")
+  priority            DisputePriority    @default(MEDIUM)
+  status              DisputeStatus      @default(OPEN)
+  slaDeadlineAt       DateTime           @map("sla_deadline_at") @db.Timestamptz
+  assignedToId        String?            @map("assigned_to_id")
+  linkedRefundId      String?            @map("linked_refund_id")
+  linkedAt            DateTime?          @map("linked_at") @db.Timestamptz
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt          DateTime?          @map("resolved_at") @db.Timestamptz
 
   user       User              @relation("DisputeCustomer", fields: [userId], references: [id])
   order      Order             @relation(fields: [orderId], references: [id])
   payment    Payment?          @relation(fields: [paymentId], references: [id])
   provider   User?             @relation("DisputeProvider", fields: [providerId], references: [id])
   assignedTo User?             @relation("DisputeAssignee", fields: [assignedToId], references: [id])
+  linkedBy   User?             @relation("DisputeLinker", fields: [linkedById], references: [id])
   evidence   DisputeEvidence[]
   notes      DisputeNote[]
   timeline   DisputeTimeline[]

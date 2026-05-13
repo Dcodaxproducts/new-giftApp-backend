@@ -1,6 +1,6 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T06:21:33.041Z_
+_Generated from OpenAPI: 2026-05-13T06:38:39.078Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -64,6 +64,18 @@ Fetch internal transaction data
 
 ## 02 Admin - Dispute Manager
 
+### `POST` `/api/v1/admin/disputes/{id}/link-transaction`
+
+Confirm dispute transaction linkage
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/linkage`
+
+Fetch current dispute transaction linkage state
+
+## 02 Admin - Dispute Manager
+
 ### `GET` `/api/v1/admin/disputes/{id}/notes`
 
 Fetch internal dispute notes
@@ -76,9 +88,21 @@ Add internal dispute note
 
 ## 02 Admin - Dispute Manager
 
+### `POST` `/api/v1/admin/disputes/{id}/refund-preview`
+
+Preview dispute refund selection
+
+## 02 Admin - Dispute Manager
+
 ### `GET` `/api/v1/admin/disputes/{id}/timeline`
 
 Fetch dispute timeline
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/transaction-search`
+
+Search original transaction for a dispute
 
 ## 02 Admin - Dispute Manager
 
