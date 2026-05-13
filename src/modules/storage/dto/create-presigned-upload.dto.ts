@@ -16,6 +16,7 @@ export enum UploadFolder {
   GIFT_MESSAGE_MEDIA = 'gift-message-media',
   CHAT_ATTACHMENTS = 'chat-attachments',
   PROVIDER_REPORT_EVIDENCE = 'provider-report-evidence',
+  DISPUTE_EVIDENCE = 'dispute-evidence',
   PROVIDER_SUPPORT_ATTACHMENTS = 'provider-support-attachments',
 }
 

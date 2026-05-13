@@ -1684,6 +1684,571 @@
         "x-access": "SUPER_ADMIN"
       }
     },
+    "/api/v1/admin/disputes/stats": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.",
+        "operationId": "AdminDisputesController_stats",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "openCases": 12,
+                      "openCasesDelta": 2,
+                      "awaitingAction": 5,
+                      "escalated": 2,
+                      "resolvedThisWeek": 24,
+                      "resolvedDeltaPercent": 12,
+                      "currency": "PKR"
+                    },
+                    "message": "Dispute stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch dispute dashboard stats",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/export": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.",
+        "operationId": "AdminDisputesController_export",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "IN_REVIEW",
+                "ESCALATED",
+                "RESOLVED",
+                "REJECTED",
+                "APPROVED"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export dispute cases",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.",
+        "operationId": "AdminDisputesController_list",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "OPEN",
+                "IN_REVIEW",
+                "ESCALATED",
+                "RESOLVED",
+                "REJECTED",
+                "APPROVED"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "priority",
+                "daysOpen"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List dispute queue",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/evidence": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.evidence.read. Returns only evidence rows linked to this dispute, from customer/admin uploads in dispute-evidence folder.",
+        "operationId": "AdminDisputesController_evidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "evidence_id",
+                        "fileName": "Order confirmation.pdf",
+                        "fileUrl": "https://cdn.yourdomain.com/dispute-evidence/order-confirmation.pdf",
+                        "contentType": "application/pdf",
+                        "uploadedBy": "CUSTOMER",
+                        "createdAt": "2026-04-05T09:30:00.000Z"
+                      }
+                    ],
+                    "message": "Dispute evidence fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch dispute evidence",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Evidence"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/timeline": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.",
+        "operationId": "AdminDisputesController_timeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch dispute timeline",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/internal-data": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.",
+        "operationId": "AdminDisputesController_internalData",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch internal transaction data",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/notes": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.",
+        "operationId": "AdminDisputesController_addNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDisputeNoteDto"
+              },
+              "examples": {
+                "internal": {
+                  "value": {
+                    "note": "Customer tracking shows pending status for over 14 days. Investigating merchant log.",
+                    "visibility": "INTERNAL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add internal dispute note",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.",
+        "operationId": "AdminDisputesController_notes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch internal dispute notes",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.",
+        "operationId": "AdminDisputesController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "dispute_id",
+                      "caseId": "DSP-1024",
+                      "status": "IN_REVIEW",
+                      "priority": "HIGH",
+                      "reason": "PRODUCT_NOT_RECEIVED",
+                      "amount": 129.99,
+                      "currency": "PKR",
+                      "sla": {
+                        "deadlineAt": "2026-04-12T10:00:00.000Z",
+                        "remainingText": "22h 14m remaining",
+                        "isApproachingDeadline": true
+                      },
+                      "customer": {
+                        "id": "customer_id",
+                        "name": "Jane Doe",
+                        "email": "jane.doe@example.com"
+                      },
+                      "transaction": {
+                        "id": "transaction_id",
+                        "transactionId": "TXN-789012",
+                        "paymentStatus": "CAPTURED",
+                        "processorAuthCode": "AUTH-9921-X",
+                        "amount": 129.99,
+                        "currency": "PKR"
+                      },
+                      "refund": {
+                        "eligible": true,
+                        "eligibleReason": "Within refund window",
+                        "maxRefundAmount": 129.99
+                      },
+                      "claimDetails": "Item never arrived. Tracking shows delivered but not at my address.",
+                      "createdAt": "2026-04-05T09:15:00.000Z",
+                      "lastUpdatedAt": "2026-04-08T11:45:00.000Z"
+                    },
+                    "message": "Dispute details fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch dispute details and evidence review summary",
+        "tags": [
+          "02 Admin - Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/admins": {
       "post": {
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Creates ADMIN staff users only. Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
@@ -16138,6 +16703,7 @@
                 "gift-message-media",
                 "chat-attachments",
                 "provider-report-evidence",
+                "dispute-evidence",
                 "provider-support-attachments"
               ]
             }
@@ -16269,6 +16835,12 @@
     },
     {
       "name": "02 Admin - Audit Logs"
+    },
+    {
+      "name": "02 Admin - Dispute Manager"
+    },
+    {
+      "name": "02 Admin - Dispute Evidence"
     },
     {
       "name": "03 Provider - Business Info"
@@ -16748,6 +17320,26 @@
             "example": "Temporarily paused by Super Admin."
           }
         }
+      },
+      "AddDisputeNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Customer tracking shows pending status for over 14 days."
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "INTERNAL"
+            ],
+            "example": "INTERNAL"
+          }
+        },
+        "required": [
+          "note",
+          "visibility"
+        ]
       },
       "UpdateAdminDto": {
         "type": "object",
@@ -20218,6 +20810,7 @@
               "gift-message-media",
               "chat-attachments",
               "provider-report-evidence",
+              "dispute-evidence",
               "provider-support-attachments"
             ],
             "example": "gift-images",

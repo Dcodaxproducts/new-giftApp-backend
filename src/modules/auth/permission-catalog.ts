@@ -171,6 +171,20 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'disputes',
+    label: 'Dispute Manager',
+    permissions: [
+      { key: 'read', label: 'View Disputes', description: 'View dispute queue, stats, details, internal data, and timeline.' },
+      { key: 'create', label: 'Create Disputes', description: 'Create dispute cases.' },
+      { key: 'update', label: 'Update Disputes', description: 'Update dispute cases.' },
+      { key: 'assign', label: 'Assign Disputes', description: 'Assign disputes to admin users.' },
+      { key: 'notes.create', label: 'Create Dispute Notes', description: 'Add internal notes to dispute cases.' },
+      { key: 'export', label: 'Export Disputes', description: 'Export dispute cases.' },
+      { key: 'evidence.read', label: 'View Dispute Evidence', description: 'View dispute evidence files.' },
+      { key: 'timeline.read', label: 'View Dispute Timeline', description: 'View dispute timeline events.' },
+    ],
+  },
+  {
     module: 'settings',
     label: 'Settings',
     permissions: [

@@ -93,7 +93,7 @@ export class StorageService {
     if (dto.folder === UploadFolder.GIFT_MESSAGE_MEDIA && user.role !== UserRole.REGISTERED_USER) throw new ForbiddenException('Gift message media uploads are allowed for registered users only');
     if (user.role === UserRole.REGISTERED_USER) {
       if (targetAccountId) throw new ForbiddenException('targetAccountId is not allowed for this account.');
-      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.GIFT_MESSAGE_MEDIA, UploadFolder.CHAT_ATTACHMENTS, UploadFolder.PROVIDER_REPORT_EVIDENCE];
+      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.GIFT_MESSAGE_MEDIA, UploadFolder.CHAT_ATTACHMENTS, UploadFolder.PROVIDER_REPORT_EVIDENCE, UploadFolder.DISPUTE_EVIDENCE];
       if (!allowed.includes(dto.folder)) throw new ForbiddenException('Registered users can upload only allowed customer files');
       return;
     }

@@ -481,6 +481,48 @@ enum ProviderReportStatus {
   REJECTED
 }
 
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  ESCALATED
+  RESOLVED
+  REJECTED
+  APPROVED
+}
+
+enum DisputePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DisputeReason {
+  PRODUCT_NOT_RECEIVED
+  PRODUCT_DAMAGED
+  WRONG_ITEM
+  DUPLICATE_CHARGE
+  REFUND_NOT_RECEIVED
+  PROVIDER_ISSUE
+  OTHER
+}
+
+enum DisputeActorType {
+  CUSTOMER
+  ADMIN
+  PROVIDER
+  SYSTEM
+}
+
+enum DisputeEvidenceUploadedByType {
+  CUSTOMER
+  ADMIN
+}
+
+enum DisputeNoteVisibility {
+  INTERNAL
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -560,7 +602,7 @@ model User {
   customerWalletLedger                CustomerWalletLedger[]
   customerBankAccounts                CustomerBankAccount[]
   customerSubscriptions               CustomerSubscription[]
-  customerSubscriptionInvoices         CustomerSubscriptionInvoice[]
+  customerSubscriptionInvoices        CustomerSubscriptionInvoice[]
   sentReferrals                       Referral[]                           @relation("ReferralReferrer")
   receivedReferrals                   Referral[]                           @relation("ReferralReferred")
   rewardLedger                        RewardLedger[]
@@ -573,8 +615,8 @@ model User {
   updatedCoupons                      Coupon[]                             @relation("CouponUpdater")
   providerBusinessCategory            ProviderBusinessCategory?            @relation(fields: [providerBusinessCategoryId], references: [id])
   providerOrders                      ProviderOrder[]
-  customerRefundRequests              RefundRequest[]                     @relation("RefundRequestCustomer")
-  providerRefundRequests              RefundRequest[]                     @relation("RefundRequestProvider")
+  customerRefundRequests              RefundRequest[]                      @relation("RefundRequestCustomer")
+  providerRefundRequests              RefundRequest[]                      @relation("RefundRequestProvider")
   providerOrderTimelines              ProviderOrderTimeline[]
   sentOrderMessages                   OrderMessage[]                       @relation("OrderMessageSender")
   receivedOrderMessages               OrderMessage[]                       @relation("OrderMessageRecipient")
@@ -589,6 +631,12 @@ model User {
   submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
   receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
   reviewedProviderReports             ProviderReport[]                     @relation("ProviderReportReviewer")
+  providerDisputeCases                DisputeCase[]                        @relation("DisputeProvider")
+  disputeCases                        DisputeCase[]                        @relation("DisputeCustomer")
+  assignedDisputes                    DisputeCase[]                        @relation("DisputeAssignee")
+  disputeEvidenceUploads              DisputeEvidence[]                    @relation("DisputeEvidenceUploader")
+  disputeNotes                        DisputeNote[]                        @relation("DisputeNoteAuthor")
+  disputeTimelineEvents               DisputeTimeline[]                    @relation("DisputeTimelineActor")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -961,9 +1009,10 @@ model Payment {
   user                        User                                 @relation(fields: [userId], references: [id])
   order                       Order?                               @relation(fields: [orderId], references: [id])
   moneyGift                   MoneyGift?                           @relation(fields: [moneyGiftId], references: [id])
-  customerSubscription        CustomerSubscription?                 @relation(fields: [customerSubscriptionId], references: [id])
+  customerSubscription        CustomerSubscription?                @relation(fields: [customerSubscriptionId], references: [id])
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   refundRequests              RefundRequest[]
+  disputeCases                DisputeCase[]
 
   @@index([userId, status])
   @@index([status, createdAt])
@@ -988,9 +1037,9 @@ model CustomerSubscription {
   createdAt            DateTime                   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt            DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
 
-  user     User             @relation(fields: [userId], references: [id])
-  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
-  coupon   Coupon?          @relation(fields: [couponId], references: [id])
+  user     User                          @relation(fields: [userId], references: [id])
+  plan     SubscriptionPlan              @relation(fields: [planId], references: [id])
+  coupon   Coupon?                       @relation(fields: [couponId], references: [id])
   invoices CustomerSubscriptionInvoice[]
   payments Payment[]
 
@@ -1024,26 +1073,26 @@ model CustomerSubscriptionInvoice {
 }
 
 model Order {
-  id                  String          @id @default(cuid())
-  userId              String          @map("user_id")
-  orderNumber         String          @unique @map("order_number")
-  status              OrderStatus     @default(PENDING)
-  paymentStatus       PaymentStatus   @default(PENDING) @map("payment_status")
-  paymentMethod       PaymentMethod   @default(COD) @map("payment_method")
-  paymentId           String?         @unique @map("payment_id")
-  subtotal            Decimal         @db.Decimal(10, 2)
-  discountTotal       Decimal         @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee         Decimal         @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                 Decimal         @default(0) @db.Decimal(10, 2)
-  total               Decimal         @db.Decimal(10, 2)
-  currency            String          @default("PKR")
-  deliveryAddressId   String          @map("delivery_address_id")
-  recipientName       String          @map("recipient_name")
-  recipientPhone      String          @map("recipient_phone")
-  giftMessage         String?         @map("gift_message")
-  scheduledDeliveryAt DateTime?       @map("scheduled_delivery_at") @db.Timestamptz
-  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  id                  String           @id @default(cuid())
+  userId              String           @map("user_id")
+  orderNumber         String           @unique @map("order_number")
+  status              OrderStatus      @default(PENDING)
+  paymentStatus       PaymentStatus    @default(PENDING) @map("payment_status")
+  paymentMethod       PaymentMethod    @default(COD) @map("payment_method")
+  paymentId           String?          @unique @map("payment_id")
+  subtotal            Decimal          @db.Decimal(10, 2)
+  discountTotal       Decimal          @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee         Decimal          @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                 Decimal          @default(0) @db.Decimal(10, 2)
+  total               Decimal          @db.Decimal(10, 2)
+  currency            String           @default("PKR")
+  deliveryAddressId   String           @map("delivery_address_id")
+  recipientName       String           @map("recipient_name")
+  recipientPhone      String           @map("recipient_phone")
+  giftMessage         String?          @map("gift_message")
+  scheduledDeliveryAt DateTime?        @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz
   items               OrderItem[]
   providerOrders      ProviderOrder[]
   refundRequests      RefundRequest[]
@@ -1052,6 +1101,7 @@ model Order {
   reviews             Review[]
   chatThreads         ChatThread[]
   providerReports     ProviderReport[]
+  disputeCases        DisputeCase[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1575,23 +1625,23 @@ model NotificationDeviceToken {
 }
 
 model NotificationPreference {
-  id                       String   @id @default(cuid())
-  userId                   String   @unique @map("user_id")
-  emailEnabled             Boolean  @default(true) @map("email_enabled")
-  pushEnabled              Boolean  @default(true) @map("push_enabled")
-  smsEnabled               Boolean  @default(false) @map("sms_enabled")
-  inAppEnabled             Boolean  @default(true) @map("in_app_enabled")
-  marketingEnabled         Boolean  @default(true) @map("marketing_enabled")
-  dealUpdatesEnabled       Boolean  @default(true) @map("deal_updates_enabled")
-  birthdayRemindersEnabled Boolean  @default(true) @map("birthday_reminders_enabled")
-  deliveryUpdatesEnabled   Boolean  @default(true) @map("delivery_updates_enabled")
-  newContactAlertsEnabled  Boolean  @default(true) @map("new_contact_alerts_enabled")
-  systemEnabled            Boolean  @default(true) @map("system_enabled")
-  providerOrderAlertsJson Json     @default("{}") @map("provider_order_alerts_json")
-  providerAccountActivityJson Json @default("{}") @map("provider_account_activity_json")
-  providerMarketingUpdatesJson Json @default("{}") @map("provider_marketing_updates_json")
-  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                           String   @id @default(cuid())
+  userId                       String   @unique @map("user_id")
+  emailEnabled                 Boolean  @default(true) @map("email_enabled")
+  pushEnabled                  Boolean  @default(true) @map("push_enabled")
+  smsEnabled                   Boolean  @default(false) @map("sms_enabled")
+  inAppEnabled                 Boolean  @default(true) @map("in_app_enabled")
+  marketingEnabled             Boolean  @default(true) @map("marketing_enabled")
+  dealUpdatesEnabled           Boolean  @default(true) @map("deal_updates_enabled")
+  birthdayRemindersEnabled     Boolean  @default(true) @map("birthday_reminders_enabled")
+  deliveryUpdatesEnabled       Boolean  @default(true) @map("delivery_updates_enabled")
+  newContactAlertsEnabled      Boolean  @default(true) @map("new_contact_alerts_enabled")
+  systemEnabled                Boolean  @default(true) @map("system_enabled")
+  providerOrderAlertsJson      Json     @default("{}") @map("provider_order_alerts_json")
+  providerAccountActivityJson  Json     @default("{}") @map("provider_account_activity_json")
+  providerMarketingUpdatesJson Json     @default("{}") @map("provider_marketing_updates_json")
+  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id])
 
@@ -1599,24 +1649,24 @@ model NotificationPreference {
 }
 
 model Review {
-  id                     String                  @id @default(cuid())
-  reviewCode             String                  @unique @map("review_code")
-  orderId                String                  @map("order_id")
-  providerOrderId        String?                 @map("provider_order_id")
-  providerId             String                  @map("provider_id")
-  userId                 String                  @map("user_id")
+  id                     String            @id @default(cuid())
+  reviewCode             String            @unique @map("review_code")
+  orderId                String            @map("order_id")
+  providerOrderId        String?           @map("provider_order_id")
+  providerId             String            @map("provider_id")
+  userId                 String            @map("user_id")
   rating                 Int
   comment                String
-  status                 ReviewStatus            @default(PENDING)
-  severity               ReviewSeverity          @default(LOW)
-  flagReason             ReviewFlagReason?       @map("flag_reason")
-  autoModerated          Boolean                 @default(false) @map("auto_moderated")
-  moderationConfidence   Int?                    @map("moderation_confidence")
-  detectedCategoriesJson Json                    @default("[]") @map("detected_categories_json")
-  likesCount             Int                     @default(0) @map("likes_count")
-  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt              DateTime?               @map("deleted_at") @db.Timestamptz
+  status                 ReviewStatus      @default(PENDING)
+  severity               ReviewSeverity    @default(LOW)
+  flagReason             ReviewFlagReason? @map("flag_reason")
+  autoModerated          Boolean           @default(false) @map("auto_moderated")
+  moderationConfidence   Int?              @map("moderation_confidence")
+  detectedCategoriesJson Json              @default("[]") @map("detected_categories_json")
+  likesCount             Int               @default(0) @map("likes_count")
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt              DateTime?         @map("deleted_at") @db.Timestamptz
 
   order          Order                 @relation(fields: [orderId], references: [id])
   providerOrder  ProviderOrder?        @relation(fields: [providerOrderId], references: [id])
@@ -1653,19 +1703,19 @@ model ReviewResponse {
 }
 
 model ReviewModerationLog {
-  id             String                     @id @default(cuid())
-  reviewId       String                     @map("review_id")
-  actorId        String?                    @map("actor_id")
-  actorType      ReviewModerationActorType  @map("actor_type")
-  action         ReviewModerationAction
-  outcome        ReviewStatus
-  reason         ReviewFlagReason?
-  comment        String?
-  autoModerated  Boolean                    @default(false) @map("auto_moderated")
-  confidence     Int?
-  beforeJson     Json?                      @map("before_json")
-  afterJson      Json?                      @map("after_json")
-  createdAt      DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  id            String                    @id @default(cuid())
+  reviewId      String                    @map("review_id")
+  actorId       String?                   @map("actor_id")
+  actorType     ReviewModerationActorType @map("actor_type")
+  action        ReviewModerationAction
+  outcome       ReviewStatus
+  reason        ReviewFlagReason?
+  comment       String?
+  autoModerated Boolean                   @default(false) @map("auto_moderated")
+  confidence    Int?
+  beforeJson    Json?                     @map("before_json")
+  afterJson     Json?                     @map("after_json")
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz
 
   review Review @relation(fields: [reviewId], references: [id])
   actor  User?  @relation("ReviewModerationActor", fields: [actorId], references: [id])
@@ -1717,20 +1767,20 @@ model ChatThread {
 }
 
 model ChatMessage {
-  id               String          @id @default(cuid())
-  threadId         String          @map("thread_id")
-  senderId         String          @map("sender_id")
-  senderType       ChatSenderType  @map("sender_type")
-  messageType      ChatMessageType @default(TEXT) @map("message_type")
-  body             String?
-  attachmentUrlsJson Json          @default("[]") @map("attachment_urls_json")
-  isReadByCustomer Boolean         @default(false) @map("is_read_by_customer")
-  isReadByProvider Boolean         @default(false) @map("is_read_by_provider")
-  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  id                 String          @id @default(cuid())
+  threadId           String          @map("thread_id")
+  senderId           String          @map("sender_id")
+  senderType         ChatSenderType  @map("sender_type")
+  messageType        ChatMessageType @default(TEXT) @map("message_type")
+  body               String?
+  attachmentUrlsJson Json            @default("[]") @map("attachment_urls_json")
+  isReadByCustomer   Boolean         @default(false) @map("is_read_by_customer")
+  isReadByProvider   Boolean         @default(false) @map("is_read_by_provider")
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
 
-  thread         ChatThread  @relation("ThreadMessages", fields: [threadId], references: [id])
-  sender         User        @relation("ChatMessageSender", fields: [senderId], references: [id])
-  lastForThread  ChatThread? @relation("ThreadLastMessage")
+  thread        ChatThread  @relation("ThreadMessages", fields: [threadId], references: [id])
+  sender        User        @relation("ChatMessageSender", fields: [senderId], references: [id])
+  lastForThread ChatThread? @relation("ThreadLastMessage")
 
   @@index([threadId, createdAt])
   @@index([senderId, createdAt])
@@ -1763,18 +1813,106 @@ model ProviderReport {
   @@map("provider_reports")
 }
 
+model DisputeCase {
+  id             String          @id @default(cuid())
+  caseId         String          @unique @map("case_id")
+  userId         String          @map("user_id")
+  orderId        String          @map("order_id")
+  transactionId  String?         @map("transaction_id")
+  paymentId      String?         @map("payment_id")
+  providerId     String?         @map("provider_id")
+  amount         Decimal         @db.Decimal(10, 2)
+  currency       String          @default("PKR")
+  reason         DisputeReason
+  claimDetails   String          @map("claim_details")
+  priority       DisputePriority @default(MEDIUM)
+  status         DisputeStatus   @default(OPEN)
+  slaDeadlineAt  DateTime        @map("sla_deadline_at") @db.Timestamptz
+  assignedToId   String?         @map("assigned_to_id")
+  linkedRefundId String?         @map("linked_refund_id")
+  linkedAt       DateTime?       @map("linked_at") @db.Timestamptz
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt     DateTime?       @map("resolved_at") @db.Timestamptz
+
+  user       User              @relation("DisputeCustomer", fields: [userId], references: [id])
+  order      Order             @relation(fields: [orderId], references: [id])
+  payment    Payment?          @relation(fields: [paymentId], references: [id])
+  provider   User?             @relation("DisputeProvider", fields: [providerId], references: [id])
+  assignedTo User?             @relation("DisputeAssignee", fields: [assignedToId], references: [id])
+  evidence   DisputeEvidence[]
+  notes      DisputeNote[]
+  timeline   DisputeTimeline[]
+
+  @@index([status, priority, createdAt])
+  @@index([userId, createdAt])
+  @@index([orderId])
+  @@index([paymentId])
+  @@map("dispute_cases")
+}
+
+model DisputeEvidence {
+  id             String                        @id @default(cuid())
+  disputeId      String                        @map("dispute_id")
+  uploadedById   String                        @map("uploaded_by_id")
+  uploadedByType DisputeEvidenceUploadedByType @map("uploaded_by_type")
+  fileName       String                        @map("file_name")
+  fileUrl        String                        @map("file_url")
+  contentType    String                        @map("content_type")
+  createdAt      DateTime                      @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute    DisputeCase @relation(fields: [disputeId], references: [id])
+  uploadedBy User        @relation("DisputeEvidenceUploader", fields: [uploadedById], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("dispute_evidence")
+}
+
+model DisputeNote {
+  id         String                @id @default(cuid())
+  disputeId  String                @map("dispute_id")
+  authorId   String                @map("author_id")
+  note       String
+  visibility DisputeNoteVisibility @default(INTERNAL)
+  createdAt  DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute DisputeCase @relation(fields: [disputeId], references: [id])
+  author  User        @relation("DisputeNoteAuthor", fields: [authorId], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("dispute_notes")
+}
+
+model DisputeTimeline {
+  id           String           @id @default(cuid())
+  disputeId    String           @map("dispute_id")
+  type         String
+  title        String
+  description  String
+  actorId      String?          @map("actor_id")
+  actorType    DisputeActorType @map("actor_type")
+  metadataJson Json             @default("{}") @map("metadata_json")
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute DisputeCase @relation(fields: [disputeId], references: [id])
+  actor   User?       @relation("DisputeTimelineActor", fields: [actorId], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("dispute_timelines")
+}
+
 model AuthSession {
-  id                   String    @id @default(cuid())
-  userId               String    @map("user_id")
-  refreshTokenHash     String    @map("refresh_token_hash")
-  deviceName           String?   @map("device_name")
-  ipAddress            String?   @map("ip_address")
-  location             String?
-  userAgent            String?   @map("user_agent")
-  lastActiveAt         DateTime  @default(now()) @map("last_active_at") @db.Timestamptz
-  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz
-  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  id               String    @id @default(cuid())
+  userId           String    @map("user_id")
+  refreshTokenHash String    @map("refresh_token_hash")
+  deviceName       String?   @map("device_name")
+  ipAddress        String?   @map("ip_address")
+  location         String?
+  userAgent        String?   @map("user_agent")
+  lastActiveAt     DateTime  @default(now()) @map("last_active_at") @db.Timestamptz
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id])
 
@@ -1805,8 +1943,8 @@ model SubscriptionPlan {
   updatedAt                    DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt                    DateTime?                  @map("deleted_at") @db.Timestamptz
 
-  creator User? @relation("SubscriptionPlanCreator", fields: [createdBy], references: [id])
-  updater User? @relation("SubscriptionPlanUpdater", fields: [updatedBy], references: [id])
+  creator               User?                  @relation("SubscriptionPlanCreator", fields: [createdBy], references: [id])
+  updater               User?                  @relation("SubscriptionPlanUpdater", fields: [updatedBy], references: [id])
   customerSubscriptions CustomerSubscription[]
 
   @@index([status, visibility])
@@ -1895,8 +2033,8 @@ model Coupon {
   updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz
 
-  creator User? @relation("CouponCreator", fields: [createdBy], references: [id])
-  updater User? @relation("CouponUpdater", fields: [updatedBy], references: [id])
+  creator               User?                  @relation("CouponCreator", fields: [createdBy], references: [id])
+  updater               User?                  @relation("CouponUpdater", fields: [updatedBy], references: [id])
   customerSubscriptions CustomerSubscription[]
 
   @@index([isActive, expiresAt])
