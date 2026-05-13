@@ -64,7 +64,7 @@ export class CustomerWalletService {
 
   async bankAccounts(user: AuthUserContext) { const items = await this.prisma.customerBankAccount.findMany({ where: { userId: user.uid, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] }); return { data: items.map((item) => this.toBankAccount(item)), message: 'Bank accounts fetched successfully.' }; }
   async setDefaultBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.prisma.$transaction([this.prisma.customerBankAccount.updateMany({ where: { userId: user.uid, isDefault: true }, data: { isDefault: false } }), this.prisma.customerBankAccount.update({ where: { id: account.id }, data: { isDefault: true } })]); return { data: { id: account.id, isDefault: true }, message: 'Default bank account updated successfully.' }; }
-  async deleteBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.prisma.customerBankAccount.update({ where: { id: account.id }, data: { deletedAt: new Date(), isDefault: false } }); return { data: null, message: 'Bank account deleted successfully.' }; }
+  async deleteBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.prisma.customerBankAccount.delete({ where: { id: account.id } }); return { data: null, message: 'Bank account deleted successfully.' }; }
 
   async creditWalletTopUp(payment: Payment): Promise<void> {
     const metadata = this.metadata(payment.metadataJson);

@@ -28,6 +28,7 @@ function createService(foundContact: typeof contact | null = contact) {
       count: jest.fn().mockResolvedValue(1),
       findFirst: jest.fn().mockResolvedValue(foundContact),
       update: jest.fn().mockResolvedValue(contact),
+      delete: jest.fn().mockResolvedValue(contact),
     },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
@@ -98,9 +99,7 @@ describe('CustomerContactsService', () => {
 
     const result = await service.delete(user, 'contact_1');
 
-    const calls = prisma.customerContact.update.mock.calls as ContactWriteCall[];
-    expect(calls[0][0].where?.id).toBe('contact_1');
-    expect(calls[0][0].data?.deletedAt).toBeInstanceOf(Date);
+    expect(prisma.customerContact.delete).toHaveBeenCalledWith({ where: { id: 'contact_1' } });
     expect(result.message).toBe('Contact deleted successfully.');
   });
 

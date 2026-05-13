@@ -102,7 +102,7 @@ export class ProviderInteractionsService {
     await this.getOwnedReview(user.uid, reviewId);
     const response = await this.prisma.reviewResponse.findFirst({ where: { reviewId, providerId: user.uid, deletedAt: null } });
     if (!response) throw new NotFoundException('Review response not found');
-    await this.prisma.reviewResponse.update({ where: { id: response.id }, data: { deletedAt: new Date() } });
+    await this.prisma.reviewResponse.delete({ where: { id: response.id } });
     return { data: null, message: 'Review response deleted successfully.' };
   }
 

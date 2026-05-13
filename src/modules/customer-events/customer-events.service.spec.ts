@@ -12,7 +12,7 @@ type UpdateManyCall = [{ data?: Record<string, unknown> }];
 
 function createService(foundEvent: typeof event | null = event, contact: typeof recipient | null = recipient) {
   const prisma = {
-    customerEvent: { findMany: jest.fn().mockResolvedValue([event]), count: jest.fn().mockResolvedValue(1), create: jest.fn().mockResolvedValue(event), findFirst: jest.fn().mockResolvedValue(foundEvent), update: jest.fn().mockResolvedValue(event) },
+    customerEvent: { findMany: jest.fn().mockResolvedValue([event]), count: jest.fn().mockResolvedValue(1), create: jest.fn().mockResolvedValue(event), findFirst: jest.fn().mockResolvedValue(foundEvent), update: jest.fn().mockResolvedValue(event), delete: jest.fn().mockResolvedValue(event) },
     customerContact: { findFirst: jest.fn().mockResolvedValue(contact) },
     customerEventReminderJob: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),

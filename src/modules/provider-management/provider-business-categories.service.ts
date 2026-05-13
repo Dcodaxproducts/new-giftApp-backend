@@ -97,8 +97,8 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     const category = await this.getCategory(id);
     const activeProviders = await this.prisma.user.count({ where: { providerBusinessCategoryId: id, deletedAt: null, isActive: true } });
     if (activeProviders > 0) throw new BadRequestException('Category has active providers and cannot be deleted');
-    const deleted = await this.prisma.providerBusinessCategory.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
-    await this.audit(user.uid, id, 'PROVIDER_BUSINESS_CATEGORY_DELETED', this.toCategory(category), this.toCategory(deleted));
+    await this.prisma.providerBusinessCategory.delete({ where: { id } });
+    await this.audit(user.uid, id, 'PROVIDER_BUSINESS_CATEGORY_DELETED', this.toCategory(category), null);
     return { data: null, message: 'Provider business category deleted successfully' };
   }
 

@@ -129,8 +129,8 @@ export class GiftManagementService {
     const category = await this.getCategory(id);
     const gifts = await this.prisma.gift.count({ where: { categoryId: id, deletedAt: null } });
     if (gifts > 0) throw new BadRequestException('Category has attached gifts and cannot be deleted');
-    const deleted = await this.prisma.giftCategory.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
-    await this.audit(user.uid, id, 'GIFT_CATEGORY_DELETED', this.toCategory(category, 0), this.toCategory(deleted, 0));
+    await this.prisma.giftCategory.delete({ where: { id } });
+    await this.audit(user.uid, id, 'GIFT_CATEGORY_DELETED', this.toCategory(category, 0), null);
     return { data: null, message: 'Gift category deleted successfully' };
   }
 
@@ -253,8 +253,8 @@ export class GiftManagementService {
   async deleteGift(user: AuthUserContext, id: string) {
     const gift = await this.getGift(id);
     this.assertCanManageGift(user, gift);
-    const deleted = await this.prisma.gift.update({ where: { id }, data: { deletedAt: new Date(), isPublished: false, status: GiftStatus.INACTIVE }, include: this.giftInclude() });
-    await this.audit(user.uid, id, 'GIFT_DELETED', this.toGiftDetail(gift), this.toGiftDetail(deleted));
+    await this.prisma.gift.delete({ where: { id } });
+    await this.audit(user.uid, id, 'GIFT_DELETED', this.toGiftDetail(gift), null);
     return { data: null, message: 'Gift deleted successfully' };
   }
 

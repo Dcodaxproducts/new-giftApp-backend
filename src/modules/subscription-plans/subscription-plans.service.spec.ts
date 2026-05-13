@@ -9,7 +9,7 @@ function createService() {
   const feature = { id: 'feature_1', key: 'apiAccess', label: 'API Access', description: 'API', type: 'BOOLEAN', isActive: true, sortOrder: 0, deletedAt: null, createdAt: new Date(), updatedAt: new Date() };
   const prisma = {
     subscriptionPlan: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(plan), findMany: jest.fn().mockResolvedValue([plan]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockResolvedValue(plan), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
-    planFeatureCatalog: { upsert: jest.fn(), findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(feature), update: jest.fn().mockResolvedValue({ ...feature, isActive: false }), findMany: jest.fn().mockResolvedValue([feature]), count: jest.fn().mockResolvedValue(1) },
+    planFeatureCatalog: { upsert: jest.fn(), findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(feature), update: jest.fn().mockResolvedValue({ ...feature, isActive: false }), delete: jest.fn().mockResolvedValue(feature), findMany: jest.fn().mockResolvedValue([feature]), count: jest.fn().mockResolvedValue(1) },
     coupon: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(coupon), findMany: jest.fn().mockResolvedValue([coupon]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockResolvedValue(coupon) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
@@ -52,7 +52,7 @@ describe('SubscriptionPlansService', () => {
     await service.createFeature({ uid: 'admin_1', role: UserRole.ADMIN }, { key: 'apiAccess', label: 'API Access', type: PlanFeatureType.BOOLEAN });
     prisma.planFeatureCatalog.findFirst.mockResolvedValue((await prisma.planFeatureCatalog.findMany())[0]);
     await service.deleteFeature({ uid: 'admin_1', role: UserRole.ADMIN }, 'feature_1');
-    expect(prisma.planFeatureCatalog.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ deletedAt: expect.any(Date), isActive: false }) }));
+    expect(prisma.planFeatureCatalog.delete).toHaveBeenCalledWith({ where: { id: 'feature_1' } });
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PLAN_FEATURE_DELETED' }));
   });
 });

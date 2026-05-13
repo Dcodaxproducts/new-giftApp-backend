@@ -151,7 +151,7 @@ export class CustomerMarketplaceService {
 
   async deleteAddress(user: AuthUserContext, id: string) {
     await this.getAddress(user.uid, id);
-    await this.prisma.customerAddress.update({ where: { id }, data: { deletedAt: new Date(), isDefault: false } });
+    await this.prisma.customerAddress.delete({ where: { id } });
     return { data: null, message: 'Address deleted successfully' };
   }
 
@@ -184,7 +184,7 @@ export class CustomerMarketplaceService {
 
   async deleteReminder(user: AuthUserContext, id: string) {
     await this.getReminder(user.uid, id);
-    await this.prisma.customerReminder.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
+    await this.prisma.customerReminder.delete({ where: { id } });
     return { data: null, message: 'Reminder deleted successfully' };
   }
 

@@ -53,7 +53,7 @@ export class CustomerContactsService {
 
   async delete(user: AuthUserContext, id: string) {
     const existing = await this.getOwnedContact(user.uid, id);
-    await this.prisma.customerContact.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
+    await this.prisma.customerContact.delete({ where: { id: existing.id } });
     return { message: 'Contact deleted successfully.' };
   }
 

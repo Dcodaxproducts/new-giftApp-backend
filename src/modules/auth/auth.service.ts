@@ -485,6 +485,7 @@ export class AuthService implements OnModuleInit {
           afterJson: { reason: dto.reason },
         },
       });
+      await tx.authSession.deleteMany({ where: { userId: admin.id } });
       await tx.loginAttempt.updateMany({ where: { userId: admin.id }, data: { userId: null } });
       await tx.adminAuditLog.updateMany({ where: { actorId: admin.id }, data: { actorId: null } });
       await tx.accountSuspension.deleteMany({ where: { accountId: admin.id } });
@@ -608,10 +609,7 @@ export class AuthService implements OnModuleInit {
     if (adminCount > 0) {
       throw new BadRequestException('Role cannot be deleted while admins are assigned to it');
     }
-    await this.prisma.adminRole.update({
-      where: { id: role.id },
-      data: { isActive: false, deletedAt: new Date() },
-    });
+    await this.prisma.adminRole.delete({ where: { id: role.id } });
     await this.recordAudit(user.uid, null, 'ADMIN_ROLE_DELETED', this.toAdminRole(role), null);
     return { data: null, message: 'Admin role deleted successfully' };
   }
@@ -968,7 +966,7 @@ export class AuthService implements OnModuleInit {
   async revokeSession(user: AuthUserContext, id: string) {
     const session = await this.prisma.authSession.findFirst({ where: { id, userId: user.uid, revokedAt: null } });
     if (!session) throw new NotFoundException('Session not found');
-    await this.prisma.authSession.update({ where: { id }, data: { revokedAt: new Date() } });
+    await this.prisma.authSession.delete({ where: { id } });
     return { success: true, message: 'Session revoked successfully.' };
   }
 
@@ -977,17 +975,32 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Administrative accounts must be managed by Super Admin');
     }
 
-    await this.prisma.user.update({
-      where: { id: user.uid },
-      data: {
-        isActive: false,
-        deletedAt: new Date(),
-        deleteAfter: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        refreshTokenHash: null,
-      },
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.authSession.deleteMany({ where: { userId: user.uid } });
+      await tx.notification.deleteMany({ where: { recipientId: user.uid } });
+      await tx.notificationDeviceToken.deleteMany({ where: { userId: user.uid } });
+      await tx.uploadedFile.deleteMany({ where: { ownerId: user.uid } });
+      await tx.accountSuspension.deleteMany({ where: { accountId: user.uid } });
+      await tx.loginAttempt.updateMany({ where: { userId: user.uid }, data: { userId: null } });
+      await tx.customerWishlist.deleteMany({ where: { userId: user.uid } });
+      await tx.cartItem.deleteMany({ where: { cart: { userId: user.uid } } });
+      await tx.cart.deleteMany({ where: { userId: user.uid } });
+      await tx.customerEventReminderJob.deleteMany({ where: { userId: user.uid } });
+      await tx.customerEvent.deleteMany({ where: { userId: user.uid } });
+      await tx.customerReminder.deleteMany({ where: { userId: user.uid } });
+      await tx.customerBankAccount.deleteMany({ where: { userId: user.uid } });
+      await tx.customerPaymentMethod.deleteMany({ where: { userId: user.uid } });
+      await tx.customerWalletLedger.deleteMany({ where: { userId: user.uid } });
+      await tx.customerWallet.deleteMany({ where: { userId: user.uid } });
+      await tx.rewardLedger.deleteMany({ where: { userId: user.uid } });
+      await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: user.uid }, { referredUserId: user.uid }] } });
+      await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId: user.uid } });
+      await tx.customerRecurringPayment.deleteMany({ where: { userId: user.uid } });
+      await tx.customerContact.deleteMany({ where: { userId: user.uid } });
+      await tx.user.delete({ where: { id: user.uid } });
     });
 
-    return { data: null, message: 'Account scheduled for deletion in 30 days' };
+    return { data: null, message: 'Account deleted successfully' };
   }
 
   async cancelDeletion(user: AuthUserContext) {

@@ -73,7 +73,7 @@ describe('Provider Chat and Reviews module', () => {
     expect(service).toContain('Active response already exists for this review');
     expect(service).toContain('reviewResponse.create');
     expect(service).toContain('reviewResponse.update');
-    expect(service).toContain('deletedAt: new Date()');
+    expect(service).toContain('reviewResponse.delete');
     expect(service).not.toContain('review.update');
     expect(service).not.toContain('comment: dto.body');
   });

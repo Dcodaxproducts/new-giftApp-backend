@@ -350,30 +350,15 @@ export class ProviderManagementService {
           afterJson: { reason: dto.reason, deleteRelatedRecords: dto.deleteRelatedRecords ?? true },
         },
       });
+      await tx.authSession.deleteMany({ where: { userId: provider.id } });
       await tx.notification.deleteMany({ where: { recipientId: provider.id } });
       await tx.notificationDeviceToken.deleteMany({ where: { userId: provider.id } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: provider.id } });
       await tx.accountSuspension.deleteMany({ where: { accountId: provider.id } });
       await tx.loginAttempt.updateMany({ where: { userId: provider.id }, data: { userId: null } });
-      await tx.promotionalOffer.updateMany({ where: { providerId: provider.id }, data: { deletedAt: new Date(), isActive: false } });
-      await tx.gift.updateMany({ where: { providerId: provider.id }, data: { deletedAt: new Date(), isPublished: false } });
-      await tx.user.update({
-        where: { id: provider.id },
-        data: {
-          email: `deleted-provider-${provider.id}@deleted.local`,
-          firstName: 'Deleted',
-          lastName: 'Provider',
-          phone: null,
-          avatarUrl: null,
-          location: null,
-          providerBusinessName: 'Deleted Provider',
-          isActive: false,
-          isApproved: false,
-          refreshTokenHash: null,
-          deletedAt: new Date(),
-          deleteAfter: new Date(),
-        },
-      });
+      await tx.promotionalOffer.deleteMany({ where: { providerId: provider.id } });
+      await tx.gift.deleteMany({ where: { providerId: provider.id } });
+      await tx.user.delete({ where: { id: provider.id } });
     });
 
     return {

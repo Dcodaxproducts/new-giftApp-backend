@@ -8,7 +8,7 @@ describe('Storage upload metadata flow', () => {
     expect(source).toContain('async complete');
     expect(source).toContain("status: UploadedFileStatus.COMPLETED");
     expect(source).toContain('async delete');
-    expect(source).toContain('deletedAt: new Date()');
+    expect(source).toContain('uploadedFile.delete');
   });
 
   it('keeps AWS credentials behind ConfigService', () => {

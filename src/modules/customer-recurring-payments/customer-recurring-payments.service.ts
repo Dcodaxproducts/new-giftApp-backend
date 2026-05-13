@@ -123,7 +123,7 @@ export class CustomerRecurringPaymentsService {
     const active = await this.prisma.customerRecurringPayment.findFirst({ where: { userId: user.uid, stripePaymentMethodId: method.stripePaymentMethodId, status: { in: [CustomerRecurringPaymentStatus.ACTIVE, CustomerRecurringPaymentStatus.PAUSED] }, deletedAt: null } });
     if (active) throw new BadRequestException('Payment method is used by an active recurring payment');
     await this.stripe().paymentMethods.detach(method.stripePaymentMethodId).catch(() => undefined);
-    await this.prisma.customerPaymentMethod.update({ where: { id: method.id }, data: { deletedAt: new Date(), isDefault: false } });
+    await this.prisma.customerPaymentMethod.delete({ where: { id: method.id } });
     return { data: { id: method.id }, message: 'Payment method deleted successfully.' };
   }
 

@@ -134,7 +134,7 @@ export class ProviderInventoryService {
 
   async delete(user: AuthUserContext, id: string) {
     const item = await this.getOwnGift(user.uid, id);
-    await this.prisma.gift.update({ where: { id }, data: { deletedAt: new Date(), isPublished: false, status: GiftStatus.INACTIVE } });
+    await this.prisma.gift.delete({ where: { id } });
     await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_DELETED', this.toDetailItem(item), null);
     return { data: null, message: 'Inventory item deleted successfully' };
   }

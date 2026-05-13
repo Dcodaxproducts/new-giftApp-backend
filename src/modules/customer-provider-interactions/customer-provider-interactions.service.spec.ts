@@ -61,8 +61,8 @@ describe('Customer Provider Interaction module', () => {
     for (const route of ["@Post('orders/:id/reviews')", "@Get('reviews')", "@Get('reviews/:id')", "@Patch('reviews/:id')", "@Delete('reviews/:id')"]) expect(controller).toContain(route);
     expect(service).toContain('Only delivered or completed orders can be reviewed');
     expect(service).toContain('You have already reviewed this provider order');
-    expect(service).toContain('deletedAt: new Date()');
-    expect(service).not.toContain('review.delete');
+    expect(service).toContain('review.delete');
+    expect(service).not.toContain('review.update({ where: { id }, data: { deletedAt');
   });
 
   it('connects customer reviews to admin/provider moderation and notifications', () => {

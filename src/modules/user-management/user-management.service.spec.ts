@@ -10,12 +10,14 @@ function createService() {
   const prisma = {
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as unknown[])),
     user: {
+      delete: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
       findFirst: jest.fn(),
       update: jest.fn(),
     },
     adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+    authSession: { deleteMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn() },
@@ -32,8 +34,8 @@ function createService() {
     customerWallet: { deleteMany: jest.fn() },
     rewardLedger: { deleteMany: jest.fn() },
     referral: { deleteMany: jest.fn() },
-    customerRecurringPaymentOccurrence: { updateMany: jest.fn() },
-    customerRecurringPayment: { updateMany: jest.fn() },
+    customerRecurringPaymentOccurrence: { updateMany: jest.fn(), deleteMany: jest.fn() },
+    customerRecurringPayment: { updateMany: jest.fn(), deleteMany: jest.fn() },
     customerContact: { deleteMany: jest.fn() },
     loginAttempt: { findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn() },
   };
@@ -241,7 +243,7 @@ describe('UserManagementService', () => {
   it('DELETE /users/:id removes related customer records without a request body', async () => {
     const { service, prisma } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
-    prisma.user.update.mockResolvedValue({ ...registeredUser, deletedAt: new Date() });
+    prisma.user.delete.mockResolvedValue(registeredUser);
 
     await service.permanentlyDelete(
       { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
@@ -251,7 +253,7 @@ describe('UserManagementService', () => {
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_PERMANENTLY_DELETED', afterJson: expect.objectContaining({ deleteRelatedRecords: true }) }) }));
     expect(prisma.customerContact.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
     expect(prisma.customerWalletLedger.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
-    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'user_1' }, data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
+    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user_1' } });
   });
 
 });

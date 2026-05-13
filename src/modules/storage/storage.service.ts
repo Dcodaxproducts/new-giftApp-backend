@@ -64,8 +64,8 @@ export class StorageService {
   async delete(user: AuthUserContext, id: string) {
     const file = await this.getAccessibleFile(user, id);
     if (this.configService.get<string>('AWS_DELETE_ON_UPLOAD_DELETE') === 'true') await this.deleteObject(file.storageKey);
-    const updated = await this.prisma.uploadedFile.update({ where: { id }, data: { status: UploadedFileStatus.DELETED, deletedAt: new Date() } });
-    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'UPLOAD', action: 'UPLOAD_DELETED', beforeJson: this.toFile(file), afterJson: this.toFile(updated) });
+    await this.prisma.uploadedFile.delete({ where: { id } });
+    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'UPLOAD', action: 'UPLOAD_DELETED', beforeJson: this.toFile(file), afterJson: null });
     return { data: null, message: 'Upload deleted successfully' };
   }
 

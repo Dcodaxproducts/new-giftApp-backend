@@ -125,7 +125,7 @@ export class PaymentsService {
     const method = await this.getOwnedPaymentMethod(user.uid, id);
     const activeRecurring = await this.prisma.customerRecurringPayment.count({ where: { userId: user.uid, stripePaymentMethodId: method.stripePaymentMethodId, status: 'ACTIVE', deletedAt: null } });
     if (activeRecurring > 0) throw new BadRequestException('Payment method is used by an active recurring payment');
-    await this.prisma.customerPaymentMethod.update({ where: { id: method.id }, data: { deletedAt: new Date(), isDefault: false } });
+    await this.prisma.customerPaymentMethod.delete({ where: { id: method.id } });
     return { data: null, message: 'Payment method deleted successfully.' };
   }
 

@@ -55,14 +55,15 @@ function createService(overrides: Record<string, unknown> = {}) {
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       deleteMany: jest.fn(),
     },
+    authSession: { deleteMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn() },
     loginAttempt: { updateMany: jest.fn() },
     providerOrder: { count: jest.fn().mockResolvedValue(0) },
     providerBusinessCategory: { findUnique: jest.fn().mockResolvedValue({ id: 'provider_business_category_id', isActive: true }) },
-    promotionalOffer: { updateMany: jest.fn() },
-    gift: { updateMany: jest.fn() },
+    promotionalOffer: { updateMany: jest.fn(), deleteMany: jest.fn() },
+    gift: { updateMany: jest.fn(), deleteMany: jest.fn() },
     adminAuditLog: { create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'provider_new', ...data })), findMany: jest.fn().mockResolvedValue([]) },
   };
   const mailer = {
@@ -411,9 +412,9 @@ describe('ProviderManagementService', () => {
     );
 
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_PERMANENTLY_DELETED' }) }));
-    expect(prisma.promotionalOffer.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerId: 'provider_1' } }));
-    expect(prisma.gift.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerId: 'provider_1' } }));
-    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'provider_1' }, data: expect.objectContaining({ isActive: false, isApproved: false, refreshTokenHash: null }) }));
+    expect(prisma.promotionalOffer.deleteMany).toHaveBeenCalledWith({ where: { providerId: 'provider_1' } });
+    expect(prisma.gift.deleteMany).toHaveBeenCalledWith({ where: { providerId: 'provider_1' } });
+    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'provider_1' } });
   });
 
 });

@@ -119,7 +119,7 @@ export class CustomerProviderInteractionsService {
   async deleteReview(user: AuthUserContext, id: string) {
     const review = await this.prisma.review.findFirst({ where: { id, userId: user.uid, deletedAt: null } });
     if (!review) throw new NotFoundException('Review not found');
-    await this.prisma.review.update({ where: { id }, data: { deletedAt: new Date() } });
+    await this.prisma.review.delete({ where: { id } });
     return { data: null, message: 'Review deleted successfully.' };
   }
 

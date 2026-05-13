@@ -213,8 +213,8 @@ export class PromotionalOffersService {
   }
 
   private async deleteOffer(actorId: string, offer: OfferWithRelations, action: string) {
-    const updated = await this.prisma.promotionalOffer.update({ where: { id: offer.id }, data: { deletedAt: new Date(), isActive: false, status: PromotionalOfferStatus.INACTIVE, updatedBy: actorId }, include: this.include() });
-    await this.audit(actorId, offer.id, action, this.toDetail(offer), this.toDetail(updated));
+    await this.prisma.promotionalOffer.delete({ where: { id: offer.id } });
+    await this.audit(actorId, offer.id, action, this.toDetail(offer), null);
     return { data: null, message: 'Promotional offer deleted successfully' };
   }
 

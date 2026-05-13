@@ -213,6 +213,7 @@ export class UserManagementService {
         },
       });
 
+      await tx.authSession.deleteMany({ where: { userId: target.id } });
       await tx.notification.deleteMany({ where: { recipientId: target.id } });
       await tx.notificationDeviceToken.deleteMany({ where: { userId: target.id } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: target.id } });
@@ -230,24 +231,10 @@ export class UserManagementService {
       await tx.customerWallet.deleteMany({ where: { userId: target.id } });
       await tx.rewardLedger.deleteMany({ where: { userId: target.id } });
       await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: target.id }, { referredUserId: target.id }] } });
-      await tx.customerRecurringPaymentOccurrence.updateMany({ where: { userId: target.id }, data: { failureReason: 'User permanently deleted' } });
-      await tx.customerRecurringPayment.updateMany({ where: { userId: target.id }, data: { deletedAt: new Date(), cancelReason: 'User permanently deleted' } });
+      await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId: target.id } });
+      await tx.customerRecurringPayment.deleteMany({ where: { userId: target.id } });
       await tx.customerContact.deleteMany({ where: { userId: target.id } });
-      await tx.user.update({
-        where: { id: target.id },
-        data: {
-          email: `deleted-user-${target.id}@deleted.local`,
-          firstName: 'Deleted',
-          lastName: 'User',
-          phone: null,
-          avatarUrl: null,
-          location: null,
-          isActive: false,
-          refreshTokenHash: null,
-          deletedAt: new Date(),
-          deleteAfter: new Date(),
-        },
-      });
+      await tx.user.delete({ where: { id: target.id } });
     });
 
     return {

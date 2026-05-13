@@ -19,6 +19,6 @@ describe('Provider business category security', () => {
   it('public list returns active non-deleted categories only and delete is soft guarded', () => {
     expect(service).toContain('isActive: true');
     expect(service).toContain('activeProviders > 0');
-    expect(service).toContain('deletedAt: new Date()');
+    expect(service).toContain('providerBusinessCategory.delete');
   });
 });
