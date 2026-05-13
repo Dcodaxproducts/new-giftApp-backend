@@ -560,13 +560,13 @@ Generated from Swagger/OpenAPI.
 ### `GET` `/api/v1/provider/inventory`
 - **Access:** PROVIDER
 - **Summary:** List provider inventory items
-- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns only inventory owned by the authenticated provider.
+- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.
 - **Parameters:** `page` (query), `limit` (query), `search` (query), `status` (query), `categoryId` (query), `sortBy` (query), `sortOrder` (query)
 
 ### `POST` `/api/v1/provider/inventory`
 - **Access:** PROVIDER
 - **Summary:** Create provider inventory item with optional nested variants
-- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.
+- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access this module. Provider inventory items do not require separate admin approval; approved active providers can create active, available inventory directly.
 - **Request examples:**
   - `withVariants`: `{"name":"Luxury Perfume","description":"Long-lasting premium fragrance.","shortDescription":"Premium fragrance gift.","categoryId":"gift_category_id","price":99.99,"currency":"PKR","stockQuantity":50,"sku":"PERFUME-001","imageUrls":["https://cdn.yourdomain.com/gift-images/perfume.png"],"isAvailable":true,"variants":[{"name":"30ml","price":89.99,"originalPrice":119.99,"stockQuantity":10,"sku":"PERFUME-30ML","isPopular":false,"isDefault":false,"sortOrder":1,"isActive":true},{"name":"50ml","price":129.99,"originalPrice":159.99,"stockQuantity":20,"sku":"PERFUME-50ML","isPopular":true,"isDefault":true,"sortOrder":2,"isActive":true}]}`
 
@@ -577,8 +577,8 @@ Generated from Swagger/OpenAPI.
 
 ### `GET` `/api/v1/provider/inventory/lookup`
 - **Access:** PROVIDER
-- **Summary:** Lookup active approved provider inventory items
-- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
+- **Summary:** Lookup active provider inventory items
+- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Gift moderation approval is not required for provider inventory lookup.
 
 ### `GET` `/api/v1/provider/inventory/{id}`
 - **Access:** PROVIDER
@@ -589,7 +589,7 @@ Generated from Swagger/OpenAPI.
 ### `PATCH` `/api/v1/provider/inventory/{id}`
 - **Access:** PROVIDER
 - **Summary:** Update own provider inventory item and upsert variants
-- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.
+- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Price, name, media, and variant changes do not reset provider inventory to pending moderation.
 - **Parameters:** `id` (path)
 - **Request examples:**
   - `upsertVariants`: `{"replaceVariants":false,"variants":[{"id":"variant_id","name":"50ml","price":129.99,"originalPrice":159.99,"stockQuantity":20,"sku":"PERFUME-50ML","isPopular":true,"isDefault":true,"sortOrder":2,"isActive":true},{"name":"150ml","price":249.99,"originalPrice":299.99,"stockQuantity":5,"sku":"PERFUME-150ML","isPopular":false,"isDefault":false,"sortOrder":4,"isActive":true}]}`
@@ -950,14 +950,14 @@ Generated from Swagger/OpenAPI.
 
 ### `GET` `/api/v1/gift-moderation`
 - **Access:** SUPER_ADMIN or ADMIN with giftModeration.read
-- **Summary:** GET /api/v1/gift-moderation
-- **Description:** Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission.
+- **Summary:** List optional gift moderation queue
+- **Description:** Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift Moderation is optional/admin review workflow for flagged/reported/admin-curated content. Provider inventory does not require mandatory gift approval for marketplace visibility.
 - **Parameters:** `page` (query), `limit` (query), `status` (query), `search` (query), `providerId` (query), `view` (query), `sortBy` (query), `sortOrder` (query)
 
 ### `PATCH` `/api/v1/gift-moderation/{id}/approve`
 - **Access:** SUPER_ADMIN or ADMIN with giftModeration.approve
-- **Summary:** PATCH /api/v1/gift-moderation/{id}/approve
-- **Description:** Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission.
+- **Summary:** Approve gift in optional moderation workflow
+- **Description:** Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. This is no longer required for provider-created inventory visibility; approved active providers can publish inventory directly.
 - **Parameters:** `id` (path)
 
 ### `PATCH` `/api/v1/gift-moderation/{id}/reject`
@@ -982,7 +982,7 @@ Generated from Swagger/OpenAPI.
 ### `GET` `/api/v1/customer/categories`
 - **Access:** REGISTERED_USER
 - **Summary:** List customer marketplace categories
-- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have available approved gifts.
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have active, available, in-stock gifts from approved active providers.
 
 ### `GET` `/api/v1/customer/gifts/discounted`
 - **Access:** REGISTERED_USER
@@ -998,13 +998,13 @@ Generated from Swagger/OpenAPI.
 ### `GET` `/api/v1/customer/gifts`
 - **Access:** REGISTERED_USER
 - **Summary:** List customer marketplace gifts
-- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Only approved, published, active, in-stock gifts from approved active providers are returned. Active offers are calculated by the backend.
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active, available, in-stock gifts from approved active providers. Provider inventory does not require separate gift moderation approval. Active offers are calculated by the backend.
 - **Parameters:** `page` (query), `limit` (query), `search` (query), `categoryId` (query), `categorySlug` (query), `providerId` (query), `offerOnly` (query), `minPrice` (query), `maxPrice` (query), `minRating` (query), `brand` (query), `deliveryOption` (query), `sortBy` (query)
 
 ### `GET` `/api/v1/customer/gifts/{id}`
 - **Access:** REGISTERED_USER
 - **Summary:** Fetch customer-safe gift details
-- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned.
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned. Provider inventory does not require separate gift moderation approval.
 - **Parameters:** `id` (path)
 
 ## 05 Customer - Wishlist

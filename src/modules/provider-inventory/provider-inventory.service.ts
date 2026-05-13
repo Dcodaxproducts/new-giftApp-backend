@@ -40,7 +40,7 @@ export class ProviderInventoryService {
 
   async lookup(user: AuthUserContext) {
     const items = await this.prisma.gift.findMany({
-      where: { providerId: user.uid, deletedAt: null, status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.APPROVED },
+      where: { providerId: user.uid, deletedAt: null, status: GiftStatus.ACTIVE },
       orderBy: { name: 'asc' },
       take: 500,
     });
@@ -70,8 +70,8 @@ export class ProviderInventoryService {
         sku: dto.sku?.trim(),
         imageUrls: dto.imageUrls ?? [],
         status,
-        moderationStatus: GiftModerationStatus.PENDING,
-        isPublished: false,
+        moderationStatus: GiftModerationStatus.NOT_REQUIRED,
+        isPublished: true,
         variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
       },
       include: this.include(),
@@ -110,16 +110,16 @@ export class ProviderInventoryService {
         categoryId: dto.categoryId,
         imageUrls: dto.imageUrls,
         status: this.toStatus(availability, stockQuantity),
-        moderationStatus: materialChange && item.moderationStatus === GiftModerationStatus.APPROVED ? GiftModerationStatus.PENDING : item.moderationStatus,
-        isPublished: materialChange && item.moderationStatus === GiftModerationStatus.APPROVED ? false : item.isPublished,
+        moderationStatus: item.moderationStatus,
+        isPublished: item.isPublished,
         },
       });
       if (dto.variants) await this.upsertVariants(tx, id, dto.variants, dto.replaceVariants ?? false);
       return tx.gift.findUniqueOrThrow({ where: { id: base.id }, include: this.include() });
     });
     await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_UPDATED', before, this.toDetailItem(updated));
-    if (materialChange && item.moderationStatus === GiftModerationStatus.APPROVED) {
-      await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_RESUBMITTED_FOR_MODERATION', { moderationStatus: item.moderationStatus }, { moderationStatus: updated.moderationStatus });
+    if (materialChange) {
+      await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_MATERIAL_UPDATED', before, this.toDetailItem(updated));
     }
     return { data: this.toDetailItem(updated), message: 'Inventory item updated successfully' };
   }

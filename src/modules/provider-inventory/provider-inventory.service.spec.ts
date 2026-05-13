@@ -10,14 +10,15 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(source).toContain('id, providerId, deletedAt: null');
   });
 
-  it('creates provider inventory as pending and unpublished', () => {
-    expect(source).toContain('moderationStatus: GiftModerationStatus.PENDING');
-    expect(source).toContain('isPublished: false');
+  it('creates provider inventory without mandatory gift moderation approval', () => {
+    expect(source).toContain('moderationStatus: GiftModerationStatus.NOT_REQUIRED');
+    expect(source).toContain('isPublished: true');
+    expect(source).not.toContain('moderationStatus: GiftModerationStatus.PENDING,\n        isPublished: false');
   });
 
-  it('exposes lookup with approved active provider items only', () => {
+  it('exposes lookup with active provider items without approved moderation requirement', () => {
     expect(source).toContain('async lookup');
     expect(source).toContain('status: GiftStatus.ACTIVE');
-    expect(source).toContain('moderationStatus: GiftModerationStatus.APPROVED');
+    expect(source).not.toContain('where: { providerId: user.uid, deletedAt: null, status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.APPROVED }');
   });
 });

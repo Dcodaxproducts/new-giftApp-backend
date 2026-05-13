@@ -38,6 +38,7 @@ enum GiftStatus {
 }
 
 enum GiftModerationStatus {
+  NOT_REQUIRED
   PENDING
   APPROVED
   REJECTED

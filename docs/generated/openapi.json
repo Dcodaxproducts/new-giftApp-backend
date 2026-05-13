@@ -4814,7 +4814,7 @@
     },
     "/api/v1/provider/inventory": {
       "get": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns only inventory owned by the authenticated provider.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.",
         "operationId": "ProviderInventoryController_list",
         "parameters": [
           {
@@ -4908,7 +4908,7 @@
                         "currency": "PKR",
                         "stockQuantity": 50,
                         "status": "ACTIVE",
-                        "moderationStatus": "APPROVED",
+                        "moderationStatus": "NOT_REQUIRED",
                         "isAvailable": true,
                         "category": {
                           "id": "category_id",
@@ -4951,7 +4951,7 @@
         "x-access": "PROVIDER"
       },
       "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT; provider cannot approve/publish variants directly.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access this module. Provider inventory items do not require separate admin approval; approved active providers can create active, available inventory directly.",
         "operationId": "ProviderInventoryController_create",
         "parameters": [],
         "requestBody": {
@@ -5021,7 +5021,7 @@
                       "currency": "PKR",
                       "stockQuantity": 50,
                       "status": "ACTIVE",
-                      "moderationStatus": "PENDING",
+                      "moderationStatus": "NOT_REQUIRED",
                       "variants": [
                         {
                           "id": "variant_id",
@@ -5080,6 +5080,7 @@
     },
     "/api/v1/provider/inventory/lookup": {
       "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Gift moderation approval is not required for provider inventory lookup.",
         "operationId": "ProviderInventoryController_lookup",
         "parameters": [],
         "responses": {
@@ -5092,13 +5093,12 @@
             "bearer": []
           }
         ],
-        "summary": "Lookup active approved provider inventory items",
+        "summary": "Lookup active provider inventory items",
         "tags": [
           "03 Provider - Inventory"
         ],
         "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER",
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/inventory/{id}": {
@@ -5130,7 +5130,7 @@
                       "currency": "PKR",
                       "stockQuantity": 50,
                       "status": "ACTIVE",
-                      "moderationStatus": "APPROVED",
+                      "moderationStatus": "NOT_REQUIRED",
                       "imageUrls": [
                         "https://cdn.yourdomain.com/gift-images/perfume.png"
                       ],
@@ -5168,7 +5168,7 @@
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "patch": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Material variant changes re-submit approved gifts for moderation; stock-only changes do not.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Price, name, media, and variant changes do not reset provider inventory to pending moderation.",
         "operationId": "ProviderInventoryController_update",
         "parameters": [
           {
@@ -8766,7 +8766,7 @@
     },
     "/api/v1/customer/categories": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have available approved gifts.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have active, available, in-stock gifts from approved active providers.",
         "operationId": "CustomerMarketplaceController_categories",
         "parameters": [],
         "responses": {
@@ -8966,7 +8966,7 @@
     },
     "/api/v1/customer/gifts": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Only approved, published, active, in-stock gifts from approved active providers are returned. Active offers are calculated by the backend.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active, available, in-stock gifts from approved active providers. Provider inventory does not require separate gift moderation approval. Active offers are calculated by the backend.",
         "operationId": "CustomerMarketplaceController_gifts",
         "parameters": [
           {
@@ -9165,7 +9165,7 @@
     },
     "/api/v1/customer/gifts/{id}": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned. Provider inventory does not require separate gift moderation approval.",
         "operationId": "CustomerMarketplaceController_giftDetails",
         "parameters": [
           {
@@ -12886,6 +12886,7 @@
     },
     "/api/v1/gift-moderation": {
       "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift Moderation is optional/admin review workflow for flagged/reported/admin-curated content. Provider inventory does not require mandatory gift approval for marketplace visibility.",
         "operationId": "GiftModerationController_list",
         "parameters": [
           {
@@ -12911,6 +12912,7 @@
             "schema": {
               "type": "string",
               "enum": [
+                "NOT_REQUIRED",
                 "PENDING",
                 "APPROVED",
                 "REJECTED",
@@ -12982,17 +12984,17 @@
             "bearer": []
           }
         ],
+        "summary": "List optional gift moderation queue",
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "GET /api/v1/gift-moderation",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission."
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.read"
       }
     },
     "/api/v1/gift-moderation/{id}/approve": {
       "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. This is no longer required for provider-created inventory visibility; approved active providers can publish inventory directly.",
         "operationId": "GiftModerationController_approve",
         "parameters": [
           {
@@ -13024,13 +13026,12 @@
             "bearer": []
           }
         ],
+        "summary": "Approve gift in optional moderation workflow",
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "PATCH /api/v1/gift-moderation/{id}/approve",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.approve",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.approve",
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission."
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.approve"
       }
     },
     "/api/v1/gift-moderation/{id}/reject": {
@@ -18815,6 +18816,7 @@
           "moderationStatus": {
             "type": "string",
             "enum": [
+              "NOT_REQUIRED",
               "PENDING",
               "APPROVED",
               "REJECTED",

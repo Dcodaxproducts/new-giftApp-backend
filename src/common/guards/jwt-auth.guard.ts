@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { AuthUserContext } from '../decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
@@ -51,6 +51,10 @@ export class JwtAuthGuard implements CanActivate {
         }
       }
 
+      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && (user.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !user.isActive || user.suspendedAt)) {
+        throw new ForbiddenException('Your provider account is pending approval. You cannot access this module yet.');
+      }
+
       if (payload.sessionId) {
         const session = await this.prisma.authSession.findFirst({
           where: { id: payload.sessionId, userId: user.id, revokedAt: null },
@@ -72,6 +76,12 @@ export class JwtAuthGuard implements CanActivate {
       }
       throw new UnauthorizedException('Invalid bearer token');
     }
+  }
+
+  private isBlockedProviderModule(path: string): boolean {
+    if (!path.startsWith('/api/v1/provider/')) return false;
+    if (path.startsWith('/api/v1/provider/business-info')) return false;
+    return true;
   }
 
   private extractBearerToken(request: Request): string | null {

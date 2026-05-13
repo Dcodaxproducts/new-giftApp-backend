@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -20,10 +20,12 @@ export class GiftModerationController {
 
   @Get()
   @Permissions('giftModeration.read')
+  @ApiOperation({ summary: 'List optional gift moderation queue', description: 'Gift Moderation is optional/admin review workflow for flagged/reported/admin-curated content. Provider inventory does not require mandatory gift approval for marketplace visibility.' })
   list(@Query() query: ListGiftModerationDto) { return this.gifts.moderationQueue(query); }
 
   @Patch(':id/approve')
   @Permissions('giftModeration.approve')
+  @ApiOperation({ summary: 'Approve gift in optional moderation workflow', description: 'This is no longer required for provider-created inventory visibility; approved active providers can publish inventory directly.' })
   approve(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ApproveGiftDto) { return this.gifts.approveGift(user, id, dto); }
 
   @Patch(':id/reject')

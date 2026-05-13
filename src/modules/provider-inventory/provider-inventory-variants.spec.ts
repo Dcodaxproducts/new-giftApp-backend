@@ -12,8 +12,9 @@ describe('Provider inventory nested variants', () => {
     expect(service).toContain('Variant does not belong to inventory item');
   });
 
-  it('variant material changes trigger moderation while stock-only changes can avoid it', () => {
+  it('variant material changes do not reset provider inventory to pending moderation', () => {
     expect(service).toContain('hasMaterialVariantChange');
-    expect(service).toContain('item.moderationStatus === GiftModerationStatus.APPROVED');
+    expect(service).toContain('PROVIDER_INVENTORY_ITEM_MATERIAL_UPDATED');
+    expect(service).not.toContain('PROVIDER_INVENTORY_ITEM_RESUBMITTED_FOR_MODERATION');
   });
 });

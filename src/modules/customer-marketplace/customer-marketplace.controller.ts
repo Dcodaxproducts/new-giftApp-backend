@@ -23,7 +23,7 @@ export class CustomerMarketplaceController {
 
   @Get('categories')
   @ApiTags('05 Customer - Marketplace')
-  @ApiOperation({ summary: 'List customer marketplace categories', description: 'REGISTERED_USER only. Returns active categories that have available approved gifts.' })
+  @ApiOperation({ summary: 'List customer marketplace categories', description: 'REGISTERED_USER only. Returns active categories that have active, available, in-stock gifts from approved active providers.' })
   @ApiResponse({ status: 200, description: 'Customer categories fetched successfully' })
   categories() { return this.marketplace.categories(); }
 
@@ -43,7 +43,7 @@ export class CustomerMarketplaceController {
 
   @Get('gifts')
   @ApiTags('05 Customer - Marketplace')
-  @ApiOperation({ summary: 'List customer marketplace gifts', description: 'REGISTERED_USER only. Only approved, published, active, in-stock gifts from approved active providers are returned. Active offers are calculated by the backend.' })
+  @ApiOperation({ summary: 'List customer marketplace gifts', description: 'REGISTERED_USER only. Returns active, available, in-stock gifts from approved active providers. Provider inventory does not require separate gift moderation approval. Active offers are calculated by the backend.' })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'categoryId', required: false })
   @ApiQuery({ name: 'categorySlug', required: false })
@@ -60,7 +60,7 @@ export class CustomerMarketplaceController {
 
   @Get('gifts/:id')
   @ApiTags('05 Customer - Marketplace')
-  @ApiOperation({ summary: 'Fetch customer-safe gift details', description: 'REGISTERED_USER only. Hidden/admin-only gift records are never returned.' })
+  @ApiOperation({ summary: 'Fetch customer-safe gift details', description: 'REGISTERED_USER only. Hidden/admin-only gift records are never returned. Provider inventory does not require separate gift moderation approval.' })
   @ApiResponse({ status: 200, description: 'Gift details fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', shortDescription: 'Premium fragrance gift.', price: 99.99, originalPrice: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], rating: 4.8, reviewCount: 0, stockQuantity: 50, sku: 'PERFUME-001', isWishlisted: false, badges: ['AUTHENTIC'], category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts', rating: 4.8, reviewCount: 0, fulfillmentMethods: ['DELIVERY'] }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, stockQuantity: 20, sku: 'PERFUME-50ML', isPopular: true, isDefault: true }], deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }, message: 'Gift details fetched successfully' } } })
   giftDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.giftDetails(user, id); }
 
