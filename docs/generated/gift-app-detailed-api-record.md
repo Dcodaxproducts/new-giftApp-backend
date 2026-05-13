@@ -467,6 +467,94 @@ Generated from Swagger/OpenAPI.
 - **Summary:** Update own provider business information
 - **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Cannot set approvalStatus/isActive; material business changes require verification review.
 
+## 03 Provider - Buyer Chat
+
+### `GET` `/api/v1/provider/chats`
+- **Access:** Authenticated
+- **Summary:** List provider buyer chats
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.
+- **Parameters:** `page` (query), `limit` (query), `search` (query), `unreadOnly` (query)
+
+### `GET` `/api/v1/provider/chats/quick-replies`
+- **Access:** Authenticated
+- **Summary:** Fetch provider buyer chat quick replies
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/chats/:threadId.
+
+### `GET` `/api/v1/provider/chats/{threadId}`
+- **Access:** Authenticated
+- **Summary:** Fetch provider buyer chat messages
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Thread must belong to the authenticated provider.
+- **Parameters:** `threadId` (path), `page` (query), `limit` (query), `before` (query)
+
+### `POST` `/api/v1/provider/chats/{threadId}/messages`
+- **Access:** Authenticated
+- **Summary:** Send chat message to buyer
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.
+- **Parameters:** `threadId` (path)
+- **Request examples:**
+  - `text`: `{"messageType":"TEXT","body":"Your order is ready for shipping.","attachmentUrls":[]}`
+  - `image`: `{"messageType":"IMAGE","attachmentUrls":["https://cdn.yourdomain.com/chat-attachments/package.png"]}`
+
+### `PATCH` `/api/v1/provider/chats/{threadId}/read`
+- **Access:** Authenticated
+- **Summary:** Mark buyer messages read
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Marks customer messages as read for provider in an owned thread.
+- **Parameters:** `threadId` (path)
+
+### `GET` `/api/v1/provider/orders/{id}/chat`
+- **Access:** PROVIDER
+- **Summary:** Get or optionally create provider order chat
+- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Provider order must belong to logged-in provider. Reuses existing thread if present.
+- **Parameters:** `id` (path), `createIfMissing` (query)
+
+### `POST` `/api/v1/provider/orders/{id}/chat`
+- **Access:** PROVIDER
+- **Summary:** Create provider order chat
+- **Description:** Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates or returns shared ChatThread for an owned provider order.
+- **Parameters:** `id` (path)
+
+## 03 Provider - Reviews
+
+### `GET` `/api/v1/provider/reviews/summary`
+- **Access:** Authenticated
+- **Summary:** Fetch provider rating summary
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.
+
+### `GET` `/api/v1/provider/reviews/filter-options`
+- **Access:** Authenticated
+- **Summary:** Fetch provider review filter options
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/reviews/:id.
+
+### `GET` `/api/v1/provider/reviews`
+- **Access:** Authenticated
+- **Summary:** List provider reviews
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Shows only reviews for own provider account/orders and excludes hidden/removed reviews.
+- **Parameters:** `page` (query), `limit` (query), `rating` (query), `hasResponse` (query), `search` (query), `sortBy` (query), `sortOrder` (query)
+
+### `GET` `/api/v1/provider/reviews/{id}`
+- **Access:** Authenticated
+- **Summary:** GET /api/v1/provider/reviews/{id}
+- **Description:** Access: Authenticated. Authenticated JWT required.
+- **Parameters:** `id` (path)
+
+### `POST` `/api/v1/provider/reviews/{id}/response`
+- **Access:** Authenticated
+- **Summary:** Post public review response
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can respond only to own review. Only one active public response per review.
+- **Parameters:** `id` (path)
+
+### `PATCH` `/api/v1/provider/reviews/{id}/response`
+- **Access:** Authenticated
+- **Summary:** Update public review response
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Updates only provider’s own active response; customer review content is never modified.
+- **Parameters:** `id` (path)
+
+### `DELETE` `/api/v1/provider/reviews/{id}/response`
+- **Access:** Authenticated
+- **Summary:** Soft-delete public review response
+- **Description:** Access: Authenticated. Authenticated JWT required. PROVIDER only. Soft-deletes own response and does not delete the original customer review.
+- **Parameters:** `id` (path)
+
 ## 03 Provider - Inventory
 
 ### `GET` `/api/v1/provider/inventory`

@@ -4202,6 +4202,616 @@
         "x-access": "PROVIDER"
       }
     },
+    "/api/v1/provider/chats": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.",
+        "operationId": "ProviderInteractionsController_chats",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "John",
+              "type": "string"
+            }
+          },
+          {
+            "name": "unreadOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List provider buyer chats",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/chats/quick-replies": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/chats/:threadId.",
+        "operationId": "ProviderInteractionsController_quickReplies",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider buyer chat quick replies",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/chats/{threadId}": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Thread must belong to the authenticated provider.",
+        "operationId": "ProviderInteractionsController_chatDetails",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-24T10:33:00.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider buyer chat messages",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/chats/{threadId}/messages": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.",
+        "operationId": "ProviderInteractionsController_sendMessage",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendProviderChatMessageDto"
+              },
+              "examples": {
+                "text": {
+                  "value": {
+                    "messageType": "TEXT",
+                    "body": "Your order is ready for shipping.",
+                    "attachmentUrls": []
+                  }
+                },
+                "image": {
+                  "value": {
+                    "messageType": "IMAGE",
+                    "attachmentUrls": [
+                      "https://cdn.yourdomain.com/chat-attachments/package.png"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send chat message to buyer",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/chats/{threadId}/read": {
+      "patch": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Marks customer messages as read for provider in an owned thread.",
+        "operationId": "ProviderInteractionsController_markRead",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark buyer messages read",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/orders/{id}/chat": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Provider order must belong to logged-in provider. Reuses existing thread if present.",
+        "operationId": "ProviderInteractionsController_getOrderChat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "createIfMissing",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get or optionally create provider order chat",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      },
+      "post": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates or returns shared ChatThread for an owned provider order.",
+        "operationId": "ProviderInteractionsController_createOrderChat",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create provider order chat",
+        "tags": [
+          "03 Provider - Buyer Chat"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/reviews/summary": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.",
+        "operationId": "ProviderInteractionsController_reviewSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "averageRating": 4.8,
+                      "reviewCount": 128,
+                      "distribution": {
+                        "1": 1,
+                        "2": 2,
+                        "3": 5,
+                        "4": 12,
+                        "5": 80
+                      }
+                    },
+                    "message": "Review summary fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider rating summary",
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/reviews/filter-options": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/reviews/:id.",
+        "operationId": "ProviderInteractionsController_filterOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider review filter options",
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/reviews": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Shows only reviews for own provider account/orders and excludes hidden/removed reviews.",
+        "operationId": "ProviderInteractionsController_reviews",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "hasResponse",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "packaging",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "rating"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List provider reviews",
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/reviews/{id}": {
+      "get": {
+        "operationId": "ProviderInteractionsController_reviewDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "summary": "GET /api/v1/provider/reviews/{id}",
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/provider/reviews/{id}/response": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can respond only to own review. Only one active public response per review.",
+        "operationId": "ProviderInteractionsController_createResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Post public review response",
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "patch": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Updates only provider’s own active response; customer review content is never modified.",
+        "operationId": "ProviderInteractionsController_updateResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update public review response",
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "delete": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Soft-deletes own response and does not delete the original customer review.",
+        "operationId": "ProviderInteractionsController_deleteResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft-delete public review response",
+        "tags": [
+          "03 Provider - Reviews"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/provider/inventory": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns only inventory owned by the authenticated provider.",
@@ -15332,6 +15942,12 @@
       "name": "03 Provider - Business Info"
     },
     {
+      "name": "03 Provider - Buyer Chat"
+    },
+    {
+      "name": "03 Provider - Reviews"
+    },
+    {
       "name": "03 Provider - Inventory"
     },
     {
@@ -16433,6 +17049,48 @@
             "example": false
           }
         }
+      },
+      "SendProviderChatMessageDto": {
+        "type": "object",
+        "properties": {
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "IMAGE",
+              "AUDIO",
+              "VIDEO",
+              "FILE"
+            ],
+            "example": "TEXT"
+          },
+          "body": {
+            "type": "string",
+            "example": "Your order is ready for shipping."
+          },
+          "attachmentUrls": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "messageType"
+        ]
+      },
+      "ReviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "example": "Thank you for your kind words, Sarah. We are happy you loved the packaging."
+          }
+        },
+        "required": [
+          "body"
+        ]
       },
       "ProviderInventoryVariantDto": {
         "type": "object",

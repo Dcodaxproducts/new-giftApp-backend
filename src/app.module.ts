@@ -21,6 +21,7 @@ import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.mod
 import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upload-policy.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderBusinessInfoModule } from './modules/provider-business-info/provider-business-info.module';
+import { ProviderInteractionsModule } from './modules/provider-interactions/provider-interactions.module';
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
 import { ProviderOrdersModule } from './modules/provider-orders/provider-orders.module';
@@ -40,6 +41,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminRolesModule,
     ProviderManagementModule,
     ProviderBusinessInfoModule,
+    ProviderInteractionsModule,
     ProviderInventoryModule,
     ProviderOrdersModule,
     ProviderRefundRequestsModule,
