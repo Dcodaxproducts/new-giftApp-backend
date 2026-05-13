@@ -10,7 +10,6 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminReviewsService } from './admin-reviews.service';
 import { ExportReviewsDto, FlaggedSummaryDto, ListReviewsDto, ModerateReviewDto, ModerationLogsDto, ModerationQueueDto, ReviewStatsDto } from './dto/admin-reviews.dto';
 
-@ApiTags('02 Admin - Reviews Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -19,16 +18,19 @@ export class AdminReviewsController {
   constructor(private readonly reviews: AdminReviewsService) {}
 
   @Get('dashboard')
+  @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
   @ApiOperation({ summary: 'Fetch platform review dashboard', description: 'SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.' })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { health: { averageRating: 4.62, averageRatingDelta: 0, totalReviews: 12847, newReviewsThisWeek: 842, flaggedQueueCount: 34, criticalFlaggedCount: 12, autoModeratedCount: 1203, autoModerationAccuracy: 82 }, systemWarning: { enabled: true, title: 'System Warning', message: 'Auto-moderation confidence dropped to 82%. Review recommended.', severity: 'WARNING' } }, message: 'Review dashboard fetched successfully.' } } })
   dashboard() { return this.reviews.dashboard(); }
 
   @Get('stats')
+  @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
   stats(@Query() query: ReviewStatsDto) { return this.reviews.stats(query); }
 
   @Get('export')
+  @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.export')
   async export(@Query() query: ExportReviewsDto): Promise<StreamableFile> { const file = await this.reviews.export(query); return new StreamableFile(Buffer.from(file.content), { disposition: `attachment; filename="${file.filename}"`, type: file.contentType }); }
 
@@ -48,10 +50,12 @@ export class AdminReviewsController {
   moderationLogs(@Query() query: ModerationLogsDto) { return this.reviews.moderationLogs(query); }
 
   @Get()
+  @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
   list(@Query() query: ListReviewsDto) { return this.reviews.list(query); }
 
   @Get(':id')
+  @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
   details(@Param('id') id: string) { return this.reviews.details(id); }
 

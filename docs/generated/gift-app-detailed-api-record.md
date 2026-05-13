@@ -1,12 +1,12 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T11:21:44.969Z_
+_Generated from OpenAPI: 2026-05-13T12:25:55.240Z_
 
 ## 02 Admin - Roles & Permissions
 
 ### `GET` `/api/v1/admin-roles`
 
-Summary: GET /api/v1/admin-roles
+Summary: List Admin Roles
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.
 Access: "SUPER_ADMIN"
 
@@ -14,7 +14,7 @@ Access: "SUPER_ADMIN"
 
 ### `POST` `/api/v1/admin-roles`
 
-Summary: POST /api/v1/admin-roles
+Summary: Create Admin Roles
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot create roles.
 Access: "SUPER_ADMIN"
 
@@ -22,7 +22,7 @@ Access: "SUPER_ADMIN"
 
 ### `GET` `/api/v1/admin-roles/{id}`
 
-Summary: GET /api/v1/admin-roles/{id}
+Summary: Fetch Admin Roles details
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot view role details.
 Access: "SUPER_ADMIN"
 
@@ -30,7 +30,7 @@ Access: "SUPER_ADMIN"
 
 ### `PATCH` `/api/v1/admin-roles/{id}`
 
-Summary: PATCH /api/v1/admin-roles/{id}
+Summary: Update Admin Roles
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update roles.
 Access: "SUPER_ADMIN"
 
@@ -38,7 +38,7 @@ Access: "SUPER_ADMIN"
 
 ### `DELETE` `/api/v1/admin-roles/{id}`
 
-Summary: DELETE /api/v1/admin-roles/{id}
+Summary: Delete Admin Roles
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot delete roles.
 Access: "SUPER_ADMIN"
 
@@ -46,7 +46,7 @@ Access: "SUPER_ADMIN"
 
 ### `PATCH` `/api/v1/admin-roles/{id}/permissions`
 
-Summary: PATCH /api/v1/admin-roles/{id}/permissions
+Summary: Update Admin Roles Permissions
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update role permissions.
 Access: "SUPER_ADMIN"
 
@@ -390,7 +390,7 @@ Access: "Authenticated"
 
 ### `GET` `/api/v1/admin/reviews`
 
-Summary: GET /api/v1/admin/reviews
+Summary: List Admin Reviews
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -398,11 +398,11 @@ Access: "Authenticated"
 
 ### `GET` `/api/v1/admin/reviews/{id}`
 
-Summary: GET /api/v1/admin/reviews/{id}
+Summary: Fetch Admin Reviews details
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `POST` `/api/v1/admin/reviews/{id}/moderate`
 
@@ -422,31 +422,31 @@ Access: "Authenticated"
 
 ### `GET` `/api/v1/admin/reviews/export`
 
-Summary: GET /api/v1/admin/reviews/export
+Summary: List Admin Reviews Export
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `GET` `/api/v1/admin/reviews/flagged-summary`
 
-Summary: GET /api/v1/admin/reviews/flagged-summary
+Summary: List Admin Reviews Flagged Summary
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `GET` `/api/v1/admin/reviews/moderation-logs`
 
-Summary: GET /api/v1/admin/reviews/moderation-logs
+Summary: List Admin Reviews Moderation Logs
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `GET` `/api/v1/admin/reviews/moderation-queue`
 
-Summary: GET /api/v1/admin/reviews/moderation-queue
+Summary: List Admin Reviews Moderation Queue
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -454,7 +454,7 @@ Access: "Authenticated"
 
 ### `GET` `/api/v1/admin/reviews/stats`
 
-Summary: GET /api/v1/admin/reviews/stats
+Summary: List Admin Reviews Stats
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -478,7 +478,7 @@ Access: "SUPER_ADMIN"
 
 ### `GET` `/api/v1/admins/{id}`
 
-Summary: GET /api/v1/admins/{id}
+Summary: Fetch Admins details
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches ADMIN staff details.
 Access: "SUPER_ADMIN"
 
@@ -486,7 +486,7 @@ Access: "SUPER_ADMIN"
 
 ### `PATCH` `/api/v1/admins/{id}`
 
-Summary: PATCH /api/v1/admins/{id}
+Summary: Update Admins
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details.
 Access: "SUPER_ADMIN"
 
@@ -502,7 +502,7 @@ Access: "SUPER_ADMIN"
 
 ### `PATCH` `/api/v1/admins/{id}/active-status`
 
-Summary: PATCH /api/v1/admins/{id}/active-status
+Summary: Update Admins Active Status
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff active status.
 Access: "SUPER_ADMIN"
 
@@ -510,7 +510,7 @@ Access: "SUPER_ADMIN"
 
 ### `PATCH` `/api/v1/admins/{id}/password`
 
-Summary: PATCH /api/v1/admins/{id}/password
+Summary: Update Admins Password
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard.
 Access: "SUPER_ADMIN"
 
@@ -566,7 +566,7 @@ Access: "SUPER_ADMIN"
 
 ### `DELETE` `/api/v1/auth/account`
 
-Summary: DELETE /api/v1/auth/account
+Summary: Delete Auth Account
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -574,7 +574,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/cancel-deletion`
 
-Summary: POST /api/v1/auth/cancel-deletion
+Summary: Create Auth Cancel Deletion
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -582,7 +582,7 @@ Access: "Authenticated"
 
 ### `PATCH` `/api/v1/auth/change-password`
 
-Summary: PATCH /api/v1/auth/change-password
+Summary: Update Auth Change Password
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -590,7 +590,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/forgot-password`
 
-Summary: POST /api/v1/auth/forgot-password
+Summary: Create Auth Forgot Password
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -598,7 +598,7 @@ Access: "PUBLIC"
 
 ### `POST` `/api/v1/auth/guest/session`
 
-Summary: POST /api/v1/auth/guest/session
+Summary: Create Auth Guest Session
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -606,7 +606,7 @@ Access: "PUBLIC"
 
 ### `POST` `/api/v1/auth/login`
 
-Summary: POST /api/v1/auth/login
+Summary: Create Auth Login
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -614,7 +614,7 @@ Access: "PUBLIC"
 
 ### `POST` `/api/v1/auth/logout`
 
-Summary: POST /api/v1/auth/logout
+Summary: Create Auth Logout
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -622,7 +622,7 @@ Access: "Authenticated"
 
 ### `GET` `/api/v1/auth/me`
 
-Summary: GET /api/v1/auth/me
+Summary: List Auth Me
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -630,7 +630,7 @@ Access: "Authenticated"
 
 ### `PATCH` `/api/v1/auth/me`
 
-Summary: PATCH /api/v1/auth/me
+Summary: Update Auth Me
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -638,7 +638,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/providers/register`
 
-Summary: POST /api/v1/auth/providers/register
+Summary: Create Auth Providers Register
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -646,7 +646,7 @@ Access: "PUBLIC"
 
 ### `POST` `/api/v1/auth/refresh`
 
-Summary: POST /api/v1/auth/refresh
+Summary: Create Auth Refresh
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -654,7 +654,7 @@ Access: "PUBLIC"
 
 ### `POST` `/api/v1/auth/resend-otp`
 
-Summary: POST /api/v1/auth/resend-otp
+Summary: Create Auth Resend Otp
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -662,7 +662,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/reset-password`
 
-Summary: POST /api/v1/auth/reset-password
+Summary: Create Auth Reset Password
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -670,7 +670,7 @@ Access: "PUBLIC"
 
 ### `GET` `/api/v1/auth/sessions`
 
-Summary: GET /api/v1/auth/sessions
+Summary: List Auth Sessions
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -678,7 +678,7 @@ Access: "Authenticated"
 
 ### `DELETE` `/api/v1/auth/sessions/{id}`
 
-Summary: DELETE /api/v1/auth/sessions/{id}
+Summary: Delete Auth Sessions
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -686,7 +686,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/sessions/logout-all`
 
-Summary: POST /api/v1/auth/sessions/logout-all
+Summary: Create Auth Sessions Logout All
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -694,7 +694,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/users/register`
 
-Summary: POST /api/v1/auth/users/register
+Summary: Create Auth Users Register
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -702,7 +702,7 @@ Access: "PUBLIC"
 
 ### `POST` `/api/v1/auth/verify-email`
 
-Summary: POST /api/v1/auth/verify-email
+Summary: Create Auth Verify Email
 Description: Access: Authenticated. Authenticated JWT required.
 Access: "Authenticated"
 
@@ -710,7 +710,7 @@ Access: "Authenticated"
 
 ### `POST` `/api/v1/auth/verify-reset-otp`
 
-Summary: POST /api/v1/auth/verify-reset-otp
+Summary: Create Auth Verify Reset Otp
 Description: Access: PUBLIC. PUBLIC.
 Access: "PUBLIC"
 
@@ -718,7 +718,7 @@ Access: "PUBLIC"
 
 ### `GET` `/api/v1/broadcasts`
 
-Summary: GET /api/v1/broadcasts
+Summary: List Broadcasts
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.read"
 
@@ -726,7 +726,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.read"
 
 ### `POST` `/api/v1/broadcasts`
 
-Summary: POST /api/v1/broadcasts
+Summary: Create Broadcasts
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.create"
 
@@ -734,7 +734,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.create"
 
 ### `GET` `/api/v1/broadcasts/{id}`
 
-Summary: GET /api/v1/broadcasts/{id}
+Summary: Fetch Broadcasts details
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.read"
 
@@ -742,7 +742,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.read"
 
 ### `PATCH` `/api/v1/broadcasts/{id}`
 
-Summary: PATCH /api/v1/broadcasts/{id}
+Summary: Update Broadcasts
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.update"
 
@@ -750,7 +750,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.update"
 
 ### `POST` `/api/v1/broadcasts/{id}/cancel`
 
-Summary: POST /api/v1/broadcasts/{id}/cancel
+Summary: Create Broadcasts Cancel
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.cancel"
 
@@ -758,7 +758,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.cancel"
 
 ### `GET` `/api/v1/broadcasts/{id}/recipients`
 
-Summary: GET /api/v1/broadcasts/{id}/recipients
+Summary: Fetch Broadcasts Recipients details
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.report.read"
 
@@ -766,7 +766,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.report.read"
 
 ### `GET` `/api/v1/broadcasts/{id}/report`
 
-Summary: GET /api/v1/broadcasts/{id}/report
+Summary: Fetch Broadcasts Report details
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.report.read"
 
@@ -774,7 +774,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.report.read"
 
 ### `PATCH` `/api/v1/broadcasts/{id}/schedule`
 
-Summary: PATCH /api/v1/broadcasts/{id}/schedule
+Summary: Update Broadcasts Schedule
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.schedule"
 
@@ -782,7 +782,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.schedule"
 
 ### `PATCH` `/api/v1/broadcasts/{id}/targeting`
 
-Summary: PATCH /api/v1/broadcasts/{id}/targeting
+Summary: Update Broadcasts Targeting
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.update"
 
@@ -790,7 +790,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.update"
 
 ### `POST` `/api/v1/broadcasts/estimate-reach`
 
-Summary: POST /api/v1/broadcasts/estimate-reach
+Summary: Create Broadcasts Estimate Reach
 Description: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
 Access: "SUPER_ADMIN or ADMIN with broadcasts.read"
 
@@ -798,7 +798,7 @@ Access: "SUPER_ADMIN or ADMIN with broadcasts.read"
 
 ### `GET` `/api/v1/coupons`
 
-Summary: GET /api/v1/coupons
+Summary: List Coupons
 Description: Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission.
 Access: "SUPER_ADMIN or ADMIN with coupons.read"
 
@@ -806,7 +806,7 @@ Access: "SUPER_ADMIN or ADMIN with coupons.read"
 
 ### `POST` `/api/v1/coupons`
 
-Summary: POST /api/v1/coupons
+Summary: Create Coupons
 Description: Access: SUPER_ADMIN or ADMIN with coupons.create. SUPER_ADMIN or ADMIN with coupons.create permission.
 Access: "SUPER_ADMIN or ADMIN with coupons.create"
 
@@ -814,7 +814,7 @@ Access: "SUPER_ADMIN or ADMIN with coupons.create"
 
 ### `GET` `/api/v1/coupons/{id}`
 
-Summary: GET /api/v1/coupons/{id}
+Summary: Fetch Coupons details
 Description: Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission.
 Access: "SUPER_ADMIN or ADMIN with coupons.read"
 
@@ -822,7 +822,7 @@ Access: "SUPER_ADMIN or ADMIN with coupons.read"
 
 ### `PATCH` `/api/v1/coupons/{id}`
 
-Summary: PATCH /api/v1/coupons/{id}
+Summary: Update Coupons
 Description: Access: SUPER_ADMIN or ADMIN with coupons.update. SUPER_ADMIN or ADMIN with coupons.update permission.
 Access: "SUPER_ADMIN or ADMIN with coupons.update"
 
@@ -830,7 +830,7 @@ Access: "SUPER_ADMIN or ADMIN with coupons.update"
 
 ### `DELETE` `/api/v1/coupons/{id}`
 
-Summary: DELETE /api/v1/coupons/{id}
+Summary: Delete Coupons
 Description: Access: SUPER_ADMIN or ADMIN with coupons.delete. SUPER_ADMIN or ADMIN with coupons.delete permission.
 Access: "SUPER_ADMIN or ADMIN with coupons.delete"
 
@@ -838,7 +838,7 @@ Access: "SUPER_ADMIN or ADMIN with coupons.delete"
 
 ### `PATCH` `/api/v1/coupons/{id}/status`
 
-Summary: PATCH /api/v1/coupons/{id}/status
+Summary: Update Coupons Status
 Description: Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission.
 Access: "SUPER_ADMIN or ADMIN with coupons.status.update"
 
@@ -1310,7 +1310,7 @@ Access: "REGISTERED_USER"
 
 ### `GET` `/api/v1/customer/provider-reports`
 
-Summary: GET /api/v1/customer/provider-reports
+Summary: List Customer Provider Reports
 Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
 Access: "REGISTERED_USER"
 
@@ -1318,7 +1318,7 @@ Access: "REGISTERED_USER"
 
 ### `GET` `/api/v1/customer/provider-reports/{id}`
 
-Summary: GET /api/v1/customer/provider-reports/{id}
+Summary: Fetch Customer Provider Reports details
 Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
 Access: "REGISTERED_USER"
 
@@ -1454,7 +1454,7 @@ Access: "REGISTERED_USER"
 
 ### `GET` `/api/v1/customer/reviews/{id}`
 
-Summary: GET /api/v1/customer/reviews/{id}
+Summary: Fetch Customer Reviews details
 Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
 Access: "REGISTERED_USER"
 
@@ -1726,7 +1726,7 @@ Access: "SUPER_ADMIN or ADMIN with giftModeration.approve"
 
 ### `PATCH` `/api/v1/gift-moderation/{id}/flag`
 
-Summary: PATCH /api/v1/gift-moderation/{id}/flag
+Summary: Update Gift Moderation Flag
 Description: Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission.
 Access: "SUPER_ADMIN or ADMIN with giftModeration.flag"
 
@@ -1734,7 +1734,7 @@ Access: "SUPER_ADMIN or ADMIN with giftModeration.flag"
 
 ### `PATCH` `/api/v1/gift-moderation/{id}/reject`
 
-Summary: PATCH /api/v1/gift-moderation/{id}/reject
+Summary: Update Gift Moderation Reject
 Description: Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission.
 Access: "SUPER_ADMIN or ADMIN with giftModeration.reject"
 
@@ -1806,7 +1806,7 @@ Access: "SUPER_ADMIN or ADMIN with gifts.read"
 
 ### `GET` `/api/v1/login-attempts`
 
-Summary: GET /api/v1/login-attempts
+Summary: List Login Attempts
 Description: Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission.
 Access: "SUPER_ADMIN or ADMIN with loginAttempts.read"
 
@@ -1814,7 +1814,7 @@ Access: "SUPER_ADMIN or ADMIN with loginAttempts.read"
 
 ### `GET` `/api/v1/login-attempts/export`
 
-Summary: GET /api/v1/login-attempts/export
+Summary: List Login Attempts Export
 Description: Access: SUPER_ADMIN or ADMIN with loginAttempts.export. SUPER_ADMIN or ADMIN with loginAttempts.export permission.
 Access: "SUPER_ADMIN or ADMIN with loginAttempts.export"
 
@@ -1822,7 +1822,7 @@ Access: "SUPER_ADMIN or ADMIN with loginAttempts.export"
 
 ### `GET` `/api/v1/login-attempts/stats`
 
-Summary: GET /api/v1/login-attempts/stats
+Summary: List Login Attempts Stats
 Description: Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission.
 Access: "SUPER_ADMIN or ADMIN with loginAttempts.read"
 
@@ -1934,7 +1934,7 @@ Access: "PUBLIC"
 
 ### `GET` `/api/v1/permissions/catalog`
 
-Summary: GET /api/v1/permissions/catalog
+Summary: List Permissions Catalog
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Read-only backend permission catalog. Read-only list of backend-supported permission keys that can be assigned to admin roles.
 Access: "SUPER_ADMIN"
 
@@ -1942,7 +1942,7 @@ Access: "SUPER_ADMIN"
 
 ### `GET` `/api/v1/plan-features`
 
-Summary: GET /api/v1/plan-features
+Summary: List Plan Features
 Description: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
 Access: "SUPER_ADMIN or ADMIN with planFeatures.read"
 
@@ -1950,7 +1950,7 @@ Access: "SUPER_ADMIN or ADMIN with planFeatures.read"
 
 ### `POST` `/api/v1/plan-features`
 
-Summary: POST /api/v1/plan-features
+Summary: Create Plan Features
 Description: Access: SUPER_ADMIN or ADMIN with planFeatures.create. SUPER_ADMIN or ADMIN with planFeatures.create permission.
 Access: "SUPER_ADMIN or ADMIN with planFeatures.create"
 
@@ -1958,7 +1958,7 @@ Access: "SUPER_ADMIN or ADMIN with planFeatures.create"
 
 ### `GET` `/api/v1/plan-features/{id}`
 
-Summary: GET /api/v1/plan-features/{id}
+Summary: Fetch Plan Features details
 Description: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
 Access: "SUPER_ADMIN or ADMIN with planFeatures.read"
 
@@ -1966,7 +1966,7 @@ Access: "SUPER_ADMIN or ADMIN with planFeatures.read"
 
 ### `PATCH` `/api/v1/plan-features/{id}`
 
-Summary: PATCH /api/v1/plan-features/{id}
+Summary: Update Plan Features
 Description: Access: SUPER_ADMIN or ADMIN with planFeatures.update. SUPER_ADMIN or ADMIN with planFeatures.update permission.
 Access: "SUPER_ADMIN or ADMIN with planFeatures.update"
 
@@ -1974,7 +1974,7 @@ Access: "SUPER_ADMIN or ADMIN with planFeatures.update"
 
 ### `DELETE` `/api/v1/plan-features/{id}`
 
-Summary: DELETE /api/v1/plan-features/{id}
+Summary: Delete Plan Features
 Description: Access: SUPER_ADMIN or ADMIN with planFeatures.delete. SUPER_ADMIN or ADMIN with planFeatures.delete permission.
 Access: "SUPER_ADMIN or ADMIN with planFeatures.delete"
 
@@ -1982,87 +1982,87 @@ Access: "SUPER_ADMIN or ADMIN with planFeatures.delete"
 
 ### `GET` `/api/v1/plan-features/catalog`
 
-Summary: GET /api/v1/plan-features/catalog
+Summary: List Plan Features Catalog
 Description: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
 Access: "SUPER_ADMIN or ADMIN with planFeatures.read"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers`
 
-Summary: GET /api/v1/promotional-offers
+Summary: List Promotional Offers
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.read"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `POST` `/api/v1/promotional-offers`
 
-Summary: POST /api/v1/promotional-offers
+Summary: Create Promotional Offers
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.create. SUPER_ADMIN or ADMIN with promotionalOffers.create permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.create"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers/{id}`
 
-Summary: GET /api/v1/promotional-offers/{id}
+Summary: Fetch Promotional Offers details
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.read"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}`
 
-Summary: PATCH /api/v1/promotional-offers/{id}
+Summary: Update Promotional Offers
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.update. SUPER_ADMIN or ADMIN with promotionalOffers.update permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.update"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `DELETE` `/api/v1/promotional-offers/{id}`
 
-Summary: DELETE /api/v1/promotional-offers/{id}
+Summary: Delete Promotional Offers
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.delete. SUPER_ADMIN or ADMIN with promotionalOffers.delete permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.delete"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}/approve`
 
-Summary: PATCH /api/v1/promotional-offers/{id}/approve
+Summary: Update Promotional Offers Approve
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.approve"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}/reject`
 
-Summary: PATCH /api/v1/promotional-offers/{id}/reject
+Summary: Update Promotional Offers Reject
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.reject"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}/status`
 
-Summary: PATCH /api/v1/promotional-offers/{id}/status
+Summary: Update Promotional Offers Status
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.status.update"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers/export`
 
-Summary: GET /api/v1/promotional-offers/export
+Summary: List Promotional Offers Export
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.export. SUPER_ADMIN or ADMIN with promotionalOffers.export permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.export"
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers/stats`
 
-Summary: GET /api/v1/promotional-offers/stats
+Summary: List Promotional Offers Stats
 Description: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
 Access: "SUPER_ADMIN or ADMIN with promotionalOffers.read"
 
@@ -2230,7 +2230,7 @@ Access: "PROVIDER"
 
 ### `GET` `/api/v1/provider/offers`
 
-Summary: GET /api/v1/provider/offers
+Summary: List Provider Offers
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 Access: "PROVIDER"
 
@@ -2238,7 +2238,7 @@ Access: "PROVIDER"
 
 ### `POST` `/api/v1/provider/offers`
 
-Summary: POST /api/v1/provider/offers
+Summary: Create Provider Offers
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 Access: "PROVIDER"
 
@@ -2246,7 +2246,7 @@ Access: "PROVIDER"
 
 ### `GET` `/api/v1/provider/offers/{id}`
 
-Summary: GET /api/v1/provider/offers/{id}
+Summary: Fetch Provider Offers details
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 Access: "PROVIDER"
 
@@ -2254,7 +2254,7 @@ Access: "PROVIDER"
 
 ### `PATCH` `/api/v1/provider/offers/{id}`
 
-Summary: PATCH /api/v1/provider/offers/{id}
+Summary: Update Provider Offers
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 Access: "PROVIDER"
 
@@ -2262,7 +2262,7 @@ Access: "PROVIDER"
 
 ### `DELETE` `/api/v1/provider/offers/{id}`
 
-Summary: DELETE /api/v1/provider/offers/{id}
+Summary: Delete Provider Offers
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 Access: "PROVIDER"
 
@@ -2270,7 +2270,7 @@ Access: "PROVIDER"
 
 ### `PATCH` `/api/v1/provider/offers/{id}/status`
 
-Summary: PATCH /api/v1/provider/offers/{id}/status
+Summary: Update Provider Offers Status
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 Access: "PROVIDER"
 
@@ -2370,7 +2370,7 @@ Summary: Fetch own provider order timeline
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Timeline is scoped to the authenticated provider order.
 Access: "PROVIDER"
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/analytics/ratings`
 
@@ -2378,7 +2378,7 @@ Summary: Fetch own provider ratings analytics
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns stable zero values until reviews module is available.
 Access: "PROVIDER"
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/analytics/revenue`
 
@@ -2386,7 +2386,7 @@ Summary: Fetch own provider revenue analytics
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.
 Access: "PROVIDER"
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/export`
 
@@ -2402,7 +2402,7 @@ Summary: List own provider order history
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.
 Access: "PROVIDER"
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/performance`
 
@@ -2410,7 +2410,7 @@ Summary: Fetch own provider order performance
 Description: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.
 Access: "PROVIDER"
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/recent`
 
@@ -2494,7 +2494,7 @@ Access: "PROVIDER"
 
 ### `GET` `/api/v1/provider/reviews/{id}`
 
-Summary: GET /api/v1/provider/reviews/{id}
+Summary: Fetch Provider Reviews details
 Description: Access: PROVIDER. PROVIDER only. Provider can access only own reviews.
 Access: "PROVIDER"
 
@@ -2558,7 +2558,7 @@ Access: "SUPER_ADMIN or ADMIN with providers.create"
 
 ### `GET` `/api/v1/providers/{id}`
 
-Summary: GET /api/v1/providers/{id}
+Summary: Fetch Providers details
 Description: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 Access: "SUPER_ADMIN or ADMIN with providers.read"
 
@@ -2566,7 +2566,7 @@ Access: "SUPER_ADMIN or ADMIN with providers.read"
 
 ### `PATCH` `/api/v1/providers/{id}`
 
-Summary: PATCH /api/v1/providers/{id}
+Summary: Update Providers
 Description: Access: SUPER_ADMIN or ADMIN with providers.update. SUPER_ADMIN or ADMIN with providers.update permission.
 Access: "SUPER_ADMIN or ADMIN with providers.update"
 
@@ -2582,7 +2582,7 @@ Access: "SUPER_ADMIN"
 
 ### `GET` `/api/v1/providers/{id}/activity`
 
-Summary: GET /api/v1/providers/{id}/activity
+Summary: Fetch Providers Activity details
 Description: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 Access: "SUPER_ADMIN or ADMIN with providers.read"
 
@@ -2590,7 +2590,7 @@ Access: "SUPER_ADMIN or ADMIN with providers.read"
 
 ### `GET` `/api/v1/providers/{id}/items`
 
-Summary: GET /api/v1/providers/{id}/items
+Summary: Fetch Providers Items details
 Description: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 Access: "SUPER_ADMIN or ADMIN with providers.read"
 
@@ -2598,7 +2598,7 @@ Access: "SUPER_ADMIN or ADMIN with providers.read"
 
 ### `POST` `/api/v1/providers/{id}/message`
 
-Summary: POST /api/v1/providers/{id}/message
+Summary: Create Providers Message
 Description: Access: SUPER_ADMIN or ADMIN with providers.message. SUPER_ADMIN or ADMIN with providers.message permission.
 Access: "SUPER_ADMIN or ADMIN with providers.message"
 
@@ -2614,7 +2614,7 @@ Access: "SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>provi
 
 ### `GET` `/api/v1/providers/export`
 
-Summary: GET /api/v1/providers/export
+Summary: List Providers Export
 Description: Access: SUPER_ADMIN or ADMIN with providers.export. SUPER_ADMIN or ADMIN with providers.export permission.
 Access: "SUPER_ADMIN or ADMIN with providers.export"
 
@@ -2622,7 +2622,7 @@ Access: "SUPER_ADMIN or ADMIN with providers.export"
 
 ### `GET` `/api/v1/providers/lookup`
 
-Summary: GET /api/v1/providers/lookup
+Summary: List Providers Lookup
 Description: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 Access: "SUPER_ADMIN or ADMIN with providers.read"
 
@@ -2630,7 +2630,7 @@ Access: "SUPER_ADMIN or ADMIN with providers.read"
 
 ### `GET` `/api/v1/providers/stats`
 
-Summary: GET /api/v1/providers/stats
+Summary: List Providers Stats
 Description: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 Access: "SUPER_ADMIN or ADMIN with providers.read"
 
@@ -2686,7 +2686,7 @@ Access: "SUPER_ADMIN or ADMIN with referralSettings.read"
 
 ### `GET` `/api/v1/subscription-plans`
 
-Summary: GET /api/v1/subscription-plans
+Summary: List Subscription Plans
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.read"
 
@@ -2694,7 +2694,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.read"
 
 ### `POST` `/api/v1/subscription-plans`
 
-Summary: POST /api/v1/subscription-plans
+Summary: Create Subscription Plans
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.create. SUPER_ADMIN or ADMIN with subscriptionPlans.create permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.create"
 
@@ -2702,7 +2702,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.create"
 
 ### `GET` `/api/v1/subscription-plans/{id}`
 
-Summary: GET /api/v1/subscription-plans/{id}
+Summary: Fetch Subscription Plans details
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.read"
 
@@ -2710,7 +2710,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.read"
 
 ### `PATCH` `/api/v1/subscription-plans/{id}`
 
-Summary: PATCH /api/v1/subscription-plans/{id}
+Summary: Update Subscription Plans
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update. SUPER_ADMIN or ADMIN with subscriptionPlans.update permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.update"
 
@@ -2718,7 +2718,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.update"
 
 ### `DELETE` `/api/v1/subscription-plans/{id}`
 
-Summary: DELETE /api/v1/subscription-plans/{id}
+Summary: Delete Subscription Plans
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.delete. SUPER_ADMIN or ADMIN with subscriptionPlans.delete permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.delete"
 
@@ -2726,7 +2726,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.delete"
 
 ### `GET` `/api/v1/subscription-plans/{id}/analytics`
 
-Summary: GET /api/v1/subscription-plans/{id}/analytics
+Summary: Fetch Subscription Plans Analytics details
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read"
 
@@ -2734,7 +2734,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read"
 
 ### `PATCH` `/api/v1/subscription-plans/{id}/status`
 
-Summary: PATCH /api/v1/subscription-plans/{id}/status
+Summary: Update Subscription Plans Status
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update. SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update"
 
@@ -2742,7 +2742,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update"
 
 ### `PATCH` `/api/v1/subscription-plans/{id}/visibility`
 
-Summary: PATCH /api/v1/subscription-plans/{id}/visibility
+Summary: Update Subscription Plans Visibility
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update. SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update"
 
@@ -2750,7 +2750,7 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update"
 
 ### `GET` `/api/v1/subscription-plans/stats`
 
-Summary: GET /api/v1/subscription-plans/stats
+Summary: List Subscription Plans Stats
 Description: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.
 Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read"
 
@@ -2806,7 +2806,7 @@ Access: "SUPER_ADMIN or ADMIN with users.read"
 
 ### `GET` `/api/v1/users/{id}`
 
-Summary: GET /api/v1/users/{id}
+Summary: Fetch Users details
 Description: Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission.
 Access: "SUPER_ADMIN or ADMIN with users.read"
 
@@ -2814,7 +2814,7 @@ Access: "SUPER_ADMIN or ADMIN with users.read"
 
 ### `PATCH` `/api/v1/users/{id}`
 
-Summary: PATCH /api/v1/users/{id}
+Summary: Update Users
 Description: Access: SUPER_ADMIN or ADMIN with users.update. SUPER_ADMIN or ADMIN with users.update permission.
 Access: "SUPER_ADMIN or ADMIN with users.update"
 
@@ -2830,7 +2830,7 @@ Access: "SUPER_ADMIN"
 
 ### `GET` `/api/v1/users/{id}/activity`
 
-Summary: GET /api/v1/users/{id}/activity
+Summary: Fetch Users Activity details
 Description: Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission.
 Access: "SUPER_ADMIN or ADMIN with users.read"
 
@@ -2846,7 +2846,7 @@ Access: "SUPER_ADMIN or ADMIN with users.resetPassword"
 
 ### `GET` `/api/v1/users/{id}/stats`
 
-Summary: GET /api/v1/users/{id}/stats
+Summary: Fetch Users Stats details
 Description: Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission.
 Access: "SUPER_ADMIN or ADMIN with users.read"
 
@@ -2854,7 +2854,7 @@ Access: "SUPER_ADMIN or ADMIN with users.read"
 
 ### `PATCH` `/api/v1/users/{id}/status`
 
-Summary: PATCH /api/v1/users/{id}/status
+Summary: Update Users Status
 Description: Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission.
 Access: "SUPER_ADMIN or ADMIN with users.status.update"
 
@@ -2862,7 +2862,7 @@ Access: "SUPER_ADMIN or ADMIN with users.status.update"
 
 ### `POST` `/api/v1/users/{id}/suspend`
 
-Summary: POST /api/v1/users/{id}/suspend
+Summary: Create Users Suspend
 Description: Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission.
 Access: "SUPER_ADMIN or ADMIN with users.suspend"
 
@@ -2870,7 +2870,7 @@ Access: "SUPER_ADMIN or ADMIN with users.suspend"
 
 ### `POST` `/api/v1/users/{id}/unsuspend`
 
-Summary: POST /api/v1/users/{id}/unsuspend
+Summary: Create Users Unsuspend
 Description: Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission.
 Access: "SUPER_ADMIN or ADMIN with users.unsuspend"
 
@@ -2878,6 +2878,6 @@ Access: "SUPER_ADMIN or ADMIN with users.unsuspend"
 
 ### `GET` `/api/v1/users/export`
 
-Summary: GET /api/v1/users/export
+Summary: List Users Export
 Description: Access: SUPER_ADMIN or ADMIN with users.export. SUPER_ADMIN or ADMIN with users.export permission.
 Access: "SUPER_ADMIN or ADMIN with users.export"

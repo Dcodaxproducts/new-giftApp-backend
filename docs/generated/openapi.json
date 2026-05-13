@@ -23,7 +23,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/users/register",
+        "summary": "Create Auth Users Register",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -51,7 +51,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/providers/register",
+        "summary": "Create Auth Providers Register",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -79,7 +79,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/guest/session",
+        "summary": "Create Auth Guest Session",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -107,7 +107,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/login",
+        "summary": "Create Auth Login",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -135,7 +135,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/refresh",
+        "summary": "Create Auth Refresh",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -158,7 +158,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/logout",
+        "summary": "Create Auth Logout",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -191,7 +191,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/verify-email",
+        "summary": "Create Auth Verify Email",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -214,7 +214,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/resend-otp",
+        "summary": "Create Auth Resend Otp",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -242,7 +242,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/forgot-password",
+        "summary": "Create Auth Forgot Password",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -270,7 +270,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/verify-reset-otp",
+        "summary": "Create Auth Verify Reset Otp",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -298,7 +298,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/reset-password",
+        "summary": "Create Auth Reset Password",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
         "description": "Access: PUBLIC. PUBLIC."
@@ -331,7 +331,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "PATCH /api/v1/auth/change-password",
+        "summary": "Update Auth Change Password",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -354,7 +354,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "GET /api/v1/auth/me",
+        "summary": "List Auth Me",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -385,7 +385,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "PATCH /api/v1/auth/me",
+        "summary": "Update Auth Me",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -408,7 +408,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "GET /api/v1/auth/sessions",
+        "summary": "List Auth Sessions",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -431,7 +431,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/sessions/logout-all",
+        "summary": "Create Auth Sessions Logout All",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -463,7 +463,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "DELETE /api/v1/auth/sessions/{id}",
+        "summary": "Delete Auth Sessions",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -486,7 +486,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "DELETE /api/v1/auth/account",
+        "summary": "Delete Auth Account",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -509,7 +509,7 @@
         "tags": [
           "01 Auth"
         ],
-        "summary": "POST /api/v1/auth/cancel-deletion",
+        "summary": "Create Auth Cancel Deletion",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -611,7 +611,7 @@
         "tags": [
           "01 Auth - Login Attempts"
         ],
-        "summary": "GET /api/v1/login-attempts/stats",
+        "summary": "List Login Attempts Stats",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with loginAttempts.read",
         "x-access": "SUPER_ADMIN or ADMIN with loginAttempts.read",
         "description": "Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission."
@@ -713,7 +713,7 @@
         "tags": [
           "01 Auth - Login Attempts"
         ],
-        "summary": "GET /api/v1/login-attempts/export",
+        "summary": "List Login Attempts Export",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with loginAttempts.export",
         "x-access": "SUPER_ADMIN or ADMIN with loginAttempts.export",
         "description": "Access: SUPER_ADMIN or ADMIN with loginAttempts.export. SUPER_ADMIN or ADMIN with loginAttempts.export permission."
@@ -815,7 +815,7 @@
         "tags": [
           "01 Auth - Login Attempts"
         ],
-        "summary": "GET /api/v1/login-attempts",
+        "summary": "List Login Attempts",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with loginAttempts.read",
         "x-access": "SUPER_ADMIN or ADMIN with loginAttempts.read",
         "description": "Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission."
@@ -4082,7 +4082,7 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "GET /api/v1/admins/{id}",
+        "summary": "Fetch Admins details",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches ADMIN staff details."
@@ -4122,7 +4122,7 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "PATCH /api/v1/admins/{id}",
+        "summary": "Update Admins",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details."
@@ -4217,7 +4217,7 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "PATCH /api/v1/admins/{id}/active-status",
+        "summary": "Update Admins Active Status",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff active status."
@@ -4259,7 +4259,7 @@
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "PATCH /api/v1/admins/{id}/password",
+        "summary": "Update Admins Password",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard."
@@ -4367,7 +4367,7 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "GET /api/v1/admin/reviews/stats",
+        "summary": "List Admin Reviews Stats",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4469,7 +4469,7 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "GET /api/v1/admin/reviews/export",
+        "summary": "List Admin Reviews Export",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4505,10 +4505,9 @@
           }
         ],
         "tags": [
-          "02 Admin - Reviews Management",
           "02 Admin - Review Moderation"
         ],
-        "summary": "GET /api/v1/admin/reviews/flagged-summary",
+        "summary": "List Admin Reviews Flagged Summary",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4621,10 +4620,9 @@
           }
         ],
         "tags": [
-          "02 Admin - Reviews Management",
           "02 Admin - Review Moderation"
         ],
-        "summary": "GET /api/v1/admin/reviews/moderation-queue",
+        "summary": "List Admin Reviews Moderation Queue",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4718,10 +4716,9 @@
           }
         ],
         "tags": [
-          "02 Admin - Reviews Management",
           "02 Admin - Review Moderation"
         ],
-        "summary": "GET /api/v1/admin/reviews/moderation-logs",
+        "summary": "List Admin Reviews Moderation Logs",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4900,7 +4897,7 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "GET /api/v1/admin/reviews",
+        "summary": "List Admin Reviews",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4932,7 +4929,7 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "GET /api/v1/admin/reviews/{id}",
+        "summary": "Fetch Admin Reviews details",
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
@@ -4994,7 +4991,6 @@
         ],
         "summary": "Moderate a review",
         "tags": [
-          "02 Admin - Reviews Management",
           "02 Admin - Review Moderation"
         ],
         "x-allowed-roles": "Authenticated",
@@ -5164,7 +5160,7 @@
             "bearer": []
           }
         ],
-        "summary": "GET /api/v1/admin-roles",
+        "summary": "List Admin Roles",
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
@@ -5197,7 +5193,7 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "POST /api/v1/admin-roles",
+        "summary": "Create Admin Roles",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot create roles."
@@ -5229,7 +5225,7 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "GET /api/v1/admin-roles/{id}",
+        "summary": "Fetch Admin Roles details",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot view role details."
@@ -5269,7 +5265,7 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "PATCH /api/v1/admin-roles/{id}",
+        "summary": "Update Admin Roles",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update roles."
@@ -5299,7 +5295,7 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "DELETE /api/v1/admin-roles/{id}",
+        "summary": "Delete Admin Roles",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot delete roles."
@@ -5341,7 +5337,7 @@
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
-        "summary": "PATCH /api/v1/admin-roles/{id}/permissions",
+        "summary": "Update Admin Roles Permissions",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update role permissions."
@@ -5362,7 +5358,7 @@
             "bearer": []
           }
         ],
-        "summary": "GET /api/v1/permissions/catalog",
+        "summary": "List Permissions Catalog",
         "tags": [
           "02 Admin - Roles & Permissions"
         ],
@@ -5437,7 +5433,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/export",
+        "summary": "List Providers Export",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.export",
         "x-access": "SUPER_ADMIN or ADMIN with providers.export",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.export. SUPER_ADMIN or ADMIN with providers.export permission."
@@ -5460,7 +5456,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/stats",
+        "summary": "List Providers Stats",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
         "x-access": "SUPER_ADMIN or ADMIN with providers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
@@ -5709,7 +5705,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/lookup",
+        "summary": "List Providers Lookup",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
         "x-access": "SUPER_ADMIN or ADMIN with providers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
@@ -5741,7 +5737,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/{id}",
+        "summary": "Fetch Providers details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
         "x-access": "SUPER_ADMIN or ADMIN with providers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
@@ -5781,7 +5777,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "PATCH /api/v1/providers/{id}",
+        "summary": "Update Providers",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.update",
         "x-access": "SUPER_ADMIN or ADMIN with providers.update",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.update. SUPER_ADMIN or ADMIN with providers.update permission."
@@ -6037,7 +6033,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/{id}/items",
+        "summary": "Fetch Providers Items details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
         "x-access": "SUPER_ADMIN or ADMIN with providers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
@@ -6104,7 +6100,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "GET /api/v1/providers/{id}/activity",
+        "summary": "Fetch Providers Activity details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.read",
         "x-access": "SUPER_ADMIN or ADMIN with providers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission."
@@ -6146,7 +6142,7 @@
         "tags": [
           "02 Admin - Provider Management"
         ],
-        "summary": "POST /api/v1/providers/{id}/message",
+        "summary": "Create Providers Message",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providers.message",
         "x-access": "SUPER_ADMIN or ADMIN with providers.message",
         "description": "Access: SUPER_ADMIN or ADMIN with providers.message. SUPER_ADMIN or ADMIN with providers.message permission."
@@ -6882,7 +6878,7 @@
         "tags": [
           "03 Provider - Reviews"
         ],
-        "summary": "GET /api/v1/provider/reviews/{id}",
+        "summary": "Fetch Provider Reviews details",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. Provider can access only own reviews."
@@ -7849,7 +7845,7 @@
         ],
         "summary": "Fetch own provider order performance",
         "tags": [
-          "03 Provider - Orders"
+          "03 Provider - Order Analytics"
         ],
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER"
@@ -7904,7 +7900,7 @@
         ],
         "summary": "Fetch own provider revenue analytics",
         "tags": [
-          "03 Provider - Orders"
+          "03 Provider - Order Analytics"
         ],
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER"
@@ -7927,7 +7923,7 @@
         ],
         "summary": "Fetch own provider ratings analytics",
         "tags": [
-          "03 Provider - Orders"
+          "03 Provider - Order Analytics"
         ],
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER"
@@ -7960,7 +7956,7 @@
         ],
         "summary": "List recent own provider orders",
         "tags": [
-          "03 Provider - Orders"
+          "03 Provider - Order Analytics"
         ],
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER"
@@ -8023,7 +8019,7 @@
         ],
         "summary": "Export own provider orders as CSV",
         "tags": [
-          "03 Provider - Orders"
+          "03 Provider - Order Analytics"
         ],
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER"
@@ -8850,7 +8846,7 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/provider/offers",
+        "summary": "List Provider Offers",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -8881,7 +8877,7 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "POST /api/v1/provider/offers",
+        "summary": "Create Provider Offers",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -8913,7 +8909,7 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "GET /api/v1/provider/offers/{id}",
+        "summary": "Fetch Provider Offers details",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -8953,7 +8949,7 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/provider/offers/{id}",
+        "summary": "Update Provider Offers",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -8983,7 +8979,7 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "DELETE /api/v1/provider/offers/{id}",
+        "summary": "Delete Provider Offers",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -9025,7 +9021,7 @@
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "PATCH /api/v1/provider/offers/{id}/status",
+        "summary": "Update Provider Offers Status",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -9046,9 +9042,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "GET /api/v1/promotional-offers/stats",
+        "summary": "List Promotional Offers Stats",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
@@ -9195,9 +9191,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "GET /api/v1/promotional-offers/export",
+        "summary": "List Promotional Offers Export",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.export",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.export",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.export. SUPER_ADMIN or ADMIN with promotionalOffers.export permission."
@@ -9344,9 +9340,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "GET /api/v1/promotional-offers",
+        "summary": "List Promotional Offers",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
@@ -9375,9 +9371,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "POST /api/v1/promotional-offers",
+        "summary": "Create Promotional Offers",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.create",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.create",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.create. SUPER_ADMIN or ADMIN with promotionalOffers.create permission."
@@ -9407,9 +9403,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "GET /api/v1/promotional-offers/{id}",
+        "summary": "Fetch Promotional Offers details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
@@ -9447,9 +9443,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}",
+        "summary": "Update Promotional Offers",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.update",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.update",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.update. SUPER_ADMIN or ADMIN with promotionalOffers.update permission."
@@ -9477,9 +9473,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "DELETE /api/v1/promotional-offers/{id}",
+        "summary": "Delete Promotional Offers",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.delete",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.delete",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.delete. SUPER_ADMIN or ADMIN with promotionalOffers.delete permission."
@@ -9519,9 +9515,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}/approve",
+        "summary": "Update Promotional Offers Approve",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.approve",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.approve",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission."
@@ -9561,9 +9557,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}/reject",
+        "summary": "Update Promotional Offers Reject",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.reject",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.reject",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission."
@@ -9603,9 +9599,9 @@
           }
         ],
         "tags": [
-          "03 Provider - Promotional Offers"
+          "02 Admin - Promotional Offers Management"
         ],
-        "summary": "PATCH /api/v1/promotional-offers/{id}/status",
+        "summary": "Update Promotional Offers Status",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission."
@@ -9681,7 +9677,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/export",
+        "summary": "List Users Export",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.export",
         "x-access": "SUPER_ADMIN or ADMIN with users.export",
         "description": "Access: SUPER_ADMIN or ADMIN with users.export. SUPER_ADMIN or ADMIN with users.export permission."
@@ -9851,7 +9847,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/{id}",
+        "summary": "Fetch Users details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
         "x-access": "SUPER_ADMIN or ADMIN with users.read",
         "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
@@ -9891,7 +9887,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "PATCH /api/v1/users/{id}",
+        "summary": "Update Users",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.update",
         "x-access": "SUPER_ADMIN or ADMIN with users.update",
         "description": "Access: SUPER_ADMIN or ADMIN with users.update. SUPER_ADMIN or ADMIN with users.update permission."
@@ -9977,7 +9973,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "PATCH /api/v1/users/{id}/status",
+        "summary": "Update Users Status",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.status.update",
         "x-access": "SUPER_ADMIN or ADMIN with users.status.update",
         "description": "Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission."
@@ -10019,7 +10015,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "POST /api/v1/users/{id}/suspend",
+        "summary": "Create Users Suspend",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.suspend",
         "x-access": "SUPER_ADMIN or ADMIN with users.suspend",
         "description": "Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission."
@@ -10061,7 +10057,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "POST /api/v1/users/{id}/unsuspend",
+        "summary": "Create Users Unsuspend",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.unsuspend",
         "x-access": "SUPER_ADMIN or ADMIN with users.unsuspend",
         "description": "Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission."
@@ -10185,7 +10181,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/{id}/activity",
+        "summary": "Fetch Users Activity details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
         "x-access": "SUPER_ADMIN or ADMIN with users.read",
         "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
@@ -10217,7 +10213,7 @@
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "GET /api/v1/users/{id}/stats",
+        "summary": "Fetch Users Stats details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
         "x-access": "SUPER_ADMIN or ADMIN with users.read",
         "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
@@ -12648,7 +12644,7 @@
         "tags": [
           "05 Customer - Reviews"
         ],
-        "summary": "GET /api/v1/customer/reviews/{id}",
+        "summary": "Fetch Customer Reviews details",
         "x-allowed-roles": "REGISTERED_USER",
         "x-access": "REGISTERED_USER",
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
@@ -12841,7 +12837,7 @@
         "tags": [
           "05 Customer - Provider Reports"
         ],
-        "summary": "GET /api/v1/customer/provider-reports",
+        "summary": "List Customer Provider Reports",
         "x-allowed-roles": "REGISTERED_USER",
         "x-access": "REGISTERED_USER",
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
@@ -12873,7 +12869,7 @@
         "tags": [
           "05 Customer - Provider Reports"
         ],
-        "summary": "GET /api/v1/customer/provider-reports/{id}",
+        "summary": "Fetch Customer Provider Reports details",
         "x-allowed-roles": "REGISTERED_USER",
         "x-access": "REGISTERED_USER",
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
@@ -15589,7 +15585,7 @@
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "PATCH /api/v1/gift-moderation/{id}/reject",
+        "summary": "Update Gift Moderation Reject",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.reject",
         "x-access": "SUPER_ADMIN or ADMIN with giftModeration.reject",
         "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission."
@@ -15631,7 +15627,7 @@
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "PATCH /api/v1/gift-moderation/{id}/flag",
+        "summary": "Update Gift Moderation Flag",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.flag",
         "x-access": "SUPER_ADMIN or ADMIN with giftModeration.flag",
         "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission."
@@ -15664,7 +15660,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "POST /api/v1/broadcasts",
+        "summary": "Create Broadcasts",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.create",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.create",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission."
@@ -15812,7 +15808,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts",
+        "summary": "List Broadcasts",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
@@ -15844,7 +15840,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts/{id}",
+        "summary": "Fetch Broadcasts details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
@@ -15884,7 +15880,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "PATCH /api/v1/broadcasts/{id}",
+        "summary": "Update Broadcasts",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
@@ -15926,7 +15922,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "PATCH /api/v1/broadcasts/{id}/targeting",
+        "summary": "Update Broadcasts Targeting",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
@@ -15959,7 +15955,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "POST /api/v1/broadcasts/estimate-reach",
+        "summary": "Create Broadcasts Estimate Reach",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
@@ -16001,7 +15997,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "PATCH /api/v1/broadcasts/{id}/schedule",
+        "summary": "Update Broadcasts Schedule",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission."
@@ -16043,7 +16039,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "POST /api/v1/broadcasts/{id}/cancel",
+        "summary": "Create Broadcasts Cancel",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission."
@@ -16075,7 +16071,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts/{id}/report",
+        "summary": "Fetch Broadcasts Report details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
@@ -16160,7 +16156,7 @@
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "GET /api/v1/broadcasts/{id}/recipients",
+        "summary": "Fetch Broadcasts Recipients details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
         "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
@@ -16677,7 +16673,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans",
+        "summary": "List Subscription Plans",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission."
@@ -16708,7 +16704,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "POST /api/v1/subscription-plans",
+        "summary": "Create Subscription Plans",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.create",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.create",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.create. SUPER_ADMIN or ADMIN with subscriptionPlans.create permission."
@@ -16731,7 +16727,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans/stats",
+        "summary": "List Subscription Plans Stats",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission."
@@ -16763,7 +16759,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans/{id}",
+        "summary": "Fetch Subscription Plans details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission."
@@ -16803,7 +16799,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/subscription-plans/{id}",
+        "summary": "Update Subscription Plans",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.update",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.update",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update. SUPER_ADMIN or ADMIN with subscriptionPlans.update permission."
@@ -16833,7 +16829,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "DELETE /api/v1/subscription-plans/{id}",
+        "summary": "Delete Subscription Plans",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.delete",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.delete",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.delete. SUPER_ADMIN or ADMIN with subscriptionPlans.delete permission."
@@ -16875,7 +16871,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/subscription-plans/{id}/status",
+        "summary": "Update Subscription Plans Status",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update. SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission."
@@ -16917,7 +16913,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/subscription-plans/{id}/visibility",
+        "summary": "Update Subscription Plans Visibility",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update. SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission."
@@ -16949,7 +16945,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/subscription-plans/{id}/analytics",
+        "summary": "Fetch Subscription Plans Analytics details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission."
@@ -16972,7 +16968,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/plan-features/catalog",
+        "summary": "List Plan Features Catalog",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
         "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
@@ -17028,7 +17024,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/plan-features",
+        "summary": "List Plan Features",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
         "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
@@ -17059,7 +17055,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "POST /api/v1/plan-features",
+        "summary": "Create Plan Features",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.create",
         "x-access": "SUPER_ADMIN or ADMIN with planFeatures.create",
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.create. SUPER_ADMIN or ADMIN with planFeatures.create permission."
@@ -17091,7 +17087,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/plan-features/{id}",
+        "summary": "Fetch Plan Features details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
         "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
@@ -17131,7 +17127,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/plan-features/{id}",
+        "summary": "Update Plan Features",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.update",
         "x-access": "SUPER_ADMIN or ADMIN with planFeatures.update",
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.update. SUPER_ADMIN or ADMIN with planFeatures.update permission."
@@ -17161,7 +17157,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "DELETE /api/v1/plan-features/{id}",
+        "summary": "Delete Plan Features",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.delete",
         "x-access": "SUPER_ADMIN or ADMIN with planFeatures.delete",
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.delete. SUPER_ADMIN or ADMIN with planFeatures.delete permission."
@@ -17231,7 +17227,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/coupons",
+        "summary": "List Coupons",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.read",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.read",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission."
@@ -17262,7 +17258,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "POST /api/v1/coupons",
+        "summary": "Create Coupons",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.create",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.create",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.create. SUPER_ADMIN or ADMIN with coupons.create permission."
@@ -17294,7 +17290,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "GET /api/v1/coupons/{id}",
+        "summary": "Fetch Coupons details",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.read",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.read",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission."
@@ -17334,7 +17330,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/coupons/{id}",
+        "summary": "Update Coupons",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.update",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.update",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.update. SUPER_ADMIN or ADMIN with coupons.update permission."
@@ -17364,7 +17360,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "DELETE /api/v1/coupons/{id}",
+        "summary": "Delete Coupons",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.delete",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.delete",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.delete. SUPER_ADMIN or ADMIN with coupons.delete permission."
@@ -17406,7 +17402,7 @@
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "PATCH /api/v1/coupons/{id}/status",
+        "summary": "Update Coupons Status",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.status.update",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.status.update",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission."
@@ -18836,6 +18832,9 @@
     },
     {
       "name": "02 Admin - Provider Business Categories"
+    },
+    {
+      "name": "02 Admin - Promotional Offers Management"
     },
     {
       "name": "02 Admin - Referral Settings"

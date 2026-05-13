@@ -16,6 +16,7 @@ export const SWAGGER_TAG_ORDER = [
   '02 Admin - User Management',
   '02 Admin - Provider Management',
   '02 Admin - Provider Business Categories',
+  '02 Admin - Promotional Offers Management',
   '02 Admin - Referral Settings',
   '02 Admin - Media Upload Policy',
   '02 Admin - System Logs & Audit Trail',
@@ -68,12 +69,24 @@ function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
   return SWAGGER_TAG_ORDER.reduce((current, tag) => current.addTag(tag), builder);
 }
 
+function humanizePathSummary(method: string, path: string): string {
+  const clean = path.replace(/^\/api\/v1\//, '');
+  const segments = clean.split('/').filter(Boolean).filter((segment) => !segment.startsWith('{'));
+  const title = segments.join(' ').replace(/[-/]/g, ' ').split(' ').filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+  if (method === 'get') return path.includes('{') ? `Fetch ${title} details` : `List ${title}`;
+  if (method === 'post') return `Create ${title}`;
+  if (method === 'patch') return `Update ${title}`;
+  if (method === 'put') return `Replace ${title}`;
+  return `Delete ${title}`;
+}
+
 export function fillMissingOperationSummaries(document: OpenAPIObject): void {
   for (const [path, pathItem] of Object.entries(document.paths)) {
     for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
       const operation = pathItem?.[method];
-      if (operation && !operation.summary) {
-        operation.summary = `${method.toUpperCase()} ${path}`;
+      if (!operation) continue;
+      if (!operation.summary || operation.summary === `${method.toUpperCase()} ${path}`) {
+        operation.summary = humanizePathSummary(method, path);
       }
     }
   }
@@ -123,6 +136,7 @@ async function bootstrap(): Promise<void> {
           '02 Admin - User Management',
           '02 Admin - Provider Management',
           '02 Admin - Provider Business Categories',
+          '02 Admin - Promotional Offers Management',
           '02 Admin - Referral Settings',
           '02 Admin - Media Upload Policy',
           '02 Admin - System Logs & Audit Trail',

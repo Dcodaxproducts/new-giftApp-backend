@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-13 11:21 UTC
+Generated: 2026-05-13 12:25 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -12,6 +12,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - User Management (11 APIs)
 - 02 Admin - Provider Management (12 APIs)
 - 02 Admin - Provider Business Categories (5 APIs)
+- 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Referral Settings (6 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Logs & Audit Trail (6 APIs)
@@ -30,9 +31,10 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Buyer Chat (7 APIs)
 - 03 Provider - Reviews (7 APIs)
 - 03 Provider - Inventory (8 APIs)
-- 03 Provider - Promotional Offers (16 APIs)
-- 03 Provider - Orders (18 APIs)
+- 03 Provider - Promotional Offers (6 APIs)
+- 03 Provider - Orders (13 APIs)
 - 03 Provider - Refund Requests (6 APIs)
+- 03 Provider - Order Analytics (5 APIs)
 - 04 Gifts - Categories (7 APIs)
 - 04 Gifts - Management (8 APIs)
 - 04 Gifts - Moderation (4 APIs)
@@ -62,7 +64,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/users/register`
 
-- Summary: POST /api/v1/auth/users/register
+- Summary: Create Auth Users Register
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -88,7 +90,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/providers/register`
 
-- Summary: POST /api/v1/auth/providers/register
+- Summary: Create Auth Providers Register
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -122,7 +124,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/guest/session`
 
-- Summary: POST /api/v1/auth/guest/session
+- Summary: Create Auth Guest Session
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -145,7 +147,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/login`
 
-- Summary: POST /api/v1/auth/login
+- Summary: Create Auth Login
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -167,7 +169,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/refresh`
 
-- Summary: POST /api/v1/auth/refresh
+- Summary: Create Auth Refresh
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -188,7 +190,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/logout`
 
-- Summary: POST /api/v1/auth/logout
+- Summary: Create Auth Logout
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -207,7 +209,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/verify-email`
 
-- Summary: POST /api/v1/auth/verify-email
+- Summary: Create Auth Verify Email
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -228,7 +230,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/resend-otp`
 
-- Summary: POST /api/v1/auth/resend-otp
+- Summary: Create Auth Resend Otp
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -247,7 +249,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/forgot-password`
 
-- Summary: POST /api/v1/auth/forgot-password
+- Summary: Create Auth Forgot Password
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -268,7 +270,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/verify-reset-otp`
 
-- Summary: POST /api/v1/auth/verify-reset-otp
+- Summary: Create Auth Verify Reset Otp
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -290,7 +292,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/reset-password`
 
-- Summary: POST /api/v1/auth/reset-password
+- Summary: Create Auth Reset Password
 - Allowed role/access: PUBLIC
 - Notes: Access: PUBLIC. PUBLIC.
 - Request payload(s):
@@ -313,7 +315,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/auth/change-password`
 
-- Summary: PATCH /api/v1/auth/change-password
+- Summary: Update Auth Change Password
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -335,7 +337,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/auth/me`
 
-- Summary: GET /api/v1/auth/me
+- Summary: List Auth Me
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Response body:
@@ -358,7 +360,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/auth/me`
 
-- Summary: PATCH /api/v1/auth/me
+- Summary: Update Auth Me
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -382,7 +384,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/auth/sessions`
 
-- Summary: GET /api/v1/auth/sessions
+- Summary: List Auth Sessions
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Response body:
@@ -405,7 +407,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/sessions/logout-all`
 
-- Summary: POST /api/v1/auth/sessions/logout-all
+- Summary: Create Auth Sessions Logout All
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -424,7 +426,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/auth/sessions/{id}`
 
-- Summary: DELETE /api/v1/auth/sessions/{id}
+- Summary: Delete Auth Sessions
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Parameters:
@@ -445,7 +447,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/auth/account`
 
-- Summary: DELETE /api/v1/auth/account
+- Summary: Delete Auth Account
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -464,7 +466,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/cancel-deletion`
 
-- Summary: POST /api/v1/auth/cancel-deletion
+- Summary: Create Auth Cancel Deletion
 - Allowed role/access: Authenticated
 - Notes: Access: Authenticated. Authenticated JWT required.
 - Request payload(s):
@@ -485,7 +487,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/login-attempts/stats`
 
-- Summary: GET /api/v1/login-attempts/stats
+- Summary: List Login Attempts Stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with loginAttempts.read
 - Notes: Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission.
 - Parameters:
@@ -508,7 +510,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/login-attempts/export`
 
-- Summary: GET /api/v1/login-attempts/export
+- Summary: List Login Attempts Export
 - Allowed role/access: SUPER_ADMIN or ADMIN with loginAttempts.export
 - Notes: Access: SUPER_ADMIN or ADMIN with loginAttempts.export. SUPER_ADMIN or ADMIN with loginAttempts.export permission.
 - Parameters:
@@ -531,7 +533,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/login-attempts`
 
-- Summary: GET /api/v1/login-attempts
+- Summary: List Login Attempts
 - Allowed role/access: SUPER_ADMIN or ADMIN with loginAttempts.read
 - Notes: Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission.
 - Parameters:
@@ -635,7 +637,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/admins/{id}`
 
-- Summary: GET /api/v1/admins/{id}
+- Summary: Fetch Admins details
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches ADMIN staff details.
 - Parameters:
@@ -651,7 +653,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/admins/{id}`
 
-- Summary: PATCH /api/v1/admins/{id}
+- Summary: Update Admins
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details.
 - Parameters:
@@ -706,7 +708,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/admins/{id}/active-status`
 
-- Summary: PATCH /api/v1/admins/{id}/active-status
+- Summary: Update Admins Active Status
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff active status.
 - Parameters:
@@ -729,7 +731,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/admins/{id}/password`
 
-- Summary: PATCH /api/v1/admins/{id}/password
+- Summary: Update Admins Password
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard.
 - Parameters:
@@ -757,7 +759,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/admin-roles`
 
-- Summary: GET /api/v1/admin-roles
+- Summary: List Admin Roles
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.
 - Parameters:
@@ -775,7 +777,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/admin-roles`
 
-- Summary: POST /api/v1/admin-roles
+- Summary: Create Admin Roles
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot create roles.
 - Request payload(s):
@@ -798,7 +800,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/admin-roles/{id}`
 
-- Summary: GET /api/v1/admin-roles/{id}
+- Summary: Fetch Admin Roles details
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot view role details.
 - Parameters:
@@ -814,7 +816,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/admin-roles/{id}`
 
-- Summary: PATCH /api/v1/admin-roles/{id}
+- Summary: Update Admin Roles
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update roles.
 - Parameters:
@@ -839,7 +841,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/admin-roles/{id}`
 
-- Summary: DELETE /api/v1/admin-roles/{id}
+- Summary: Delete Admin Roles
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot delete roles.
 - Parameters:
@@ -860,7 +862,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/admin-roles/{id}/permissions`
 
-- Summary: PATCH /api/v1/admin-roles/{id}/permissions
+- Summary: Update Admin Roles Permissions
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update role permissions.
 - Parameters:
@@ -883,7 +885,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/permissions/catalog`
 
-- Summary: GET /api/v1/permissions/catalog
+- Summary: List Permissions Catalog
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Read-only backend permission catalog. Read-only list of backend-supported permission keys that can be assigned to admin roles.
 - Response body:
@@ -899,7 +901,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/users/export`
 
-- Summary: GET /api/v1/users/export
+- Summary: List Users Export
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.export
 - Notes: Access: SUPER_ADMIN or ADMIN with users.export. SUPER_ADMIN or ADMIN with users.export permission.
 - Parameters:
@@ -960,7 +962,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/users/{id}`
 
-- Summary: GET /api/v1/users/{id}
+- Summary: Fetch Users details
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.read
 - Notes: Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission.
 - Parameters:
@@ -976,7 +978,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/users/{id}`
 
-- Summary: PATCH /api/v1/users/{id}
+- Summary: Update Users
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.update
 - Notes: Access: SUPER_ADMIN or ADMIN with users.update. SUPER_ADMIN or ADMIN with users.update permission.
 - Parameters:
@@ -1027,7 +1029,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/users/{id}/status`
 
-- Summary: PATCH /api/v1/users/{id}/status
+- Summary: Update Users Status
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.status.update
 - Notes: Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission.
 - Parameters:
@@ -1053,7 +1055,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/users/{id}/suspend`
 
-- Summary: POST /api/v1/users/{id}/suspend
+- Summary: Create Users Suspend
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.suspend
 - Notes: Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission.
 - Parameters:
@@ -1078,7 +1080,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/users/{id}/unsuspend`
 
-- Summary: POST /api/v1/users/{id}/unsuspend
+- Summary: Create Users Unsuspend
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.unsuspend
 - Notes: Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission.
 - Parameters:
@@ -1133,7 +1135,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/users/{id}/activity`
 
-- Summary: GET /api/v1/users/{id}/activity
+- Summary: Fetch Users Activity details
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.read
 - Notes: Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission.
 - Parameters:
@@ -1152,7 +1154,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/users/{id}/stats`
 
-- Summary: GET /api/v1/users/{id}/stats
+- Summary: Fetch Users Stats details
 - Allowed role/access: SUPER_ADMIN or ADMIN with users.read
 - Notes: Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission.
 - Parameters:
@@ -1170,7 +1172,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/providers/export`
 
-- Summary: GET /api/v1/providers/export
+- Summary: List Providers Export
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.export
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.export. SUPER_ADMIN or ADMIN with providers.export permission.
 - Parameters:
@@ -1189,7 +1191,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/providers/stats`
 
-- Summary: GET /api/v1/providers/stats
+- Summary: List Providers Stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.read
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 - Response body:
@@ -1297,7 +1299,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/providers/lookup`
 
-- Summary: GET /api/v1/providers/lookup
+- Summary: List Providers Lookup
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.read
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 - Parameters:
@@ -1316,7 +1318,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/providers/{id}`
 
-- Summary: GET /api/v1/providers/{id}
+- Summary: Fetch Providers details
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.read
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 - Parameters:
@@ -1332,7 +1334,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/providers/{id}`
 
-- Summary: PATCH /api/v1/providers/{id}
+- Summary: Update Providers
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.update
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.update. SUPER_ADMIN or ADMIN with providers.update permission.
 - Parameters:
@@ -1456,7 +1458,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/providers/{id}/items`
 
-- Summary: GET /api/v1/providers/{id}/items
+- Summary: Fetch Providers Items details
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.read
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 - Parameters:
@@ -1478,7 +1480,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/providers/{id}/activity`
 
-- Summary: GET /api/v1/providers/{id}/activity
+- Summary: Fetch Providers Activity details
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.read
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.read. SUPER_ADMIN or ADMIN with providers.read permission.
 - Parameters:
@@ -1497,7 +1499,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/providers/{id}/message`
 
-- Summary: POST /api/v1/providers/{id}/message
+- Summary: Create Providers Message
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.message
 - Notes: Access: SUPER_ADMIN or ADMIN with providers.message. SUPER_ADMIN or ADMIN with providers.message permission.
 - Parameters:
@@ -1620,6 +1622,247 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - Promotional Offers Management
+
+### GET `/api/v1/promotional-offers/stats`
+
+- Summary: List Promotional Offers Stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/promotional-offers/export`
+
+- Summary: List Promotional Offers Export
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.export
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.export. SUPER_ADMIN or ADMIN with promotionalOffers.export permission.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `status` (query, optional, string)
+  - `itemId` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `approvalStatus` (query, optional, string)
+  - `discountType` (query, optional, string)
+  - `startFrom` (query, optional, string)
+  - `startTo` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/promotional-offers`
+
+- Summary: List Promotional Offers
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `status` (query, optional, string)
+  - `itemId` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `approvalStatus` (query, optional, string)
+  - `discountType` (query, optional, string)
+  - `startFrom` (query, optional, string)
+  - `startTo` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/promotional-offers`
+
+- Summary: Create Promotional Offers
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.create
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.create. SUPER_ADMIN or ADMIN with promotionalOffers.create permission.
+- Request payload(s):
+  - payload:
+```json
+{
+  "itemId": "<string>",
+  "title": "<string>",
+  "description": "<string>",
+  "discountType": "PERCENTAGE",
+  "discountValue": 1.0,
+  "startDate": "<string>",
+  "endDate": "<string>",
+  "eligibilityRules": "<string>",
+  "isActive": true,
+  "providerId": "<string>",
+  "approvalStatus": "PENDING"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/promotional-offers/{id}`
+
+- Summary: Fetch Promotional Offers details
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/promotional-offers/{id}`
+
+- Summary: Update Promotional Offers
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.update
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.update. SUPER_ADMIN or ADMIN with promotionalOffers.update permission.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "title": "<string>",
+  "description": "<string>",
+  "discountType": "PERCENTAGE",
+  "discountValue": 1.0,
+  "startDate": "<string>",
+  "endDate": "<string>",
+  "eligibilityRules": "<string>",
+  "isActive": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### DELETE `/api/v1/promotional-offers/{id}`
+
+- Summary: Delete Promotional Offers
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.delete
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.delete. SUPER_ADMIN or ADMIN with promotionalOffers.delete permission.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/promotional-offers/{id}/approve`
+
+- Summary: Update Promotional Offers Approve
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.approve
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "comment": "<string>",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/promotional-offers/{id}/reject`
+
+- Summary: Update Promotional Offers Reject
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.reject
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "INVALID_DISCOUNT",
+  "comment": "<string>",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/promotional-offers/{id}/status`
+
+- Summary: Update Promotional Offers Status
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "isActive": true,
+  "reason": "<string>"
+}
 ```
 - Response body:
 ```json
@@ -3591,7 +3834,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/provider/reviews/{id}`
 
-- Summary: GET /api/v1/provider/reviews/{id}
+- Summary: Fetch Provider Reviews details
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. Provider can access only own reviews.
 - Parameters:
@@ -3998,7 +4241,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/provider/offers`
 
-- Summary: GET /api/v1/provider/offers
+- Summary: List Provider Offers
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 - Parameters:
@@ -4020,7 +4263,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/provider/offers`
 
-- Summary: POST /api/v1/provider/offers
+- Summary: Create Provider Offers
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 - Request payload(s):
@@ -4049,7 +4292,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/provider/offers/{id}`
 
-- Summary: GET /api/v1/provider/offers/{id}
+- Summary: Fetch Provider Offers details
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 - Parameters:
@@ -4065,7 +4308,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/provider/offers/{id}`
 
-- Summary: PATCH /api/v1/provider/offers/{id}
+- Summary: Update Provider Offers
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 - Parameters:
@@ -4095,7 +4338,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/provider/offers/{id}`
 
-- Summary: DELETE /api/v1/provider/offers/{id}
+- Summary: Delete Provider Offers
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
 - Parameters:
@@ -4116,248 +4359,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/provider/offers/{id}/status`
 
-- Summary: PATCH /api/v1/provider/offers/{id}/status
+- Summary: Update Provider Offers Status
 - Allowed role/access: PROVIDER
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "isActive": true,
-  "reason": "<string>"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/promotional-offers/stats`
-
-- Summary: GET /api/v1/promotional-offers/stats
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/promotional-offers/export`
-
-- Summary: GET /api/v1/promotional-offers/export
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.export
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.export. SUPER_ADMIN or ADMIN with promotionalOffers.export permission.
-- Parameters:
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `search` (query, optional, string)
-  - `status` (query, optional, string)
-  - `itemId` (query, optional, string)
-  - `sortBy` (query, optional, string)
-  - `sortOrder` (query, optional, string)
-  - `providerId` (query, optional, string)
-  - `approvalStatus` (query, optional, string)
-  - `discountType` (query, optional, string)
-  - `startFrom` (query, optional, string)
-  - `startTo` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/promotional-offers`
-
-- Summary: GET /api/v1/promotional-offers
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
-- Parameters:
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `search` (query, optional, string)
-  - `status` (query, optional, string)
-  - `itemId` (query, optional, string)
-  - `sortBy` (query, optional, string)
-  - `sortOrder` (query, optional, string)
-  - `providerId` (query, optional, string)
-  - `approvalStatus` (query, optional, string)
-  - `discountType` (query, optional, string)
-  - `startFrom` (query, optional, string)
-  - `startTo` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/promotional-offers`
-
-- Summary: POST /api/v1/promotional-offers
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.create
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.create. SUPER_ADMIN or ADMIN with promotionalOffers.create permission.
-- Request payload(s):
-  - payload:
-```json
-{
-  "itemId": "<string>",
-  "title": "<string>",
-  "description": "<string>",
-  "discountType": "PERCENTAGE",
-  "discountValue": 1.0,
-  "startDate": "<string>",
-  "endDate": "<string>",
-  "eligibilityRules": "<string>",
-  "isActive": true,
-  "providerId": "<string>",
-  "approvalStatus": "PENDING"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/promotional-offers/{id}`
-
-- Summary: GET /api/v1/promotional-offers/{id}
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
-- Parameters:
-  - `id` (path, required, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/promotional-offers/{id}`
-
-- Summary: PATCH /api/v1/promotional-offers/{id}
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.update
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.update. SUPER_ADMIN or ADMIN with promotionalOffers.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "title": "<string>",
-  "description": "<string>",
-  "discountType": "PERCENTAGE",
-  "discountValue": 1.0,
-  "startDate": "<string>",
-  "endDate": "<string>",
-  "eligibilityRules": "<string>",
-  "isActive": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### DELETE `/api/v1/promotional-offers/{id}`
-
-- Summary: DELETE /api/v1/promotional-offers/{id}
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.delete
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.delete. SUPER_ADMIN or ADMIN with promotionalOffers.delete permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/promotional-offers/{id}/approve`
-
-- Summary: PATCH /api/v1/promotional-offers/{id}/approve
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.approve
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "comment": "<string>",
-  "notifyProvider": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/promotional-offers/{id}/reject`
-
-- Summary: PATCH /api/v1/promotional-offers/{id}/reject
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.reject
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "INVALID_DISCOUNT",
-  "comment": "<string>",
-  "notifyProvider": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/promotional-offers/{id}/status`
-
-- Summary: PATCH /api/v1/promotional-offers/{id}/status
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -4439,91 +4443,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - `toDate` (query, optional, string)
   - `sortBy` (query, optional, string)
   - `sortOrder` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/orders/performance`
-
-- Summary: Fetch own provider order performance
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.
-- Parameters:
-  - `range` (query, optional, string)
-  - `fromDate` (query, optional, string)
-  - `toDate` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/orders/analytics/revenue`
-
-- Summary: Fetch own provider revenue analytics
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.
-- Parameters:
-  - `range` (query, optional, string)
-  - `fromDate` (query, optional, string)
-  - `toDate` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/orders/analytics/ratings`
-
-- Summary: Fetch own provider ratings analytics
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns stable zero values until reviews module is available.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/orders/recent`
-
-- Summary: List recent own provider orders
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Defaults to 5 latest orders.
-- Parameters:
-  - `limit` (query, optional, number)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/orders/export`
-
-- Summary: Export own provider orders as CSV
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Export is scoped to logged-in provider orders.
-- Parameters:
-  - `status` (query, optional, string)
-  - `fromDate` (query, optional, string)
-  - `toDate` (query, optional, string)
-  - `format` (query, optional, string)
 - Response body:
 ```json
 {
@@ -4898,6 +4817,93 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "notifyCustomer": true
 }
 ```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 03 Provider - Order Analytics
+
+### GET `/api/v1/provider/orders/performance`
+
+- Summary: Fetch own provider order performance
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Completion rate uses completed / non-cancelled own provider orders.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/orders/analytics/revenue`
+
+- Summary: Fetch own provider revenue analytics
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/orders/analytics/ratings`
+
+- Summary: Fetch own provider ratings analytics
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns stable zero values until reviews module is available.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/orders/recent`
+
+- Summary: List recent own provider orders
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Defaults to 5 latest orders.
+- Parameters:
+  - `limit` (query, optional, number)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/orders/export`
+
+- Summary: Export own provider orders as CSV
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Export is scoped to logged-in provider orders.
+- Parameters:
+  - `status` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `format` (query, optional, string)
 - Response body:
 ```json
 {
@@ -5375,7 +5381,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/gift-moderation/{id}/reject`
 
-- Summary: PATCH /api/v1/gift-moderation/{id}/reject
+- Summary: Update Gift Moderation Reject
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.reject
 - Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission.
 - Parameters:
@@ -5400,7 +5406,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/gift-moderation/{id}/flag`
 
-- Summary: PATCH /api/v1/gift-moderation/{id}/flag
+- Summary: Update Gift Moderation Flag
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.flag
 - Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission.
 - Parameters:
@@ -6627,7 +6633,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/customer/reviews/{id}`
 
-- Summary: GET /api/v1/customer/reviews/{id}
+- Summary: Fetch Customer Reviews details
 - Allowed role/access: REGISTERED_USER
 - Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
 - Parameters:
@@ -6730,7 +6736,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/customer/provider-reports`
 
-- Summary: GET /api/v1/customer/provider-reports
+- Summary: List Customer Provider Reports
 - Allowed role/access: REGISTERED_USER
 - Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
 - Parameters:
@@ -6748,7 +6754,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/customer/provider-reports/{id}`
 
-- Summary: GET /api/v1/customer/provider-reports/{id}
+- Summary: Fetch Customer Provider Reports details
 - Allowed role/access: REGISTERED_USER
 - Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
 - Parameters:
@@ -8307,7 +8313,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/broadcasts`
 
-- Summary: GET /api/v1/broadcasts
+- Summary: List Broadcasts
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.read
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
 - Parameters:
@@ -8334,7 +8340,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/broadcasts`
 
-- Summary: POST /api/v1/broadcasts
+- Summary: Create Broadcasts
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.create
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission.
 - Request payload(s):
@@ -8363,7 +8369,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/broadcasts/{id}`
 
-- Summary: GET /api/v1/broadcasts/{id}
+- Summary: Fetch Broadcasts details
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.read
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
 - Parameters:
@@ -8379,7 +8385,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/broadcasts/{id}`
 
-- Summary: PATCH /api/v1/broadcasts/{id}
+- Summary: Update Broadcasts
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.update
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.
 - Parameters:
@@ -8410,7 +8416,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/broadcasts/{id}/targeting`
 
-- Summary: PATCH /api/v1/broadcasts/{id}/targeting
+- Summary: Update Broadcasts Targeting
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.update
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.
 - Parameters:
@@ -8442,7 +8448,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/broadcasts/estimate-reach`
 
-- Summary: POST /api/v1/broadcasts/estimate-reach
+- Summary: Create Broadcasts Estimate Reach
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.read
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
 - Request payload(s):
@@ -8477,7 +8483,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/broadcasts/{id}/schedule`
 
-- Summary: PATCH /api/v1/broadcasts/{id}/schedule
+- Summary: Update Broadcasts Schedule
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.schedule
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission.
 - Parameters:
@@ -8504,7 +8510,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/broadcasts/{id}/cancel`
 
-- Summary: POST /api/v1/broadcasts/{id}/cancel
+- Summary: Create Broadcasts Cancel
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.cancel
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission.
 - Parameters:
@@ -8527,7 +8533,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/broadcasts/{id}/report`
 
-- Summary: GET /api/v1/broadcasts/{id}/report
+- Summary: Fetch Broadcasts Report details
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.report.read
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission.
 - Parameters:
@@ -8543,7 +8549,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/broadcasts/{id}/recipients`
 
-- Summary: GET /api/v1/broadcasts/{id}/recipients
+- Summary: Fetch Broadcasts Recipients details
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.report.read
 - Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission.
 - Parameters:
@@ -8566,7 +8572,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/subscription-plans`
 
-- Summary: GET /api/v1/subscription-plans
+- Summary: List Subscription Plans
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.read
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.
 - Parameters:
@@ -8589,7 +8595,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/subscription-plans`
 
-- Summary: POST /api/v1/subscription-plans
+- Summary: Create Subscription Plans
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.create
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.create. SUPER_ADMIN or ADMIN with subscriptionPlans.create permission.
 - Request payload(s):
@@ -8624,7 +8630,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/subscription-plans/stats`
 
-- Summary: GET /api/v1/subscription-plans/stats
+- Summary: List Subscription Plans Stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.
 - Response body:
@@ -8638,7 +8644,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/subscription-plans/{id}`
 
-- Summary: GET /api/v1/subscription-plans/{id}
+- Summary: Fetch Subscription Plans details
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.read
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.
 - Parameters:
@@ -8654,7 +8660,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/subscription-plans/{id}`
 
-- Summary: PATCH /api/v1/subscription-plans/{id}
+- Summary: Update Subscription Plans
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.update
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update. SUPER_ADMIN or ADMIN with subscriptionPlans.update permission.
 - Parameters:
@@ -8691,7 +8697,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/subscription-plans/{id}`
 
-- Summary: DELETE /api/v1/subscription-plans/{id}
+- Summary: Delete Subscription Plans
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.delete
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.delete. SUPER_ADMIN or ADMIN with subscriptionPlans.delete permission.
 - Parameters:
@@ -8712,7 +8718,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/subscription-plans/{id}/status`
 
-- Summary: PATCH /api/v1/subscription-plans/{id}/status
+- Summary: Update Subscription Plans Status
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update. SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission.
 - Parameters:
@@ -8736,7 +8742,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/subscription-plans/{id}/visibility`
 
-- Summary: PATCH /api/v1/subscription-plans/{id}/visibility
+- Summary: Update Subscription Plans Visibility
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update. SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission.
 - Parameters:
@@ -8759,7 +8765,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/subscription-plans/{id}/analytics`
 
-- Summary: GET /api/v1/subscription-plans/{id}/analytics
+- Summary: Fetch Subscription Plans Analytics details
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read
 - Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read. SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.
 - Parameters:
@@ -8775,7 +8781,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/plan-features/catalog`
 
-- Summary: GET /api/v1/plan-features/catalog
+- Summary: List Plan Features Catalog
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.read
 - Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
 - Response body:
@@ -8789,7 +8795,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/plan-features`
 
-- Summary: GET /api/v1/plan-features
+- Summary: List Plan Features
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.read
 - Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
 - Parameters:
@@ -8808,7 +8814,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/plan-features`
 
-- Summary: POST /api/v1/plan-features
+- Summary: Create Plan Features
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.create
 - Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.create. SUPER_ADMIN or ADMIN with planFeatures.create permission.
 - Request payload(s):
@@ -8834,7 +8840,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/plan-features/{id}`
 
-- Summary: GET /api/v1/plan-features/{id}
+- Summary: Fetch Plan Features details
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.read
 - Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
 - Parameters:
@@ -8850,7 +8856,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/plan-features/{id}`
 
-- Summary: PATCH /api/v1/plan-features/{id}
+- Summary: Update Plan Features
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.update
 - Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.update. SUPER_ADMIN or ADMIN with planFeatures.update permission.
 - Parameters:
@@ -8878,7 +8884,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/plan-features/{id}`
 
-- Summary: DELETE /api/v1/plan-features/{id}
+- Summary: Delete Plan Features
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.delete
 - Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.delete. SUPER_ADMIN or ADMIN with planFeatures.delete permission.
 - Parameters:
@@ -8899,7 +8905,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/coupons`
 
-- Summary: GET /api/v1/coupons
+- Summary: List Coupons
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.read
 - Notes: Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission.
 - Parameters:
@@ -8919,7 +8925,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/coupons`
 
-- Summary: POST /api/v1/coupons
+- Summary: Create Coupons
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.create
 - Notes: Access: SUPER_ADMIN or ADMIN with coupons.create. SUPER_ADMIN or ADMIN with coupons.create permission.
 - Request payload(s):
@@ -8950,7 +8956,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/coupons/{id}`
 
-- Summary: GET /api/v1/coupons/{id}
+- Summary: Fetch Coupons details
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.read
 - Notes: Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission.
 - Parameters:
@@ -8966,7 +8972,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/coupons/{id}`
 
-- Summary: PATCH /api/v1/coupons/{id}
+- Summary: Update Coupons
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.update
 - Notes: Access: SUPER_ADMIN or ADMIN with coupons.update. SUPER_ADMIN or ADMIN with coupons.update permission.
 - Parameters:
@@ -8999,7 +9005,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/coupons/{id}`
 
-- Summary: DELETE /api/v1/coupons/{id}
+- Summary: Delete Coupons
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.delete
 - Notes: Access: SUPER_ADMIN or ADMIN with coupons.delete. SUPER_ADMIN or ADMIN with coupons.delete permission.
 - Parameters:
@@ -9020,7 +9026,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/coupons/{id}/status`
 
-- Summary: PATCH /api/v1/coupons/{id}/status
+- Summary: Update Coupons Status
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.status.update
 - Notes: Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission.
 - Parameters:

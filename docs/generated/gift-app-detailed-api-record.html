@@ -1,9 +1,9 @@
-<!doctype html><html><body><h1>Gift App Detailed API Record</h1><table><tr><td>02 Admin - Roles & Permissions</td><td>GET</td><td><code>/api/v1/admin-roles</code></td><td>GET /api/v1/admin-roles</td></tr>
-<tr><td>02 Admin - Roles & Permissions</td><td>POST</td><td><code>/api/v1/admin-roles</code></td><td>POST /api/v1/admin-roles</td></tr>
-<tr><td>02 Admin - Roles & Permissions</td><td>GET</td><td><code>/api/v1/admin-roles/{id}</code></td><td>GET /api/v1/admin-roles/{id}</td></tr>
-<tr><td>02 Admin - Roles & Permissions</td><td>PATCH</td><td><code>/api/v1/admin-roles/{id}</code></td><td>PATCH /api/v1/admin-roles/{id}</td></tr>
-<tr><td>02 Admin - Roles & Permissions</td><td>DELETE</td><td><code>/api/v1/admin-roles/{id}</code></td><td>DELETE /api/v1/admin-roles/{id}</td></tr>
-<tr><td>02 Admin - Roles & Permissions</td><td>PATCH</td><td><code>/api/v1/admin-roles/{id}/permissions</code></td><td>PATCH /api/v1/admin-roles/{id}/permissions</td></tr>
+<!doctype html><html><body><h1>Gift App Detailed API Record</h1><table><tr><td>02 Admin - Roles & Permissions</td><td>GET</td><td><code>/api/v1/admin-roles</code></td><td>List Admin Roles</td></tr>
+<tr><td>02 Admin - Roles & Permissions</td><td>POST</td><td><code>/api/v1/admin-roles</code></td><td>Create Admin Roles</td></tr>
+<tr><td>02 Admin - Roles & Permissions</td><td>GET</td><td><code>/api/v1/admin-roles/{id}</code></td><td>Fetch Admin Roles details</td></tr>
+<tr><td>02 Admin - Roles & Permissions</td><td>PATCH</td><td><code>/api/v1/admin-roles/{id}</code></td><td>Update Admin Roles</td></tr>
+<tr><td>02 Admin - Roles & Permissions</td><td>DELETE</td><td><code>/api/v1/admin-roles/{id}</code></td><td>Delete Admin Roles</td></tr>
+<tr><td>02 Admin - Roles & Permissions</td><td>PATCH</td><td><code>/api/v1/admin-roles/{id}/permissions</code></td><td>Update Admin Roles Permissions</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes</code></td><td>List dispute queue</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}</code></td><td>Fetch dispute details and evidence review summary</td></tr>
 <tr><td>02 Admin - Dispute Decisions</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/confirmation</code></td><td>Fetch decision confirmation</td></tr>
@@ -46,63 +46,63 @@
 <tr><td>02 Admin - Review Policies</td><td>GET</td><td><code>/api/v1/admin/review-policies</code></td><td>Fetch review moderation policies</td></tr>
 <tr><td>02 Admin - Review Policies</td><td>PATCH</td><td><code>/api/v1/admin/review-policies</code></td><td>Update review moderation policies</td></tr>
 <tr><td>02 Admin - Review Policies</td><td>POST</td><td><code>/api/v1/admin/review-policies/test</code></td><td>Test review policy result</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews</code></td><td>GET /api/v1/admin/reviews</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/{id}</code></td><td>GET /api/v1/admin/reviews/{id}</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>POST</td><td><code>/api/v1/admin/reviews/{id}/moderate</code></td><td>Moderate a review</td></tr>
+<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews</code></td><td>List Admin Reviews</td></tr>
+<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/{id}</code></td><td>Fetch Admin Reviews details</td></tr>
+<tr><td>02 Admin - Review Moderation</td><td>POST</td><td><code>/api/v1/admin/reviews/{id}/moderate</code></td><td>Moderate a review</td></tr>
 <tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/dashboard</code></td><td>Fetch platform review dashboard</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/export</code></td><td>GET /api/v1/admin/reviews/export</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/flagged-summary</code></td><td>GET /api/v1/admin/reviews/flagged-summary</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/moderation-logs</code></td><td>GET /api/v1/admin/reviews/moderation-logs</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/moderation-queue</code></td><td>GET /api/v1/admin/reviews/moderation-queue</td></tr>
-<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/stats</code></td><td>GET /api/v1/admin/reviews/stats</td></tr>
+<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/export</code></td><td>List Admin Reviews Export</td></tr>
+<tr><td>02 Admin - Review Moderation</td><td>GET</td><td><code>/api/v1/admin/reviews/flagged-summary</code></td><td>List Admin Reviews Flagged Summary</td></tr>
+<tr><td>02 Admin - Review Moderation</td><td>GET</td><td><code>/api/v1/admin/reviews/moderation-logs</code></td><td>List Admin Reviews Moderation Logs</td></tr>
+<tr><td>02 Admin - Review Moderation</td><td>GET</td><td><code>/api/v1/admin/reviews/moderation-queue</code></td><td>List Admin Reviews Moderation Queue</td></tr>
+<tr><td>02 Admin - Reviews Management</td><td>GET</td><td><code>/api/v1/admin/reviews/stats</code></td><td>List Admin Reviews Stats</td></tr>
 <tr><td>02 Admin - Staff Management</td><td>GET</td><td><code>/api/v1/admins</code></td><td>List admin staff users</td></tr>
 <tr><td>02 Admin - Staff Management</td><td>POST</td><td><code>/api/v1/admins</code></td><td>Create admin staff user</td></tr>
-<tr><td>02 Admin - Staff Management</td><td>GET</td><td><code>/api/v1/admins/{id}</code></td><td>GET /api/v1/admins/{id}</td></tr>
-<tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}</code></td><td>PATCH /api/v1/admins/{id}</td></tr>
+<tr><td>02 Admin - Staff Management</td><td>GET</td><td><code>/api/v1/admins/{id}</code></td><td>Fetch Admins details</td></tr>
+<tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}</code></td><td>Update Admins</td></tr>
 <tr><td>02 Admin - Staff Management</td><td>DELETE</td><td><code>/api/v1/admins/{id}</code></td><td>Permanently delete admin staff user</td></tr>
-<tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}/active-status</code></td><td>PATCH /api/v1/admins/{id}/active-status</td></tr>
-<tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}/password</code></td><td>PATCH /api/v1/admins/{id}/password</td></tr>
+<tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}/active-status</code></td><td>Update Admins Active Status</td></tr>
+<tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}/password</code></td><td>Update Admins Password</td></tr>
 <tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs</code></td><td>List audit logs</td></tr>
 <tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/{id}</code></td><td>Fetch audit log detail</td></tr>
 <tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/action-types</code></td><td>Fetch audit log action types</td></tr>
 <tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/export</code></td><td>Export audit logs CSV</td></tr>
 <tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/stats</code></td><td>Fetch audit log stats</td></tr>
 <tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/users</code></td><td>Fetch audit log user selector options</td></tr>
-<tr><td>01 Auth</td><td>DELETE</td><td><code>/api/v1/auth/account</code></td><td>DELETE /api/v1/auth/account</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/cancel-deletion</code></td><td>POST /api/v1/auth/cancel-deletion</td></tr>
-<tr><td>01 Auth</td><td>PATCH</td><td><code>/api/v1/auth/change-password</code></td><td>PATCH /api/v1/auth/change-password</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/forgot-password</code></td><td>POST /api/v1/auth/forgot-password</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/guest/session</code></td><td>POST /api/v1/auth/guest/session</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/login</code></td><td>POST /api/v1/auth/login</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/logout</code></td><td>POST /api/v1/auth/logout</td></tr>
-<tr><td>01 Auth</td><td>GET</td><td><code>/api/v1/auth/me</code></td><td>GET /api/v1/auth/me</td></tr>
-<tr><td>01 Auth</td><td>PATCH</td><td><code>/api/v1/auth/me</code></td><td>PATCH /api/v1/auth/me</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/providers/register</code></td><td>POST /api/v1/auth/providers/register</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/refresh</code></td><td>POST /api/v1/auth/refresh</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/resend-otp</code></td><td>POST /api/v1/auth/resend-otp</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/reset-password</code></td><td>POST /api/v1/auth/reset-password</td></tr>
-<tr><td>01 Auth</td><td>GET</td><td><code>/api/v1/auth/sessions</code></td><td>GET /api/v1/auth/sessions</td></tr>
-<tr><td>01 Auth</td><td>DELETE</td><td><code>/api/v1/auth/sessions/{id}</code></td><td>DELETE /api/v1/auth/sessions/{id}</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/sessions/logout-all</code></td><td>POST /api/v1/auth/sessions/logout-all</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/users/register</code></td><td>POST /api/v1/auth/users/register</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/verify-email</code></td><td>POST /api/v1/auth/verify-email</td></tr>
-<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/verify-reset-otp</code></td><td>POST /api/v1/auth/verify-reset-otp</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts</code></td><td>GET /api/v1/broadcasts</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>POST</td><td><code>/api/v1/broadcasts</code></td><td>POST /api/v1/broadcasts</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts/{id}</code></td><td>GET /api/v1/broadcasts/{id}</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>PATCH</td><td><code>/api/v1/broadcasts/{id}</code></td><td>PATCH /api/v1/broadcasts/{id}</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>POST</td><td><code>/api/v1/broadcasts/{id}/cancel</code></td><td>POST /api/v1/broadcasts/{id}/cancel</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts/{id}/recipients</code></td><td>GET /api/v1/broadcasts/{id}/recipients</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts/{id}/report</code></td><td>GET /api/v1/broadcasts/{id}/report</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>PATCH</td><td><code>/api/v1/broadcasts/{id}/schedule</code></td><td>PATCH /api/v1/broadcasts/{id}/schedule</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>PATCH</td><td><code>/api/v1/broadcasts/{id}/targeting</code></td><td>PATCH /api/v1/broadcasts/{id}/targeting</td></tr>
-<tr><td>06 Broadcast Notifications</td><td>POST</td><td><code>/api/v1/broadcasts/estimate-reach</code></td><td>POST /api/v1/broadcasts/estimate-reach</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/coupons</code></td><td>GET /api/v1/coupons</td></tr>
-<tr><td>07 Plans & Coupons</td><td>POST</td><td><code>/api/v1/coupons</code></td><td>POST /api/v1/coupons</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/coupons/{id}</code></td><td>GET /api/v1/coupons/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/coupons/{id}</code></td><td>PATCH /api/v1/coupons/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>DELETE</td><td><code>/api/v1/coupons/{id}</code></td><td>DELETE /api/v1/coupons/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/coupons/{id}/status</code></td><td>PATCH /api/v1/coupons/{id}/status</td></tr>
+<tr><td>01 Auth</td><td>DELETE</td><td><code>/api/v1/auth/account</code></td><td>Delete Auth Account</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/cancel-deletion</code></td><td>Create Auth Cancel Deletion</td></tr>
+<tr><td>01 Auth</td><td>PATCH</td><td><code>/api/v1/auth/change-password</code></td><td>Update Auth Change Password</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/forgot-password</code></td><td>Create Auth Forgot Password</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/guest/session</code></td><td>Create Auth Guest Session</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/login</code></td><td>Create Auth Login</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/logout</code></td><td>Create Auth Logout</td></tr>
+<tr><td>01 Auth</td><td>GET</td><td><code>/api/v1/auth/me</code></td><td>List Auth Me</td></tr>
+<tr><td>01 Auth</td><td>PATCH</td><td><code>/api/v1/auth/me</code></td><td>Update Auth Me</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/providers/register</code></td><td>Create Auth Providers Register</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/refresh</code></td><td>Create Auth Refresh</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/resend-otp</code></td><td>Create Auth Resend Otp</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/reset-password</code></td><td>Create Auth Reset Password</td></tr>
+<tr><td>01 Auth</td><td>GET</td><td><code>/api/v1/auth/sessions</code></td><td>List Auth Sessions</td></tr>
+<tr><td>01 Auth</td><td>DELETE</td><td><code>/api/v1/auth/sessions/{id}</code></td><td>Delete Auth Sessions</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/sessions/logout-all</code></td><td>Create Auth Sessions Logout All</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/users/register</code></td><td>Create Auth Users Register</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/verify-email</code></td><td>Create Auth Verify Email</td></tr>
+<tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/verify-reset-otp</code></td><td>Create Auth Verify Reset Otp</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts</code></td><td>List Broadcasts</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>POST</td><td><code>/api/v1/broadcasts</code></td><td>Create Broadcasts</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts/{id}</code></td><td>Fetch Broadcasts details</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>PATCH</td><td><code>/api/v1/broadcasts/{id}</code></td><td>Update Broadcasts</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>POST</td><td><code>/api/v1/broadcasts/{id}/cancel</code></td><td>Create Broadcasts Cancel</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts/{id}/recipients</code></td><td>Fetch Broadcasts Recipients details</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>GET</td><td><code>/api/v1/broadcasts/{id}/report</code></td><td>Fetch Broadcasts Report details</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>PATCH</td><td><code>/api/v1/broadcasts/{id}/schedule</code></td><td>Update Broadcasts Schedule</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>PATCH</td><td><code>/api/v1/broadcasts/{id}/targeting</code></td><td>Update Broadcasts Targeting</td></tr>
+<tr><td>06 Broadcast Notifications</td><td>POST</td><td><code>/api/v1/broadcasts/estimate-reach</code></td><td>Create Broadcasts Estimate Reach</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/coupons</code></td><td>List Coupons</td></tr>
+<tr><td>07 Plans & Coupons</td><td>POST</td><td><code>/api/v1/coupons</code></td><td>Create Coupons</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/coupons/{id}</code></td><td>Fetch Coupons details</td></tr>
+<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/coupons/{id}</code></td><td>Update Coupons</td></tr>
+<tr><td>07 Plans & Coupons</td><td>DELETE</td><td><code>/api/v1/coupons/{id}</code></td><td>Delete Coupons</td></tr>
+<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/coupons/{id}/status</code></td><td>Update Coupons Status</td></tr>
 <tr><td>05 Customer - Addresses</td><td>GET</td><td><code>/api/v1/customer/addresses</code></td><td>List customer addresses</td></tr>
 <tr><td>05 Customer - Addresses</td><td>POST</td><td><code>/api/v1/customer/addresses</code></td><td>Create customer address</td></tr>
 <tr><td>05 Customer - Addresses</td><td>GET</td><td><code>/api/v1/customer/addresses/{id}</code></td><td>Fetch customer address</td></tr>
@@ -161,8 +161,8 @@
 <tr><td>06 Payments</td><td>POST</td><td><code>/api/v1/customer/payments/confirm</code></td><td>Confirm Stripe payment</td></tr>
 <tr><td>06 Payments</td><td>POST</td><td><code>/api/v1/customer/payments/create-intent</code></td><td>Create payment intent from active cart</td></tr>
 <tr><td>05 Customer - Provider Reports</td><td>GET</td><td><code>/api/v1/customer/provider-report-reasons</code></td><td>Fetch provider report reasons</td></tr>
-<tr><td>05 Customer - Provider Reports</td><td>GET</td><td><code>/api/v1/customer/provider-reports</code></td><td>GET /api/v1/customer/provider-reports</td></tr>
-<tr><td>05 Customer - Provider Reports</td><td>GET</td><td><code>/api/v1/customer/provider-reports/{id}</code></td><td>GET /api/v1/customer/provider-reports/{id}</td></tr>
+<tr><td>05 Customer - Provider Reports</td><td>GET</td><td><code>/api/v1/customer/provider-reports</code></td><td>List Customer Provider Reports</td></tr>
+<tr><td>05 Customer - Provider Reports</td><td>GET</td><td><code>/api/v1/customer/provider-reports/{id}</code></td><td>Fetch Customer Provider Reports details</td></tr>
 <tr><td>05 Customer - Provider Reports</td><td>POST</td><td><code>/api/v1/customer/providers/{providerId}/reports</code></td><td>Report provider</td></tr>
 <tr><td>05 Customer - Recurring Payments</td><td>GET</td><td><code>/api/v1/customer/recurring-payments</code></td><td>List own recurring payments</td></tr>
 <tr><td>05 Customer - Recurring Payments</td><td>POST</td><td><code>/api/v1/customer/recurring-payments</code></td><td>Create recurring payment</td></tr>
@@ -179,7 +179,7 @@
 <tr><td>05 Customer - Referrals & Rewards</td><td>GET</td><td><code>/api/v1/customer/referrals/summary</code></td><td>Fetch own referral reward summary</td></tr>
 <tr><td>05 Customer - Referrals & Rewards</td><td>GET</td><td><code>/api/v1/customer/referrals/terms</code></td><td>Fetch referral terms</td></tr>
 <tr><td>05 Customer - Reviews</td><td>GET</td><td><code>/api/v1/customer/reviews</code></td><td>List own provider reviews</td></tr>
-<tr><td>05 Customer - Reviews</td><td>GET</td><td><code>/api/v1/customer/reviews/{id}</code></td><td>GET /api/v1/customer/reviews/{id}</td></tr>
+<tr><td>05 Customer - Reviews</td><td>GET</td><td><code>/api/v1/customer/reviews/{id}</code></td><td>Fetch Customer Reviews details</td></tr>
 <tr><td>05 Customer - Reviews</td><td>PATCH</td><td><code>/api/v1/customer/reviews/{id}</code></td><td>Update own review</td></tr>
 <tr><td>05 Customer - Reviews</td><td>DELETE</td><td><code>/api/v1/customer/reviews/{id}</code></td><td>Soft-delete own review</td></tr>
 <tr><td>05 Customer - Referrals & Rewards</td><td>GET</td><td><code>/api/v1/customer/rewards/balance</code></td><td>Fetch own reward balance</td></tr>
@@ -213,8 +213,8 @@
 <tr><td>04 Gifts - Categories</td><td>GET</td><td><code>/api/v1/gift-categories/stats</code></td><td>Fetch gift category stats</td></tr>
 <tr><td>04 Gifts - Moderation</td><td>GET</td><td><code>/api/v1/gift-moderation</code></td><td>List optional gift moderation queue</td></tr>
 <tr><td>04 Gifts - Moderation</td><td>PATCH</td><td><code>/api/v1/gift-moderation/{id}/approve</code></td><td>Approve gift in optional moderation workflow</td></tr>
-<tr><td>04 Gifts - Moderation</td><td>PATCH</td><td><code>/api/v1/gift-moderation/{id}/flag</code></td><td>PATCH /api/v1/gift-moderation/{id}/flag</td></tr>
-<tr><td>04 Gifts - Moderation</td><td>PATCH</td><td><code>/api/v1/gift-moderation/{id}/reject</code></td><td>PATCH /api/v1/gift-moderation/{id}/reject</td></tr>
+<tr><td>04 Gifts - Moderation</td><td>PATCH</td><td><code>/api/v1/gift-moderation/{id}/flag</code></td><td>Update Gift Moderation Flag</td></tr>
+<tr><td>04 Gifts - Moderation</td><td>PATCH</td><td><code>/api/v1/gift-moderation/{id}/reject</code></td><td>Update Gift Moderation Reject</td></tr>
 <tr><td>04 Gifts - Management</td><td>GET</td><td><code>/api/v1/gifts</code></td><td>List admin gifts</td></tr>
 <tr><td>04 Gifts - Management</td><td>POST</td><td><code>/api/v1/gifts</code></td><td>Create admin gift with optional nested variants</td></tr>
 <tr><td>04 Gifts - Management</td><td>GET</td><td><code>/api/v1/gifts/{id}</code></td><td>Fetch admin gift details with variants</td></tr>
@@ -223,9 +223,9 @@
 <tr><td>04 Gifts - Management</td><td>PATCH</td><td><code>/api/v1/gifts/{id}/status</code></td><td>Update gift status</td></tr>
 <tr><td>04 Gifts - Management</td><td>GET</td><td><code>/api/v1/gifts/export</code></td><td>Export gift inventory</td></tr>
 <tr><td>04 Gifts - Management</td><td>GET</td><td><code>/api/v1/gifts/stats</code></td><td>Fetch gift inventory stats</td></tr>
-<tr><td>01 Auth - Login Attempts</td><td>GET</td><td><code>/api/v1/login-attempts</code></td><td>GET /api/v1/login-attempts</td></tr>
-<tr><td>01 Auth - Login Attempts</td><td>GET</td><td><code>/api/v1/login-attempts/export</code></td><td>GET /api/v1/login-attempts/export</td></tr>
-<tr><td>01 Auth - Login Attempts</td><td>GET</td><td><code>/api/v1/login-attempts/stats</code></td><td>GET /api/v1/login-attempts/stats</td></tr>
+<tr><td>01 Auth - Login Attempts</td><td>GET</td><td><code>/api/v1/login-attempts</code></td><td>List Login Attempts</td></tr>
+<tr><td>01 Auth - Login Attempts</td><td>GET</td><td><code>/api/v1/login-attempts/export</code></td><td>List Login Attempts Export</td></tr>
+<tr><td>01 Auth - Login Attempts</td><td>GET</td><td><code>/api/v1/login-attempts/stats</code></td><td>List Login Attempts Stats</td></tr>
 <tr><td>02 Admin - Media Upload Policy</td><td>GET</td><td><code>/api/v1/media-upload-policy</code></td><td>Fetch global media upload policy</td></tr>
 <tr><td>02 Admin - Media Upload Policy</td><td>PATCH</td><td><code>/api/v1/media-upload-policy</code></td><td>Update global media upload policy</td></tr>
 <tr><td>02 Admin - Media Upload Policy</td><td>GET</td><td><code>/api/v1/media-upload-policy/audit-logs</code></td><td>List media upload policy audit logs</td></tr>
@@ -239,23 +239,23 @@
 <tr><td>06 Notifications</td><td>PATCH</td><td><code>/api/v1/notifications/read-all</code></td><td>Mark all own notifications as read</td></tr>
 <tr><td>06 Notifications</td><td>GET</td><td><code>/api/v1/notifications/summary</code></td><td>Fetch notification summary</td></tr>
 <tr><td>06 Payments</td><td>POST</td><td><code>/api/v1/payments/stripe/webhook</code></td><td>Stripe webhook endpoint</td></tr>
-<tr><td>02 Admin - Roles & Permissions</td><td>GET</td><td><code>/api/v1/permissions/catalog</code></td><td>GET /api/v1/permissions/catalog</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/plan-features</code></td><td>GET /api/v1/plan-features</td></tr>
-<tr><td>07 Plans & Coupons</td><td>POST</td><td><code>/api/v1/plan-features</code></td><td>POST /api/v1/plan-features</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/plan-features/{id}</code></td><td>GET /api/v1/plan-features/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/plan-features/{id}</code></td><td>PATCH /api/v1/plan-features/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>DELETE</td><td><code>/api/v1/plan-features/{id}</code></td><td>DELETE /api/v1/plan-features/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/plan-features/catalog</code></td><td>GET /api/v1/plan-features/catalog</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/promotional-offers</code></td><td>GET /api/v1/promotional-offers</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>POST</td><td><code>/api/v1/promotional-offers</code></td><td>POST /api/v1/promotional-offers</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/promotional-offers/{id}</code></td><td>GET /api/v1/promotional-offers/{id}</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}</code></td><td>PATCH /api/v1/promotional-offers/{id}</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>DELETE</td><td><code>/api/v1/promotional-offers/{id}</code></td><td>DELETE /api/v1/promotional-offers/{id}</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}/approve</code></td><td>PATCH /api/v1/promotional-offers/{id}/approve</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}/reject</code></td><td>PATCH /api/v1/promotional-offers/{id}/reject</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}/status</code></td><td>PATCH /api/v1/promotional-offers/{id}/status</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/promotional-offers/export</code></td><td>GET /api/v1/promotional-offers/export</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/promotional-offers/stats</code></td><td>GET /api/v1/promotional-offers/stats</td></tr>
+<tr><td>02 Admin - Roles & Permissions</td><td>GET</td><td><code>/api/v1/permissions/catalog</code></td><td>List Permissions Catalog</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/plan-features</code></td><td>List Plan Features</td></tr>
+<tr><td>07 Plans & Coupons</td><td>POST</td><td><code>/api/v1/plan-features</code></td><td>Create Plan Features</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/plan-features/{id}</code></td><td>Fetch Plan Features details</td></tr>
+<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/plan-features/{id}</code></td><td>Update Plan Features</td></tr>
+<tr><td>07 Plans & Coupons</td><td>DELETE</td><td><code>/api/v1/plan-features/{id}</code></td><td>Delete Plan Features</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/plan-features/catalog</code></td><td>List Plan Features Catalog</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>GET</td><td><code>/api/v1/promotional-offers</code></td><td>List Promotional Offers</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>POST</td><td><code>/api/v1/promotional-offers</code></td><td>Create Promotional Offers</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>GET</td><td><code>/api/v1/promotional-offers/{id}</code></td><td>Fetch Promotional Offers details</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}</code></td><td>Update Promotional Offers</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>DELETE</td><td><code>/api/v1/promotional-offers/{id}</code></td><td>Delete Promotional Offers</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}/approve</code></td><td>Update Promotional Offers Approve</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}/reject</code></td><td>Update Promotional Offers Reject</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>PATCH</td><td><code>/api/v1/promotional-offers/{id}/status</code></td><td>Update Promotional Offers Status</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>GET</td><td><code>/api/v1/promotional-offers/export</code></td><td>List Promotional Offers Export</td></tr>
+<tr><td>02 Admin - Promotional Offers Management</td><td>GET</td><td><code>/api/v1/promotional-offers/stats</code></td><td>List Promotional Offers Stats</td></tr>
 <tr><td>02 Admin - Provider Business Categories</td><td>GET</td><td><code>/api/v1/provider-business-categories</code></td><td>List provider business categories</td></tr>
 <tr><td>02 Admin - Provider Business Categories</td><td>POST</td><td><code>/api/v1/provider-business-categories</code></td><td>Create provider business category</td></tr>
 <tr><td>02 Admin - Provider Business Categories</td><td>GET</td><td><code>/api/v1/provider-business-categories/{id}</code></td><td>Fetch provider business category details</td></tr>
@@ -276,12 +276,12 @@
 <tr><td>03 Provider - Inventory</td><td>PATCH</td><td><code>/api/v1/provider/inventory/{id}/availability</code></td><td>Update own inventory availability</td></tr>
 <tr><td>03 Provider - Inventory</td><td>GET</td><td><code>/api/v1/provider/inventory/lookup</code></td><td>Lookup active provider inventory items</td></tr>
 <tr><td>03 Provider - Inventory</td><td>GET</td><td><code>/api/v1/provider/inventory/stats</code></td><td>Fetch provider inventory stats</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/provider/offers</code></td><td>GET /api/v1/provider/offers</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>POST</td><td><code>/api/v1/provider/offers</code></td><td>POST /api/v1/provider/offers</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/provider/offers/{id}</code></td><td>GET /api/v1/provider/offers/{id}</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/provider/offers/{id}</code></td><td>PATCH /api/v1/provider/offers/{id}</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>DELETE</td><td><code>/api/v1/provider/offers/{id}</code></td><td>DELETE /api/v1/provider/offers/{id}</td></tr>
-<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/provider/offers/{id}/status</code></td><td>PATCH /api/v1/provider/offers/{id}/status</td></tr>
+<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/provider/offers</code></td><td>List Provider Offers</td></tr>
+<tr><td>03 Provider - Promotional Offers</td><td>POST</td><td><code>/api/v1/provider/offers</code></td><td>Create Provider Offers</td></tr>
+<tr><td>03 Provider - Promotional Offers</td><td>GET</td><td><code>/api/v1/provider/offers/{id}</code></td><td>Fetch Provider Offers details</td></tr>
+<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/provider/offers/{id}</code></td><td>Update Provider Offers</td></tr>
+<tr><td>03 Provider - Promotional Offers</td><td>DELETE</td><td><code>/api/v1/provider/offers/{id}</code></td><td>Delete Provider Offers</td></tr>
+<tr><td>03 Provider - Promotional Offers</td><td>PATCH</td><td><code>/api/v1/provider/offers/{id}/status</code></td><td>Update Provider Offers Status</td></tr>
 <tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders</code></td><td>List own assigned provider orders</td></tr>
 <tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/{id}</code></td><td>Fetch own provider order details</td></tr>
 <tr><td>03 Provider - Orders</td><td>POST</td><td><code>/api/v1/provider/orders/{id}/accept</code></td><td>Accept own pending provider order</td></tr>
@@ -294,12 +294,12 @@
 <tr><td>03 Provider - Orders</td><td>POST</td><td><code>/api/v1/provider/orders/{id}/reject</code></td><td>Reject own pending provider order</td></tr>
 <tr><td>03 Provider - Orders</td><td>PATCH</td><td><code>/api/v1/provider/orders/{id}/status</code></td><td>Update own provider order fulfillment status</td></tr>
 <tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/{id}/timeline</code></td><td>Fetch own provider order timeline</td></tr>
-<tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/analytics/ratings</code></td><td>Fetch own provider ratings analytics</td></tr>
-<tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/analytics/revenue</code></td><td>Fetch own provider revenue analytics</td></tr>
-<tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/export</code></td><td>Export own provider orders as CSV</td></tr>
+<tr><td>03 Provider - Order Analytics</td><td>GET</td><td><code>/api/v1/provider/orders/analytics/ratings</code></td><td>Fetch own provider ratings analytics</td></tr>
+<tr><td>03 Provider - Order Analytics</td><td>GET</td><td><code>/api/v1/provider/orders/analytics/revenue</code></td><td>Fetch own provider revenue analytics</td></tr>
+<tr><td>03 Provider - Order Analytics</td><td>GET</td><td><code>/api/v1/provider/orders/export</code></td><td>Export own provider orders as CSV</td></tr>
 <tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/history</code></td><td>List own provider order history</td></tr>
-<tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/performance</code></td><td>Fetch own provider order performance</td></tr>
-<tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/recent</code></td><td>List recent own provider orders</td></tr>
+<tr><td>03 Provider - Order Analytics</td><td>GET</td><td><code>/api/v1/provider/orders/performance</code></td><td>Fetch own provider order performance</td></tr>
+<tr><td>03 Provider - Order Analytics</td><td>GET</td><td><code>/api/v1/provider/orders/recent</code></td><td>List recent own provider orders</td></tr>
 <tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/reject-reasons</code></td><td>List provider order reject reasons</td></tr>
 <tr><td>03 Provider - Orders</td><td>GET</td><td><code>/api/v1/provider/orders/summary</code></td><td>Fetch own provider order summary</td></tr>
 <tr><td>03 Provider - Refund Requests</td><td>GET</td><td><code>/api/v1/provider/refund-requests</code></td><td>List own provider refund requests</td></tr>
@@ -309,7 +309,7 @@
 <tr><td>03 Provider - Refund Requests</td><td>GET</td><td><code>/api/v1/provider/refund-requests/reject-reasons</code></td><td>List refund rejection reasons</td></tr>
 <tr><td>03 Provider - Refund Requests</td><td>GET</td><td><code>/api/v1/provider/refund-requests/summary</code></td><td>Fetch own refund request summary</td></tr>
 <tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews</code></td><td>List provider reviews</td></tr>
-<tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews/{id}</code></td><td>GET /api/v1/provider/reviews/{id}</td></tr>
+<tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews/{id}</code></td><td>Fetch Provider Reviews details</td></tr>
 <tr><td>03 Provider - Reviews</td><td>POST</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Post public review response</td></tr>
 <tr><td>03 Provider - Reviews</td><td>PATCH</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Update public review response</td></tr>
 <tr><td>03 Provider - Reviews</td><td>DELETE</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Delete public review response</td></tr>
@@ -317,44 +317,44 @@
 <tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews/summary</code></td><td>Fetch provider rating summary</td></tr>
 <tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers</code></td><td>List providers</td></tr>
 <tr><td>02 Admin - Provider Management</td><td>POST</td><td><code>/api/v1/providers</code></td><td>Create provider from admin dashboard</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/{id}</code></td><td>GET /api/v1/providers/{id}</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>PATCH</td><td><code>/api/v1/providers/{id}</code></td><td>PATCH /api/v1/providers/{id}</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/{id}</code></td><td>Fetch Providers details</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>PATCH</td><td><code>/api/v1/providers/{id}</code></td><td>Update Providers</td></tr>
 <tr><td>02 Admin - Provider Management</td><td>DELETE</td><td><code>/api/v1/providers/{id}</code></td><td>Permanently delete provider</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/{id}/activity</code></td><td>GET /api/v1/providers/{id}/activity</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/{id}/items</code></td><td>GET /api/v1/providers/{id}/items</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>POST</td><td><code>/api/v1/providers/{id}/message</code></td><td>POST /api/v1/providers/{id}/message</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/{id}/activity</code></td><td>Fetch Providers Activity details</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/{id}/items</code></td><td>Fetch Providers Items details</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>POST</td><td><code>/api/v1/providers/{id}/message</code></td><td>Create Providers Message</td></tr>
 <tr><td>02 Admin - Provider Management</td><td>PATCH</td><td><code>/api/v1/providers/{id}/status</code></td><td>Update provider lifecycle status</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/export</code></td><td>GET /api/v1/providers/export</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/lookup</code></td><td>GET /api/v1/providers/lookup</td></tr>
-<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/stats</code></td><td>GET /api/v1/providers/stats</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/export</code></td><td>List Providers Export</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/lookup</code></td><td>List Providers Lookup</td></tr>
+<tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers/stats</code></td><td>List Providers Stats</td></tr>
 <tr><td>02 Admin - Referral Settings</td><td>GET</td><td><code>/api/v1/referral-settings</code></td><td>Fetch referral settings</td></tr>
 <tr><td>02 Admin - Referral Settings</td><td>PATCH</td><td><code>/api/v1/referral-settings</code></td><td>Update referral settings</td></tr>
 <tr><td>02 Admin - Referral Settings</td><td>POST</td><td><code>/api/v1/referral-settings/activate</code></td><td>Activate referral program</td></tr>
 <tr><td>02 Admin - Referral Settings</td><td>GET</td><td><code>/api/v1/referral-settings/audit-logs</code></td><td>List referral settings audit logs</td></tr>
 <tr><td>02 Admin - Referral Settings</td><td>POST</td><td><code>/api/v1/referral-settings/deactivate</code></td><td>Deactivate referral program</td></tr>
 <tr><td>02 Admin - Referral Settings</td><td>GET</td><td><code>/api/v1/referral-settings/stats</code></td><td>Fetch referral stats</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans</code></td><td>GET /api/v1/subscription-plans</td></tr>
-<tr><td>07 Plans & Coupons</td><td>POST</td><td><code>/api/v1/subscription-plans</code></td><td>POST /api/v1/subscription-plans</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/{id}</code></td><td>GET /api/v1/subscription-plans/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}</code></td><td>PATCH /api/v1/subscription-plans/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>DELETE</td><td><code>/api/v1/subscription-plans/{id}</code></td><td>DELETE /api/v1/subscription-plans/{id}</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/{id}/analytics</code></td><td>GET /api/v1/subscription-plans/{id}/analytics</td></tr>
-<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}/status</code></td><td>PATCH /api/v1/subscription-plans/{id}/status</td></tr>
-<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}/visibility</code></td><td>PATCH /api/v1/subscription-plans/{id}/visibility</td></tr>
-<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/stats</code></td><td>GET /api/v1/subscription-plans/stats</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans</code></td><td>List Subscription Plans</td></tr>
+<tr><td>07 Plans & Coupons</td><td>POST</td><td><code>/api/v1/subscription-plans</code></td><td>Create Subscription Plans</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/{id}</code></td><td>Fetch Subscription Plans details</td></tr>
+<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}</code></td><td>Update Subscription Plans</td></tr>
+<tr><td>07 Plans & Coupons</td><td>DELETE</td><td><code>/api/v1/subscription-plans/{id}</code></td><td>Delete Subscription Plans</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/{id}/analytics</code></td><td>Fetch Subscription Plans Analytics details</td></tr>
+<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}/status</code></td><td>Update Subscription Plans Status</td></tr>
+<tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}/visibility</code></td><td>Update Subscription Plans Visibility</td></tr>
+<tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/stats</code></td><td>List Subscription Plans Stats</td></tr>
 <tr><td>07 Storage</td><td>GET</td><td><code>/api/v1/uploads</code></td><td>List uploads</td></tr>
 <tr><td>07 Storage</td><td>GET</td><td><code>/api/v1/uploads/{id}</code></td><td>Fetch upload details</td></tr>
 <tr><td>07 Storage</td><td>DELETE</td><td><code>/api/v1/uploads/{id}</code></td><td>Delete upload</td></tr>
 <tr><td>07 Storage</td><td>POST</td><td><code>/api/v1/uploads/complete</code></td><td>Complete upload</td></tr>
 <tr><td>07 Storage</td><td>POST</td><td><code>/api/v1/uploads/presigned-url</code></td><td>Create presigned upload URL</td></tr>
 <tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users</code></td><td>List registered users</td></tr>
-<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}</code></td><td>GET /api/v1/users/{id}</td></tr>
-<tr><td>02 Admin - User Management</td><td>PATCH</td><td><code>/api/v1/users/{id}</code></td><td>PATCH /api/v1/users/{id}</td></tr>
+<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}</code></td><td>Fetch Users details</td></tr>
+<tr><td>02 Admin - User Management</td><td>PATCH</td><td><code>/api/v1/users/{id}</code></td><td>Update Users</td></tr>
 <tr><td>02 Admin - User Management</td><td>DELETE</td><td><code>/api/v1/users/{id}</code></td><td>Permanently delete registered user</td></tr>
-<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}/activity</code></td><td>GET /api/v1/users/{id}/activity</td></tr>
+<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}/activity</code></td><td>Fetch Users Activity details</td></tr>
 <tr><td>02 Admin - User Management</td><td>POST</td><td><code>/api/v1/users/{id}/reset-password</code></td><td>Change registered user password</td></tr>
-<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}/stats</code></td><td>GET /api/v1/users/{id}/stats</td></tr>
-<tr><td>02 Admin - User Management</td><td>PATCH</td><td><code>/api/v1/users/{id}/status</code></td><td>PATCH /api/v1/users/{id}/status</td></tr>
-<tr><td>02 Admin - User Management</td><td>POST</td><td><code>/api/v1/users/{id}/suspend</code></td><td>POST /api/v1/users/{id}/suspend</td></tr>
-<tr><td>02 Admin - User Management</td><td>POST</td><td><code>/api/v1/users/{id}/unsuspend</code></td><td>POST /api/v1/users/{id}/unsuspend</td></tr>
-<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/export</code></td><td>GET /api/v1/users/export</td></tr></table></body></html>
+<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}/stats</code></td><td>Fetch Users Stats details</td></tr>
+<tr><td>02 Admin - User Management</td><td>PATCH</td><td><code>/api/v1/users/{id}/status</code></td><td>Update Users Status</td></tr>
+<tr><td>02 Admin - User Management</td><td>POST</td><td><code>/api/v1/users/{id}/suspend</code></td><td>Create Users Suspend</td></tr>
+<tr><td>02 Admin - User Management</td><td>POST</td><td><code>/api/v1/users/{id}/unsuspend</code></td><td>Create Users Unsuspend</td></tr>
+<tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/export</code></td><td>List Users Export</td></tr></table></body></html>

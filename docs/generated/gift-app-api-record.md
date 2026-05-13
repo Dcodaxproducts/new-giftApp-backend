@@ -1,42 +1,42 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T11:21:44.969Z_
+_Generated from OpenAPI: 2026-05-13T12:25:55.240Z_
 
 ## 02 Admin - Roles & Permissions
 
 ### `GET` `/api/v1/admin-roles`
 
-GET /api/v1/admin-roles
+List Admin Roles
 
 ## 02 Admin - Roles & Permissions
 
 ### `POST` `/api/v1/admin-roles`
 
-POST /api/v1/admin-roles
+Create Admin Roles
 
 ## 02 Admin - Roles & Permissions
 
 ### `GET` `/api/v1/admin-roles/{id}`
 
-GET /api/v1/admin-roles/{id}
+Fetch Admin Roles details
 
 ## 02 Admin - Roles & Permissions
 
 ### `PATCH` `/api/v1/admin-roles/{id}`
 
-PATCH /api/v1/admin-roles/{id}
+Update Admin Roles
 
 ## 02 Admin - Roles & Permissions
 
 ### `DELETE` `/api/v1/admin-roles/{id}`
 
-DELETE /api/v1/admin-roles/{id}
+Delete Admin Roles
 
 ## 02 Admin - Roles & Permissions
 
 ### `PATCH` `/api/v1/admin-roles/{id}/permissions`
 
-PATCH /api/v1/admin-roles/{id}/permissions
+Update Admin Roles Permissions
 
 ## 02 Admin - Dispute Manager
 
@@ -294,15 +294,15 @@ Test review policy result
 
 ### `GET` `/api/v1/admin/reviews`
 
-GET /api/v1/admin/reviews
+List Admin Reviews
 
 ## 02 Admin - Reviews Management
 
 ### `GET` `/api/v1/admin/reviews/{id}`
 
-GET /api/v1/admin/reviews/{id}
+Fetch Admin Reviews details
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `POST` `/api/v1/admin/reviews/{id}/moderate`
 
@@ -318,31 +318,31 @@ Fetch platform review dashboard
 
 ### `GET` `/api/v1/admin/reviews/export`
 
-GET /api/v1/admin/reviews/export
+List Admin Reviews Export
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `GET` `/api/v1/admin/reviews/flagged-summary`
 
-GET /api/v1/admin/reviews/flagged-summary
+List Admin Reviews Flagged Summary
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `GET` `/api/v1/admin/reviews/moderation-logs`
 
-GET /api/v1/admin/reviews/moderation-logs
+List Admin Reviews Moderation Logs
 
-## 02 Admin - Reviews Management
+## 02 Admin - Review Moderation
 
 ### `GET` `/api/v1/admin/reviews/moderation-queue`
 
-GET /api/v1/admin/reviews/moderation-queue
+List Admin Reviews Moderation Queue
 
 ## 02 Admin - Reviews Management
 
 ### `GET` `/api/v1/admin/reviews/stats`
 
-GET /api/v1/admin/reviews/stats
+List Admin Reviews Stats
 
 ## 02 Admin - Staff Management
 
@@ -360,13 +360,13 @@ Create admin staff user
 
 ### `GET` `/api/v1/admins/{id}`
 
-GET /api/v1/admins/{id}
+Fetch Admins details
 
 ## 02 Admin - Staff Management
 
 ### `PATCH` `/api/v1/admins/{id}`
 
-PATCH /api/v1/admins/{id}
+Update Admins
 
 ## 02 Admin - Staff Management
 
@@ -378,13 +378,13 @@ Permanently delete admin staff user
 
 ### `PATCH` `/api/v1/admins/{id}/active-status`
 
-PATCH /api/v1/admins/{id}/active-status
+Update Admins Active Status
 
 ## 02 Admin - Staff Management
 
 ### `PATCH` `/api/v1/admins/{id}/password`
 
-PATCH /api/v1/admins/{id}/password
+Update Admins Password
 
 ## 02 Admin - System Logs & Audit Trail
 
@@ -426,211 +426,211 @@ Fetch audit log user selector options
 
 ### `DELETE` `/api/v1/auth/account`
 
-DELETE /api/v1/auth/account
+Delete Auth Account
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/cancel-deletion`
 
-POST /api/v1/auth/cancel-deletion
+Create Auth Cancel Deletion
 
 ## 01 Auth
 
 ### `PATCH` `/api/v1/auth/change-password`
 
-PATCH /api/v1/auth/change-password
+Update Auth Change Password
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/forgot-password`
 
-POST /api/v1/auth/forgot-password
+Create Auth Forgot Password
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/guest/session`
 
-POST /api/v1/auth/guest/session
+Create Auth Guest Session
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/login`
 
-POST /api/v1/auth/login
+Create Auth Login
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/logout`
 
-POST /api/v1/auth/logout
+Create Auth Logout
 
 ## 01 Auth
 
 ### `GET` `/api/v1/auth/me`
 
-GET /api/v1/auth/me
+List Auth Me
 
 ## 01 Auth
 
 ### `PATCH` `/api/v1/auth/me`
 
-PATCH /api/v1/auth/me
+Update Auth Me
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/providers/register`
 
-POST /api/v1/auth/providers/register
+Create Auth Providers Register
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/refresh`
 
-POST /api/v1/auth/refresh
+Create Auth Refresh
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/resend-otp`
 
-POST /api/v1/auth/resend-otp
+Create Auth Resend Otp
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/reset-password`
 
-POST /api/v1/auth/reset-password
+Create Auth Reset Password
 
 ## 01 Auth
 
 ### `GET` `/api/v1/auth/sessions`
 
-GET /api/v1/auth/sessions
+List Auth Sessions
 
 ## 01 Auth
 
 ### `DELETE` `/api/v1/auth/sessions/{id}`
 
-DELETE /api/v1/auth/sessions/{id}
+Delete Auth Sessions
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/sessions/logout-all`
 
-POST /api/v1/auth/sessions/logout-all
+Create Auth Sessions Logout All
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/users/register`
 
-POST /api/v1/auth/users/register
+Create Auth Users Register
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/verify-email`
 
-POST /api/v1/auth/verify-email
+Create Auth Verify Email
 
 ## 01 Auth
 
 ### `POST` `/api/v1/auth/verify-reset-otp`
 
-POST /api/v1/auth/verify-reset-otp
+Create Auth Verify Reset Otp
 
 ## 06 Broadcast Notifications
 
 ### `GET` `/api/v1/broadcasts`
 
-GET /api/v1/broadcasts
+List Broadcasts
 
 ## 06 Broadcast Notifications
 
 ### `POST` `/api/v1/broadcasts`
 
-POST /api/v1/broadcasts
+Create Broadcasts
 
 ## 06 Broadcast Notifications
 
 ### `GET` `/api/v1/broadcasts/{id}`
 
-GET /api/v1/broadcasts/{id}
+Fetch Broadcasts details
 
 ## 06 Broadcast Notifications
 
 ### `PATCH` `/api/v1/broadcasts/{id}`
 
-PATCH /api/v1/broadcasts/{id}
+Update Broadcasts
 
 ## 06 Broadcast Notifications
 
 ### `POST` `/api/v1/broadcasts/{id}/cancel`
 
-POST /api/v1/broadcasts/{id}/cancel
+Create Broadcasts Cancel
 
 ## 06 Broadcast Notifications
 
 ### `GET` `/api/v1/broadcasts/{id}/recipients`
 
-GET /api/v1/broadcasts/{id}/recipients
+Fetch Broadcasts Recipients details
 
 ## 06 Broadcast Notifications
 
 ### `GET` `/api/v1/broadcasts/{id}/report`
 
-GET /api/v1/broadcasts/{id}/report
+Fetch Broadcasts Report details
 
 ## 06 Broadcast Notifications
 
 ### `PATCH` `/api/v1/broadcasts/{id}/schedule`
 
-PATCH /api/v1/broadcasts/{id}/schedule
+Update Broadcasts Schedule
 
 ## 06 Broadcast Notifications
 
 ### `PATCH` `/api/v1/broadcasts/{id}/targeting`
 
-PATCH /api/v1/broadcasts/{id}/targeting
+Update Broadcasts Targeting
 
 ## 06 Broadcast Notifications
 
 ### `POST` `/api/v1/broadcasts/estimate-reach`
 
-POST /api/v1/broadcasts/estimate-reach
+Create Broadcasts Estimate Reach
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/coupons`
 
-GET /api/v1/coupons
+List Coupons
 
 ## 07 Plans & Coupons
 
 ### `POST` `/api/v1/coupons`
 
-POST /api/v1/coupons
+Create Coupons
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/coupons/{id}`
 
-GET /api/v1/coupons/{id}
+Fetch Coupons details
 
 ## 07 Plans & Coupons
 
 ### `PATCH` `/api/v1/coupons/{id}`
 
-PATCH /api/v1/coupons/{id}
+Update Coupons
 
 ## 07 Plans & Coupons
 
 ### `DELETE` `/api/v1/coupons/{id}`
 
-DELETE /api/v1/coupons/{id}
+Delete Coupons
 
 ## 07 Plans & Coupons
 
 ### `PATCH` `/api/v1/coupons/{id}/status`
 
-PATCH /api/v1/coupons/{id}/status
+Update Coupons Status
 
 ## 05 Customer - Addresses
 
@@ -984,13 +984,13 @@ Fetch provider report reasons
 
 ### `GET` `/api/v1/customer/provider-reports`
 
-GET /api/v1/customer/provider-reports
+List Customer Provider Reports
 
 ## 05 Customer - Provider Reports
 
 ### `GET` `/api/v1/customer/provider-reports/{id}`
 
-GET /api/v1/customer/provider-reports/{id}
+Fetch Customer Provider Reports details
 
 ## 05 Customer - Provider Reports
 
@@ -1092,7 +1092,7 @@ List own provider reviews
 
 ### `GET` `/api/v1/customer/reviews/{id}`
 
-GET /api/v1/customer/reviews/{id}
+Fetch Customer Reviews details
 
 ## 05 Customer - Reviews
 
@@ -1296,13 +1296,13 @@ Approve gift in optional moderation workflow
 
 ### `PATCH` `/api/v1/gift-moderation/{id}/flag`
 
-PATCH /api/v1/gift-moderation/{id}/flag
+Update Gift Moderation Flag
 
 ## 04 Gifts - Moderation
 
 ### `PATCH` `/api/v1/gift-moderation/{id}/reject`
 
-PATCH /api/v1/gift-moderation/{id}/reject
+Update Gift Moderation Reject
 
 ## 04 Gifts - Management
 
@@ -1356,19 +1356,19 @@ Fetch gift inventory stats
 
 ### `GET` `/api/v1/login-attempts`
 
-GET /api/v1/login-attempts
+List Login Attempts
 
 ## 01 Auth - Login Attempts
 
 ### `GET` `/api/v1/login-attempts/export`
 
-GET /api/v1/login-attempts/export
+List Login Attempts Export
 
 ## 01 Auth - Login Attempts
 
 ### `GET` `/api/v1/login-attempts/stats`
 
-GET /api/v1/login-attempts/stats
+List Login Attempts Stats
 
 ## 02 Admin - Media Upload Policy
 
@@ -1452,103 +1452,103 @@ Stripe webhook endpoint
 
 ### `GET` `/api/v1/permissions/catalog`
 
-GET /api/v1/permissions/catalog
+List Permissions Catalog
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/plan-features`
 
-GET /api/v1/plan-features
+List Plan Features
 
 ## 07 Plans & Coupons
 
 ### `POST` `/api/v1/plan-features`
 
-POST /api/v1/plan-features
+Create Plan Features
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/plan-features/{id}`
 
-GET /api/v1/plan-features/{id}
+Fetch Plan Features details
 
 ## 07 Plans & Coupons
 
 ### `PATCH` `/api/v1/plan-features/{id}`
 
-PATCH /api/v1/plan-features/{id}
+Update Plan Features
 
 ## 07 Plans & Coupons
 
 ### `DELETE` `/api/v1/plan-features/{id}`
 
-DELETE /api/v1/plan-features/{id}
+Delete Plan Features
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/plan-features/catalog`
 
-GET /api/v1/plan-features/catalog
+List Plan Features Catalog
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers`
 
-GET /api/v1/promotional-offers
+List Promotional Offers
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `POST` `/api/v1/promotional-offers`
 
-POST /api/v1/promotional-offers
+Create Promotional Offers
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers/{id}`
 
-GET /api/v1/promotional-offers/{id}
+Fetch Promotional Offers details
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}`
 
-PATCH /api/v1/promotional-offers/{id}
+Update Promotional Offers
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `DELETE` `/api/v1/promotional-offers/{id}`
 
-DELETE /api/v1/promotional-offers/{id}
+Delete Promotional Offers
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}/approve`
 
-PATCH /api/v1/promotional-offers/{id}/approve
+Update Promotional Offers Approve
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}/reject`
 
-PATCH /api/v1/promotional-offers/{id}/reject
+Update Promotional Offers Reject
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `PATCH` `/api/v1/promotional-offers/{id}/status`
 
-PATCH /api/v1/promotional-offers/{id}/status
+Update Promotional Offers Status
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers/export`
 
-GET /api/v1/promotional-offers/export
+List Promotional Offers Export
 
-## 03 Provider - Promotional Offers
+## 02 Admin - Promotional Offers Management
 
 ### `GET` `/api/v1/promotional-offers/stats`
 
-GET /api/v1/promotional-offers/stats
+List Promotional Offers Stats
 
 ## 02 Admin - Provider Business Categories
 
@@ -1674,37 +1674,37 @@ Fetch provider inventory stats
 
 ### `GET` `/api/v1/provider/offers`
 
-GET /api/v1/provider/offers
+List Provider Offers
 
 ## 03 Provider - Promotional Offers
 
 ### `POST` `/api/v1/provider/offers`
 
-POST /api/v1/provider/offers
+Create Provider Offers
 
 ## 03 Provider - Promotional Offers
 
 ### `GET` `/api/v1/provider/offers/{id}`
 
-GET /api/v1/provider/offers/{id}
+Fetch Provider Offers details
 
 ## 03 Provider - Promotional Offers
 
 ### `PATCH` `/api/v1/provider/offers/{id}`
 
-PATCH /api/v1/provider/offers/{id}
+Update Provider Offers
 
 ## 03 Provider - Promotional Offers
 
 ### `DELETE` `/api/v1/provider/offers/{id}`
 
-DELETE /api/v1/provider/offers/{id}
+Delete Provider Offers
 
 ## 03 Provider - Promotional Offers
 
 ### `PATCH` `/api/v1/provider/offers/{id}/status`
 
-PATCH /api/v1/provider/offers/{id}/status
+Update Provider Offers Status
 
 ## 03 Provider - Orders
 
@@ -1778,19 +1778,19 @@ Update own provider order fulfillment status
 
 Fetch own provider order timeline
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/analytics/ratings`
 
 Fetch own provider ratings analytics
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/analytics/revenue`
 
 Fetch own provider revenue analytics
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/export`
 
@@ -1802,13 +1802,13 @@ Export own provider orders as CSV
 
 List own provider order history
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/performance`
 
 Fetch own provider order performance
 
-## 03 Provider - Orders
+## 03 Provider - Order Analytics
 
 ### `GET` `/api/v1/provider/orders/recent`
 
@@ -1872,7 +1872,7 @@ List provider reviews
 
 ### `GET` `/api/v1/provider/reviews/{id}`
 
-GET /api/v1/provider/reviews/{id}
+Fetch Provider Reviews details
 
 ## 03 Provider - Reviews
 
@@ -1920,13 +1920,13 @@ Create provider from admin dashboard
 
 ### `GET` `/api/v1/providers/{id}`
 
-GET /api/v1/providers/{id}
+Fetch Providers details
 
 ## 02 Admin - Provider Management
 
 ### `PATCH` `/api/v1/providers/{id}`
 
-PATCH /api/v1/providers/{id}
+Update Providers
 
 ## 02 Admin - Provider Management
 
@@ -1938,19 +1938,19 @@ Permanently delete provider
 
 ### `GET` `/api/v1/providers/{id}/activity`
 
-GET /api/v1/providers/{id}/activity
+Fetch Providers Activity details
 
 ## 02 Admin - Provider Management
 
 ### `GET` `/api/v1/providers/{id}/items`
 
-GET /api/v1/providers/{id}/items
+Fetch Providers Items details
 
 ## 02 Admin - Provider Management
 
 ### `POST` `/api/v1/providers/{id}/message`
 
-POST /api/v1/providers/{id}/message
+Create Providers Message
 
 ## 02 Admin - Provider Management
 
@@ -1962,19 +1962,19 @@ Update provider lifecycle status
 
 ### `GET` `/api/v1/providers/export`
 
-GET /api/v1/providers/export
+List Providers Export
 
 ## 02 Admin - Provider Management
 
 ### `GET` `/api/v1/providers/lookup`
 
-GET /api/v1/providers/lookup
+List Providers Lookup
 
 ## 02 Admin - Provider Management
 
 ### `GET` `/api/v1/providers/stats`
 
-GET /api/v1/providers/stats
+List Providers Stats
 
 ## 02 Admin - Referral Settings
 
@@ -2016,55 +2016,55 @@ Fetch referral stats
 
 ### `GET` `/api/v1/subscription-plans`
 
-GET /api/v1/subscription-plans
+List Subscription Plans
 
 ## 07 Plans & Coupons
 
 ### `POST` `/api/v1/subscription-plans`
 
-POST /api/v1/subscription-plans
+Create Subscription Plans
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/subscription-plans/{id}`
 
-GET /api/v1/subscription-plans/{id}
+Fetch Subscription Plans details
 
 ## 07 Plans & Coupons
 
 ### `PATCH` `/api/v1/subscription-plans/{id}`
 
-PATCH /api/v1/subscription-plans/{id}
+Update Subscription Plans
 
 ## 07 Plans & Coupons
 
 ### `DELETE` `/api/v1/subscription-plans/{id}`
 
-DELETE /api/v1/subscription-plans/{id}
+Delete Subscription Plans
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/subscription-plans/{id}/analytics`
 
-GET /api/v1/subscription-plans/{id}/analytics
+Fetch Subscription Plans Analytics details
 
 ## 07 Plans & Coupons
 
 ### `PATCH` `/api/v1/subscription-plans/{id}/status`
 
-PATCH /api/v1/subscription-plans/{id}/status
+Update Subscription Plans Status
 
 ## 07 Plans & Coupons
 
 ### `PATCH` `/api/v1/subscription-plans/{id}/visibility`
 
-PATCH /api/v1/subscription-plans/{id}/visibility
+Update Subscription Plans Visibility
 
 ## 07 Plans & Coupons
 
 ### `GET` `/api/v1/subscription-plans/stats`
 
-GET /api/v1/subscription-plans/stats
+List Subscription Plans Stats
 
 ## 07 Storage
 
@@ -2106,13 +2106,13 @@ List registered users
 
 ### `GET` `/api/v1/users/{id}`
 
-GET /api/v1/users/{id}
+Fetch Users details
 
 ## 02 Admin - User Management
 
 ### `PATCH` `/api/v1/users/{id}`
 
-PATCH /api/v1/users/{id}
+Update Users
 
 ## 02 Admin - User Management
 
@@ -2124,7 +2124,7 @@ Permanently delete registered user
 
 ### `GET` `/api/v1/users/{id}/activity`
 
-GET /api/v1/users/{id}/activity
+Fetch Users Activity details
 
 ## 02 Admin - User Management
 
@@ -2136,28 +2136,28 @@ Change registered user password
 
 ### `GET` `/api/v1/users/{id}/stats`
 
-GET /api/v1/users/{id}/stats
+Fetch Users Stats details
 
 ## 02 Admin - User Management
 
 ### `PATCH` `/api/v1/users/{id}/status`
 
-PATCH /api/v1/users/{id}/status
+Update Users Status
 
 ## 02 Admin - User Management
 
 ### `POST` `/api/v1/users/{id}/suspend`
 
-POST /api/v1/users/{id}/suspend
+Create Users Suspend
 
 ## 02 Admin - User Management
 
 ### `POST` `/api/v1/users/{id}/unsuspend`
 
-POST /api/v1/users/{id}/unsuspend
+Create Users Unsuspend
 
 ## 02 Admin - User Management
 
 ### `GET` `/api/v1/users/export`
 
-GET /api/v1/users/export
+List Users Export

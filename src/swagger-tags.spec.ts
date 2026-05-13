@@ -10,6 +10,7 @@ describe('Swagger professional tag grouping', () => {
       '02 Admin - User Management',
       '02 Admin - Provider Management',
       '02 Admin - Provider Business Categories',
+      '02 Admin - Promotional Offers Management',
       '03 Provider - Business Info',
       '03 Provider - Orders',
       '03 Provider - Refund Requests',
