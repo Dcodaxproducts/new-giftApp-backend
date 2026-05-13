@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T10:56:13.665Z_
+_Generated from OpenAPI: 2026-05-13T11:21:44.969Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -514,28 +514,52 @@ Summary: PATCH /api/v1/admins/{id}/password
 Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard.
 Access: "SUPER_ADMIN"
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
 
 ### `GET` `/api/v1/audit-logs`
 
-Summary: GET /api/v1/audit-logs
-Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin.
+Summary: List audit logs
+Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin. SUPER_ADMIN only. Supports filtering by action type, actor, status, date range, module, and source IP.
 Access: "SUPER_ADMIN"
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
 
 ### `GET` `/api/v1/audit-logs/{id}`
 
-Summary: GET /api/v1/audit-logs/{id}
-Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin.
+Summary: Fetch audit log detail
+Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin. SUPER_ADMIN only. Returns sanitized raw JSON payloads, system response preview, and technical metadata.
 Access: "SUPER_ADMIN"
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
+
+### `GET` `/api/v1/audit-logs/action-types`
+
+Summary: Fetch audit log action types
+Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin. SUPER_ADMIN only. Returns action type dropdown options for System Logs filters.
+Access: "SUPER_ADMIN"
+
+## 02 Admin - System Logs & Audit Trail
 
 ### `GET` `/api/v1/audit-logs/export`
 
-Summary: GET /api/v1/audit-logs/export
-Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin.
+Summary: Export audit logs CSV
+Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin. SUPER_ADMIN only. Exports sanitized audit log records using the same filters as the list API.
+Access: "SUPER_ADMIN"
+
+## 02 Admin - System Logs & Audit Trail
+
+### `GET` `/api/v1/audit-logs/stats`
+
+Summary: Fetch audit log stats
+Description: Access: SUPER_ADMIN. SUPER_ADMIN only. System log summary cards are restricted to Super Admin. SUPER_ADMIN only. Returns system log summary cards and security/system metrics.
+Access: "SUPER_ADMIN"
+
+## 02 Admin - System Logs & Audit Trail
+
+### `GET` `/api/v1/audit-logs/users`
+
+Summary: Fetch audit log user selector options
+Description: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin. SUPER_ADMIN only. Returns actor/user selector options for System Logs filters.
 Access: "SUPER_ADMIN"
 
 ## 01 Auth

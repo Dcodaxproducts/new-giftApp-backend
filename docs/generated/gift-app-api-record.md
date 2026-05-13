@@ -1,6 +1,6 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T10:56:13.665Z_
+_Generated from OpenAPI: 2026-05-13T11:21:44.969Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -386,23 +386,41 @@ PATCH /api/v1/admins/{id}/active-status
 
 PATCH /api/v1/admins/{id}/password
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
 
 ### `GET` `/api/v1/audit-logs`
 
-GET /api/v1/audit-logs
+List audit logs
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
 
 ### `GET` `/api/v1/audit-logs/{id}`
 
-GET /api/v1/audit-logs/{id}
+Fetch audit log detail
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
+
+### `GET` `/api/v1/audit-logs/action-types`
+
+Fetch audit log action types
+
+## 02 Admin - System Logs & Audit Trail
 
 ### `GET` `/api/v1/audit-logs/export`
 
-GET /api/v1/audit-logs/export
+Export audit logs CSV
+
+## 02 Admin - System Logs & Audit Trail
+
+### `GET` `/api/v1/audit-logs/stats`
+
+Fetch audit log stats
+
+## 02 Admin - System Logs & Audit Trail
+
+### `GET` `/api/v1/audit-logs/users`
+
+Fetch audit log user selector options
 
 ## 01 Auth
 

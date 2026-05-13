@@ -17909,8 +17909,186 @@
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
+    "/api/v1/audit-logs/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. System log summary cards are restricted to Super Admin. SUPER_ADMIN only. Returns system log summary cards and security/system metrics.",
+        "operationId": "AuditLogsController_stats",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "criticalAlerts24h": 12,
+                      "dailyAverageActions": 4200,
+                      "uptimeStatus": 99.98,
+                      "totalLogs": 1240,
+                      "successCount": 1100,
+                      "failedCount": 140
+                    },
+                    "message": "Audit log stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch audit log stats",
+        "tags": [
+          "02 Admin - System Logs & Audit Trail"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/audit-logs/action-types": {
+      "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin. SUPER_ADMIN only. Returns action type dropdown options for System Logs filters.",
+        "operationId": "AuditLogsController_actionTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "key": "PROVIDER_APPROVED",
+                        "label": "Provider Approved"
+                      },
+                      {
+                        "key": "FAILED_LOGIN_ATTEMPT",
+                        "label": "Failed Login Attempt"
+                      }
+                    ],
+                    "message": "Audit log action types fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch audit log action types",
+        "tags": [
+          "02 Admin - System Logs & Audit Trail"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/audit-logs/users": {
+      "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin. SUPER_ADMIN only. Returns actor/user selector options for System Logs filters.",
+        "operationId": "AuditLogsController_users",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "system",
+                        "name": "System",
+                        "email": null,
+                        "role": "SYSTEM",
+                        "label": "System Automated Action"
+                      },
+                      {
+                        "id": "admin_id",
+                        "name": "Sarah Chen",
+                        "email": "sarah@example.com",
+                        "role": "ADMIN",
+                        "label": "Sarah Chen — Compliance Officer"
+                      }
+                    ],
+                    "message": "Audit log users fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch audit log user selector options",
+        "tags": [
+          "02 Admin - System Logs & Audit Trail"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
     "/api/v1/audit-logs/export": {
       "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin. SUPER_ADMIN only. Exports sanitized audit log records using the same filters as the list API.",
         "operationId": "AuditLogsController_export",
         "parameters": [
           {
@@ -17941,6 +18119,14 @@
             }
           },
           {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "targetId",
             "required": false,
             "in": "query",
@@ -17950,6 +18136,14 @@
           },
           {
             "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actionType",
             "required": false,
             "in": "query",
             "schema": {
@@ -17973,6 +18167,37 @@
             }
           },
           {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "FAILED",
+                "PENDING",
+                "WARNING"
+              ]
+            }
+          },
+          {
+            "name": "environment",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceIp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "from",
             "required": false,
             "in": "query",
@@ -17989,6 +18214,22 @@
             }
           },
           {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortBy",
             "required": false,
             "in": "query",
@@ -17997,7 +18238,7 @@
               "enum": [
                 "createdAt",
                 "action",
-                "targetType"
+                "status"
               ]
             }
           },
@@ -18024,17 +18265,17 @@
             "bearer": []
           }
         ],
+        "summary": "Export audit logs CSV",
         "tags": [
-          "02 Admin - Audit Logs"
+          "02 Admin - System Logs & Audit Trail"
         ],
-        "summary": "GET /api/v1/audit-logs/export",
         "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin."
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/audit-logs": {
       "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin. SUPER_ADMIN only. Supports filtering by action type, actor, status, date range, module, and source IP.",
         "operationId": "AuditLogsController_list",
         "parameters": [
           {
@@ -18065,6 +18306,14 @@
             }
           },
           {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "targetId",
             "required": false,
             "in": "query",
@@ -18074,6 +18323,14 @@
           },
           {
             "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actionType",
             "required": false,
             "in": "query",
             "schema": {
@@ -18097,6 +18354,37 @@
             }
           },
           {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "FAILED",
+                "PENDING",
+                "WARNING"
+              ]
+            }
+          },
+          {
+            "name": "environment",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceIp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "from",
             "required": false,
             "in": "query",
@@ -18113,6 +18401,22 @@
             }
           },
           {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortBy",
             "required": false,
             "in": "query",
@@ -18121,7 +18425,7 @@
               "enum": [
                 "createdAt",
                 "action",
-                "targetType"
+                "status"
               ]
             }
           },
@@ -18140,7 +18444,48 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "audit_log_id",
+                        "eventId": "EV-90210",
+                        "logReference": "789042",
+                        "timestamp": "2023-10-27T14:32:01.000Z",
+                        "actor": {
+                          "id": "admin_id",
+                          "name": "Sarah Chen",
+                          "role": "Compliance Officer",
+                          "avatarInitials": "SC"
+                        },
+                        "action": "PROVIDER_APPROVED",
+                        "actionLabel": "Provider Approved",
+                        "module": "Provider Management",
+                        "sourceIp": "192.168.1.45",
+                        "environment": "Production-Cluster-A",
+                        "status": "SUCCESS",
+                        "target": {
+                          "id": "provider_id",
+                          "type": "PROVIDER"
+                        },
+                        "createdAt": "2023-10-27T14:32:01.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Audit logs fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -18148,17 +18493,17 @@
             "bearer": []
           }
         ],
+        "summary": "List audit logs",
         "tags": [
-          "02 Admin - Audit Logs"
+          "02 Admin - System Logs & Audit Trail"
         ],
-        "summary": "GET /api/v1/audit-logs",
         "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin."
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/audit-logs/{id}": {
       "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin. SUPER_ADMIN only. Returns sanitized raw JSON payloads, system response preview, and technical metadata.",
         "operationId": "AuditLogsController_details",
         "parameters": [
           {
@@ -18172,7 +18517,49 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "audit_log_id",
+                      "logReference": "789042",
+                      "eventId": "EV-90210",
+                      "timestamp": "2023-10-27T14:32:01.000Z",
+                      "status": "SUCCESS",
+                      "category": "AUDIT_TRAIL",
+                      "actor": {
+                        "id": "admin_id",
+                        "username": "super_admin_fintech",
+                        "name": "Super Admin",
+                        "role": "SUPER_ADMIN"
+                      },
+                      "actionType": "TRANSACTION_AUTHORIZATION",
+                      "module": "Transactions",
+                      "sourceIp": "192.168.1.104",
+                      "environment": "Production-Cluster-A",
+                      "target": {
+                        "id": "transaction_id",
+                        "type": "TRANSACTION"
+                      },
+                      "requestPayload": {
+                        "authorization": "[REDACTED]",
+                        "request_id": "req_550e8400"
+                      },
+                      "systemResponse": {
+                        "statusCode": 200,
+                        "durationMs": 142,
+                        "message": "Transaction authorized successfully."
+                      },
+                      "createdAt": "2023-10-27T14:32:01.000Z"
+                    },
+                    "message": "Audit log details fetched successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -18180,13 +18567,12 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch audit log detail",
         "tags": [
-          "02 Admin - Audit Logs"
+          "02 Admin - System Logs & Audit Trail"
         ],
-        "summary": "GET /api/v1/audit-logs/{id}",
         "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin."
+        "x-access": "SUPER_ADMIN"
       }
     },
     "/api/v1/uploads/presigned-url": {
@@ -18458,7 +18844,7 @@
       "name": "02 Admin - Media Upload Policy"
     },
     {
-      "name": "02 Admin - Audit Logs"
+      "name": "02 Admin - System Logs & Audit Trail"
     },
     {
       "name": "02 Admin - Dispute Manager"

@@ -188,6 +188,9 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'POST /api/v1/uploads/presigned-url': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'Backend derives ownerId/ownerRole from JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, admin-only when authorized, and allowed for SUPER_ADMIN.' },
   'POST /api/v1/uploads/complete': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'Completes only uploads accessible to the authenticated account.' },
 
+  'GET /api/v1/audit-logs/stats': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. System log summary cards are restricted to Super Admin.' },
+  'GET /api/v1/audit-logs/action-types': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin.' },
+  'GET /api/v1/audit-logs/users': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin.' },
   'GET /api/v1/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit logs are restricted to Super Admin.' },
   'GET /api/v1/audit-logs/export': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit log export is restricted to Super Admin.' },
   'GET /api/v1/audit-logs/{id}': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit log details are restricted to Super Admin.' },

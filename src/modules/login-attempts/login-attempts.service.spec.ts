@@ -3,7 +3,7 @@ import { LoginAttemptsService } from './login-attempts.service';
 
 function createService() {
   const attempt = { id: 'attempt_1', email: 'a@example.com', status: LoginAttemptStatus.SUCCESS, reason: null, ipAddress: '127.0.0.1', userAgent: null, userId: 'user_1', role: UserRole.ADMIN, createdAt: new Date() };
-  const prisma = { loginAttempt: { count: jest.fn().mockResolvedValue(1), findMany: jest.fn().mockResolvedValue([attempt]), create: jest.fn() }, $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)) };
+  const prisma = { loginAttempt: { count: jest.fn().mockResolvedValue(1), findMany: jest.fn().mockResolvedValue([attempt]), create: jest.fn() }, adminAuditLog: { create: jest.fn() }, $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)) };
   const service = new LoginAttemptsService(prisma as unknown as ConstructorParameters<typeof LoginAttemptsService>[0]);
   return { service, prisma };
 }

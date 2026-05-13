@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-13 10:56 UTC
+Generated: 2026-05-13 11:21 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -14,7 +14,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Business Categories (5 APIs)
 - 02 Admin - Referral Settings (6 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
-- 02 Admin - Audit Logs (3 APIs)
+- 02 Admin - System Logs & Audit Trail (6 APIs)
 - 02 Admin - Dispute Manager (8 APIs)
 - 02 Admin - Dispute Evidence (1 APIs)
 - 02 Admin - Dispute Linkage (4 APIs)
@@ -1851,23 +1851,110 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 02 Admin - Audit Logs
+## 02 Admin - System Logs & Audit Trail
+
+### GET `/api/v1/audit-logs/stats`
+
+- Summary: Fetch audit log stats
+- Allowed role/access: SUPER_ADMIN
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. System log summary cards are restricted to Super Admin. SUPER_ADMIN only. Returns system log summary cards and security/system metrics.
+- Parameters:
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "criticalAlerts24h": 12,
+    "dailyAverageActions": 4200,
+    "uptimeStatus": 99.98,
+    "totalLogs": 1240,
+    "successCount": 1100,
+    "failedCount": 140
+  },
+  "message": "Audit log stats fetched successfully."
+}
+```
+
+### GET `/api/v1/audit-logs/action-types`
+
+- Summary: Fetch audit log action types
+- Allowed role/access: SUPER_ADMIN
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin. SUPER_ADMIN only. Returns action type dropdown options for System Logs filters.
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "key": "PROVIDER_APPROVED",
+      "label": "Provider Approved"
+    },
+    {
+      "key": "FAILED_LOGIN_ATTEMPT",
+      "label": "Failed Login Attempt"
+    }
+  ],
+  "message": "Audit log action types fetched successfully."
+}
+```
+
+### GET `/api/v1/audit-logs/users`
+
+- Summary: Fetch audit log user selector options
+- Allowed role/access: SUPER_ADMIN
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin. SUPER_ADMIN only. Returns actor/user selector options for System Logs filters.
+- Parameters:
+  - `search` (query, optional, string)
+  - `role` (query, optional, string)
+  - `limit` (query, optional, number)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "system",
+      "name": "System",
+      "email": null,
+      "role": "SYSTEM",
+      "label": "System Automated Action"
+    },
+    {
+      "id": "admin_id",
+      "name": "Sarah Chen",
+      "email": "sarah@example.com",
+      "role": "ADMIN",
+      "label": "Sarah Chen — Compliance Officer"
+    }
+  ],
+  "message": "Audit log users fetched successfully."
+}
+```
 
 ### GET `/api/v1/audit-logs/export`
 
-- Summary: GET /api/v1/audit-logs/export
+- Summary: Export audit logs CSV
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin. SUPER_ADMIN only. Exports sanitized audit log records using the same filters as the list API.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `actorId` (query, optional, string)
+  - `userId` (query, optional, string)
   - `targetId` (query, optional, string)
   - `action` (query, optional, string)
+  - `actionType` (query, optional, string)
   - `targetType` (query, optional, string)
   - `module` (query, optional, string)
+  - `status` (query, optional, string)
+  - `environment` (query, optional, string)
+  - `sourceIp` (query, optional, string)
   - `from` (query, optional, string)
   - `to` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
   - `sortBy` (query, optional, string)
   - `sortOrder` (query, optional, string)
 - Response body:
@@ -1881,43 +1968,111 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/audit-logs`
 
-- Summary: GET /api/v1/audit-logs
+- Summary: List audit logs
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin. SUPER_ADMIN only. Supports filtering by action type, actor, status, date range, module, and source IP.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `actorId` (query, optional, string)
+  - `userId` (query, optional, string)
   - `targetId` (query, optional, string)
   - `action` (query, optional, string)
+  - `actionType` (query, optional, string)
   - `targetType` (query, optional, string)
   - `module` (query, optional, string)
+  - `status` (query, optional, string)
+  - `environment` (query, optional, string)
+  - `sourceIp` (query, optional, string)
   - `from` (query, optional, string)
   - `to` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
   - `sortBy` (query, optional, string)
   - `sortOrder` (query, optional, string)
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": [
+    {
+      "id": "audit_log_id",
+      "eventId": "EV-90210",
+      "logReference": "789042",
+      "timestamp": "2023-10-27T14:32:01.000Z",
+      "actor": {
+        "id": "admin_id",
+        "name": "Sarah Chen",
+        "role": "Compliance Officer",
+        "avatarInitials": "SC"
+      },
+      "action": "PROVIDER_APPROVED",
+      "actionLabel": "Provider Approved",
+      "module": "Provider Management",
+      "sourceIp": "192.168.1.45",
+      "environment": "Production-Cluster-A",
+      "status": "SUCCESS",
+      "target": {
+        "id": "provider_id",
+        "type": "PROVIDER"
+      },
+      "createdAt": "2023-10-27T14:32:01.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Audit logs fetched successfully"
 }
 ```
 
 ### GET `/api/v1/audit-logs/{id}`
 
-- Summary: GET /api/v1/audit-logs/{id}
+- Summary: Fetch audit log detail
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin. SUPER_ADMIN only. Returns sanitized raw JSON payloads, system response preview, and technical metadata.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "audit_log_id",
+    "logReference": "789042",
+    "eventId": "EV-90210",
+    "timestamp": "2023-10-27T14:32:01.000Z",
+    "status": "SUCCESS",
+    "category": "AUDIT_TRAIL",
+    "actor": {
+      "id": "admin_id",
+      "username": "super_admin_fintech",
+      "name": "Super Admin",
+      "role": "SUPER_ADMIN"
+    },
+    "actionType": "TRANSACTION_AUTHORIZATION",
+    "module": "Transactions",
+    "sourceIp": "192.168.1.104",
+    "environment": "Production-Cluster-A",
+    "target": {
+      "id": "transaction_id",
+      "type": "TRANSACTION"
+    },
+    "requestPayload": {
+      "authorization": "[REDACTED]",
+      "request_id": "req_550e8400"
+    },
+    "systemResponse": {
+      "statusCode": 200,
+      "durationMs": 142,
+      "message": "Transaction authorized successfully."
+    },
+    "createdAt": "2023-10-27T14:32:01.000Z"
+  },
+  "message": "Audit log details fetched successfully"
 }
 ```
 

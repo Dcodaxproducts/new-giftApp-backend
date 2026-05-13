@@ -62,9 +62,12 @@
 <tr><td>02 Admin - Staff Management</td><td>DELETE</td><td><code>/api/v1/admins/{id}</code></td><td>Permanently delete admin staff user</td></tr>
 <tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}/active-status</code></td><td>PATCH /api/v1/admins/{id}/active-status</td></tr>
 <tr><td>02 Admin - Staff Management</td><td>PATCH</td><td><code>/api/v1/admins/{id}/password</code></td><td>PATCH /api/v1/admins/{id}/password</td></tr>
-<tr><td>02 Admin - Audit Logs</td><td>GET</td><td><code>/api/v1/audit-logs</code></td><td>GET /api/v1/audit-logs</td></tr>
-<tr><td>02 Admin - Audit Logs</td><td>GET</td><td><code>/api/v1/audit-logs/{id}</code></td><td>GET /api/v1/audit-logs/{id}</td></tr>
-<tr><td>02 Admin - Audit Logs</td><td>GET</td><td><code>/api/v1/audit-logs/export</code></td><td>GET /api/v1/audit-logs/export</td></tr>
+<tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs</code></td><td>List audit logs</td></tr>
+<tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/{id}</code></td><td>Fetch audit log detail</td></tr>
+<tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/action-types</code></td><td>Fetch audit log action types</td></tr>
+<tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/export</code></td><td>Export audit logs CSV</td></tr>
+<tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/stats</code></td><td>Fetch audit log stats</td></tr>
+<tr><td>02 Admin - System Logs & Audit Trail</td><td>GET</td><td><code>/api/v1/audit-logs/users</code></td><td>Fetch audit log user selector options</td></tr>
 <tr><td>01 Auth</td><td>DELETE</td><td><code>/api/v1/auth/account</code></td><td>DELETE /api/v1/auth/account</td></tr>
 <tr><td>01 Auth</td><td>POST</td><td><code>/api/v1/auth/cancel-deletion</code></td><td>POST /api/v1/auth/cancel-deletion</td></tr>
 <tr><td>01 Auth</td><td>PATCH</td><td><code>/api/v1/auth/change-password</code></td><td>PATCH /api/v1/auth/change-password</td></tr>

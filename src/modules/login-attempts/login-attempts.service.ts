@@ -29,6 +29,9 @@ export class LoginAttemptsService {
 
   async record(input: RecordLoginAttemptInput): Promise<void> {
     await this.prisma.loginAttempt.create({ data: { email: this.normalizeEmail(input.email), status: input.status, reason: input.reason, ipAddress: input.ipAddress, userAgent: input.userAgent, userId: input.userId, role: input.role } });
+    if (input.status !== LoginAttemptStatus.SUCCESS) {
+      await this.prisma.adminAuditLog.create({ data: { actorId: input.userId ?? null, actorType: input.role ?? 'SYSTEM', actorNameSnapshot: input.email, targetId: input.userId ?? null, targetType: 'AUTH', action: input.status === LoginAttemptStatus.BLOCKED ? 'SUSPICIOUS_LOGIN' : 'FAILED_LOGIN_ATTEMPT', actionLabel: input.status === LoginAttemptStatus.BLOCKED ? 'Suspicious Login' : 'Failed Login Attempt', module: 'Security', status: 'FAILED', severity: input.status === LoginAttemptStatus.BLOCKED ? 'CRITICAL' : 'HIGH', requestPayloadJson: { email: this.normalizeEmail(input.email) }, responsePayloadJson: { reason: input.reason }, ipAddress: input.ipAddress, userAgent: input.userAgent } });
+    }
   }
 
   async list(query: ListLoginAttemptsDto) {
