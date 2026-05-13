@@ -5,6 +5,7 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { PrismaService } from '../../database/prisma.service';
 import { CustomerReferralsService } from '../customer-referrals/customer-referrals.service';
 import { CustomerWalletService } from '../customer-wallet/customer-wallet.service';
+import { CustomerSubscriptionsService } from '../customer-subscriptions/customer-subscriptions.service';
 import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from './dto/payments.dto';
 
 type CartWithItems = Prisma.CartGetPayload<{ include: { items: true } }>;
@@ -39,6 +40,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly customerReferralsService: CustomerReferralsService,
     private readonly customerWalletService: CustomerWalletService,
+    private readonly customerSubscriptionsService: CustomerSubscriptionsService,
   ) {}
 
   paymentMethods() {
@@ -138,6 +140,7 @@ export class PaymentsService {
     if (event.type === 'payment_intent.payment_failed') await this.updateFromStripeIntent(intent, PaymentStatus.FAILED, intent.last_payment_error?.message ?? undefined);
     if (event.type === 'payment_intent.canceled') await this.updateFromStripeIntent(intent, PaymentStatus.CANCELLED, intent.cancellation_reason ?? undefined);
     if (event.type === 'setup_intent.succeeded') await this.saveSetupIntentPaymentMethod(event.data.object);
+    if (event.type.startsWith('customer.subscription.') || event.type.startsWith('invoice.')) await this.customerSubscriptionsService.handleStripeSubscriptionEvent(event.type, event.data.object);
     return { data: { received: true }, message: 'Stripe webhook processed successfully.' };
   }
 

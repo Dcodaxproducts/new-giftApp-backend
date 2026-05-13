@@ -10691,6 +10691,337 @@
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
+    "/api/v1/customer/subscription/plans": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses admin-created active/public Subscription Plans. Customer cannot create/update/delete plans.",
+        "operationId": "CustomerSubscriptionsController_plans",
+        "parameters": [
+          {
+            "name": "billingCycle",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "MONTHLY",
+                "YEARLY"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "plan_premium",
+                        "name": "Premium",
+                        "monthlyPrice": 4.99,
+                        "yearlyPrice": 39.99,
+                        "currency": "USD",
+                        "isPopular": true,
+                        "yearlySavingsPercent": 30,
+                        "features": [
+                          {
+                            "key": "ai_gift_recommendations",
+                            "label": "Ai Gift Recommendations",
+                            "enabled": true
+                          }
+                        ],
+                        "limits": {
+                          "unlimitedCredits": true
+                        }
+                      }
+                    ],
+                    "message": "Subscription plans fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List public active subscription plans",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/current": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns FREE state when no active premium subscription exists.",
+        "operationId": "CustomerSubscriptionsController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own current subscription",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/checkout": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Backend calculates price from admin-created SubscriptionPlan and optional coupon. Uses Stripe subscription flow with payment_behavior=default_incomplete.",
+        "operationId": "CustomerSubscriptionsController_checkout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCheckoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create Stripe subscription checkout",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/confirm": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Fetches Stripe subscription server-side and activates local entitlement when active/trialing.",
+        "operationId": "CustomerSubscriptionsController_confirm",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmSubscriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Confirm Stripe subscription activation",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/cancel": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Supports immediate cancellation or cancel_at_period_end in Stripe. Does not delete local subscription record.",
+        "operationId": "CustomerSubscriptionsController_cancel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelSubscriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel own subscription",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/reactivate": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Works only when own subscription has cancelAtPeriodEnd=true.",
+        "operationId": "CustomerSubscriptionsController_reactivate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reactivate scheduled cancellation",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/invoices": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns invoices synced from Stripe subscription webhooks.",
+        "operationId": "CustomerSubscriptionsController_invoices",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PAID",
+                "FAILED",
+                "OPEN"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own subscription invoices",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/invoices/{id}": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only.",
+        "operationId": "CustomerSubscriptionsController_invoiceDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own subscription invoice details",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/subscription/apply-coupon": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Validates coupon against active coupon rules and plan restrictions; frontend discount amounts are ignored.",
+        "operationId": "CustomerSubscriptionsController_applyCoupon",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCouponDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview subscription coupon",
+        "tags": [
+          "05 Customer - Subscriptions"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
     "/api/v1/customer/recurring-payments": {
       "get": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.",
@@ -16012,6 +16343,9 @@
       "name": "05 Customer - Referrals & Rewards"
     },
     {
+      "name": "05 Customer - Subscriptions"
+    },
+    {
       "name": "05 Customer - Wallet"
     },
     {
@@ -18461,6 +18795,101 @@
         "required": [
           "reason",
           "details"
+        ]
+      },
+      "SubscriptionCheckoutDto": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string"
+          },
+          "billingCycle": {
+            "type": "string",
+            "enum": [
+              "MONTHLY",
+              "YEARLY"
+            ]
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
+              "COD",
+              "PLACEHOLDER"
+            ],
+            "example": "STRIPE_CARD"
+          },
+          "stripePaymentMethodId": {
+            "type": "string",
+            "example": "pm_xxx"
+          },
+          "couponCode": {
+            "type": "string",
+            "example": "SAVE30"
+          }
+        },
+        "required": [
+          "planId",
+          "billingCycle",
+          "paymentMethod"
+        ]
+      },
+      "ConfirmSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "customerSubscriptionId": {
+            "type": "string"
+          },
+          "stripeSubscriptionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerSubscriptionId",
+          "stripeSubscriptionId"
+        ]
+      },
+      "CancelSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "cancelMode": {
+            "type": "string",
+            "enum": [
+              "IMMEDIATELY",
+              "AFTER_CURRENT_PERIOD"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cancelMode"
+        ]
+      },
+      "ApplyCouponDto": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string"
+          },
+          "billingCycle": {
+            "type": "string",
+            "enum": [
+              "MONTHLY",
+              "YEARLY"
+            ]
+          },
+          "couponCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "planId",
+          "billingCycle",
+          "couponCode"
         ]
       },
       "RecurringPaymentScheduleDto": {

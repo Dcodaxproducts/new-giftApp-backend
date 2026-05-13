@@ -1444,6 +1444,56 @@ Generated from Swagger/OpenAPI.
 - **Summary:** Fetch referral terms
 - **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Returns config/env based customer referral terms for the mobile app.
 
+## 05 Customer - Subscriptions
+
+### `GET` `/api/v1/customer/subscription/plans`
+- **Access:** REGISTERED_USER
+- **Summary:** List public active subscription plans
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses admin-created active/public Subscription Plans. Customer cannot create/update/delete plans.
+- **Parameters:** `billingCycle` (query)
+
+### `GET` `/api/v1/customer/subscription/current`
+- **Access:** REGISTERED_USER
+- **Summary:** Fetch own current subscription
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns FREE state when no active premium subscription exists.
+
+### `POST` `/api/v1/customer/subscription/checkout`
+- **Access:** REGISTERED_USER
+- **Summary:** Create Stripe subscription checkout
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Backend calculates price from admin-created SubscriptionPlan and optional coupon. Uses Stripe subscription flow with payment_behavior=default_incomplete.
+
+### `POST` `/api/v1/customer/subscription/confirm`
+- **Access:** REGISTERED_USER
+- **Summary:** Confirm Stripe subscription activation
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Fetches Stripe subscription server-side and activates local entitlement when active/trialing.
+
+### `POST` `/api/v1/customer/subscription/cancel`
+- **Access:** REGISTERED_USER
+- **Summary:** Cancel own subscription
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Supports immediate cancellation or cancel_at_period_end in Stripe. Does not delete local subscription record.
+
+### `POST` `/api/v1/customer/subscription/reactivate`
+- **Access:** REGISTERED_USER
+- **Summary:** Reactivate scheduled cancellation
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Works only when own subscription has cancelAtPeriodEnd=true.
+
+### `GET` `/api/v1/customer/subscription/invoices`
+- **Access:** REGISTERED_USER
+- **Summary:** List own subscription invoices
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns invoices synced from Stripe subscription webhooks.
+- **Parameters:** `page` (query), `limit` (query), `status` (query)
+
+### `GET` `/api/v1/customer/subscription/invoices/{id}`
+- **Access:** REGISTERED_USER
+- **Summary:** Fetch own subscription invoice details
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only.
+- **Parameters:** `id` (path)
+
+### `POST` `/api/v1/customer/subscription/apply-coupon`
+- **Access:** REGISTERED_USER
+- **Summary:** Preview subscription coupon
+- **Description:** Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Validates coupon against active coupon rules and plan restrictions; frontend discount amounts are ignored.
+
 ## 05 Customer - Wallet
 
 ### `GET` `/api/v1/customer/wallet`

@@ -14,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import {
   LoginAttemptStatus,
   AdminRole,
+  CustomerSubscriptionStatus,
   Prisma,
   ProviderApprovalStatus,
   User,
@@ -1260,7 +1261,17 @@ export class AuthService implements OnModuleInit {
       };
     }
 
-    return baseUser;
+    return { ...baseUser, subscription: await this.customerSubscriptionSummary(user.id) };
+  }
+
+  private async customerSubscriptionSummary(userId: string) {
+    const subscription = await this.prisma.customerSubscription.findFirst({
+      where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.PAST_DUE, CustomerSubscriptionStatus.INCOMPLETE] } },
+      include: { plan: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!subscription) return { isPremium: false, status: 'FREE', planId: null, planName: null, billingCycle: null };
+    return { isPremium: subscription.isPremium, status: subscription.status, planId: subscription.planId, planName: subscription.plan.name, billingCycle: subscription.billingCycle };
   }
 
   private toDeletionState(user: User) {

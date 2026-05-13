@@ -380,6 +380,27 @@ enum CustomerWalletLedgerStatus {
   CANCELLED
 }
 
+enum CustomerSubscriptionStatus {
+  INCOMPLETE
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum CustomerSubscriptionInvoiceStatus {
+  PAID
+  OPEN
+  FAILED
+  VOID
+}
+
+enum CustomerSubscriptionCancelMode {
+  IMMEDIATELY
+  AFTER_CURRENT_PERIOD
+}
+
 enum ProviderFulfillmentMethod {
   PICKUP
   DELIVERY
@@ -538,6 +559,8 @@ model User {
   customerWallet                      CustomerWallet?
   customerWalletLedger                CustomerWalletLedger[]
   customerBankAccounts                CustomerBankAccount[]
+  customerSubscriptions               CustomerSubscription[]
+  customerSubscriptionInvoices         CustomerSubscriptionInvoice[]
   sentReferrals                       Referral[]                           @relation("ReferralReferrer")
   receivedReferrals                   Referral[]                           @relation("ReferralReferred")
   rewardLedger                        RewardLedger[]
@@ -923,6 +946,7 @@ model Payment {
   userId                  String          @map("user_id")
   orderId                 String?         @unique @map("order_id")
   moneyGiftId             String?         @unique @map("money_gift_id")
+  customerSubscriptionId  String?         @map("customer_subscription_id")
   provider                PaymentProvider
   providerPaymentIntentId String?         @unique @map("provider_payment_intent_id")
   amount                  Decimal         @db.Decimal(10, 2)
@@ -937,12 +961,66 @@ model Payment {
   user                        User                                 @relation(fields: [userId], references: [id])
   order                       Order?                               @relation(fields: [orderId], references: [id])
   moneyGift                   MoneyGift?                           @relation(fields: [moneyGiftId], references: [id])
+  customerSubscription        CustomerSubscription?                 @relation(fields: [customerSubscriptionId], references: [id])
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   refundRequests              RefundRequest[]
 
   @@index([userId, status])
   @@index([status, createdAt])
   @@map("payments")
+}
+
+model CustomerSubscription {
+  id                   String                     @id @default(cuid())
+  userId               String                     @map("user_id")
+  planId               String                     @map("plan_id")
+  billingCycle         BillingCycle               @map("billing_cycle")
+  status               CustomerSubscriptionStatus @default(INCOMPLETE)
+  isPremium            Boolean                    @default(false) @map("is_premium")
+  stripeCustomerId     String?                    @map("stripe_customer_id")
+  stripeSubscriptionId String?                    @unique @map("stripe_subscription_id")
+  stripePriceId        String?                    @map("stripe_price_id")
+  currentPeriodStart   DateTime?                  @map("current_period_start") @db.Timestamptz
+  currentPeriodEnd     DateTime?                  @map("current_period_end") @db.Timestamptz
+  cancelAtPeriodEnd    Boolean                    @default(false) @map("cancel_at_period_end")
+  cancelledAt          DateTime?                  @map("cancelled_at") @db.Timestamptz
+  couponId             String?                    @map("coupon_id")
+  createdAt            DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User             @relation(fields: [userId], references: [id])
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  coupon   Coupon?          @relation(fields: [couponId], references: [id])
+  invoices CustomerSubscriptionInvoice[]
+  payments Payment[]
+
+  @@index([userId, status])
+  @@index([planId])
+  @@index([couponId])
+  @@map("customer_subscriptions")
+}
+
+model CustomerSubscriptionInvoice {
+  id                     String                            @id @default(cuid())
+  userId                 String                            @map("user_id")
+  customerSubscriptionId String                            @map("customer_subscription_id")
+  stripeInvoiceId        String                            @unique @map("stripe_invoice_id")
+  stripePaymentIntentId  String?                           @map("stripe_payment_intent_id")
+  amountDue              Decimal                           @map("amount_due") @db.Decimal(10, 2)
+  amountPaid             Decimal                           @map("amount_paid") @db.Decimal(10, 2)
+  currency               String
+  status                 CustomerSubscriptionInvoiceStatus
+  invoicePdfUrl          String?                           @map("invoice_pdf_url")
+  hostedInvoiceUrl       String?                           @map("hosted_invoice_url")
+  billingReason          String?                           @map("billing_reason")
+  createdAt              DateTime                          @default(now()) @map("created_at") @db.Timestamptz
+
+  user         User                 @relation(fields: [userId], references: [id])
+  subscription CustomerSubscription @relation(fields: [customerSubscriptionId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([customerSubscriptionId])
+  @@map("customer_subscription_invoices")
 }
 
 model Order {
@@ -1718,6 +1796,9 @@ model SubscriptionPlan {
   featuresJson                 Json                       @default("{}") @map("features_json")
   limitsJson                   Json                       @default("{}") @map("limits_json")
   activeSubscribersPlaceholder Int                        @default(0) @map("active_subscribers_placeholder")
+  stripeProductId              String?                    @map("stripe_product_id")
+  stripeMonthlyPriceId         String?                    @map("stripe_monthly_price_id")
+  stripeYearlyPriceId          String?                    @map("stripe_yearly_price_id")
   createdBy                    String?                    @map("created_by")
   updatedBy                    String?                    @map("updated_by")
   createdAt                    DateTime                   @default(now()) @map("created_at") @db.Timestamptz
@@ -1726,6 +1807,7 @@ model SubscriptionPlan {
 
   creator User? @relation("SubscriptionPlanCreator", fields: [createdBy], references: [id])
   updater User? @relation("SubscriptionPlanUpdater", fields: [updatedBy], references: [id])
+  customerSubscriptions CustomerSubscription[]
 
   @@index([status, visibility])
   @@index([deletedAt])
@@ -1815,6 +1897,7 @@ model Coupon {
 
   creator User? @relation("CouponCreator", fields: [createdBy], references: [id])
   updater User? @relation("CouponUpdater", fields: [updatedBy], references: [id])
+  customerSubscriptions CustomerSubscription[]
 
   @@index([isActive, expiresAt])
   @@index([deletedAt])
