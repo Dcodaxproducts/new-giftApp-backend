@@ -88,4 +88,49 @@ describe('Admin Provider Dispute Management Core module', () => {
       expect(schema + service).toContain(action);
     }
   });
+
+  it('admin can fetch ruling summary', () => {
+    expect(controller).toContain("@Get(':id/ruling-summary')");
+    expect(controller).toContain("@Permissions('providerDisputes.ruling.read')");
+    expect(service).toContain('Provider dispute ruling summary fetched successfully.');
+  });
+
+  it('ruling requires completed evidence review and customer-wins validates refund amount', () => {
+    expect(controller).toContain("@Post(':id/ruling')");
+    expect(service).toContain('Evidence review must be completed before ruling');
+    expect(service).toContain('Full refund must equal dispute amount');
+    expect(service).toContain('CUSTOMER_WINS_FULL_REFUND');
+  });
+
+  it('provider-wins ruling forces refund amount 0 and split-liability validates partial refund', () => {
+    expect(service).toContain('PROVIDER_WINS_NO_REFUND');
+    expect(service).toContain('return new Prisma.Decimal(0)');
+    expect(service).toContain('Split liability refund must be greater than 0 and less than dispute amount');
+  });
+
+  it('financial impact is calculated server-side', () => {
+    expect(controller).toContain("@Get(':id/financial-impact')");
+    expect(controller).toContain("@Permissions('providerDisputes.financial.read')");
+    expect(service).toContain('computeFinancialImpact');
+    expect(service).toContain('Provider Lost Earnings');
+    expect(service).toContain('Platform Fee Reversal');
+  });
+
+  it('payout linkage requires confirmation and creates provider financial adjustment', () => {
+    expect(controller).toContain("@Post(':id/payout-penalty-linkage')");
+    expect(service).toContain('confirmFinancialAccuracy must be true');
+    expect(service).toContain('providerFinancialAdjustment.createMany');
+    expect(schema).toContain('model ProviderFinancialAdjustment');
+  });
+
+  it('penalty creates penalty ledger and final attestation requires confirmation', () => {
+    expect(service).toContain('ProviderFinancialAdjustmentType.PENALTY');
+    expect(controller).toContain("@Post(':id/final-attestation')");
+    expect(service).toContain('confirmFinancialLineItems must be true');
+  });
+
+  it('all ruling actions create timeline and audit log', () => {
+    for (const action of ['RULING_MADE', 'RULING_DRAFT_SAVED', 'PAYOUT_PENALTY_LINKED', 'FINAL_ATTESTATION_COMPLETED']) expect(service).toContain(action);
+    expect(service).toContain('auditLog.write');
+  });
 });

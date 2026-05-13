@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminProviderDisputesService } from './admin-provider-disputes.service';
-import { AddProviderDisputeNoteDto, ExportProviderDisputesDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeDateRangeDto, RequestProviderDisputeEvidenceDto } from './dto/admin-provider-disputes.dto';
+import { AddProviderDisputeNoteDto, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeDateRangeDto, RequestProviderDisputeEvidenceDto, SaveProviderDisputeRulingDto } from './dto/admin-provider-disputes.dto';
 
 @ApiTags('02 Admin - Provider Dispute Manager')
 @ApiBearerAuth()
@@ -33,6 +33,40 @@ export class AdminProviderDisputesController {
   @Permissions('providerDisputes.read')
   @ApiOperation({ summary: 'List provider dispute queue', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.' })
   list(@Query() query: ListProviderDisputesDto) { return this.providerDisputes.list(query); }
+
+
+  @Get(':id/ruling-summary')
+  @ApiTags('02 Admin - Provider Dispute Rulings')
+  @Permissions('providerDisputes.ruling.read')
+  @ApiOperation({ summary: 'Fetch provider dispute ruling summary', description: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.' })
+  rulingSummary(@Param('id') id: string) { return this.providerDisputes.rulingSummary(id); }
+
+  @Post(':id/ruling')
+  @ApiTags('02 Admin - Provider Dispute Rulings')
+  @Permissions('providerDisputes.ruling.create')
+  @ApiOperation({ summary: 'Save provider dispute ruling', description: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.' })
+  @ApiBody({ type: SaveProviderDisputeRulingDto, examples: { full: { value: { ruling: 'CUSTOMER_WINS_FULL_REFUND', rulingReason: 'Provider failed to provide required proof of delivery.', refundAmount: 89.99, applyPenalty: true, penaltyAmount: 25, penaltyReason: 'Repeat offense', saveAsDraft: false } } } })
+  ruling(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: SaveProviderDisputeRulingDto) { return this.providerDisputes.saveRuling(user, id, dto); }
+
+  @Get(':id/financial-impact')
+  @ApiTags('02 Admin - Provider Financial Adjustments')
+  @Permissions('providerDisputes.financial.read')
+  @ApiOperation({ summary: 'Fetch provider dispute financial impact', description: 'SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.' })
+  financialImpact(@Param('id') id: string) { return this.providerDisputes.financialImpact(id); }
+
+  @Post(':id/payout-penalty-linkage')
+  @ApiTags('02 Admin - Provider Financial Adjustments')
+  @Permissions('providerDisputes.financial.link')
+  @ApiOperation({ summary: 'Link payout and penalty adjustments', description: 'SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.' })
+  @ApiBody({ type: LinkProviderDisputePayoutDto, examples: { deduct: { value: { adjustmentType: 'DEDUCT_FROM_NEXT_PAYOUT', confirmFinancialAccuracy: true, sendProviderSummary: true } } } })
+  payoutPenaltyLinkage(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: LinkProviderDisputePayoutDto) { return this.providerDisputes.payoutPenaltyLinkage(user, id, dto); }
+
+  @Post(':id/final-attestation')
+  @ApiTags('02 Admin - Provider Financial Adjustments')
+  @Permissions('providerDisputes.ruling.update')
+  @ApiOperation({ summary: 'Complete final financial attestation', description: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.' })
+  @ApiBody({ type: FinalProviderDisputeAttestationDto, examples: { confirm: { value: { confirmFinancialLineItems: true, sendAutomatedFinancialSummary: true, comment: 'All financial line items confirmed as accurate.' } } } })
+  finalAttestation(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: FinalProviderDisputeAttestationDto) { return this.providerDisputes.finalAttestation(user, id, dto); }
 
   @Get(':id/evidence')
   @ApiTags('02 Admin - Provider Dispute Evidence')

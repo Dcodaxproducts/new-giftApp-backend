@@ -1,6 +1,6 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T08:07:59.022Z_
+_Generated from OpenAPI: 2026-05-13T09:30:49.232Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -184,6 +184,18 @@ Request additional provider dispute evidence
 
 ## 02 Admin - Provider Dispute Manager
 
+### `POST` `/api/v1/admin/provider-disputes/{id}/final-attestation`
+
+Complete final financial attestation
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/financial-impact`
+
+Fetch provider dispute financial impact
+
+## 02 Admin - Provider Dispute Manager
+
 ### `GET` `/api/v1/admin/provider-disputes/{id}/notes`
 
 Fetch provider dispute internal notes
@@ -193,6 +205,24 @@ Fetch provider dispute internal notes
 ### `POST` `/api/v1/admin/provider-disputes/{id}/notes`
 
 Add provider dispute internal note
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage`
+
+Link payout and penalty adjustments
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/ruling`
+
+Save provider dispute ruling
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/ruling-summary`
+
+Fetch provider dispute ruling summary
 
 ## 02 Admin - Provider Dispute Manager
 

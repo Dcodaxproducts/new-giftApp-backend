@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DisputeNoteVisibility, ProviderDisputeCategory, ProviderDisputeEvidenceRequestTarget, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
+import { DisputeNoteVisibility, ProviderDisputeAdjustmentType, ProviderDisputeCategory, ProviderDisputeEvidenceRequestTarget, ProviderDisputeRuling, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export enum ProviderDisputeRange { TODAY = 'TODAY', LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS', QUARTERLY = 'QUARTERLY', CUSTOM = 'CUSTOM' }
 export enum ProviderDisputeCategoryFilter { ALL = 'ALL', NON_DELIVERY = 'NON_DELIVERY', QUALITY_ISSUE = 'QUALITY_ISSUE', REFUND_CONFLICT = 'REFUND_CONFLICT', LATE_DELIVERY = 'LATE_DELIVERY', OTHER = 'OTHER' }
@@ -53,4 +53,26 @@ export class ExportProviderDisputesDto {
   @ApiPropertyOptional() @IsOptional() @IsISO8601() fromDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() toDate?: string;
   @ApiPropertyOptional({ enum: ExportFormat }) @IsOptional() @IsEnum(ExportFormat) format?: ExportFormat;
+}
+
+export class SaveProviderDisputeRulingDto {
+  @ApiProperty({ enum: ProviderDisputeRuling, example: ProviderDisputeRuling.CUSTOMER_WINS_FULL_REFUND }) @IsEnum(ProviderDisputeRuling) ruling!: ProviderDisputeRuling;
+  @ApiProperty({ example: 'Provider failed to provide required proof of delivery.' }) @IsString() @MaxLength(2000) rulingReason!: string;
+  @ApiPropertyOptional({ example: 89.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) refundAmount?: number;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() applyPenalty?: boolean;
+  @ApiPropertyOptional({ example: 25 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) penaltyAmount?: number;
+  @ApiPropertyOptional({ example: 'Repeat offense' }) @IsOptional() @IsString() @MaxLength(1000) penaltyReason?: string;
+  @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() saveAsDraft?: boolean;
+}
+
+export class LinkProviderDisputePayoutDto {
+  @ApiProperty({ enum: ProviderDisputeAdjustmentType, example: ProviderDisputeAdjustmentType.DEDUCT_FROM_NEXT_PAYOUT }) @IsEnum(ProviderDisputeAdjustmentType) adjustmentType!: ProviderDisputeAdjustmentType;
+  @ApiProperty({ example: true }) @IsBoolean() confirmFinancialAccuracy!: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() sendProviderSummary?: boolean;
+}
+
+export class FinalProviderDisputeAttestationDto {
+  @ApiProperty({ example: true }) @IsBoolean() confirmFinancialLineItems!: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() sendAutomatedFinancialSummary?: boolean;
+  @ApiPropertyOptional({ example: 'All financial line items confirmed as accurate.' }) @IsOptional() @IsString() @MaxLength(2000) comment?: string;
 }

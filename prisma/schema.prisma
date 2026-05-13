@@ -600,6 +600,39 @@ enum ProviderDisputeEvidenceRequestTarget {
   BOTH
 }
 
+enum ProviderDisputeRuling {
+  CUSTOMER_WINS_FULL_REFUND
+  PROVIDER_WINS_NO_REFUND
+  SPLIT_LIABILITY
+}
+
+enum ProviderDisputeAdjustmentType {
+  DEDUCT_FROM_NEXT_PAYOUT
+  DEDUCT_IMMEDIATELY
+  LEDGER_ONLY
+  WAIVE_DEDUCTION
+}
+
+enum ProviderFinancialAdjustmentType {
+  CUSTOMER_REFUND
+  PROVIDER_LOST_EARNINGS
+  PLATFORM_FEE_REVERSAL
+  PENALTY
+  ADJUSTMENT
+}
+
+enum ProviderFinancialAdjustmentDirection {
+  CREDIT
+  DEBIT
+}
+
+enum ProviderFinancialAdjustmentStatus {
+  PENDING
+  APPLIED
+  WAIVED
+  FAILED
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -721,6 +754,8 @@ model User {
   providerDisputeEvidenceUploads      ProviderDisputeEvidence[]            @relation("ProviderDisputeEvidenceSubmitter")
   providerDisputeNotes                ProviderDisputeNote[]                @relation("ProviderDisputeNoteAuthor")
   providerDisputeTimelineEvents       ProviderDisputeTimeline[]            @relation("ProviderDisputeTimelineActor")
+  finalAttestedProviderDisputes       ProviderDisputeCase[]                @relation("ProviderDisputeFinalAttestor")
+  providerFinancialAdjustments        ProviderFinancialAdjustment[]
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -1158,36 +1193,37 @@ model CustomerSubscriptionInvoice {
 }
 
 model Order {
-  id                  String                @id @default(cuid())
-  userId              String                @map("user_id")
-  orderNumber         String                @unique @map("order_number")
-  status              OrderStatus           @default(PENDING)
-  paymentStatus       PaymentStatus         @default(PENDING) @map("payment_status")
-  paymentMethod       PaymentMethod         @default(COD) @map("payment_method")
-  paymentId           String?               @unique @map("payment_id")
-  subtotal            Decimal               @db.Decimal(10, 2)
-  discountTotal       Decimal               @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee         Decimal               @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                 Decimal               @default(0) @db.Decimal(10, 2)
-  total               Decimal               @db.Decimal(10, 2)
-  currency            String                @default("PKR")
-  deliveryAddressId   String                @map("delivery_address_id")
-  recipientName       String                @map("recipient_name")
-  recipientPhone      String                @map("recipient_phone")
-  giftMessage         String?               @map("gift_message")
-  scheduledDeliveryAt DateTime?             @map("scheduled_delivery_at") @db.Timestamptz
-  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamptz
-  items               OrderItem[]
-  providerOrders      ProviderOrder[]
-  refundRequests      RefundRequest[]
-  messages            OrderMessage[]
-  payment             Payment?
-  reviews             Review[]
-  chatThreads         ChatThread[]
-  providerReports     ProviderReport[]
-  disputeCases        DisputeCase[]
-  providerDisputes    ProviderDisputeCase[]
+  id                           String                        @id @default(cuid())
+  userId                       String                        @map("user_id")
+  orderNumber                  String                        @unique @map("order_number")
+  status                       OrderStatus                   @default(PENDING)
+  paymentStatus                PaymentStatus                 @default(PENDING) @map("payment_status")
+  paymentMethod                PaymentMethod                 @default(COD) @map("payment_method")
+  paymentId                    String?                       @unique @map("payment_id")
+  subtotal                     Decimal                       @db.Decimal(10, 2)
+  discountTotal                Decimal                       @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee                  Decimal                       @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                          Decimal                       @default(0) @db.Decimal(10, 2)
+  total                        Decimal                       @db.Decimal(10, 2)
+  currency                     String                        @default("PKR")
+  deliveryAddressId            String                        @map("delivery_address_id")
+  recipientName                String                        @map("recipient_name")
+  recipientPhone               String                        @map("recipient_phone")
+  giftMessage                  String?                       @map("gift_message")
+  scheduledDeliveryAt          DateTime?                     @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt                    DateTime                      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                    DateTime                      @updatedAt @map("updated_at") @db.Timestamptz
+  items                        OrderItem[]
+  providerOrders               ProviderOrder[]
+  refundRequests               RefundRequest[]
+  messages                     OrderMessage[]
+  payment                      Payment?
+  reviews                      Review[]
+  chatThreads                  ChatThread[]
+  providerReports              ProviderReport[]
+  disputeCases                 DisputeCase[]
+  providerDisputes             ProviderDisputeCase[]
+  providerFinancialAdjustments ProviderFinancialAdjustment[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1222,40 +1258,41 @@ model OrderItem {
 }
 
 model ProviderOrder {
-  id                  String                     @id @default(cuid())
-  orderId             String                     @map("order_id")
-  providerId          String                     @map("provider_id")
-  orderNumber         String?                    @map("order_number")
-  status              ProviderOrderStatus        @default(PENDING)
-  subtotal            Decimal                    @db.Decimal(10, 2)
-  discountTotal       Decimal                    @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee         Decimal                    @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                 Decimal                    @default(0) @db.Decimal(10, 2)
-  platformFee         Decimal                    @default(0) @map("platform_fee") @db.Decimal(10, 2)
-  totalPayout         Decimal?                   @map("total_payout") @db.Decimal(10, 2)
-  total               Decimal                    @db.Decimal(10, 2)
-  currency            String                     @default("PKR")
-  acceptedAt          DateTime?                  @map("accepted_at") @db.Timestamptz
-  rejectedAt          DateTime?                  @map("rejected_at") @db.Timestamptz
-  rejectionReason     ProviderOrderRejectReason? @map("rejection_reason")
-  rejectionComment    String?                    @map("rejection_comment")
-  dispatchAt          DateTime?                  @map("dispatch_at") @db.Timestamptz
-  fulfilledAt         DateTime?                  @map("fulfilled_at") @db.Timestamptz
-  trackingNumber      String?                    @map("tracking_number")
-  carrier             String?
-  estimatedDeliveryAt DateTime?                  @map("estimated_delivery_at") @db.Timestamptz
-  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
-  order               Order                      @relation(fields: [orderId], references: [id])
-  provider            User                       @relation(fields: [providerId], references: [id])
-  items               ProviderOrderItem[]
-  timeline            ProviderOrderTimeline[]
-  checklist           ProviderOrderChecklist?
-  messages            OrderMessage[]
-  refundRequests      RefundRequest[]
-  providerDisputes    ProviderDisputeCase[]
-  reviews             Review[]
-  chatThread          ChatThread?
+  id                           String                        @id @default(cuid())
+  orderId                      String                        @map("order_id")
+  providerId                   String                        @map("provider_id")
+  orderNumber                  String?                       @map("order_number")
+  status                       ProviderOrderStatus           @default(PENDING)
+  subtotal                     Decimal                       @db.Decimal(10, 2)
+  discountTotal                Decimal                       @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee                  Decimal                       @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                          Decimal                       @default(0) @db.Decimal(10, 2)
+  platformFee                  Decimal                       @default(0) @map("platform_fee") @db.Decimal(10, 2)
+  totalPayout                  Decimal?                      @map("total_payout") @db.Decimal(10, 2)
+  total                        Decimal                       @db.Decimal(10, 2)
+  currency                     String                        @default("PKR")
+  acceptedAt                   DateTime?                     @map("accepted_at") @db.Timestamptz
+  rejectedAt                   DateTime?                     @map("rejected_at") @db.Timestamptz
+  rejectionReason              ProviderOrderRejectReason?    @map("rejection_reason")
+  rejectionComment             String?                       @map("rejection_comment")
+  dispatchAt                   DateTime?                     @map("dispatch_at") @db.Timestamptz
+  fulfilledAt                  DateTime?                     @map("fulfilled_at") @db.Timestamptz
+  trackingNumber               String?                       @map("tracking_number")
+  carrier                      String?
+  estimatedDeliveryAt          DateTime?                     @map("estimated_delivery_at") @db.Timestamptz
+  createdAt                    DateTime                      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                    DateTime                      @updatedAt @map("updated_at") @db.Timestamptz
+  order                        Order                         @relation(fields: [orderId], references: [id])
+  provider                     User                          @relation(fields: [providerId], references: [id])
+  items                        ProviderOrderItem[]
+  timeline                     ProviderOrderTimeline[]
+  checklist                    ProviderOrderChecklist?
+  messages                     OrderMessage[]
+  refundRequests               RefundRequest[]
+  providerDisputes             ProviderDisputeCase[]
+  reviews                      Review[]
+  chatThread                   ChatThread?
+  providerFinancialAdjustments ProviderFinancialAdjustment[]
 
   @@index([orderId])
   @@index([providerId, status])
@@ -2004,40 +2041,53 @@ model DisputeTimeline {
 }
 
 model ProviderDisputeCase {
-  id                        String                  @id @default(cuid())
-  caseId                    String                  @unique @map("case_id")
-  providerId                String                  @map("provider_id")
-  customerId                String                  @map("customer_id")
-  orderId                   String                  @map("order_id")
-  providerOrderId           String                  @map("provider_order_id")
-  transactionId             String?                 @map("transaction_id")
-  paymentId                 String?                 @map("payment_id")
-  amount                    Decimal                 @db.Decimal(10, 2)
-  currency                  String                  @default("PKR")
+  id                        String                         @id @default(cuid())
+  caseId                    String                         @unique @map("case_id")
+  providerId                String                         @map("provider_id")
+  customerId                String                         @map("customer_id")
+  orderId                   String                         @map("order_id")
+  providerOrderId           String                         @map("provider_order_id")
+  transactionId             String?                        @map("transaction_id")
+  paymentId                 String?                        @map("payment_id")
+  amount                    Decimal                        @db.Decimal(10, 2)
+  currency                  String                         @default("PKR")
   category                  ProviderDisputeCategory
   reason                    String
-  claimType                 String                  @map("claim_type")
-  customerStatement         String                  @map("customer_statement")
-  priority                  ProviderDisputeSeverity @default(MEDIUM)
-  status                    ProviderDisputeStatus   @default(OPEN)
-  riskScore                 Int                     @default(0) @map("risk_score")
-  slaDeadlineAt             DateTime                @map("sla_deadline_at") @db.Timestamptz
-  assignedToId              String?                 @map("assigned_to_id")
-  evidenceReviewStartedAt   DateTime?               @map("evidence_review_started_at") @db.Timestamptz
-  evidenceReviewCompletedAt DateTime?               @map("evidence_review_completed_at") @db.Timestamptz
-  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
-  resolvedAt                DateTime?               @map("resolved_at") @db.Timestamptz
+  claimType                 String                         @map("claim_type")
+  customerStatement         String                         @map("customer_statement")
+  priority                  ProviderDisputeSeverity        @default(MEDIUM)
+  status                    ProviderDisputeStatus          @default(OPEN)
+  riskScore                 Int                            @default(0) @map("risk_score")
+  slaDeadlineAt             DateTime                       @map("sla_deadline_at") @db.Timestamptz
+  assignedToId              String?                        @map("assigned_to_id")
+  evidenceReviewStartedAt   DateTime?                      @map("evidence_review_started_at") @db.Timestamptz
+  evidenceReviewCompletedAt DateTime?                      @map("evidence_review_completed_at") @db.Timestamptz
+  ruling                    ProviderDisputeRuling?
+  rulingReason              String?                        @map("ruling_reason")
+  refundAmount              Decimal?                       @map("refund_amount") @db.Decimal(10, 2)
+  applyPenalty              Boolean                        @default(false) @map("apply_penalty")
+  penaltyAmount             Decimal?                       @map("penalty_amount") @db.Decimal(10, 2)
+  penaltyReason             String?                        @map("penalty_reason")
+  financialImpactJson       Json?                          @map("financial_impact_json")
+  adjustmentType            ProviderDisputeAdjustmentType? @map("adjustment_type")
+  totalProviderDeduction    Decimal?                       @map("total_provider_deduction") @db.Decimal(10, 2)
+  finalAttestedAt           DateTime?                      @map("final_attested_at") @db.Timestamptz
+  finalAttestedById         String?                        @map("final_attested_by_id")
+  createdAt                 DateTime                       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt                DateTime?                      @map("resolved_at") @db.Timestamptz
 
-  provider      User                      @relation("ProviderDisputeProvider", fields: [providerId], references: [id])
-  customer      User                      @relation("ProviderDisputeCustomer", fields: [customerId], references: [id])
-  order         Order                     @relation(fields: [orderId], references: [id])
-  providerOrder ProviderOrder             @relation(fields: [providerOrderId], references: [id])
-  payment       Payment?                  @relation(fields: [paymentId], references: [id])
-  assignedTo    User?                     @relation("ProviderDisputeAssignee", fields: [assignedToId], references: [id])
-  evidence      ProviderDisputeEvidence[]
-  notes         ProviderDisputeNote[]
-  timeline      ProviderDisputeTimeline[]
+  provider             User                          @relation("ProviderDisputeProvider", fields: [providerId], references: [id])
+  customer             User                          @relation("ProviderDisputeCustomer", fields: [customerId], references: [id])
+  order                Order                         @relation(fields: [orderId], references: [id])
+  providerOrder        ProviderOrder                 @relation(fields: [providerOrderId], references: [id])
+  payment              Payment?                      @relation(fields: [paymentId], references: [id])
+  assignedTo           User?                         @relation("ProviderDisputeAssignee", fields: [assignedToId], references: [id])
+  finalAttestedBy      User?                         @relation("ProviderDisputeFinalAttestor", fields: [finalAttestedById], references: [id])
+  evidence             ProviderDisputeEvidence[]
+  notes                ProviderDisputeNote[]
+  timeline             ProviderDisputeTimeline[]
+  financialAdjustments ProviderFinancialAdjustment[]
 
   @@index([status, priority, createdAt])
   @@index([providerId, createdAt])
@@ -2098,6 +2148,30 @@ model ProviderDisputeTimeline {
 
   @@index([disputeId, createdAt])
   @@map("provider_dispute_timelines")
+}
+
+model ProviderFinancialAdjustment {
+  id              String                               @id @default(cuid())
+  providerId      String                               @map("provider_id")
+  disputeId       String                               @map("dispute_id")
+  providerOrderId String                               @map("provider_order_id")
+  type            ProviderFinancialAdjustmentType
+  direction       ProviderFinancialAdjustmentDirection
+  amount          Decimal                              @db.Decimal(10, 2)
+  currency        String                               @default("PKR")
+  status          ProviderFinancialAdjustmentStatus    @default(PENDING)
+  transactionId   String?                              @map("transaction_id")
+  createdAt       DateTime                             @default(now()) @map("created_at") @db.Timestamptz
+
+  provider      User                @relation(fields: [providerId], references: [id])
+  dispute       ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+  providerOrder ProviderOrder       @relation(fields: [providerOrderId], references: [id])
+  order         Order?              @relation(fields: [orderId], references: [id])
+  orderId       String?
+
+  @@index([providerId, createdAt])
+  @@index([disputeId, createdAt])
+  @@map("provider_financial_adjustments")
 }
 
 model AuthSession {

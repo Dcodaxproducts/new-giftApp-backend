@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T08:07:59.022Z_
+_Generated from OpenAPI: 2026-05-13T09:30:49.232Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -244,6 +244,22 @@ Access: "Authenticated"
 
 ## 02 Admin - Provider Dispute Manager
 
+### `POST` `/api/v1/admin/provider-disputes/{id}/final-attestation`
+
+Summary: Complete final financial attestation
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/financial-impact`
+
+Summary: Fetch provider dispute financial impact
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
 ### `GET` `/api/v1/admin/provider-disputes/{id}/notes`
 
 Summary: Fetch provider dispute internal notes
@@ -256,6 +272,30 @@ Access: "Authenticated"
 
 Summary: Add provider dispute internal note
 Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage`
+
+Summary: Link payout and penalty adjustments
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/ruling`
+
+Summary: Save provider dispute ruling
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/ruling-summary`
+
+Summary: Fetch provider dispute ruling summary
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.
 Access: "Authenticated"
 
 ## 02 Admin - Provider Dispute Manager

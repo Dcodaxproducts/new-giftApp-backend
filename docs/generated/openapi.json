@@ -3115,6 +3115,232 @@
         "x-access": "Authenticated"
       }
     },
+    "/api/v1/admin/provider-disputes/{id}/ruling-summary": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.",
+        "operationId": "AdminProviderDisputesController_rulingSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute ruling summary",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Rulings"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/ruling": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.",
+        "operationId": "AdminProviderDisputesController_ruling",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProviderDisputeRulingDto"
+              },
+              "examples": {
+                "full": {
+                  "value": {
+                    "ruling": "CUSTOMER_WINS_FULL_REFUND",
+                    "rulingReason": "Provider failed to provide required proof of delivery.",
+                    "refundAmount": 89.99,
+                    "applyPenalty": true,
+                    "penaltyAmount": 25,
+                    "penaltyReason": "Repeat offense",
+                    "saveAsDraft": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save provider dispute ruling",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Rulings"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/financial-impact": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.",
+        "operationId": "AdminProviderDisputesController_financialImpact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute financial impact",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Financial Adjustments"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.",
+        "operationId": "AdminProviderDisputesController_payoutPenaltyLinkage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkProviderDisputePayoutDto"
+              },
+              "examples": {
+                "deduct": {
+                  "value": {
+                    "adjustmentType": "DEDUCT_FROM_NEXT_PAYOUT",
+                    "confirmFinancialAccuracy": true,
+                    "sendProviderSummary": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link payout and penalty adjustments",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Financial Adjustments"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/final-attestation": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.",
+        "operationId": "AdminProviderDisputesController_finalAttestation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalProviderDisputeAttestationDto"
+              },
+              "examples": {
+                "confirm": {
+                  "value": {
+                    "confirmFinancialLineItems": true,
+                    "sendAutomatedFinancialSummary": true,
+                    "comment": "All financial line items confirmed as accurate."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Complete final financial attestation",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Financial Adjustments"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/admin/provider-disputes/{id}/evidence": {
       "get": {
         "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.",
@@ -18060,6 +18286,12 @@
       "name": "02 Admin - Provider Dispute Evidence"
     },
     {
+      "name": "02 Admin - Provider Dispute Rulings"
+    },
+    {
+      "name": "02 Admin - Provider Financial Adjustments"
+    },
+    {
       "name": "03 Provider - Business Info"
     },
     {
@@ -18658,6 +18890,95 @@
         "required": [
           "transactionId",
           "refundType"
+        ]
+      },
+      "SaveProviderDisputeRulingDto": {
+        "type": "object",
+        "properties": {
+          "ruling": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER_WINS_FULL_REFUND",
+              "PROVIDER_WINS_NO_REFUND",
+              "SPLIT_LIABILITY"
+            ],
+            "example": "CUSTOMER_WINS_FULL_REFUND"
+          },
+          "rulingReason": {
+            "type": "string",
+            "example": "Provider failed to provide required proof of delivery."
+          },
+          "refundAmount": {
+            "type": "number",
+            "example": 89.99
+          },
+          "applyPenalty": {
+            "type": "boolean",
+            "example": true
+          },
+          "penaltyAmount": {
+            "type": "number",
+            "example": 25
+          },
+          "penaltyReason": {
+            "type": "string",
+            "example": "Repeat offense"
+          },
+          "saveAsDraft": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "ruling",
+          "rulingReason"
+        ]
+      },
+      "LinkProviderDisputePayoutDto": {
+        "type": "object",
+        "properties": {
+          "adjustmentType": {
+            "type": "string",
+            "enum": [
+              "DEDUCT_FROM_NEXT_PAYOUT",
+              "DEDUCT_IMMEDIATELY",
+              "LEDGER_ONLY",
+              "WAIVE_DEDUCTION"
+            ],
+            "example": "DEDUCT_FROM_NEXT_PAYOUT"
+          },
+          "confirmFinancialAccuracy": {
+            "type": "boolean",
+            "example": true
+          },
+          "sendProviderSummary": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "adjustmentType",
+          "confirmFinancialAccuracy"
+        ]
+      },
+      "FinalProviderDisputeAttestationDto": {
+        "type": "object",
+        "properties": {
+          "confirmFinancialLineItems": {
+            "type": "boolean",
+            "example": true
+          },
+          "sendAutomatedFinancialSummary": {
+            "type": "boolean",
+            "example": true
+          },
+          "comment": {
+            "type": "string",
+            "example": "All financial line items confirmed as accurate."
+          }
+        },
+        "required": [
+          "confirmFinancialLineItems"
         ]
       },
       "RequestProviderDisputeEvidenceDto": {

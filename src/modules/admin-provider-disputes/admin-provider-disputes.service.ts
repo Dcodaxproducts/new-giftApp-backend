@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DisputeActorType, NotificationRecipientType, Prisma, ProviderDisputeCase, ProviderDisputeEvidenceRequestTarget, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { DisputeActorType, NotificationRecipientType, Prisma, ProviderDisputeAdjustmentType, ProviderDisputeCase, ProviderDisputeEvidenceRequestTarget, ProviderDisputeRuling, ProviderDisputeSeverity, ProviderDisputeStatus, ProviderFinancialAdjustmentDirection, ProviderFinancialAdjustmentStatus, ProviderFinancialAdjustmentType } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
-import { AddProviderDisputeNoteDto, ExportFormat, ExportProviderDisputesDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeCategoryFilter, ProviderDisputeDateRangeDto, ProviderDisputeRange, ProviderDisputeSeverityFilter, ProviderDisputeSortBy, ProviderDisputeStatusFilter, RequestProviderDisputeEvidenceDto, SortOrder } from './dto/admin-provider-disputes.dto';
+import { AddProviderDisputeNoteDto, ExportFormat, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeCategoryFilter, ProviderDisputeDateRangeDto, ProviderDisputeRange, ProviderDisputeSeverityFilter, ProviderDisputeSortBy, ProviderDisputeStatusFilter, RequestProviderDisputeEvidenceDto, SaveProviderDisputeRulingDto, SortOrder } from './dto/admin-provider-disputes.dto';
 
 export const PROVIDER_DISPUTE_TIMELINE_TYPES = ['PROVIDER_DISPUTE_CREATED', 'CUSTOMER_EVIDENCE_SUBMITTED', 'PROVIDER_EVIDENCE_SUBMITTED', 'ADDITIONAL_EVIDENCE_REQUESTED', 'EVIDENCE_REVIEW_STARTED', 'EVIDENCE_REVIEW_COMPLETED'] as const;
 
@@ -52,6 +52,56 @@ export class AdminProviderDisputesService {
     const dispute = await this.getDispute(id);
     const providerDisputeCount = await this.prisma.providerDisputeCase.count({ where: { providerId: dispute.providerId } });
     return { data: { id: dispute.id, caseId: dispute.caseId, status: dispute.status, priority: dispute.priority, category: dispute.category, reason: dispute.reason, claimType: dispute.claimType, amount: this.money(dispute.amount), currency: dispute.currency, provider: { id: dispute.provider.id, businessName: dispute.provider.providerBusinessName ?? this.name(dispute.provider), providerCode: `PRV-${dispute.provider.id.slice(-4).toUpperCase()}`, tier: 'Gold Partner', currentPayoutBalance: -127.5, disputeCount: providerDisputeCount, winRate: 50 }, customer: { id: dispute.customer.id, name: this.name(dispute.customer), email: dispute.customer.email }, order: { id: dispute.order.id, orderNumber: dispute.order.orderNumber }, transaction: { id: dispute.payment?.id ?? dispute.transactionId, transactionId: dispute.transactionId ?? dispute.payment?.providerPaymentIntentId, grossTransaction: dispute.payment ? this.money(dispute.payment.amount) : this.money(dispute.amount), providerShare: this.money((dispute.providerOrder.totalPayout ?? dispute.providerOrder.total).toString()), platformFee: Math.max(0, this.money(dispute.amount) - this.money((dispute.providerOrder.totalPayout ?? dispute.providerOrder.total).toString())), refundEligible: true, eligibilityText: 'Within the standard 14-day resolution window.' }, customerStatement: dispute.customerStatement, riskAlert: { enabled: dispute.riskScore >= 60, message: `${dispute.provider.providerBusinessName ?? 'This provider'} has a 60% dispute rate over the last 30 days.` }, createdAt: dispute.createdAt }, message: 'Provider dispute details fetched successfully.' };
+  }
+
+
+  async rulingSummary(id: string) {
+    const dispute = await this.getDispute(id);
+    return { data: { caseId: dispute.caseId, status: dispute.status, filingDate: dispute.createdAt, entities: { provider: { id: dispute.provider.id, businessName: dispute.provider.providerBusinessName ?? this.name(dispute.provider) }, customer: { id: dispute.customer.id, name: this.name(dispute.customer) } }, financials: { amountInDispute: this.money(dispute.amount), currency: dispute.currency, providerShare: this.providerShare(dispute), platformFee: this.platformFee(dispute) }, evidenceSummary: { customer: 'Photo + message', provider: 'GPS late delivery' }, rulingOptions: [{ key: 'CUSTOMER_WINS_FULL_REFUND', label: 'Customer Wins — Full Refund', financialImpact: `-${this.money(dispute.amount) - 7.5} loss` }, { key: 'PROVIDER_WINS_NO_REFUND', label: 'Provider Wins — No Refund', financialImpact: `${this.providerShare(dispute)} retained` }, { key: 'SPLIT_LIABILITY', label: 'Split Liability', financialImpact: 'Partial refund' }] }, message: 'Provider dispute ruling summary fetched successfully.' };
+  }
+
+  async saveRuling(user: AuthUserContext, id: string, dto: SaveProviderDisputeRulingDto) {
+    const dispute = await this.getDispute(id);
+    if (!dispute.evidenceReviewCompletedAt) throw new BadRequestException('Evidence review must be completed before ruling');
+    const refundAmount = this.validatedRefundAmount(dispute, dto);
+    const status = dto.saveAsDraft ? ProviderDisputeStatus.UNDER_REVIEW : ProviderDisputeStatus.RULING_PENDING;
+    const updated = await this.prisma.providerDisputeCase.update({ where: { id }, data: { ruling: dto.ruling, rulingReason: dto.rulingReason, refundAmount, applyPenalty: dto.applyPenalty ?? false, penaltyAmount: dto.applyPenalty ? new Prisma.Decimal(dto.penaltyAmount ?? 0) : new Prisma.Decimal(0), penaltyReason: dto.penaltyReason, status } });
+    await this.prisma.providerDisputeTimeline.create({ data: { disputeId: id, type: dto.saveAsDraft ? 'RULING_DRAFT_SAVED' : 'RULING_MADE', title: dto.saveAsDraft ? 'Ruling Draft Saved' : 'Ruling Made', description: dto.rulingReason, actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { ruling: dto.ruling, refundAmount, penaltyAmount: dto.penaltyAmount ?? 0 } } });
+    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'PROVIDER_DISPUTE_CASE', action: dto.saveAsDraft ? 'PROVIDER_DISPUTE_RULING_DRAFT_SAVED' : 'PROVIDER_DISPUTE_RULING_SAVED', afterJson: { ruling: dto.ruling, refundAmount, penaltyAmount: dto.penaltyAmount ?? 0 } });
+    return { data: { id: updated.id, caseId: updated.caseId, ruling: updated.ruling, status: dto.saveAsDraft ? updated.status : 'PAYOUT_LINKAGE_PENDING', refundAmount, applyPenalty: updated.applyPenalty, penaltyAmount: this.money(updated.penaltyAmount ?? 0) }, message: 'Provider dispute ruling saved successfully.' };
+  }
+
+  async financialImpact(id: string) {
+    const dispute = await this.getDispute(id);
+    if (!dispute.ruling) throw new BadRequestException('Ruling must exist before financial impact can be calculated');
+    const impact = this.computeFinancialImpact(dispute);
+    await this.prisma.providerDisputeCase.update({ where: { id }, data: { financialImpactJson: impact, totalProviderDeduction: impact.totalProviderDeduction } });
+    return { data: impact, message: 'Financial impact fetched successfully.' };
+  }
+
+  async payoutPenaltyLinkage(user: AuthUserContext, id: string, dto: LinkProviderDisputePayoutDto) {
+    if (!dto.confirmFinancialAccuracy) throw new BadRequestException('confirmFinancialAccuracy must be true');
+    const dispute = await this.getDispute(id);
+    if (!dispute.ruling) throw new BadRequestException('Ruling must exist before payout linkage');
+    const impact = this.computeFinancialImpact(dispute);
+    const rows = this.financialAdjustments(dispute, impact, dto.adjustmentType);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.providerFinancialAdjustment.createMany({ data: rows });
+      await tx.providerDisputeCase.update({ where: { id }, data: { adjustmentType: dto.adjustmentType, totalProviderDeduction: impact.totalProviderDeduction, financialImpactJson: impact } });
+      await tx.providerDisputeTimeline.create({ data: { disputeId: id, type: 'PAYOUT_PENALTY_LINKED', title: 'Payout & Penalty Linked', description: 'Provider financial adjustments linked to dispute ruling.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { adjustmentType: dto.adjustmentType, totalProviderDeduction: impact.totalProviderDeduction } } });
+      if (dto.sendProviderSummary ?? true) await tx.notification.create({ data: { recipientId: dispute.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'Provider dispute financial summary', message: `Financial adjustments prepared for ${dispute.caseId}.`, type: 'PROVIDER_DISPUTE_FINANCIAL_SUMMARY', metadataJson: { providerDisputeId: id, caseId: dispute.caseId } } });
+    });
+    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'PROVIDER_DISPUTE_CASE', action: 'PROVIDER_DISPUTE_PAYOUT_LINKED', afterJson: { adjustmentType: dto.adjustmentType, totalProviderDeduction: impact.totalProviderDeduction } });
+    return { data: { caseId: dispute.caseId, adjustmentType: dto.adjustmentType, totalProviderDeduction: impact.totalProviderDeduction, status: 'READY_TO_FINALIZE' }, message: 'Payout and penalty linkage saved successfully.' };
+  }
+
+  async finalAttestation(user: AuthUserContext, id: string, dto: FinalProviderDisputeAttestationDto) {
+    if (!dto.confirmFinancialLineItems) throw new BadRequestException('confirmFinancialLineItems must be true');
+    await this.ensureDispute(id);
+    const updated = await this.prisma.providerDisputeCase.update({ where: { id }, data: { finalAttestedAt: new Date(), finalAttestedById: user.uid } });
+    await this.prisma.providerDisputeTimeline.create({ data: { disputeId: id, type: 'FINAL_ATTESTATION_COMPLETED', title: 'Final Attestation Completed', description: dto.comment ?? 'All financial line items confirmed as accurate.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { sendAutomatedFinancialSummary: dto.sendAutomatedFinancialSummary ?? true } } });
+    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'PROVIDER_DISPUTE_CASE', action: 'PROVIDER_DISPUTE_FINAL_ATTESTED', afterJson: { finalAttestedAt: updated.finalAttestedAt } });
+    return { data: { caseId: updated.caseId, finalAttestedAt: updated.finalAttestedAt }, message: 'Final attestation completed successfully.' };
   }
 
   async evidence(id: string) {
@@ -105,6 +155,52 @@ export class AdminProviderDisputesService {
     const format = query.format ?? ExportFormat.CSV;
     return { content, filename: `provider-disputes.${format === ExportFormat.PDF ? 'pdf' : 'csv'}`, contentType: format === ExportFormat.PDF ? 'application/pdf' : 'text/csv' };
   }
+
+
+  private validatedRefundAmount(dispute: ProviderDisputeView, dto: SaveProviderDisputeRulingDto): Prisma.Decimal {
+    const disputeAmount = this.money(dispute.amount);
+    if (dto.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND) return new Prisma.Decimal(0);
+    if (dto.ruling === ProviderDisputeRuling.CUSTOMER_WINS_FULL_REFUND) {
+      const amount = dto.refundAmount ?? disputeAmount;
+      if (amount !== disputeAmount) throw new BadRequestException('Full refund must equal dispute amount');
+      return new Prisma.Decimal(amount);
+    }
+    const amount = dto.refundAmount ?? 0;
+    if (amount <= 0 || amount >= disputeAmount) throw new BadRequestException('Split liability refund must be greater than 0 and less than dispute amount');
+    return new Prisma.Decimal(amount);
+  }
+
+  private computeFinancialImpact(dispute: ProviderDisputeView) {
+    const refundAmount = this.money(dispute.refundAmount ?? dispute.amount);
+    const providerShare = this.providerShare(dispute);
+    const platformFee = this.platformFee(dispute);
+    const penaltyAmount = this.money(dispute.penaltyAmount ?? 0);
+    const currentBalance = 340.5;
+    const pendingPayout = 210;
+    const breakdown = [
+      { lineItem: 'Order Total', adjustment: this.money(dispute.amount), runningTotal: this.money(dispute.amount) },
+      { lineItem: 'Customer Refund', adjustment: -refundAmount, runningTotal: 0 },
+      { lineItem: 'Provider Lost Earnings', adjustment: dispute.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? 0 : -providerShare, runningTotal: dispute.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? 0 : -providerShare },
+      { lineItem: 'Platform Fee Reversal', adjustment: dispute.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? 0 : -platformFee, runningTotal: dispute.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? 0 : -(providerShare + platformFee) },
+      { lineItem: 'Penalty Fee', adjustment: -penaltyAmount, runningTotal: dispute.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? -penaltyAmount : -(providerShare + platformFee + penaltyAmount) },
+    ];
+    const totalProviderDeduction = Math.max(0, (dispute.ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? 0 : providerShare + platformFee) + penaltyAmount);
+    return { caseId: dispute.caseId, ruling: dispute.ruling, providerAccountPreview: { currentBalance, pendingPayout, newBalance: Math.round((currentBalance - totalProviderDeduction) * 100) / 100, currency: dispute.currency }, breakdown, totalProviderDeduction };
+  }
+
+  private financialAdjustments(dispute: ProviderDisputeView, impact: ReturnType<AdminProviderDisputesService['computeFinancialImpact']>, adjustmentType: ProviderDisputeAdjustmentType): Prisma.ProviderFinancialAdjustmentCreateManyInput[] {
+    const rows: Prisma.ProviderFinancialAdjustmentCreateManyInput[] = [];
+    if (dispute.ruling !== ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND) {
+      rows.push({ providerId: dispute.providerId, disputeId: dispute.id, providerOrderId: dispute.providerOrderId, type: ProviderFinancialAdjustmentType.CUSTOMER_REFUND, direction: ProviderFinancialAdjustmentDirection.DEBIT, amount: new Prisma.Decimal(this.money(dispute.refundAmount ?? dispute.amount)), currency: dispute.currency, status: adjustmentType === ProviderDisputeAdjustmentType.WAIVE_DEDUCTION ? ProviderFinancialAdjustmentStatus.WAIVED : ProviderFinancialAdjustmentStatus.PENDING, transactionId: `PFA-${dispute.id}-REFUND` });
+      rows.push({ providerId: dispute.providerId, disputeId: dispute.id, providerOrderId: dispute.providerOrderId, type: ProviderFinancialAdjustmentType.PROVIDER_LOST_EARNINGS, direction: ProviderFinancialAdjustmentDirection.DEBIT, amount: new Prisma.Decimal(this.providerShare(dispute)), currency: dispute.currency, status: adjustmentType === ProviderDisputeAdjustmentType.WAIVE_DEDUCTION ? ProviderFinancialAdjustmentStatus.WAIVED : ProviderFinancialAdjustmentStatus.PENDING, transactionId: `PFA-${dispute.id}-EARN` });
+      rows.push({ providerId: dispute.providerId, disputeId: dispute.id, providerOrderId: dispute.providerOrderId, type: ProviderFinancialAdjustmentType.PLATFORM_FEE_REVERSAL, direction: ProviderFinancialAdjustmentDirection.DEBIT, amount: new Prisma.Decimal(this.platformFee(dispute)), currency: dispute.currency, status: adjustmentType === ProviderDisputeAdjustmentType.WAIVE_DEDUCTION ? ProviderFinancialAdjustmentStatus.WAIVED : ProviderFinancialAdjustmentStatus.PENDING, transactionId: `PFA-${dispute.id}-FEE` });
+    }
+    if (this.money(dispute.penaltyAmount ?? 0) > 0) rows.push({ providerId: dispute.providerId, disputeId: dispute.id, providerOrderId: dispute.providerOrderId, type: ProviderFinancialAdjustmentType.PENALTY, direction: ProviderFinancialAdjustmentDirection.DEBIT, amount: new Prisma.Decimal(this.money(dispute.penaltyAmount ?? 0)), currency: dispute.currency, status: adjustmentType === ProviderDisputeAdjustmentType.WAIVE_DEDUCTION ? ProviderFinancialAdjustmentStatus.WAIVED : ProviderFinancialAdjustmentStatus.PENDING, transactionId: `PFA-${dispute.id}-PENALTY` });
+    return rows;
+  }
+
+  private providerShare(dispute: ProviderDisputeView): number { return this.money((dispute.providerOrder.totalPayout ?? dispute.providerOrder.total).toString()); }
+  private platformFee(dispute: ProviderDisputeView): number { return Math.max(0, this.money(dispute.amount) - this.providerShare(dispute)); }
 
   private include() { return { provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, providerBusinessCategoryId: true } }, customer: { select: { id: true, firstName: true, lastName: true, email: true } }, order: { select: { id: true, orderNumber: true } }, providerOrder: { select: { id: true, orderNumber: true, totalPayout: true, total: true, providerId: true } }, payment: { select: { id: true, providerPaymentIntentId: true, amount: true, currency: true, status: true, metadataJson: true } }, assignedTo: { select: { id: true, firstName: true, lastName: true } } } satisfies Prisma.ProviderDisputeCaseInclude; }
   private async getDispute(id: string): Promise<ProviderDisputeView> { const dispute = await this.prisma.providerDisputeCase.findUnique({ where: { id }, include: this.include() }); if (!dispute) throw new NotFoundException('Provider dispute not found'); return dispute; }

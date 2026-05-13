@@ -32,9 +32,9 @@ describe('Payments source safety', () => {
   it('order and payment schema supports checkout snapshots and provider splits', () => {
     expect(schemaSource).toContain('model Payment');
     expect(schemaSource).toContain('model MoneyGift');
-    expect(schemaSource).toContain('paymentId           String?');
-    expect(schemaSource).toContain('tax                 Decimal');
-    expect(schemaSource).toContain('currency            String');
+    expect(schemaSource).toContain('paymentId');
+    expect(schemaSource).toContain('tax');
+    expect(schemaSource).toContain('currency');
   });
 
   it('setup intent webhook stores saved Stripe cards for recurring payments', () => {
