@@ -3,6 +3,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
+import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
 import { AdminManagementModule } from './modules/admin-management/admin-management.module';
 import { AdminReviewsModule } from './modules/admin-reviews/admin-reviews.module';
 import { AdminRolesModule } from './modules/admin-roles/admin-roles.module';
@@ -39,6 +40,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     AdminDisputesModule,
+    AdminProviderDisputesModule,
     AdminManagementModule,
     AdminReviewsModule,
     AdminRolesModule,

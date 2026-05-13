@@ -557,6 +557,49 @@ enum DisputeCustomerNotificationStatus {
   FAILED
 }
 
+enum ProviderDisputeCategory {
+  NON_DELIVERY
+  QUALITY_ISSUE
+  REFUND_CONFLICT
+  LATE_DELIVERY
+  OTHER
+}
+
+enum ProviderDisputeSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ProviderDisputeStatus {
+  OPEN
+  EVIDENCE_PHASE
+  UNDER_REVIEW
+  RULING_PENDING
+  ESCALATED
+  RESOLVED
+  DENIED
+}
+
+enum ProviderDisputeSubmittedByType {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum ProviderDisputeEvidenceStatus {
+  RECEIVED
+  RECEIVED_LATE
+  REQUESTED
+}
+
+enum ProviderDisputeEvidenceRequestTarget {
+  CUSTOMER
+  PROVIDER
+  BOTH
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -672,6 +715,12 @@ model User {
   disputeNotes                        DisputeNote[]                        @relation("DisputeNoteAuthor")
   disputeTimelineEvents               DisputeTimeline[]                    @relation("DisputeTimelineActor")
   linkedDisputes                      DisputeCase[]                        @relation("DisputeLinker")
+  providerDisputesAsProvider          ProviderDisputeCase[]                @relation("ProviderDisputeProvider")
+  providerDisputesAsCustomer          ProviderDisputeCase[]                @relation("ProviderDisputeCustomer")
+  assignedProviderDisputes            ProviderDisputeCase[]                @relation("ProviderDisputeAssignee")
+  providerDisputeEvidenceUploads      ProviderDisputeEvidence[]            @relation("ProviderDisputeEvidenceSubmitter")
+  providerDisputeNotes                ProviderDisputeNote[]                @relation("ProviderDisputeNoteAuthor")
+  providerDisputeTimelineEvents       ProviderDisputeTimeline[]            @relation("ProviderDisputeTimelineActor")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -1048,6 +1097,7 @@ model Payment {
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   refundRequests              RefundRequest[]
   disputeCases                DisputeCase[]
+  providerDisputes            ProviderDisputeCase[]
 
   @@index([userId, status])
   @@index([status, createdAt])
@@ -1108,26 +1158,26 @@ model CustomerSubscriptionInvoice {
 }
 
 model Order {
-  id                  String           @id @default(cuid())
-  userId              String           @map("user_id")
-  orderNumber         String           @unique @map("order_number")
-  status              OrderStatus      @default(PENDING)
-  paymentStatus       PaymentStatus    @default(PENDING) @map("payment_status")
-  paymentMethod       PaymentMethod    @default(COD) @map("payment_method")
-  paymentId           String?          @unique @map("payment_id")
-  subtotal            Decimal          @db.Decimal(10, 2)
-  discountTotal       Decimal          @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee         Decimal          @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                 Decimal          @default(0) @db.Decimal(10, 2)
-  total               Decimal          @db.Decimal(10, 2)
-  currency            String           @default("PKR")
-  deliveryAddressId   String           @map("delivery_address_id")
-  recipientName       String           @map("recipient_name")
-  recipientPhone      String           @map("recipient_phone")
-  giftMessage         String?          @map("gift_message")
-  scheduledDeliveryAt DateTime?        @map("scheduled_delivery_at") @db.Timestamptz
-  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+  id                  String                @id @default(cuid())
+  userId              String                @map("user_id")
+  orderNumber         String                @unique @map("order_number")
+  status              OrderStatus           @default(PENDING)
+  paymentStatus       PaymentStatus         @default(PENDING) @map("payment_status")
+  paymentMethod       PaymentMethod         @default(COD) @map("payment_method")
+  paymentId           String?               @unique @map("payment_id")
+  subtotal            Decimal               @db.Decimal(10, 2)
+  discountTotal       Decimal               @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee         Decimal               @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                 Decimal               @default(0) @db.Decimal(10, 2)
+  total               Decimal               @db.Decimal(10, 2)
+  currency            String                @default("PKR")
+  deliveryAddressId   String                @map("delivery_address_id")
+  recipientName       String                @map("recipient_name")
+  recipientPhone      String                @map("recipient_phone")
+  giftMessage         String?               @map("gift_message")
+  scheduledDeliveryAt DateTime?             @map("scheduled_delivery_at") @db.Timestamptz
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamptz
   items               OrderItem[]
   providerOrders      ProviderOrder[]
   refundRequests      RefundRequest[]
@@ -1137,6 +1187,7 @@ model Order {
   chatThreads         ChatThread[]
   providerReports     ProviderReport[]
   disputeCases        DisputeCase[]
+  providerDisputes    ProviderDisputeCase[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1202,6 +1253,7 @@ model ProviderOrder {
   checklist           ProviderOrderChecklist?
   messages            OrderMessage[]
   refundRequests      RefundRequest[]
+  providerDisputes    ProviderDisputeCase[]
   reviews             Review[]
   chatThread          ChatThread?
 
@@ -1949,6 +2001,103 @@ model DisputeTimeline {
 
   @@index([disputeId, createdAt])
   @@map("dispute_timelines")
+}
+
+model ProviderDisputeCase {
+  id                        String                  @id @default(cuid())
+  caseId                    String                  @unique @map("case_id")
+  providerId                String                  @map("provider_id")
+  customerId                String                  @map("customer_id")
+  orderId                   String                  @map("order_id")
+  providerOrderId           String                  @map("provider_order_id")
+  transactionId             String?                 @map("transaction_id")
+  paymentId                 String?                 @map("payment_id")
+  amount                    Decimal                 @db.Decimal(10, 2)
+  currency                  String                  @default("PKR")
+  category                  ProviderDisputeCategory
+  reason                    String
+  claimType                 String                  @map("claim_type")
+  customerStatement         String                  @map("customer_statement")
+  priority                  ProviderDisputeSeverity @default(MEDIUM)
+  status                    ProviderDisputeStatus   @default(OPEN)
+  riskScore                 Int                     @default(0) @map("risk_score")
+  slaDeadlineAt             DateTime                @map("sla_deadline_at") @db.Timestamptz
+  assignedToId              String?                 @map("assigned_to_id")
+  evidenceReviewStartedAt   DateTime?               @map("evidence_review_started_at") @db.Timestamptz
+  evidenceReviewCompletedAt DateTime?               @map("evidence_review_completed_at") @db.Timestamptz
+  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt                DateTime?               @map("resolved_at") @db.Timestamptz
+
+  provider      User                      @relation("ProviderDisputeProvider", fields: [providerId], references: [id])
+  customer      User                      @relation("ProviderDisputeCustomer", fields: [customerId], references: [id])
+  order         Order                     @relation(fields: [orderId], references: [id])
+  providerOrder ProviderOrder             @relation(fields: [providerOrderId], references: [id])
+  payment       Payment?                  @relation(fields: [paymentId], references: [id])
+  assignedTo    User?                     @relation("ProviderDisputeAssignee", fields: [assignedToId], references: [id])
+  evidence      ProviderDisputeEvidence[]
+  notes         ProviderDisputeNote[]
+  timeline      ProviderDisputeTimeline[]
+
+  @@index([status, priority, createdAt])
+  @@index([providerId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([orderId])
+  @@index([providerOrderId])
+  @@map("provider_dispute_cases")
+}
+
+model ProviderDisputeEvidence {
+  id              String                         @id @default(cuid())
+  disputeId       String                         @map("dispute_id")
+  submittedById   String                         @map("submitted_by_id")
+  submittedByType ProviderDisputeSubmittedByType @map("submitted_by_type")
+  narrative       String
+  status          ProviderDisputeEvidenceStatus
+  submittedAt     DateTime                       @map("submitted_at") @db.Timestamptz
+  isLate          Boolean                        @default(false) @map("is_late")
+  filesJson       Json                           @default("[]") @map("files_json")
+  createdAt       DateTime                       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
+
+  dispute     ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+  submittedBy User                @relation("ProviderDisputeEvidenceSubmitter", fields: [submittedById], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("provider_dispute_evidence")
+}
+
+model ProviderDisputeNote {
+  id         String                @id @default(cuid())
+  disputeId  String                @map("dispute_id")
+  authorId   String                @map("author_id")
+  note       String
+  visibility DisputeNoteVisibility @default(INTERNAL)
+  createdAt  DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+  author  User                @relation("ProviderDisputeNoteAuthor", fields: [authorId], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("provider_dispute_notes")
+}
+
+model ProviderDisputeTimeline {
+  id           String           @id @default(cuid())
+  disputeId    String           @map("dispute_id")
+  type         String
+  title        String
+  description  String
+  actorId      String?          @map("actor_id")
+  actorType    DisputeActorType @map("actor_type")
+  metadataJson Json             @default("{}") @map("metadata_json")
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+  actor   User?               @relation("ProviderDisputeTimelineActor", fields: [actorId], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("provider_dispute_timelines")
 }
 
 model AuthSession {

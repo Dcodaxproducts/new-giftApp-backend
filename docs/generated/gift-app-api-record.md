@@ -1,6 +1,6 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T06:54:03.565Z_
+_Generated from OpenAPI: 2026-05-13T08:07:59.022Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -151,6 +151,66 @@ Export dispute cases
 ### `GET` `/api/v1/admin/disputes/stats`
 
 Fetch dispute dashboard stats
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes`
+
+List provider dispute queue
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}`
+
+Fetch provider dispute details
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/evidence`
+
+Fetch provider dispute evidence exchange
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed`
+
+Mark provider dispute evidence review complete
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/request`
+
+Request additional provider dispute evidence
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/notes`
+
+Fetch provider dispute internal notes
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/notes`
+
+Add provider dispute internal note
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/timeline`
+
+Fetch provider dispute timeline
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/export`
+
+Export provider dispute queue
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/stats`
+
+Fetch provider dispute dashboard stats
 
 ## 02 Admin - Review Policies
 

@@ -2772,6 +2772,684 @@
         "x-access": "Authenticated"
       }
     },
+    "/api/v1/admin/provider-disputes/stats": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.",
+        "operationId": "AdminProviderDisputesController_stats",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "QUARTERLY",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "criticalOpenCases": 8,
+                      "evidencePhase": 3,
+                      "underReview": 4,
+                      "escalations": 1,
+                      "resolvedThisWeek": 14,
+                      "averageClosureTimeDays": 4.2,
+                      "topConflictSource": {
+                        "providerName": "Acme Corp",
+                        "category": "Quality Disputes",
+                        "percentOfTotal": 65
+                      },
+                      "systemHealth": {
+                        "status": "STABLE",
+                        "message": "All nodes stable",
+                        "apiLatencyMs": 42
+                      }
+                    },
+                    "message": "Provider dispute stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute dashboard stats",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/export": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.",
+        "operationId": "AdminProviderDisputesController_export",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "EVIDENCE_PHASE",
+                "UNDER_REVIEW",
+                "RULING_PENDING",
+                "ESCALATED",
+                "RESOLVED",
+                "DENIED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NON_DELIVERY",
+                "QUALITY_ISSUE",
+                "REFUND_CONFLICT",
+                "LATE_DELIVERY",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export provider dispute queue",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.",
+        "operationId": "AdminProviderDisputesController_list",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "QUARTERLY",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "NON_DELIVERY",
+                "QUALITY_ISSUE",
+                "REFUND_CONFLICT",
+                "LATE_DELIVERY",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "OPEN",
+                "EVIDENCE_PHASE",
+                "UNDER_REVIEW",
+                "RULING_PENDING",
+                "ESCALATED",
+                "RESOLVED",
+                "DENIED"
+              ]
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "severity",
+                "riskScore"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List provider dispute queue",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/evidence": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.",
+        "operationId": "AdminProviderDisputesController_evidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute evidence exchange",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Evidence"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/evidence/request": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.",
+        "operationId": "AdminProviderDisputesController_requestEvidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestProviderDisputeEvidenceDto"
+              },
+              "examples": {
+                "provider": {
+                  "value": {
+                    "target": "PROVIDER",
+                    "message": "Please upload photographic proof of delivery and driver log.",
+                    "dueAt": "2026-04-09T18:00:00.000Z",
+                    "notifyTarget": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Request additional provider dispute evidence",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Evidence"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.",
+        "operationId": "AdminProviderDisputesController_markReviewed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkProviderDisputeEvidenceReviewedDto"
+              },
+              "examples": {
+                "review": {
+                  "value": {
+                    "reviewerNotes": "Provider evidence is incomplete. GPS data was submitted late and lacks photo confirmation.",
+                    "nextStep": "RULING"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark provider dispute evidence review complete",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Evidence"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/timeline": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.",
+        "operationId": "AdminProviderDisputesController_timeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute timeline",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/notes": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.",
+        "operationId": "AdminProviderDisputesController_notes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute internal notes",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.",
+        "operationId": "AdminProviderDisputesController_addNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddProviderDisputeNoteDto"
+              },
+              "examples": {
+                "internal": {
+                  "value": {
+                    "note": "Provider failed to submit required photographic proof.",
+                    "visibility": "INTERNAL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add provider dispute internal note",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.",
+        "operationId": "AdminProviderDisputesController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_dispute_id",
+                      "caseId": "PD-2047",
+                      "status": "EVIDENCE_PHASE",
+                      "priority": "MEDIUM",
+                      "category": "NON_DELIVERY",
+                      "reason": "Missing delivery evidence",
+                      "claimType": "Non-Delivery",
+                      "amount": 89.99,
+                      "currency": "PKR",
+                      "provider": {
+                        "id": "provider_id",
+                        "businessName": "FreshGrocer Supplies",
+                        "providerCode": "PRV-8923",
+                        "tier": "Gold Partner",
+                        "currentPayoutBalance": -127.5,
+                        "disputeCount": 4,
+                        "winRate": 50
+                      },
+                      "customer": {
+                        "id": "customer_id",
+                        "name": "Michael Chen",
+                        "email": "michael@example.com"
+                      },
+                      "order": {
+                        "id": "order_id",
+                        "orderNumber": "ORD-45678"
+                      },
+                      "transaction": {
+                        "id": "transaction_id",
+                        "transactionId": "TXN-789012",
+                        "grossTransaction": 89.99,
+                        "providerShare": 67.49,
+                        "platformFee": 22.5,
+                        "refundEligible": true,
+                        "eligibilityText": "Within the standard 14-day resolution window."
+                      },
+                      "customerStatement": "I stayed home all day waiting for the delivery. I got a notification saying it was delivered, but nothing was at my door.",
+                      "riskAlert": {
+                        "enabled": true,
+                        "message": "FreshGrocer Supplies has a 60% dispute rate over the last 30 days."
+                      },
+                      "createdAt": "2026-04-05T10:00:00.000Z"
+                    },
+                    "message": "Provider dispute details fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute details",
+        "tags": [
+          "02 Admin - Provider Dispute Manager"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/admins": {
       "post": {
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Creates ADMIN staff users only. Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
@@ -17227,6 +17905,7 @@
                 "chat-attachments",
                 "provider-report-evidence",
                 "dispute-evidence",
+                "provider-dispute-evidence",
                 "provider-support-attachments"
               ]
             }
@@ -17373,6 +18052,12 @@
     },
     {
       "name": "02 Admin - Dispute Tracking"
+    },
+    {
+      "name": "02 Admin - Provider Dispute Manager"
+    },
+    {
+      "name": "02 Admin - Provider Dispute Evidence"
     },
     {
       "name": "03 Provider - Business Info"
@@ -17973,6 +18658,73 @@
         "required": [
           "transactionId",
           "refundType"
+        ]
+      },
+      "RequestProviderDisputeEvidenceDto": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER",
+              "PROVIDER",
+              "BOTH"
+            ],
+            "example": "PROVIDER"
+          },
+          "message": {
+            "type": "string",
+            "example": "Please upload photographic proof of delivery and driver log."
+          },
+          "dueAt": {
+            "type": "string"
+          },
+          "notifyTarget": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "target",
+          "message",
+          "dueAt"
+        ]
+      },
+      "MarkProviderDisputeEvidenceReviewedDto": {
+        "type": "object",
+        "properties": {
+          "reviewerNotes": {
+            "type": "string",
+            "example": "Provider evidence is incomplete. GPS data was submitted late and lacks photo confirmation."
+          },
+          "nextStep": {
+            "type": "string",
+            "example": "RULING"
+          }
+        },
+        "required": [
+          "reviewerNotes",
+          "nextStep"
+        ]
+      },
+      "AddProviderDisputeNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Provider failed to submit required photographic proof."
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "INTERNAL"
+            ],
+            "example": "INTERNAL"
+          }
+        },
+        "required": [
+          "note",
+          "visibility"
         ]
       },
       "UpdateAdminDto": {
@@ -21445,6 +22197,7 @@
               "chat-attachments",
               "provider-report-evidence",
               "dispute-evidence",
+              "provider-dispute-evidence",
               "provider-support-attachments"
             ],
             "example": "gift-images",

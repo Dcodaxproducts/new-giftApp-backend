@@ -193,6 +193,20 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'providerDisputes',
+    label: 'Provider Dispute Manager',
+    permissions: [
+      { key: 'read', label: 'View Provider Disputes', description: 'View provider dispute queue, stats, details, evidence, notes, and timeline.' },
+      { key: 'create', label: 'Create Provider Disputes', description: 'Create provider dispute cases.' },
+      { key: 'update', label: 'Update Provider Disputes', description: 'Update provider dispute cases.' },
+      { key: 'assign', label: 'Assign Provider Disputes', description: 'Assign provider dispute cases to admins.' },
+      { key: 'evidence.read', label: 'View Provider Dispute Evidence', description: 'View evidence exchange for provider disputes.' },
+      { key: 'evidence.request', label: 'Request Provider Dispute Evidence', description: 'Request additional evidence from provider or customer.' },
+      { key: 'notes.create', label: 'Create Provider Dispute Notes', description: 'Add internal notes to provider disputes.' },
+      { key: 'export', label: 'Export Provider Disputes', description: 'Export provider dispute cases.' },
+    ],
+  },
+  {
     module: 'settings',
     label: 'Settings',
     permissions: [

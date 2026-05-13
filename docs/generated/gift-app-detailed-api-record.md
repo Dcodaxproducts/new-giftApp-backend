@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T06:54:03.565Z_
+_Generated from OpenAPI: 2026-05-13T08:07:59.022Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -200,6 +200,86 @@ Access: "Authenticated"
 
 Summary: Fetch dispute dashboard stats
 Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes`
+
+Summary: List provider dispute queue
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}`
+
+Summary: Fetch provider dispute details
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/evidence`
+
+Summary: Fetch provider dispute evidence exchange
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed`
+
+Summary: Mark provider dispute evidence review complete
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/request`
+
+Summary: Request additional provider dispute evidence
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/notes`
+
+Summary: Fetch provider dispute internal notes
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `POST` `/api/v1/admin/provider-disputes/{id}/notes`
+
+Summary: Add provider dispute internal note
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/timeline`
+
+Summary: Fetch provider dispute timeline
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/export`
+
+Summary: Export provider dispute queue
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/stats`
+
+Summary: Fetch provider dispute dashboard stats
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.
 Access: "Authenticated"
 
 ## 02 Admin - Review Policies
