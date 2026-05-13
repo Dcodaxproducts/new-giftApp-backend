@@ -195,6 +195,34 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'reviews',
+    label: 'Reviews Management',
+    permissions: [
+      { key: 'read', label: 'View Reviews', description: 'View platform review dashboard, stats, lists, and details.' },
+      { key: 'moderate', label: 'Moderate Reviews', description: 'Moderate flagged and pending reviews.' },
+      { key: 'approve', label: 'Approve Reviews', description: 'Approve reviews from moderation.' },
+      { key: 'remove', label: 'Remove Reviews', description: 'Remove reviews from public visibility without physical deletion.' },
+      { key: 'hide', label: 'Hide Reviews', description: 'Hide reviews pending moderation or policy decisions.' },
+      { key: 'penalize', label: 'Penalize Review Actors', description: 'Apply review policy penalty status markers.' },
+      { key: 'export', label: 'Export Reviews', description: 'Export review analytics and moderation summaries.' },
+    ],
+  },
+  {
+    module: 'reviewPolicies',
+    label: 'Review Policies',
+    permissions: [
+      { key: 'read', label: 'View Review Policies', description: 'View auto-moderation policy settings and thresholds.' },
+      { key: 'update', label: 'Update Review Policies', description: 'Update review policy settings and thresholds.' },
+    ],
+  },
+  {
+    module: 'reviewModerationLogs',
+    label: 'Review Moderation Logs',
+    permissions: [
+      { key: 'read', label: 'View Review Moderation Logs', description: 'View review moderation activity logs.' },
+    ],
+  },
+  {
     module: 'loginAttempts',
     label: 'Login Attempts',
     permissions: [
