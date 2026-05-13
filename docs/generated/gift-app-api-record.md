@@ -1,6 +1,6 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T09:56:32.119Z_
+_Generated from OpenAPI: 2026-05-13T10:56:13.665Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -50,31 +50,31 @@ List dispute queue
 
 Fetch dispute details and evidence review summary
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Decisions
 
 ### `GET` `/api/v1/admin/disputes/{id}/confirmation`
 
 Fetch decision confirmation
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Decisions
 
 ### `POST` `/api/v1/admin/disputes/{id}/decision`
 
 Submit final dispute decision
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Decisions
 
 ### `GET` `/api/v1/admin/disputes/{id}/decision-summary`
 
 Fetch dispute decision summary
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Evidence
 
 ### `GET` `/api/v1/admin/disputes/{id}/evidence`
 
 Fetch dispute evidence
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Tracking
 
 ### `POST` `/api/v1/admin/disputes/{id}/follow-up-notes`
 
@@ -86,13 +86,13 @@ Add dispute follow-up note
 
 Fetch internal transaction data
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `POST` `/api/v1/admin/disputes/{id}/link-transaction`
 
 Confirm dispute transaction linkage
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `GET` `/api/v1/admin/disputes/{id}/linkage`
 
@@ -110,7 +110,7 @@ Fetch internal dispute notes
 
 Add internal dispute note
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `POST` `/api/v1/admin/disputes/{id}/refund-preview`
 
@@ -122,19 +122,19 @@ Preview dispute refund selection
 
 Fetch dispute timeline
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Tracking
 
 ### `GET` `/api/v1/admin/disputes/{id}/tracking-log`
 
 Fetch full dispute tracking log
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Tracking
 
 ### `GET` `/api/v1/admin/disputes/{id}/tracking-log/export`
 
 Export full dispute tracking log
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `GET` `/api/v1/admin/disputes/{id}/transaction-search`
 
@@ -164,37 +164,37 @@ List provider dispute queue
 
 Fetch provider dispute details
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Evidence
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/evidence`
 
 Fetch provider dispute evidence exchange
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Evidence
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed`
 
 Mark provider dispute evidence review complete
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Evidence
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/request`
 
 Request additional provider dispute evidence
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Financial Adjustments
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/final-attestation`
 
 Complete final financial attestation
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Resolution
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/finalize`
 
 Finalize provider dispute
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Financial Adjustments
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/financial-impact`
 
@@ -212,43 +212,43 @@ Fetch provider dispute internal notes
 
 Add provider dispute internal note
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Resolution
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/notify-again`
 
 Resend provider dispute notifications
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Financial Adjustments
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage`
 
 Link payout and penalty adjustments
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Resolution
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/resolution`
 
 Fetch provider dispute resolution summary
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Logs
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/resolution-log`
 
 Fetch provider dispute resolution log
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Logs
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/resolution-log/export`
 
 Export provider dispute resolution log
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Rulings
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/ruling`
 
 Save provider dispute ruling
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Rulings
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/ruling-summary`
 
@@ -642,7 +642,7 @@ Update customer address
 
 ### `DELETE` `/api/v1/customer/addresses/{id}`
 
-Soft-delete customer address
+Delete customer address
 
 ## 05 Customer - Addresses
 
@@ -1872,7 +1872,7 @@ Update public review response
 
 ### `DELETE` `/api/v1/provider/reviews/{id}/response`
 
-Soft-delete public review response
+Delete public review response
 
 ## 03 Provider - Reviews
 
@@ -2052,25 +2052,25 @@ GET /api/v1/subscription-plans/stats
 
 ### `GET` `/api/v1/uploads`
 
-GET /api/v1/uploads
+List uploads
 
 ## 07 Storage
 
 ### `GET` `/api/v1/uploads/{id}`
 
-GET /api/v1/uploads/{id}
+Fetch upload details
 
 ## 07 Storage
 
 ### `DELETE` `/api/v1/uploads/{id}`
 
-DELETE /api/v1/uploads/{id}
+Delete upload
 
 ## 07 Storage
 
 ### `POST` `/api/v1/uploads/complete`
 
-POST /api/v1/uploads/complete
+Complete upload
 
 ## 07 Storage
 

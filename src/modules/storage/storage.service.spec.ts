@@ -27,4 +27,10 @@ describe('Storage upload metadata flow', () => {
     expect(source).toContain('25 * 1024 * 1024');
     expect(source).toContain('5 * 1024 * 1024');
   });
+
+  it('storage docs restrict ownerId and targetAccountId usage by role', () => {
+    const controller = readFileSync(join(__dirname, 'storage.controller.ts'), 'utf8');
+    expect(controller).toContain('ownerId query is ignored');
+    expect(controller).toContain('targetAccountId is forbidden for REGISTERED_USER and PROVIDER');
+  });
 });

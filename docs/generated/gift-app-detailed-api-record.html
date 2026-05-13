@@ -6,40 +6,40 @@
 <tr><td>02 Admin - Roles & Permissions</td><td>PATCH</td><td><code>/api/v1/admin-roles/{id}/permissions</code></td><td>PATCH /api/v1/admin-roles/{id}/permissions</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes</code></td><td>List dispute queue</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}</code></td><td>Fetch dispute details and evidence review summary</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/confirmation</code></td><td>Fetch decision confirmation</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/decision</code></td><td>Submit final dispute decision</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/decision-summary</code></td><td>Fetch dispute decision summary</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/evidence</code></td><td>Fetch dispute evidence</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/follow-up-notes</code></td><td>Add dispute follow-up note</td></tr>
+<tr><td>02 Admin - Dispute Decisions</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/confirmation</code></td><td>Fetch decision confirmation</td></tr>
+<tr><td>02 Admin - Dispute Decisions</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/decision</code></td><td>Submit final dispute decision</td></tr>
+<tr><td>02 Admin - Dispute Decisions</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/decision-summary</code></td><td>Fetch dispute decision summary</td></tr>
+<tr><td>02 Admin - Dispute Evidence</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/evidence</code></td><td>Fetch dispute evidence</td></tr>
+<tr><td>02 Admin - Dispute Tracking</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/follow-up-notes</code></td><td>Add dispute follow-up note</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/internal-data</code></td><td>Fetch internal transaction data</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/link-transaction</code></td><td>Confirm dispute transaction linkage</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/linkage</code></td><td>Fetch current dispute transaction linkage state</td></tr>
+<tr><td>02 Admin - Dispute Linkage</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/link-transaction</code></td><td>Confirm dispute transaction linkage</td></tr>
+<tr><td>02 Admin - Dispute Linkage</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/linkage</code></td><td>Fetch current dispute transaction linkage state</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/notes</code></td><td>Fetch internal dispute notes</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/notes</code></td><td>Add internal dispute note</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/refund-preview</code></td><td>Preview dispute refund selection</td></tr>
+<tr><td>02 Admin - Dispute Linkage</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/refund-preview</code></td><td>Preview dispute refund selection</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/timeline</code></td><td>Fetch dispute timeline</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/tracking-log</code></td><td>Fetch full dispute tracking log</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/tracking-log/export</code></td><td>Export full dispute tracking log</td></tr>
-<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/transaction-search</code></td><td>Search original transaction for a dispute</td></tr>
+<tr><td>02 Admin - Dispute Tracking</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/tracking-log</code></td><td>Fetch full dispute tracking log</td></tr>
+<tr><td>02 Admin - Dispute Tracking</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/tracking-log/export</code></td><td>Export full dispute tracking log</td></tr>
+<tr><td>02 Admin - Dispute Linkage</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/transaction-search</code></td><td>Search original transaction for a dispute</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/export</code></td><td>Export dispute cases</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/stats</code></td><td>Fetch dispute dashboard stats</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes</code></td><td>List provider dispute queue</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}</code></td><td>Fetch provider dispute details</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/evidence</code></td><td>Fetch provider dispute evidence exchange</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed</code></td><td>Mark provider dispute evidence review complete</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/evidence/request</code></td><td>Request additional provider dispute evidence</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/final-attestation</code></td><td>Complete final financial attestation</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/finalize</code></td><td>Finalize provider dispute</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/financial-impact</code></td><td>Fetch provider dispute financial impact</td></tr>
+<tr><td>02 Admin - Provider Dispute Evidence</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/evidence</code></td><td>Fetch provider dispute evidence exchange</td></tr>
+<tr><td>02 Admin - Provider Dispute Evidence</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed</code></td><td>Mark provider dispute evidence review complete</td></tr>
+<tr><td>02 Admin - Provider Dispute Evidence</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/evidence/request</code></td><td>Request additional provider dispute evidence</td></tr>
+<tr><td>02 Admin - Provider Financial Adjustments</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/final-attestation</code></td><td>Complete final financial attestation</td></tr>
+<tr><td>02 Admin - Provider Dispute Resolution</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/finalize</code></td><td>Finalize provider dispute</td></tr>
+<tr><td>02 Admin - Provider Financial Adjustments</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/financial-impact</code></td><td>Fetch provider dispute financial impact</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/notes</code></td><td>Fetch provider dispute internal notes</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/notes</code></td><td>Add provider dispute internal note</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/notify-again</code></td><td>Resend provider dispute notifications</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage</code></td><td>Link payout and penalty adjustments</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/resolution</code></td><td>Fetch provider dispute resolution summary</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/resolution-log</code></td><td>Fetch provider dispute resolution log</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/resolution-log/export</code></td><td>Export provider dispute resolution log</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/ruling</code></td><td>Save provider dispute ruling</td></tr>
-<tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/ruling-summary</code></td><td>Fetch provider dispute ruling summary</td></tr>
+<tr><td>02 Admin - Provider Dispute Resolution</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/notify-again</code></td><td>Resend provider dispute notifications</td></tr>
+<tr><td>02 Admin - Provider Financial Adjustments</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage</code></td><td>Link payout and penalty adjustments</td></tr>
+<tr><td>02 Admin - Provider Dispute Resolution</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/resolution</code></td><td>Fetch provider dispute resolution summary</td></tr>
+<tr><td>02 Admin - Provider Dispute Logs</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/resolution-log</code></td><td>Fetch provider dispute resolution log</td></tr>
+<tr><td>02 Admin - Provider Dispute Logs</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/resolution-log/export</code></td><td>Export provider dispute resolution log</td></tr>
+<tr><td>02 Admin - Provider Dispute Rulings</td><td>POST</td><td><code>/api/v1/admin/provider-disputes/{id}/ruling</code></td><td>Save provider dispute ruling</td></tr>
+<tr><td>02 Admin - Provider Dispute Rulings</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/ruling-summary</code></td><td>Fetch provider dispute ruling summary</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/{id}/timeline</code></td><td>Fetch provider dispute timeline</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/export</code></td><td>Export provider dispute queue</td></tr>
 <tr><td>02 Admin - Provider Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/provider-disputes/stats</code></td><td>Fetch provider dispute dashboard stats</td></tr>
@@ -104,7 +104,7 @@
 <tr><td>05 Customer - Addresses</td><td>POST</td><td><code>/api/v1/customer/addresses</code></td><td>Create customer address</td></tr>
 <tr><td>05 Customer - Addresses</td><td>GET</td><td><code>/api/v1/customer/addresses/{id}</code></td><td>Fetch customer address</td></tr>
 <tr><td>05 Customer - Addresses</td><td>PATCH</td><td><code>/api/v1/customer/addresses/{id}</code></td><td>Update customer address</td></tr>
-<tr><td>05 Customer - Addresses</td><td>DELETE</td><td><code>/api/v1/customer/addresses/{id}</code></td><td>Soft-delete customer address</td></tr>
+<tr><td>05 Customer - Addresses</td><td>DELETE</td><td><code>/api/v1/customer/addresses/{id}</code></td><td>Delete customer address</td></tr>
 <tr><td>05 Customer - Addresses</td><td>PATCH</td><td><code>/api/v1/customer/addresses/{id}/default</code></td><td>Set default customer address</td></tr>
 <tr><td>05 Customer - Payment Methods</td><td>GET</td><td><code>/api/v1/customer/bank-accounts</code></td><td>List own bank accounts</td></tr>
 <tr><td>05 Customer - Payment Methods</td><td>POST</td><td><code>/api/v1/customer/bank-accounts</code></td><td>Link placeholder bank account</td></tr>
@@ -309,7 +309,7 @@
 <tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews/{id}</code></td><td>GET /api/v1/provider/reviews/{id}</td></tr>
 <tr><td>03 Provider - Reviews</td><td>POST</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Post public review response</td></tr>
 <tr><td>03 Provider - Reviews</td><td>PATCH</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Update public review response</td></tr>
-<tr><td>03 Provider - Reviews</td><td>DELETE</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Soft-delete public review response</td></tr>
+<tr><td>03 Provider - Reviews</td><td>DELETE</td><td><code>/api/v1/provider/reviews/{id}/response</code></td><td>Delete public review response</td></tr>
 <tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews/filter-options</code></td><td>Fetch provider review filter options</td></tr>
 <tr><td>03 Provider - Reviews</td><td>GET</td><td><code>/api/v1/provider/reviews/summary</code></td><td>Fetch provider rating summary</td></tr>
 <tr><td>02 Admin - Provider Management</td><td>GET</td><td><code>/api/v1/providers</code></td><td>List providers</td></tr>
@@ -339,10 +339,10 @@
 <tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}/status</code></td><td>PATCH /api/v1/subscription-plans/{id}/status</td></tr>
 <tr><td>07 Plans & Coupons</td><td>PATCH</td><td><code>/api/v1/subscription-plans/{id}/visibility</code></td><td>PATCH /api/v1/subscription-plans/{id}/visibility</td></tr>
 <tr><td>07 Plans & Coupons</td><td>GET</td><td><code>/api/v1/subscription-plans/stats</code></td><td>GET /api/v1/subscription-plans/stats</td></tr>
-<tr><td>07 Storage</td><td>GET</td><td><code>/api/v1/uploads</code></td><td>GET /api/v1/uploads</td></tr>
-<tr><td>07 Storage</td><td>GET</td><td><code>/api/v1/uploads/{id}</code></td><td>GET /api/v1/uploads/{id}</td></tr>
-<tr><td>07 Storage</td><td>DELETE</td><td><code>/api/v1/uploads/{id}</code></td><td>DELETE /api/v1/uploads/{id}</td></tr>
-<tr><td>07 Storage</td><td>POST</td><td><code>/api/v1/uploads/complete</code></td><td>POST /api/v1/uploads/complete</td></tr>
+<tr><td>07 Storage</td><td>GET</td><td><code>/api/v1/uploads</code></td><td>List uploads</td></tr>
+<tr><td>07 Storage</td><td>GET</td><td><code>/api/v1/uploads/{id}</code></td><td>Fetch upload details</td></tr>
+<tr><td>07 Storage</td><td>DELETE</td><td><code>/api/v1/uploads/{id}</code></td><td>Delete upload</td></tr>
+<tr><td>07 Storage</td><td>POST</td><td><code>/api/v1/uploads/complete</code></td><td>Complete upload</td></tr>
 <tr><td>07 Storage</td><td>POST</td><td><code>/api/v1/uploads/presigned-url</code></td><td>Create presigned upload URL</td></tr>
 <tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users</code></td><td>List registered users</td></tr>
 <tr><td>02 Admin - User Management</td><td>GET</td><td><code>/api/v1/users/{id}</code></td><td>GET /api/v1/users/{id}</td></tr>

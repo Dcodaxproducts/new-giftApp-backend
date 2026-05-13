@@ -83,6 +83,6 @@ export class ProviderInteractionsController {
 
   @Delete('reviews/:id/response')
   @ApiTags('03 Provider - Reviews')
-  @ApiOperation({ summary: 'Soft-delete public review response', description: 'PROVIDER only. Soft-deletes own response and does not delete the original customer review.' })
+  @ApiOperation({ summary: 'Delete public review response', description: "PROVIDER only. Deletes only the provider's own response and does not delete the original customer review." })
   deleteResponse(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.interactions.deleteResponse(user, id); }
 }

@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T09:56:32.119Z_
+_Generated from OpenAPI: 2026-05-13T10:56:13.665Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -55,312 +55,312 @@ Access: "SUPER_ADMIN"
 ### `GET` `/api/v1/admin/disputes`
 
 Summary: List dispute queue
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
 ## 02 Admin - Dispute Manager
 
 ### `GET` `/api/v1/admin/disputes/{id}`
 
 Summary: Fetch dispute details and evidence review summary
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Decisions
 
 ### `GET` `/api/v1/admin/disputes/{id}/confirmation`
 
 Summary: Fetch decision confirmation
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.
+Access: "SUPER_ADMIN or ADMIN with disputes.decide"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Decisions
 
 ### `POST` `/api/v1/admin/disputes/{id}/decision`
 
 Summary: Submit final dispute decision
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate). SUPER_ADMIN or ADMIN with disputes.decide and the action-specific permission as applicable. SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.
+Access: "SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate)"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Decisions
 
 ### `GET` `/api/v1/admin/disputes/{id}/decision-summary`
 
 Summary: Fetch dispute decision summary
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.
+Access: "SUPER_ADMIN or ADMIN with disputes.decide"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Evidence
 
 ### `GET` `/api/v1/admin/disputes/{id}/evidence`
 
 Summary: Fetch dispute evidence
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.evidence.read. Returns only evidence rows linked to this dispute, from customer/admin uploads in dispute-evidence folder.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.evidence.read. Returns only evidence rows linked to this dispute, from customer/admin uploads in dispute-evidence folder.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Tracking
 
 ### `POST` `/api/v1/admin/disputes/{id}/follow-up-notes`
 
 Summary: Add dispute follow-up note
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.
+Access: "SUPER_ADMIN or ADMIN with disputes.notes.create"
 
 ## 02 Admin - Dispute Manager
 
 ### `GET` `/api/v1/admin/disputes/{id}/internal-data`
 
 Summary: Fetch internal transaction data
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `POST` `/api/v1/admin/disputes/{id}/link-transaction`
 
 Summary: Confirm dispute transaction linkage
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.linkTransaction. SUPER_ADMIN or ADMIN with disputes.linkTransaction permission. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.
+Access: "SUPER_ADMIN or ADMIN with disputes.linkTransaction"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `GET` `/api/v1/admin/disputes/{id}/linkage`
 
 Summary: Fetch current dispute transaction linkage state
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
 ## 02 Admin - Dispute Manager
 
 ### `GET` `/api/v1/admin/disputes/{id}/notes`
 
 Summary: Fetch internal dispute notes
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
 ## 02 Admin - Dispute Manager
 
 ### `POST` `/api/v1/admin/disputes/{id}/notes`
 
 Summary: Add internal dispute note
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.
+Access: "SUPER_ADMIN or ADMIN with disputes.notes.create"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `POST` `/api/v1/admin/disputes/{id}/refund-preview`
 
 Summary: Preview dispute refund selection
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.
+Access: "SUPER_ADMIN or ADMIN with disputes.refund.evaluate"
 
 ## 02 Admin - Dispute Manager
 
 ### `GET` `/api/v1/admin/disputes/{id}/timeline`
 
 Summary: Fetch dispute timeline
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Tracking
 
 ### `GET` `/api/v1/admin/disputes/{id}/tracking-log`
 
 Summary: Fetch full dispute tracking log
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.tracking.read. SUPER_ADMIN or ADMIN with disputes.tracking.read permission. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.
+Access: "SUPER_ADMIN or ADMIN with disputes.tracking.read"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Tracking
 
 ### `GET` `/api/v1/admin/disputes/{id}/tracking-log/export`
 
 Summary: Export full dispute tracking log
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.tracking.export. SUPER_ADMIN or ADMIN with disputes.tracking.export permission. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.
+Access: "SUPER_ADMIN or ADMIN with disputes.tracking.export"
 
-## 02 Admin - Dispute Manager
+## 02 Admin - Dispute Linkage
 
 ### `GET` `/api/v1/admin/disputes/{id}/transaction-search`
 
 Summary: Search original transaction for a dispute
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
 ## 02 Admin - Dispute Manager
 
 ### `GET` `/api/v1/admin/disputes/export`
 
 Summary: Export dispute cases
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.export. SUPER_ADMIN or ADMIN with disputes.export permission. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.
+Access: "SUPER_ADMIN or ADMIN with disputes.export"
 
 ## 02 Admin - Dispute Manager
 
 ### `GET` `/api/v1/admin/disputes/stats`
 
 Summary: Fetch dispute dashboard stats
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.
+Access: "SUPER_ADMIN or ADMIN with disputes.read"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `GET` `/api/v1/admin/provider-disputes`
 
 Summary: List provider dispute queue
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.read"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}`
 
 Summary: Fetch provider dispute details
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.read"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Evidence
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/evidence`
 
 Summary: Fetch provider dispute evidence exchange
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.read"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Evidence
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed`
 
 Summary: Mark provider dispute evidence review complete
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.update. SUPER_ADMIN or ADMIN with providerDisputes.update permission. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.update"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Evidence
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/evidence/request`
 
 Summary: Request additional provider dispute evidence
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.evidence.request"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Financial Adjustments
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/final-attestation`
 
 Summary: Complete final financial attestation
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.ruling.update"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Resolution
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/finalize`
 
 Summary: Finalize provider dispute
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.resolve"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Financial Adjustments
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/financial-impact`
 
 Summary: Fetch provider dispute financial impact
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read. SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.financial.read"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/notes`
 
 Summary: Fetch provider dispute internal notes
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.read"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/notes`
 
 Summary: Add provider dispute internal note
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create. SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.notes.create"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Resolution
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/notify-again`
 
 Summary: Resend provider dispute notifications
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.notify. SUPER_ADMIN or ADMIN with providerDisputes.notify permission. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.notify"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Financial Adjustments
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage`
 
 Summary: Link payout and penalty adjustments
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link. SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.financial.link"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Resolution
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/resolution`
 
 Summary: Fetch provider dispute resolution summary
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.resolve"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Logs
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/resolution-log`
 
 Summary: Fetch provider dispute resolution log
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read. SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.logs.read"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Logs
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/resolution-log/export`
 
 Summary: Export provider dispute resolution log
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export. SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.logs.export"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Rulings
 
 ### `POST` `/api/v1/admin/provider-disputes/{id}/ruling`
 
 Summary: Save provider dispute ruling
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.ruling.create"
 
-## 02 Admin - Provider Dispute Manager
+## 02 Admin - Provider Dispute Rulings
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/ruling-summary`
 
 Summary: Fetch provider dispute ruling summary
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.ruling.read"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `GET` `/api/v1/admin/provider-disputes/{id}/timeline`
 
 Summary: Fetch provider dispute timeline
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.read"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `GET` `/api/v1/admin/provider-disputes/export`
 
 Summary: Export provider dispute queue
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.export. SUPER_ADMIN or ADMIN with providerDisputes.export permission. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.export"
 
 ## 02 Admin - Provider Dispute Manager
 
 ### `GET` `/api/v1/admin/provider-disputes/stats`
 
 Summary: Fetch provider dispute dashboard stats
-Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.
-Access: "Authenticated"
+Description: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.
+Access: "SUPER_ADMIN or ADMIN with providerDisputes.read"
 
 ## 02 Admin - Review Policies
 
@@ -854,8 +854,8 @@ Access: "REGISTERED_USER"
 
 ### `DELETE` `/api/v1/customer/addresses/{id}`
 
-Summary: Soft-delete customer address
-Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Address is soft deleted and removed from default status.
+Summary: Delete customer address
+Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes the address and removes default status.
 Access: "REGISTERED_USER"
 
 ## 05 Customer - Addresses
@@ -1607,7 +1607,7 @@ Access: "REGISTERED_USER"
 ### `GET` `/api/v1/customer/wishlist`
 
 Summary: List wishlist gifts
-Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-safe available gifts.
+Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-visible gifts: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true.
 Access: "REGISTERED_USER"
 
 ## 05 Customer - Wishlist
@@ -1615,7 +1615,7 @@ Access: "REGISTERED_USER"
 ### `POST` `/api/v1/customer/wishlist/{giftId}`
 
 Summary: Add gift to wishlist
-Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be active, approved, published, and in stock. Duplicate wishlist entries are ignored.
+Description: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be customer-visible: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true. Duplicate wishlist entries are ignored.
 Access: "REGISTERED_USER"
 
 ## 05 Customer - Wishlist
@@ -2103,40 +2103,40 @@ Access: "PROVIDER"
 ### `GET` `/api/v1/provider/chats`
 
 Summary: List provider buyer chats
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.
+Access: "PROVIDER"
 
 ## 03 Provider - Buyer Chat
 
 ### `GET` `/api/v1/provider/chats/{threadId}`
 
 Summary: Fetch provider buyer chat messages
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Thread must belong to the authenticated provider.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Thread must belong to the authenticated provider.
+Access: "PROVIDER"
 
 ## 03 Provider - Buyer Chat
 
 ### `POST` `/api/v1/provider/chats/{threadId}/messages`
 
 Summary: Send chat message to buyer
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can send only in own thread. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.
+Access: "PROVIDER"
 
 ## 03 Provider - Buyer Chat
 
 ### `PATCH` `/api/v1/provider/chats/{threadId}/read`
 
 Summary: Mark buyer messages read
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Marks customer messages as read for provider in an owned thread.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can mark only own thread messages read. PROVIDER only. Marks customer messages as read for provider in an owned thread.
+Access: "PROVIDER"
 
 ## 03 Provider - Buyer Chat
 
 ### `GET` `/api/v1/provider/chats/quick-replies`
 
 Summary: Fetch provider buyer chat quick replies
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/chats/:threadId.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. PROVIDER only. Declared before /provider/chats/:threadId.
+Access: "PROVIDER"
 
 ## 03 Provider - Inventory
 
@@ -2463,56 +2463,56 @@ Access: "PROVIDER"
 ### `GET` `/api/v1/provider/reviews`
 
 Summary: List provider reviews
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Shows only reviews for own provider account/orders and excludes hidden/removed reviews.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can access only own reviews. PROVIDER only. Shows only reviews for own provider account/orders and excludes hidden/removed reviews.
+Access: "PROVIDER"
 
 ## 03 Provider - Reviews
 
 ### `GET` `/api/v1/provider/reviews/{id}`
 
 Summary: GET /api/v1/provider/reviews/{id}
-Description: Access: Authenticated. Authenticated JWT required.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can access only own reviews.
+Access: "PROVIDER"
 
 ## 03 Provider - Reviews
 
 ### `POST` `/api/v1/provider/reviews/{id}/response`
 
 Summary: Post public review response
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can respond only to own review. Only one active public response per review.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can respond only to own reviews. PROVIDER only. Provider can respond only to own review. Only one active public response per review.
+Access: "PROVIDER"
 
 ## 03 Provider - Reviews
 
 ### `PATCH` `/api/v1/provider/reviews/{id}/response`
 
 Summary: Update public review response
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Updates only provider’s own active response; customer review content is never modified.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can update only own review responses. PROVIDER only. Updates only provider’s own active response; customer review content is never modified.
+Access: "PROVIDER"
 
 ## 03 Provider - Reviews
 
 ### `DELETE` `/api/v1/provider/reviews/{id}/response`
 
-Summary: Soft-delete public review response
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Soft-deletes own response and does not delete the original customer review.
-Access: "Authenticated"
+Summary: Delete public review response
+Description: Access: PROVIDER. PROVIDER only. Provider can delete only own review responses. PROVIDER only. Deletes only the provider's own response and does not delete the original customer review.
+Access: "PROVIDER"
 
 ## 03 Provider - Reviews
 
 ### `GET` `/api/v1/provider/reviews/filter-options`
 
 Summary: Fetch provider review filter options
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/reviews/:id.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. PROVIDER only. Declared before /provider/reviews/:id.
+Access: "PROVIDER"
 
 ## 03 Provider - Reviews
 
 ### `GET` `/api/v1/provider/reviews/summary`
 
 Summary: Fetch provider rating summary
-Description: Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.
-Access: "Authenticated"
+Description: Access: PROVIDER. PROVIDER only. Provider can access only own reviews. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.
+Access: "PROVIDER"
 
 ## 02 Admin - Provider Management
 
@@ -2734,32 +2734,32 @@ Access: "SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read"
 
 ### `GET` `/api/v1/uploads`
 
-Summary: GET /api/v1/uploads
-Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account.
+Summary: List uploads
+Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. REGISTERED_USER/PROVIDER list only own uploads; ownerId is ignored. ADMIN lists own uploads by default and may use ownerId only for authorized managed access. SUPER_ADMIN may inspect by ownerId. REGISTERED_USER: ownerId query is ignored and only own uploads are listed. PROVIDER: ownerId query is ignored and only own uploads are listed. ADMIN: lists own uploads by default and may use ownerId only for managed dashboard access when authorized. SUPER_ADMIN: can use ownerId for dashboard/admin inspection.
 Access: "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
 
 ## 07 Storage
 
 ### `GET` `/api/v1/uploads/{id}`
 
-Summary: GET /api/v1/uploads/{id}
-Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account.
+Summary: Fetch upload details
+Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. REGISTERED_USER/PROVIDER can fetch only own uploads. ADMIN defaults to own uploads. SUPER_ADMIN may inspect uploads. REGISTERED_USER and PROVIDER can fetch only own uploads. ADMIN fetches own uploads by default. SUPER_ADMIN can inspect uploads for dashboard/admin operations.
 Access: "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
 
 ## 07 Storage
 
 ### `DELETE` `/api/v1/uploads/{id}`
 
-Summary: DELETE /api/v1/uploads/{id}
-Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account.
+Summary: Delete upload
+Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. REGISTERED_USER/PROVIDER can delete only own uploads. ADMIN defaults to own uploads. SUPER_ADMIN may delete inspected uploads. REGISTERED_USER and PROVIDER can delete only own uploads. ADMIN deletes own uploads by default. SUPER_ADMIN can delete inspected dashboard uploads. Deletion is permanent in the database.
 Access: "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
 
 ## 07 Storage
 
 ### `POST` `/api/v1/uploads/complete`
 
-Summary: POST /api/v1/uploads/complete
-Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account.
+Summary: Complete upload
+Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Completes only uploads accessible to the authenticated account. Authenticated upload completion. REGISTERED_USER and PROVIDER can complete only their own uploads. ADMIN defaults to own uploads. SUPER_ADMIN can manage dashboard/admin inspection flows.
 Access: "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
 
 ## 07 Storage
@@ -2767,7 +2767,7 @@ Access: "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
 ### `POST` `/api/v1/uploads/presigned-url`
 
 Summary: Create presigned upload URL
-Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is optional and allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Normal users/providers should not send targetAccountId. Include giftId only for gift image uploads.
+Description: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Backend derives ownerId/ownerRole from JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, admin-only when authorized, and allowed for SUPER_ADMIN. Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Include giftId only for gift image uploads.
 Access: "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
 
 ## 02 Admin - User Management

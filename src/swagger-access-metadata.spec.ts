@@ -28,6 +28,12 @@ describe('Swagger access metadata', () => {
     ['patch', '/api/v1/media-upload-policy', 'SUPER_ADMIN'],
     ['post', '/api/v1/broadcasts', 'SUPER_ADMIN or ADMIN with broadcasts.create'],
     ['patch', '/api/v1/broadcasts/{id}/schedule', 'SUPER_ADMIN or ADMIN with broadcasts.schedule'],
+    ['get', '/api/v1/admin/disputes', 'SUPER_ADMIN or ADMIN with disputes.read'],
+    ['post', '/api/v1/admin/disputes/{id}/link-transaction', 'SUPER_ADMIN or ADMIN with disputes.linkTransaction'],
+    ['get', '/api/v1/admin/provider-disputes/{id}/financial-impact', 'SUPER_ADMIN or ADMIN with providerDisputes.financial.read'],
+    ['post', '/api/v1/admin/provider-disputes/{id}/finalize', 'SUPER_ADMIN or ADMIN with providerDisputes.resolve'],
+    ['get', '/api/v1/provider/chats', 'PROVIDER'],
+    ['get', '/api/v1/provider/reviews', 'PROVIDER'],
   ] as const)('documents %s %s as %s', (method, path, expected) => {
     const document = documentWith({ [path]: { [method]: { security: [{ bearer: [] }] } } });
 

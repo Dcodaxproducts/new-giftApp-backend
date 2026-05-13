@@ -1686,7 +1686,7 @@
     },
     "/api/v1/admin/disputes/stats": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.",
         "operationId": "AdminDisputesController_stats",
         "parameters": [
           {
@@ -1753,13 +1753,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/export": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.export. SUPER_ADMIN or ADMIN with disputes.export permission. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.",
         "operationId": "AdminDisputesController_export",
         "parameters": [
           {
@@ -1835,13 +1835,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.export",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.export"
       }
     },
     "/api/v1/admin/disputes": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.",
         "operationId": "AdminDisputesController_list",
         "parameters": [
           {
@@ -1971,13 +1971,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}/decision-summary": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.",
         "operationId": "AdminDisputesController_decisionSummary",
         "parameters": [
           {
@@ -2001,16 +2001,15 @@
         ],
         "summary": "Fetch dispute decision summary",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Decisions"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.decide",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.decide"
       }
     },
     "/api/v1/admin/disputes/{id}/decision": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate). SUPER_ADMIN or ADMIN with disputes.decide and the action-specific permission as applicable. SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.",
         "operationId": "AdminDisputesController_decision",
         "parameters": [
           {
@@ -2069,16 +2068,15 @@
         ],
         "summary": "Submit final dispute decision",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Decisions"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate)",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate)"
       }
     },
     "/api/v1/admin/disputes/{id}/confirmation": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.",
         "operationId": "AdminDisputesController_confirmation",
         "parameters": [
           {
@@ -2102,16 +2100,15 @@
         ],
         "summary": "Fetch decision confirmation",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Decisions"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.decide",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.decide"
       }
     },
     "/api/v1/admin/disputes/{id}/tracking-log/export": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.tracking.export. SUPER_ADMIN or ADMIN with disputes.tracking.export permission. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.",
         "operationId": "AdminDisputesController_exportTrackingLog",
         "parameters": [
           {
@@ -2148,16 +2145,15 @@
         ],
         "summary": "Export full dispute tracking log",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Tracking"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.tracking.export",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.tracking.export"
       }
     },
     "/api/v1/admin/disputes/{id}/tracking-log": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.tracking.read. SUPER_ADMIN or ADMIN with disputes.tracking.read permission. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.",
         "operationId": "AdminDisputesController_trackingLog",
         "parameters": [
           {
@@ -2181,16 +2177,15 @@
         ],
         "summary": "Fetch full dispute tracking log",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Tracking"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.tracking.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.tracking.read"
       }
     },
     "/api/v1/admin/disputes/{id}/follow-up-notes": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.",
         "operationId": "AdminDisputesController_followUpNote",
         "parameters": [
           {
@@ -2232,16 +2227,15 @@
         ],
         "summary": "Add dispute follow-up note",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Tracking"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.notes.create",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.notes.create"
       }
     },
     "/api/v1/admin/disputes/{id}/linkage": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.",
         "operationId": "AdminDisputesController_linkage",
         "parameters": [
           {
@@ -2306,16 +2300,15 @@
         ],
         "summary": "Fetch current dispute transaction linkage state",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Linkage"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}/transaction-search": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.",
         "operationId": "AdminDisputesController_transactionSearch",
         "parameters": [
           {
@@ -2366,16 +2359,15 @@
         ],
         "summary": "Search original transaction for a dispute",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Linkage"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}/link-transaction": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.linkTransaction. SUPER_ADMIN or ADMIN with disputes.linkTransaction permission. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.",
         "operationId": "AdminDisputesController_linkTransaction",
         "parameters": [
           {
@@ -2426,16 +2418,15 @@
         ],
         "summary": "Confirm dispute transaction linkage",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Linkage"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.linkTransaction",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.linkTransaction"
       }
     },
     "/api/v1/admin/disputes/{id}/refund-preview": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.",
         "operationId": "AdminDisputesController_refundPreview",
         "parameters": [
           {
@@ -2491,16 +2482,15 @@
         ],
         "summary": "Preview dispute refund selection",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Linkage"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.refund.evaluate",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.refund.evaluate"
       }
     },
     "/api/v1/admin/disputes/{id}/evidence": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.evidence.read. Returns only evidence rows linked to this dispute, from customer/admin uploads in dispute-evidence folder.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.evidence.read. Returns only evidence rows linked to this dispute, from customer/admin uploads in dispute-evidence folder.",
         "operationId": "AdminDisputesController_evidence",
         "parameters": [
           {
@@ -2544,16 +2534,15 @@
         ],
         "summary": "Fetch dispute evidence",
         "tags": [
-          "02 Admin - Dispute Manager",
           "02 Admin - Dispute Evidence"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}/timeline": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.",
         "operationId": "AdminDisputesController_timeline",
         "parameters": [
           {
@@ -2579,13 +2568,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}/internal-data": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.",
         "operationId": "AdminDisputesController_internalData",
         "parameters": [
           {
@@ -2611,13 +2600,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}/notes": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.",
         "operationId": "AdminDisputesController_addNote",
         "parameters": [
           {
@@ -2661,11 +2650,11 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.notes.create",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.notes.create"
       },
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.",
         "operationId": "AdminDisputesController_notes",
         "parameters": [
           {
@@ -2691,13 +2680,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/disputes/{id}": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.",
         "operationId": "AdminDisputesController_details",
         "parameters": [
           {
@@ -2768,13 +2757,13 @@
         "tags": [
           "02 Admin - Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with disputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with disputes.read"
       }
     },
     "/api/v1/admin/provider-disputes/stats": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.",
         "operationId": "AdminProviderDisputesController_stats",
         "parameters": [
           {
@@ -2851,13 +2840,13 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
     "/api/v1/admin/provider-disputes/export": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.export. SUPER_ADMIN or ADMIN with providerDisputes.export permission. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.",
         "operationId": "AdminProviderDisputesController_export",
         "parameters": [
           {
@@ -2949,13 +2938,13 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.export",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.export"
       }
     },
     "/api/v1/admin/provider-disputes": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.",
         "operationId": "AdminProviderDisputesController_list",
         "parameters": [
           {
@@ -3111,13 +3100,13 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/finalize": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.",
         "operationId": "AdminProviderDisputesController_finalize",
         "parameters": [
           {
@@ -3161,16 +3150,15 @@
         ],
         "summary": "Finalize provider dispute",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Resolution"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.resolve"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/resolution": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.",
         "operationId": "AdminProviderDisputesController_resolution",
         "parameters": [
           {
@@ -3194,16 +3182,15 @@
         ],
         "summary": "Fetch provider dispute resolution summary",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Resolution"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.resolve"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/resolution-log/export": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export. SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.",
         "operationId": "AdminProviderDisputesController_exportResolutionLog",
         "parameters": [
           {
@@ -3240,16 +3227,15 @@
         ],
         "summary": "Export provider dispute resolution log",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Logs"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.logs.export",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.logs.export"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/resolution-log": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read. SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.",
         "operationId": "AdminProviderDisputesController_resolutionLog",
         "parameters": [
           {
@@ -3273,16 +3259,15 @@
         ],
         "summary": "Fetch provider dispute resolution log",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Logs"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.logs.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.logs.read"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/notify-again": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.notify. SUPER_ADMIN or ADMIN with providerDisputes.notify permission. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.",
         "operationId": "AdminProviderDisputesController_notifyAgain",
         "parameters": [
           {
@@ -3328,16 +3313,15 @@
         ],
         "summary": "Resend provider dispute notifications",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Resolution"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.notify",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.notify"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/ruling-summary": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.",
         "operationId": "AdminProviderDisputesController_rulingSummary",
         "parameters": [
           {
@@ -3361,16 +3345,15 @@
         ],
         "summary": "Fetch provider dispute ruling summary",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Rulings"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.ruling.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.ruling.read"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/ruling": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.",
         "operationId": "AdminProviderDisputesController_ruling",
         "parameters": [
           {
@@ -3417,16 +3400,15 @@
         ],
         "summary": "Save provider dispute ruling",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Rulings"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.ruling.create",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.ruling.create"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/financial-impact": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read. SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.",
         "operationId": "AdminProviderDisputesController_financialImpact",
         "parameters": [
           {
@@ -3450,16 +3432,15 @@
         ],
         "summary": "Fetch provider dispute financial impact",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Financial Adjustments"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.financial.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.financial.read"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link. SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.",
         "operationId": "AdminProviderDisputesController_payoutPenaltyLinkage",
         "parameters": [
           {
@@ -3502,16 +3483,15 @@
         ],
         "summary": "Link payout and penalty adjustments",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Financial Adjustments"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.financial.link",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.financial.link"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/final-attestation": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.",
         "operationId": "AdminProviderDisputesController_finalAttestation",
         "parameters": [
           {
@@ -3554,16 +3534,15 @@
         ],
         "summary": "Complete final financial attestation",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Financial Adjustments"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.ruling.update",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.ruling.update"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/evidence": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.",
         "operationId": "AdminProviderDisputesController_evidence",
         "parameters": [
           {
@@ -3587,16 +3566,15 @@
         ],
         "summary": "Fetch provider dispute evidence exchange",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Evidence"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/evidence/request": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.",
         "operationId": "AdminProviderDisputesController_requestEvidence",
         "parameters": [
           {
@@ -3640,16 +3618,15 @@
         ],
         "summary": "Request additional provider dispute evidence",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Evidence"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.evidence.request",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.evidence.request"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.update. SUPER_ADMIN or ADMIN with providerDisputes.update permission. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.",
         "operationId": "AdminProviderDisputesController_markReviewed",
         "parameters": [
           {
@@ -3691,16 +3668,15 @@
         ],
         "summary": "Mark provider dispute evidence review complete",
         "tags": [
-          "02 Admin - Provider Dispute Manager",
           "02 Admin - Provider Dispute Evidence"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.update",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.update"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/timeline": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.",
         "operationId": "AdminProviderDisputesController_timeline",
         "parameters": [
           {
@@ -3726,13 +3702,13 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
     "/api/v1/admin/provider-disputes/{id}/notes": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.",
         "operationId": "AdminProviderDisputesController_notes",
         "parameters": [
           {
@@ -3758,11 +3734,11 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       },
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create. SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.",
         "operationId": "AdminProviderDisputesController_addNote",
         "parameters": [
           {
@@ -3806,13 +3782,13 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.notes.create",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.notes.create"
       }
     },
     "/api/v1/admin/provider-disputes/{id}": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.",
         "operationId": "AdminProviderDisputesController_details",
         "parameters": [
           {
@@ -3892,8 +3868,8 @@
         "tags": [
           "02 Admin - Provider Dispute Manager"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerDisputes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
     "/api/v1/admins": {
@@ -6416,7 +6392,7 @@
     },
     "/api/v1/provider/chats": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.",
         "operationId": "ProviderInteractionsController_chats",
         "parameters": [
           {
@@ -6470,13 +6446,13 @@
         "tags": [
           "03 Provider - Buyer Chat"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/chats/quick-replies": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/chats/:threadId.",
+        "description": "Access: PROVIDER. PROVIDER only. PROVIDER only. Declared before /provider/chats/:threadId.",
         "operationId": "ProviderInteractionsController_quickReplies",
         "parameters": [],
         "responses": {
@@ -6493,13 +6469,13 @@
         "tags": [
           "03 Provider - Buyer Chat"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/chats/{threadId}": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Thread must belong to the authenticated provider.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Thread must belong to the authenticated provider.",
         "operationId": "ProviderInteractionsController_chatDetails",
         "parameters": [
           {
@@ -6552,13 +6528,13 @@
         "tags": [
           "03 Provider - Buyer Chat"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/chats/{threadId}/messages": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can send only in own thread. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.",
         "operationId": "ProviderInteractionsController_sendMessage",
         "parameters": [
           {
@@ -6611,13 +6587,13 @@
         "tags": [
           "03 Provider - Buyer Chat"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/chats/{threadId}/read": {
       "patch": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Marks customer messages as read for provider in an owned thread.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can mark only own thread messages read. PROVIDER only. Marks customer messages as read for provider in an owned thread.",
         "operationId": "ProviderInteractionsController_markRead",
         "parameters": [
           {
@@ -6643,8 +6619,8 @@
         "tags": [
           "03 Provider - Buyer Chat"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders/{id}/chat": {
@@ -6720,7 +6696,7 @@
     },
     "/api/v1/provider/reviews/summary": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own reviews. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.",
         "operationId": "ProviderInteractionsController_reviewSummary",
         "parameters": [],
         "responses": {
@@ -6758,13 +6734,13 @@
         "tags": [
           "03 Provider - Reviews"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/reviews/filter-options": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Declared before /provider/reviews/:id.",
+        "description": "Access: PROVIDER. PROVIDER only. PROVIDER only. Declared before /provider/reviews/:id.",
         "operationId": "ProviderInteractionsController_filterOptions",
         "parameters": [],
         "responses": {
@@ -6781,13 +6757,13 @@
         "tags": [
           "03 Provider - Reviews"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/reviews": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Shows only reviews for own provider account/orders and excludes hidden/removed reviews.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own reviews. PROVIDER only. Shows only reviews for own provider account/orders and excludes hidden/removed reviews.",
         "operationId": "ProviderInteractionsController_reviews",
         "parameters": [
           {
@@ -6876,8 +6852,8 @@
         "tags": [
           "03 Provider - Reviews"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/reviews/{id}": {
@@ -6907,14 +6883,14 @@
           "03 Provider - Reviews"
         ],
         "summary": "GET /api/v1/provider/reviews/{id}",
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own reviews."
       }
     },
     "/api/v1/provider/reviews/{id}/response": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Provider can respond only to own review. Only one active public response per review.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can respond only to own reviews. PROVIDER only. Provider can respond only to own review. Only one active public response per review.",
         "operationId": "ProviderInteractionsController_createResponse",
         "parameters": [
           {
@@ -6950,11 +6926,11 @@
         "tags": [
           "03 Provider - Reviews"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       },
       "patch": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Updates only provider’s own active response; customer review content is never modified.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can update only own review responses. PROVIDER only. Updates only provider’s own active response; customer review content is never modified.",
         "operationId": "ProviderInteractionsController_updateResponse",
         "parameters": [
           {
@@ -6990,11 +6966,11 @@
         "tags": [
           "03 Provider - Reviews"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       },
       "delete": {
-        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Soft-deletes own response and does not delete the original customer review.",
+        "description": "Access: PROVIDER. PROVIDER only. Provider can delete only own review responses. PROVIDER only. Deletes only the provider's own response and does not delete the original customer review.",
         "operationId": "ProviderInteractionsController_deleteResponse",
         "parameters": [
           {
@@ -7016,12 +6992,12 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete public review response",
+        "summary": "Delete public review response",
         "tags": [
           "03 Provider - Reviews"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/inventory": {
@@ -11471,7 +11447,7 @@
     },
     "/api/v1/customer/wishlist": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-safe available gifts.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-visible gifts: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true.",
         "operationId": "CustomerMarketplaceController_wishlist",
         "parameters": [],
         "responses": {
@@ -11494,7 +11470,7 @@
     },
     "/api/v1/customer/wishlist/{giftId}": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be active, approved, published, and in stock. Duplicate wishlist entries are ignored.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be customer-visible: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true. Duplicate wishlist entries are ignored.",
         "operationId": "CustomerMarketplaceController_addWishlist",
         "parameters": [
           {
@@ -11680,7 +11656,7 @@
         "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Address is soft deleted and removed from default status.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes the address and removes default status.",
         "operationId": "CustomerMarketplaceController_deleteAddress",
         "parameters": [
           {
@@ -11702,7 +11678,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete customer address",
+        "summary": "Delete customer address",
         "tags": [
           "05 Customer - Addresses"
         ],
@@ -18215,7 +18191,7 @@
     },
     "/api/v1/uploads/presigned-url": {
       "post": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is optional and allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Normal users/providers should not send targetAccountId. Include giftId only for gift image uploads.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Backend derives ownerId/ownerRole from JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, admin-only when authorized, and allowed for SUPER_ADMIN. Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Include giftId only for gift image uploads.",
         "operationId": "StorageController_createPresignedUpload",
         "parameters": [],
         "requestBody": {
@@ -18279,6 +18255,7 @@
     },
     "/api/v1/uploads/complete": {
       "post": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Completes only uploads accessible to the authenticated account. Authenticated upload completion. REGISTERED_USER and PROVIDER can complete only their own uploads. ADMIN defaults to own uploads. SUPER_ADMIN can manage dashboard/admin inspection flows.",
         "operationId": "StorageController_complete",
         "parameters": [],
         "requestBody": {
@@ -18301,17 +18278,17 @@
             "bearer": []
           }
         ],
+        "summary": "Complete upload",
         "tags": [
           "07 Storage"
         ],
-        "summary": "POST /api/v1/uploads/complete",
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/uploads": {
       "get": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. REGISTERED_USER/PROVIDER list only own uploads; ownerId is ignored. ADMIN lists own uploads by default and may use ownerId only for authorized managed access. SUPER_ADMIN may inspect by ownerId. REGISTERED_USER: ownerId query is ignored and only own uploads are listed. PROVIDER: ownerId query is ignored and only own uploads are listed. ADMIN: lists own uploads by default and may use ownerId only for managed dashboard access when authorized. SUPER_ADMIN: can use ownerId for dashboard/admin inspection.",
         "operationId": "StorageController_list",
         "parameters": [
           {
@@ -18375,17 +18352,17 @@
             "bearer": []
           }
         ],
+        "summary": "List uploads",
         "tags": [
           "07 Storage"
         ],
-        "summary": "GET /api/v1/uploads",
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
     "/api/v1/uploads/{id}": {
       "get": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. REGISTERED_USER/PROVIDER can fetch only own uploads. ADMIN defaults to own uploads. SUPER_ADMIN may inspect uploads. REGISTERED_USER and PROVIDER can fetch only own uploads. ADMIN fetches own uploads by default. SUPER_ADMIN can inspect uploads for dashboard/admin operations.",
         "operationId": "StorageController_details",
         "parameters": [
           {
@@ -18407,15 +18384,15 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch upload details",
         "tags": [
           "07 Storage"
         ],
-        "summary": "GET /api/v1/uploads/{id}",
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       },
       "delete": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. REGISTERED_USER/PROVIDER can delete only own uploads. ADMIN defaults to own uploads. SUPER_ADMIN may delete inspected uploads. REGISTERED_USER and PROVIDER can delete only own uploads. ADMIN deletes own uploads by default. SUPER_ADMIN can delete inspected dashboard uploads. Deletion is permanent in the database.",
         "operationId": "StorageController_delete",
         "parameters": [
           {
@@ -18437,13 +18414,12 @@
             "bearer": []
           }
         ],
+        "summary": "Delete upload",
         "tags": [
           "07 Storage"
         ],
-        "summary": "DELETE /api/v1/uploads/{id}",
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account."
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     }
   },

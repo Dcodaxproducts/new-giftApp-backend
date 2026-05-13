@@ -127,6 +127,67 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'DELETE /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.delete', description: 'SUPER_ADMIN or ADMIN with coupons.delete permission.' },
   'PATCH /api/v1/coupons/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.status.update', description: 'SUPER_ADMIN or ADMIN with coupons.status.update permission.' },
 
+
+  'GET /api/v1/admin/disputes/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.export', description: 'SUPER_ADMIN or ADMIN with disputes.export permission.' },
+  'GET /api/v1/admin/disputes/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes/{id}/evidence': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes/{id}/timeline': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes/{id}/internal-data': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes/{id}/notes': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'POST /api/v1/admin/disputes/{id}/notes': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.notes.create', description: 'SUPER_ADMIN or ADMIN with disputes.notes.create permission.' },
+  'POST /api/v1/admin/disputes/{id}/follow-up-notes': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.notes.create', description: 'SUPER_ADMIN or ADMIN with disputes.notes.create permission.' },
+  'GET /api/v1/admin/disputes/{id}/linkage': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'GET /api/v1/admin/disputes/{id}/transaction-search': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },
+  'POST /api/v1/admin/disputes/{id}/link-transaction': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.linkTransaction', description: 'SUPER_ADMIN or ADMIN with disputes.linkTransaction permission.' },
+  'POST /api/v1/admin/disputes/{id}/refund-preview': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.refund.evaluate', description: 'SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission.' },
+  'GET /api/v1/admin/disputes/{id}/decision-summary': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.decide', description: 'SUPER_ADMIN or ADMIN with disputes.decide permission.' },
+  'POST /api/v1/admin/disputes/{id}/decision': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate)', description: 'SUPER_ADMIN or ADMIN with disputes.decide and the action-specific permission as applicable.' },
+  'GET /api/v1/admin/disputes/{id}/confirmation': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.decide', description: 'SUPER_ADMIN or ADMIN with disputes.decide permission.' },
+  'GET /api/v1/admin/disputes/{id}/tracking-log': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.tracking.read', description: 'SUPER_ADMIN or ADMIN with disputes.tracking.read permission.' },
+  'GET /api/v1/admin/disputes/{id}/tracking-log/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.tracking.export', description: 'SUPER_ADMIN or ADMIN with disputes.tracking.export permission.' },
+
+  'GET /api/v1/admin/provider-disputes/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read permission.' },
+  'GET /api/v1/admin/provider-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read permission.' },
+  'GET /api/v1/admin/provider-disputes/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.export', description: 'SUPER_ADMIN or ADMIN with providerDisputes.export permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/evidence': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/evidence/request': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.evidence.request', description: 'SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.update', description: 'SUPER_ADMIN or ADMIN with providerDisputes.update permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/timeline': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/notes': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/notes': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.notes.create', description: 'SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/ruling-summary': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/ruling': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.create', description: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/financial-impact': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.financial.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/payout-penalty-linkage': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.financial.link', description: 'SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/final-attestation': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.update', description: 'SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/finalize': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.resolve', description: 'SUPER_ADMIN or ADMIN with providerDisputes.resolve permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/resolution': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.resolve', description: 'SUPER_ADMIN or ADMIN with providerDisputes.resolve permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/resolution-log': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.read', description: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission.' },
+  'GET /api/v1/admin/provider-disputes/{id}/resolution-log/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.export', description: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission.' },
+  'POST /api/v1/admin/provider-disputes/{id}/notify-again': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.notify', description: 'SUPER_ADMIN or ADMIN with providerDisputes.notify permission.' },
+
+  'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own chat threads.' },
+  'GET /api/v1/provider/chats/quick-replies': { allowedRoles: 'PROVIDER', description: 'PROVIDER only.' },
+  'GET /api/v1/provider/chats/{threadId}': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own chat threads.' },
+  'POST /api/v1/provider/chats/{threadId}/messages': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can send only in own thread.' },
+  'PATCH /api/v1/provider/chats/{threadId}/read': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can mark only own thread messages read.' },
+  'GET /api/v1/provider/reviews/summary': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own reviews.' },
+  'GET /api/v1/provider/reviews/filter-options': { allowedRoles: 'PROVIDER', description: 'PROVIDER only.' },
+  'GET /api/v1/provider/reviews': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own reviews.' },
+  'GET /api/v1/provider/reviews/{id}': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own reviews.' },
+  'POST /api/v1/provider/reviews/{id}/response': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can respond only to own reviews.' },
+  'PATCH /api/v1/provider/reviews/{id}/response': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can update only own review responses.' },
+  'DELETE /api/v1/provider/reviews/{id}/response': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can delete only own review responses.' },
+
+  'GET /api/v1/uploads': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'REGISTERED_USER/PROVIDER list only own uploads; ownerId is ignored. ADMIN lists own uploads by default and may use ownerId only for authorized managed access. SUPER_ADMIN may inspect by ownerId.' },
+  'GET /api/v1/uploads/{id}': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'REGISTERED_USER/PROVIDER can fetch only own uploads. ADMIN defaults to own uploads. SUPER_ADMIN may inspect uploads.' },
+  'DELETE /api/v1/uploads/{id}': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'REGISTERED_USER/PROVIDER can delete only own uploads. ADMIN defaults to own uploads. SUPER_ADMIN may delete inspected uploads.' },
+  'POST /api/v1/uploads/presigned-url': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'Backend derives ownerId/ownerRole from JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, admin-only when authorized, and allowed for SUPER_ADMIN.' },
+  'POST /api/v1/uploads/complete': { allowedRoles: 'SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER', description: 'Completes only uploads accessible to the authenticated account.' },
+
   'GET /api/v1/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit logs are restricted to Super Admin.' },
   'GET /api/v1/audit-logs/export': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit log export is restricted to Super Admin.' },
   'GET /api/v1/audit-logs/{id}': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Audit log details are restricted to Super Admin.' },
@@ -142,7 +203,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/media-upload-policy/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Media upload policy audit logs.' },
 };
 
-const providerPrefixes = ['/api/v1/provider/business-info', '/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders', '/api/v1/provider/refund-requests'];
+const providerPrefixes = ['/api/v1/provider/business-info', '/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders', '/api/v1/provider/refund-requests', '/api/v1/provider/chats', '/api/v1/provider/reviews', '/api/v1/provider/support'];
 const customerPrefixes = ['/api/v1/customer/'];
 const allAccountPrefixes = ['/api/v1/notifications', '/api/v1/uploads'];
 

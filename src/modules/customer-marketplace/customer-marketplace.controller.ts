@@ -66,12 +66,12 @@ export class CustomerMarketplaceController {
 
   @Get('wishlist')
   @ApiTags('05 Customer - Wishlist')
-  @ApiOperation({ summary: 'List wishlist gifts', description: 'REGISTERED_USER only. Returns customer-safe available gifts.' })
+  @ApiOperation({ summary: 'List wishlist gifts', description: 'REGISTERED_USER only. Returns customer-visible gifts: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true.' })
   wishlist(@CurrentUser() user: AuthUserContext) { return this.marketplace.wishlist(user); }
 
   @Post('wishlist/:giftId')
   @ApiTags('05 Customer - Wishlist')
-  @ApiOperation({ summary: 'Add gift to wishlist', description: 'REGISTERED_USER only. Gift must be active, approved, published, and in stock. Duplicate wishlist entries are ignored.' })
+  @ApiOperation({ summary: 'Add gift to wishlist', description: 'REGISTERED_USER only. Gift must be customer-visible: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true. Duplicate wishlist entries are ignored.' })
   addWishlist(@CurrentUser() user: AuthUserContext, @Param('giftId') giftId: string) { return this.marketplace.addWishlist(user, giftId); }
 
   @Delete('wishlist/:giftId')
@@ -103,7 +103,7 @@ export class CustomerMarketplaceController {
 
   @Delete('addresses/:id')
   @ApiTags('05 Customer - Addresses')
-  @ApiOperation({ summary: 'Soft-delete customer address', description: 'REGISTERED_USER only. Address is soft deleted and removed from default status.' })
+  @ApiOperation({ summary: 'Delete customer address', description: 'REGISTERED_USER only. Permanently deletes the address and removes default status.' })
   deleteAddress(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.deleteAddress(user, id); }
 
   @Patch('addresses/:id/default')

@@ -38,6 +38,11 @@ describe('Admin Provider Dispute Management Core module', () => {
     expect(exportIndex).toBeLessThan(idIndex);
   });
 
+  it('provider dispute endpoints are not duplicated across swagger tags', () => {
+    expect(controller).not.toContain("@ApiTags('02 Admin - Provider Dispute Manager')\n@ApiBearerAuth()");
+    for (const tag of ['02 Admin - Provider Dispute Evidence', '02 Admin - Provider Dispute Rulings', '02 Admin - Provider Financial Adjustments', '02 Admin - Provider Dispute Resolution', '02 Admin - Provider Dispute Logs']) expect(controller).toContain(`@ApiTags('${tag}')`);
+  });
+
   it('admin can fetch provider dispute stats', () => {
     expect(controller).toContain("@Get('stats')");
     expect(controller).toContain("@Permissions('providerDisputes.read')");

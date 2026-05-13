@@ -84,6 +84,8 @@ describe('JwtAuthGuard', () => {
     );
 
     await expect(guard.canActivate(contextWithHeader('Bearer token', '/api/v1/provider/inventory'))).rejects.toThrow('Your provider account is pending approval. You cannot access this module yet.');
+    await expect(guard.canActivate(contextWithHeader('Bearer token', '/api/v1/provider/chats'))).rejects.toThrow('Your provider account is pending approval. You cannot access this module yet.');
+    await expect(guard.canActivate(contextWithHeader('Bearer token', '/api/v1/provider/reviews'))).rejects.toThrow('Your provider account is pending approval. You cannot access this module yet.');
     await expect(guard.canActivate(contextWithHeader('Bearer token', '/api/v1/provider/business-info'))).resolves.toBe(true);
   });
 

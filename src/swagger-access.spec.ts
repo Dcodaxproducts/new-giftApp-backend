@@ -8,6 +8,10 @@ describe('Swagger access metadata', () => {
     expect(getSwaggerAccessRule('GET', '/api/v1/provider/inventory')?.allowedRoles).toBe('PROVIDER');
     expect(getSwaggerAccessRule('GET', '/api/v1/customer/wallet/history')?.allowedRoles).toBe('REGISTERED_USER');
     expect(getSwaggerAccessRule('GET', '/api/v1/audit-logs')?.allowedRoles).toBe('SUPER_ADMIN');
+    expect(getSwaggerAccessRule('GET', '/api/v1/admin/disputes')?.allowedRoles).toBe('SUPER_ADMIN or ADMIN with disputes.read');
+    expect(getSwaggerAccessRule('GET', '/api/v1/admin/provider-disputes/{id}/resolution-log')?.allowedRoles).toBe('SUPER_ADMIN or ADMIN with providerDisputes.logs.read');
+    expect(getSwaggerAccessRule('GET', '/api/v1/provider/chats')?.allowedRoles).toBe('PROVIDER');
+    expect(getSwaggerAccessRule('GET', '/api/v1/provider/reviews')?.allowedRoles).toBe('PROVIDER');
   });
 
   it('applies explicit x-allowed-roles and descriptions to OpenAPI operations', () => {

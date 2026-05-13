@@ -21,6 +21,12 @@ describe('Provider Chat and Reviews module', () => {
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
   });
 
+  it('provider chat/review APIs are provider-only in swagger access metadata', () => {
+    const access = readFileSync(join(__dirname, '../../swagger-access.ts'), 'utf8');
+    expect(access).toContain("'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER'");
+    expect(access).toContain("'GET /api/v1/provider/reviews': { allowedRoles: 'PROVIDER'");
+  });
+
   it('reuses shared chat and review models without duplicate provider-specific tables', () => {
     expect(schema).toContain('model ChatThread');
     expect(schema).toContain('model ChatMessage');

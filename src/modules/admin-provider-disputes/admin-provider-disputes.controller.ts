@@ -10,7 +10,6 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminProviderDisputesService } from './admin-provider-disputes.service';
 import { AddProviderDisputeNoteDto, ExportProviderDisputeResolutionLogDto, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, FinalizeProviderDisputeDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeDateRangeDto, RequestProviderDisputeEvidenceDto, ResendProviderDisputeNotificationDto, SaveProviderDisputeRulingDto } from './dto/admin-provider-disputes.dto';
 
-@ApiTags('02 Admin - Provider Dispute Manager')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -19,17 +18,20 @@ export class AdminProviderDisputesController {
   constructor(private readonly providerDisputes: AdminProviderDisputesService) {}
 
   @Get('stats')
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.read')
   @ApiOperation({ summary: 'Fetch provider dispute dashboard stats', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.' })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { criticalOpenCases: 8, evidencePhase: 3, underReview: 4, escalations: 1, resolvedThisWeek: 14, averageClosureTimeDays: 4.2, topConflictSource: { providerName: 'Acme Corp', category: 'Quality Disputes', percentOfTotal: 65 }, systemHealth: { status: 'STABLE', message: 'All nodes stable', apiLatencyMs: 42 } }, message: 'Provider dispute stats fetched successfully.' } } })
   stats(@Query() query: ProviderDisputeDateRangeDto) { return this.providerDisputes.stats(query); }
 
   @Get('export')
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.export')
   @ApiOperation({ summary: 'Export provider dispute queue', description: 'SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.' })
   async export(@Query() query: ExportProviderDisputesDto): Promise<StreamableFile> { const file = await this.providerDisputes.export(query); return new StreamableFile(Buffer.from(file.content), { disposition: `attachment; filename="${file.filename}"`, type: file.contentType }); }
 
   @Get()
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.read')
   @ApiOperation({ summary: 'List provider dispute queue', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.' })
   list(@Query() query: ListProviderDisputesDto) { return this.providerDisputes.list(query); }
@@ -122,22 +124,26 @@ export class AdminProviderDisputesController {
   markReviewed(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: MarkProviderDisputeEvidenceReviewedDto) { return this.providerDisputes.markReviewed(user, id, dto); }
 
   @Get(':id/timeline')
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.read')
   @ApiOperation({ summary: 'Fetch provider dispute timeline', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.' })
   timeline(@Param('id') id: string) { return this.providerDisputes.timeline(id); }
 
   @Get(':id/notes')
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.read')
   @ApiOperation({ summary: 'Fetch provider dispute internal notes', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.' })
   notes(@Param('id') id: string) { return this.providerDisputes.notes(id); }
 
   @Post(':id/notes')
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.notes.create')
   @ApiOperation({ summary: 'Add provider dispute internal note', description: 'SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.' })
   @ApiBody({ type: AddProviderDisputeNoteDto, examples: { internal: { value: { note: 'Provider failed to submit required photographic proof.', visibility: 'INTERNAL' } } } })
   addNote(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AddProviderDisputeNoteDto) { return this.providerDisputes.addNote(user, id, dto); }
 
   @Get(':id')
+  @ApiTags('02 Admin - Provider Dispute Manager')
   @Permissions('providerDisputes.read')
   @ApiOperation({ summary: 'Fetch provider dispute details', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.' })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'provider_dispute_id', caseId: 'PD-2047', status: 'EVIDENCE_PHASE', priority: 'MEDIUM', category: 'NON_DELIVERY', reason: 'Missing delivery evidence', claimType: 'Non-Delivery', amount: 89.99, currency: 'PKR', provider: { id: 'provider_id', businessName: 'FreshGrocer Supplies', providerCode: 'PRV-8923', tier: 'Gold Partner', currentPayoutBalance: -127.5, disputeCount: 4, winRate: 50 }, customer: { id: 'customer_id', name: 'Michael Chen', email: 'michael@example.com' }, order: { id: 'order_id', orderNumber: 'ORD-45678' }, transaction: { id: 'transaction_id', transactionId: 'TXN-789012', grossTransaction: 89.99, providerShare: 67.49, platformFee: 22.5, refundEligible: true, eligibilityText: 'Within the standard 14-day resolution window.' }, customerStatement: 'I stayed home all day waiting for the delivery. I got a notification saying it was delivered, but nothing was at my door.', riskAlert: { enabled: true, message: 'FreshGrocer Supplies has a 60% dispute rate over the last 30 days.' }, createdAt: '2026-04-05T10:00:00.000Z' }, message: 'Provider dispute details fetched successfully.' } } })

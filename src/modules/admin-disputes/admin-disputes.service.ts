@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DisputeActorType, DisputeCase, DisputeCustomerNotificationStatus, DisputeDecision, DisputeRefundType, DisputeResolutionStatus, DisputeStatus, NotificationRecipientType, Payment, PaymentMethod, PaymentStatus, Prisma, RefundRequestStatus } from '@prisma/client';
+import { DisputeActorType, DisputeCase, DisputeCustomerNotificationStatus, DisputeDecision, DisputeRefundType, DisputeResolutionStatus, DisputeStatus, NotificationRecipientType, Payment, PaymentMethod, PaymentStatus, Prisma, RefundRequestStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
@@ -107,6 +107,7 @@ export class AdminDisputesService {
   }
 
   async submitDecision(user: AuthUserContext, id: string, dto: SubmitDisputeDecisionDto) {
+    this.assertDecisionPermission(user, dto.decision);
     if (dto.decision === DisputeDecision.APPROVE) return this.approveDispute(user, id, dto);
     if (dto.decision === DisputeDecision.REJECT) return this.rejectDispute(user, id, dto);
     return this.escalateDispute(user, id, dto);
@@ -241,6 +242,9 @@ export class AdminDisputesService {
   private ageText(date: Date): string { const hours = Math.floor((Date.now() - date.getTime()) / 3_600_000); return `${Math.floor(hours / 24)} days, ${hours % 24} hours`; }
   private numberFromMeta(value: Prisma.JsonValue, key: string): number | null { const obj = this.object(value); const found = obj[key]; return typeof found === 'number' ? found : null; }
   private stringFromMeta(value: Prisma.JsonValue, key: string): string | null { return this.stringValue(this.object(value)[key]); }
+
+  private assertDecisionPermission(user: AuthUserContext, decision: DisputeDecision): void { if (user.role === UserRole.SUPER_ADMIN) return; if (user.role !== UserRole.ADMIN) throw new BadRequestException('Only admins can make dispute decisions'); const required = decision === DisputeDecision.APPROVE ? 'disputes.approve' : decision === DisputeDecision.REJECT ? 'disputes.reject' : 'disputes.escalate'; if (!this.hasPermission(user, required) && !this.hasPermission(user, 'disputes.decide')) throw new BadRequestException('Your role does not have the required permission'); }
+  private hasPermission(user: AuthUserContext, permission: string): boolean { if (user.role === UserRole.SUPER_ADMIN) return true; if (!user.permissions || typeof user.permissions !== 'object' || Array.isArray(user.permissions)) return false; const [module, key] = permission.split('.', 2); const values = (user.permissions as Record<string, unknown>)[module]; return Array.isArray(values) && values.includes(key); }
 
   private async findPayment(transactionId: string): Promise<PaymentWithOrder> {
     const payment = await this.prisma.payment.findFirst({ where: { OR: [{ id: transactionId }, { providerPaymentIntentId: transactionId }] }, include: this.paymentInclude() });

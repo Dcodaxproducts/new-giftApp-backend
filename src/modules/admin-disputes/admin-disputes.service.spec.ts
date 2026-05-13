@@ -59,7 +59,7 @@ describe('Admin Dispute Manager Core module', () => {
 
   it('admin can fetch dispute evidence and storage allows dispute-evidence folder', () => {
     expect(controller).toContain("@Get(':id/evidence')");
-    expect(controller).toContain("@Permissions('disputes.evidence.read')");
+    expect(controller).toContain("@Permissions('disputes.read')");
     expect(service).toContain('disputeEvidence.findMany');
     expect(storageDto).toContain("DISPUTE_EVIDENCE = 'dispute-evidence'");
     expect(storageService).toContain('UploadFolder.DISPUTE_EVIDENCE');
@@ -165,6 +165,15 @@ describe('Admin Dispute Manager Core module', () => {
     expect(service).toContain('confirmation(id');
     expect(service).toContain('customerNotificationStatus');
     expect(service).toContain('nextStepProtocol');
+  });
+
+  it('dispute endpoints are not duplicated across swagger tags and decision enforces specific permissions', () => {
+    expect(controller).not.toContain("@ApiTags('02 Admin - Dispute Manager')\n@ApiBearerAuth()");
+    expect(controller).toContain("@ApiTags('02 Admin - Dispute Evidence')");
+    expect(service).toContain('assertDecisionPermission');
+    expect(service).toContain('disputes.approve');
+    expect(service).toContain('disputes.reject');
+    expect(service).toContain('disputes.escalate');
   });
 
   it('tracking log returns full audit timeline and export requires permission', () => {

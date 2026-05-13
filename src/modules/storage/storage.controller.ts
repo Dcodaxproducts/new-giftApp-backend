@@ -18,7 +18,7 @@ export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post('presigned-url')
-  @ApiOperation({ summary: 'Create presigned upload URL', description: 'Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is optional and allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Normal users/providers should not send targetAccountId. Include giftId only for gift image uploads.' })
+  @ApiOperation({ summary: 'Create presigned upload URL', description: 'Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Include giftId only for gift image uploads.' })
   @ApiBody({
     type: CreatePresignedUploadDto,
     examples: {
@@ -31,8 +31,16 @@ export class StorageController {
     return this.storageService.createPresignedUpload(user, dto, request.ip, request.headers['user-agent']);
   }
 
-  @Post('complete') complete(@CurrentUser() user: AuthUserContext, @Body() dto: CompleteUploadDto) { return this.storageService.complete(user, dto); }
-  @Get() list(@CurrentUser() user: AuthUserContext, @Query() query: ListUploadsDto) { return this.storageService.list(user, query); }
-  @Get(':id') details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.storageService.details(user, id); }
-  @Delete(':id') delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.storageService.delete(user, id); }
+  @Post('complete')
+  @ApiOperation({ summary: 'Complete upload', description: 'Authenticated upload completion. REGISTERED_USER and PROVIDER can complete only their own uploads. ADMIN defaults to own uploads. SUPER_ADMIN can manage dashboard/admin inspection flows.' })
+  complete(@CurrentUser() user: AuthUserContext, @Body() dto: CompleteUploadDto) { return this.storageService.complete(user, dto); }
+  @Get()
+  @ApiOperation({ summary: 'List uploads', description: 'REGISTERED_USER: ownerId query is ignored and only own uploads are listed. PROVIDER: ownerId query is ignored and only own uploads are listed. ADMIN: lists own uploads by default and may use ownerId only for managed dashboard access when authorized. SUPER_ADMIN: can use ownerId for dashboard/admin inspection.' })
+  list(@CurrentUser() user: AuthUserContext, @Query() query: ListUploadsDto) { return this.storageService.list(user, query); }
+  @Get(':id')
+  @ApiOperation({ summary: 'Fetch upload details', description: 'REGISTERED_USER and PROVIDER can fetch only own uploads. ADMIN fetches own uploads by default. SUPER_ADMIN can inspect uploads for dashboard/admin operations.' })
+  details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.storageService.details(user, id); }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete upload', description: 'REGISTERED_USER and PROVIDER can delete only own uploads. ADMIN deletes own uploads by default. SUPER_ADMIN can delete inspected dashboard uploads. Deletion is permanent in the database.' })
+  delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.storageService.delete(user, id); }
 }

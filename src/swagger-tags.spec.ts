@@ -22,6 +22,15 @@ describe('Swagger professional tag grouping', () => {
     }
   });
 
+  it('admin reviews swagger sections exist and provider support section is currently omitted', () => {
+    const reviews = readFileSync(join(__dirname, 'modules/admin-reviews/admin-reviews.controller.ts'), 'utf8') + readFileSync(join(__dirname, 'modules/admin-reviews/review-policies.controller.ts'), 'utf8');
+    expect(reviews).toContain("02 Admin - Reviews Management");
+    expect(reviews).toContain("02 Admin - Review Moderation");
+    expect(reviews).toContain("02 Admin - Review Policies");
+    const supportPath = join(__dirname, 'modules/provider-support/provider-support.controller.ts');
+    expect(() => readFileSync(supportPath, 'utf8')).toThrow();
+  });
+
   it('old unnumbered tag names are not used by controllers', () => {
     const root = join(__dirname, 'modules');
     const files = [
