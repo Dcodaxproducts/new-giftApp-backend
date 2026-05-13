@@ -121,6 +121,58 @@ describe('Admin Dispute Manager Core module', () => {
     expect(service).toContain('REFUND_SELECTION_UPDATED');
     expect(service).toContain('DISPUTE_TRANSACTION_LINKED');
     expect(service).not.toContain('stripe.refunds.create');
-    expect(service).not.toContain('refundRequest.create');
+  });
+
+  it('approve requires linked transaction and validates refund amount', () => {
+    expect(controller).toContain("@Post(':id/decision')");
+    expect(service).toContain('Linked transaction is required before approval');
+    expect(service).toContain('Refund selection is required before approval');
+    expect(service).toContain('refundPreview(id');
+    expect(service).toContain('DISPUTE_DECISION_APPROVE');
+  });
+
+  it('approve creates Stripe refund tracking, refund transaction, and updates dispute status', () => {
+    expect(service).toContain('PaymentMethod.STRIPE_CARD');
+    expect(service).toContain('stripe_refund_${dispute.id}');
+    expect(service).toContain('refundRequest.create');
+    expect(service).toContain('status: DisputeStatus.APPROVED');
+    expect(service).toContain('resolutionStatus: DisputeResolutionStatus.APPROVED');
+    expect(service).toContain('REFUND_PROCESSED');
+  });
+
+  it('reject does not create refund and stores reason/comment', () => {
+    expect(service).toContain('rejectDispute');
+    expect(service).toContain('decisionReason: dto.reason');
+    expect(service).toContain('decisionComment: dto.comment');
+    expect(service).toContain('status: DisputeStatus.REJECTED');
+    expect(service).toContain('DISPUTE_DECISION_REJECT');
+  });
+
+  it('escalate assigns supervisor and creates notification', () => {
+    expect(service).toContain('escalateDispute');
+    expect(service).toContain('assignedToId');
+    expect(service).toContain('DisputeStatus.ESCALATED');
+    expect(service).toContain('ADMIN_DISPUTE_ESCALATED_ASSIGNMENT');
+  });
+
+  it('decision creates timeline entry and audit log', () => {
+    for (const action of ['DECISION_APPROVE', 'DECISION_REJECT', 'DECISION_ESCALATE', 'CASE_RESOLVED']) expect(service).toContain(action);
+    expect(service).toContain('auditLog.write');
+  });
+
+  it('confirmation returns refund and notification info', () => {
+    expect(controller).toContain("@Get(':id/confirmation')");
+    expect(service).toContain('confirmation(id');
+    expect(service).toContain('customerNotificationStatus');
+    expect(service).toContain('nextStepProtocol');
+  });
+
+  it('tracking log returns full audit timeline and export requires permission', () => {
+    expect(controller).toContain("@Get(':id/tracking-log')");
+    expect(controller).toContain("@Get(':id/tracking-log/export')");
+    expect(controller).toContain("@Permissions('disputes.tracking.read')");
+    expect(controller).toContain("@Permissions('disputes.tracking.export')");
+    expect(service).toContain('trackingLog(id');
+    expect(service).toContain('exportTrackingLog');
   });
 });

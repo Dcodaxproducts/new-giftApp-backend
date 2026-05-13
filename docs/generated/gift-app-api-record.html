@@ -6,7 +6,11 @@
 <tr><td>02 Admin - Roles & Permissions</td><td>PATCH</td><td><code>/api/v1/admin-roles/{id}/permissions</code></td><td>PATCH /api/v1/admin-roles/{id}/permissions</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes</code></td><td>List dispute queue</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}</code></td><td>Fetch dispute details and evidence review summary</td></tr>
+<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/confirmation</code></td><td>Fetch decision confirmation</td></tr>
+<tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/decision</code></td><td>Submit final dispute decision</td></tr>
+<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/decision-summary</code></td><td>Fetch dispute decision summary</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/evidence</code></td><td>Fetch dispute evidence</td></tr>
+<tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/follow-up-notes</code></td><td>Add dispute follow-up note</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/internal-data</code></td><td>Fetch internal transaction data</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/link-transaction</code></td><td>Confirm dispute transaction linkage</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/linkage</code></td><td>Fetch current dispute transaction linkage state</td></tr>
@@ -14,6 +18,8 @@
 <tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/notes</code></td><td>Add internal dispute note</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>POST</td><td><code>/api/v1/admin/disputes/{id}/refund-preview</code></td><td>Preview dispute refund selection</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/timeline</code></td><td>Fetch dispute timeline</td></tr>
+<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/tracking-log</code></td><td>Fetch full dispute tracking log</td></tr>
+<tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/tracking-log/export</code></td><td>Export full dispute tracking log</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/{id}/transaction-search</code></td><td>Search original transaction for a dispute</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/export</code></td><td>Export dispute cases</td></tr>
 <tr><td>02 Admin - Dispute Manager</td><td>GET</td><td><code>/api/v1/admin/disputes/stats</code></td><td>Fetch dispute dashboard stats</td></tr>

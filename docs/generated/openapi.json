@@ -1975,6 +1975,270 @@
         "x-access": "Authenticated"
       }
     },
+    "/api/v1/admin/disputes/{id}/decision-summary": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.",
+        "operationId": "AdminDisputesController_decisionSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch dispute decision summary",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Decisions"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/decision": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.",
+        "operationId": "AdminDisputesController_decision",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitDisputeDecisionDto"
+              },
+              "examples": {
+                "approve": {
+                  "value": {
+                    "decision": "APPROVE",
+                    "comment": "Customer evidence validates missing delivery.",
+                    "notifyCustomer": true
+                  }
+                },
+                "reject": {
+                  "value": {
+                    "decision": "REJECT",
+                    "reason": "INSUFFICIENT_EVIDENCE",
+                    "comment": "Tracking evidence confirms delivery.",
+                    "notifyCustomer": true
+                  }
+                },
+                "escalate": {
+                  "value": {
+                    "decision": "ESCALATE",
+                    "assignedToId": "admin_supervisor_id",
+                    "escalationReason": "Policy ambiguity requires supervisor intervention.",
+                    "notifyCustomer": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit final dispute decision",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Decisions"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/confirmation": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.",
+        "operationId": "AdminDisputesController_confirmation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch decision confirmation",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Decisions"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/tracking-log/export": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.",
+        "operationId": "AdminDisputesController_exportTrackingLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "PDF",
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export full dispute tracking log",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Tracking"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/tracking-log": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.",
+        "operationId": "AdminDisputesController_trackingLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch full dispute tracking log",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Tracking"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/disputes/{id}/follow-up-notes": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.",
+        "operationId": "AdminDisputesController_followUpNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDisputeNoteDto"
+              },
+              "examples": {
+                "internal": {
+                  "value": {
+                    "note": "Followed up with provider for missing dispatch log.",
+                    "visibility": "INTERNAL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add dispute follow-up note",
+        "tags": [
+          "02 Admin - Dispute Manager",
+          "02 Admin - Dispute Tracking"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/admin/disputes/{id}/linkage": {
       "get": {
         "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.",
@@ -17105,6 +17369,12 @@
       "name": "02 Admin - Dispute Linkage"
     },
     {
+      "name": "02 Admin - Dispute Decisions"
+    },
+    {
+      "name": "02 Admin - Dispute Tracking"
+    },
+    {
       "name": "03 Provider - Business Info"
     },
     {
@@ -17583,6 +17853,71 @@
           }
         }
       },
+      "SubmitDisputeDecisionDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "ESCALATE"
+            ],
+            "example": "APPROVE"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "INSUFFICIENT_EVIDENCE",
+              "REFUND_WINDOW_EXPIRED",
+              "CUSTOMER_WITHDREW",
+              "NOT_COVERED_BY_POLICY",
+              "TRANSACTION_NOT_ELIGIBLE",
+              "OTHER"
+            ],
+            "example": "INSUFFICIENT_EVIDENCE"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Customer evidence validates missing delivery."
+          },
+          "notifyCustomer": {
+            "type": "boolean",
+            "example": true
+          },
+          "assignedToId": {
+            "type": "string",
+            "example": "admin_supervisor_id"
+          },
+          "escalationReason": {
+            "type": "string",
+            "example": "Policy ambiguity requires supervisor intervention."
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "AddDisputeNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Customer tracking shows pending status for over 14 days."
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "INTERNAL"
+            ],
+            "example": "INTERNAL"
+          }
+        },
+        "required": [
+          "note",
+          "visibility"
+        ]
+      },
       "LinkTransactionDto": {
         "type": "object",
         "properties": {
@@ -17638,26 +17973,6 @@
         "required": [
           "transactionId",
           "refundType"
-        ]
-      },
-      "AddDisputeNoteDto": {
-        "type": "object",
-        "properties": {
-          "note": {
-            "type": "string",
-            "example": "Customer tracking shows pending status for over 14 days."
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "INTERNAL"
-            ],
-            "example": "INTERNAL"
-          }
-        },
-        "required": [
-          "note",
-          "visibility"
         ]
       },
       "UpdateAdminDto": {

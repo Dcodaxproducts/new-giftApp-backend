@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminDisputesService } from './admin-disputes.service';
-import { AddDisputeNoteDto, DisputeDateRangeDto, ExportDisputesDto, LinkTransactionDto, ListDisputesDto, RefundPreviewDto, TransactionSearchDto } from './dto/admin-disputes.dto';
+import { AddDisputeNoteDto, DisputeDateRangeDto, ExportDisputesDto, LinkTransactionDto, ListDisputesDto, RefundPreviewDto, SubmitDisputeDecisionDto, TrackingLogExportDto, TransactionSearchDto } from './dto/admin-disputes.dto';
 
 @ApiTags('02 Admin - Dispute Manager')
 @ApiBearerAuth()
@@ -33,6 +33,45 @@ export class AdminDisputesController {
   @Permissions('disputes.read')
   @ApiOperation({ summary: 'List dispute queue', description: 'SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.' })
   list(@Query() query: ListDisputesDto) { return this.disputes.list(query); }
+
+
+  @Get(':id/decision-summary')
+  @ApiTags('02 Admin - Dispute Decisions')
+  @Permissions('disputes.decide')
+  @ApiOperation({ summary: 'Fetch dispute decision summary', description: 'SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.' })
+  decisionSummary(@Param('id') id: string) { return this.disputes.decisionSummary(id); }
+
+  @Post(':id/decision')
+  @ApiTags('02 Admin - Dispute Decisions')
+  @Permissions('disputes.decide')
+  @ApiOperation({ summary: 'Submit final dispute decision', description: 'SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.' })
+  @ApiBody({ type: SubmitDisputeDecisionDto, examples: { approve: { value: { decision: 'APPROVE', comment: 'Customer evidence validates missing delivery.', notifyCustomer: true } }, reject: { value: { decision: 'REJECT', reason: 'INSUFFICIENT_EVIDENCE', comment: 'Tracking evidence confirms delivery.', notifyCustomer: true } }, escalate: { value: { decision: 'ESCALATE', assignedToId: 'admin_supervisor_id', escalationReason: 'Policy ambiguity requires supervisor intervention.', notifyCustomer: false } } } })
+  decision(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: SubmitDisputeDecisionDto) { return this.disputes.submitDecision(user, id, dto); }
+
+  @Get(':id/confirmation')
+  @ApiTags('02 Admin - Dispute Decisions')
+  @Permissions('disputes.decide')
+  @ApiOperation({ summary: 'Fetch decision confirmation', description: 'SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.' })
+  confirmation(@Param('id') id: string) { return this.disputes.confirmation(id); }
+
+  @Get(':id/tracking-log/export')
+  @ApiTags('02 Admin - Dispute Tracking')
+  @Permissions('disputes.tracking.export')
+  @ApiOperation({ summary: 'Export full dispute tracking log', description: 'SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.' })
+  async exportTrackingLog(@Param('id') id: string, @Query() query: TrackingLogExportDto): Promise<StreamableFile> { const file = await this.disputes.exportTrackingLog(id, query); return new StreamableFile(Buffer.from(file.content), { disposition: `attachment; filename="${file.filename}"`, type: file.contentType }); }
+
+  @Get(':id/tracking-log')
+  @ApiTags('02 Admin - Dispute Tracking')
+  @Permissions('disputes.tracking.read')
+  @ApiOperation({ summary: 'Fetch full dispute tracking log', description: 'SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.' })
+  trackingLog(@Param('id') id: string) { return this.disputes.trackingLog(id); }
+
+  @Post(':id/follow-up-notes')
+  @ApiTags('02 Admin - Dispute Tracking')
+  @Permissions('disputes.notes.create')
+  @ApiOperation({ summary: 'Add dispute follow-up note', description: 'SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.' })
+  @ApiBody({ type: AddDisputeNoteDto, examples: { internal: { value: { note: 'Followed up with provider for missing dispatch log.', visibility: 'INTERNAL' } } } })
+  followUpNote(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AddDisputeNoteDto) { return this.disputes.addFollowUpNote(user, id, dto); }
 
   @Get(':id/linkage')
   @ApiTags('02 Admin - Dispute Linkage')

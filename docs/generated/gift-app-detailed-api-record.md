@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T06:38:39.078Z_
+_Generated from OpenAPI: 2026-05-13T06:54:03.565Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -68,10 +68,42 @@ Access: "Authenticated"
 
 ## 02 Admin - Dispute Manager
 
+### `GET` `/api/v1/admin/disputes/{id}/confirmation`
+
+Summary: Fetch decision confirmation
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `POST` `/api/v1/admin/disputes/{id}/decision`
+
+Summary: Submit final dispute decision
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with dispute decision permissions. APPROVE validates linked transaction/refund selection and creates a refund record; REJECT never creates a refund; ESCALATE assigns supervisor and resets SLA. Stripe refunds are represented by refund tracking records and no card/Stripe secrets are exposed.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/decision-summary`
+
+Summary: Fetch dispute decision summary
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
 ### `GET` `/api/v1/admin/disputes/{id}/evidence`
 
 Summary: Fetch dispute evidence
 Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.evidence.read. Returns only evidence rows linked to this dispute, from customer/admin uploads in dispute-evidence folder.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `POST` `/api/v1/admin/disputes/{id}/follow-up-notes`
+
+Summary: Add dispute follow-up note
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.
 Access: "Authenticated"
 
 ## 02 Admin - Dispute Manager
@@ -128,6 +160,22 @@ Access: "Authenticated"
 
 Summary: Fetch dispute timeline
 Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.timeline.read. Returns timeline preview events in chronological order.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/tracking-log`
+
+Summary: Fetch full dispute tracking log
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.
+Access: "Authenticated"
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/tracking-log/export`
+
+Summary: Export full dispute tracking log
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.
 Access: "Authenticated"
 
 ## 02 Admin - Dispute Manager

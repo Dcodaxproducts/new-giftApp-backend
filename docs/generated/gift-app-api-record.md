@@ -1,6 +1,6 @@
 # Gift App API Record
 
-_Generated from OpenAPI: 2026-05-13T06:38:39.078Z_
+_Generated from OpenAPI: 2026-05-13T06:54:03.565Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -52,9 +52,33 @@ Fetch dispute details and evidence review summary
 
 ## 02 Admin - Dispute Manager
 
+### `GET` `/api/v1/admin/disputes/{id}/confirmation`
+
+Fetch decision confirmation
+
+## 02 Admin - Dispute Manager
+
+### `POST` `/api/v1/admin/disputes/{id}/decision`
+
+Submit final dispute decision
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/decision-summary`
+
+Fetch dispute decision summary
+
+## 02 Admin - Dispute Manager
+
 ### `GET` `/api/v1/admin/disputes/{id}/evidence`
 
 Fetch dispute evidence
+
+## 02 Admin - Dispute Manager
+
+### `POST` `/api/v1/admin/disputes/{id}/follow-up-notes`
+
+Add dispute follow-up note
 
 ## 02 Admin - Dispute Manager
 
@@ -97,6 +121,18 @@ Preview dispute refund selection
 ### `GET` `/api/v1/admin/disputes/{id}/timeline`
 
 Fetch dispute timeline
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/tracking-log`
+
+Fetch full dispute tracking log
+
+## 02 Admin - Dispute Manager
+
+### `GET` `/api/v1/admin/disputes/{id}/tracking-log/export`
+
+Export full dispute tracking log
 
 ## 02 Admin - Dispute Manager
 

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DisputeNoteVisibility, DisputePriority, DisputeRefundType, DisputeStatus } from '@prisma/client';
+import { DisputeDecision, DisputeNoteVisibility, DisputePriority, DisputeRefundType, DisputeRejectReason, DisputeStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
@@ -53,4 +53,17 @@ export class RefundPreviewDto {
 
 export class LinkTransactionDto extends RefundPreviewDto {
   @ApiProperty({ example: true }) @IsBoolean() confirmCorrectTransaction!: boolean;
+}
+
+export class SubmitDisputeDecisionDto {
+  @ApiProperty({ enum: DisputeDecision, example: DisputeDecision.APPROVE }) @IsEnum(DisputeDecision) decision!: DisputeDecision;
+  @ApiPropertyOptional({ enum: DisputeRejectReason, example: DisputeRejectReason.INSUFFICIENT_EVIDENCE }) @IsOptional() @IsEnum(DisputeRejectReason) reason?: DisputeRejectReason;
+  @ApiPropertyOptional({ example: 'Customer evidence validates missing delivery.' }) @IsOptional() @IsString() @MaxLength(2000) comment?: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyCustomer?: boolean;
+  @ApiPropertyOptional({ example: 'admin_supervisor_id' }) @IsOptional() @IsString() assignedToId?: string;
+  @ApiPropertyOptional({ example: 'Policy ambiguity requires supervisor intervention.' }) @IsOptional() @IsString() @MaxLength(2000) escalationReason?: string;
+}
+
+export class TrackingLogExportDto {
+  @ApiPropertyOptional({ enum: ExportFormat, example: ExportFormat.PDF }) @IsOptional() @IsEnum(ExportFormat) format?: ExportFormat;
 }

@@ -529,6 +529,34 @@ enum DisputeRefundType {
   NONE
 }
 
+enum DisputeDecision {
+  APPROVE
+  REJECT
+  ESCALATE
+}
+
+enum DisputeRejectReason {
+  INSUFFICIENT_EVIDENCE
+  REFUND_WINDOW_EXPIRED
+  CUSTOMER_WITHDREW
+  NOT_COVERED_BY_POLICY
+  TRANSACTION_NOT_ELIGIBLE
+  OTHER
+}
+
+enum DisputeResolutionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ESCALATED
+}
+
+enum DisputeCustomerNotificationStatus {
+  NOT_SENT
+  SENT
+  FAILED
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -1821,32 +1849,40 @@ model ProviderReport {
 }
 
 model DisputeCase {
-  id                  String             @id @default(cuid())
-  caseId              String             @unique @map("case_id")
-  userId              String             @map("user_id")
-  orderId             String             @map("order_id")
-  transactionId       String?            @map("transaction_id")
-  paymentId           String?            @map("payment_id")
-  providerId          String?            @map("provider_id")
-  linkedTransactionId String?            @map("linked_transaction_id")
-  linkedPaymentId     String?            @map("linked_payment_id")
-  linkedOrderId       String?            @map("linked_order_id")
-  refundType          DisputeRefundType? @map("refund_type")
-  refundAmount        Decimal?           @map("refund_amount") @db.Decimal(10, 2)
-  linkedById          String?            @map("linked_by_id")
-  amount              Decimal            @db.Decimal(10, 2)
-  currency            String             @default("PKR")
-  reason              DisputeReason
-  claimDetails        String             @map("claim_details")
-  priority            DisputePriority    @default(MEDIUM)
-  status              DisputeStatus      @default(OPEN)
-  slaDeadlineAt       DateTime           @map("sla_deadline_at") @db.Timestamptz
-  assignedToId        String?            @map("assigned_to_id")
-  linkedRefundId      String?            @map("linked_refund_id")
-  linkedAt            DateTime?          @map("linked_at") @db.Timestamptz
-  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamptz
-  resolvedAt          DateTime?          @map("resolved_at") @db.Timestamptz
+  id                         String                            @id @default(cuid())
+  caseId                     String                            @unique @map("case_id")
+  userId                     String                            @map("user_id")
+  orderId                    String                            @map("order_id")
+  transactionId              String?                           @map("transaction_id")
+  paymentId                  String?                           @map("payment_id")
+  providerId                 String?                           @map("provider_id")
+  linkedTransactionId        String?                           @map("linked_transaction_id")
+  linkedPaymentId            String?                           @map("linked_payment_id")
+  linkedOrderId              String?                           @map("linked_order_id")
+  refundType                 DisputeRefundType?                @map("refund_type")
+  refundAmount               Decimal?                          @map("refund_amount") @db.Decimal(10, 2)
+  linkedById                 String?                           @map("linked_by_id")
+  decision                   DisputeDecision?
+  decisionReason             DisputeRejectReason?              @map("decision_reason")
+  decisionComment            String?                           @map("decision_comment")
+  resolutionStatus           DisputeResolutionStatus           @default(PENDING) @map("resolution_status")
+  escalatedAt                DateTime?                         @map("escalated_at") @db.Timestamptz
+  estimatedResolutionAt      DateTime?                         @map("estimated_resolution_at") @db.Timestamptz
+  refundId                   String?                           @map("refund_id")
+  customerNotificationStatus DisputeCustomerNotificationStatus @default(NOT_SENT) @map("customer_notification_status")
+  amount                     Decimal                           @db.Decimal(10, 2)
+  currency                   String                            @default("PKR")
+  reason                     DisputeReason
+  claimDetails               String                            @map("claim_details")
+  priority                   DisputePriority                   @default(MEDIUM)
+  status                     DisputeStatus                     @default(OPEN)
+  slaDeadlineAt              DateTime                          @map("sla_deadline_at") @db.Timestamptz
+  assignedToId               String?                           @map("assigned_to_id")
+  linkedRefundId             String?                           @map("linked_refund_id")
+  linkedAt                   DateTime?                         @map("linked_at") @db.Timestamptz
+  createdAt                  DateTime                          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime                          @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt                 DateTime?                         @map("resolved_at") @db.Timestamptz
 
   user       User              @relation("DisputeCustomer", fields: [userId], references: [id])
   order      Order             @relation(fields: [orderId], references: [id])
