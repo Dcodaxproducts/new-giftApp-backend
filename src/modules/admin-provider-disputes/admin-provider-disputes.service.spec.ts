@@ -133,4 +133,50 @@ describe('Admin Provider Dispute Management Core module', () => {
     for (const action of ['RULING_MADE', 'RULING_DRAFT_SAVED', 'PAYOUT_PENALTY_LINKED', 'FINAL_ATTESTATION_COMPLETED']) expect(service).toContain(action);
     expect(service).toContain('auditLog.write');
   });
+
+  it('finalize requires ruling and payout linkage when financial adjustment exists', () => {
+    expect(controller).toContain("@Post(':id/finalize')");
+    expect(service).toContain('Ruling must exist before finalization');
+    expect(service).toContain('Payout linkage must be completed before finalization');
+    expect(service).toContain('Final attestation must be completed before finalization');
+  });
+
+  it('finalize processes customer refund for customer wins and no refund for provider wins', () => {
+    expect(service).toContain('resolutionFromRuling');
+    expect(service).toContain('refundProcessed = dispute.ruling !== ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND');
+    expect(service).toContain('CUSTOMER_REFUND_PROCESSED');
+  });
+
+  it('finalize handles split liability partial refund and applies provider deduction', () => {
+    expect(service).toContain('ProviderDisputeFinalRuling.SPLIT_LIABILITY');
+    expect(service).toContain('providerDeduction');
+    expect(service).toContain('providerFinancialAdjustment.updateMany');
+  });
+
+  it('finalize applies penalty when selected and creates financial audit log', () => {
+    expect(service).toContain('penaltyApplied');
+    expect(service).toContain('Service Fee Penalty');
+    expect(schema).toContain('model ProviderDisputeFinancialLog');
+  });
+
+  it('finalize creates communication log and timeline entry', () => {
+    expect(service).toContain('createCommunicationLogEntriesTx');
+    expect(service).toContain('PROVIDER_DISPUTE_FINALIZED');
+    expect(schema).toContain('model ProviderDisputeCommunicationLog');
+  });
+
+  it('resolution endpoint returns final summary and resolution log returns lifecycle timeline', () => {
+    expect(controller).toContain("@Get(':id/resolution')");
+    expect(controller).toContain("@Get(':id/resolution-log')");
+    expect(service).toContain('Provider dispute resolution fetched successfully.');
+    expect(service).toContain('Provider dispute resolution log fetched successfully.');
+  });
+
+  it('export resolution log requires permission and notify again creates communication log', () => {
+    expect(controller).toContain("@Get(':id/resolution-log/export')");
+    expect(controller).toContain("@Permissions('providerDisputes.logs.export')");
+    expect(controller).toContain("@Post(':id/notify-again')");
+    expect(service).toContain('NOTIFICATION_RESENT');
+    expect(service).toContain('createCommunicationLogEntriesTx');
+  });
 });

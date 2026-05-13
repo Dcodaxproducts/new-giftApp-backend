@@ -3115,6 +3115,226 @@
         "x-access": "Authenticated"
       }
     },
+    "/api/v1/admin/provider-disputes/{id}/finalize": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.",
+        "operationId": "AdminProviderDisputesController_finalize",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeProviderDisputeDto"
+              },
+              "examples": {
+                "finalize": {
+                  "value": {
+                    "notifyCustomer": true,
+                    "notifyProvider": true,
+                    "executeFinancialAdjustments": true,
+                    "comment": "Final ruling confirmed and financial adjustments approved."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Finalize provider dispute",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Resolution"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/resolution": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.",
+        "operationId": "AdminProviderDisputesController_resolution",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute resolution summary",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Resolution"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/resolution-log/export": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.",
+        "operationId": "AdminProviderDisputesController_exportResolutionLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "PDF",
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export provider dispute resolution log",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Logs"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/resolution-log": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.",
+        "operationId": "AdminProviderDisputesController_resolutionLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider dispute resolution log",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Logs"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/provider-disputes/{id}/notify-again": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.",
+        "operationId": "AdminProviderDisputesController_notifyAgain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendProviderDisputeNotificationDto"
+              },
+              "examples": {
+                "provider": {
+                  "value": {
+                    "target": "PROVIDER",
+                    "channels": [
+                      "EMAIL",
+                      "IN_APP"
+                    ],
+                    "message": "Reminder: Your dispute resolution is available in the provider portal."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resend provider dispute notifications",
+        "tags": [
+          "02 Admin - Provider Dispute Manager",
+          "02 Admin - Provider Dispute Resolution"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/admin/provider-disputes/{id}/ruling-summary": {
       "get": {
         "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.",
@@ -18292,6 +18512,12 @@
       "name": "02 Admin - Provider Financial Adjustments"
     },
     {
+      "name": "02 Admin - Provider Dispute Resolution"
+    },
+    {
+      "name": "02 Admin - Provider Dispute Logs"
+    },
+    {
       "name": "03 Provider - Business Info"
     },
     {
@@ -18890,6 +19116,64 @@
         "required": [
           "transactionId",
           "refundType"
+        ]
+      },
+      "FinalizeProviderDisputeDto": {
+        "type": "object",
+        "properties": {
+          "notifyCustomer": {
+            "type": "boolean",
+            "example": true
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
+          },
+          "executeFinancialAdjustments": {
+            "type": "boolean",
+            "example": true
+          },
+          "comment": {
+            "type": "string",
+            "example": "Final ruling confirmed and financial adjustments approved."
+          }
+        }
+      },
+      "ResendProviderDisputeNotificationDto": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER",
+              "PROVIDER",
+              "BOTH"
+            ],
+            "example": "PROVIDER"
+          },
+          "channels": {
+            "type": "array",
+            "example": [
+              "EMAIL",
+              "IN_APP"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "IN_APP"
+              ]
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Reminder: Your dispute resolution is available in the provider portal."
+          }
+        },
+        "required": [
+          "target",
+          "channels",
+          "message"
         ]
       },
       "SaveProviderDisputeRulingDto": {

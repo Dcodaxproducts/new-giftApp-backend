@@ -633,6 +633,28 @@ enum ProviderFinancialAdjustmentStatus {
   FAILED
 }
 
+enum ProviderDisputeFinalRuling {
+  CUSTOMER_WINS
+  PROVIDER_WINS
+  SPLIT_LIABILITY
+}
+
+enum ProviderDisputeResolutionStatus {
+  RESOLVED
+  DENIED
+}
+
+enum ProviderDisputeCommunicationTargetType {
+  CUSTOMER
+  PROVIDER
+  BOTH
+}
+
+enum ProviderDisputeCommunicationChannel {
+  EMAIL
+  IN_APP
+}
+
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -755,6 +777,7 @@ model User {
   providerDisputeNotes                ProviderDisputeNote[]                @relation("ProviderDisputeNoteAuthor")
   providerDisputeTimelineEvents       ProviderDisputeTimeline[]            @relation("ProviderDisputeTimelineActor")
   finalAttestedProviderDisputes       ProviderDisputeCase[]                @relation("ProviderDisputeFinalAttestor")
+  finalizedProviderDisputeResolutions ProviderDisputeResolution[]          @relation("ProviderDisputeFinalizer")
   providerFinancialAdjustments        ProviderFinancialAdjustment[]
 
   @@index([role, isActive])
@@ -2077,17 +2100,20 @@ model ProviderDisputeCase {
   updatedAt                 DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
   resolvedAt                DateTime?                      @map("resolved_at") @db.Timestamptz
 
-  provider             User                          @relation("ProviderDisputeProvider", fields: [providerId], references: [id])
-  customer             User                          @relation("ProviderDisputeCustomer", fields: [customerId], references: [id])
-  order                Order                         @relation(fields: [orderId], references: [id])
-  providerOrder        ProviderOrder                 @relation(fields: [providerOrderId], references: [id])
-  payment              Payment?                      @relation(fields: [paymentId], references: [id])
-  assignedTo           User?                         @relation("ProviderDisputeAssignee", fields: [assignedToId], references: [id])
-  finalAttestedBy      User?                         @relation("ProviderDisputeFinalAttestor", fields: [finalAttestedById], references: [id])
+  provider             User                              @relation("ProviderDisputeProvider", fields: [providerId], references: [id])
+  customer             User                              @relation("ProviderDisputeCustomer", fields: [customerId], references: [id])
+  order                Order                             @relation(fields: [orderId], references: [id])
+  providerOrder        ProviderOrder                     @relation(fields: [providerOrderId], references: [id])
+  payment              Payment?                          @relation(fields: [paymentId], references: [id])
+  assignedTo           User?                             @relation("ProviderDisputeAssignee", fields: [assignedToId], references: [id])
+  finalAttestedBy      User?                             @relation("ProviderDisputeFinalAttestor", fields: [finalAttestedById], references: [id])
   evidence             ProviderDisputeEvidence[]
   notes                ProviderDisputeNote[]
   timeline             ProviderDisputeTimeline[]
   financialAdjustments ProviderFinancialAdjustment[]
+  financialLogs        ProviderDisputeFinancialLog[]
+  communicationLogs    ProviderDisputeCommunicationLog[]
+  resolution           ProviderDisputeResolution?
 
   @@index([status, priority, createdAt])
   @@index([providerId, createdAt])
@@ -2172,6 +2198,64 @@ model ProviderFinancialAdjustment {
   @@index([providerId, createdAt])
   @@index([disputeId, createdAt])
   @@map("provider_financial_adjustments")
+}
+
+model ProviderDisputeResolution {
+  id                     String                          @id @default(cuid())
+  disputeId              String                          @unique @map("dispute_id")
+  finalRuling            ProviderDisputeFinalRuling      @map("final_ruling")
+  status                 ProviderDisputeResolutionStatus
+  refundProcessed        Boolean                         @default(false) @map("refund_processed")
+  refundAmount           Decimal                         @default(0) @map("refund_amount") @db.Decimal(10, 2)
+  providerDeduction      Decimal                         @default(0) @map("provider_deduction") @db.Decimal(10, 2)
+  penaltyApplied         Boolean                         @default(false) @map("penalty_applied")
+  penaltyAmount          Decimal                         @default(0) @map("penalty_amount") @db.Decimal(10, 2)
+  notificationStatusJson Json                            @default("{}") @map("notification_status_json")
+  performanceImpactJson  Json?                           @map("performance_impact_json")
+  finalizedById          String                          @map("finalized_by_id")
+  finalizedAt            DateTime                        @map("finalized_at") @db.Timestamptz
+  createdAt              DateTime                        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
+
+  dispute     ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+  finalizedBy User                @relation("ProviderDisputeFinalizer", fields: [finalizedById], references: [id])
+
+  @@index([finalizedById, finalizedAt])
+  @@map("provider_dispute_resolutions")
+}
+
+model ProviderDisputeFinancialLog {
+  id            String                            @id @default(cuid())
+  disputeId     String                            @map("dispute_id")
+  transactionId String                            @map("transaction_id")
+  action        String
+  amount        Decimal                           @db.Decimal(10, 2)
+  currency      String                            @default("PKR")
+  status        ProviderFinancialAdjustmentStatus
+  metadataJson  Json?                             @map("metadata_json")
+  createdAt     DateTime                          @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("provider_dispute_financial_logs")
+}
+
+model ProviderDisputeCommunicationLog {
+  id          String                                 @id @default(cuid())
+  disputeId   String                                 @map("dispute_id")
+  targetType  ProviderDisputeCommunicationTargetType @map("target_type")
+  channel     ProviderDisputeCommunicationChannel
+  title       String
+  bodyPreview String                                 @map("body_preview")
+  status      String
+  sentAt      DateTime?                              @map("sent_at") @db.Timestamptz
+  createdAt   DateTime                               @default(now()) @map("created_at") @db.Timestamptz
+
+  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
+
+  @@index([disputeId, createdAt])
+  @@map("provider_dispute_communication_logs")
 }
 
 model AuthSession {

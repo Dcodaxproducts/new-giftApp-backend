@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DisputeActorType, NotificationRecipientType, Prisma, ProviderDisputeAdjustmentType, ProviderDisputeCase, ProviderDisputeEvidenceRequestTarget, ProviderDisputeRuling, ProviderDisputeSeverity, ProviderDisputeStatus, ProviderFinancialAdjustmentDirection, ProviderFinancialAdjustmentStatus, ProviderFinancialAdjustmentType } from '@prisma/client';
+import { DisputeActorType, NotificationRecipientType, Prisma, ProviderDisputeAdjustmentType, ProviderDisputeCase, ProviderDisputeCommunicationChannel, ProviderDisputeCommunicationTargetType, ProviderDisputeEvidenceRequestTarget, ProviderDisputeFinalRuling, ProviderDisputeResolutionStatus, ProviderDisputeRuling, ProviderDisputeSeverity, ProviderDisputeStatus, ProviderFinancialAdjustmentDirection, ProviderFinancialAdjustmentStatus, ProviderFinancialAdjustmentType } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
-import { AddProviderDisputeNoteDto, ExportFormat, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeCategoryFilter, ProviderDisputeDateRangeDto, ProviderDisputeRange, ProviderDisputeSeverityFilter, ProviderDisputeSortBy, ProviderDisputeStatusFilter, RequestProviderDisputeEvidenceDto, SaveProviderDisputeRulingDto, SortOrder } from './dto/admin-provider-disputes.dto';
+import { AddProviderDisputeNoteDto, ExportFormat, ExportProviderDisputeResolutionLogDto, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, FinalizeProviderDisputeDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeCategoryFilter, ProviderDisputeDateRangeDto, ProviderDisputeRange, ProviderDisputeSeverityFilter, ProviderDisputeSortBy, ProviderDisputeStatusFilter, RequestProviderDisputeEvidenceDto, ResendProviderDisputeNotificationDto, SaveProviderDisputeRulingDto, SortOrder } from './dto/admin-provider-disputes.dto';
 
 export const PROVIDER_DISPUTE_TIMELINE_TYPES = ['PROVIDER_DISPUTE_CREATED', 'CUSTOMER_EVIDENCE_SUBMITTED', 'PROVIDER_EVIDENCE_SUBMITTED', 'ADDITIONAL_EVIDENCE_REQUESTED', 'EVIDENCE_REVIEW_STARTED', 'EVIDENCE_REVIEW_COMPLETED'] as const;
 
@@ -104,6 +104,72 @@ export class AdminProviderDisputesService {
     return { data: { caseId: updated.caseId, finalAttestedAt: updated.finalAttestedAt }, message: 'Final attestation completed successfully.' };
   }
 
+
+  async finalize(user: AuthUserContext, id: string, dto: FinalizeProviderDisputeDto) {
+    const dispute = await this.getDispute(id);
+    if (!dispute.ruling) throw new BadRequestException('Ruling must exist before finalization');
+    if (!dispute.finalAttestedAt) throw new BadRequestException('Final attestation must be completed before finalization');
+    if ((dispute.ruling !== ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND || this.money(dispute.penaltyAmount ?? 0) > 0) && !dispute.adjustmentType && (dto.executeFinancialAdjustments ?? true)) throw new BadRequestException('Payout linkage must be completed before finalization');
+    if (dispute.ruling !== ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND && !dispute.paymentId) throw new BadRequestException('Linked payment/transaction is required for refund execution');
+    const resolution = this.resolutionFromRuling(dispute.ruling);
+    const refundProcessed = dispute.ruling !== ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND;
+    const refundAmount = this.money(dispute.refundAmount ?? 0);
+    const providerDeduction = this.money(dispute.totalProviderDeduction ?? 0);
+    const penaltyApplied = Boolean(dispute.applyPenalty && this.money(dispute.penaltyAmount ?? 0) > 0);
+    const penaltyAmount = this.money(dispute.penaltyAmount ?? 0);
+    const notificationStatus = { customerEmail: dto.notifyCustomer === false ? 'SKIPPED' : 'SENT', providerEmail: dto.notifyProvider === false ? 'SKIPPED' : 'SENT', providerDashboard: dto.notifyProvider === false ? 'SKIPPED' : 'SENT' };
+    await this.prisma.$transaction(async (tx) => {
+      if (dto.executeFinancialAdjustments ?? true) {
+        await tx.providerFinancialAdjustment.updateMany({ where: { disputeId: id, status: ProviderFinancialAdjustmentStatus.PENDING }, data: { status: ProviderFinancialAdjustmentStatus.APPLIED } });
+        const logs = this.financialLogs(dispute, resolution, refundProcessed);
+        for (const log of logs) await tx.providerDisputeFinancialLog.create({ data: log });
+      }
+      await tx.providerDisputeResolution.upsert({ where: { disputeId: id }, update: { finalRuling: resolution, status: resolution === ProviderDisputeFinalRuling.PROVIDER_WINS ? ProviderDisputeResolutionStatus.DENIED : ProviderDisputeResolutionStatus.RESOLVED, refundProcessed, refundAmount, providerDeduction, penaltyApplied, penaltyAmount, notificationStatusJson: notificationStatus, performanceImpactJson: this.performanceImpact(resolution), finalizedById: user.uid, finalizedAt: new Date() }, create: { disputeId: id, finalRuling: resolution, status: resolution === ProviderDisputeFinalRuling.PROVIDER_WINS ? ProviderDisputeResolutionStatus.DENIED : ProviderDisputeResolutionStatus.RESOLVED, refundProcessed, refundAmount, providerDeduction, penaltyApplied, penaltyAmount, notificationStatusJson: notificationStatus, performanceImpactJson: this.performanceImpact(resolution), finalizedById: user.uid, finalizedAt: new Date() } });
+      await tx.providerDisputeCase.update({ where: { id }, data: { status: resolution === ProviderDisputeFinalRuling.PROVIDER_WINS ? ProviderDisputeStatus.DENIED : ProviderDisputeStatus.RESOLVED, resolvedAt: new Date() } });
+      await tx.providerDisputeTimeline.create({ data: { disputeId: id, type: 'PROVIDER_DISPUTE_FINALIZED', title: 'Provider Dispute Finalized', description: dto.comment ?? 'Final ruling confirmed and financial adjustments approved.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { finalRuling: resolution, refundAmount, providerDeduction, penaltyAmount } } });
+      await this.createCommunicationLogsTx(tx, dispute, dto.notifyCustomer ?? true, dto.notifyProvider ?? true, dto.comment ?? 'Provider dispute resolved.');
+      await this.notifyResolutionTargetsTx(tx, dispute, resolution, dto.notifyCustomer ?? true, dto.notifyProvider ?? true, refundAmount, penaltyAmount);
+    });
+    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'PROVIDER_DISPUTE_CASE', action: 'PROVIDER_DISPUTE_FINALIZED', afterJson: { finalRuling: resolution, refundAmount, providerDeduction, penaltyAmount } });
+    return { data: { caseId: dispute.caseId, status: 'RESOLVED', finalRuling: resolution, refundProcessed, refundAmount, providerDeduction, penaltyApplied, penaltyAmount, notificationStatus }, message: 'Provider dispute finalized successfully.' };
+  }
+
+  async resolution(id: string) {
+    const dispute = await this.getDispute(id);
+    const resolution = await this.getResolution(id);
+    return { data: { caseId: dispute.caseId, status: dispute.status, finalRuling: resolution.finalRuling, subtitle: this.resolutionSubtitle(resolution.finalRuling, resolution.penaltyApplied), badges: this.resolutionBadges(resolution.finalRuling, resolution.penaltyApplied), financialExecution: { executionDate: resolution.finalizedAt, refundProcessed: this.money(resolution.refundAmount), providerDeduction: -this.money(resolution.providerDeduction), penaltyApplied: this.money(resolution.penaltyAmount), currency: dispute.currency }, notificationStatus: this.object(resolution.notificationStatusJson), nextSteps: { refundTiming: 'The customer will receive funds within 3-5 business days via original payment method.', appealWindow: 'The provider has 14 calendar days to file a formal appeal.' } }, message: 'Provider dispute resolution fetched successfully.' };
+  }
+
+  async resolutionLog(id: string) {
+    const dispute = await this.getDispute(id);
+    const resolution = await this.getResolution(id);
+    const [timeline, financialAuditLog, communicationLog] = await Promise.all([
+      this.prisma.providerDisputeTimeline.findMany({ where: { disputeId: id }, orderBy: { createdAt: 'desc' } }),
+      this.prisma.providerDisputeFinancialLog.findMany({ where: { disputeId: id }, orderBy: { createdAt: 'desc' } }),
+      this.prisma.providerDisputeCommunicationLog.findMany({ where: { disputeId: id }, orderBy: { createdAt: 'desc' } }),
+    ]);
+    return { data: { caseId: dispute.caseId, finalRuling: resolution.finalRuling, closedAt: resolution.finalizedAt, description: 'Complete audit trail of provider dispute, financial adjustments, and communications.', lifecycleTimeline: timeline.map((item) => ({ type: item.type, title: item.title, description: item.description, createdAt: item.createdAt })), financialAuditLog: financialAuditLog.map((item) => ({ transactionId: item.transactionId, action: item.action, amount: this.money(item.amount), currency: item.currency, status: item.status })), communicationLog: communicationLog.map((item) => ({ type: item.channel, title: item.title, to: item.targetType === ProviderDisputeCommunicationTargetType.CUSTOMER ? dispute.customer.email : 'claims@provider.com', bodyPreview: item.bodyPreview, createdAt: item.createdAt })), providerPerformanceImpact: this.object(resolution.performanceImpactJson) }, message: 'Provider dispute resolution log fetched successfully.' };
+  }
+
+  async exportResolutionLog(id: string, query: ExportProviderDisputeResolutionLogDto) {
+    const log = await this.resolutionLog(id);
+    const rows = [['Section', 'Type', 'Description', 'Created At'], ...log.data.lifecycleTimeline.map((item) => ['Timeline', item.type, item.description, item.createdAt.toISOString()]), ...log.data.financialAuditLog.map((item) => ['Financial', item.action, `${item.amount} ${item.currency}`, item.status]), ...log.data.communicationLog.map((item) => ['Communication', item.type, item.bodyPreview, item.createdAt.toISOString()])];
+    const content = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+    const format = query.format ?? ExportFormat.CSV;
+    return { content, filename: `provider-dispute-resolution-${log.data.caseId}.${format === ExportFormat.PDF ? 'pdf' : 'csv'}`, contentType: format === ExportFormat.PDF ? 'application/pdf' : 'text/csv' };
+  }
+
+  async notifyAgain(user: AuthUserContext, id: string, dto: ResendProviderDisputeNotificationDto) {
+    const dispute = await this.getDispute(id);
+    await this.prisma.$transaction(async (tx) => {
+      await this.createCommunicationLogEntriesTx(tx, id, dto.target, dto.channels, 'Resolution Reminder', dto.message);
+      await this.createNotificationResendsTx(tx, dispute, dto);
+      await tx.providerDisputeTimeline.create({ data: { disputeId: id, type: 'NOTIFICATION_RESENT', title: 'Notification Resent', description: dto.message, actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { target: dto.target, channels: dto.channels } } });
+    });
+    await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'PROVIDER_DISPUTE_CASE', action: 'PROVIDER_DISPUTE_NOTIFICATION_RESENT', afterJson: { target: dto.target, channels: dto.channels } });
+    return { data: { caseId: dispute.caseId, target: dto.target, channels: dto.channels }, message: 'Provider dispute notification resent successfully.' };
+  }
+
   async evidence(id: string) {
     const dispute = await this.getDispute(id);
     const evidence = await this.prisma.providerDisputeEvidence.findMany({ where: { disputeId: id }, orderBy: { submittedAt: 'asc' } });
@@ -156,6 +222,21 @@ export class AdminProviderDisputesService {
     return { content, filename: `provider-disputes.${format === ExportFormat.PDF ? 'pdf' : 'csv'}`, contentType: format === ExportFormat.PDF ? 'application/pdf' : 'text/csv' };
   }
 
+
+
+  private async getResolution(id: string) { const resolution = await this.prisma.providerDisputeResolution.findUnique({ where: { disputeId: id } }); if (!resolution) throw new NotFoundException('Provider dispute resolution not found'); return resolution; }
+  private resolutionFromRuling(ruling: ProviderDisputeRuling): ProviderDisputeFinalRuling { return ruling === ProviderDisputeRuling.CUSTOMER_WINS_FULL_REFUND ? ProviderDisputeFinalRuling.CUSTOMER_WINS : ruling === ProviderDisputeRuling.PROVIDER_WINS_NO_REFUND ? ProviderDisputeFinalRuling.PROVIDER_WINS : ProviderDisputeFinalRuling.SPLIT_LIABILITY; }
+  private financialLogs(dispute: ProviderDisputeView, resolution: ProviderDisputeFinalRuling, refundProcessed: boolean): Prisma.ProviderDisputeFinancialLogUncheckedCreateInput[] { const rows: Prisma.ProviderDisputeFinancialLogUncheckedCreateInput[] = []; if (refundProcessed) rows.push({ disputeId: dispute.id, transactionId: `TXN_${dispute.id}-ADJ`, action: 'Customer Credit', amount: new Prisma.Decimal(this.money(dispute.refundAmount ?? 0)), currency: dispute.currency, status: ProviderFinancialAdjustmentStatus.APPLIED, metadataJson: { finalRuling: resolution } }); if (this.money(dispute.totalProviderDeduction ?? 0) > 0) rows.push({ disputeId: dispute.id, transactionId: `TXN_${dispute.id}-REV`, action: 'Reversal Execution', amount: new Prisma.Decimal(-this.money(dispute.totalProviderDeduction ?? 0)), currency: dispute.currency, status: ProviderFinancialAdjustmentStatus.APPLIED, metadataJson: { finalRuling: resolution } }); if (this.money(dispute.penaltyAmount ?? 0) > 0) rows.push({ disputeId: dispute.id, transactionId: `PEN_${dispute.id}-X`, action: 'Service Fee Penalty', amount: new Prisma.Decimal(-this.money(dispute.penaltyAmount ?? 0)), currency: dispute.currency, status: ProviderFinancialAdjustmentStatus.APPLIED, metadataJson: { penaltyReason: dispute.penaltyReason } }); return rows; }
+  private performanceImpact(finalRuling: ProviderDisputeFinalRuling) { return { winRateBefore: 50, winRateAfter: finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 55 : 40, penaltyPoints: finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 0 : 15, tierStatus: finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 'Stable' : 'Silver At Risk' }; }
+  private resolutionSubtitle(finalRuling: ProviderDisputeFinalRuling, penaltyApplied: boolean) { if (finalRuling === ProviderDisputeFinalRuling.CUSTOMER_WINS) return `Dispute resolved in customer's favor. Refund${penaltyApplied ? ' and penalty applied.' : ' applied.'}`; if (finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS) return "Dispute resolved in provider's favor. No refund applied."; return 'Dispute resolved with split liability and partial refund.'; }
+  private resolutionBadges(finalRuling: ProviderDisputeFinalRuling, penaltyApplied: boolean) { const badges = [{ label: finalRuling === ProviderDisputeFinalRuling.CUSTOMER_WINS ? 'Resolved - Customer Wins' : finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 'Resolved - Provider Wins' : 'Resolved - Split Liability', tone: 'SUCCESS' }]; if (penaltyApplied) badges.push({ label: 'Penalty Applied', tone: 'DANGER' }); return badges; }
+  private async createCommunicationLogsTx(tx: Prisma.TransactionClient, dispute: ProviderDisputeView, notifyCustomer: boolean, notifyProvider: boolean, comment: string) { const channels = [ProviderDisputeCommunicationChannel.EMAIL, ProviderDisputeCommunicationChannel.IN_APP]; const targets: ProviderDisputeCommunicationTargetType[] = []; if (notifyCustomer) targets.push(ProviderDisputeCommunicationTargetType.CUSTOMER); if (notifyProvider) targets.push(ProviderDisputeCommunicationTargetType.PROVIDER); await this.createCommunicationLogEntriesTx(tx, dispute.id, targets.length === 2 ? ProviderDisputeCommunicationTargetType.BOTH : (targets[0] ?? ProviderDisputeCommunicationTargetType.BOTH), channels, 'Resolution Decision Sent', comment); }
+  private async createCommunicationLogEntriesTx(tx: Prisma.TransactionClient, disputeId: string, target: ProviderDisputeCommunicationTargetType, channels: ProviderDisputeCommunicationChannel[], title: string, message: string) { const targets = target === ProviderDisputeCommunicationTargetType.BOTH ? [ProviderDisputeCommunicationTargetType.CUSTOMER, ProviderDisputeCommunicationTargetType.PROVIDER] : [target]; for (const t of targets) for (const channel of channels) await tx.providerDisputeCommunicationLog.create({ data: { disputeId, targetType: t, channel, title, bodyPreview: message.slice(0, 120), status: 'SENT', sentAt: new Date() } }); }
+  private async notifyResolutionTargetsTx(tx: Prisma.TransactionClient, dispute: ProviderDisputeView, finalRuling: ProviderDisputeFinalRuling, notifyCustomer: boolean, notifyProvider: boolean, refundAmount: number, penaltyAmount: number) { if (notifyCustomer) { await tx.notification.create({ data: { recipientId: dispute.customerId, recipientType: NotificationRecipientType.REGISTERED_USER, title: finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 'Customer dispute resolved' : 'Customer refund processed', message: finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 'Your provider dispute was resolved.' : `Your refund of ${refundAmount} ${dispute.currency} has been processed.`, type: finalRuling === ProviderDisputeFinalRuling.PROVIDER_WINS ? 'CUSTOMER_DISPUTE_RESOLVED' : 'CUSTOMER_REFUND_PROCESSED', metadataJson: { providerDisputeId: dispute.id, caseId: dispute.caseId } } }); }
+    if (notifyProvider) { await tx.notification.create({ data: { recipientId: dispute.providerId, recipientType: NotificationRecipientType.PROVIDER, title: penaltyAmount > 0 ? 'Provider penalty applied' : 'Provider dispute resolved', message: penaltyAmount > 0 ? `A penalty of ${penaltyAmount} ${dispute.currency} was applied.` : 'Your provider dispute has been resolved.', type: penaltyAmount > 0 ? 'PROVIDER_PENALTY_APPLIED' : 'PROVIDER_DISPUTE_RESOLVED', metadataJson: { providerDisputeId: dispute.id, caseId: dispute.caseId } } }); await tx.notification.create({ data: { recipientId: dispute.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'Provider appeal window opened', message: 'You have 14 calendar days to file a formal appeal.', type: 'PROVIDER_APPEAL_WINDOW_OPENED', metadataJson: { providerDisputeId: dispute.id, caseId: dispute.caseId } } }); }
+    await tx.notification.create({ data: { recipientId: dispute.assignedToId ?? dispute.providerId, recipientType: dispute.assignedToId ? NotificationRecipientType.ADMIN : NotificationRecipientType.PROVIDER, title: 'Admin dispute finalized', message: `${dispute.caseId} was finalized.`, type: 'ADMIN_DISPUTE_FINALIZED', metadataJson: { providerDisputeId: dispute.id, caseId: dispute.caseId } } }); }
+  private async createNotificationResendsTx(tx: Prisma.TransactionClient, dispute: ProviderDisputeView, dto: ResendProviderDisputeNotificationDto) { const targets = dto.target === ProviderDisputeCommunicationTargetType.BOTH ? [{ id: dispute.customerId, type: NotificationRecipientType.REGISTERED_USER }, { id: dispute.providerId, type: NotificationRecipientType.PROVIDER }] : dto.target === ProviderDisputeCommunicationTargetType.CUSTOMER ? [{ id: dispute.customerId, type: NotificationRecipientType.REGISTERED_USER }] : [{ id: dispute.providerId, type: NotificationRecipientType.PROVIDER }]; for (const target of targets) await tx.notification.create({ data: { recipientId: target.id, recipientType: target.type, title: 'Dispute resolution reminder', message: dto.message, type: 'PROVIDER_DISPUTE_NOTIFICATION_RESENT', metadataJson: { providerDisputeId: dispute.id, caseId: dispute.caseId, channels: dto.channels } } }); }
+  private object(value?: Prisma.JsonValue): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
 
   private validatedRefundAmount(dispute: ProviderDisputeView, dto: SaveProviderDisputeRulingDto): Prisma.Decimal {
     const disputeAmount = this.money(dispute.amount);

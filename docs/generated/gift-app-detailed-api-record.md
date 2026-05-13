@@ -1,6 +1,6 @@
 # Gift App Detailed API Record
 
-_Generated from OpenAPI: 2026-05-13T09:30:49.232Z_
+_Generated from OpenAPI: 2026-05-13T09:56:32.119Z_
 
 ## 02 Admin - Roles & Permissions
 
@@ -252,6 +252,14 @@ Access: "Authenticated"
 
 ## 02 Admin - Provider Dispute Manager
 
+### `POST` `/api/v1/admin/provider-disputes/{id}/finalize`
+
+Summary: Finalize provider dispute
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
 ### `GET` `/api/v1/admin/provider-disputes/{id}/financial-impact`
 
 Summary: Fetch provider dispute financial impact
@@ -276,10 +284,42 @@ Access: "Authenticated"
 
 ## 02 Admin - Provider Dispute Manager
 
+### `POST` `/api/v1/admin/provider-disputes/{id}/notify-again`
+
+Summary: Resend provider dispute notifications
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
 ### `POST` `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage`
 
 Summary: Link payout and penalty adjustments
 Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/resolution`
+
+Summary: Fetch provider dispute resolution summary
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/resolution-log`
+
+Summary: Fetch provider dispute resolution log
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.
+Access: "Authenticated"
+
+## 02 Admin - Provider Dispute Manager
+
+### `GET` `/api/v1/admin/provider-disputes/{id}/resolution-log/export`
+
+Summary: Export provider dispute resolution log
+Description: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.
 Access: "Authenticated"
 
 ## 02 Admin - Provider Dispute Manager

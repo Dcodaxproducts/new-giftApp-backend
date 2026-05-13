@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DisputeNoteVisibility, ProviderDisputeAdjustmentType, ProviderDisputeCategory, ProviderDisputeEvidenceRequestTarget, ProviderDisputeRuling, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
+import { DisputeNoteVisibility, ProviderDisputeAdjustmentType, ProviderDisputeCategory, ProviderDisputeCommunicationChannel, ProviderDisputeCommunicationTargetType, ProviderDisputeEvidenceRequestTarget, ProviderDisputeRuling, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
@@ -75,4 +75,21 @@ export class FinalProviderDisputeAttestationDto {
   @ApiProperty({ example: true }) @IsBoolean() confirmFinancialLineItems!: boolean;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() sendAutomatedFinancialSummary?: boolean;
   @ApiPropertyOptional({ example: 'All financial line items confirmed as accurate.' }) @IsOptional() @IsString() @MaxLength(2000) comment?: string;
+}
+
+export class FinalizeProviderDisputeDto {
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyCustomer?: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyProvider?: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() executeFinancialAdjustments?: boolean;
+  @ApiPropertyOptional({ example: 'Final ruling confirmed and financial adjustments approved.' }) @IsOptional() @IsString() @MaxLength(2000) comment?: string;
+}
+
+export class ExportProviderDisputeResolutionLogDto {
+  @ApiPropertyOptional({ enum: ExportFormat, example: ExportFormat.PDF }) @IsOptional() @IsEnum(ExportFormat) format?: ExportFormat;
+}
+
+export class ResendProviderDisputeNotificationDto {
+  @ApiProperty({ enum: ProviderDisputeCommunicationTargetType, example: ProviderDisputeCommunicationTargetType.PROVIDER }) @IsEnum(ProviderDisputeCommunicationTargetType) target!: ProviderDisputeCommunicationTargetType;
+  @ApiProperty({ enum: ProviderDisputeCommunicationChannel, isArray: true, example: [ProviderDisputeCommunicationChannel.EMAIL, ProviderDisputeCommunicationChannel.IN_APP] }) @IsEnum(ProviderDisputeCommunicationChannel, { each: true }) channels!: ProviderDisputeCommunicationChannel[];
+  @ApiProperty({ example: 'Reminder: Your dispute resolution is available in the provider portal.' }) @IsString() @MaxLength(2000) message!: string;
 }

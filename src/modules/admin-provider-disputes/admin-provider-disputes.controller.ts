@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminProviderDisputesService } from './admin-provider-disputes.service';
-import { AddProviderDisputeNoteDto, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeDateRangeDto, RequestProviderDisputeEvidenceDto, SaveProviderDisputeRulingDto } from './dto/admin-provider-disputes.dto';
+import { AddProviderDisputeNoteDto, ExportProviderDisputeResolutionLogDto, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, FinalizeProviderDisputeDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeDateRangeDto, RequestProviderDisputeEvidenceDto, ResendProviderDisputeNotificationDto, SaveProviderDisputeRulingDto } from './dto/admin-provider-disputes.dto';
 
 @ApiTags('02 Admin - Provider Dispute Manager')
 @ApiBearerAuth()
@@ -34,6 +34,39 @@ export class AdminProviderDisputesController {
   @ApiOperation({ summary: 'List provider dispute queue', description: 'SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.' })
   list(@Query() query: ListProviderDisputesDto) { return this.providerDisputes.list(query); }
 
+
+
+  @Post(':id/finalize')
+  @ApiTags('02 Admin - Provider Dispute Resolution')
+  @Permissions('providerDisputes.resolve')
+  @ApiOperation({ summary: 'Finalize provider dispute', description: 'SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.' })
+  @ApiBody({ type: FinalizeProviderDisputeDto, examples: { finalize: { value: { notifyCustomer: true, notifyProvider: true, executeFinancialAdjustments: true, comment: 'Final ruling confirmed and financial adjustments approved.' } } } })
+  finalize(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: FinalizeProviderDisputeDto) { return this.providerDisputes.finalize(user, id, dto); }
+
+  @Get(':id/resolution')
+  @ApiTags('02 Admin - Provider Dispute Resolution')
+  @Permissions('providerDisputes.resolve')
+  @ApiOperation({ summary: 'Fetch provider dispute resolution summary', description: 'SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.' })
+  resolution(@Param('id') id: string) { return this.providerDisputes.resolution(id); }
+
+  @Get(':id/resolution-log/export')
+  @ApiTags('02 Admin - Provider Dispute Logs')
+  @Permissions('providerDisputes.logs.export')
+  @ApiOperation({ summary: 'Export provider dispute resolution log', description: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.' })
+  async exportResolutionLog(@Param('id') id: string, @Query() query: ExportProviderDisputeResolutionLogDto): Promise<StreamableFile> { const file = await this.providerDisputes.exportResolutionLog(id, query); return new StreamableFile(Buffer.from(file.content), { disposition: `attachment; filename="${file.filename}"`, type: file.contentType }); }
+
+  @Get(':id/resolution-log')
+  @ApiTags('02 Admin - Provider Dispute Logs')
+  @Permissions('providerDisputes.logs.read')
+  @ApiOperation({ summary: 'Fetch provider dispute resolution log', description: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.' })
+  resolutionLog(@Param('id') id: string) { return this.providerDisputes.resolutionLog(id); }
+
+  @Post(':id/notify-again')
+  @ApiTags('02 Admin - Provider Dispute Resolution')
+  @Permissions('providerDisputes.notify')
+  @ApiOperation({ summary: 'Resend provider dispute notifications', description: 'SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.' })
+  @ApiBody({ type: ResendProviderDisputeNotificationDto, examples: { provider: { value: { target: 'PROVIDER', channels: ['EMAIL', 'IN_APP'], message: 'Reminder: Your dispute resolution is available in the provider portal.' } } } })
+  notifyAgain(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ResendProviderDisputeNotificationDto) { return this.providerDisputes.notifyAgain(user, id, dto); }
 
   @Get(':id/ruling-summary')
   @ApiTags('02 Admin - Provider Dispute Rulings')
