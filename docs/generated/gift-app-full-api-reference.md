@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-14 06:24 UTC
+Generated: 2026-05-14 11:06 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -31,6 +31,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Financial Adjustments (3 APIs)
 - 02 Admin - Provider Dispute Resolution (3 APIs)
 - 02 Admin - Provider Dispute Logs (2 APIs)
+- 03 Provider - Dashboard (1 APIs)
 - 03 Provider - Business Info (2 APIs)
 - 03 Provider - Buyer Chat (7 APIs)
 - 03 Provider - Reviews (7 APIs)
@@ -4296,6 +4297,70 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
+## 03 Provider - Dashboard
+
+### GET `/api/v1/provider/dashboard`
+
+- Summary: Fetch mobile provider dashboard
+- Allowed role/access: Authenticated
+- Notes: Access: Authenticated. Authenticated JWT required. PROVIDER only. providerId is derived from JWT. Pending, rejected, inactive, or suspended providers cannot access the dashboard.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "provider": {
+      "id": "provider_id",
+      "businessName": "Global Logistics Solutions",
+      "avatarUrl": "https://cdn.yourdomain.com/provider-avatars/provider.png",
+      "approvalStatus": "APPROVED",
+      "status": "ACTIVE"
+    },
+    "operationalSummary": {
+      "todayOrders": 24,
+      "pendingOrders": 12,
+      "activeOffers": 5,
+      "totalItems": 128
+    },
+    "performance": {
+      "range": "WEEKLY",
+      "labels": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "values": [
+        120,
+        180,
+        150,
+        110,
+        190,
+        260,
+        220
+      ],
+      "currency": "PKR"
+    },
+    "recentOrders": [
+      {
+        "id": "provider_order_id",
+        "orderNumber": "ORD-8821",
+        "itemName": "Nike Air Max 270",
+        "imageUrl": "https://cdn.yourdomain.com/gifts/shoe.png",
+        "amount": 120,
+        "currency": "PKR",
+        "status": "PAID",
+        "createdAgoText": "2m ago"
+      }
+    ]
+  },
+  "message": "Provider dashboard fetched successfully."
+}
+```
+
 ## 03 Provider - Business Info
 
 ### GET `/api/v1/provider/business-info`
@@ -4321,13 +4386,33 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 {
-  "businessName": "Sylvia Bond Care Services",
+  "businessName": "Global Logistics Solutions",
+  "legalName": "Global Logistics Solutions LLC",
   "taxId": "XX-XXXXXXX",
   "businessCategoryId": "category_id",
+  "email": "ops@globallogistics.com",
+  "phone": "+1 (555) 012-3456",
   "businessAddress": "123 Main Street",
   "serviceArea": "New York, USA",
   "headquarters": "New York, USA",
   "website": "https://www.sylviabond.com",
+  "storeAddress": {
+    "line1": "842 Industrial Way, Suite 102",
+    "city": "San Francisco",
+    "state": "CA",
+    "country": "USA",
+    "postalCode": "94107",
+    "latitude": 37.7749,
+    "longitude": -122.4194
+  },
+  "businessHours": [
+    {
+      "day": "MONDAY",
+      "isOpen": true,
+      "openTime": "09:00",
+      "closeTime": "18:00"
+    }
+  ],
   "fulfillmentMethods": [
     "PICKUP"
   ],

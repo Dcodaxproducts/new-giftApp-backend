@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
-import { UpdateProviderBusinessInfoDto } from './dto/provider-business-info.dto';
+import { ProviderBusinessHourDto, UpdateProviderBusinessInfoDto } from './dto/provider-business-info.dto';
 
 @Injectable()
 export class ProviderBusinessInfoService {
@@ -22,17 +22,31 @@ export class ProviderBusinessInfoService {
       await this.getProviderBusinessCategory(dto.businessCategoryId);
     }
 
-    const materialChange = ['businessName', 'taxId', 'businessCategoryId', 'businessAddress'].some(
-      (key) => dto[key as keyof UpdateProviderBusinessInfoDto] !== undefined,
-    );
+    const materialChange = [
+      'businessName',
+      'legalName',
+      'taxId',
+      'businessCategoryId',
+      'email',
+      'phone',
+      'businessAddress',
+      'storeAddress',
+      'businessHours',
+      'fulfillmentMethods',
+    ].some((key) => dto[key as keyof UpdateProviderBusinessInfoDto] !== undefined);
 
     const updated = await this.prisma.user.update({
       where: { id: user.uid },
       data: {
         providerBusinessName: dto.businessName?.trim(),
+        providerLegalName: dto.legalName?.trim(),
         providerTaxId: dto.taxId?.trim(),
         providerBusinessCategoryId: dto.businessCategoryId,
+        providerBusinessEmail: dto.email?.trim(),
+        providerBusinessPhone: dto.phone?.trim(),
         providerBusinessAddress: dto.businessAddress?.trim(),
+        providerStoreAddress: dto.storeAddress === undefined ? undefined : this.toJson(dto.storeAddress),
+        providerBusinessHours: dto.businessHours === undefined ? undefined : this.toJson(dto.businessHours),
         providerServiceArea: dto.serviceArea?.trim(),
         providerWebsite: dto.website?.trim(),
         location: dto.headquarters?.trim(),
@@ -49,8 +63,9 @@ export class ProviderBusinessInfoService {
         targetId: user.uid,
         targetType: 'PROVIDER',
         action: 'PROVIDER_BUSINESS_INFO_UPDATED',
-        beforeJson: this.auditInfo(provider),
-        afterJson: this.auditInfo(updated),
+        beforeJson: this.toJson(this.auditInfo(provider)),
+        afterJson: this.toJson(this.auditInfo(updated)),
+        metadataJson: { verificationRequired: materialChange },
       },
     });
 
@@ -102,24 +117,65 @@ export class ProviderBusinessInfoService {
 
     return {
       businessName: provider.providerBusinessName,
-      taxId: provider.providerTaxId,
+      legalName: provider.providerLegalName,
       businessCategory: category ? { id: category.id, name: category.name } : null,
       businessCategoryId: provider.providerBusinessCategoryId,
+      taxId: provider.providerTaxId,
+      email: provider.providerBusinessEmail ?? provider.email,
+      phone: provider.providerBusinessPhone ?? provider.phone,
+      website: provider.providerWebsite,
+      storeAddress: this.storeAddress(provider.providerStoreAddress, provider.providerBusinessAddress),
+      businessHours: this.businessHours(provider.providerBusinessHours),
+      fulfillmentMethods: this.stringArray(provider.providerFulfillmentMethods),
+      autoAcceptOrders: provider.providerAutoAcceptOrders,
+      verificationRequired: provider.providerApprovalStatus === ProviderApprovalStatus.PENDING || !provider.isApproved,
       businessAddress: provider.providerBusinessAddress,
       serviceArea: provider.providerServiceArea,
       headquarters: provider.location,
-      website: provider.providerWebsite,
-      fulfillmentMethods: Array.isArray(provider.providerFulfillmentMethods) ? provider.providerFulfillmentMethods : [],
-      autoAcceptOrders: provider.providerAutoAcceptOrders,
-      verificationRequired: provider.providerApprovalStatus === ProviderApprovalStatus.PENDING || !provider.isApproved,
+    };
+  }
+
+  private storeAddress(value: Prisma.JsonValue, fallback: string | null) {
+    if (this.isRecord(value)) {
+      return {
+        line1: this.optionalString(value.line1) ?? fallback,
+        city: this.optionalString(value.city),
+        state: this.optionalString(value.state),
+        country: this.optionalString(value.country),
+        postalCode: this.optionalString(value.postalCode),
+        latitude: this.optionalNumber(value.latitude),
+        longitude: this.optionalNumber(value.longitude),
+      };
+    }
+    return fallback ? { line1: fallback, city: null, state: null, country: null, postalCode: null, latitude: null, longitude: null } : null;
+  }
+
+  private businessHours(value: Prisma.JsonValue) {
+    return Array.isArray(value) ? value.map((item) => this.businessHour(item)).filter((item): item is ProviderBusinessHourDto => item !== null) : [];
+  }
+
+  private businessHour(value: unknown): ProviderBusinessHourDto | null {
+    if (!this.isRecord(value)) return null;
+    const day = this.optionalString(value.day);
+    if (!day) return null;
+    return {
+      day: day as ProviderBusinessHourDto['day'],
+      isOpen: value.isOpen === true,
+      openTime: this.optionalString(value.openTime),
+      closeTime: this.optionalString(value.closeTime),
     };
   }
 
   private auditInfo(provider: {
     providerBusinessName: string | null;
+    providerLegalName: string | null;
     providerTaxId: string | null;
     providerBusinessCategoryId: string | null;
+    providerBusinessEmail: string | null;
+    providerBusinessPhone: string | null;
     providerBusinessAddress: string | null;
+    providerStoreAddress: Prisma.JsonValue;
+    providerBusinessHours: Prisma.JsonValue;
     providerServiceArea: string | null;
     providerWebsite: string | null;
     location: string | null;
@@ -129,17 +185,40 @@ export class ProviderBusinessInfoService {
   }) {
     return {
       businessName: provider.providerBusinessName,
+      legalName: provider.providerLegalName,
       taxId: provider.providerTaxId,
       businessCategoryId: provider.providerBusinessCategoryId,
+      email: provider.providerBusinessEmail,
+      phone: provider.providerBusinessPhone,
       businessAddress: provider.providerBusinessAddress,
+      storeAddress: this.storeAddress(provider.providerStoreAddress, provider.providerBusinessAddress),
+      businessHours: this.businessHours(provider.providerBusinessHours),
       serviceArea: provider.providerServiceArea,
       website: provider.providerWebsite,
       headquarters: provider.location,
-      fulfillmentMethods: Array.isArray(provider.providerFulfillmentMethods)
-        ? provider.providerFulfillmentMethods.map(String)
-        : [],
+      fulfillmentMethods: this.stringArray(provider.providerFulfillmentMethods),
       autoAcceptOrders: provider.providerAutoAcceptOrders,
       approvalStatus: provider.providerApprovalStatus,
     };
+  }
+
+  private stringArray(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  private optionalString(value: unknown): string | null {
+    return typeof value === 'string' ? value : null;
+  }
+
+  private optionalNumber(value: unknown): number | null {
+    return typeof value === 'number' ? value : null;
+  }
+
+  private toJson(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
   }
 }

@@ -7734,6 +7734,88 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.delete"
       }
     },
+    "/api/v1/provider/dashboard": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. providerId is derived from JWT. Pending, rejected, inactive, or suspended providers cannot access the dashboard.",
+        "operationId": "ProviderDashboardController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "provider": {
+                        "id": "provider_id",
+                        "businessName": "Global Logistics Solutions",
+                        "avatarUrl": "https://cdn.yourdomain.com/provider-avatars/provider.png",
+                        "approvalStatus": "APPROVED",
+                        "status": "ACTIVE"
+                      },
+                      "operationalSummary": {
+                        "todayOrders": 24,
+                        "pendingOrders": 12,
+                        "activeOffers": 5,
+                        "totalItems": 128
+                      },
+                      "performance": {
+                        "range": "WEEKLY",
+                        "labels": [
+                          "Mon",
+                          "Tue",
+                          "Wed",
+                          "Thu",
+                          "Fri",
+                          "Sat",
+                          "Sun"
+                        ],
+                        "values": [
+                          120,
+                          180,
+                          150,
+                          110,
+                          190,
+                          260,
+                          220
+                        ],
+                        "currency": "PKR"
+                      },
+                      "recentOrders": [
+                        {
+                          "id": "provider_order_id",
+                          "orderNumber": "ORD-8821",
+                          "itemName": "Nike Air Max 270",
+                          "imageUrl": "https://cdn.yourdomain.com/gifts/shoe.png",
+                          "amount": 120,
+                          "currency": "PKR",
+                          "status": "PAID",
+                          "createdAgoText": "2m ago"
+                        }
+                      ]
+                    },
+                    "message": "Provider dashboard fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch mobile provider dashboard",
+        "tags": [
+          "03 Provider - Dashboard"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
     "/api/v1/provider/business-info": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.",
@@ -21097,6 +21179,9 @@
       "name": "02 Admin - Provider Dispute Logs"
     },
     {
+      "name": "03 Provider - Dashboard"
+    },
+    {
       "name": "03 Provider - Business Info"
     },
     {
@@ -22667,12 +22752,81 @@
           }
         }
       },
+      "ProviderStoreAddressDto": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "example": "842 Industrial Way, Suite 102"
+          },
+          "city": {
+            "type": "string",
+            "example": "San Francisco"
+          },
+          "state": {
+            "type": "string",
+            "example": "CA"
+          },
+          "country": {
+            "type": "string",
+            "example": "USA"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "94107"
+          },
+          "latitude": {
+            "type": "number",
+            "example": 37.7749
+          },
+          "longitude": {
+            "type": "number",
+            "example": -122.4194
+          }
+        }
+      },
+      "ProviderBusinessHourDto": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ],
+            "example": "MONDAY"
+          },
+          "isOpen": {
+            "type": "boolean",
+            "example": true
+          },
+          "openTime": {
+            "type": "object",
+            "example": "09:00",
+            "nullable": true
+          },
+          "closeTime": {
+            "type": "object",
+            "example": "18:00",
+            "nullable": true
+          }
+        }
+      },
       "UpdateProviderBusinessInfoDto": {
         "type": "object",
         "properties": {
           "businessName": {
             "type": "string",
-            "example": "Sylvia Bond Care Services"
+            "example": "Global Logistics Solutions"
+          },
+          "legalName": {
+            "type": "string",
+            "example": "Global Logistics Solutions LLC"
           },
           "taxId": {
             "type": "string",
@@ -22681,6 +22835,14 @@
           "businessCategoryId": {
             "type": "string",
             "example": "category_id"
+          },
+          "email": {
+            "type": "string",
+            "example": "ops@globallogistics.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1 (555) 012-3456"
           },
           "businessAddress": {
             "type": "string",
@@ -22697,6 +22859,15 @@
           "website": {
             "type": "string",
             "example": "https://www.sylviabond.com"
+          },
+          "storeAddress": {
+            "$ref": "#/components/schemas/ProviderStoreAddressDto"
+          },
+          "businessHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderBusinessHourDto"
+            }
           },
           "fulfillmentMethods": {
             "type": "array",
