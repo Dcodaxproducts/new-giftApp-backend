@@ -19973,6 +19973,810 @@
         "x-access": "SUPER_ADMIN"
       }
     },
+    "/api/v1/admin/social-moderation/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read.",
+        "operationId": "SocialModerationController_stats",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LAST_24_HOURS",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalFlaggedPosts": 245,
+                      "pendingReports": 38,
+                      "highSeverityReports": 12,
+                      "removedPosts": 19,
+                      "hiddenPosts": 44,
+                      "warningsSent": 28
+                    },
+                    "message": "Social moderation stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch social moderation stats",
+        "tags": [
+          "02 Admin - Social Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with socialModeration.read"
+      }
+    },
+    "/api/v1/admin/social-moderation/export": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. SUPER_ADMIN or ADMIN with socialModeration.export. Exports moderation-safe fields only.",
+        "operationId": "SocialModerationController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reportType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SPAM",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "FALSE_INFORMATION",
+                "INAPPROPRIATE",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PENDING",
+                "REVIEWED",
+                "HIDDEN",
+                "REMOVED",
+                "WARNED",
+                "DISMISSED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "reportCount",
+                "severity"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export social moderation log",
+        "tags": [
+          "02 Admin - Social Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialModeration.export",
+        "x-access": "SUPER_ADMIN or ADMIN with socialModeration.export"
+      }
+    },
+    "/api/v1/admin/social-moderation/reports": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Search supports post content, user name, username, report ID, and post ID.",
+        "operationId": "SocialModerationController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reportType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SPAM",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "FALSE_INFORMATION",
+                "INAPPROPRIATE",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PENDING",
+                "REVIEWED",
+                "HIDDEN",
+                "REMOVED",
+                "WARNED",
+                "DISMISSED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "reportCount",
+                "severity"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List social moderation reports",
+        "tags": [
+          "02 Admin - Social Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with socialModeration.read"
+      }
+    },
+    "/api/v1/admin/social-moderation/reports/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Returns post inspection drawer data and report history.",
+        "operationId": "SocialModerationController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch social report inspection details",
+        "tags": [
+          "02 Admin - Social Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with socialModeration.read"
+      }
+    },
+    "/api/v1/admin/social-moderation/reports/{id}/action": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. SUPER_ADMIN or ADMIN with socialModeration.moderate. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.",
+        "operationId": "SocialModerationController_action",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialModerationActionDto"
+              },
+              "examples": {
+                "hide": {
+                  "value": {
+                    "action": "HIDE",
+                    "reason": "SPAM",
+                    "comment": "Post hidden due to deceptive link reports.",
+                    "notifyUser": true
+                  }
+                },
+                "remove": {
+                  "value": {
+                    "action": "REMOVE",
+                    "reason": "DECEPTIVE_LINK",
+                    "comment": "Post removed after manual review.",
+                    "notifyUser": true
+                  }
+                },
+                "warn": {
+                  "value": {
+                    "action": "WARN_USER",
+                    "reason": "INAPPROPRIATE_BEHAVIOR",
+                    "comment": "Warning issued for repeated spam behavior.",
+                    "notifyUser": true
+                  }
+                },
+                "reviewed": {
+                  "value": {
+                    "action": "MARK_REVIEWED",
+                    "comment": "Reviewed and no additional action required.",
+                    "notifyUser": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run social moderation action",
+        "tags": [
+          "02 Admin - Social Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialModeration.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with socialModeration.moderate"
+      }
+    },
+    "/api/v1/admin/social-reporting-rules/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.",
+        "operationId": "SocialReportingRulesController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch social reporting rule stats",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.read",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.read"
+      }
+    },
+    "/api/v1/admin/social-reporting-rules/export": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. SUPER_ADMIN or ADMIN with socialReportingRules.export.",
+        "operationId": "SocialReportingRulesController_exportRules",
+        "parameters": [
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export social reporting rules",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.export",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.export"
+      }
+    },
+    "/api/v1/admin/social-reporting-rules": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.",
+        "operationId": "SocialReportingRulesController_rules",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "reportCategory",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "lastModifiedAt",
+                "autoFlagThreshold"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List social reporting rules",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.read",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.read"
+      },
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission. SUPER_ADMIN or ADMIN with socialReportingRules.create.",
+        "operationId": "SocialReportingRulesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSocialReportingRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create social reporting rule",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.create",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.create"
+      }
+    },
+    "/api/v1/admin/social-reporting-rules/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.",
+        "operationId": "SocialReportingRulesController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch social reporting rule details",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.read",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.",
+        "operationId": "SocialReportingRulesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSocialReportingRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update social reporting rule",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.update",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.update"
+      },
+      "delete": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Historical moderation logs remain intact.",
+        "operationId": "SocialReportingRulesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft-delete social reporting rule",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.delete"
+      }
+    },
+    "/api/v1/admin/social-reporting-rules/{id}/status": {
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.",
+        "operationId": "SocialReportingRulesController_status",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSocialReportingRuleStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update social reporting rule status",
+        "tags": [
+          "02 Admin - Social Reporting Rules"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.update",
+        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.update"
+      }
+    },
     "/api/v1/uploads/presigned-url": {
       "post": {
         "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Backend derives ownerId/ownerRole from JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, admin-only when authorized, and allowed for SUPER_ADMIN. Backend derives ownerId/ownerRole from the authenticated JWT. targetAccountId is forbidden for REGISTERED_USER and PROVIDER, allowed only for SUPER_ADMIN/authorized ADMIN dashboard uploads. Include giftId only for gift image uploads.",
@@ -20240,6 +21044,12 @@
     },
     {
       "name": "02 Admin - Transaction Monitoring"
+    },
+    {
+      "name": "02 Admin - Social Moderation"
+    },
+    {
+      "name": "02 Admin - Social Reporting Rules"
     },
     {
       "name": "02 Admin - Referral Settings"
@@ -24716,6 +25526,129 @@
           "recipientContactId",
           "deliveryDate",
           "paymentMethod"
+        ]
+      },
+      "SocialModerationActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "HIDE",
+              "REMOVE",
+              "WARN_USER",
+              "MARK_REVIEWED",
+              "DISMISS_REPORT",
+              "RESTORE"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "SPAM",
+              "HARASSMENT",
+              "HATE_SPEECH",
+              "FALSE_INFORMATION",
+              "INAPPROPRIATE",
+              "INAPPROPRIATE_BEHAVIOR",
+              "INAPPROPRIATE_CONTENT",
+              "DECEPTIVE_LINK",
+              "POLICY_VIOLATION",
+              "OTHER"
+            ]
+          },
+          "comment": {
+            "type": "string"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "CreateSocialReportingRuleDto": {
+        "type": "object",
+        "properties": {
+          "reportCategory": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "iconKey": {
+            "type": "string"
+          },
+          "autoFlagThreshold": {
+            "type": "number"
+          },
+          "escalationRule": {
+            "type": "string",
+            "enum": [
+              "AUTO_HIDE_CONTENT",
+              "SEND_TO_SENIOR_MODERATOR",
+              "IMMEDIATE_REVIEW",
+              "FACT_CHECK_QUEUE",
+              "MANUAL_REVIEW"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reportCategory",
+          "label",
+          "autoFlagThreshold",
+          "escalationRule"
+        ]
+      },
+      "UpdateSocialReportingRuleDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "iconKey": {
+            "type": "string"
+          },
+          "autoFlagThreshold": {
+            "type": "number"
+          },
+          "escalationRule": {
+            "type": "string",
+            "enum": [
+              "AUTO_HIDE_CONTENT",
+              "SEND_TO_SENIOR_MODERATOR",
+              "IMMEDIATE_REVIEW",
+              "FACT_CHECK_QUEUE",
+              "MANUAL_REVIEW"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateSocialReportingRuleStatusDto": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "isActive"
         ]
       },
       "CreatePresignedUploadDto": {

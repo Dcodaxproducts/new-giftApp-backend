@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-14 05:52 UTC
+Generated: 2026-05-14 06:08 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -14,6 +14,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Business Categories (5 APIs)
 - 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
+- 02 Admin - Social Moderation (5 APIs)
+- 02 Admin - Social Reporting Rules (8 APIs)
 - 02 Admin - Referral Settings (6 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
@@ -2194,6 +2196,323 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "createdAt": "2026-10-24T14:20:00.000Z"
   },
   "message": "Transaction details fetched successfully."
+}
+```
+
+## 02 Admin - Social Moderation
+
+### GET `/api/v1/admin/social-moderation/stats`
+
+- Summary: Fetch social moderation stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "totalFlaggedPosts": 245,
+    "pendingReports": 38,
+    "highSeverityReports": 12,
+    "removedPosts": 19,
+    "hiddenPosts": 44,
+    "warningsSent": 28
+  },
+  "message": "Social moderation stats fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/social-moderation/export`
+
+- Summary: Export social moderation log
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.export
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. SUPER_ADMIN or ADMIN with socialModeration.export. Exports moderation-safe fields only.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `reportType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `severity` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+  - `format` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/social-moderation/reports`
+
+- Summary: List social moderation reports
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Search supports post content, user name, username, report ID, and post ID.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `reportType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `severity` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/social-moderation/reports/{id}`
+
+- Summary: Fetch social report inspection details
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Returns post inspection drawer data and report history.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/social-moderation/reports/{id}/action`
+
+- Summary: Run social moderation action
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.moderate
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. SUPER_ADMIN or ADMIN with socialModeration.moderate. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - hide:
+```json
+{
+  "action": "HIDE",
+  "reason": "SPAM",
+  "comment": "Post hidden due to deceptive link reports.",
+  "notifyUser": true
+}
+```
+  - remove:
+```json
+{
+  "action": "REMOVE",
+  "reason": "DECEPTIVE_LINK",
+  "comment": "Post removed after manual review.",
+  "notifyUser": true
+}
+```
+  - warn:
+```json
+{
+  "action": "WARN_USER",
+  "reason": "INAPPROPRIATE_BEHAVIOR",
+  "comment": "Warning issued for repeated spam behavior.",
+  "notifyUser": true
+}
+```
+  - reviewed:
+```json
+{
+  "action": "MARK_REVIEWED",
+  "comment": "Reviewed and no additional action required.",
+  "notifyUser": false
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - Social Reporting Rules
+
+### GET `/api/v1/admin/social-reporting-rules/stats`
+
+- Summary: Fetch social reporting rule stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/social-reporting-rules/export`
+
+- Summary: Export social reporting rules
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.export
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. SUPER_ADMIN or ADMIN with socialReportingRules.export.
+- Parameters:
+  - `format` (query, optional, string)
+  - `isActive` (query, optional, boolean)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/social-reporting-rules`
+
+- Summary: List social reporting rules
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `isActive` (query, optional, boolean)
+  - `reportCategory` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/social-reporting-rules`
+
+- Summary: Create social reporting rule
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.create
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission. SUPER_ADMIN or ADMIN with socialReportingRules.create.
+- Request payload(s):
+  - payload:
+```json
+{
+  "reportCategory": "<string>",
+  "label": "<string>",
+  "description": "<string>",
+  "iconKey": "<string>",
+  "autoFlagThreshold": 1.0,
+  "escalationRule": "AUTO_HIDE_CONTENT",
+  "isActive": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/social-reporting-rules/{id}`
+
+- Summary: Fetch social reporting rule details
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/admin/social-reporting-rules/{id}`
+
+- Summary: Update social reporting rule
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.update
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "label": "<string>",
+  "description": "<string>",
+  "iconKey": "<string>",
+  "autoFlagThreshold": 1.0,
+  "escalationRule": "AUTO_HIDE_CONTENT",
+  "isActive": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### DELETE `/api/v1/admin/social-reporting-rules/{id}`
+
+- Summary: Soft-delete social reporting rule
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.delete
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Historical moderation logs remain intact.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/admin/social-reporting-rules/{id}/status`
+
+- Summary: Update social reporting rule status
+- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.update
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "isActive": true,
+  "reason": "<string>"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
 }
 ```
 

@@ -420,6 +420,62 @@ enum ProviderFulfillmentMethod {
   DELIVERY
 }
 
+enum SocialPostVisibility {
+  PUBLIC
+  HIDDEN
+}
+
+enum SocialPostStatus {
+  ACTIVE
+  REMOVED
+}
+
+enum SocialReportReason {
+  SPAM
+  HARASSMENT
+  HATE_SPEECH
+  FALSE_INFORMATION
+  INAPPROPRIATE
+  INAPPROPRIATE_BEHAVIOR
+  INAPPROPRIATE_CONTENT
+  DECEPTIVE_LINK
+  POLICY_VIOLATION
+  OTHER
+}
+
+enum SocialReportSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SocialReportStatus {
+  PENDING
+  REVIEWED
+  HIDDEN
+  REMOVED
+  WARNED
+  DISMISSED
+}
+
+enum SocialModerationAction {
+  HIDE
+  REMOVE
+  WARN_USER
+  MARK_REVIEWED
+  DISMISS_REPORT
+  RESTORE
+}
+
+enum SocialReportingEscalationRule {
+  AUTO_HIDE_CONTENT
+  SEND_TO_SENIOR_MODERATOR
+  IMMEDIATE_REVIEW
+  FACT_CHECK_QUEUE
+  MANUAL_REVIEW
+}
+
 enum ReviewStatus {
   PUBLISHED
   PENDING
@@ -801,6 +857,11 @@ model User {
   finalAttestedProviderDisputes       ProviderDisputeCase[]                @relation("ProviderDisputeFinalAttestor")
   finalizedProviderDisputeResolutions ProviderDisputeResolution[]          @relation("ProviderDisputeFinalizer")
   providerFinancialAdjustments        ProviderFinancialAdjustment[]
+  socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
+  socialReports                       SocialReport[]                       @relation("SocialReportReporter")
+  socialModerationLogs                SocialModerationLog[]                @relation("SocialModerationActor")
+  socialWarnings                      UserWarning[]                        @relation("WarnedUser")
+  issuedSocialWarnings                UserWarning[]                        @relation("WarningIssuer")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
@@ -2004,6 +2065,110 @@ model ProviderReport {
   @@index([providerId, status])
   @@index([orderId])
   @@map("provider_reports")
+}
+
+model SocialPost {
+  id            String               @id @default(cuid())
+  userId        String               @map("user_id")
+  content       String
+  mediaUrlsJson Json                 @default("[]") @map("media_urls_json")
+  visibility    SocialPostVisibility @default(PUBLIC)
+  status        SocialPostStatus     @default(ACTIVE)
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  user           User                  @relation("SocialPostAuthor", fields: [userId], references: [id])
+  reports        SocialReport[]
+  moderationLogs SocialModerationLog[]
+  warnings       UserWarning[]
+
+  @@index([userId, createdAt])
+  @@index([visibility, status])
+  @@map("social_posts")
+}
+
+model SocialReport {
+  id           String               @id @default(cuid())
+  reportId     String               @unique @map("report_id")
+  postId       String               @map("post_id")
+  reportedById String               @map("reported_by_id")
+  reason       SocialReportReason
+  comment      String?
+  severity     SocialReportSeverity @default(LOW)
+  status       SocialReportStatus   @default(PENDING)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  post           SocialPost            @relation(fields: [postId], references: [id])
+  reportedBy     User                  @relation("SocialReportReporter", fields: [reportedById], references: [id])
+  moderationLogs SocialModerationLog[]
+  warnings       UserWarning[]
+
+  @@index([postId, status, createdAt])
+  @@index([reportedById, createdAt])
+  @@index([reason, status])
+  @@index([severity, status])
+  @@map("social_reports")
+}
+
+model SocialModerationLog {
+  id             String                 @id @default(cuid())
+  socialReportId String                 @map("social_report_id")
+  postId         String                 @map("post_id")
+  actorId        String                 @map("actor_id")
+  action         SocialModerationAction
+  reason         SocialReportReason?
+  comment        String?
+  beforeJson     Json?                  @map("before_json")
+  afterJson      Json?                  @map("after_json")
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz
+
+  report SocialReport @relation(fields: [socialReportId], references: [id])
+  post   SocialPost   @relation(fields: [postId], references: [id])
+  actor  User         @relation("SocialModerationActor", fields: [actorId], references: [id])
+
+  @@index([socialReportId, createdAt])
+  @@index([postId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("social_moderation_logs")
+}
+
+model SocialReportingRule {
+  id                String                        @id @default(cuid())
+  reportCategory    String                        @unique @map("report_category")
+  label             String
+  description       String?
+  iconKey           String?                       @map("icon_key")
+  autoFlagThreshold Int                           @default(10) @map("auto_flag_threshold")
+  escalationRule    SocialReportingEscalationRule @default(MANUAL_REVIEW) @map("escalation_rule")
+  isActive          Boolean                       @default(true) @map("is_active")
+  createdAt         DateTime                      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                      @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?                     @map("deleted_at") @db.Timestamptz
+
+  @@index([isActive, deletedAt])
+  @@index([autoFlagThreshold])
+  @@map("social_reporting_rules")
+}
+
+model UserWarning {
+  id             String             @id @default(cuid())
+  userId         String             @map("user_id")
+  socialReportId String             @map("social_report_id")
+  postId         String             @map("post_id")
+  reason         SocialReportReason
+  message        String
+  issuedById     String             @map("issued_by_id")
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  user     User         @relation("WarnedUser", fields: [userId], references: [id])
+  report   SocialReport @relation(fields: [socialReportId], references: [id])
+  post     SocialPost   @relation(fields: [postId], references: [id])
+  issuedBy User         @relation("WarningIssuer", fields: [issuedById], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([socialReportId])
+  @@map("user_warnings")
 }
 
 model DisputeCase {

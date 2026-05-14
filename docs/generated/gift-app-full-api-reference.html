@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 05:52 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 06:08 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -783,6 +783,102 @@
     &quot;createdAt&quot;: &quot;2026-10-24T14:20:00.000Z&quot;
   },
   &quot;message&quot;: &quot;Transaction details fetched successfully.&quot;
+}</pre></div><h2>02 Admin - Social Moderation</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-moderation/stats</code></div><div><span class="label">Summary:</span> Fetch social moderation stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialModeration.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read.</div><div class="label">Parameters:</div><ul><li><code>range</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalFlaggedPosts&quot;: 245,
+    &quot;pendingReports&quot;: 38,
+    &quot;highSeverityReports&quot;: 12,
+    &quot;removedPosts&quot;: 19,
+    &quot;hiddenPosts&quot;: 44,
+    &quot;warningsSent&quot;: 28
+  },
+  &quot;message&quot;: &quot;Social moderation stats fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-moderation/export</code></div><div><span class="label">Summary:</span> Export social moderation log</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialModeration.export</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. SUPER_ADMIN or ADMIN with socialModeration.export. Exports moderation-safe fields only.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>reportType</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>severity</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li><li><code>format</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-moderation/reports</code></div><div><span class="label">Summary:</span> List social moderation reports</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialModeration.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Search supports post content, user name, username, report ID, and post ID.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>reportType</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>severity</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-moderation/reports/{id}</code></div><div><span class="label">Summary:</span> Fetch social report inspection details</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialModeration.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Returns post inspection drawer data and report history.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/social-moderation/reports/{id}/action</code></div><div><span class="label">Summary:</span> Run social moderation action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialModeration.moderate</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. SUPER_ADMIN or ADMIN with socialModeration.moderate. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">hide</div><pre>{
+  &quot;action&quot;: &quot;HIDE&quot;,
+  &quot;reason&quot;: &quot;SPAM&quot;,
+  &quot;comment&quot;: &quot;Post hidden due to deceptive link reports.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">remove</div><pre>{
+  &quot;action&quot;: &quot;REMOVE&quot;,
+  &quot;reason&quot;: &quot;DECEPTIVE_LINK&quot;,
+  &quot;comment&quot;: &quot;Post removed after manual review.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">warn</div><pre>{
+  &quot;action&quot;: &quot;WARN_USER&quot;,
+  &quot;reason&quot;: &quot;INAPPROPRIATE_BEHAVIOR&quot;,
+  &quot;comment&quot;: &quot;Warning issued for repeated spam behavior.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">reviewed</div><pre>{
+  &quot;action&quot;: &quot;MARK_REVIEWED&quot;,
+  &quot;comment&quot;: &quot;Reviewed and no additional action required.&quot;,
+  &quot;notifyUser&quot;: false
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><h2>02 Admin - Social Reporting Rules</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-reporting-rules/stats</code></div><div><span class="label">Summary:</span> Fetch social reporting rule stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-reporting-rules/export</code></div><div><span class="label">Summary:</span> Export social reporting rules</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.export</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. SUPER_ADMIN or ADMIN with socialReportingRules.export.</div><div class="label">Parameters:</div><ul><li><code>format</code> (query, optional, string) </li><li><code>isActive</code> (query, optional, boolean) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-reporting-rules</code></div><div><span class="label">Summary:</span> List social reporting rules</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>isActive</code> (query, optional, boolean) </li><li><code>reportCategory</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/social-reporting-rules</code></div><div><span class="label">Summary:</span> Create social reporting rule</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.create</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission. SUPER_ADMIN or ADMIN with socialReportingRules.create.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+  &quot;reportCategory&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;label&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;description&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;iconKey&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;autoFlagThreshold&quot;: 1.0,
+  &quot;escalationRule&quot;: &quot;AUTO_HIDE_CONTENT&quot;,
+  &quot;isActive&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/social-reporting-rules/{id}</code></div><div><span class="label">Summary:</span> Fetch social reporting rule details</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/social-reporting-rules/{id}</code></div><div><span class="label">Summary:</span> Update social reporting rule</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+  &quot;label&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;description&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;iconKey&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;autoFlagThreshold&quot;: 1.0,
+  &quot;escalationRule&quot;: &quot;AUTO_HIDE_CONTENT&quot;,
+  &quot;isActive&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method DELETE">DELETE</span> <code>/api/v1/admin/social-reporting-rules/{id}</code></div><div><span class="label">Summary:</span> Soft-delete social reporting rule</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.delete</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Historical moderation logs remain intact.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>&quot;&lt;standard success envelope&gt;&quot;</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/social-reporting-rules/{id}/status</code></div><div><span class="label">Summary:</span> Update social reporting rule status</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with socialReportingRules.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+  &quot;isActive&quot;: true,
+  &quot;reason&quot;: &quot;&lt;string&gt;&quot;
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
 }</pre></div><h2>02 Admin - Referral Settings</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/referral-settings</code></div><div><span class="label">Summary:</span> Fetch referral settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with referralSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {

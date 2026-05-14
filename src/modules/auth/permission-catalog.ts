@@ -251,6 +251,30 @@ export const PERMISSION_CATALOG = [
       { key: 'update', label: 'Update Referral Settings', description: 'Update global referral program settings.' },
     ],
   },
+
+  {
+    module: 'socialModeration',
+    label: 'Social Moderation',
+    permissions: [
+      { key: 'read', label: 'View Social Moderation', description: 'View social feed moderation stats, queue, and details.' },
+      { key: 'moderate', label: 'Moderate Social Content', description: 'Run social moderation actions.' },
+      { key: 'hide', label: 'Hide Social Posts', description: 'Hide reported social feed posts.' },
+      { key: 'remove', label: 'Remove Social Posts', description: 'Remove reported social feed posts.' },
+      { key: 'warn', label: 'Warn Social Users', description: 'Issue social feed warnings.' },
+      { key: 'export', label: 'Export Social Moderation', description: 'Export social moderation logs.' },
+    ],
+  },
+  {
+    module: 'socialReportingRules',
+    label: 'Social Reporting Rules',
+    permissions: [
+      { key: 'read', label: 'View Social Reporting Rules', description: 'View social reporting rule settings.' },
+      { key: 'create', label: 'Create Social Reporting Rules', description: 'Create report categories and escalation rules.' },
+      { key: 'update', label: 'Update Social Reporting Rules', description: 'Update reporting rules and status.' },
+      { key: 'delete', label: 'Delete Social Reporting Rules', description: 'Soft-delete social reporting rules.' },
+      { key: 'export', label: 'Export Social Reporting Rules', description: 'Export social reporting rules.' },
+    ],
+  },
   {
     module: 'reviews',
     label: 'Reviews Management',

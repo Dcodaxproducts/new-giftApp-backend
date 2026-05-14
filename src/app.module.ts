@@ -33,6 +33,7 @@ import { ProviderRefundRequestsModule } from './modules/provider-refund-requests
 import { RefundPolicySettingsModule } from './modules/refund-policy-settings/refund-policy-settings.module';
 import { ReferralSettingsModule } from './modules/referral-settings/referral-settings.module';
 import { PromotionalOffersModule } from './modules/promotional-offers/promotional-offers.module';
+import { SocialModerationModule } from './modules/social-moderation/social-moderation.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
@@ -73,6 +74,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     LoginAttemptsModule,
     PaymentsModule,
     AuditLogsModule,
+    SocialModerationModule,
     StorageModule,
   ],
   providers: [MediaUrlSignerService, ResponseInterceptor],
