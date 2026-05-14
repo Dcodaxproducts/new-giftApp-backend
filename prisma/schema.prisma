@@ -755,6 +755,7 @@ model User {
   uploadedFiles                       UploadedFile[]
   updatedMediaUploadPolicies          MediaUploadPolicy[]                  @relation("MediaUploadPolicyUpdater")
   updatedReferralSettings             ReferralSettings[]                   @relation("ReferralSettingsUpdater")
+  updatedRefundPolicySettings         RefundPolicySettings[]               @relation("RefundPolicySettingsUpdater")
   createdSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanCreator")
   updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
   createdCoupons                      Coupon[]                             @relation("CouponCreator")
@@ -849,6 +850,24 @@ model ReferralSettings {
 
   @@index([updatedById])
   @@map("referral_settings")
+}
+
+model RefundPolicySettings {
+  id                           String   @id @default(cuid())
+  refundWindowDays             Int      @default(30) @map("refund_window_days")
+  autoRefundThresholdAmount    Decimal  @default(50) @map("auto_refund_threshold_amount") @db.Decimal(10, 2)
+  currency                     String   @default("PKR")
+  autoApproveSmallRefunds      Boolean  @default(true) @map("auto_approve_small_refunds")
+  smallRefundAutoApproveAmount Decimal  @default(15) @map("small_refund_auto_approve_amount") @db.Decimal(10, 2)
+  eligibleCategoryIdsJson      Json     @default("[]") @map("eligible_category_ids_json")
+  updatedById                  String?  @map("updated_by_id")
+  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("RefundPolicySettingsUpdater", fields: [updatedById], references: [id])
+
+  @@index([updatedById])
+  @@map("refund_policy_settings")
 }
 
 model RewardLedger {

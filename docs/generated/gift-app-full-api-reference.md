@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-13 12:25 UTC
+Generated: 2026-05-14 05:20 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -14,6 +14,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Business Categories (5 APIs)
 - 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Referral Settings (6 APIs)
+- 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Logs & Audit Trail (6 APIs)
 - 02 Admin - Dispute Manager (8 APIs)
@@ -1998,6 +1999,132 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": "<response returned by endpoint>",
   "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - Refund Policy Settings
+
+### GET `/api/v1/admin/refund-policy-settings`
+
+- Summary: Fetch refund policy settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with refundPolicies.read
+- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, auto-refund, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "refundWindowDays": 30,
+    "autoRefundThresholdAmount": 50,
+    "currency": "PKR",
+    "autoApproveSmallRefunds": true,
+    "smallRefundAutoApproveAmount": 15,
+    "eligibleCategories": [
+      {
+        "id": "category_electronics",
+        "name": "Electronics"
+      },
+      {
+        "id": "category_apparel",
+        "name": "Apparel"
+      },
+      {
+        "id": "category_home_decor",
+        "name": "Home Decor"
+      }
+    ],
+    "lastUpdatedAt": "2026-05-14T10:00:00.000Z",
+    "lastUpdatedBy": {
+      "id": "admin_id",
+      "name": "Alex Rivera"
+    }
+  },
+  "message": "Refund policy settings fetched successfully."
+}
+```
+
+### PATCH `/api/v1/admin/refund-policy-settings`
+
+- Summary: Update refund policy settings
+- Allowed role/access: SUPER_ADMIN
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund rules. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.
+- Request payload(s):
+  - update:
+```json
+{
+  "refundWindowDays": 30,
+  "autoRefundThresholdAmount": 50,
+  "currency": "PKR",
+  "autoApproveSmallRefunds": true,
+  "smallRefundAutoApproveAmount": 15,
+  "eligibleCategoryIds": [
+    "category_electronics",
+    "category_apparel",
+    "category_home_decor"
+  ]
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "refundWindowDays": 30,
+    "autoRefundThresholdAmount": 50,
+    "currency": "PKR",
+    "autoApproveSmallRefunds": true,
+    "smallRefundAutoApproveAmount": 15,
+    "eligibleCategoryIds": [
+      "category_electronics",
+      "category_apparel",
+      "category_home_decor"
+    ],
+    "lastUpdatedAt": "2026-05-14T10:00:00.000Z"
+  },
+  "message": "Refund policy settings updated successfully."
+}
+```
+
+### GET `/api/v1/admin/refund-policy-settings/logs`
+
+- Summary: List refund policy audit logs
+- Allowed role/access: SUPER_ADMIN
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "audit_log_id",
+      "action": "REFUND_POLICY_SETTINGS_UPDATED",
+      "actor": {
+        "id": "admin_id",
+        "name": "Alex Rivera"
+      },
+      "before": {
+        "refundWindowDays": 14,
+        "autoRefundThresholdAmount": 25
+      },
+      "after": {
+        "refundWindowDays": 30,
+        "autoRefundThresholdAmount": 50
+      },
+      "createdAt": "2026-05-14T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Refund policy audit logs fetched successfully."
 }
 ```
 

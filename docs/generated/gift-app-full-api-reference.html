@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-13 12:25 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 05:20 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -669,6 +669,90 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><h2>02 Admin - Refund Policy Settings</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/refund-policy-settings</code></div><div><span class="label">Summary:</span> Fetch refund policy settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with refundPolicies.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, auto-refund, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;refundWindowDays&quot;: 30,
+    &quot;autoRefundThresholdAmount&quot;: 50,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;autoApproveSmallRefunds&quot;: true,
+    &quot;smallRefundAutoApproveAmount&quot;: 15,
+    &quot;eligibleCategories&quot;: [
+      {
+        &quot;id&quot;: &quot;category_electronics&quot;,
+        &quot;name&quot;: &quot;Electronics&quot;
+      },
+      {
+        &quot;id&quot;: &quot;category_apparel&quot;,
+        &quot;name&quot;: &quot;Apparel&quot;
+      },
+      {
+        &quot;id&quot;: &quot;category_home_decor&quot;,
+        &quot;name&quot;: &quot;Home Decor&quot;
+      }
+    ],
+    &quot;lastUpdatedAt&quot;: &quot;2026-05-14T10:00:00.000Z&quot;,
+    &quot;lastUpdatedBy&quot;: {
+      &quot;id&quot;: &quot;admin_id&quot;,
+      &quot;name&quot;: &quot;Alex Rivera&quot;
+    }
+  },
+  &quot;message&quot;: &quot;Refund policy settings fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/refund-policy-settings</code></div><div><span class="label">Summary:</span> Update refund policy settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund rules. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.</div><div class="label">Request payload(s):</div><div class="small">update</div><pre>{
+  &quot;refundWindowDays&quot;: 30,
+  &quot;autoRefundThresholdAmount&quot;: 50,
+  &quot;currency&quot;: &quot;PKR&quot;,
+  &quot;autoApproveSmallRefunds&quot;: true,
+  &quot;smallRefundAutoApproveAmount&quot;: 15,
+  &quot;eligibleCategoryIds&quot;: [
+    &quot;category_electronics&quot;,
+    &quot;category_apparel&quot;,
+    &quot;category_home_decor&quot;
+  ]
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;refundWindowDays&quot;: 30,
+    &quot;autoRefundThresholdAmount&quot;: 50,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;autoApproveSmallRefunds&quot;: true,
+    &quot;smallRefundAutoApproveAmount&quot;: 15,
+    &quot;eligibleCategoryIds&quot;: [
+      &quot;category_electronics&quot;,
+      &quot;category_apparel&quot;,
+      &quot;category_home_decor&quot;
+    ],
+    &quot;lastUpdatedAt&quot;: &quot;2026-05-14T10:00:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Refund policy settings updated successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/refund-policy-settings/logs</code></div><div><span class="label">Summary:</span> List refund policy audit logs</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;audit_log_id&quot;,
+      &quot;action&quot;: &quot;REFUND_POLICY_SETTINGS_UPDATED&quot;,
+      &quot;actor&quot;: {
+        &quot;id&quot;: &quot;admin_id&quot;,
+        &quot;name&quot;: &quot;Alex Rivera&quot;
+      },
+      &quot;before&quot;: {
+        &quot;refundWindowDays&quot;: 14,
+        &quot;autoRefundThresholdAmount&quot;: 25
+      },
+      &quot;after&quot;: {
+        &quot;refundWindowDays&quot;: 30,
+        &quot;autoRefundThresholdAmount&quot;: 50
+      },
+      &quot;createdAt&quot;: &quot;2026-05-14T10:00:00.000Z&quot;
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Refund policy audit logs fetched successfully.&quot;
 }</pre></div><h2>02 Admin - Media Upload Policy</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/media-upload-policy</code></div><div><span class="label">Summary:</span> Fetch global media upload policy</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with mediaPolicy.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {

@@ -217,6 +217,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'refundPolicies',
+    label: 'Refund Policy Settings',
+    permissions: [
+      { key: 'read', label: 'View Refund Policy Settings', description: 'View global refund policy settings.' },
+      { key: 'update', label: 'Update Refund Policy Settings', description: 'Update global refund rules.' },
+    ],
+  },
+  {
     module: 'settings',
     label: 'Settings',
     permissions: [

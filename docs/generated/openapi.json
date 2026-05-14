@@ -17555,6 +17555,230 @@
         "x-access": "SUPER_ADMIN"
       }
     },
+    "/api/v1/admin/refund-policy-settings": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, auto-refund, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.",
+        "operationId": "RefundPolicySettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "refundWindowDays": 30,
+                      "autoRefundThresholdAmount": 50,
+                      "currency": "PKR",
+                      "autoApproveSmallRefunds": true,
+                      "smallRefundAutoApproveAmount": 15,
+                      "eligibleCategories": [
+                        {
+                          "id": "category_electronics",
+                          "name": "Electronics"
+                        },
+                        {
+                          "id": "category_apparel",
+                          "name": "Apparel"
+                        },
+                        {
+                          "id": "category_home_decor",
+                          "name": "Home Decor"
+                        }
+                      ],
+                      "lastUpdatedAt": "2026-05-14T10:00:00.000Z",
+                      "lastUpdatedBy": {
+                        "id": "admin_id",
+                        "name": "Alex Rivera"
+                      }
+                    },
+                    "message": "Refund policy settings fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch refund policy settings",
+        "tags": [
+          "02 Admin - Refund Policy Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with refundPolicies.read",
+        "x-access": "SUPER_ADMIN or ADMIN with refundPolicies.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund rules. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.",
+        "operationId": "RefundPolicySettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRefundPolicySettingsDto"
+              },
+              "examples": {
+                "update": {
+                  "value": {
+                    "refundWindowDays": 30,
+                    "autoRefundThresholdAmount": 50,
+                    "currency": "PKR",
+                    "autoApproveSmallRefunds": true,
+                    "smallRefundAutoApproveAmount": 15,
+                    "eligibleCategoryIds": [
+                      "category_electronics",
+                      "category_apparel",
+                      "category_home_decor"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "refundWindowDays": 30,
+                      "autoRefundThresholdAmount": 50,
+                      "currency": "PKR",
+                      "autoApproveSmallRefunds": true,
+                      "smallRefundAutoApproveAmount": 15,
+                      "eligibleCategoryIds": [
+                        "category_electronics",
+                        "category_apparel",
+                        "category_home_decor"
+                      ],
+                      "lastUpdatedAt": "2026-05-14T10:00:00.000Z"
+                    },
+                    "message": "Refund policy settings updated successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update refund policy settings",
+        "tags": [
+          "02 Admin - Refund Policy Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/admin/refund-policy-settings/logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.",
+        "operationId": "RefundPolicySettingsController_logs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "audit_log_id",
+                        "action": "REFUND_POLICY_SETTINGS_UPDATED",
+                        "actor": {
+                          "id": "admin_id",
+                          "name": "Alex Rivera"
+                        },
+                        "before": {
+                          "refundWindowDays": 14,
+                          "autoRefundThresholdAmount": 25
+                        },
+                        "after": {
+                          "refundWindowDays": 30,
+                          "autoRefundThresholdAmount": 50
+                        },
+                        "createdAt": "2026-05-14T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Refund policy audit logs fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List refund policy audit logs",
+        "tags": [
+          "02 Admin - Refund Policy Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
     "/api/v1/customer/payments/create-intent": {
       "post": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
@@ -18838,6 +19062,9 @@
     },
     {
       "name": "02 Admin - Referral Settings"
+    },
+    {
+      "name": "02 Admin - Refund Policy Settings"
     },
     {
       "name": "02 Admin - Media Upload Policy"
@@ -23044,6 +23271,54 @@
           "maxAudioSizeMb",
           "scanUploads",
           "blockSvgUploads"
+        ]
+      },
+      "UpdateRefundPolicySettingsDto": {
+        "type": "object",
+        "properties": {
+          "refundWindowDays": {
+            "type": "number",
+            "example": 30,
+            "minimum": 1,
+            "maximum": 365
+          },
+          "autoRefundThresholdAmount": {
+            "type": "number",
+            "example": 50,
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "example": "PKR"
+          },
+          "autoApproveSmallRefunds": {
+            "type": "boolean",
+            "example": true
+          },
+          "smallRefundAutoApproveAmount": {
+            "type": "number",
+            "example": 15,
+            "minimum": 0
+          },
+          "eligibleCategoryIds": {
+            "example": [
+              "category_electronics",
+              "category_apparel",
+              "category_home_decor"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "refundWindowDays",
+          "autoRefundThresholdAmount",
+          "currency",
+          "autoApproveSmallRefunds",
+          "smallRefundAutoApproveAmount",
+          "eligibleCategoryIds"
         ]
       },
       "CreatePaymentIntentDto": {
