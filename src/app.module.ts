@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
+import { PublicController } from './public.controller';
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
 import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
 import { AdminTransactionsModule } from './modules/admin-transactions/admin-transactions.module';
@@ -83,6 +84,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     SocialModerationModule,
     StorageModule,
   ],
+  controllers: [PublicController],
   providers: [MediaUrlSignerService, ResponseInterceptor],
 })
 export class AppModule {}

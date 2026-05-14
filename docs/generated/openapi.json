@@ -1,6 +1,60 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/": {
+      "get": {
+        "description": "Access: PUBLIC. PUBLIC. PUBLIC. Returns HTML for browsers and JSON for API clients.",
+        "operationId": "PublicController_getHome",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Backend landing page",
+        "tags": [
+          "00 Public"
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Access: PUBLIC. PUBLIC. PUBLIC. Does not expose secrets or internal paths.",
+        "operationId": "PublicController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Health check",
+        "tags": [
+          "00 Public"
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "description": "Access: PUBLIC. PUBLIC. PUBLIC. Basic app readiness check.",
+        "operationId": "PublicController_getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Readiness check",
+        "tags": [
+          "00 Public"
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
+      }
+    },
     "/api/v1/auth/users/register": {
       "post": {
         "operationId": "AuthController_registerUser",
@@ -21878,6 +21932,9 @@
     "contact": {}
   },
   "tags": [
+    {
+      "name": "00 Public"
+    },
     {
       "name": "01 Auth"
     },

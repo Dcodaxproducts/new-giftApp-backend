@@ -1,4 +1,4 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
@@ -9,6 +9,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { applySwaggerAccessMetadata } from './swagger-access';
 
 export const SWAGGER_TAG_ORDER = [
+  '00 Public',
   '01 Auth',
   '01 Auth - Login Attempts',
   '02 Admin - Staff Management',
@@ -106,7 +107,13 @@ async function bootstrap(): Promise<void> {
 
   app.use(helmet({ contentSecurityPolicy: false }));
   app.enableCors({ origin: true, credentials: true });
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1', {
+    exclude: [
+      { path: '/', method: RequestMethod.GET },
+      { path: 'health', method: RequestMethod.GET },
+      { path: 'health/ready', method: RequestMethod.GET },
+    ],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -137,6 +144,7 @@ async function bootstrap(): Promise<void> {
         // sorter functions into swagger-ui-init.js, so referencing exported server-side
         // constants compiles to CommonJS `exports.*` and crashes in the browser.
         const tagOrder = [
+          '00 Public',
           '01 Auth',
           '01 Auth - Login Attempts',
           '02 Admin - Staff Management',

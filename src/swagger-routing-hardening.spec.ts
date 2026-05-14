@@ -19,6 +19,14 @@ describe('Swagger and static route hardening', () => {
     expect(main).toContain('document.tags = SWAGGER_TAG_ORDER.map');
   });
 
+  it('root public routes are excluded from api prefix and Swagger docs still mount at /docs', () => {
+    const main = readFileSync(join(root, 'src/main.ts'), 'utf8');
+    expect(main).toContain("path: '/'");
+    expect(main).toContain("path: 'health'");
+    expect(main).toContain("path: 'health/ready'");
+    expect(main).toContain("SwaggerModule.setup('docs'");
+  });
+
   it('customer transaction static routes do not resolve as transaction id', () => {
     const source = readFileSync(join(root, 'src/modules/customer-transactions/customer-transactions.controller.ts'), 'utf8');
     expectBefore(source, "@Get('summary')", "@Get(':id')");
