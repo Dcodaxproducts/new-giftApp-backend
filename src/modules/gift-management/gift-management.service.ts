@@ -82,6 +82,11 @@ export class GiftManagementService {
     };
   }
 
+  async lookupActiveCategories() {
+    const categories = await this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, backgroundColor: true, imageUrl: true, color: true } });
+    return { data: categories.map((category) => ({ ...category, backgroundColor: category.backgroundColor ?? category.color ?? '#F3E8FF' })), message: 'Gift category lookup fetched successfully' };
+  }
+
   async categoryStats() {
     const [totalCategories, activeGiftItems] = await this.prisma.$transaction([
       this.prisma.giftCategory.count({ where: { deletedAt: null } }),
