@@ -710,6 +710,29 @@ enum ProviderFinancialAdjustmentStatus {
   FAILED
 }
 
+enum ProviderPayoutMethodType {
+  BANK_ACCOUNT
+}
+
+enum ProviderPayoutAccountType {
+  CHECKING
+  SAVINGS
+  CURRENT
+  OTHER
+}
+
+enum ProviderPayoutExternalProvider {
+  STRIPE_CONNECT
+  PLAID
+  MANUAL
+}
+
+enum ProviderPayoutVerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
 enum ProviderDisputeFinalRuling {
   CUSTOMER_WINS
   PROVIDER_WINS
@@ -862,6 +885,7 @@ model User {
   finalAttestedProviderDisputes       ProviderDisputeCase[]                @relation("ProviderDisputeFinalAttestor")
   finalizedProviderDisputeResolutions ProviderDisputeResolution[]          @relation("ProviderDisputeFinalizer")
   providerFinancialAdjustments        ProviderFinancialAdjustment[]
+  providerPayoutMethods               ProviderPayoutMethod[]
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
   socialModerationLogs                SocialModerationLog[]                @relation("SocialModerationActor")
@@ -2414,6 +2438,35 @@ model ProviderFinancialAdjustment {
   @@index([providerId, createdAt])
   @@index([disputeId, createdAt])
   @@map("provider_financial_adjustments")
+}
+
+model ProviderPayoutMethod {
+  id                 String                           @id @default(cuid())
+  providerId         String                           @map("provider_id")
+  type               ProviderPayoutMethodType         @default(BANK_ACCOUNT)
+  accountHolderName  String                           @map("account_holder_name")
+  bankName           String                           @map("bank_name")
+  accountType        ProviderPayoutAccountType        @map("account_type")
+  country            String
+  currency           String                           @default("USD")
+  maskedAccount      String                           @map("masked_account")
+  last4              String
+  payerId            String                           @map("payer_id")
+  externalProvider   ProviderPayoutExternalProvider   @default(MANUAL) @map("external_provider")
+  externalAccountId  String?                          @map("external_account_id")
+  verificationStatus ProviderPayoutVerificationStatus @default(PENDING) @map("verification_status")
+  isDefault          Boolean                          @default(false) @map("is_default")
+  isActive           Boolean                          @default(true) @map("is_active")
+  deletedAt          DateTime?                        @map("deleted_at") @db.Timestamptz
+  createdAt          DateTime                         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                         @updatedAt @map("updated_at") @db.Timestamptz
+
+  provider User @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, deletedAt])
+  @@index([providerId, isDefault])
+  @@index([providerId, verificationStatus])
+  @@map("provider_payout_methods")
 }
 
 model ProviderDisputeResolution {

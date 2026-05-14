@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-14 11:06 UTC
+Generated: 2026-05-14 11:21 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -38,6 +38,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Inventory (8 APIs)
 - 03 Provider - Promotional Offers (6 APIs)
 - 03 Provider - Orders (13 APIs)
+- 03 Provider - Payout Methods (7 APIs)
 - 03 Provider - Refund Requests (6 APIs)
 - 03 Provider - Order Analytics (5 APIs)
 - 04 Gifts - Categories (7 APIs)
@@ -5534,6 +5535,182 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "reason": "OUT_OF_STOCK",
   "comment": "The selected size is currently unavailable."
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 03 Provider - Payout Methods
+
+### GET `/api/v1/provider/payout-methods`
+
+- Summary: List own provider payout methods
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT. Returns masked payout metadata only.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "primary": {
+      "id": "payout_method_id",
+      "type": "BANK_ACCOUNT",
+      "bankName": "Chase Bank",
+      "maskedAccount": "Checking Account **** 5678",
+      "accountHolderName": "Sylvia Bond",
+      "payerId": "SB-4491-001",
+      "verificationStatus": "VERIFIED",
+      "isDefault": true,
+      "isActive": true
+    },
+    "methods": [
+      {
+        "id": "payout_method_id",
+        "type": "BANK_ACCOUNT",
+        "bankName": "Chase Bank",
+        "maskedAccount": "Checking Account **** 6789",
+        "accountHolderName": "Sylvia Bond",
+        "verificationStatus": "VERIFIED",
+        "isDefault": true,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Provider payout methods fetched successfully."
+}
+```
+
+### POST `/api/v1/provider/payout-methods/bank-accounts`
+
+- Summary: Add provider bank payout method
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Stores masked metadata only; raw routing/account/IBAN values are never returned or persisted.
+- Request payload(s):
+  - bank:
+```json
+{
+  "accountHolderName": "Sylvia Bond",
+  "bankName": "Chase Bank",
+  "accountType": "CHECKING",
+  "country": "US",
+  "currency": "USD",
+  "routingNumber": "110000000",
+  "accountNumber": "000123456789",
+  "iban": null,
+  "isDefault": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/payout-methods/{id}`
+
+- Summary: Fetch own provider payout method details
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Full account number, IBAN, and routing number are never returned.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/provider/payout-methods/{id}`
+
+- Summary: Update provider payout method display metadata
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Bank/routing/account numbers cannot be edited; add a new payout method instead.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "accountHolderName": "Sylvia Bond",
+  "bankName": "Chase Bank Personal",
+  "isActive": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### DELETE `/api/v1/provider/payout-methods/{id}`
+
+- Summary: Soft delete own provider payout method
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Blocks deletion when pending provider payout adjustments exist.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/provider/payout-methods/{id}/default`
+
+- Summary: Set default provider payout method
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Only own verified active payout methods can become default.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/provider/payout-methods/{id}/verify`
+
+- Summary: Start provider payout method verification
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. If Plaid/Stripe Connect is not configured, MANUAL keeps verification pending for admin/system review.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "verificationMethod": "MANUAL",
+  "publicToken": "plaid_public_token"
 }
 ```
 - Response body:

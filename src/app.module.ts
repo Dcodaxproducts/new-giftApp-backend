@@ -30,6 +30,7 @@ import { ProviderInteractionsModule } from './modules/provider-interactions/prov
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
 import { ProviderOrdersModule } from './modules/provider-orders/provider-orders.module';
+import { ProviderPayoutMethodsModule } from './modules/provider-payout-methods/provider-payout-methods.module';
 import { ProviderRefundRequestsModule } from './modules/provider-refund-requests/provider-refund-requests.module';
 import { RefundPolicySettingsModule } from './modules/refund-policy-settings/refund-policy-settings.module';
 import { ReferralSettingsModule } from './modules/referral-settings/referral-settings.module';
@@ -55,6 +56,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     ProviderInteractionsModule,
     ProviderInventoryModule,
     ProviderOrdersModule,
+    ProviderPayoutMethodsModule,
     ProviderRefundRequestsModule,
     PromotionalOffersModule,
     UserManagementModule,

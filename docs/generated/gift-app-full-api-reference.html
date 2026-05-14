@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 11:06 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 11:21 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -2346,6 +2346,75 @@
 }</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/reject</code></div><div><span class="label">Summary:</span> Reject own pending provider order</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -&gt; REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;reason&quot;: &quot;OUT_OF_STOCK&quot;,
   &quot;comment&quot;: &quot;The selected size is currently unavailable.&quot;
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><h2>03 Provider - Payout Methods</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/provider/payout-methods</code></div><div><span class="label">Summary:</span> List own provider payout methods</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT. Returns masked payout metadata only.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;primary&quot;: {
+      &quot;id&quot;: &quot;payout_method_id&quot;,
+      &quot;type&quot;: &quot;BANK_ACCOUNT&quot;,
+      &quot;bankName&quot;: &quot;Chase Bank&quot;,
+      &quot;maskedAccount&quot;: &quot;Checking Account **** 5678&quot;,
+      &quot;accountHolderName&quot;: &quot;Sylvia Bond&quot;,
+      &quot;payerId&quot;: &quot;SB-4491-001&quot;,
+      &quot;verificationStatus&quot;: &quot;VERIFIED&quot;,
+      &quot;isDefault&quot;: true,
+      &quot;isActive&quot;: true
+    },
+    &quot;methods&quot;: [
+      {
+        &quot;id&quot;: &quot;payout_method_id&quot;,
+        &quot;type&quot;: &quot;BANK_ACCOUNT&quot;,
+        &quot;bankName&quot;: &quot;Chase Bank&quot;,
+        &quot;maskedAccount&quot;: &quot;Checking Account **** 6789&quot;,
+        &quot;accountHolderName&quot;: &quot;Sylvia Bond&quot;,
+        &quot;verificationStatus&quot;: &quot;VERIFIED&quot;,
+        &quot;isDefault&quot;: true,
+        &quot;isActive&quot;: true
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Provider payout methods fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/payout-methods/bank-accounts</code></div><div><span class="label">Summary:</span> Add provider bank payout method</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Stores masked metadata only; raw routing/account/IBAN values are never returned or persisted.</div><div class="label">Request payload(s):</div><div class="small">bank</div><pre>{
+  &quot;accountHolderName&quot;: &quot;Sylvia Bond&quot;,
+  &quot;bankName&quot;: &quot;Chase Bank&quot;,
+  &quot;accountType&quot;: &quot;CHECKING&quot;,
+  &quot;country&quot;: &quot;US&quot;,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;routingNumber&quot;: &quot;110000000&quot;,
+  &quot;accountNumber&quot;: &quot;000123456789&quot;,
+  &quot;iban&quot;: null,
+  &quot;isDefault&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/provider/payout-methods/{id}</code></div><div><span class="label">Summary:</span> Fetch own provider payout method details</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Full account number, IBAN, and routing number are never returned.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/provider/payout-methods/{id}</code></div><div><span class="label">Summary:</span> Update provider payout method display metadata</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Bank/routing/account numbers cannot be edited; add a new payout method instead.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+  &quot;accountHolderName&quot;: &quot;Sylvia Bond&quot;,
+  &quot;bankName&quot;: &quot;Chase Bank Personal&quot;,
+  &quot;isActive&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method DELETE">DELETE</span> <code>/api/v1/provider/payout-methods/{id}</code></div><div><span class="label">Summary:</span> Soft delete own provider payout method</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Blocks deletion when pending provider payout adjustments exist.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>&quot;&lt;standard success envelope&gt;&quot;</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/provider/payout-methods/{id}/default</code></div><div><span class="label">Summary:</span> Set default provider payout method</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Only own verified active payout methods can become default.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>&quot;&lt;standard success envelope&gt;&quot;</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/payout-methods/{id}/verify</code></div><div><span class="label">Summary:</span> Start provider payout method verification</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. If Plaid/Stripe Connect is not configured, MANUAL keeps verification pending for admin/system review.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+  &quot;verificationMethod&quot;: &quot;MANUAL&quot;,
+  &quot;publicToken&quot;: &quot;plaid_public_token&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,

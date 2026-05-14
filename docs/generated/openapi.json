@@ -9920,6 +9920,288 @@
         "x-access": "PROVIDER"
       }
     },
+    "/api/v1/provider/payout-methods": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT. Returns masked payout metadata only.",
+        "operationId": "ProviderPayoutMethodsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "primary": {
+                        "id": "payout_method_id",
+                        "type": "BANK_ACCOUNT",
+                        "bankName": "Chase Bank",
+                        "maskedAccount": "Checking Account **** 5678",
+                        "accountHolderName": "Sylvia Bond",
+                        "payerId": "SB-4491-001",
+                        "verificationStatus": "VERIFIED",
+                        "isDefault": true,
+                        "isActive": true
+                      },
+                      "methods": [
+                        {
+                          "id": "payout_method_id",
+                          "type": "BANK_ACCOUNT",
+                          "bankName": "Chase Bank",
+                          "maskedAccount": "Checking Account **** 6789",
+                          "accountHolderName": "Sylvia Bond",
+                          "verificationStatus": "VERIFIED",
+                          "isDefault": true,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Provider payout methods fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own provider payout methods",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payout-methods/bank-accounts": {
+      "post": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Stores masked metadata only; raw routing/account/IBAN values are never returned or persisted.",
+        "operationId": "ProviderPayoutMethodsController_createBankAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProviderBankAccountDto"
+              },
+              "examples": {
+                "bank": {
+                  "value": {
+                    "accountHolderName": "Sylvia Bond",
+                    "bankName": "Chase Bank",
+                    "accountType": "CHECKING",
+                    "country": "US",
+                    "currency": "USD",
+                    "routingNumber": "110000000",
+                    "accountNumber": "000123456789",
+                    "iban": null,
+                    "isDefault": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add provider bank payout method",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payout-methods/{id}": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Full account number, IBAN, and routing number are never returned.",
+        "operationId": "ProviderPayoutMethodsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider payout method details",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      },
+      "patch": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Bank/routing/account numbers cannot be edited; add a new payout method instead.",
+        "operationId": "ProviderPayoutMethodsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderPayoutMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update provider payout method display metadata",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      },
+      "delete": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Blocks deletion when pending provider payout adjustments exist.",
+        "operationId": "ProviderPayoutMethodsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete own provider payout method",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payout-methods/{id}/default": {
+      "patch": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Only own verified active payout methods can become default.",
+        "operationId": "ProviderPayoutMethodsController_setDefault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set default provider payout method",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payout-methods/{id}/verify": {
+      "post": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. If Plaid/Stripe Connect is not configured, MANUAL keeps verification pending for admin/system review.",
+        "operationId": "ProviderPayoutMethodsController_verify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyProviderPayoutMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start provider payout method verification",
+        "tags": [
+          "03 Provider - Payout Methods"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
     "/api/v1/provider/refund-requests": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Returns refund requests for provider orders assigned to the authenticated provider. Search supports order number, customer name, and customer email.",
@@ -21200,6 +21482,9 @@
       "name": "03 Provider - Orders"
     },
     {
+      "name": "03 Provider - Payout Methods"
+    },
+    {
       "name": "03 Provider - Refund Requests"
     },
     {
@@ -23252,6 +23537,101 @@
         },
         "required": [
           "reason"
+        ]
+      },
+      "CreateProviderBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountHolderName": {
+            "type": "string",
+            "example": "Sylvia Bond"
+          },
+          "bankName": {
+            "type": "string",
+            "example": "Chase Bank"
+          },
+          "accountType": {
+            "type": "string",
+            "enum": [
+              "CHECKING",
+              "SAVINGS",
+              "CURRENT",
+              "OTHER"
+            ],
+            "example": "CHECKING"
+          },
+          "country": {
+            "type": "string",
+            "example": "US"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "routingNumber": {
+            "type": "object",
+            "example": "110000000",
+            "description": "Accepted only for tokenization/masking. Never returned or stored raw."
+          },
+          "accountNumber": {
+            "type": "object",
+            "example": "000123456789",
+            "description": "Accepted only for tokenization/masking. Never returned or stored raw."
+          },
+          "iban": {
+            "type": "object",
+            "example": null,
+            "description": "Accepted only for tokenization/masking. Never returned or stored raw."
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "accountHolderName",
+          "bankName",
+          "accountType",
+          "country",
+          "currency"
+        ]
+      },
+      "UpdateProviderPayoutMethodDto": {
+        "type": "object",
+        "properties": {
+          "accountHolderName": {
+            "type": "string",
+            "example": "Sylvia Bond"
+          },
+          "bankName": {
+            "type": "string",
+            "example": "Chase Bank Personal"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "VerifyProviderPayoutMethodDto": {
+        "type": "object",
+        "properties": {
+          "verificationMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CONNECT",
+              "PLAID",
+              "MANUAL"
+            ],
+            "example": "MANUAL"
+          },
+          "publicToken": {
+            "type": "string",
+            "example": "plaid_public_token"
+          }
+        },
+        "required": [
+          "verificationMethod"
         ]
       },
       "ApproveProviderRefundRequestDto": {
