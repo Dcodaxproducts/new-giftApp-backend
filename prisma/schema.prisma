@@ -429,6 +429,13 @@ enum ReviewStatus {
   PENALIZED
 }
 
+enum ReviewSource {
+  GOOGLE
+  TRUSTPILOT
+  APP_STORE
+  IN_APP
+}
+
 enum ReviewSeverity {
   CRITICAL
   HIGH
@@ -1837,9 +1844,13 @@ model Review {
   userId                 String            @map("user_id")
   rating                 Int
   comment                String
+  source                 ReviewSource      @default(IN_APP)
+  externalProfileUrl     String?           @map("external_profile_url")
   status                 ReviewStatus      @default(PENDING)
   severity               ReviewSeverity    @default(LOW)
   flagReason             ReviewFlagReason? @map("flag_reason")
+  reportCount            Int               @default(0) @map("report_count")
+  flagReasonsJson        Json              @default("[]") @map("flag_reasons_json")
   autoModerated          Boolean           @default(false) @map("auto_moderated")
   moderationConfidence   Int?              @map("moderation_confidence")
   detectedCategoriesJson Json              @default("[]") @map("detected_categories_json")
@@ -1856,6 +1867,8 @@ model Review {
   moderationLogs ReviewModerationLog[]
 
   @@index([status, createdAt])
+  @@index([source, createdAt])
+  @@index([reportCount])
   @@index([severity, status])
   @@index([providerId, createdAt])
   @@index([userId, createdAt])

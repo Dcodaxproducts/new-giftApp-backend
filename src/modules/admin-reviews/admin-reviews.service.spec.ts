@@ -18,6 +18,10 @@ describe('Admin Ratings & Reviews Management module', () => {
     expect(schema).toContain('reviewCode');
     expect(schema).toContain('providerOrderId');
     expect(schema).toContain('detectedCategoriesJson');
+    expect(schema).toContain('source');
+    expect(schema).toContain('externalProfileUrl');
+    expect(schema).toContain('reportCount');
+    expect(schema).toContain('flagReasonsJson');
     expect(schema).toContain('customerReviews');
     expect(schema).toContain('providerReviews');
     expect(schema).toContain('reviewResponses');
@@ -36,6 +40,17 @@ describe('Admin Ratings & Reviews Management module', () => {
     for (const text of ["module: 'reviews'", "key: 'read'", "key: 'moderate'", "key: 'approve'", "key: 'remove'", "key: 'hide'", "key: 'penalize'", "key: 'export'", "module: 'reviewPolicies'", "key: 'update'", "module: 'reviewModerationLogs'"]) {
       expect(permissions).toContain(text);
     }
+  });
+
+  it('enhances reviews moderation list filters and table payload fields', () => {
+    expect(service).toContain('ratingFilter');
+    expect(service).toContain('reportedOnly');
+    expect(service).toContain('source');
+    expect(service).toContain('reportCount: { gt: 0 }');
+    expect(service).toContain('ReviewSortBy.REPORT_COUNT');
+    expect(service).toContain('contentPreview');
+    expect(service).toContain('avatarInitials');
+    expect(service).toContain('transactionId');
   });
 
   it('exposes admin dashboard, stats, list, details, and export routes before :id', () => {
@@ -60,8 +75,17 @@ describe('Admin Ratings & Reviews Management module', () => {
     expect(reviewsController).toContain("@Permissions('reviewModerationLogs.read')");
   });
 
+  it('returns review details drawer data with moderation history', () => {
+    expect(service).toContain('moderationHistory');
+    expect(service).toContain('externalProfileUrl');
+    expect(service).toContain('fullReviewText');
+    expect(service).toContain('flagReasons(review)');
+    expect(service).toContain('reviewModerationLog.findMany');
+    expect(service).toContain('actorName');
+  });
+
   it('implements moderation actions, ReviewModerationLog, audit log, and no physical delete', () => {
-    for (const action of ['APPROVE', 'HIDE', 'REMOVE', 'PENALIZE', 'RESTORE', 'MARK_SPAM', 'MARK_FAKE']) expect(schema).toContain(action);
+    for (const action of ['APPROVE', 'HIDE', 'REMOVE', 'RESTORE', 'MARK_SPAM', 'MARK_FAKE']) expect(schema).toContain(action);
     expect(service).toContain('status: map[dto.action]');
     expect(service).toContain('reviewModerationLog.create');
     expect(service).toContain('REVIEW_${dto.action}');
@@ -86,19 +110,22 @@ describe('Admin Ratings & Reviews Management module', () => {
     expect(service).toContain('autoModerationAccuracy');
   });
 
-  it('implements policies get/update/test with deterministic placeholder logic and audit logging', () => {
+  it('reuses review policies APIs for Auto-Mod Rules without duplicate auto-mod routes', () => {
     expect(policiesController).toContain("@Controller('admin/review-policies')");
     expect(policiesController).toContain("@Patch()");
     expect(policiesController).toContain("@Post('test')");
     expect(service).toContain('REVIEW_POLICY_UPDATED');
     expect(service).toContain('sampleReviewText.toLowerCase()');
     expect(policiesController).toContain('No external AI call');
+    expect(reviewsController).not.toContain('auto-mod');
+    expect(reviewsController).not.toContain('reviews-moderation');
   });
 
-  it('supports export without customer PII and keeps provider responses linked', () => {
-    expect(service).toContain('review.findMany');
+  it('supports export with same filters and dashboard-safe fields', () => {
+    expect(service).toContain('const where = this.reviewWhere(query)');
     expect(service).toContain('Review Code');
-    expect(service).toContain('Has Provider Response');
+    expect(service).toContain('Report Count');
+    expect(service).toContain('Transaction ID');
     expect(service).not.toContain("'Customer Email'");
     expect(service).toContain('response: { where: { deletedAt: null }');
   });

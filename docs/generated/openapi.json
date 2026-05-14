@@ -5546,8 +5546,146 @@
     },
     "/api/v1/admin/reviews/export": {
       "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.export. Applies the same filters as GET /admin/reviews, supports CSV/PDF, and exports dashboard-safe fields only.",
         "operationId": "AdminReviewsController_export",
         "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "spam",
+              "type": "string"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                1,
+                2,
+                3,
+                4,
+                5
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "IN_APP",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "GOOGLE",
+                "TRUSTPILOT",
+                "APP_STORE",
+                "IN_APP"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "FLAGGED",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "APPROVED",
+                "PUBLISHED",
+                "PENDING",
+                "FLAGGED",
+                "HIDDEN",
+                "REMOVED",
+                "PENALIZED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CRITICAL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW"
+              ]
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasProviderResponse",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "reportedOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
           {
             "name": "fromDate",
             "required": false,
@@ -5567,6 +5705,34 @@
             }
           },
           {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "rating",
+                "reportCount",
+                "severity"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
             "name": "format",
             "required": false,
             "in": "query",
@@ -5577,53 +5743,6 @@
                 "CSV",
                 "PDF"
               ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PUBLISHED",
-                "PENDING",
-                "FLAGGED",
-                "HIDDEN",
-                "REMOVED",
-                "PENALIZED"
-              ]
-            }
-          },
-          {
-            "name": "severity",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CRITICAL",
-                "HIGH",
-                "MEDIUM",
-                "LOW"
-              ]
-            }
-          },
-          {
-            "name": "providerId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "rating",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
             }
           }
         ],
@@ -5637,13 +5756,12 @@
             "bearer": []
           }
         ],
+        "summary": "Export reviews with moderation filters",
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "List Admin Reviews Export",
         "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/admin/reviews/flagged-summary": {
@@ -5897,6 +6015,7 @@
     },
     "/api/v1/admin/reviews": {
       "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Supports search, rating/source/status, reportedOnly, date range, and sort filters for the Reviews Moderation table.",
         "operationId": "AdminReviewsController_list",
         "parameters": [
           {
@@ -5931,14 +6050,31 @@
             "required": false,
             "in": "query",
             "schema": {
-              "example": 1,
-              "type": "number",
+              "example": "ALL",
+              "type": "string",
               "enum": [
+                "ALL",
                 1,
                 2,
                 3,
                 4,
                 5
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "IN_APP",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "GOOGLE",
+                "TRUSTPILOT",
+                "APP_STORE",
+                "IN_APP"
               ]
             }
           },
@@ -5951,6 +6087,7 @@
               "type": "string",
               "enum": [
                 "ALL",
+                "APPROVED",
                 "PUBLISHED",
                 "PENDING",
                 "FLAGGED",
@@ -6010,6 +6147,15 @@
             }
           },
           {
+            "name": "reportedOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
             "name": "fromDate",
             "required": false,
             "in": "query",
@@ -6037,6 +6183,7 @@
               "enum": [
                 "createdAt",
                 "rating",
+                "reportCount",
                 "severity"
               ]
             }
@@ -6057,7 +6204,45 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "review_id",
+                        "reviewCode": "RV-92841",
+                        "reviewer": {
+                          "id": "user_id",
+                          "name": "Sarah Miller",
+                          "avatarInitials": "SM"
+                        },
+                        "source": "TRUSTPILOT",
+                        "rating": 1,
+                        "contentPreview": "The service was absolutely terrible, I want a refund...",
+                        "fullContent": "The service was absolutely terrible...",
+                        "flags": {
+                          "reportCount": 12,
+                          "label": "12 reports"
+                        },
+                        "status": "PENDING",
+                        "transactionId": "TXN-49201-B",
+                        "reviewDate": "2023-10-24T00:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Reviews fetched successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6065,17 +6250,17 @@
             "bearer": []
           }
         ],
+        "summary": "List reviews for moderation dashboard",
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "List Admin Reviews",
         "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/admin/reviews/{id}": {
       "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Returns review details, flags, linked transaction, and moderation history for the details drawer/modal.",
         "operationId": "AdminReviewsController_details",
         "parameters": [
           {
@@ -6089,7 +6274,45 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "review_id",
+                      "reviewCode": "RV-92841",
+                      "reviewer": {
+                        "id": "user_id",
+                        "name": "David Chen",
+                        "avatarUrl": "https://cdn.yourdomain.com/user-avatars/david.png"
+                      },
+                      "source": "GOOGLE",
+                      "externalProfileUrl": "https://example.com/profile",
+                      "rating": 5,
+                      "fullReviewText": "Incredible UI and smooth experience. Highly recommend...",
+                      "transactionId": "TXN-49201-B",
+                      "reviewDate": "2023-10-24T00:00:00.000Z",
+                      "status": "APPROVED",
+                      "flags": {
+                        "reportCount": 0,
+                        "reasons": []
+                      },
+                      "moderationHistory": [
+                        {
+                          "action": "APPROVED",
+                          "actorType": "SYSTEM",
+                          "actorName": "System",
+                          "createdAt": "2023-10-24T10:00:00.000Z"
+                        }
+                      ]
+                    },
+                    "message": "Review details fetched successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6097,13 +6320,12 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch review moderation details",
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "summary": "Fetch Admin Reviews details",
         "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/admin/reviews/{id}/moderate": {
@@ -6128,22 +6350,31 @@
                 "$ref": "#/components/schemas/ModerateReviewDto"
               },
               "examples": {
-                "approve": {
+                "hide": {
                   "value": {
-                    "action": "APPROVE",
-                    "reason": "FALSE_POSITIVE",
-                    "comment": "Review checked manually and approved.",
-                    "notifyProvider": true,
-                    "notifyCustomer": false
+                    "action": "HIDE",
+                    "reason": "POLICY_VIOLATION",
+                    "comment": "Hidden after manual moderation.",
+                    "notifyUser": false,
+                    "notifyProvider": true
                   }
                 },
                 "remove": {
                   "value": {
                     "action": "REMOVE",
-                    "reason": "POLICY_VIOLATION",
-                    "comment": "Violates review policy.",
-                    "notifyProvider": true,
-                    "notifyCustomer": true
+                    "reason": "FAKE_REVIEW",
+                    "comment": "Removed due to fake review indicators.",
+                    "notifyUser": true,
+                    "notifyProvider": true
+                  }
+                },
+                "approve": {
+                  "value": {
+                    "action": "APPROVE",
+                    "reason": "FALSE_POSITIVE",
+                    "comment": "Review checked and approved.",
+                    "notifyUser": false,
+                    "notifyProvider": false
                   }
                 }
               }
@@ -21143,6 +21374,10 @@
           "notifyProvider": {
             "type": "boolean",
             "example": true
+          },
+          "notifyUser": {
+            "type": "boolean",
+            "example": false
           },
           "notifyCustomer": {
             "type": "boolean",

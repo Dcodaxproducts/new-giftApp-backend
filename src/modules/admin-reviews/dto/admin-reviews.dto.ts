@@ -1,16 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsISO8601, IsInt, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
-import { ReviewFlagReason, ReviewModerationAction, ReviewSeverity, ReviewStatus } from '@prisma/client';
+import { ReviewFlagReason, ReviewModerationAction } from '@prisma/client';
 
 export enum ReviewStatsRange { TODAY = 'TODAY', LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS', CUSTOM = 'CUSTOM' }
 export enum FlaggedWindow { LAST_24H = 'LAST_24H', LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS' }
-export enum ReviewSortBy { CREATED_AT = 'createdAt', RATING = 'rating', SEVERITY = 'severity' }
+export enum ReviewSortBy { CREATED_AT = 'createdAt', RATING = 'rating', REPORT_COUNT = 'reportCount', SEVERITY = 'severity' }
 export enum ReviewExportFormat { CSV = 'CSV', PDF = 'PDF' }
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum QueueStatus { FLAGGED = 'FLAGGED', PENDING = 'PENDING' }
 export enum ManualReviewModerationAction { APPROVE = 'APPROVE', HIDE = 'HIDE', REMOVE = 'REMOVE', PENALIZE = 'PENALIZE', RESTORE = 'RESTORE', MARK_SPAM = 'MARK_SPAM', MARK_FAKE = 'MARK_FAKE' }
-export enum AllReviewStatus { ALL = 'ALL', PUBLISHED = 'PUBLISHED', PENDING = 'PENDING', FLAGGED = 'FLAGGED', HIDDEN = 'HIDDEN', REMOVED = 'REMOVED', PENALIZED = 'PENALIZED' }
+export enum AllReviewStatus { ALL = 'ALL', APPROVED = 'APPROVED', PUBLISHED = 'PUBLISHED', PENDING = 'PENDING', FLAGGED = 'FLAGGED', HIDDEN = 'HIDDEN', REMOVED = 'REMOVED', PENALIZED = 'PENALIZED' }
+export enum AllReviewSource { ALL = 'ALL', GOOGLE = 'GOOGLE', TRUSTPILOT = 'TRUSTPILOT', APP_STORE = 'APP_STORE', IN_APP = 'IN_APP' }
 export enum AllReviewSeverity { ALL = 'ALL', CRITICAL = 'CRITICAL', HIGH = 'HIGH', MEDIUM = 'MEDIUM', LOW = 'LOW' }
 
 class PageDto {
@@ -29,13 +30,15 @@ export class ReviewStatsDto extends DateRangeDto {
 
 export class ListReviewsDto extends PageDto {
   @ApiPropertyOptional({ example: 'spam' }) @IsOptional() @IsString() search?: string;
-  @ApiPropertyOptional({ example: 1, enum: [1, 2, 3, 4, 5] }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5) rating?: number;
+  @ApiPropertyOptional({ example: 'ALL', enum: ['ALL', 1, 2, 3, 4, 5] }) @IsOptional() rating?: string | number;
+  @ApiPropertyOptional({ enum: AllReviewSource, example: AllReviewSource.IN_APP }) @IsOptional() @IsEnum(AllReviewSource) source?: AllReviewSource;
   @ApiPropertyOptional({ enum: AllReviewStatus, example: AllReviewStatus.FLAGGED }) @IsOptional() @IsEnum(AllReviewStatus) status?: AllReviewStatus;
   @ApiPropertyOptional({ enum: AllReviewSeverity, example: AllReviewSeverity.CRITICAL }) @IsOptional() @IsEnum(AllReviewSeverity) severity?: AllReviewSeverity;
   @ApiPropertyOptional() @IsOptional() @IsString() providerId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() userId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() orderId?: string;
   @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() hasProviderResponse?: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() reportedOnly?: boolean;
   @ApiPropertyOptional({ example: '2026-05-01T00:00:00.000Z' }) @IsOptional() @IsISO8601() fromDate?: string;
   @ApiPropertyOptional({ example: '2026-05-31T23:59:59.999Z' }) @IsOptional() @IsISO8601() toDate?: string;
   @ApiPropertyOptional({ enum: ReviewSortBy, example: ReviewSortBy.CREATED_AT }) @IsOptional() @IsEnum(ReviewSortBy) sortBy?: ReviewSortBy;
@@ -59,6 +62,7 @@ export class ModerateReviewDto {
   @ApiProperty({ enum: ReviewFlagReason, example: ReviewFlagReason.FALSE_POSITIVE }) @IsEnum(ReviewFlagReason) reason!: ReviewFlagReason;
   @ApiPropertyOptional({ example: 'Review checked manually and approved.' }) @IsOptional() @IsString() comment?: string;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyProvider?: boolean;
+  @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() notifyUser?: boolean;
   @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() notifyCustomer?: boolean;
 }
 
@@ -89,10 +93,6 @@ export class TestReviewPolicyDto {
   @ApiProperty({ example: 1 }) @IsInt() @Min(1) @Max(5) rating!: number;
 }
 
-export class ExportReviewsDto extends DateRangeDto {
+export class ExportReviewsDto extends ListReviewsDto {
   @ApiPropertyOptional({ enum: ReviewExportFormat, example: ReviewExportFormat.CSV }) @IsOptional() @IsEnum(ReviewExportFormat) format?: ReviewExportFormat;
-  @ApiPropertyOptional({ enum: ReviewStatus }) @IsOptional() @IsEnum(ReviewStatus) status?: ReviewStatus;
-  @ApiPropertyOptional({ enum: ReviewSeverity }) @IsOptional() @IsEnum(ReviewSeverity) severity?: ReviewSeverity;
-  @ApiPropertyOptional() @IsOptional() @IsString() providerId?: string;
-  @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5) rating?: number;
 }
