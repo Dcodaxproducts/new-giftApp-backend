@@ -9,7 +9,6 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { applySwaggerAccessMetadata } from './swagger-access';
 
 export const SWAGGER_TAG_ORDER = [
-  '00 Public',
   '01 Auth',
   '01 Auth - Login Attempts',
   '02 Admin - Staff Management',
@@ -144,7 +143,6 @@ async function bootstrap(): Promise<void> {
         // sorter functions into swagger-ui-init.js, so referencing exported server-side
         // constants compiles to CommonJS `exports.*` and crashes in the browser.
         const tagOrder = [
-          '00 Public',
           '01 Auth',
           '01 Auth - Login Attempts',
           '02 Admin - Staff Management',

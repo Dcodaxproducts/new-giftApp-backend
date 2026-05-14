@@ -1,11 +1,10 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-14 11:50 UTC
+Generated: 2026-05-14 12:03 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
 ## Contents
-- 00 Public (3 APIs)
 - 01 Auth (19 APIs)
 - 01 Auth - Login Attempts (3 APIs)
 - 02 Admin - Staff Management (7 APIs)
@@ -68,50 +67,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 06 Broadcast Notifications (10 APIs)
 - 07 Plans & Coupons (21 APIs)
 - 07 Storage (5 APIs)
-
-## 00 Public
-
-### GET `/`
-
-- Summary: Backend landing page
-- Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. PUBLIC. Returns HTML for browsers and JSON for API clients.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/health`
-
-- Summary: Health check
-- Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. PUBLIC. Does not expose secrets or internal paths.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/health/ready`
-
-- Summary: Readiness check
-- Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. PUBLIC. Basic app readiness check.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
 
 ## 01 Auth
 

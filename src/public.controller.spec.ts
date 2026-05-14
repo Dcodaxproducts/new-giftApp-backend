@@ -1,18 +1,16 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { AddressInfo } from 'net';
 import { PublicController } from './public.controller';
+
+type HealthBody = { data: { status: string; service: string; company: string; uptime: number; timestamp: string }; message: string };
 
 describe('PublicController', () => {
   let app: INestApplication;
   let baseUrl: string;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot({ isGlobal: true })],
-      controllers: [PublicController],
-    }).compile();
+    const moduleRef = await Test.createTestingModule({ controllers: [PublicController] }).compile();
     app = moduleRef.createNestApplication();
     await app.listen(0);
     const server = app.getHttpServer() as { address: () => AddressInfo | string | null };
@@ -27,32 +25,18 @@ describe('PublicController', () => {
     expect(response.status).toBe(200);
   });
 
-  it('GET / includes Gift App Backend', async () => {
+  it('GET / returns health JSON', async () => {
     const response = await fetch(`${baseUrl}/`);
-    expect(await response.text()).toContain('Gift App Backend');
-  });
-
-  it('GET / includes Dcodax Technologies', async () => {
-    const response = await fetch(`${baseUrl}/`);
-    expect(await response.text()).toContain('Dcodax Technologies');
-  });
-
-  it('GET / includes /docs link/reference', async () => {
-    const response = await fetch(`${baseUrl}/`);
-    expect(await response.text()).toContain('/docs');
-  });
-
-  it('GET / returns JSON fallback when JSON is requested', async () => {
-    const response = await fetch(`${baseUrl}/`, { headers: { Accept: 'application/json' } });
-    const body = await response.json() as { data: { name: string; apiBasePath: string; swaggerUrl: string; healthUrl: string }; message: string };
-    expect(response.status).toBe(200);
-    expect(body.message).toBe('Gift App Backend is running successfully.');
-    expect(body.data).toEqual(expect.objectContaining({ name: 'Gift App Backend', apiBasePath: '/api/v1', swaggerUrl: '/docs', healthUrl: '/health' }));
+    const body = await response.json() as HealthBody;
+    expect(body).toEqual(expect.objectContaining({ message: 'Service is healthy.' }));
+    expect(body.data).toEqual(expect.objectContaining({ status: 'ok', service: 'Gift App Backend', company: 'Dcodax Technologies' }));
+    expect(typeof body.data.uptime).toBe('number');
+    expect(body.data.timestamp).toEqual(expect.any(String));
   });
 
   it('GET /health returns 200 without authentication', async () => {
     const response = await fetch(`${baseUrl}/health`);
-    const body = await response.json() as { message: string };
+    const body = await response.json() as HealthBody;
     expect(response.status).toBe(200);
     expect(body.message).toBe('Service is healthy.');
   });
