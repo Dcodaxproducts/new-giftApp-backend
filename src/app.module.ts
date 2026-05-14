@@ -26,6 +26,7 @@ import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upl
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderBusinessInfoModule } from './modules/provider-business-info/provider-business-info.module';
 import { ProviderDashboardModule } from './modules/provider-dashboard/provider-dashboard.module';
+import { ProviderEarningsPayoutsModule } from './modules/provider-earnings-payouts/provider-earnings-payouts.module';
 import { ProviderInteractionsModule } from './modules/provider-interactions/provider-interactions.module';
 import { ProviderInventoryModule } from './modules/provider-inventory/provider-inventory.module';
 import { ProviderManagementModule } from './modules/provider-management/provider-management.module';
@@ -52,6 +53,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminRolesModule,
     ProviderManagementModule,
     ProviderDashboardModule,
+    ProviderEarningsPayoutsModule,
     ProviderBusinessInfoModule,
     ProviderInteractionsModule,
     ProviderInventoryModule,

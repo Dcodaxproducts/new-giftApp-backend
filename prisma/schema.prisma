@@ -733,6 +733,35 @@ enum ProviderPayoutVerificationStatus {
   FAILED
 }
 
+enum ProviderEarningsLedgerType {
+  ORDER_EARNING
+  REFUND_DEDUCTION
+  PENALTY
+  PAYOUT
+  ADJUSTMENT
+}
+
+enum ProviderEarningsLedgerDirection {
+  CREDIT
+  DEBIT
+}
+
+enum ProviderEarningsLedgerStatus {
+  PENDING
+  AVAILABLE
+  PAYOUT_PENDING
+  PAID
+  FAILED
+}
+
+enum ProviderPayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
 enum ProviderDisputeFinalRuling {
   CUSTOMER_WINS
   PROVIDER_WINS
@@ -886,6 +915,8 @@ model User {
   finalizedProviderDisputeResolutions ProviderDisputeResolution[]          @relation("ProviderDisputeFinalizer")
   providerFinancialAdjustments        ProviderFinancialAdjustment[]
   providerPayoutMethods               ProviderPayoutMethod[]
+  providerEarningsLedger              ProviderEarningsLedger[]
+  providerPayouts                     ProviderPayout[]
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
   socialModerationLogs                SocialModerationLog[]                @relation("SocialModerationActor")
@@ -1446,6 +1477,7 @@ model ProviderOrder {
   reviews                      Review[]
   chatThread                   ChatThread?
   providerFinancialAdjustments ProviderFinancialAdjustment[]
+  earningsLedger               ProviderEarningsLedger[]
 
   @@index([orderId])
   @@index([providerId, status])
@@ -2461,12 +2493,66 @@ model ProviderPayoutMethod {
   createdAt          DateTime                         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime                         @updatedAt @map("updated_at") @db.Timestamptz
 
-  provider User @relation(fields: [providerId], references: [id])
+  provider User             @relation(fields: [providerId], references: [id])
+  payouts  ProviderPayout[]
 
   @@index([providerId, deletedAt])
   @@index([providerId, isDefault])
   @@index([providerId, verificationStatus])
   @@map("provider_payout_methods")
+}
+
+model ProviderEarningsLedger {
+  id              String                          @id @default(cuid())
+  providerId      String                          @map("provider_id")
+  providerOrderId String?                         @map("provider_order_id")
+  payoutId        String?                         @map("payout_id")
+  type            ProviderEarningsLedgerType
+  direction       ProviderEarningsLedgerDirection
+  amount          Decimal                         @db.Decimal(10, 2)
+  currency        String                          @default("USD")
+  status          ProviderEarningsLedgerStatus    @default(PENDING)
+  description     String
+  metadataJson    Json                            @default("{}") @map("metadata_json")
+  createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
+
+  provider      User            @relation(fields: [providerId], references: [id])
+  providerOrder ProviderOrder?  @relation(fields: [providerOrderId], references: [id])
+  payout        ProviderPayout? @relation(fields: [payoutId], references: [id])
+
+  @@unique([providerOrderId, type])
+  @@index([providerId, status, createdAt])
+  @@index([providerId, type, createdAt])
+  @@index([payoutId])
+  @@map("provider_earnings_ledger")
+}
+
+model ProviderPayout {
+  id                String               @id @default(cuid())
+  providerId        String               @map("provider_id")
+  payoutMethodId    String               @map("payout_method_id")
+  transactionId     String               @unique @map("transaction_id")
+  amount            Decimal              @db.Decimal(10, 2)
+  processingFee     Decimal              @default(0) @map("processing_fee") @db.Decimal(10, 2)
+  totalToReceive    Decimal              @map("total_to_receive") @db.Decimal(10, 2)
+  currency          String               @default("USD")
+  status            ProviderPayoutStatus @default(PENDING)
+  externalPayoutId  String?              @map("external_payout_id")
+  failureReason     String?              @map("failure_reason")
+  expectedArrivalAt DateTime?            @map("expected_arrival_at") @db.Timestamptz
+  completedAt       DateTime?            @map("completed_at") @db.Timestamptz
+  idempotencyKey    String?              @unique @map("idempotency_key")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  provider     User                   @relation(fields: [providerId], references: [id])
+  payoutMethod ProviderPayoutMethod   @relation(fields: [payoutMethodId], references: [id])
+  ledger       ProviderEarningsLedger[]
+
+  @@index([providerId, status, createdAt])
+  @@index([payoutMethodId])
+  @@map("provider_payouts")
 }
 
 model ProviderDisputeResolution {

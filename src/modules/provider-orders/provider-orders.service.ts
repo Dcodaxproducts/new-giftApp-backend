@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus, UserRole } from '@prisma/client';
+import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
@@ -145,6 +145,7 @@ export class ProviderOrdersService {
       await tx.providerOrderTimeline.create({ data: { providerOrderId: order.id, createdById: user.uid, status: dto.status, title: this.statusTitle(dto.status), description: dto.note?.trim() ?? this.statusDescription(dto.status, dto.carrier), metadataJson: { trackingNumber: dto.trackingNumber, carrier: dto.carrier, estimatedDeliveryAt: dto.estimatedDeliveryAt } } });
       await this.syncParentOrder(tx, order.orderId);
       if ((new Set<ProviderOrderStatus>([ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED])).has(dto.status)) await tx.notification.create({ data: { recipientId: order.order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: this.statusTitle(dto.status), message: this.customerStatusMessage(dto.status), type: `ORDER_${dto.status}`, metadataJson: { orderId: order.orderId, providerOrderId: order.id, trackingNumber: dto.trackingNumber, carrier: dto.carrier } } });
+      if (([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] as ProviderOrderStatus[]).includes(dto.status)) await this.createOrderEarningLedger(tx, order);
       await tx.notification.create({ data: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Order status updated', message: `Order status updated to ${dto.status}.`, type: 'PROVIDER_ORDER_STATUS_UPDATED', metadataJson: { orderId: order.orderId, providerOrderId: order.id, status: dto.status } } });
       return item;
     });
@@ -280,6 +281,25 @@ export class ProviderOrdersService {
       REFUNDED: [],
     };
     if (!allowed[current].includes(next)) throw new BadRequestException(`Invalid status transition from ${current} to ${next}`);
+  }
+
+  private async createOrderEarningLedger(tx: Prisma.TransactionClient, order: ProviderOrderDetail): Promise<void> {
+    if (order.order.paymentStatus !== PaymentStatus.SUCCEEDED) return;
+    await tx.providerEarningsLedger.upsert({
+      where: { providerOrderId_type: { providerOrderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING } },
+      update: {},
+      create: {
+        providerId: order.providerId,
+        providerOrderId: order.id,
+        type: ProviderEarningsLedgerType.ORDER_EARNING,
+        direction: ProviderEarningsLedgerDirection.CREDIT,
+        amount: order.totalPayout ?? order.total,
+        currency: order.currency,
+        status: ProviderEarningsLedgerStatus.AVAILABLE,
+        description: `Order #${order.orderNumber ?? order.order.orderNumber} payout`,
+        metadataJson: { orderId: order.orderId },
+      },
+    });
   }
 
   private async syncParentOrder(tx: Prisma.TransactionClient, orderId: string): Promise<void> {

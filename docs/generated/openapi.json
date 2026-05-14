@@ -7816,6 +7816,502 @@
         "x-access": "Authenticated"
       }
     },
+    "/api/v1/provider/earnings/summary": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.",
+        "operationId": "ProviderEarningsController_summary",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "LAST_90_DAYS",
+                "ALL_TIME",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider earnings summary",
+        "tags": [
+          "03 Provider - Earnings"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/earnings/chart": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses provider earnings ledger.",
+        "operationId": "ProviderEarningsController_chart",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider earnings chart",
+        "tags": [
+          "03 Provider - Earnings"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/earnings/ledger": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Does not accept providerId query/body.",
+        "operationId": "ProviderEarningsController_ledger",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "LAST_90_DAYS",
+                "ALL_TIME",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "ORDER_EARNING",
+                "REFUND_DEDUCTION",
+                "PENALTY",
+                "PAYOUT",
+                "ADJUSTMENT"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PENDING",
+                "AVAILABLE",
+                "PAID",
+                "FAILED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own provider earnings ledger",
+        "tags": [
+          "03 Provider - Earnings"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payouts": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.",
+        "operationId": "ProviderPayoutsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL_TIME",
+                "LAST_30_DAYS",
+                "LAST_90_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PENDING",
+                "PROCESSING",
+                "COMPLETED",
+                "FAILED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own provider payout history",
+        "tags": [
+          "03 Provider - Payouts"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payouts/summary": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route declared before :id. PROVIDER only.",
+        "operationId": "ProviderPayoutsController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider payout summary",
+        "tags": [
+          "03 Provider - Payouts"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payouts/preview": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route declared before :id. Validates available balance and verified payout method.",
+        "operationId": "ProviderPayoutsController_preview",
+        "parameters": [
+          {
+            "name": "amount",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": 1250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "payoutMethodId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "payout_method_id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview provider payout request",
+        "tags": [
+          "03 Provider - Payouts"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payouts/request": {
+      "post": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses idempotencyKey to block duplicate payout requests.",
+        "operationId": "ProviderPayoutsController_request",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestProviderPayoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Request provider payout",
+        "tags": [
+          "03 Provider - Payouts"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payouts/{id}": {
+      "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Scoped to authenticated provider.",
+        "operationId": "ProviderPayoutsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own provider payout details",
+        "tags": [
+          "03 Provider - Payouts"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/payouts/{id}/cancel": {
+      "post": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Can cancel only PENDING payouts and returns locked balance to AVAILABLE.",
+        "operationId": "ProviderPayoutsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelProviderPayoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel own pending provider payout",
+        "tags": [
+          "03 Provider - Payouts"
+        ],
+        "x-allowed-roles": "PROVIDER",
+        "x-access": "PROVIDER"
+      }
+    },
     "/api/v1/provider/business-info": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.",
@@ -21464,6 +21960,9 @@
       "name": "03 Provider - Dashboard"
     },
     {
+      "name": "03 Provider - Earnings"
+    },
+    {
       "name": "03 Provider - Business Info"
     },
     {
@@ -21483,6 +21982,9 @@
     },
     {
       "name": "03 Provider - Payout Methods"
+    },
+    {
+      "name": "03 Provider - Payouts"
     },
     {
       "name": "03 Provider - Refund Requests"
@@ -23034,6 +23536,37 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "RequestProviderPayoutDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 1250
+          },
+          "payoutMethodId": {
+            "type": "string",
+            "example": "payout_method_id"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "provider_payout_2026_001"
+          }
+        },
+        "required": [
+          "amount",
+          "payoutMethodId",
+          "idempotencyKey"
+        ]
+      },
+      "CancelProviderPayoutDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Requested by provider."
           }
         }
       },

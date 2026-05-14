@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-14 11:21 UTC
+Generated: 2026-05-14 11:40 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -32,6 +32,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Dispute Resolution (3 APIs)
 - 02 Admin - Provider Dispute Logs (2 APIs)
 - 03 Provider - Dashboard (1 APIs)
+- 03 Provider - Earnings (3 APIs)
 - 03 Provider - Business Info (2 APIs)
 - 03 Provider - Buyer Chat (7 APIs)
 - 03 Provider - Reviews (7 APIs)
@@ -39,6 +40,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Promotional Offers (6 APIs)
 - 03 Provider - Orders (13 APIs)
 - 03 Provider - Payout Methods (7 APIs)
+- 03 Provider - Payouts (6 APIs)
 - 03 Provider - Refund Requests (6 APIs)
 - 03 Provider - Order Analytics (5 APIs)
 - 04 Gifts - Categories (7 APIs)
@@ -4362,6 +4364,66 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
+## 03 Provider - Earnings
+
+### GET `/api/v1/provider/earnings/summary`
+
+- Summary: Fetch own provider earnings summary
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/earnings/chart`
+
+- Summary: Fetch own provider earnings chart
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses provider earnings ledger.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/earnings/ledger`
+
+- Summary: List own provider earnings ledger
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Does not accept providerId query/body.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `type` (query, optional, string)
+  - `status` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
 ## 03 Provider - Business Info
 
 ### GET `/api/v1/provider/business-info`
@@ -5711,6 +5773,124 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "verificationMethod": "MANUAL",
   "publicToken": "plaid_public_token"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 03 Provider - Payouts
+
+### GET `/api/v1/provider/payouts`
+
+- Summary: List own provider payout history
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. providerId is derived from JWT.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `status` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/payouts/summary`
+
+- Summary: Fetch own provider payout summary
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route declared before :id. PROVIDER only.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/payouts/preview`
+
+- Summary: Preview provider payout request
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Route declared before :id. Validates available balance and verified payout method.
+- Parameters:
+  - `amount` (query, required, number)
+  - `payoutMethodId` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/provider/payouts/request`
+
+- Summary: Request provider payout
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses idempotencyKey to block duplicate payout requests.
+- Request payload(s):
+  - payload:
+```json
+{
+  "amount": 1250,
+  "payoutMethodId": "payout_method_id",
+  "idempotencyKey": "provider_payout_2026_001"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider/payouts/{id}`
+
+- Summary: Fetch own provider payout details
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Scoped to authenticated provider.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/provider/payouts/{id}/cancel`
+
+- Summary: Cancel own pending provider payout
+- Allowed role/access: PROVIDER
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Can cancel only PENDING payouts and returns locked balance to AVAILABLE.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "Requested by provider."
 }
 ```
 - Response body:
