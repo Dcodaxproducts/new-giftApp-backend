@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-14 05:20 UTC
+Generated: 2026-05-14 05:39 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -13,6 +13,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Management (12 APIs)
 - 02 Admin - Provider Business Categories (5 APIs)
 - 02 Admin - Promotional Offers Management (10 APIs)
+- 02 Admin - Transaction Monitoring (9 APIs)
 - 02 Admin - Referral Settings (6 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
@@ -1871,6 +1872,328 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": "<response returned by endpoint>",
   "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - Transaction Monitoring
+
+### GET `/api/v1/admin/transactions/stats`
+
+- Summary: Fetch transaction monitoring stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `transactionType` (query, optional, string)
+  - `status` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "totalVolume": 124500,
+    "totalVolumeDeltaPercent": 12,
+    "successRate": 98.2,
+    "successRateDeltaPercent": 2.1,
+    "pendingReview": 14,
+    "failedToday": 3,
+    "failedTodayDeltaPercent": -5,
+    "currency": "PKR"
+  },
+  "message": "Transaction stats fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/transactions/export`
+
+- Summary: Export admin transactions
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.export
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. SUPER_ADMIN or ADMIN with transactions.export. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `transactionType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `gatewayProvider` (query, optional, string)
+  - `userId` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `minAmount` (query, optional, number)
+  - `maxAmount` (query, optional, number)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+  - `format` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/transactions`
+
+- Summary: List admin transactions
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `transactionType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `gatewayProvider` (query, optional, string)
+  - `userId` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `minAmount` (query, optional, number)
+  - `maxAmount` (query, optional, number)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "transaction_id",
+      "transactionId": "TXN-882194",
+      "user": {
+        "id": "user_id",
+        "name": "Sarah Jenkins",
+        "avatarUrl": "https://cdn.yourdomain.com/user-avatars/sarah.png"
+      },
+      "gatewayProvider": "STRIPE",
+      "type": "PAYMENT",
+      "amount": 1250,
+      "currency": "PKR",
+      "status": "SUCCESS",
+      "createdAt": "2026-10-24T14:20:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Transactions fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/transactions/{id}/timeline`
+
+- Summary: Fetch transaction timeline
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "status": "INITIATED",
+      "title": "Initiated",
+      "description": "Checkout session started by user via mobile application.",
+      "source": "User Session",
+      "timestamp": "2026-11-24T14:30:02.000Z"
+    },
+    {
+      "status": "COMPLETED",
+      "title": "Completed",
+      "description": "Funds successfully transferred to the merchant escrow account.",
+      "source": "System Auto-Update",
+      "timestamp": "2026-11-24T14:32:10.000Z"
+    }
+  ],
+  "message": "Transaction timeline fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/transactions/{id}/receipt`
+
+- Summary: Download transaction receipt
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.receipt.download
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. SUPER_ADMIN or ADMIN with transactions.receipt.download. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/transactions/{id}/refund`
+
+- Summary: Refund transaction
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.refund
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.refund. SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated. SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - full:
+```json
+{
+  "refundType": "FULL",
+  "refundAmount": 1281.25,
+  "reason": "CUSTOMER_REQUEST",
+  "comment": "Refund approved by support.",
+  "notifyUser": true
+}
+```
+  - partial:
+```json
+{
+  "refundType": "PARTIAL",
+  "refundAmount": 250,
+  "reason": "PRODUCT_NOT_RECEIVED",
+  "comment": "Partial goodwill refund.",
+  "notifyUser": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "transactionId": "TRX-982341",
+    "refundId": "RF-45678",
+    "refundAmount": 1281.25,
+    "currency": "PKR",
+    "status": "REFUNDED"
+  },
+  "message": "Transaction refunded successfully."
+}
+```
+
+### POST `/api/v1/admin/transactions/{id}/open-dispute`
+
+- Summary: Open dispute from transaction
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.openDispute
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.openDispute. SUPER_ADMIN or ADMIN with transactions.openDispute permission. SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - open:
+```json
+{
+  "reason": "PRODUCT_NOT_RECEIVED",
+  "priority": "HIGH",
+  "claimDetails": "Dispute opened from transaction detail screen.",
+  "assignToId": "admin_id"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "disputeId": "dispute_id",
+    "caseId": "DSP-1024",
+    "transactionId": "TRX-982341",
+    "status": "OPEN"
+  },
+  "message": "Dispute opened successfully."
+}
+```
+
+### POST `/api/v1/admin/transactions/{id}/notify-user`
+
+- Summary: Send transaction notification to user
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.notifyUser
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.notifyUser. SUPER_ADMIN or ADMIN with transactions.notifyUser permission. SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - email:
+```json
+{
+  "channel": "EMAIL",
+  "subject": "Transaction update",
+  "message": "Your transaction has been successfully processed.",
+  "includeReceipt": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "transactionId": "TRX-982341",
+    "notificationSent": true,
+    "channel": "EMAIL"
+  },
+  "message": "Notification sent successfully."
+}
+```
+
+### GET `/api/v1/admin/transactions/{id}`
+
+- Summary: Fetch transaction details
+- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. SUPER_ADMIN or ADMIN with transactions.read. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "transaction_id",
+    "transactionId": "TRX-982341",
+    "status": "SUCCESS",
+    "type": "PAYMENT",
+    "currency": "PKR",
+    "paymentBreakdown": {
+      "subtotal": 1250,
+      "processingFee": 31.25,
+      "processingFeePercent": 2.5,
+      "totalAmount": 1281.25
+    },
+    "gatewayInformation": {
+      "provider": "STRIPE",
+      "gatewayReference": "REF-XP-382341",
+      "paymentMethod": "Visa **** 4242",
+      "settlementStatus": "CLEARED",
+      "processorAuthCode": "AUTH-9921-X"
+    },
+    "customer": {
+      "id": "user_id",
+      "name": "Julianne Doe",
+      "email": "julianne.doe@example.com",
+      "location": "San Francisco, CA, USA",
+      "kycStatus": "KYC Level 2 Verified"
+    },
+    "relatedRecords": {
+      "orderId": "order_id",
+      "orderNumber": "ORD-88421",
+      "paymentId": "payment_id",
+      "subscriptionId": null,
+      "moneyGiftId": null,
+      "walletLedgerId": null
+    },
+    "refund": {
+      "isRefundable": true,
+      "refundedAmount": 0,
+      "remainingRefundableAmount": 1281.25,
+      "refundWindowEndsAt": "2026-11-24T00:00:00.000Z"
+    },
+    "createdAt": "2026-10-24T14:20:00.000Z"
+  },
+  "message": "Transaction details fetched successfully."
 }
 ```
 

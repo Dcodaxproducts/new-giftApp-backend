@@ -3872,6 +3872,1177 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
+    "/api/v1/admin/transactions/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.",
+        "operationId": "AdminTransactionsController_stats",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_30_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "transactionType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PAYMENT",
+                "GIFT",
+                "WITHDRAWAL",
+                "SUBSCRIPTION_PAYMENT",
+                "RECURRING_PAYMENT",
+                "WALLET_TOP_UP",
+                "REFUND"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "PENDING",
+                "FAILED",
+                "REFUNDED",
+                "PARTIALLY_REFUNDED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalVolume": 124500,
+                      "totalVolumeDeltaPercent": 12,
+                      "successRate": 98.2,
+                      "successRateDeltaPercent": 2.1,
+                      "pendingReview": 14,
+                      "failedToday": 3,
+                      "failedTodayDeltaPercent": -5,
+                      "currency": "PKR"
+                    },
+                    "message": "Transaction stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch transaction monitoring stats",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.read",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.read"
+      }
+    },
+    "/api/v1/admin/transactions/export": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. SUPER_ADMIN or ADMIN with transactions.export. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.",
+        "operationId": "AdminTransactionsController_export",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_30_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "transactionType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PAYMENT",
+                "GIFT",
+                "WITHDRAWAL",
+                "SUBSCRIPTION_PAYMENT",
+                "RECURRING_PAYMENT",
+                "WALLET_TOP_UP",
+                "REFUND"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "PENDING",
+                "FAILED",
+                "REFUNDED",
+                "PARTIALLY_REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "TXN-882194",
+              "type": "string"
+            }
+          },
+          {
+            "name": "gatewayProvider",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "STRIPE",
+                "PAYPAL",
+                "BANK_TRANSFER",
+                "WALLET",
+                "COD"
+              ]
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "user_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CSV",
+              "type": "string",
+              "enum": [
+                "CSV",
+                "PDF"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export admin transactions",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.export",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.export"
+      }
+    },
+    "/api/v1/admin/transactions": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.",
+        "operationId": "AdminTransactionsController_list",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_30_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "transactionType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PAYMENT",
+                "GIFT",
+                "WITHDRAWAL",
+                "SUBSCRIPTION_PAYMENT",
+                "RECURRING_PAYMENT",
+                "WALLET_TOP_UP",
+                "REFUND"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "PENDING",
+                "FAILED",
+                "REFUNDED",
+                "PARTIALLY_REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "TXN-882194",
+              "type": "string"
+            }
+          },
+          {
+            "name": "gatewayProvider",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ALL",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "STRIPE",
+                "PAYPAL",
+                "BANK_TRANSFER",
+                "WALLET",
+                "COD"
+              ]
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "user_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxAmount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 5000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "transaction_id",
+                        "transactionId": "TXN-882194",
+                        "user": {
+                          "id": "user_id",
+                          "name": "Sarah Jenkins",
+                          "avatarUrl": "https://cdn.yourdomain.com/user-avatars/sarah.png"
+                        },
+                        "gatewayProvider": "STRIPE",
+                        "type": "PAYMENT",
+                        "amount": 1250,
+                        "currency": "PKR",
+                        "status": "SUCCESS",
+                        "createdAt": "2026-10-24T14:20:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Transactions fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List admin transactions",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.read",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.read"
+      }
+    },
+    "/api/v1/admin/transactions/{id}/timeline": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.",
+        "operationId": "AdminTransactionsController_timeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "status": "INITIATED",
+                        "title": "Initiated",
+                        "description": "Checkout session started by user via mobile application.",
+                        "source": "User Session",
+                        "timestamp": "2026-11-24T14:30:02.000Z"
+                      },
+                      {
+                        "status": "COMPLETED",
+                        "title": "Completed",
+                        "description": "Funds successfully transferred to the merchant escrow account.",
+                        "source": "System Auto-Update",
+                        "timestamp": "2026-11-24T14:32:10.000Z"
+                      }
+                    ],
+                    "message": "Transaction timeline fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch transaction timeline",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.read",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.read"
+      }
+    },
+    "/api/v1/admin/transactions/{id}/receipt": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. SUPER_ADMIN or ADMIN with transactions.receipt.download. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.",
+        "operationId": "AdminTransactionsController_receipt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download transaction receipt",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.receipt.download",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.receipt.download"
+      }
+    },
+    "/api/v1/admin/transactions/{id}/refund": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.refund. SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated. SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.",
+        "operationId": "AdminTransactionsController_refund",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundAdminTransactionDto"
+              },
+              "examples": {
+                "full": {
+                  "value": {
+                    "refundType": "FULL",
+                    "refundAmount": 1281.25,
+                    "reason": "CUSTOMER_REQUEST",
+                    "comment": "Refund approved by support.",
+                    "notifyUser": true
+                  }
+                },
+                "partial": {
+                  "value": {
+                    "refundType": "PARTIAL",
+                    "refundAmount": 250,
+                    "reason": "PRODUCT_NOT_RECEIVED",
+                    "comment": "Partial goodwill refund.",
+                    "notifyUser": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "transactionId": "TRX-982341",
+                      "refundId": "RF-45678",
+                      "refundAmount": 1281.25,
+                      "currency": "PKR",
+                      "status": "REFUNDED"
+                    },
+                    "message": "Transaction refunded successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Refund transaction",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.refund",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.refund"
+      }
+    },
+    "/api/v1/admin/transactions/{id}/open-dispute": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.openDispute. SUPER_ADMIN or ADMIN with transactions.openDispute permission. SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.",
+        "operationId": "AdminTransactionsController_openDispute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenTransactionDisputeDto"
+              },
+              "examples": {
+                "open": {
+                  "value": {
+                    "reason": "PRODUCT_NOT_RECEIVED",
+                    "priority": "HIGH",
+                    "claimDetails": "Dispute opened from transaction detail screen.",
+                    "assignToId": "admin_id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "disputeId": "dispute_id",
+                      "caseId": "DSP-1024",
+                      "transactionId": "TRX-982341",
+                      "status": "OPEN"
+                    },
+                    "message": "Dispute opened successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Open dispute from transaction",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.openDispute",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.openDispute"
+      }
+    },
+    "/api/v1/admin/transactions/{id}/notify-user": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.notifyUser. SUPER_ADMIN or ADMIN with transactions.notifyUser permission. SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.",
+        "operationId": "AdminTransactionsController_notifyUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotifyTransactionUserDto"
+              },
+              "examples": {
+                "email": {
+                  "value": {
+                    "channel": "EMAIL",
+                    "subject": "Transaction update",
+                    "message": "Your transaction has been successfully processed.",
+                    "includeReceipt": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "transactionId": "TRX-982341",
+                      "notificationSent": true,
+                      "channel": "EMAIL"
+                    },
+                    "message": "Notification sent successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send transaction notification to user",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.notifyUser",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.notifyUser"
+      }
+    },
+    "/api/v1/admin/transactions/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. SUPER_ADMIN or ADMIN with transactions.read. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.",
+        "operationId": "AdminTransactionsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "transaction_id",
+                      "transactionId": "TRX-982341",
+                      "status": "SUCCESS",
+                      "type": "PAYMENT",
+                      "currency": "PKR",
+                      "paymentBreakdown": {
+                        "subtotal": 1250,
+                        "processingFee": 31.25,
+                        "processingFeePercent": 2.5,
+                        "totalAmount": 1281.25
+                      },
+                      "gatewayInformation": {
+                        "provider": "STRIPE",
+                        "gatewayReference": "REF-XP-382341",
+                        "paymentMethod": "Visa **** 4242",
+                        "settlementStatus": "CLEARED",
+                        "processorAuthCode": "AUTH-9921-X"
+                      },
+                      "customer": {
+                        "id": "user_id",
+                        "name": "Julianne Doe",
+                        "email": "julianne.doe@example.com",
+                        "location": "San Francisco, CA, USA",
+                        "kycStatus": "KYC Level 2 Verified"
+                      },
+                      "relatedRecords": {
+                        "orderId": "order_id",
+                        "orderNumber": "ORD-88421",
+                        "paymentId": "payment_id",
+                        "subscriptionId": null,
+                        "moneyGiftId": null,
+                        "walletLedgerId": null
+                      },
+                      "refund": {
+                        "isRefundable": true,
+                        "refundedAmount": 0,
+                        "remainingRefundableAmount": 1281.25,
+                        "refundWindowEndsAt": "2026-11-24T00:00:00.000Z"
+                      },
+                      "createdAt": "2026-10-24T14:20:00.000Z"
+                    },
+                    "message": "Transaction details fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch transaction details",
+        "tags": [
+          "02 Admin - Transaction Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.read",
+        "x-access": "SUPER_ADMIN or ADMIN with transactions.read"
+      }
+    },
+    "/api/v1/admin/refund-policy-settings": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, auto-refund, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.",
+        "operationId": "RefundPolicySettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "refundWindowDays": 30,
+                      "autoRefundThresholdAmount": 50,
+                      "currency": "PKR",
+                      "autoApproveSmallRefunds": true,
+                      "smallRefundAutoApproveAmount": 15,
+                      "eligibleCategories": [
+                        {
+                          "id": "category_electronics",
+                          "name": "Electronics"
+                        },
+                        {
+                          "id": "category_apparel",
+                          "name": "Apparel"
+                        },
+                        {
+                          "id": "category_home_decor",
+                          "name": "Home Decor"
+                        }
+                      ],
+                      "lastUpdatedAt": "2026-05-14T10:00:00.000Z",
+                      "lastUpdatedBy": {
+                        "id": "admin_id",
+                        "name": "Alex Rivera"
+                      }
+                    },
+                    "message": "Refund policy settings fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch refund policy settings",
+        "tags": [
+          "02 Admin - Refund Policy Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with refundPolicies.read",
+        "x-access": "SUPER_ADMIN or ADMIN with refundPolicies.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund rules. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.",
+        "operationId": "RefundPolicySettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRefundPolicySettingsDto"
+              },
+              "examples": {
+                "update": {
+                  "value": {
+                    "refundWindowDays": 30,
+                    "autoRefundThresholdAmount": 50,
+                    "currency": "PKR",
+                    "autoApproveSmallRefunds": true,
+                    "smallRefundAutoApproveAmount": 15,
+                    "eligibleCategoryIds": [
+                      "category_electronics",
+                      "category_apparel",
+                      "category_home_decor"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "refundWindowDays": 30,
+                      "autoRefundThresholdAmount": 50,
+                      "currency": "PKR",
+                      "autoApproveSmallRefunds": true,
+                      "smallRefundAutoApproveAmount": 15,
+                      "eligibleCategoryIds": [
+                        "category_electronics",
+                        "category_apparel",
+                        "category_home_decor"
+                      ],
+                      "lastUpdatedAt": "2026-05-14T10:00:00.000Z"
+                    },
+                    "message": "Refund policy settings updated successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update refund policy settings",
+        "tags": [
+          "02 Admin - Refund Policy Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/admin/refund-policy-settings/logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.",
+        "operationId": "RefundPolicySettingsController_logs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "audit_log_id",
+                        "action": "REFUND_POLICY_SETTINGS_UPDATED",
+                        "actor": {
+                          "id": "admin_id",
+                          "name": "Alex Rivera"
+                        },
+                        "before": {
+                          "refundWindowDays": 14,
+                          "autoRefundThresholdAmount": 25
+                        },
+                        "after": {
+                          "refundWindowDays": 30,
+                          "autoRefundThresholdAmount": 50
+                        },
+                        "createdAt": "2026-05-14T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Refund policy audit logs fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List refund policy audit logs",
+        "tags": [
+          "02 Admin - Refund Policy Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
     "/api/v1/admins": {
       "post": {
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Creates ADMIN staff users only. Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
@@ -17555,230 +18726,6 @@
         "x-access": "SUPER_ADMIN"
       }
     },
-    "/api/v1/admin/refund-policy-settings": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, auto-refund, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.",
-        "operationId": "RefundPolicySettingsController_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "refundWindowDays": 30,
-                      "autoRefundThresholdAmount": 50,
-                      "currency": "PKR",
-                      "autoApproveSmallRefunds": true,
-                      "smallRefundAutoApproveAmount": 15,
-                      "eligibleCategories": [
-                        {
-                          "id": "category_electronics",
-                          "name": "Electronics"
-                        },
-                        {
-                          "id": "category_apparel",
-                          "name": "Apparel"
-                        },
-                        {
-                          "id": "category_home_decor",
-                          "name": "Home Decor"
-                        }
-                      ],
-                      "lastUpdatedAt": "2026-05-14T10:00:00.000Z",
-                      "lastUpdatedBy": {
-                        "id": "admin_id",
-                        "name": "Alex Rivera"
-                      }
-                    },
-                    "message": "Refund policy settings fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch refund policy settings",
-        "tags": [
-          "02 Admin - Refund Policy Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with refundPolicies.read",
-        "x-access": "SUPER_ADMIN or ADMIN with refundPolicies.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund rules. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.",
-        "operationId": "RefundPolicySettingsController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateRefundPolicySettingsDto"
-              },
-              "examples": {
-                "update": {
-                  "value": {
-                    "refundWindowDays": 30,
-                    "autoRefundThresholdAmount": 50,
-                    "currency": "PKR",
-                    "autoApproveSmallRefunds": true,
-                    "smallRefundAutoApproveAmount": 15,
-                    "eligibleCategoryIds": [
-                      "category_electronics",
-                      "category_apparel",
-                      "category_home_decor"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "refundWindowDays": 30,
-                      "autoRefundThresholdAmount": 50,
-                      "currency": "PKR",
-                      "autoApproveSmallRefunds": true,
-                      "smallRefundAutoApproveAmount": 15,
-                      "eligibleCategoryIds": [
-                        "category_electronics",
-                        "category_apparel",
-                        "category_home_decor"
-                      ],
-                      "lastUpdatedAt": "2026-05-14T10:00:00.000Z"
-                    },
-                    "message": "Refund policy settings updated successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update refund policy settings",
-        "tags": [
-          "02 Admin - Refund Policy Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/admin/refund-policy-settings/logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.",
-        "operationId": "RefundPolicySettingsController_logs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-01T00:00:00.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-31T23:59:59.999Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "audit_log_id",
-                        "action": "REFUND_POLICY_SETTINGS_UPDATED",
-                        "actor": {
-                          "id": "admin_id",
-                          "name": "Alex Rivera"
-                        },
-                        "before": {
-                          "refundWindowDays": 14,
-                          "autoRefundThresholdAmount": 25
-                        },
-                        "after": {
-                          "refundWindowDays": 30,
-                          "autoRefundThresholdAmount": 50
-                        },
-                        "createdAt": "2026-05-14T10:00:00.000Z"
-                      }
-                    ],
-                    "meta": {
-                      "page": 1,
-                      "limit": 20,
-                      "total": 1,
-                      "totalPages": 1
-                    },
-                    "message": "Refund policy audit logs fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List refund policy audit logs",
-        "tags": [
-          "02 Admin - Refund Policy Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
     "/api/v1/customer/payments/create-intent": {
       "post": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
@@ -19061,6 +20008,9 @@
       "name": "02 Admin - Promotional Offers Management"
     },
     {
+      "name": "02 Admin - Transaction Monitoring"
+    },
+    {
       "name": "02 Admin - Referral Settings"
     },
     {
@@ -19918,6 +20868,169 @@
         "required": [
           "note",
           "visibility"
+        ]
+      },
+      "RefundAdminTransactionDto": {
+        "type": "object",
+        "properties": {
+          "refundType": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "PARTIAL"
+            ],
+            "example": "FULL"
+          },
+          "refundAmount": {
+            "type": "number",
+            "example": 1281.25
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER_REQUEST",
+              "ORDER_CANCELLED",
+              "PRODUCT_NOT_RECEIVED",
+              "DUPLICATE_CHARGE",
+              "FRAUD_REVIEW",
+              "DISPUTE_RESOLUTION",
+              "OTHER"
+            ],
+            "example": "CUSTOMER_REQUEST"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Refund approved by support."
+          },
+          "notifyUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "refundType",
+          "refundAmount",
+          "reason"
+        ]
+      },
+      "OpenTransactionDisputeDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "PRODUCT_NOT_RECEIVED",
+              "PRODUCT_DAMAGED",
+              "WRONG_ITEM",
+              "DUPLICATE_CHARGE",
+              "REFUND_NOT_RECEIVED",
+              "PROVIDER_ISSUE",
+              "OTHER"
+            ],
+            "example": "PRODUCT_NOT_RECEIVED"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "example": "HIGH"
+          },
+          "claimDetails": {
+            "type": "string",
+            "example": "Dispute opened from transaction detail screen."
+          },
+          "assignToId": {
+            "type": "string",
+            "example": "admin_id"
+          }
+        },
+        "required": [
+          "reason",
+          "priority",
+          "claimDetails"
+        ]
+      },
+      "NotifyTransactionUserDto": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "IN_APP",
+              "EMAIL",
+              "BOTH"
+            ],
+            "example": "EMAIL"
+          },
+          "subject": {
+            "type": "string",
+            "example": "Transaction update"
+          },
+          "message": {
+            "type": "string",
+            "example": "Your transaction has been successfully processed."
+          },
+          "includeReceipt": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "channel",
+          "subject",
+          "message"
+        ]
+      },
+      "UpdateRefundPolicySettingsDto": {
+        "type": "object",
+        "properties": {
+          "refundWindowDays": {
+            "type": "number",
+            "example": 30,
+            "minimum": 1,
+            "maximum": 365
+          },
+          "autoRefundThresholdAmount": {
+            "type": "number",
+            "example": 50,
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "example": "PKR"
+          },
+          "autoApproveSmallRefunds": {
+            "type": "boolean",
+            "example": true
+          },
+          "smallRefundAutoApproveAmount": {
+            "type": "number",
+            "example": 15,
+            "minimum": 0
+          },
+          "eligibleCategoryIds": {
+            "example": [
+              "category_electronics",
+              "category_apparel",
+              "category_home_decor"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "refundWindowDays",
+          "autoRefundThresholdAmount",
+          "currency",
+          "autoApproveSmallRefunds",
+          "smallRefundAutoApproveAmount",
+          "eligibleCategoryIds"
         ]
       },
       "UpdateAdminDto": {
@@ -23271,54 +24384,6 @@
           "maxAudioSizeMb",
           "scanUploads",
           "blockSvgUploads"
-        ]
-      },
-      "UpdateRefundPolicySettingsDto": {
-        "type": "object",
-        "properties": {
-          "refundWindowDays": {
-            "type": "number",
-            "example": 30,
-            "minimum": 1,
-            "maximum": 365
-          },
-          "autoRefundThresholdAmount": {
-            "type": "number",
-            "example": 50,
-            "minimum": 0
-          },
-          "currency": {
-            "type": "string",
-            "example": "PKR"
-          },
-          "autoApproveSmallRefunds": {
-            "type": "boolean",
-            "example": true
-          },
-          "smallRefundAutoApproveAmount": {
-            "type": "number",
-            "example": 15,
-            "minimum": 0
-          },
-          "eligibleCategoryIds": {
-            "example": [
-              "category_electronics",
-              "category_apparel",
-              "category_home_decor"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "refundWindowDays",
-          "autoRefundThresholdAmount",
-          "currency",
-          "autoApproveSmallRefunds",
-          "smallRefundAutoApproveAmount",
-          "eligibleCategoryIds"
         ]
       },
       "CreatePaymentIntentDto": {

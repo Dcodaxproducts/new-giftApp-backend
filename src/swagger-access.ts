@@ -103,6 +103,16 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/login-attempts/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.export', description: 'SUPER_ADMIN or ADMIN with loginAttempts.export permission.' },
   'GET /api/v1/login-attempts': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.read', description: 'SUPER_ADMIN or ADMIN with loginAttempts.read permission.' },
 
+  'GET /api/v1/admin/transactions/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },
+  'GET /api/v1/admin/transactions/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.export', description: 'SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets.' },
+  'GET /api/v1/admin/transactions': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },
+  'GET /api/v1/admin/transactions/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked.' },
+  'GET /api/v1/admin/transactions/{id}/timeline': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },
+  'GET /api/v1/admin/transactions/{id}/receipt': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.receipt.download', description: 'SUPER_ADMIN or ADMIN with transactions.receipt.download permission.' },
+  'POST /api/v1/admin/transactions/{id}/refund': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.refund', description: 'SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated.' },
+  'POST /api/v1/admin/transactions/{id}/open-dispute': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.openDispute', description: 'SUPER_ADMIN or ADMIN with transactions.openDispute permission.' },
+  'POST /api/v1/admin/transactions/{id}/notify-user': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.notifyUser', description: 'SUPER_ADMIN or ADMIN with transactions.notifyUser permission.' },
+
   'GET /api/v1/subscription-plans': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.read', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.' },
   'POST /api/v1/subscription-plans': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.create', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.create permission.' },
   'GET /api/v1/subscription-plans/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.' },

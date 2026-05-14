@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 05:20 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-14 05:39 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -623,6 +623,166 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><h2>02 Admin - Transaction Monitoring</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/stats</code></div><div><span class="label">Summary:</span> Fetch transaction monitoring stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.</div><div class="label">Parameters:</div><ul><li><code>range</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>transactionType</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalVolume&quot;: 124500,
+    &quot;totalVolumeDeltaPercent&quot;: 12,
+    &quot;successRate&quot;: 98.2,
+    &quot;successRateDeltaPercent&quot;: 2.1,
+    &quot;pendingReview&quot;: 14,
+    &quot;failedToday&quot;: 3,
+    &quot;failedTodayDeltaPercent&quot;: -5,
+    &quot;currency&quot;: &quot;PKR&quot;
+  },
+  &quot;message&quot;: &quot;Transaction stats fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/export</code></div><div><span class="label">Summary:</span> Export admin transactions</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.export</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. SUPER_ADMIN or ADMIN with transactions.export. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.</div><div class="label">Parameters:</div><ul><li><code>range</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>transactionType</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>gatewayProvider</code> (query, optional, string) </li><li><code>userId</code> (query, optional, string) </li><li><code>providerId</code> (query, optional, string) </li><li><code>minAmount</code> (query, optional, number) </li><li><code>maxAmount</code> (query, optional, number) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li><li><code>format</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions</code></div><div><span class="label">Summary:</span> List admin transactions</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.</div><div class="label">Parameters:</div><ul><li><code>range</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>transactionType</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>gatewayProvider</code> (query, optional, string) </li><li><code>userId</code> (query, optional, string) </li><li><code>providerId</code> (query, optional, string) </li><li><code>minAmount</code> (query, optional, number) </li><li><code>maxAmount</code> (query, optional, number) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;transaction_id&quot;,
+      &quot;transactionId&quot;: &quot;TXN-882194&quot;,
+      &quot;user&quot;: {
+        &quot;id&quot;: &quot;user_id&quot;,
+        &quot;name&quot;: &quot;Sarah Jenkins&quot;,
+        &quot;avatarUrl&quot;: &quot;https://cdn.yourdomain.com/user-avatars/sarah.png&quot;
+      },
+      &quot;gatewayProvider&quot;: &quot;STRIPE&quot;,
+      &quot;type&quot;: &quot;PAYMENT&quot;,
+      &quot;amount&quot;: 1250,
+      &quot;currency&quot;: &quot;PKR&quot;,
+      &quot;status&quot;: &quot;SUCCESS&quot;,
+      &quot;createdAt&quot;: &quot;2026-10-24T14:20:00.000Z&quot;
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Transactions fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/{id}/timeline</code></div><div><span class="label">Summary:</span> Fetch transaction timeline</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;status&quot;: &quot;INITIATED&quot;,
+      &quot;title&quot;: &quot;Initiated&quot;,
+      &quot;description&quot;: &quot;Checkout session started by user via mobile application.&quot;,
+      &quot;source&quot;: &quot;User Session&quot;,
+      &quot;timestamp&quot;: &quot;2026-11-24T14:30:02.000Z&quot;
+    },
+    {
+      &quot;status&quot;: &quot;COMPLETED&quot;,
+      &quot;title&quot;: &quot;Completed&quot;,
+      &quot;description&quot;: &quot;Funds successfully transferred to the merchant escrow account.&quot;,
+      &quot;source&quot;: &quot;System Auto-Update&quot;,
+      &quot;timestamp&quot;: &quot;2026-11-24T14:32:10.000Z&quot;
+    }
+  ],
+  &quot;message&quot;: &quot;Transaction timeline fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/{id}/receipt</code></div><div><span class="label">Summary:</span> Download transaction receipt</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.receipt.download</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. SUPER_ADMIN or ADMIN with transactions.receipt.download. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/refund</code></div><div><span class="label">Summary:</span> Refund transaction</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.refund</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.refund. SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated. SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">full</div><pre>{
+  &quot;refundType&quot;: &quot;FULL&quot;,
+  &quot;refundAmount&quot;: 1281.25,
+  &quot;reason&quot;: &quot;CUSTOMER_REQUEST&quot;,
+  &quot;comment&quot;: &quot;Refund approved by support.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">partial</div><pre>{
+  &quot;refundType&quot;: &quot;PARTIAL&quot;,
+  &quot;refundAmount&quot;: 250,
+  &quot;reason&quot;: &quot;PRODUCT_NOT_RECEIVED&quot;,
+  &quot;comment&quot;: &quot;Partial goodwill refund.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;transactionId&quot;: &quot;TRX-982341&quot;,
+    &quot;refundId&quot;: &quot;RF-45678&quot;,
+    &quot;refundAmount&quot;: 1281.25,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;status&quot;: &quot;REFUNDED&quot;
+  },
+  &quot;message&quot;: &quot;Transaction refunded successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/open-dispute</code></div><div><span class="label">Summary:</span> Open dispute from transaction</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.openDispute</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.openDispute. SUPER_ADMIN or ADMIN with transactions.openDispute permission. SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">open</div><pre>{
+  &quot;reason&quot;: &quot;PRODUCT_NOT_RECEIVED&quot;,
+  &quot;priority&quot;: &quot;HIGH&quot;,
+  &quot;claimDetails&quot;: &quot;Dispute opened from transaction detail screen.&quot;,
+  &quot;assignToId&quot;: &quot;admin_id&quot;
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;disputeId&quot;: &quot;dispute_id&quot;,
+    &quot;caseId&quot;: &quot;DSP-1024&quot;,
+    &quot;transactionId&quot;: &quot;TRX-982341&quot;,
+    &quot;status&quot;: &quot;OPEN&quot;
+  },
+  &quot;message&quot;: &quot;Dispute opened successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/notify-user</code></div><div><span class="label">Summary:</span> Send transaction notification to user</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.notifyUser</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.notifyUser. SUPER_ADMIN or ADMIN with transactions.notifyUser permission. SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">email</div><pre>{
+  &quot;channel&quot;: &quot;EMAIL&quot;,
+  &quot;subject&quot;: &quot;Transaction update&quot;,
+  &quot;message&quot;: &quot;Your transaction has been successfully processed.&quot;,
+  &quot;includeReceipt&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;transactionId&quot;: &quot;TRX-982341&quot;,
+    &quot;notificationSent&quot;: true,
+    &quot;channel&quot;: &quot;EMAIL&quot;
+  },
+  &quot;message&quot;: &quot;Notification sent successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/{id}</code></div><div><span class="label">Summary:</span> Fetch transaction details</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. SUPER_ADMIN or ADMIN with transactions.read. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;transaction_id&quot;,
+    &quot;transactionId&quot;: &quot;TRX-982341&quot;,
+    &quot;status&quot;: &quot;SUCCESS&quot;,
+    &quot;type&quot;: &quot;PAYMENT&quot;,
+    &quot;currency&quot;: &quot;PKR&quot;,
+    &quot;paymentBreakdown&quot;: {
+      &quot;subtotal&quot;: 1250,
+      &quot;processingFee&quot;: 31.25,
+      &quot;processingFeePercent&quot;: 2.5,
+      &quot;totalAmount&quot;: 1281.25
+    },
+    &quot;gatewayInformation&quot;: {
+      &quot;provider&quot;: &quot;STRIPE&quot;,
+      &quot;gatewayReference&quot;: &quot;REF-XP-382341&quot;,
+      &quot;paymentMethod&quot;: &quot;Visa **** 4242&quot;,
+      &quot;settlementStatus&quot;: &quot;CLEARED&quot;,
+      &quot;processorAuthCode&quot;: &quot;AUTH-9921-X&quot;
+    },
+    &quot;customer&quot;: {
+      &quot;id&quot;: &quot;user_id&quot;,
+      &quot;name&quot;: &quot;Julianne Doe&quot;,
+      &quot;email&quot;: &quot;julianne.doe@example.com&quot;,
+      &quot;location&quot;: &quot;San Francisco, CA, USA&quot;,
+      &quot;kycStatus&quot;: &quot;KYC Level 2 Verified&quot;
+    },
+    &quot;relatedRecords&quot;: {
+      &quot;orderId&quot;: &quot;order_id&quot;,
+      &quot;orderNumber&quot;: &quot;ORD-88421&quot;,
+      &quot;paymentId&quot;: &quot;payment_id&quot;,
+      &quot;subscriptionId&quot;: null,
+      &quot;moneyGiftId&quot;: null,
+      &quot;walletLedgerId&quot;: null
+    },
+    &quot;refund&quot;: {
+      &quot;isRefundable&quot;: true,
+      &quot;refundedAmount&quot;: 0,
+      &quot;remainingRefundableAmount&quot;: 1281.25,
+      &quot;refundWindowEndsAt&quot;: &quot;2026-11-24T00:00:00.000Z&quot;
+    },
+    &quot;createdAt&quot;: &quot;2026-10-24T14:20:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Transaction details fetched successfully.&quot;
 }</pre></div><h2>02 Admin - Referral Settings</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/referral-settings</code></div><div><span class="label">Summary:</span> Fetch referral settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with referralSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
