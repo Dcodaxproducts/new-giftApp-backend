@@ -3,7 +3,9 @@ import { AuditLogSeverity, AuditLogStatus, LoginAttemptStatus, UserRole } from '
 import { AuditLogStatusFilter } from '../auth/dto/audit-logs.dto';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { AuditLogsRepository } from './audit-logs.repository';
 import { AuditLogsService } from './audit-logs.service';
+import { LoginAttemptsRepository } from '../login-attempts/login-attempts.repository';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
 
 function createAuditService() {
@@ -42,7 +44,8 @@ function createAuditService() {
     user: { findMany: jest.fn().mockResolvedValue([{ id: 'admin_1', email: 'admin@example.com', role: UserRole.ADMIN, firstName: 'Sarah', lastName: 'Chen', adminTitle: 'Compliance Officer' }]) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
-  const service = new AuditLogsService(prisma as never);
+  const repository = new AuditLogsRepository(prisma as never);
+  const service = new AuditLogsService(repository);
   return { service, prisma };
 }
 
@@ -127,7 +130,8 @@ describe('System logs / audit trail source checks', () => {
 
   it('login attempts can mirror high-risk events into audit logs', async () => {
     const prisma = { loginAttempt: { create: jest.fn() }, adminAuditLog: { create: jest.fn() } };
-    const loginAttempts = new LoginAttemptsService(prisma as never);
+    const repository = new LoginAttemptsRepository(prisma as never);
+    const loginAttempts = new LoginAttemptsService(repository);
     await loginAttempts.record({ email: 'x@example.com', status: LoginAttemptStatus.FAILED, reason: 'bad password', ipAddress: '127.0.0.1' });
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'FAILED_LOGIN_ATTEMPT' }) }));
   });

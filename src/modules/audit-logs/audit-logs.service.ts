@@ -1,23 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { AuditLogSeverity, AuditLogStatus, Prisma, UserRole } from '@prisma/client';
+import { AuditLogStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { AuditLogsRepository } from './audit-logs.repository';
 import { AuditLogSortBy, AuditLogStatsDto, AuditLogStatusFilter, AuditLogUsersDto, ListAuditLogsDto, SortOrder } from '../auth/dto/audit-logs.dto';
 
 @Injectable()
 export class AuditLogsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: AuditLogsRepository) {}
 
   async stats(query: AuditLogStatsDto) {
     const where = this.where({ fromDate: query.fromDate, toDate: query.toDate });
     const criticalSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [totalLogs, successCount, failedCount, criticalAlerts24h, grouped] = await this.prisma.$transaction([
-      this.prisma.adminAuditLog.count({ where }),
-      this.prisma.adminAuditLog.count({ where: { ...where, status: AuditLogStatus.SUCCESS } }),
-      this.prisma.adminAuditLog.count({ where: { ...where, status: AuditLogStatus.FAILED } }),
-      this.prisma.adminAuditLog.count({ where: { createdAt: { gte: criticalSince }, OR: [{ status: AuditLogStatus.FAILED }, { severity: { in: [AuditLogSeverity.HIGH, AuditLogSeverity.CRITICAL] } }, { action: { in: ['FAILED_LOGIN_ATTEMPT', 'SUSPICIOUS_LOGIN', 'LOGIN_FROM_NEW_DEVICE'] } }] } }),
-      this.prisma.adminAuditLog.findMany({ where, select: { createdAt: true }, take: 10000 }),
-    ]);
+    const [totalLogs, successCount, failedCount, criticalAlerts24h, grouped] = await this.repository.getStats(where, criticalSince);
     const uptimeStatus = totalLogs ? Math.round((successCount / totalLogs) * 10000) / 100 : 100;
     const dayBuckets = new Set(grouped.map((row) => row.createdAt.toISOString().slice(0, 10)));
     const dailyAverageActions = dayBuckets.size ? Math.round(totalLogs / dayBuckets.size) : totalLogs;
@@ -25,14 +19,14 @@ export class AuditLogsService {
   }
 
   async actionTypes() {
-    const rows = await this.prisma.adminAuditLog.findMany({ distinct: ['action'], select: { action: true }, orderBy: { action: 'asc' }, take: 500 });
+    const rows = await this.repository.findDistinctActions();
     return { data: rows.map((row) => ({ key: row.action, label: this.label(row.action) })), message: 'Audit log action types fetched successfully.' };
   }
 
   async users(query: AuditLogUsersDto) {
     const limit = query.limit ?? 20;
     const where: Prisma.UserWhereInput = { role: query.role as UserRole | undefined, ...(query.search ? { OR: [{ email: { contains: query.search, mode: 'insensitive' } }, { firstName: { contains: query.search, mode: 'insensitive' } }, { lastName: { contains: query.search, mode: 'insensitive' } }] } : {}) };
-    const users = await this.prisma.user.findMany({ where, select: { id: true, email: true, role: true, firstName: true, lastName: true, adminTitle: true }, take: limit, orderBy: { createdAt: 'desc' } });
+    const users = await this.repository.findUsers({ where, take: limit });
     return { data: [{ id: 'system', name: 'System', email: null, role: 'SYSTEM', label: 'System Automated Action' }, ...users.map((user) => ({ id: user.id, name: this.name(user), email: user.email, role: user.role, label: `${this.name(user)}${user.adminTitle ? ` — ${user.adminTitle}` : ''}` }))], message: 'Audit log users fetched successfully.' };
   }
 
@@ -40,27 +34,24 @@ export class AuditLogsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where = this.where(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.adminAuditLog.findMany({
-        where,
-        include: { actor: { select: { id: true, email: true, firstName: true, lastName: true, adminTitle: true, role: true } } },
-        orderBy: { [query.sortBy ?? AuditLogSortBy.CREATED_AT]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.adminAuditLog.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findManyWithCount({
+      where,
+      include: { actor: { select: { id: true, email: true, firstName: true, lastName: true, adminTitle: true, role: true } } },
+      orderBy: { [query.sortBy ?? AuditLogSortBy.CREATED_AT]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
     return { data: items.map((item) => this.listItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Audit logs fetched successfully' };
   }
 
   async details(id: string) {
-    const log = await this.prisma.adminAuditLog.findUnique({ where: { id }, include: { actor: { select: { id: true, email: true, firstName: true, lastName: true, role: true } } } });
+    const log = await this.repository.findByIdWithActor(id);
     if (!log) throw new NotFoundException('Audit log not found');
     return { data: { id: log.id, logReference: log.logReference ?? this.logReference(log.id), eventId: log.eventId ?? this.eventId(log.id), timestamp: log.createdAt, status: log.status, category: 'AUDIT_TRAIL', actor: { id: log.actor?.id ?? null, username: log.actor?.email ?? 'system', name: log.actor ? this.name(log.actor) : (log.actorNameSnapshot ?? 'System'), role: log.actor?.role ?? log.actorType ?? 'SYSTEM' }, actionType: log.action, module: log.module ?? this.module(log.action), sourceIp: log.ipAddress, environment: log.environment ?? 'Production-Cluster-A', target: { id: log.targetId, type: log.targetType }, requestPayload: this.sanitize(log.requestPayloadJson ?? log.beforeJson), systemResponse: { statusCode: log.status === AuditLogStatus.FAILED ? 500 : 200, durationMs: log.durationMs ?? 142, message: this.responseMessage(log) }, createdAt: log.createdAt }, message: 'Audit log details fetched successfully' };
   }
 
   async export(query: ListAuditLogsDto) {
-    const items = await this.prisma.adminAuditLog.findMany({ where: this.where(query), include: { actor: { select: { email: true, firstName: true, lastName: true } } }, orderBy: { [query.sortBy ?? AuditLogSortBy.CREATED_AT]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, take: 10000 });
+    const items = await this.repository.findManyForExport({ where: this.where(query), orderBy: { [query.sortBy ?? AuditLogSortBy.CREATED_AT]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' } });
     const rows = [['Event ID', 'Log Reference', 'Timestamp', 'Actor', 'Action', 'Module', 'Source IP', 'Environment', 'Status', 'Target ID', 'Target Type'], ...items.map((item) => [item.eventId ?? this.eventId(item.id), item.logReference ?? this.logReference(item.id), item.createdAt.toISOString(), item.actor ? this.name(item.actor) : (item.actorNameSnapshot ?? 'Unknown / Guest Access'), item.action, item.module ?? this.module(item.action), item.ipAddress ?? '', item.environment ?? '', item.status, item.targetId ?? '', item.targetType ?? ''])];
     return { content: rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n'), filename: 'audit-logs.csv', contentType: 'text/csv' };
   }

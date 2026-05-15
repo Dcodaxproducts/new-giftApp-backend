@@ -2,12 +2,13 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
 import { LoginAttemptsController } from './login-attempts.controller';
+import { LoginAttemptsRepository } from './login-attempts.repository';
 import { LoginAttemptsService } from './login-attempts.service';
 
 @Module({
   imports: [JwtModule.register({})],
   controllers: [LoginAttemptsController],
-  providers: [LoginAttemptsService, PrismaService],
+  providers: [LoginAttemptsService, LoginAttemptsRepository, PrismaService],
   exports: [LoginAttemptsService],
 })
 export class LoginAttemptsModule {}

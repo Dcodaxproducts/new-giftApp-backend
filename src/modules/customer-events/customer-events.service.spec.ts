@@ -1,5 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CustomerEventReminderFrequency, CustomerEventReminderJobStatus, CustomerEventReminderTiming, CustomerEventType, UserRole } from '@prisma/client';
+import { CustomerEventsRepository } from './customer-events.repository';
 import { CustomerEventsService } from './customer-events.service';
 import { ReminderChannelDto } from './dto/customer-events.dto';
 
@@ -17,7 +18,8 @@ function createService(foundEvent: typeof event | null = event, contact: typeof 
     customerEventReminderJob: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
-  return { service: new CustomerEventsService(prisma as unknown as ConstructorParameters<typeof CustomerEventsService>[0]), prisma };
+  const repository = new CustomerEventsRepository(prisma as unknown as ConstructorParameters<typeof CustomerEventsRepository>[0]);
+  return { service: new CustomerEventsService(repository), prisma };
 }
 
 describe('CustomerEventsService', () => {
