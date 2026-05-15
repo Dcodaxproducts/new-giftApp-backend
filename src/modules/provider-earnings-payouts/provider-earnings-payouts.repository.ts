@@ -80,6 +80,21 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.providerPayoutMethod.findFirst({ where: { id, providerId, deletedAt: null } });
   }
 
+  findProviderOrderForEarning(providerOrderId: string) {
+    return this.prisma.providerOrder.findUnique({ where: { id: providerOrderId }, include: { order: true } });
+  }
+
+  createOrderEarningLedgerEntry(data: Prisma.ProviderEarningsLedgerUncheckedCreateInput) {
+    return this.prisma.providerEarningsLedger.upsert({ where: { providerOrderId_type: { providerOrderId: data.providerOrderId ?? '', type: data.type } }, update: {}, create: data });
+  }
+
+  returnFailedPayoutBalance(params: { providerId: string; payoutId: string; reason: string }) {
+    return this.prisma.$transaction([
+      this.prisma.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { failureReason: params.reason } } }),
+      this.prisma.providerPayout.update({ where: { id: params.payoutId }, data: { status: ProviderPayoutStatus.FAILED, failureReason: params.reason } }),
+    ]);
+  }
+
   findExistingPayoutByIdempotencyKey(providerId: string, idempotencyKey: string) {
     return this.prisma.providerPayout.findFirst({ where: { providerId, idempotencyKey } });
   }

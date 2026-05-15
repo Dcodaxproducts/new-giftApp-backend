@@ -97,13 +97,13 @@ export class ProviderEarningsPayoutsService {
   }
 
   async recordOrderEarning(providerOrderId: string): Promise<void> {
-    const order = await this.prisma.providerOrder.findUnique({ where: { id: providerOrderId }, include: { order: true } });
+    const order = await this.repository.findProviderOrderForEarning(providerOrderId);
     if (!order || order.order.paymentStatus !== PaymentStatus.SUCCEEDED || !([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] as ProviderOrderStatus[]).includes(order.status)) return;
-    await this.prisma.providerEarningsLedger.upsert({ where: { providerOrderId_type: { providerOrderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING } }, update: {}, create: { providerId: order.providerId, providerOrderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: order.totalPayout ?? order.total, currency: order.currency, status: ProviderEarningsLedgerStatus.AVAILABLE, description: `Order #${order.orderNumber ?? order.order.orderNumber} payout`, metadataJson: { orderId: order.orderId } } });
+    await this.repository.createOrderEarningLedgerEntry({ providerId: order.providerId, providerOrderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: order.totalPayout ?? order.total, currency: order.currency, status: ProviderEarningsLedgerStatus.AVAILABLE, description: `Order #${order.orderNumber ?? order.order.orderNumber} payout`, metadataJson: { orderId: order.orderId } });
   }
 
   async returnFailedPayoutBalance(providerId: string, payoutId: string, reason: string): Promise<void> {
-    await this.prisma.$transaction([this.prisma.providerEarningsLedger.updateMany({ where: { providerId, payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { failureReason: reason } } }), this.prisma.providerPayout.update({ where: { id: payoutId }, data: { status: ProviderPayoutStatus.FAILED, failureReason: reason } })]);
+    await this.repository.returnFailedPayoutBalance({ providerId, payoutId, reason });
   }
 
   private async preview(providerId: string, amount: number, payoutMethodId?: string) {
