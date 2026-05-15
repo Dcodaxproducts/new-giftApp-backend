@@ -5,12 +5,13 @@ import { CustomerReferralsModule } from '../customer-referrals/customer-referral
 import { CustomerWalletModule } from '../customer-wallet/customer-wallet.module';
 import { CustomerSubscriptionsModule } from '../customer-subscriptions/customer-subscriptions.module';
 import { CustomerMoneyGiftsController, CustomerPaymentMethodsController, CustomerPaymentsController, StripeWebhookController } from './payments.controller';
+import { PaymentsRepository } from './payments.repository';
 import { PaymentsService } from './payments.service';
 
 @Module({
   imports: [JwtModule.register({}), CustomerReferralsModule, CustomerWalletModule, CustomerSubscriptionsModule],
   controllers: [CustomerPaymentsController, CustomerPaymentMethodsController, StripeWebhookController, CustomerMoneyGiftsController],
-  providers: [PaymentsService, PrismaService],
+  providers: [PaymentsService, PaymentsRepository, PrismaService],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

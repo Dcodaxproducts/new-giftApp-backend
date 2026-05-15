@@ -7,6 +7,7 @@ import { CustomerReferralsService } from '../customer-referrals/customer-referra
 import { CustomerWalletService } from '../customer-wallet/customer-wallet.service';
 import { CustomerSubscriptionsService } from '../customer-subscriptions/customer-subscriptions.service';
 import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from './dto/payments.dto';
+import { PaymentsRepository } from './payments.repository';
 
 type CartWithItems = Prisma.CartGetPayload<{ include: { items: true } }>;
 
@@ -41,6 +42,7 @@ export class PaymentsService {
     private readonly customerReferralsService: CustomerReferralsService,
     private readonly customerWalletService: CustomerWalletService,
     private readonly customerSubscriptionsService: CustomerSubscriptionsService,
+    private readonly repository: PaymentsRepository,
   ) {}
 
   paymentMethods() {
@@ -98,34 +100,31 @@ export class PaymentsService {
   }
 
   async createSetupIntent(user: AuthUserContext) {
-    const dbUser = await this.prisma.user.findUnique({ where: { id: user.uid } });
+    const dbUser = await this.repository.findUserById(user.uid);
     if (!dbUser) throw new NotFoundException('User not found');
-    const existing = await this.prisma.customerPaymentMethod.findFirst({ where: { userId: user.uid, deletedAt: null }, orderBy: { createdAt: 'desc' } });
+    const existing = await this.repository.findLatestSavedPaymentMethodForUser(user.uid);
     const customerId = existing?.stripeCustomerId ?? (await this.stripe().customers.create({ email: dbUser.email, name: `${dbUser.firstName} ${dbUser.lastName}`.trim(), metadata: { userId: user.uid } }) as StripeCustomerLike).id;
     const intent = await this.stripe().setupIntents.create({ customer: customerId, payment_method_types: ['card'], metadata: { userId: user.uid } }) as StripeSetupIntentCreateResult;
     return { data: { setupIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey() }, message: 'Setup intent created successfully.' };
   }
 
   async savedPaymentMethods(user: AuthUserContext) {
-    const items = await this.prisma.customerPaymentMethod.findMany({ where: { userId: user.uid, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+    const items = await this.repository.findSavedPaymentMethodsByUserId(user.uid);
     return { data: items.map((item) => this.toSavedPaymentMethod(item)), message: 'Saved payment methods fetched successfully.' };
   }
 
   async setDefaultPaymentMethod(user: AuthUserContext, id: string) {
     const method = await this.getOwnedPaymentMethod(user.uid, id);
-    await this.prisma.$transaction([
-      this.prisma.customerPaymentMethod.updateMany({ where: { userId: user.uid, isDefault: true }, data: { isDefault: false } }),
-      this.prisma.customerPaymentMethod.update({ where: { id: method.id }, data: { isDefault: true } }),
-    ]);
+    await this.repository.setDefaultPaymentMethodForUser(user.uid, method.id);
     await this.notify(user.uid, 'Default payment method changed', 'Your default payment method was updated.', 'DEFAULT_PAYMENT_METHOD_CHANGED', { paymentMethodId: method.id });
     return { data: { id: method.stripePaymentMethodId, isDefault: true }, message: 'Default payment method updated successfully.' };
   }
 
   async deletePaymentMethod(user: AuthUserContext, id: string) {
     const method = await this.getOwnedPaymentMethod(user.uid, id);
-    const activeRecurring = await this.prisma.customerRecurringPayment.count({ where: { userId: user.uid, stripePaymentMethodId: method.stripePaymentMethodId, status: 'ACTIVE', deletedAt: null } });
+    const activeRecurring = await this.repository.findActiveRecurringUsageByPaymentMethod(user.uid, method.stripePaymentMethodId);
     if (activeRecurring > 0) throw new BadRequestException('Payment method is used by an active recurring payment');
-    await this.prisma.customerPaymentMethod.delete({ where: { id: method.id } });
+    await this.repository.deleteSavedPaymentMethod(method.id);
     return { data: null, message: 'Payment method deleted successfully.' };
   }
 
@@ -190,9 +189,9 @@ export class PaymentsService {
     const stripeCustomerId = typeof intent.customer === 'string' ? intent.customer : intent.customer?.id;
     if (!userId || !paymentMethodId || !stripeCustomerId) return;
     const method = await this.stripe().paymentMethods.retrieve(paymentMethodId) as StripePaymentMethodLike;
-    const existingDefault = await this.prisma.customerPaymentMethod.findFirst({ where: { userId, isDefault: true, deletedAt: null } });
-    await this.prisma.customerPaymentMethod.upsert({
-      where: { stripePaymentMethodId: paymentMethodId },
+    const existingDefault = await this.repository.findExistingDefaultPaymentMethod(userId);
+    await this.repository.upsertSavedPaymentMethod({
+      stripePaymentMethodId: paymentMethodId,
       update: { stripeCustomerId, type: method.type.toUpperCase(), brand: method.card?.brand ?? null, last4: method.card?.last4 ?? null, expiryMonth: method.card?.exp_month ?? null, expiryYear: method.card?.exp_year ?? null, deletedAt: null },
       create: { userId, stripeCustomerId, stripePaymentMethodId: paymentMethodId, type: method.type.toUpperCase(), brand: method.card?.brand ?? null, last4: method.card?.last4 ?? null, expiryMonth: method.card?.exp_month ?? null, expiryYear: method.card?.exp_year ?? null, isDefault: !existingDefault },
     });
@@ -221,7 +220,7 @@ export class PaymentsService {
   }
 
   private async getOwnedPaymentMethod(userId: string, id: string) {
-    const method = await this.prisma.customerPaymentMethod.findFirst({ where: { userId, deletedAt: null, OR: [{ id }, { stripePaymentMethodId: id }] } });
+    const method = await this.repository.findSavedPaymentMethodForUser(userId, id);
     if (!method) throw new NotFoundException('Payment method not found');
     return method;
   }

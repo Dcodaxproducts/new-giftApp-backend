@@ -54,18 +54,15 @@ export class CustomerWalletService {
 
   async linkBankAccount(user: AuthUserContext, dto: CreateBankAccountDto) {
     const last4 = this.last4(dto.ibanOrAccountNumber);
-    const shouldDefault = dto.isDefault === true || !(await this.prisma.customerBankAccount.findFirst({ where: { userId: user.uid, deletedAt: null, isDefault: true } }));
-    const account = await this.prisma.$transaction(async (tx) => {
-      if (shouldDefault) await tx.customerBankAccount.updateMany({ where: { userId: user.uid, isDefault: true }, data: { isDefault: false } });
-      return tx.customerBankAccount.create({ data: { userId: user.uid, accountHolderName: dto.accountHolderName.trim(), bankName: dto.bankName.trim(), maskedAccount: `**** ${last4}`, last4, isDefault: shouldDefault } });
-    });
+    const shouldDefault = dto.isDefault === true || !(await this.repository.findDefaultBankAccountForUserIncludingDeletedFilter(user.uid));
+    const account = await this.repository.createBankAccountWithDefault({ userId: user.uid, shouldDefault, data: { accountHolderName: dto.accountHolderName.trim(), bankName: dto.bankName.trim(), maskedAccount: `**** ${last4}`, last4, isDefault: shouldDefault } });
     await this.notify(user.uid, 'Bank account linked', `${account.bankName} bank account was linked.`, 'BANK_ACCOUNT_LINKED', { bankAccountId: account.id });
     return { data: this.toBankAccount(account), message: 'Bank account linked successfully.' };
   }
 
-  async bankAccounts(user: AuthUserContext) { const items = await this.prisma.customerBankAccount.findMany({ where: { userId: user.uid, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] }); return { data: items.map((item) => this.toBankAccount(item)), message: 'Bank accounts fetched successfully.' }; }
-  async setDefaultBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.prisma.$transaction([this.prisma.customerBankAccount.updateMany({ where: { userId: user.uid, isDefault: true }, data: { isDefault: false } }), this.prisma.customerBankAccount.update({ where: { id: account.id }, data: { isDefault: true } })]); return { data: { id: account.id, isDefault: true }, message: 'Default bank account updated successfully.' }; }
-  async deleteBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.prisma.customerBankAccount.delete({ where: { id: account.id } }); return { data: null, message: 'Bank account deleted successfully.' }; }
+  async bankAccounts(user: AuthUserContext) { const items = await this.repository.findBankAccountsByUserId(user.uid); return { data: items.map((item) => this.toBankAccount(item)), message: 'Bank accounts fetched successfully.' }; }
+  async setDefaultBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.repository.setDefaultBankAccountForUser(user.uid, account.id); return { data: { id: account.id, isDefault: true }, message: 'Default bank account updated successfully.' }; }
+  async deleteBankAccount(user: AuthUserContext, id: string) { const account = await this.getOwnedBankAccount(user.uid, id); await this.repository.deleteBankAccount(account.id); return { data: null, message: 'Bank account deleted successfully.' }; }
 
   async creditWalletTopUp(payment: Payment): Promise<void> {
     const metadata = this.metadata(payment.metadataJson);
@@ -91,7 +88,7 @@ export class CustomerWalletService {
   private toBankAccount(item: CustomerBankAccount) { return { id: item.id, accountHolderName: item.accountHolderName, bankName: item.bankName, last4: item.last4, maskedAccount: item.maskedAccount, isDefault: item.isDefault }; }
   private toHistoryItem(item: CustomerWalletLedger) { return { id: item.id, type: item.type, title: this.title(item), description: item.description, amount: item.direction === CustomerWalletLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount), currency: item.currency, status: item.status, transactionId: item.transactionId, createdAt: item.createdAt }; }
   private title(item: CustomerWalletLedger): string { if (item.type === CustomerWalletLedgerType.TOP_UP) return 'Wallet top-up'; if (item.type === CustomerWalletLedgerType.REWARD_CREDIT) return 'Reward credit'; if (item.type === CustomerWalletLedgerType.MONEY_GIFT_SENT) return 'Money gift sent'; if (item.type === CustomerWalletLedgerType.GIFT_SENT) return 'Gift sent'; return 'Wallet transaction'; }
-  private async getOwnedBankAccount(userId: string, id: string): Promise<CustomerBankAccount> { const account = await this.prisma.customerBankAccount.findFirst({ where: { id, userId, deletedAt: null } }); if (!account) throw new NotFoundException('Bank account not found'); return account; }
+  private async getOwnedBankAccount(userId: string, id: string): Promise<CustomerBankAccount> { const account = await this.repository.findBankAccountForUser(userId, id); if (!account) throw new NotFoundException('Bank account not found'); return account; }
   private metadata(value: Prisma.JsonValue): { walletTopUpId?: string } { if (!value || typeof value !== 'object' || Array.isArray(value)) return {}; const source = value as Record<string, unknown>; return { walletTopUpId: typeof source.walletTopUpId === 'string' ? source.walletTopUpId : undefined }; }
   private last4(value: string): string { const digits = value.replace(/\D/g, ''); if (digits.length < 4) throw new BadRequestException('Bank account number must include at least 4 digits'); return digits.slice(-4); }
   private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }

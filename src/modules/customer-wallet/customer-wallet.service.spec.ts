@@ -23,7 +23,7 @@ function createService(overrides: Partial<{ wallet: unknown; ledgerRows: unknown
       update: jest.fn(),
     },
     customerPaymentMethod: { findFirst: jest.fn().mockResolvedValue(paymentMethod) },
-    customerBankAccount: { findFirst: jest.fn().mockResolvedValue(bankAccount), findMany: jest.fn(), updateMany: jest.fn(), update: jest.fn(), create: jest.fn(), delete: jest.fn() },
+    customerBankAccount: { findFirst: jest.fn().mockResolvedValue(bankAccount), findMany: jest.fn().mockResolvedValue([bankAccount]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn().mockResolvedValue({ ...bankAccount, isDefault: true }), create: jest.fn().mockResolvedValue(bankAccount), delete: jest.fn().mockResolvedValue(bankAccount) },
     customerWalletLedger: { findMany: jest.fn().mockResolvedValue(ledgerRows), count: jest.fn().mockResolvedValue(ledgerRows.length), create: jest.fn().mockResolvedValue(pendingLedger), findFirst: jest.fn(), update: jest.fn().mockResolvedValue({ ...pendingLedger, paymentId: payment.id }), updateMany: jest.fn() },
     payment: { create: jest.fn().mockResolvedValue(payment), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payment, ...data })) },
     notification: { create: jest.fn() },
@@ -128,7 +128,7 @@ describe('Customer wallet source safety', () => {
 
   it('enforces own payment methods, default uniqueness, and active recurring delete guard', () => {
     expect(paymentsService).toContain('getOwnedPaymentMethod(user.uid, id)');
-    expect(paymentsService).toContain('updateMany({ where: { userId: user.uid, isDefault: true }');
+    expect(readFileSync(join(__dirname, '../payments/payments.repository.ts'), 'utf8')).toContain('updateMany({ where: { userId, isDefault: true }');
     expect(paymentsService).toContain('activeRecurring');
     expect(paymentsService).toContain('Payment method is used by an active recurring payment');
   });
@@ -138,6 +138,11 @@ describe('Customer wallet source safety', () => {
     expect(schema).toContain('maskedAccount');
     expect(schema).not.toContain('ibanOrAccountNumber');
     expect(walletService).toContain('maskedAccount: `**** ${last4}`');
+    expect(walletRepository).toContain('findBankAccountsByUserId');
+    expect(walletRepository).toContain('findBankAccountForUser');
+    expect(walletRepository).toContain('createBankAccountWithDefault');
+    expect(walletRepository).toContain('setDefaultBankAccountForUser');
+    expect(walletRepository).toContain('deleteBankAccount');
     expect(walletService).toContain('toBankAccount');
     expect(walletService).not.toContain('accountNumber:');
   });
@@ -230,5 +235,41 @@ describe('CustomerWalletService read APIs', () => {
     const { service } = createService();
     await expect(service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.COD })).rejects.toThrow('Wallet top-up currently supports STRIPE_CARD only');
     await expect(service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'EUR', paymentMethod: PaymentMethod.STRIPE_CARD })).rejects.toThrow('Currency does not match configured payment currency');
+  });
+
+  it('customer can list own bank accounts', async () => {
+    const { service, prisma } = createService();
+    const result = await service.bankAccounts({ uid: 'customer_1', role: UserRole.REGISTERED_USER });
+    expect(result.message).toBe('Bank accounts fetched successfully.');
+    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'bank_1', maskedAccount: '**** 8821', last4: '8821' }));
+    expect(prisma.customerBankAccount.findMany).toHaveBeenCalledWith({ where: { userId: 'customer_1', deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+  });
+
+  it('customer can create bank account with masked output', async () => {
+    const { service, prisma } = createService();
+    const result = await service.linkBankAccount({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { accountHolderName: 'John Smith', bankName: 'Chase Bank', ibanOrAccountNumber: '123456788821' });
+    expect(result.message).toBe('Bank account linked successfully.');
+    expect(result.data).toEqual(expect.objectContaining({ maskedAccount: '**** 8821', last4: '8821' }));
+    expect(prisma.customerBankAccount.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'customer_1', maskedAccount: '**** 8821', last4: '8821' }) });
+  });
+
+  it('customer can set own default bank account', async () => {
+    const { service, prisma } = createService();
+    const result = await service.setDefaultBankAccount({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, 'bank_1');
+    expect(result.data).toEqual({ id: 'bank_1', isDefault: true });
+    expect(prisma.customerBankAccount.findFirst).toHaveBeenCalledWith({ where: { id: 'bank_1', userId: 'customer_1', deletedAt: null } });
+    expect(prisma.customerBankAccount.updateMany).toHaveBeenCalledWith({ where: { userId: 'customer_1', isDefault: true }, data: { isDefault: false } });
+  });
+
+  it('customer cannot set another user bank account as default', async () => {
+    const { service, prisma } = createService();
+    prisma.customerBankAccount.findFirst.mockResolvedValueOnce(null);
+    await expect(service.setDefaultBankAccount({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, 'bank_other')).rejects.toThrow('Bank account not found');
+  });
+
+  it('customer cannot access another user bank account for delete', async () => {
+    const { service, prisma } = createService();
+    prisma.customerBankAccount.findFirst.mockResolvedValueOnce(null);
+    await expect(service.deleteBankAccount({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, 'bank_other')).rejects.toThrow('Bank account not found');
   });
 });

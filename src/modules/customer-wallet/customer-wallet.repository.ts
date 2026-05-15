@@ -52,4 +52,34 @@ export class CustomerWalletRepository {
   markWalletTopUpPaymentProcessing(params: { paymentId: string; providerPaymentIntentId: string; metadataJson: Prisma.InputJsonObject }) {
     return this.prisma.payment.update({ where: { id: params.paymentId }, data: { providerPaymentIntentId: params.providerPaymentIntentId, status: PaymentStatus.PROCESSING, metadataJson: params.metadataJson } });
   }
+
+  findBankAccountsByUserId(userId: string) {
+    return this.prisma.customerBankAccount.findMany({ where: { userId, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+  }
+
+  findBankAccountForUser(userId: string, id: string) {
+    return this.prisma.customerBankAccount.findFirst({ where: { id, userId, deletedAt: null } });
+  }
+
+  findDefaultBankAccountForUserIncludingDeletedFilter(userId: string) {
+    return this.prisma.customerBankAccount.findFirst({ where: { userId, deletedAt: null, isDefault: true } });
+  }
+
+  createBankAccountWithDefault(params: { userId: string; data: Omit<Prisma.CustomerBankAccountUncheckedCreateInput, 'userId'>; shouldDefault: boolean }) {
+    return this.prisma.$transaction(async (tx) => {
+      if (params.shouldDefault) await tx.customerBankAccount.updateMany({ where: { userId: params.userId, isDefault: true }, data: { isDefault: false } });
+      return tx.customerBankAccount.create({ data: { userId: params.userId, ...params.data } });
+    });
+  }
+
+  setDefaultBankAccountForUser(userId: string, id: string) {
+    return this.prisma.$transaction([
+      this.prisma.customerBankAccount.updateMany({ where: { userId, isDefault: true }, data: { isDefault: false } }),
+      this.prisma.customerBankAccount.update({ where: { id }, data: { isDefault: true } }),
+    ]);
+  }
+
+  deleteBankAccount(id: string) {
+    return this.prisma.customerBankAccount.delete({ where: { id } });
+  }
 }
