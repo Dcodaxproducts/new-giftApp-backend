@@ -3,6 +3,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ProviderApprovalStatus, ProviderFinancialAdjustmentDirection, ProviderFinancialAdjustmentStatus, ProviderPayoutAccountType, ProviderPayoutExternalProvider, ProviderPayoutMethodType, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { ProviderPayoutMethodsRepository } from './provider-payout-methods.repository';
 import { ProviderPayoutMethodsService } from './provider-payout-methods.service';
 
 const provider = {
@@ -40,7 +41,9 @@ const payoutMethod = {
   updatedAt: new Date('2026-05-14T10:00:00.000Z'),
 };
 
-function createService(overrides: Partial<{ method: typeof payoutMethod | null; pendingPayout: unknown; methods: typeof payoutMethod[] }> = {}) {
+type PayoutMethodFixture = Omit<typeof payoutMethod, 'verificationStatus' | 'isDefault' | 'isActive'> & { verificationStatus: ProviderPayoutVerificationStatus; isDefault: boolean; isActive: boolean };
+
+function createService(overrides: Partial<{ method: PayoutMethodFixture | null; pendingPayout: unknown; methods: PayoutMethodFixture[] }> = {}) {
   const method = overrides.method === undefined ? payoutMethod : overrides.method;
   const methods = overrides.methods ?? (method ? [method] : []);
   const prisma = {
@@ -56,12 +59,14 @@ function createService(overrides: Partial<{ method: typeof payoutMethod | null; 
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
-  return { service: new ProviderPayoutMethodsService(prisma as unknown as ConstructorParameters<typeof ProviderPayoutMethodsService>[0]), prisma };
+  const repository = new ProviderPayoutMethodsRepository(prisma as unknown as ConstructorParameters<typeof ProviderPayoutMethodsRepository>[0]);
+  return { service: new ProviderPayoutMethodsService(repository), prisma };
 }
 
 describe('Provider payout methods source safety', () => {
   const controller = readFileSync(join(__dirname, 'provider-payout-methods.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, 'provider-payout-methods.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-payout-methods.repository.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-payout-methods.dto.ts'), 'utf8');
 
   it('creates provider-only payout method APIs and does not reuse customer routes', () => {
@@ -75,6 +80,7 @@ describe('Provider payout methods source safety', () => {
   it('derives provider ownership from JWT and blocks unsafe request fields', () => {
     expect(service).toContain('getApprovedActiveProvider(user.uid)');
     expect(service).toContain('getOwnedMethod(user.uid, id)');
+    expect(repository).toContain('where: { id, providerId, deletedAt: null }');
     expect(dto).not.toContain('providerId');
     expect(service).not.toContain('dto.providerId');
   });
@@ -83,6 +89,9 @@ describe('Provider payout methods source safety', () => {
     expect(service).not.toContain('accountNumber:');
     expect(service).not.toContain('routingNumber:');
     expect(service).not.toContain('iban:');
+    expect(repository).not.toContain('accountNumber:');
+    expect(repository).not.toContain('routingNumber:');
+    expect(repository).not.toContain('iban:');
   });
 });
 
@@ -114,6 +123,7 @@ describe('ProviderPayoutMethodsService', () => {
     expect(serialized).toContain('**** 6789');
     expect(serialized).not.toContain('000123456789');
     expect(serialized).not.toContain('110000000');
+    expect(serialized).not.toContain('PK36SCBL0000001123456702');
   });
 
   it('provider can set verified method as default', async () => {
@@ -137,6 +147,39 @@ describe('ProviderPayoutMethodsService', () => {
     const { service } = createService();
     const result = await service.details({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_method_1');
     expect(JSON.stringify(result)).not.toContain('000123456789');
+  });
+
+
+  it('provider cannot set unverified method as default', async () => {
+    const { service } = createService({ method: { ...payoutMethod, verificationStatus: ProviderPayoutVerificationStatus.PENDING } });
+    await expect(service.setDefault({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_method_1')).rejects.toThrow(ConflictException);
+  });
+
+  it('only one default payout method per provider is enforced by clearing previous defaults first', async () => {
+    const { service, prisma } = createService();
+    await service.setDefault({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_method_1');
+    expect(prisma.providerPayoutMethod.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerId: 'provider_1', isDefault: true }, data: { isDefault: false } }));
+    expect(prisma.providerPayoutMethod.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_method_1' }, data: { isDefault: true } }));
+  });
+
+  it('delete soft-deletes own method and promotes next verified default only when needed', async () => {
+    const backupMethod = { ...payoutMethod, id: 'payout_method_2', isDefault: false, createdAt: new Date('2026-05-13T10:00:00.000Z') };
+    const { service, prisma } = createService({ methods: [payoutMethod, backupMethod] });
+    prisma.providerPayoutMethod.findFirst.mockResolvedValueOnce(payoutMethod).mockResolvedValueOnce(backupMethod);
+    await service.delete({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_method_1');
+    expect(prisma.providerPayoutMethod.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_method_1' }, data: expect.objectContaining({ deletedAt: expect.any(Date) as Date, isActive: false, isDefault: false }) }));
+    expect(prisma.providerPayoutMethod.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_method_2' }, data: { isDefault: true } }));
+  });
+
+  it('repository extraction keeps API behavior source stable', () => {
+    const controller = readFileSync(join(__dirname, 'provider-payout-methods.controller.ts'), 'utf8');
+    expect(controller).toContain("@Get()");
+    expect(controller).toContain("@Post('bank-accounts')");
+    expect(controller).toContain("@Get(':id')");
+    expect(controller).toContain("@Patch(':id')");
+    expect(controller).toContain("@Delete(':id')");
+    expect(controller).toContain("@Patch(':id/default')");
+    expect(controller).toContain("@Post(':id/verify')");
   });
 
   it('raw account number is not logged', async () => {

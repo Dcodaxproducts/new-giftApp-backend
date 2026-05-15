@@ -1,16 +1,16 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderFinancialAdjustmentDirection, ProviderFinancialAdjustmentStatus, ProviderPayoutExternalProvider, ProviderPayoutMethod, ProviderPayoutMethodType, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderPayoutExternalProvider, ProviderPayoutMethod, ProviderPayoutMethodType, ProviderPayoutVerificationStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { ProviderPayoutMethodsRepository } from './provider-payout-methods.repository';
 import { CreateProviderBankAccountDto, UpdateProviderPayoutMethodDto, VerifyProviderPayoutMethodDto } from './dto/provider-payout-methods.dto';
 
 @Injectable()
 export class ProviderPayoutMethodsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ProviderPayoutMethodsRepository) {}
 
   async list(user: AuthUserContext) {
     await this.getApprovedActiveProvider(user.uid);
-    const methods = await this.prisma.providerPayoutMethod.findMany({ where: { providerId: user.uid, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+    const methods = await this.repository.findManyByProviderId(user.uid);
     return { data: { primary: methods.find((method) => method.isDefault && method.verificationStatus === ProviderPayoutVerificationStatus.VERIFIED) ? this.toListItem(methods.find((method) => method.isDefault && method.verificationStatus === ProviderPayoutVerificationStatus.VERIFIED) as ProviderPayoutMethod) : null, methods: methods.map((method) => this.toListItem(method)) }, message: 'Provider payout methods fetched successfully.' };
   }
 
@@ -20,8 +20,7 @@ export class ProviderPayoutMethodsService {
     if (!sourceNumber) throw new BadRequestException('accountNumber or iban is required');
     const last4 = this.last4(sourceNumber);
     const maskedAccount = `${this.accountTypeLabel(dto.accountType)} **** ${last4}`;
-    const method = await this.prisma.providerPayoutMethod.create({
-      data: {
+    const method = await this.repository.createBankAccount({
         providerId: provider.id,
         type: ProviderPayoutMethodType.BANK_ACCOUNT,
         accountHolderName: dto.accountHolderName.trim(),
@@ -35,7 +34,6 @@ export class ProviderPayoutMethodsService {
         externalProvider: ProviderPayoutExternalProvider.MANUAL,
         verificationStatus: ProviderPayoutVerificationStatus.PENDING,
         isDefault: false,
-      },
     });
     await this.notify(provider.id, 'Payout method added', `${method.bankName} payout method was added and is pending verification.`, 'PROVIDER_PAYOUT_METHOD_ADDED', { payoutMethodId: method.id });
     return { data: this.toCreateResponse(method), message: 'Provider bank account added successfully.' };
@@ -50,7 +48,7 @@ export class ProviderPayoutMethodsService {
   async update(user: AuthUserContext, id: string, dto: UpdateProviderPayoutMethodDto) {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
-    const updated = await this.prisma.providerPayoutMethod.update({ where: { id: method.id }, data: { accountHolderName: dto.accountHolderName?.trim(), bankName: dto.bankName?.trim(), isActive: dto.isActive } });
+    const updated = await this.repository.updateMetadata(method.id, { accountHolderName: dto.accountHolderName?.trim(), bankName: dto.bankName?.trim(), isActive: dto.isActive });
     return { data: this.toDetail(updated), message: 'Provider payout method updated successfully.' };
   }
 
@@ -59,10 +57,7 @@ export class ProviderPayoutMethodsService {
     const method = await this.getOwnedMethod(user.uid, id);
     if (!method.isActive) throw new ConflictException('Only active payout methods can be set as default');
     if (method.verificationStatus !== ProviderPayoutVerificationStatus.VERIFIED) throw new ConflictException('Only verified payout methods can be set as default');
-    await this.prisma.$transaction([
-      this.prisma.providerPayoutMethod.updateMany({ where: { providerId: user.uid, isDefault: true }, data: { isDefault: false } }),
-      this.prisma.providerPayoutMethod.update({ where: { id: method.id }, data: { isDefault: true } }),
-    ]);
+    await this.repository.setDefault(user.uid, method.id);
     return { data: { id: method.id, isDefault: true }, message: 'Default payout method updated successfully.' };
   }
 
@@ -70,38 +65,32 @@ export class ProviderPayoutMethodsService {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
     await this.assertNoPendingPayoutUsage(user.uid);
-    await this.prisma.$transaction(async (tx) => {
-      await tx.providerPayoutMethod.update({ where: { id: method.id }, data: { deletedAt: new Date(), isActive: false, isDefault: false } });
-      if (method.isDefault) {
-        const next = await tx.providerPayoutMethod.findFirst({ where: { providerId: user.uid, id: { not: method.id }, deletedAt: null, isActive: true, verificationStatus: ProviderPayoutVerificationStatus.VERIFIED }, orderBy: { createdAt: 'desc' } });
-        if (next) await tx.providerPayoutMethod.update({ where: { id: next.id }, data: { isDefault: true } });
-      }
-    });
+    await this.repository.softDeleteAndPromoteNextDefault(user.uid, method.id, method.isDefault);
     return { data: null, message: 'Provider payout method deleted successfully.' };
   }
 
   async verify(user: AuthUserContext, id: string, dto: VerifyProviderPayoutMethodDto) {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
-    const updated = await this.prisma.providerPayoutMethod.update({ where: { id: method.id }, data: { externalProvider: dto.verificationMethod, verificationStatus: ProviderPayoutVerificationStatus.PENDING, externalAccountId: undefined } });
+    const updated = await this.repository.markVerificationStatus(method.id, { externalProvider: dto.verificationMethod, verificationStatus: ProviderPayoutVerificationStatus.PENDING, externalAccountId: undefined });
     return { data: { id: updated.id, verificationStatus: updated.verificationStatus, externalProvider: updated.externalProvider }, message: 'Provider payout method verification submitted successfully.' };
   }
 
   private async getApprovedActiveProvider(id: string) {
-    const provider = await this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } });
+    const provider = await this.repository.findApprovedProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
     if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access payout methods');
     return provider;
   }
 
   private async getOwnedMethod(providerId: string, id: string): Promise<ProviderPayoutMethod> {
-    const method = await this.prisma.providerPayoutMethod.findFirst({ where: { id, providerId, deletedAt: null } });
+    const method = await this.repository.findByIdForProvider(providerId, id);
     if (!method) throw new NotFoundException('Provider payout method not found');
     return method;
   }
 
   private async assertNoPendingPayoutUsage(providerId: string): Promise<void> {
-    const pending = await this.prisma.providerFinancialAdjustment.findFirst({ where: { providerId, direction: ProviderFinancialAdjustmentDirection.CREDIT, status: ProviderFinancialAdjustmentStatus.PENDING } });
+    const pending = await this.repository.findPendingPayoutUsage(providerId);
     if (pending) throw new ConflictException('Cannot delete payout method while a provider payout is pending');
   }
 
@@ -134,6 +123,6 @@ export class ProviderPayoutMethodsService {
   }
 
   private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> {
-    await this.prisma.notification.create({ data: { recipientId, recipientType: NotificationRecipientType.PROVIDER, title, message, type, metadataJson: metadata } });
+    await this.repository.createNotification({ recipientId, recipientType: NotificationRecipientType.PROVIDER, title, message, type, metadataJson: metadata });
   }
 }
