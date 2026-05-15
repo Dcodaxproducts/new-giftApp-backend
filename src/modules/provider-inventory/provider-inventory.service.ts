@@ -3,14 +3,16 @@ import { Gift, GiftModerationStatus, GiftStatus, GiftVariant, Prisma } from '@pr
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
+import { PROVIDER_INVENTORY_INCLUDE, ProviderInventoryRepository } from './provider-inventory.repository';
 import { CreateProviderInventoryItemDto, ListProviderInventoryDto, ProviderInventorySortBy, ProviderInventoryStatusFilter, ProviderInventoryVariantDto, SortOrder, UpdateProviderAvailabilityDto, UpdateProviderInventoryItemDto } from './dto/provider-inventory.dto';
 
-type ProviderGift = Gift & { category: { id: string; name: string }; variants: GiftVariant[] };
+type ProviderGift = Prisma.GiftGetPayload<{ include: typeof PROVIDER_INVENTORY_INCLUDE }>;
 
 @Injectable()
 export class ProviderInventoryService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly repository: ProviderInventoryRepository,
     private readonly auditLog: AuditLogWriterService,
   ) {}
 
@@ -18,32 +20,17 @@ export class ProviderInventoryService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where = this.where(user.uid, query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.gift.findMany({ where, include: this.include(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.gift.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findManyForProviderList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider inventory fetched successfully' };
   }
 
   async stats(user: AuthUserContext) {
-    const where = { providerId: user.uid, deletedAt: null };
-    const [totalItems, activeItems, inactiveItems, outOfStockItems, pendingApprovalItems, rejectedItems] = await this.prisma.$transaction([
-      this.prisma.gift.count({ where }),
-      this.prisma.gift.count({ where: { ...where, status: GiftStatus.ACTIVE } }),
-      this.prisma.gift.count({ where: { ...where, status: GiftStatus.INACTIVE } }),
-      this.prisma.gift.count({ where: { ...where, OR: [{ status: GiftStatus.OUT_OF_STOCK }, { stockQuantity: 0 }] } }),
-      this.prisma.gift.count({ where: { ...where, moderationStatus: GiftModerationStatus.PENDING } }),
-      this.prisma.gift.count({ where: { ...where, moderationStatus: GiftModerationStatus.REJECTED } }),
-    ]);
+    const [totalItems, activeItems, inactiveItems, outOfStockItems, pendingApprovalItems, rejectedItems] = await this.repository.findStatsForProvider(user.uid);
     return { data: { totalItems, activeItems, inactiveItems, outOfStockItems, pendingApprovalItems, rejectedItems }, message: 'Provider inventory stats fetched successfully' };
   }
 
   async lookup(user: AuthUserContext) {
-    const items = await this.prisma.gift.findMany({
-      where: { providerId: user.uid, deletedAt: null, status: GiftStatus.ACTIVE },
-      orderBy: { name: 'asc' },
-      take: 500,
-    });
+    const items = await this.repository.findLookupItemsForProvider(user.uid);
     return {
       data: items.map((item) => ({ id: item.id, name: item.name, price: Number(item.price), currency: item.currency, imageUrl: this.firstImage(item.imageUrls), status: item.status, moderationStatus: item.moderationStatus })),
       message: 'Provider inventory lookup fetched successfully',
@@ -81,7 +68,7 @@ export class ProviderInventoryService {
   }
 
   async details(user: AuthUserContext, id: string) {
-    const item = await this.getOwnGift(user.uid, id);
+    const item = await this.getOwnGiftForRead(user.uid, id);
     return { data: this.toDetailItem(item), message: 'Inventory item fetched successfully' };
   }
 
@@ -176,8 +163,12 @@ export class ProviderInventoryService {
     return { [field]: direction };
   }
 
-  private include() {
-    return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true } }, variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] } });
+  private include() { return PROVIDER_INVENTORY_INCLUDE; }
+
+  private async getOwnGiftForRead(providerId: string, id: string) {
+    const item = await this.repository.findOwnedItemById(providerId, id);
+    if (!item) throw new NotFoundException('Inventory item not found');
+    return item;
   }
 
   private async getOwnGift(providerId: string, id: string) {
