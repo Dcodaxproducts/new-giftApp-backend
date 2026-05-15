@@ -6,7 +6,8 @@ import { randomUUID } from 'crypto';
 import { Prisma, UploadedFile, UploadedFileStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { StorageRepository } from './storage.repository';
+import { UploadsRepository } from './uploads.repository';
 import { MediaUploadPolicyService } from '../media-upload-policy/media-upload-policy.service';
 import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto, UploadFolder } from './dto/create-presigned-upload.dto';
 
@@ -22,7 +23,13 @@ export class StorageService {
   private client?: S3Client;
   private readonly defaultMaxFileBytes = 10 * 1024 * 1024;
 
-  constructor(private readonly configService: ConfigService, private readonly auditLog: AuditLogWriterService, private readonly prisma: PrismaService, private readonly mediaUploadPolicy: MediaUploadPolicyService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly auditLog: AuditLogWriterService,
+    private readonly storageRepository: StorageRepository,
+    private readonly uploadsRepository: UploadsRepository,
+    private readonly mediaUploadPolicy: MediaUploadPolicyService,
+  ) {}
 
   async createPresignedUpload(user: AuthUserContext, dto: CreatePresignedUploadDto, ipAddress?: string, userAgent?: string | string[]) {
     const ownership = await this.resolveUploadOwnership(user, dto);
@@ -36,14 +43,14 @@ export class StorageService {
     const command = new PutObjectCommand({ Bucket: bucket, Key: objectKey, ContentType: dto.contentType });
     const uploadUrl = await getSignedUrl(this.getClient(), command, { expiresIn });
     const fileUrl = publicBaseUrl ? `${publicBaseUrl.replace(/\/$/, '')}/${objectKey}` : `https://${bucket}.s3.${this.required('AWS_REGION')}.amazonaws.com/${objectKey}`;
-    const file = await this.prisma.uploadedFile.create({ data: { ownerId: ownership.ownerId, ownerRole: user.role, targetAccountId: ownership.targetAccountId, folder: dto.folder, fileName: dto.fileName, contentType: dto.contentType, sizeBytes: dto.sizeBytes, fileUrl, storageKey: objectKey, status: UploadedFileStatus.PENDING, giftId: ownership.giftId } });
+    const file = await this.uploadsRepository.createUpload({ ownerId: ownership.ownerId, ownerRole: user.role, targetAccountId: ownership.targetAccountId, folder: dto.folder, fileName: dto.fileName, contentType: dto.contentType, sizeBytes: dto.sizeBytes, fileUrl, storageKey: objectKey, status: UploadedFileStatus.PENDING, giftId: ownership.giftId });
     await this.auditLog.write({ actorId: user.uid, targetId: file.id, targetType: 'UPLOAD', action: 'PRESIGNED_UPLOAD_URL_GENERATED', afterJson: { folder: dto.folder, objectKey, contentType: dto.contentType, targetAccountId: ownership.targetAccountId, giftId: ownership.giftId }, ipAddress, userAgent: this.normalizeUserAgent(userAgent) });
     return { data: { id: file.id, uploadUrl, fileUrl, objectKey, expiresIn }, message: 'Presigned upload URL generated successfully' };
   }
 
   async complete(user: AuthUserContext, dto: CompleteUploadDto) {
     const file = await this.getAccessibleFile(user, dto.uploadId);
-    const updated = await this.prisma.uploadedFile.update({ where: { id: file.id }, data: { status: UploadedFileStatus.COMPLETED, sizeBytes: dto.sizeBytes ?? file.sizeBytes, completedAt: new Date() } });
+    const updated = await this.uploadsRepository.completeUpload(file.id, { status: UploadedFileStatus.COMPLETED, sizeBytes: dto.sizeBytes ?? file.sizeBytes, completedAt: new Date() });
     await this.auditLog.write({ actorId: user.uid, targetId: file.id, targetType: 'UPLOAD', action: 'UPLOAD_COMPLETED', beforeJson: this.toFile(file), afterJson: this.toFile(updated) });
     return { data: this.toFile(updated), message: 'Upload completed successfully' };
   }
@@ -52,7 +59,7 @@ export class StorageService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.UploadedFileWhereInput = { deletedAt: null, folder: query.folder, ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? query.ownerId : user.uid };
-    const [items, total] = await this.prisma.$transaction([this.prisma.uploadedFile.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }), this.prisma.uploadedFile.count({ where })]);
+    const [items, total] = await this.uploadsRepository.findUploadsAndCount({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toFile(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Uploads fetched successfully' };
   }
 
@@ -64,13 +71,13 @@ export class StorageService {
   async delete(user: AuthUserContext, id: string) {
     const file = await this.getAccessibleFile(user, id);
     if (this.configService.get<string>('AWS_DELETE_ON_UPLOAD_DELETE') === 'true') await this.deleteObject(file.storageKey);
-    await this.prisma.uploadedFile.delete({ where: { id } });
+    await this.uploadsRepository.deleteUpload(id);
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'UPLOAD', action: 'UPLOAD_DELETED', beforeJson: this.toFile(file), afterJson: null });
     return { data: null, message: 'Upload deleted successfully' };
   }
 
   private async getAccessibleFile(user: AuthUserContext, id: string): Promise<UploadedFile> {
-    const file = await this.prisma.uploadedFile.findFirst({ where: { id, deletedAt: null, ...(user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? {} : { ownerId: user.uid }) } });
+    const file = await this.uploadsRepository.findAccessibleUpload({ id, deletedAt: null, ...(user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? {} : { ownerId: user.uid }) });
     if (!file) throw new NotFoundException('Upload not found');
     return file;
   }
@@ -121,19 +128,19 @@ export class StorageService {
     if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) throw new ForbiddenException('targetAccountId is not allowed for this account.');
     if (user.role === UserRole.ADMIN && !this.adminCanUploadOnBehalf(user, dto.folder)) throw new ForbiddenException('targetAccountId is not allowed for this account.');
 
-    const target = await this.prisma.user.findUnique({ where: { id: dto.targetAccountId }, select: { id: true, role: true, deletedAt: true } });
+    const target = await this.storageRepository.findUploadAccount(dto.targetAccountId);
     if (!target || target.deletedAt) throw new BadRequestException('Upload owner account does not exist');
     if (!this.folderAllowsTargetRole(dto.folder, target.role)) throw new BadRequestException('targetAccountId role does not match upload folder.');
     return target.id;
   }
 
   private async assertOwnerExists(ownerId: string): Promise<void> {
-    const owner = await this.prisma.user.findUnique({ where: { id: ownerId }, select: { id: true, deletedAt: true } });
+    const owner = await this.storageRepository.findUploadOwner(ownerId);
     if (!owner || owner.deletedAt) throw new BadRequestException('Upload owner account does not exist');
   }
 
   private async assertGiftUploadAllowed(user: AuthUserContext, giftId: string, targetAccountId: string | null): Promise<void> {
-    const gift = await this.prisma.gift.findFirst({ where: { id: giftId, deletedAt: null }, select: { id: true, providerId: true } });
+    const gift = await this.storageRepository.findGiftForUpload(giftId);
     if (!gift) throw new BadRequestException('Gift not found');
     if (user.role === UserRole.PROVIDER && gift.providerId !== user.uid) throw new ForbiddenException('Providers can upload images only for their own gifts');
     if (targetAccountId && gift.providerId !== targetAccountId) throw new ForbiddenException('targetAccountId does not own this gift.');
