@@ -1,8 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DisputeActorType, DisputeCase, DisputeCustomerNotificationStatus, DisputeDecision, DisputeRefundType, DisputeResolutionStatus, DisputeStatus, NotificationRecipientType, Payment, PaymentMethod, PaymentStatus, Prisma, RefundRequestStatus, UserRole } from '@prisma/client';
+import { DisputeActorType, DisputeCase, DisputeDecision, DisputeRefundType, DisputeResolutionStatus, DisputeStatus, Payment, PaymentMethod, PaymentStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { AdminDisputeDecisionsRepository } from './admin-dispute-decisions.repository';
+import { AdminDisputeEvidenceRepository } from './admin-dispute-evidence.repository';
+import { AdminDisputeLinkageRepository } from './admin-dispute-linkage.repository';
+import { AdminDisputeTrackingRepository } from './admin-dispute-tracking.repository';
+import { AdminDisputesRepository } from './admin-disputes.repository';
 import { AddDisputeNoteDto, DisputeDateRangeDto, DisputePriorityFilter, DisputeRange, DisputeSortBy, DisputeStatusFilter, ExportDisputesDto, ExportFormat, LinkTransactionDto, ListDisputesDto, RefundPreviewDto, SortOrder, SubmitDisputeDecisionDto, TrackingLogExportDto, TransactionSearchDto } from './dto/admin-disputes.dto';
 
 type PaymentWithOrder = Payment & {
@@ -18,21 +22,21 @@ type DisputeWithDetails = DisputeCase & {
 
 @Injectable()
 export class AdminDisputesService {
-  constructor(private readonly prisma: PrismaService, private readonly auditLog: AuditLogWriterService) {}
+  constructor(
+    private readonly adminDisputesRepository: AdminDisputesRepository,
+    private readonly evidenceRepository: AdminDisputeEvidenceRepository,
+    private readonly linkageRepository: AdminDisputeLinkageRepository,
+    private readonly decisionsRepository: AdminDisputeDecisionsRepository,
+    private readonly trackingRepository: AdminDisputeTrackingRepository,
+    private readonly auditLog: AuditLogWriterService,
+  ) {}
 
   async stats(query: DisputeDateRangeDto) {
     const where = this.dateWhere(query);
     const now = new Date();
     const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const previousWhere: Prisma.DisputeCaseWhereInput = { createdAt: { gte: new Date((where.createdAt as Prisma.DateTimeFilter | undefined)?.gte instanceof Date ? ((where.createdAt as Prisma.DateTimeFilter).gte as Date).getTime() - 7 * 24 * 60 * 60 * 1000 : now.getTime() - 14 * 24 * 60 * 60 * 1000), lt: (where.createdAt as Prisma.DateTimeFilter | undefined)?.gte as Date | undefined } };
-    const [openCases, previousOpenCases, awaitingAction, escalated, resolvedThisWeek, previousResolved] = await this.prisma.$transaction([
-      this.prisma.disputeCase.count({ where: { ...where, status: { in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW, DisputeStatus.ESCALATED] } } }),
-      this.prisma.disputeCase.count({ where: { ...previousWhere, status: { in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW, DisputeStatus.ESCALATED] } } }),
-      this.prisma.disputeCase.count({ where: { ...where, status: { in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW] }, assignedToId: null } }),
-      this.prisma.disputeCase.count({ where: { ...where, status: DisputeStatus.ESCALATED } }),
-      this.prisma.disputeCase.count({ where: { status: { in: [DisputeStatus.RESOLVED, DisputeStatus.REJECTED, DisputeStatus.APPROVED] }, resolvedAt: { gte: weekStart } } }),
-      this.prisma.disputeCase.count({ where: { status: { in: [DisputeStatus.RESOLVED, DisputeStatus.REJECTED, DisputeStatus.APPROVED] }, resolvedAt: { gte: new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000), lt: weekStart } } }),
-    ]);
+    const [openCases, previousOpenCases, awaitingAction, escalated, resolvedThisWeek, previousResolved] = await this.adminDisputesRepository.countStats({ where, previousWhere, weekStart });
     return { data: { openCases, openCasesDelta: openCases - previousOpenCases, awaitingAction, escalated, resolvedThisWeek, resolvedDeltaPercent: this.deltaPercent(resolvedThisWeek, previousResolved), currency: 'PKR' }, message: 'Dispute stats fetched successfully.' };
   }
 
@@ -40,10 +44,7 @@ export class AdminDisputesService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where = this.disputeWhere(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.disputeCase.findMany({ where, include: this.disputeInclude(), orderBy: this.orderBy(query), skip: (page - 1) * limit, take: limit }),
-      this.prisma.disputeCase.count({ where }),
-    ]);
+    const [items, total] = await this.adminDisputesRepository.findDisputesAndCount({ where, include: this.disputeInclude(), orderBy: this.orderBy(query), skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.listItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Disputes fetched successfully.' };
   }
 
@@ -67,7 +68,7 @@ export class AdminDisputesService {
   async transactionSearch(id: string, query: TransactionSearchDto) {
     const dispute = await this.findDispute(id);
     const where: Prisma.PaymentWhereInput = { userId: dispute.userId, ...(query.recentOnly ? { createdAt: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) } } : {}), ...(query.query ? { OR: [{ id: { contains: query.query, mode: 'insensitive' } }, { providerPaymentIntentId: { contains: query.query, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.query, mode: 'insensitive' } } }, { user: { email: { contains: query.query, mode: 'insensitive' } } }] } : {}) };
-    const payments = await this.prisma.payment.findMany({ where, include: this.paymentInclude(), orderBy: { createdAt: 'desc' }, take: query.limit ?? 10 });
+    const payments = await this.linkageRepository.findPayments({ where, include: this.paymentInclude(), orderBy: { createdAt: 'desc' }, take: query.limit ?? 10 });
     const items = await Promise.all(payments.map(async (payment) => { const eligibility = await this.refundEligibility(payment); return this.transactionSearchItem(payment, eligibility.eligible, eligibility.eligibilityText); }));
     return { data: items, message: 'Dispute transactions fetched successfully.' };
   }
@@ -90,9 +91,7 @@ export class AdminDisputesService {
     if (!preview.data.eligible) throw new BadRequestException(preview.data.eligibilityText);
     const dispute = await this.findDispute(id);
     const payment = await this.findPayment(dto.transactionId);
-    const updated = await this.prisma.disputeCase.update({ where: { id }, data: { linkedTransactionId: payment.providerPaymentIntentId ?? payment.id, linkedPaymentId: payment.id, linkedOrderId: payment.orderId ?? dispute.orderId, transactionId: payment.providerPaymentIntentId ?? payment.id, paymentId: payment.id, refundType: dto.refundType, refundAmount: preview.data.requestedRefundAmount, linkedById: user.uid, linkedAt: new Date(), status: dispute.status === DisputeStatus.OPEN ? DisputeStatus.IN_REVIEW : dispute.status } });
-    await this.prisma.disputeTimeline.create({ data: { disputeId: id, type: 'TRANSACTION_LINKED', title: 'Transaction Linked', description: `Primary transaction ${payment.providerPaymentIntentId ?? payment.id} linked to dispute.`, actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { paymentId: payment.id, orderId: payment.orderId, refundType: dto.refundType, refundAmount: preview.data.requestedRefundAmount } } });
-    await this.prisma.disputeTimeline.create({ data: { disputeId: id, type: 'REFUND_SELECTION_UPDATED', title: 'Refund Selection Updated', description: `Refund selection set to ${dto.refundType}.`, actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { refundType: dto.refundType, refundAmount: preview.data.requestedRefundAmount } } });
+    const updated = await this.linkageRepository.linkTransaction({ id, userId: user.uid, paymentId: payment.id, providerPaymentIntentId: payment.providerPaymentIntentId, orderId: payment.orderId, fallbackOrderId: dispute.orderId, refundType: dto.refundType, refundAmount: preview.data.requestedRefundAmount, currentStatus: dispute.status });
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'DISPUTE_CASE', action: 'DISPUTE_TRANSACTION_LINKED', beforeJson: { linkedPaymentId: dispute.linkedPaymentId, refundType: dispute.refundType, refundAmount: dispute.refundAmount }, afterJson: { linkedPaymentId: payment.id, refundType: dto.refundType, refundAmount: preview.data.requestedRefundAmount } });
     return { data: { disputeId: updated.id, caseId: updated.caseId, transactionId: updated.linkedTransactionId, refundType: updated.refundType, refundAmount: updated.refundAmount ? this.money(updated.refundAmount) : 0, status: updated.status, nextStep: 'DECISION' }, message: 'Transaction linked to dispute successfully.' };
   }
@@ -101,8 +100,8 @@ export class AdminDisputesService {
   async decisionSummary(id: string) {
     const dispute = await this.findDispute(id);
     const payment = dispute.linkedPaymentId ? await this.findPayment(dispute.linkedPaymentId) : dispute.payment;
-    const lastAction = await this.prisma.disputeTimeline.findFirst({ where: { disputeId: id }, orderBy: { createdAt: 'desc' }, include: { actor: { select: { firstName: true, lastName: true } } } });
-    const customerContacts = await this.prisma.disputeNote.count({ where: { disputeId: id } });
+    const lastAction = await this.decisionsRepository.findLastAction(id);
+    const customerContacts = await this.decisionsRepository.countNotes(id);
     return { data: { caseId: dispute.caseId, status: dispute.status, customer: { id: dispute.user.id, name: this.name(dispute.user) }, reason: dispute.reason, transaction: { transactionId: dispute.linkedTransactionId ?? dispute.transactionId, amount: payment ? this.money(payment.amount) : this.money(dispute.amount), currency: payment?.currency ?? dispute.currency }, refund: { type: dispute.refundType, amount: dispute.refundAmount ? this.money(dispute.refundAmount) : 0, eligible: Boolean(dispute.linkedPaymentId && dispute.refundType) }, lastAction: lastAction ? { actor: lastAction.actor ? this.name(lastAction.actor) : this.actorName(lastAction.actorType), policy: lastAction.title } : { actor: 'System Auto-Flag', policy: 'Potential Missing Delivery' }, caseHistory: { customerContacts, totalAgeText: this.ageText(dispute.createdAt) } }, message: 'Decision summary fetched successfully.' };
   }
 
@@ -115,26 +114,22 @@ export class AdminDisputesService {
 
   async confirmation(id: string) {
     const dispute = await this.findDispute(id);
-    const processor = dispute.linkedById ? await this.prisma.user.findUnique({ where: { id: dispute.linkedById }, select: { id: true, firstName: true, lastName: true, adminTitle: true, role: true } }) : null;
+    const processor = dispute.linkedById ? await this.decisionsRepository.findProcessor(dispute.linkedById) : null;
     const payment = dispute.linkedPaymentId ? await this.findPayment(dispute.linkedPaymentId) : null;
     return { data: { caseId: dispute.caseId, resolutionStatus: dispute.resolutionStatus, refundId: dispute.refundId, nextStepProtocol: dispute.resolutionStatus === DisputeResolutionStatus.APPROVED ? 'Funds will appear in customer account within 3-5 business days.' : 'No refund protocol is active for this case.', processedBy: processor ? { id: processor.id, name: this.name(processor), role: processor.adminTitle ?? processor.role } : null, executionTimestamp: dispute.resolvedAt ?? dispute.updatedAt, refundAmount: dispute.refundAmount ? this.money(dispute.refundAmount) : 0, currency: dispute.currency, paymentMethod: payment ? `Credit to ${this.paymentMethod(payment)}` : null, customerNotification: { status: dispute.customerNotificationStatus, email: dispute.user.email } }, message: 'Decision confirmation fetched successfully.' };
   }
 
   async trackingLog(id: string) {
     const dispute = await this.findDispute(id);
-    const [timeline, notes, notifications] = await Promise.all([
-      this.prisma.disputeTimeline.findMany({ where: { disputeId: id }, include: { actor: { select: { firstName: true, lastName: true } } }, orderBy: { createdAt: 'asc' } }),
-      this.prisma.disputeNote.findMany({ where: { disputeId: id }, include: { author: { select: { firstName: true, lastName: true } } }, orderBy: { createdAt: 'asc' } }),
-      this.prisma.notification.findMany({ where: { recipientId: dispute.userId, metadataJson: { path: ['disputeId'], equals: id } }, orderBy: { createdAt: 'asc' } }),
-    ]);
+    const [timeline, notes, notifications] = await this.trackingRepository.findTrackingLog(id, dispute.userId);
     return { data: { caseId: dispute.caseId, customer: { name: this.name(dispute.user) }, finalStatus: dispute.resolutionStatus, lastUpdatedAt: dispute.updatedAt, secureAuditActive: true, timeline: timeline.map((item) => ({ id: item.id, type: item.type, title: item.title, description: item.description, amount: this.numberFromMeta(item.metadataJson, 'refundAmount'), refundId: this.stringFromMeta(item.metadataJson, 'refundId'), actor: item.actor ? { name: this.name(item.actor) } : undefined, createdAt: item.createdAt })), customerNotifications: notifications.map((item) => ({ type: item.type, status: 'DELIVERED', deliveredAt: item.createdAt })), internalNotes: notes.map((note) => ({ id: note.id, author: this.name(note.author), note: note.note, createdAt: note.createdAt })) }, message: 'Case tracking log fetched successfully.' };
   }
 
   async addFollowUpNote(user: AuthUserContext, id: string, dto: AddDisputeNoteDto) {
     const result = await this.addNote(user, id, dto);
-    await this.prisma.disputeTimeline.create({ data: { disputeId: id, type: 'FOLLOW_UP_NOTE_ADDED', title: 'Follow-up Note Added', description: dto.note, actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: {} } });
+    await this.trackingRepository.addFollowUpTimeline(id, user.uid, dto.note);
     const dispute = await this.findDispute(id);
-    if (dispute.assignedToId) await this.prisma.notification.create({ data: { recipientId: dispute.assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Dispute follow-up note added', message: `A follow-up note was added to ${dispute.caseId}.`, type: 'ADMIN_DISPUTE_FOLLOW_UP_NOTE', metadataJson: { disputeId: id, caseId: dispute.caseId } } });
+    if (dispute.assignedToId) await this.trackingRepository.notifyAssignedAdmin(id, dispute.caseId, dispute.assignedToId);
     return { success: true, message: 'Follow-up note added successfully.', data: result.data };
   }
 
@@ -154,17 +149,9 @@ export class AdminDisputesService {
     const preview = await this.refundPreview(id, { transactionId: payment.id, refundType: dispute.refundType, refundAmount: dispute.refundAmount ? this.money(dispute.refundAmount) : undefined });
     if (!preview.data.eligible) throw new BadRequestException(preview.data.eligibilityText);
     const refundId = this.refundId(dispute.id);
-    const refundStatus = payment.paymentMethod === PaymentMethod.STRIPE_CARD && payment.status === PaymentStatus.PROCESSING ? RefundRequestStatus.REFUND_PROCESSING : RefundRequestStatus.REFUNDED;
-    const providerOrder = await this.prisma.providerOrder.findFirst({ where: { orderId: dispute.linkedOrderId ?? dispute.orderId }, orderBy: { createdAt: 'asc' } });
+    const providerOrder = await this.decisionsRepository.findProviderOrder(dispute.linkedOrderId ?? dispute.orderId);
     if (!providerOrder) throw new BadRequestException('Provider order is required to create refund record');
-    await this.prisma.$transaction(async (tx) => {
-      await tx.refundRequest.create({ data: { orderId: dispute.linkedOrderId ?? dispute.orderId, providerOrderId: providerOrder.id, userId: dispute.userId, providerId: providerOrder.providerId, paymentId: payment.id, requestedAmount: preview.data.requestedRefundAmount, approvedAmount: preview.data.requestedRefundAmount, currency: preview.data.currency, customerReason: dispute.claimDetails, status: refundStatus, providerComment: dto.comment, transactionId: refundId, stripeRefundId: payment.paymentMethod === PaymentMethod.STRIPE_CARD ? `stripe_refund_${dispute.id}` : null, approvedAt: new Date(), refundedAt: refundStatus === RefundRequestStatus.REFUNDED ? new Date() : null } });
-      await tx.disputeCase.update({ where: { id }, data: { status: DisputeStatus.APPROVED, decision: DisputeDecision.APPROVE, decisionComment: dto.comment, resolutionStatus: DisputeResolutionStatus.APPROVED, refundId, refundAmount: preview.data.requestedRefundAmount, resolvedAt: new Date(), customerNotificationStatus: dto.notifyCustomer === false ? DisputeCustomerNotificationStatus.NOT_SENT : DisputeCustomerNotificationStatus.SENT } });
-      await tx.disputeTimeline.create({ data: { disputeId: id, type: 'DECISION_APPROVE', title: 'Manual Audit Review', description: dto.comment ?? 'Dispute approved.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { refundAmount: preview.data.requestedRefundAmount, refundId } } });
-      await tx.disputeTimeline.create({ data: { disputeId: id, type: 'REFUND_PROCESSED', title: 'System Automated Action', description: refundStatus === RefundRequestStatus.REFUNDED ? 'Refund processed successfully.' : 'Refund queued for processing.', actorType: DisputeActorType.SYSTEM, metadataJson: { refundAmount: preview.data.requestedRefundAmount, refundId, refundStatus } } });
-      await tx.disputeTimeline.create({ data: { disputeId: id, type: 'CASE_RESOLVED', title: 'Case Resolved', description: 'Dispute case was approved and moved to confirmation.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { resolutionStatus: DisputeResolutionStatus.APPROVED } } });
-      if (dto.notifyCustomer ?? true) await tx.notification.create({ data: { recipientId: dispute.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Dispute approved', message: 'Your dispute was approved and refund has been processed.', type: 'CUSTOMER_DISPUTE_APPROVED', metadataJson: { disputeId: id, caseId: dispute.caseId, refundId, refundAmount: preview.data.requestedRefundAmount } } });
-    });
+    await this.decisionsRepository.approve({ id, userId: user.uid, disputeUserId: dispute.userId, caseId: dispute.caseId, orderId: dispute.linkedOrderId ?? dispute.orderId, providerOrderId: providerOrder.id, providerId: providerOrder.providerId, paymentId: payment.id, paymentMethod: payment.paymentMethod, paymentStatus: payment.status, amount: preview.data.requestedRefundAmount, currency: preview.data.currency, claimDetails: dispute.claimDetails, comment: dto.comment, refundId, notifyCustomer: dto.notifyCustomer ?? true, stripeRefundId: payment.paymentMethod === PaymentMethod.STRIPE_CARD ? `stripe_refund_${dispute.id}` : null });
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'DISPUTE_CASE', action: 'DISPUTE_DECISION_APPROVE', afterJson: { refundId, refundAmount: preview.data.requestedRefundAmount } });
     return { data: { caseId: dispute.caseId, decision: DisputeDecision.APPROVE, resolutionStatus: DisputeResolutionStatus.APPROVED, refundAmount: preview.data.requestedRefundAmount, refundId, nextStep: 'CONFIRMATION' }, message: 'Dispute approved and refund processed successfully.' };
   }
@@ -172,12 +159,7 @@ export class AdminDisputesService {
   private async rejectDispute(user: AuthUserContext, id: string, dto: SubmitDisputeDecisionDto) {
     if (!dto.reason) throw new BadRequestException('Rejection reason is required');
     const dispute = await this.findDispute(id);
-    await this.prisma.$transaction(async (tx) => {
-      await tx.disputeCase.update({ where: { id }, data: { status: DisputeStatus.REJECTED, decision: DisputeDecision.REJECT, decisionReason: dto.reason, decisionComment: dto.comment, resolutionStatus: DisputeResolutionStatus.REJECTED, resolvedAt: new Date(), customerNotificationStatus: dto.notifyCustomer === false ? DisputeCustomerNotificationStatus.NOT_SENT : DisputeCustomerNotificationStatus.SENT } });
-      await tx.disputeTimeline.create({ data: { disputeId: id, type: 'DECISION_REJECT', title: 'Manual Audit Review', description: dto.comment ?? `Reason: ${dto.reason}`, actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { reason: dto.reason } } });
-      await tx.disputeTimeline.create({ data: { disputeId: id, type: 'CASE_RESOLVED', title: 'Case Resolved', description: 'Dispute case was rejected.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { resolutionStatus: DisputeResolutionStatus.REJECTED } } });
-      if (dto.notifyCustomer ?? true) await tx.notification.create({ data: { recipientId: dispute.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Dispute rejected', message: dto.comment ?? 'Your dispute was rejected after review.', type: 'CUSTOMER_DISPUTE_REJECTED', metadataJson: { disputeId: id, caseId: dispute.caseId, reason: dto.reason } } });
-    });
+    await this.decisionsRepository.reject({ id, userId: user.uid, disputeUserId: dispute.userId, caseId: dispute.caseId, reason: dto.reason, comment: dto.comment, notifyCustomer: dto.notifyCustomer ?? true });
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'DISPUTE_CASE', action: 'DISPUTE_DECISION_REJECT', afterJson: { reason: dto.reason, comment: dto.comment } });
     return { data: { caseId: dispute.caseId, decision: DisputeDecision.REJECT, resolutionStatus: DisputeResolutionStatus.REJECTED }, message: 'Dispute rejected successfully.' };
   }
@@ -187,18 +169,14 @@ export class AdminDisputesService {
     const assignedToId = dto.assignedToId;
     const dispute = await this.findDispute(id);
     const estimatedResolutionAt = new Date(Date.now() + 48 * 3_600_000);
-    await this.prisma.$transaction(async (tx) => {
-      await tx.disputeCase.update({ where: { id }, data: { status: DisputeStatus.ESCALATED, decision: DisputeDecision.ESCALATE, decisionComment: dto.escalationReason ?? dto.comment, resolutionStatus: DisputeResolutionStatus.ESCALATED, assignedToId, escalatedAt: new Date(), estimatedResolutionAt, slaDeadlineAt: estimatedResolutionAt } });
-      await tx.disputeTimeline.create({ data: { disputeId: id, type: 'DECISION_ESCALATE', title: 'Case Escalated', description: dto.escalationReason ?? 'Dispute escalated for supervisor review.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { assignedToId, estimatedResolutionAt } } });
-      await tx.notification.create({ data: { recipientId: assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Dispute escalated to you', message: `${dispute.caseId} requires supervisor review.`, type: 'ADMIN_DISPUTE_ESCALATED_ASSIGNMENT', metadataJson: { disputeId: id, caseId: dispute.caseId } } });
-    });
+    await this.decisionsRepository.escalate({ id, userId: user.uid, caseId: dispute.caseId, assignedToId, estimatedResolutionAt, comment: dto.escalationReason ?? dto.comment });
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'DISPUTE_CASE', action: 'DISPUTE_DECISION_ESCALATE', afterJson: { assignedToId, estimatedResolutionAt } });
     return { data: { caseId: dispute.caseId, decision: DisputeDecision.ESCALATE, status: DisputeStatus.ESCALATED, assignedToId, estimatedResolutionAt }, message: 'Dispute escalated successfully.' };
   }
 
   async evidence(id: string) {
     await this.ensureDispute(id);
-    const items = await this.prisma.disputeEvidence.findMany({ where: { disputeId: id }, orderBy: { createdAt: 'asc' } });
+    const items = await this.evidenceRepository.findEvidence(id);
     return { data: items.map((item) => ({ id: item.id, fileName: item.fileName, fileUrl: item.fileUrl, contentType: item.contentType, uploadedBy: item.uploadedByType, createdAt: item.createdAt })), message: 'Dispute evidence fetched successfully.' };
   }
 
@@ -210,26 +188,26 @@ export class AdminDisputesService {
 
   async timeline(id: string) {
     await this.ensureDispute(id);
-    const items = await this.prisma.disputeTimeline.findMany({ where: { disputeId: id }, include: { actor: { select: { firstName: true, lastName: true } } }, orderBy: { createdAt: 'asc' } });
+    const items = await this.trackingRepository.findTimeline(id);
     return { data: items.map((item) => ({ id: item.id, type: item.type, title: item.title, description: item.description, actor: { type: item.actorType, name: item.actor ? this.name(item.actor) : this.actorName(item.actorType) }, createdAt: item.createdAt })), message: 'Dispute timeline fetched successfully.' };
   }
 
   async addNote(user: AuthUserContext, id: string, dto: AddDisputeNoteDto) {
     await this.ensureDispute(id);
-    const note = await this.prisma.disputeNote.create({ data: { disputeId: id, authorId: user.uid, note: dto.note, visibility: dto.visibility }, include: { author: { select: { id: true, firstName: true, lastName: true } } } });
-    await this.prisma.disputeTimeline.create({ data: { disputeId: id, type: 'INTERNAL_NOTE_ADDED', title: 'Internal Note Added', description: 'An admin added an internal note to the dispute.', actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { noteId: note.id } } });
+    const note = await this.trackingRepository.createNote({ disputeId: id, authorId: user.uid, note: dto.note, visibility: dto.visibility });
+    await this.trackingRepository.createNoteTimeline(id, user.uid, note.id);
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'DISPUTE_CASE', action: 'DISPUTE_NOTE_ADDED', afterJson: { noteId: note.id, visibility: note.visibility } });
     return { data: this.noteItem(note), message: 'Dispute note added successfully.' };
   }
 
   async notes(id: string) {
     await this.ensureDispute(id);
-    const notes = await this.prisma.disputeNote.findMany({ where: { disputeId: id }, include: { author: { select: { id: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' } });
+    const notes = await this.trackingRepository.findNotes(id);
     return { data: notes.map((note) => this.noteItem(note)), message: 'Dispute notes fetched successfully.' };
   }
 
   async export(query: ExportDisputesDto) {
-    const items = await this.prisma.disputeCase.findMany({ where: { status: query.status, priority: query.priority, ...(query.fromDate || query.toDate ? { createdAt: { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } } : {}) }, include: this.disputeInclude(), orderBy: { createdAt: 'desc' }, take: 10000 });
+    const items = await this.adminDisputesRepository.exportDisputes({ where: { status: query.status, priority: query.priority, ...(query.fromDate || query.toDate ? { createdAt: { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } } : {}) }, include: this.disputeInclude(), orderBy: { createdAt: 'desc' }, take: 10000 });
     const rows = [['Case ID', 'Customer Name', 'Order Number', 'Transaction ID', 'Amount', 'Currency', 'Priority', 'Status', 'Reason', 'Created At'], ...items.map((item) => [item.caseId, this.name(item.user), item.order.orderNumber, item.transactionId ?? '', this.money(item.amount).toString(), item.currency, item.priority, item.status, item.reason, item.createdAt.toISOString()])];
     const content = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n');
     const format = query.format ?? ExportFormat.CSV;
@@ -247,21 +225,21 @@ export class AdminDisputesService {
   private hasPermission(user: AuthUserContext, permission: string): boolean { if (user.role === UserRole.SUPER_ADMIN) return true; if (!user.permissions || typeof user.permissions !== 'object' || Array.isArray(user.permissions)) return false; const [module, key] = permission.split('.', 2); const values = (user.permissions as Record<string, unknown>)[module]; return Array.isArray(values) && values.includes(key); }
 
   private async findPayment(transactionId: string): Promise<PaymentWithOrder> {
-    const payment = await this.prisma.payment.findFirst({ where: { OR: [{ id: transactionId }, { providerPaymentIntentId: transactionId }] }, include: this.paymentInclude() });
+    const payment = await this.linkageRepository.findPayment({ where: { OR: [{ id: transactionId }, { providerPaymentIntentId: transactionId }] }, include: this.paymentInclude() });
     if (!payment) throw new NotFoundException('Transaction not found');
     return payment;
   }
 
   private paymentInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true } }, order: { select: { id: true, orderNumber: true, createdAt: true, total: true, currency: true } } } satisfies Prisma.PaymentInclude; }
   private assertSameCustomer(dispute: DisputeCase, payment: PaymentWithOrder): void { if (dispute.userId !== payment.userId) throw new BadRequestException('Transaction does not belong to the dispute customer'); }
-  private async refundEligibility(payment: PaymentWithOrder) { const paid = payment.status === PaymentStatus.SUCCEEDED; const ageDays = Math.floor((Date.now() - payment.createdAt.getTime()) / 86_400_000); const previous = await this.prisma.refundRequest.aggregate({ where: { paymentId: payment.id, status: { in: [RefundRequestStatus.APPROVED, RefundRequestStatus.REFUND_PROCESSING, RefundRequestStatus.REFUNDED] } }, _sum: { approvedAmount: true, requestedAmount: true } }); const refunded = this.money(previous._sum.approvedAmount ?? previous._sum.requestedAmount ?? 0); const maxRefundAmount = Math.max(0, this.money(payment.amount) - refunded); const warnings: string[] = []; if (!paid) warnings.push('Payment is not settled.'); if (ageDays > 30) warnings.push('Refund window expired.'); if (maxRefundAmount <= 0) warnings.push('No refundable amount remains.'); const eligible = paid && ageDays <= 30 && maxRefundAmount > 0; return { eligible, maxRefundAmount, eligibilityText: eligible ? 'Eligible within 30-day window' : warnings[0] ?? 'Refund is not currently eligible', warnings }; }
+  private async refundEligibility(payment: PaymentWithOrder) { const paid = payment.status === PaymentStatus.SUCCEEDED; const ageDays = Math.floor((Date.now() - payment.createdAt.getTime()) / 86_400_000); const previous = await this.linkageRepository.aggregateRefundedAmount(payment.id); const refunded = this.money(previous._sum.approvedAmount ?? previous._sum.requestedAmount ?? 0); const maxRefundAmount = Math.max(0, this.money(payment.amount) - refunded); const warnings: string[] = []; if (!paid) warnings.push('Payment is not settled.'); if (ageDays > 30) warnings.push('Refund window expired.'); if (maxRefundAmount <= 0) warnings.push('No refundable amount remains.'); const eligible = paid && ageDays <= 30 && maxRefundAmount > 0; return { eligible, maxRefundAmount, eligibilityText: eligible ? 'Eligible within 30-day window' : warnings[0] ?? 'Refund is not currently eligible', warnings }; }
   private requestedRefundAmount(dto: RefundPreviewDto, maxRefundAmount: number): number { if (dto.refundType === DisputeRefundType.NONE) return 0; if (dto.refundType === DisputeRefundType.FULL) return maxRefundAmount; const amount = dto.refundAmount ?? 0; if (amount <= 0) throw new BadRequestException('Partial refund amount must be greater than 0'); return amount; }
   private transactionSearchItem(payment: PaymentWithOrder, refundEligible: boolean, eligibilityText: string) { return { id: payment.id, transactionId: payment.providerPaymentIntentId ?? payment.id, orderId: payment.orderId, orderNumber: payment.order?.orderNumber ?? null, customerName: this.name(payment.user), paymentMethod: this.paymentMethod(payment), amount: this.money(payment.amount), currency: payment.currency, status: this.paymentStatus(payment.status), orderDate: payment.order?.createdAt ?? payment.createdAt, refundEligible, eligibilityText }; }
   private paymentMethod(payment: Pick<Payment, 'paymentMethod' | 'metadataJson'>): string { const metadata = this.object(payment.metadataJson); const brand = this.stringValue(metadata.cardBrand) ?? (payment.paymentMethod === 'STRIPE_CARD' ? 'CARD' : payment.paymentMethod); const last4 = this.stringValue(metadata.cardLast4); return last4 ? `${brand.toUpperCase()} **** ${last4}` : brand.replaceAll('_', ' '); }
   private paymentStatus(status: PaymentStatus): string { return status === PaymentStatus.SUCCEEDED ? 'SETTLED' : status; }
 
   private async findDispute(id: string): Promise<DisputeWithDetails> {
-    const dispute = await this.prisma.disputeCase.findUnique({ where: { id }, include: this.disputeInclude() });
+    const dispute = await this.adminDisputesRepository.findDispute({ where: { id }, include: this.disputeInclude() });
     if (!dispute) throw new NotFoundException('Dispute not found');
     return dispute;
   }

@@ -3,6 +3,11 @@ import { join } from 'path';
 
 describe('Admin Dispute Manager Core module', () => {
   const service = readFileSync(join(__dirname, 'admin-disputes.service.ts'), 'utf8');
+  const disputesRepository = readFileSync(join(__dirname, 'admin-disputes.repository.ts'), 'utf8');
+  const evidenceRepository = readFileSync(join(__dirname, 'admin-dispute-evidence.repository.ts'), 'utf8');
+  const linkageRepository = readFileSync(join(__dirname, 'admin-dispute-linkage.repository.ts'), 'utf8');
+  const decisionsRepository = readFileSync(join(__dirname, 'admin-dispute-decisions.repository.ts'), 'utf8');
+  const trackingRepository = readFileSync(join(__dirname, 'admin-dispute-tracking.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'admin-disputes.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'admin-disputes.module.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/admin-disputes.dto.ts'), 'utf8');
@@ -14,7 +19,8 @@ describe('Admin Dispute Manager Core module', () => {
 
   it('creates dispute models without mixing provider refund/customer order APIs', () => {
     for (const text of ['model DisputeCase', 'model DisputeEvidence', 'model DisputeNote', 'model DisputeTimeline', 'caseId', 'slaDeadlineAt', 'linkedRefundId', 'metadataJson']) expect(schema).toContain(text);
-    expect(service).toContain('disputeCase.findMany');
+    expect(disputesRepository).toContain('disputeCase.findMany');
+    expect(service).toContain('adminDisputesRepository');
     expect(service).toContain('refundEligible');
     expect(controller).not.toContain("@Controller('provider");
     expect(controller).not.toContain("@Controller('customer");
@@ -60,7 +66,7 @@ describe('Admin Dispute Manager Core module', () => {
   it('admin can fetch dispute evidence and storage allows dispute-evidence folder', () => {
     expect(controller).toContain("@Get(':id/evidence')");
     expect(controller).toContain("@Permissions('disputes.read')");
-    expect(service).toContain('disputeEvidence.findMany');
+    expect(evidenceRepository).toContain('disputeEvidence.findMany');
     expect(storageDto).toContain("DISPUTE_EVIDENCE = 'dispute-evidence'");
     expect(storageService).toContain('UploadFolder.DISPUTE_EVIDENCE');
   });
@@ -68,8 +74,8 @@ describe('Admin Dispute Manager Core module', () => {
   it('admin can fetch timeline and add internal note', () => {
     expect(controller).toContain("@Get(':id/timeline')");
     expect(controller).toContain("@Post(':id/notes')");
-    expect(service).toContain('disputeTimeline.findMany');
-    expect(service).toContain('disputeNote.create');
+    expect(trackingRepository).toContain('disputeTimeline.findMany');
+    expect(trackingRepository).toContain('disputeNote.create');
     expect(service).toContain('DISPUTE_NOTE_ADDED');
   });
 
@@ -112,15 +118,16 @@ describe('Admin Dispute Manager Core module', () => {
     expect(service).toContain('linkedTransactionId');
     expect(service).toContain('linkedPaymentId');
     expect(service).toContain('linkedOrderId');
-    expect(service).toContain('refundType: dto.refundType');
-    expect(service).toContain('refundAmount: preview.data.requestedRefundAmount');
+    expect(linkageRepository).toContain('refundType: params.refundType');
+    expect(linkageRepository).toContain('refundAmount: params.refundAmount');
   });
 
   it('link transaction creates timeline/audit entries and does not process refund', () => {
-    expect(service).toContain('TRANSACTION_LINKED');
-    expect(service).toContain('REFUND_SELECTION_UPDATED');
+    expect(linkageRepository).toContain('TRANSACTION_LINKED');
+    expect(linkageRepository).toContain('REFUND_SELECTION_UPDATED');
     expect(service).toContain('DISPUTE_TRANSACTION_LINKED');
-    expect(service).not.toContain('stripe.refunds.create');
+    expect(`${service}
+${linkageRepository}`).not.toContain('stripe.refunds.create');
   });
 
   it('approve requires linked transaction and validates refund amount', () => {
@@ -134,17 +141,17 @@ describe('Admin Dispute Manager Core module', () => {
   it('approve creates Stripe refund tracking, refund transaction, and updates dispute status', () => {
     expect(service).toContain('PaymentMethod.STRIPE_CARD');
     expect(service).toContain('stripe_refund_${dispute.id}');
-    expect(service).toContain('refundRequest.create');
-    expect(service).toContain('status: DisputeStatus.APPROVED');
-    expect(service).toContain('resolutionStatus: DisputeResolutionStatus.APPROVED');
-    expect(service).toContain('REFUND_PROCESSED');
+    expect(decisionsRepository).toContain('refundRequest.create');
+    expect(decisionsRepository).toContain('status: DisputeStatus.APPROVED');
+    expect(decisionsRepository).toContain('resolutionStatus: DisputeResolutionStatus.APPROVED');
+    expect(decisionsRepository).toContain('REFUND_PROCESSED');
   });
 
   it('reject does not create refund and stores reason/comment', () => {
     expect(service).toContain('rejectDispute');
-    expect(service).toContain('decisionReason: dto.reason');
-    expect(service).toContain('decisionComment: dto.comment');
-    expect(service).toContain('status: DisputeStatus.REJECTED');
+    expect(decisionsRepository).toContain('decisionReason: params.reason');
+    expect(decisionsRepository).toContain('decisionComment: params.comment');
+    expect(decisionsRepository).toContain('status: DisputeStatus.REJECTED');
     expect(service).toContain('DISPUTE_DECISION_REJECT');
   });
 
@@ -152,11 +159,12 @@ describe('Admin Dispute Manager Core module', () => {
     expect(service).toContain('escalateDispute');
     expect(service).toContain('assignedToId');
     expect(service).toContain('DisputeStatus.ESCALATED');
-    expect(service).toContain('ADMIN_DISPUTE_ESCALATED_ASSIGNMENT');
+    expect(decisionsRepository).toContain('ADMIN_DISPUTE_ESCALATED_ASSIGNMENT');
   });
 
   it('decision creates timeline entry and audit log', () => {
-    for (const action of ['DECISION_APPROVE', 'DECISION_REJECT', 'DECISION_ESCALATE', 'CASE_RESOLVED']) expect(service).toContain(action);
+    for (const action of ['DECISION_APPROVE', 'DECISION_REJECT', 'DECISION_ESCALATE', 'CASE_RESOLVED']) expect(`${service}
+${decisionsRepository}`).toContain(action);
     expect(service).toContain('auditLog.write');
   });
 
