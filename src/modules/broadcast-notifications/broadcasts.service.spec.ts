@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { BroadcastChannel, BroadcastPriority, BroadcastStatus, UserRole } from '@prisma/client';
+import { BroadcastNotificationsRepository } from './broadcast-notifications.repository';
+import { BroadcastRecipientsRepository } from './broadcast-recipients.repository';
 import { BroadcastsService } from './broadcasts.service';
 import { SendMode, TargetingMode, TargetRole } from './dto/broadcast-notifications.dto';
 
@@ -15,8 +17,16 @@ function createService() {
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
   const queue = { enqueueNow: jest.fn().mockResolvedValue(undefined), enqueueScheduled: jest.fn().mockResolvedValue(undefined), cancel: jest.fn().mockResolvedValue(undefined) };
   const gateway = { emitEvent: jest.fn(), emitToUser: jest.fn() };
-  const service = new BroadcastsService(prisma as unknown as ConstructorParameters<typeof BroadcastsService>[0], audit as unknown as ConstructorParameters<typeof BroadcastsService>[1], queue as unknown as ConstructorParameters<typeof BroadcastsService>[2], gateway as unknown as ConstructorParameters<typeof BroadcastsService>[3]);
-  return { service, prisma, audit, queue, gateway };
+  const broadcastNotificationsRepository = new BroadcastNotificationsRepository(prisma as unknown as ConstructorParameters<typeof BroadcastNotificationsRepository>[0]);
+  const broadcastRecipientsRepository = new BroadcastRecipientsRepository(prisma as unknown as ConstructorParameters<typeof BroadcastRecipientsRepository>[0]);
+  const service = new BroadcastsService(
+    broadcastNotificationsRepository,
+    broadcastRecipientsRepository,
+    audit as unknown as ConstructorParameters<typeof BroadcastsService>[2],
+    queue as unknown as ConstructorParameters<typeof BroadcastsService>[3],
+    gateway as unknown as ConstructorParameters<typeof BroadcastsService>[4],
+  );
+  return { service, prisma, audit, queue, gateway, broadcastNotificationsRepository, broadcastRecipientsRepository };
 }
 
 describe('BroadcastsService', () => {
