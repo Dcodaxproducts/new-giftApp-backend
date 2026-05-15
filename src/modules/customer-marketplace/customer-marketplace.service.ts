@@ -197,14 +197,14 @@ export class CustomerMarketplaceService {
   async cart(user: AuthUserContext) { return { data: this.toCart(await this.getActiveCart(user.uid)), message: 'Cart fetched successfully' }; }
 
   async addCartItem(user: AuthUserContext, dto: AddCartItemDto) {
-    const [gift, address, cart] = await Promise.all([this.getAvailableGift(dto.giftId), this.getAddress(user.uid, dto.recipientAddressId), this.getOrCreateActiveCart(user.uid)]);
+    const [gift, address, cart] = await Promise.all([this.getAvailableGift(dto.giftId), this.getCartAddress(user.uid, dto.recipientAddressId), this.getOrCreateActiveCart(user.uid)]);
     const variant = this.resolveVariant(gift, dto.variantId);
-    if (dto.recipientContactId) await this.assertContact(user.uid, dto.recipientContactId);
-    if (dto.eventId) await this.assertEvent(user.uid, dto.eventId);
+    if (dto.recipientContactId) await this.assertCartContact(user.uid, dto.recipientContactId);
+    if (dto.eventId) await this.assertCartEvent(user.uid, dto.eventId);
     this.assertStock(gift, variant, dto.quantity);
     const offer = this.activeOffer(gift);
     const pricing = this.priceSnapshot(gift, offer, variant);
-    const item = await this.prisma.cartItem.create({ data: { cartId: cart.id, giftId: gift.id, variantId: variant?.id, providerId: gift.provider.id, quantity: dto.quantity, unitPriceSnapshot: pricing.unitPrice, discountAmountSnapshot: pricing.discountAmount, finalUnitPriceSnapshot: pricing.finalUnitPrice, promotionalOfferId: offer?.id, deliveryOption: dto.deliveryOption, recipientContactId: dto.recipientContactId, recipientName: dto.recipientName.trim(), recipientPhone: dto.recipientPhone.trim(), recipientAddressId: address.id, eventId: dto.eventId, giftMessage: dto.giftMessage?.trim(), messageMediaUrlsJson: dto.messageMediaUrls ?? [], scheduledDeliveryAt: dto.scheduledDeliveryAt ? new Date(dto.scheduledDeliveryAt) : null }, include: this.cartItemInclude() });
+    const item = await this.customerCartRepository.createCartItem({ cartId: cart.id, giftId: gift.id, variantId: variant?.id, providerId: gift.provider.id, quantity: dto.quantity, unitPriceSnapshot: pricing.unitPrice, discountAmountSnapshot: pricing.discountAmount, finalUnitPriceSnapshot: pricing.finalUnitPrice, promotionalOfferId: offer?.id, deliveryOption: dto.deliveryOption, recipientContactId: dto.recipientContactId, recipientName: dto.recipientName.trim(), recipientPhone: dto.recipientPhone.trim(), recipientAddressId: address.id, eventId: dto.eventId, giftMessage: dto.giftMessage?.trim(), messageMediaUrlsJson: dto.messageMediaUrls ?? [], scheduledDeliveryAt: dto.scheduledDeliveryAt ? new Date(dto.scheduledDeliveryAt) : null });
     return { data: this.toCartItem(item), message: 'Cart item added successfully' };
   }
 
@@ -212,29 +212,29 @@ export class CustomerMarketplaceService {
     const cart = await this.getActiveCart(user.uid);
     const item = cart.items.find((candidate) => candidate.id === id);
     if (!item) throw new NotFoundException('Cart item not found');
-    if (dto.recipientAddressId) await this.getAddress(user.uid, dto.recipientAddressId);
-    if (dto.recipientContactId) await this.assertContact(user.uid, dto.recipientContactId);
-    if (dto.eventId) await this.assertEvent(user.uid, dto.eventId);
+    if (dto.recipientAddressId) await this.getCartAddress(user.uid, dto.recipientAddressId);
+    if (dto.recipientContactId) await this.assertCartContact(user.uid, dto.recipientContactId);
+    if (dto.eventId) await this.assertCartEvent(user.uid, dto.eventId);
     const gift = await this.getAvailableGift(item.giftId);
     const variant = this.resolveVariant(gift, dto.variantId ?? item.variantId ?? undefined);
     const quantity = dto.quantity ?? item.quantity;
     this.assertStock(gift, variant, quantity);
     const offer = this.activeOffer(gift);
     const pricing = this.priceSnapshot(gift, offer, variant);
-    const updated = await this.prisma.cartItem.update({ where: { id }, data: { variantId: variant?.id, quantity: dto.quantity, unitPriceSnapshot: pricing.unitPrice, discountAmountSnapshot: pricing.discountAmount, finalUnitPriceSnapshot: pricing.finalUnitPrice, promotionalOfferId: offer?.id, deliveryOption: dto.deliveryOption, recipientContactId: dto.recipientContactId, recipientName: dto.recipientName?.trim(), recipientPhone: dto.recipientPhone?.trim(), recipientAddressId: dto.recipientAddressId, eventId: dto.eventId, giftMessage: dto.giftMessage?.trim(), messageMediaUrlsJson: dto.messageMediaUrls, scheduledDeliveryAt: dto.scheduledDeliveryAt ? new Date(dto.scheduledDeliveryAt) : undefined }, include: this.cartItemInclude() });
+    const updated = await this.customerCartRepository.updateCartItem(id, { variantId: variant?.id, quantity: dto.quantity, unitPriceSnapshot: pricing.unitPrice, discountAmountSnapshot: pricing.discountAmount, finalUnitPriceSnapshot: pricing.finalUnitPrice, promotionalOfferId: offer?.id, deliveryOption: dto.deliveryOption, recipientContactId: dto.recipientContactId, recipientName: dto.recipientName?.trim(), recipientPhone: dto.recipientPhone?.trim(), recipientAddressId: dto.recipientAddressId, eventId: dto.eventId, giftMessage: dto.giftMessage?.trim(), messageMediaUrlsJson: dto.messageMediaUrls, scheduledDeliveryAt: dto.scheduledDeliveryAt ? new Date(dto.scheduledDeliveryAt) : undefined });
     return { data: this.toCartItem(updated), message: 'Cart item updated successfully' };
   }
 
   async deleteCartItem(user: AuthUserContext, id: string) {
     const cart = await this.getActiveCart(user.uid);
     if (!cart.items.some((item) => item.id === id)) throw new NotFoundException('Cart item not found');
-    await this.prisma.cartItem.delete({ where: { id } });
+    await this.customerCartRepository.deleteCartItem(id);
     return { data: null, message: 'Cart item deleted successfully' };
   }
 
   async clearCart(user: AuthUserContext) {
     const cart = await this.getActiveCart(user.uid);
-    await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+    await this.customerCartRepository.clearActiveCart(cart.id);
     return { data: null, message: 'Cart cleared successfully.' };
   }
 
@@ -318,14 +318,17 @@ export class CustomerMarketplaceService {
 
   private async getAvailableGift(id: string): Promise<GiftView> { const gift = await this.prisma.gift.findFirst({ where: { id, ...this.availableGiftWhere() }, include: this.giftInclude() }); if (!gift) throw new NotFoundException('Gift not found or unavailable'); return gift; }
   private async getAddress(userId: string, id: string): Promise<CustomerAddress> { const address = await this.prisma.customerAddress.findFirst({ where: { id, userId, deletedAt: null } }); if (!address) throw new NotFoundException('Address not found'); return address; }
+  private async getCartAddress(userId: string, id: string): Promise<CustomerAddress> { const address = await this.customerCartRepository.findAddressForUser(userId, id); if (!address) throw new NotFoundException('Address not found'); return address; }
   private async getReminder(userId: string, id: string): Promise<CustomerReminder> { const reminder = await this.prisma.customerReminder.findFirst({ where: { id, userId, deletedAt: null } }); if (!reminder) throw new NotFoundException('Reminder not found'); return reminder; }
-  private async getOrCreateActiveCart(userId: string) { return (await this.customerCartRepository.findActiveCartForUser(userId)) ?? this.prisma.cart.create({ data: { userId } }); }
+  private async getOrCreateActiveCart(userId: string) { return this.customerCartRepository.findOrCreateActiveCart(userId); }
   private async getActiveCart(userId: string): Promise<CartView> { const cart = await this.getOrCreateActiveCart(userId); return this.customerCartRepository.findCartWithItemsById(cart.id); }
   private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: { orderBy: { createdAt: 'desc' }, include: this.cartItemInclude() } } }); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
   private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.prisma.customerWishlist.findMany({ where: { userId, giftId: { in: giftIds } }, select: { giftId: true } }); return new Set(rows.map((row) => row.giftId)); }
 
   private async assertContact(userId: string, id: string): Promise<void> { const contact = await this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!contact) throw new NotFoundException('Contact not found'); }
+  private async assertCartContact(userId: string, id: string): Promise<void> { const contact = await this.customerCartRepository.findContactForUser(userId, id); if (!contact) throw new NotFoundException('Contact not found'); }
   private async assertEvent(userId: string, id: string): Promise<void> { const event = await this.prisma.customerEvent.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!event) throw new NotFoundException('Event not found'); }
+  private async assertCartEvent(userId: string, id: string): Promise<void> { const event = await this.customerCartRepository.findEventForUser(userId, id); if (!event) throw new NotFoundException('Event not found'); }
   private resolveVariant(gift: GiftView, variantId?: string): GiftVariantView | null { if (gift.variants.length === 0) return null; if (!variantId) return gift.variants.find((candidate) => candidate.isDefault) ?? null; const variant = gift.variants.find((candidate) => candidate.id === variantId); if (!variant) throw new BadRequestException('Variant does not belong to gift'); return variant; }
   private assertStock(gift: GiftView, variant: GiftVariantView | null, quantity: number): void { const stock = variant?.stockQuantity ?? gift.stockQuantity; if (stock < quantity) throw new BadRequestException('Requested quantity exceeds available stock'); }
 
