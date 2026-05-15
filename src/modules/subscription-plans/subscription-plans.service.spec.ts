@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { CouponDiscountType, SubscriptionPlanStatus, UserRole } from '@prisma/client';
+import { CouponsRepository } from './coupons.repository';
 import { CouponStatus, PlanFeatureType } from './dto/subscription-plans.dto';
+import { PlanFeaturesRepository } from './plan-features.repository';
+import { SubscriptionPlansRepository } from './subscription-plans.repository';
 import { SubscriptionPlansService } from './subscription-plans.service';
 
 function createService() {
@@ -14,8 +17,16 @@ function createService() {
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
-  const service = new SubscriptionPlansService(prisma as unknown as ConstructorParameters<typeof SubscriptionPlansService>[0], audit as unknown as ConstructorParameters<typeof SubscriptionPlansService>[1]);
-  return { service, prisma, audit };
+  const subscriptionPlansRepository = new SubscriptionPlansRepository(prisma as unknown as ConstructorParameters<typeof SubscriptionPlansRepository>[0]);
+  const planFeaturesRepository = new PlanFeaturesRepository(prisma as unknown as ConstructorParameters<typeof PlanFeaturesRepository>[0]);
+  const couponsRepository = new CouponsRepository(prisma as unknown as ConstructorParameters<typeof CouponsRepository>[0]);
+  const service = new SubscriptionPlansService(
+    subscriptionPlansRepository,
+    planFeaturesRepository,
+    couponsRepository,
+    audit as unknown as ConstructorParameters<typeof SubscriptionPlansService>[3],
+  );
+  return { service, prisma, audit, subscriptionPlansRepository, planFeaturesRepository, couponsRepository };
 }
 
 describe('SubscriptionPlansService', () => {
