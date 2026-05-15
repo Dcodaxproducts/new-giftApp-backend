@@ -68,14 +68,14 @@ export class ProviderEarningsPayoutsService {
 
   async requestPayout(user: AuthUserContext, dto: RequestProviderPayoutDto) {
     await this.getApprovedActiveProvider(user.uid);
-    const duplicate = await this.prisma.providerPayout.findFirst({ where: { providerId: user.uid, idempotencyKey: dto.idempotencyKey } });
+    const duplicate = await this.repository.findExistingPayoutByIdempotencyKey(user.uid, dto.idempotencyKey);
     if (duplicate) throw new ConflictException('Duplicate payout request');
     const preview = await this.preview(user.uid, dto.amount, dto.payoutMethodId);
-    const payout = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.providerPayout.create({ data: { providerId: user.uid, payoutMethodId: preview.destination.id, transactionId: this.transactionId(), amount: new Prisma.Decimal(preview.requestedAmount), processingFee: new Prisma.Decimal(preview.processingFee), totalToReceive: new Prisma.Decimal(preview.totalToReceive), currency: preview.currency, status: ProviderPayoutStatus.PENDING, expectedArrivalAt: this.expectedArrivalAt(), idempotencyKey: dto.idempotencyKey } });
-      await tx.providerEarningsLedger.create({ data: { providerId: user.uid, payoutId: created.id, type: ProviderEarningsLedgerType.PAYOUT, direction: ProviderEarningsLedgerDirection.DEBIT, amount: new Prisma.Decimal(preview.requestedAmount), currency: preview.currency, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, description: `Payout request ${created.transactionId}`, metadataJson: { payoutMethodId: preview.destination.id } } });
-      await tx.notification.create({ data: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Payout requested', message: 'Your payout request was submitted.', type: 'PROVIDER_PAYOUT_REQUESTED', metadataJson: { payoutId: created.id } } });
-      return created;
+    const transactionId = this.transactionId();
+    const payout = await this.repository.createPayoutRequest({
+      payoutData: { providerId: user.uid, payoutMethodId: preview.destination.id, transactionId, amount: new Prisma.Decimal(preview.requestedAmount), processingFee: new Prisma.Decimal(preview.processingFee), totalToReceive: new Prisma.Decimal(preview.totalToReceive), currency: preview.currency, status: ProviderPayoutStatus.PENDING, expectedArrivalAt: this.expectedArrivalAt(), idempotencyKey: dto.idempotencyKey },
+      ledgerData: { providerId: user.uid, type: ProviderEarningsLedgerType.PAYOUT, direction: ProviderEarningsLedgerDirection.DEBIT, amount: new Prisma.Decimal(preview.requestedAmount), currency: preview.currency, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, description: `Payout request ${transactionId}`, metadataJson: { payoutMethodId: preview.destination.id } },
+      notificationData: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Payout requested', message: 'Your payout request was submitted.', type: 'PROVIDER_PAYOUT_REQUESTED' },
     });
     return { data: this.toPayoutResponse(payout, preview.destination), message: 'Payout requested successfully.' };
   }
@@ -86,11 +86,12 @@ export class ProviderEarningsPayoutsService {
     await this.getApprovedActiveProvider(user.uid);
     const payout = await this.getOwnedPayout(user.uid, id);
     if (payout.status !== ProviderPayoutStatus.PENDING) throw new ConflictException('Only pending payouts can be cancelled');
-    const updated = await this.prisma.$transaction(async (tx) => {
-      await tx.providerEarningsLedger.updateMany({ where: { providerId: user.uid, payoutId: payout.id, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { cancelReason: dto.reason ?? 'Requested by provider.' } } });
-      const item = await tx.providerPayout.update({ where: { id: payout.id }, data: { status: ProviderPayoutStatus.CANCELLED, failureReason: dto.reason?.trim() } });
-      await tx.notification.create({ data: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Payout cancelled', message: 'Your payout request was cancelled.', type: 'PROVIDER_PAYOUT_CANCELLED', metadataJson: { payoutId: payout.id } } });
-      return item;
+    const updated = await this.repository.cancelPayoutRequest({
+      providerId: user.uid,
+      payoutId: payout.id,
+      cancelReason: dto.reason ?? 'Requested by provider.',
+      payoutData: { status: ProviderPayoutStatus.CANCELLED, failureReason: dto.reason?.trim() },
+      notificationData: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Payout cancelled', message: 'Your payout request was cancelled.', type: 'PROVIDER_PAYOUT_CANCELLED', metadataJson: { payoutId: payout.id } },
     });
     return { data: { id: updated.id, status: updated.status }, message: 'Provider payout cancelled successfully.' };
   }

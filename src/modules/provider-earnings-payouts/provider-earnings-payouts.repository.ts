@@ -79,4 +79,46 @@ export class ProviderEarningsPayoutsRepository {
   findPayoutMethodForProvider(providerId: string, id: string) {
     return this.prisma.providerPayoutMethod.findFirst({ where: { id, providerId, deletedAt: null } });
   }
+
+  findExistingPayoutByIdempotencyKey(providerId: string, idempotencyKey: string) {
+    return this.prisma.providerPayout.findFirst({ where: { providerId, idempotencyKey } });
+  }
+
+  createPayoutRequest(params: { payoutData: Prisma.ProviderPayoutUncheckedCreateInput; ledgerData: Prisma.ProviderEarningsLedgerUncheckedCreateInput; notificationData: Prisma.NotificationUncheckedCreateInput }) {
+    return this.prisma.$transaction(async (tx) => {
+      const created = await this.createPayout(tx, params.payoutData);
+      await this.markLedgerEntriesPayoutPending(tx, { ...params.ledgerData, payoutId: created.id });
+      await this.createPayoutNotification(tx, { ...params.notificationData, metadataJson: { payoutId: created.id } });
+      return created;
+    });
+  }
+
+  cancelPayoutRequest(params: { providerId: string; payoutId: string; cancelReason: string; payoutData: Prisma.ProviderPayoutUpdateArgs['data']; notificationData: Prisma.NotificationUncheckedCreateInput }) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.releaseLedgerEntriesFromPayout(tx, params.providerId, params.payoutId, params.cancelReason);
+      const item = await this.cancelPayout(tx, params.payoutId, params.payoutData);
+      await this.createPayoutNotification(tx, params.notificationData);
+      return item;
+    });
+  }
+
+  private createPayout(tx: Prisma.TransactionClient, data: Prisma.ProviderPayoutUncheckedCreateInput) {
+    return tx.providerPayout.create({ data });
+  }
+
+  private markLedgerEntriesPayoutPending(tx: Prisma.TransactionClient, data: Prisma.ProviderEarningsLedgerUncheckedCreateInput) {
+    return tx.providerEarningsLedger.create({ data });
+  }
+
+  private cancelPayout(tx: Prisma.TransactionClient, id: string, data: Prisma.ProviderPayoutUpdateArgs['data']) {
+    return tx.providerPayout.update({ where: { id }, data });
+  }
+
+  private releaseLedgerEntriesFromPayout(tx: Prisma.TransactionClient, providerId: string, payoutId: string, cancelReason: string) {
+    return tx.providerEarningsLedger.updateMany({ where: { providerId, payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { cancelReason } } });
+  }
+
+  private createPayoutNotification(tx: Prisma.TransactionClient, data: Prisma.NotificationUncheckedCreateInput) {
+    return tx.notification.create({ data });
+  }
 }

@@ -53,6 +53,17 @@ describe('Provider earnings/payouts source safety', () => {
     expect(repository).toContain('findPayoutMethodForProvider(providerId: string, id: string)');
     expect(repository).toContain('where: { id, providerId }');
   });
+  it('adds repository write methods while service keeps payout decisions', () => {
+    expect(repository).toContain('findExistingPayoutByIdempotencyKey');
+    expect(repository).toContain('createPayoutRequest');
+    expect(repository).toContain('markLedgerEntriesPayoutPending');
+    expect(repository).toContain('cancelPayoutRequest');
+    expect(repository).toContain('releaseLedgerEntriesFromPayout');
+    expect(repository).toContain('createPayoutNotification');
+    expect(service).toContain('if (duplicate) throw new ConflictException');
+    expect(service).toContain('if (payout.status !== ProviderPayoutStatus.PENDING)');
+    expect(service).toContain('preview(user.uid, dto.amount, dto.payoutMethodId)');
+  });
 });
 
 describe('ProviderEarningsPayoutsService', () => {
@@ -69,9 +80,11 @@ describe('ProviderEarningsPayoutsService', () => {
   it('provider cannot request payout without verified payout method', async () => { const { service } = createService({ payoutMethod: { ...payoutMethod, verificationStatus: ProviderPayoutVerificationStatus.PENDING } }); await expect(service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1', idempotencyKey: 'idem_new' })).rejects.toThrow(BadRequestException); });
   it('provider cannot use another provider payout method', async () => { const { service } = createService({ payoutMethod: null }); await expect(service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'other_method', idempotencyKey: 'idem_new' })).rejects.toThrow(NotFoundException); });
   it('duplicate payout request with same idempotencyKey is blocked', async () => { const { service } = createService({ duplicate: payout }); await expect(service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1', idempotencyKey: 'idem_1' })).rejects.toThrow(ConflictException); });
-  it('payout request locks ledger balance', async () => { const { service, prisma } = createService(); await service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1', idempotencyKey: 'idem_new' }); expect(prisma.providerEarningsLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, type: ProviderEarningsLedgerType.PAYOUT }) })); });
+  it('payout request locks ledger balance', async () => { const { service, prisma } = createService(); await service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1', idempotencyKey: 'idem_new' }); expect(prisma.providerEarningsLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ payoutId: 'payout_1', status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, type: ProviderEarningsLedgerType.PAYOUT }) })); });
   it('failed payout returns balance to available', async () => { const { service, prisma } = createService(); await service.returnFailedPayoutBalance('provider_1', 'payout_1', 'Bank failed'); expect(prisma.providerEarningsLedger.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: ProviderEarningsLedgerStatus.AVAILABLE }) })); });
-  it('pending payout can be cancelled', async () => { const { service } = createService(); const result = await service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', { reason: 'Requested by provider.' }); expect(result.data.status).toBe(ProviderPayoutStatus.CANCELLED); });
+  it('pending payout can be cancelled and returns ledger amount to available', async () => { const { service, prisma } = createService(); const result = await service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', { reason: 'Requested by provider.' }); expect(result.data.status).toBe(ProviderPayoutStatus.CANCELLED); expect(prisma.providerEarningsLedger.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1', payoutId: 'payout_1', status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }), data: expect.objectContaining({ status: ProviderEarningsLedgerStatus.AVAILABLE }) })); });
+  it('processing payout cannot be cancelled', async () => { const { service } = createService({ payout: { ...payout, status: ProviderPayoutStatus.PROCESSING } }); await expect(service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', {})).rejects.toThrow(ConflictException); });
   it('completed payout cannot be cancelled', async () => { const { service } = createService({ payout: { ...payout, status: ProviderPayoutStatus.COMPLETED } }); await expect(service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', {})).rejects.toThrow(ConflictException); });
   it('provider cannot access another provider payout', async () => { const { service } = createService({ payout: null }); await expect(service.payoutDetails({ uid: 'provider_1', role: UserRole.PROVIDER }, 'other_payout')).rejects.toThrow(NotFoundException); });
+  it('provider cannot cancel another provider payout', async () => { const { service } = createService({ payout: null }); await expect(service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'other_payout', {})).rejects.toThrow(NotFoundException); });
 });
