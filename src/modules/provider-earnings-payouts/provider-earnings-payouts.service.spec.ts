@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayoutAccountType, ProviderPayoutExternalProvider, ProviderPayoutMethodType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { ProviderEarningsPayoutsRepository } from './provider-earnings-payouts.repository';
 import { ProviderEarningsPayoutsService } from './provider-earnings-payouts.service';
 
 const provider = { id: 'provider_1', role: UserRole.PROVIDER, deletedAt: null, providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: true, isApproved: true, suspendedAt: null };
@@ -20,13 +21,15 @@ function createService(overrides: Partial<{ ledgers: unknown[]; payoutMethod: un
     notification: { create: jest.fn().mockResolvedValue({ id: 'n1' }) },
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
-  return { service: new ProviderEarningsPayoutsService(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsService>[0]), prisma };
+  const repository = new ProviderEarningsPayoutsRepository(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsRepository>[0]);
+  return { service: new ProviderEarningsPayoutsService(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsService>[0], repository), prisma, repository };
 }
 
 describe('Provider earnings/payouts source safety', () => {
   const earningsController = readFileSync(join(__dirname, 'provider-earnings.controller.ts'), 'utf8');
   const payoutsController = readFileSync(join(__dirname, 'provider-payouts.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, 'provider-earnings-payouts.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-earnings-payouts.repository.ts'), 'utf8');
   it('creates provider-specific earnings and payouts routes without customer wallet reuse', () => {
     expect(earningsController).toContain("@Controller('provider/earnings')");
     expect(payoutsController).toContain("@Controller('provider/payouts')");
@@ -39,13 +42,28 @@ describe('Provider earnings/payouts source safety', () => {
     expect(service).not.toContain('query.providerId');
     expect(service).not.toContain('dto.providerId');
   });
+  it('adds repository methods for provider-scoped read APIs without route changes', () => {
+    expect(repository).toContain('findLedgerEntriesForProvider');
+    expect(repository).toContain('countLedgerEntriesForProvider');
+    expect(repository).toContain('findEarningsChartRows');
+    expect(repository).toContain('findPayoutsForProvider');
+    expect(repository).toContain('countPayoutsForProvider');
+    expect(repository).toContain('findPayoutByIdForProvider(providerId: string, id: string)');
+    expect(repository).toContain('findDefaultPayoutMethodForProvider(providerId: string)');
+    expect(repository).toContain('findPayoutMethodForProvider(providerId: string, id: string)');
+    expect(repository).toContain('where: { id, providerId }');
+  });
 });
 
 describe('ProviderEarningsPayoutsService', () => {
-  it('provider can fetch earnings summary', async () => { const { service } = createService(); const result = await service.earningsSummary({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.message).toBe('Provider earnings summary fetched successfully.'); expect(result.data.availableForPayout).toBe(1500); });
-  it('provider can fetch earnings chart', async () => { const { service } = createService(); const result = await service.earningsChart({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data.values).toHaveLength(7); });
-  it('provider can fetch earnings ledger', async () => { const { service } = createService(); const result = await service.earningsLedger({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data[0]).toEqual(expect.objectContaining({ type: ProviderEarningsLedgerType.ORDER_EARNING, orderNumber: 'ORD-10293' })); });
-  it('provider can fetch payout history', async () => { const { service } = createService(); const result = await service.payoutHistory({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data[0]).toEqual(expect.objectContaining({ transactionId: 'TXN-2026-001234' })); });
+  it('provider can fetch own earnings summary', async () => { const { service, prisma } = createService(); const result = await service.earningsSummary({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.message).toBe('Provider earnings summary fetched successfully.'); expect(result.data.availableForPayout).toBe(1500); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
+  it('provider cannot see another provider earnings through summary scope', async () => { const { service, prisma } = createService(); await service.earningsSummary({ uid: 'provider_2', role: UserRole.PROVIDER }, {}); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_2' }) })); });
+  it('earnings chart is provider-scoped', async () => { const { service, prisma } = createService(); const result = await service.earningsChart({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data.values).toHaveLength(7); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
+  it('ledger is provider-scoped', async () => { const { service, prisma } = createService(); const result = await service.earningsLedger({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data[0]).toEqual(expect.objectContaining({ type: ProviderEarningsLedgerType.ORDER_EARNING, orderNumber: 'ORD-10293' })); expect(prisma.providerEarningsLedger.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
+  it('provider can fetch payout summary', async () => { const { service, prisma } = createService(); const result = await service.payoutSummary({ uid: 'provider_1', role: UserRole.PROVIDER }); expect(result.message).toBe('Provider payout summary fetched successfully.'); expect(prisma.providerPayout.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerId: 'provider_1' } })); });
+  it('payout history is provider-scoped', async () => { const { service, prisma } = createService(); const result = await service.payoutHistory({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data[0]).toEqual(expect.objectContaining({ transactionId: 'TXN-2026-001234' })); expect(prisma.providerPayout.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
+  it('payout preview validates provider-owned payout method', async () => { const { service, prisma } = createService(); const result = await service.payoutPreview({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1' }); expect(result.message).toBe('Payout preview fetched successfully.'); expect(prisma.providerPayoutMethod.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: 'method_1', providerId: 'provider_1' }) })); });
+  it('payout preview rejects amount above available balance', async () => { const { service } = createService(); await expect(service.payoutPreview({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 5000, payoutMethodId: 'method_1' })).rejects.toThrow(BadRequestException); });
   it('provider can request payout from available balance', async () => { const { service } = createService(); const result = await service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1', idempotencyKey: 'idem_new' }); expect(result.message).toBe('Payout requested successfully.'); });
   it('provider cannot request payout above available balance', async () => { const { service } = createService(); await expect(service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 5000, payoutMethodId: 'method_1', idempotencyKey: 'idem_new' })).rejects.toThrow(BadRequestException); });
   it('provider cannot request payout without verified payout method', async () => { const { service } = createService({ payoutMethod: { ...payoutMethod, verificationStatus: ProviderPayoutVerificationStatus.PENDING } }); await expect(service.requestPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 500, payoutMethodId: 'method_1', idempotencyKey: 'idem_new' })).rejects.toThrow(BadRequestException); });

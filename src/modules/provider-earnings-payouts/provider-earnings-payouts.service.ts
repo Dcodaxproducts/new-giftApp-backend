@@ -3,20 +3,24 @@ import { NotificationRecipientType, PaymentStatus, Prisma, ProviderApprovalStatu
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { CancelProviderPayoutDto, EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, RequestProviderPayoutDto, SortOrder } from './dto/provider-earnings-payouts.dto';
+import { ProviderEarningsPayoutsRepository } from './provider-earnings-payouts.repository';
 
 @Injectable()
 export class ProviderEarningsPayoutsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly repository: ProviderEarningsPayoutsRepository,
+  ) {}
 
   async earningsSummary(user: AuthUserContext, query: EarningsSummaryQueryDto) {
     await this.getApprovedActiveProvider(user.uid);
     const range = this.dateRange(query.range ?? EarningsSummaryRange.LAST_30_DAYS, query.fromDate, query.toDate);
     const previous = range.from ? this.previousRange(range.from, range.to ?? new Date()) : { from: undefined, to: undefined };
     const [ledger, previousLedger, pendingPayouts, defaultPayoutMethod] = await Promise.all([
-      this.prisma.providerEarningsLedger.findMany({ where: { providerId: user.uid, ...(range.from || range.to ? { createdAt: { gte: range.from, lte: range.to } } : {}) } }),
-      this.prisma.providerEarningsLedger.findMany({ where: { providerId: user.uid, ...(previous.from || previous.to ? { createdAt: { gte: previous.from, lte: previous.to } } : {}) } }),
-      this.prisma.providerPayout.findMany({ where: { providerId: user.uid, status: { in: [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING] } } }),
-      this.prisma.providerPayoutMethod.findFirst({ where: { providerId: user.uid, isDefault: true, deletedAt: null } }),
+      this.repository.findLedgerEntriesForProvider({ providerId: user.uid, ...(range.from || range.to ? { createdAt: { gte: range.from, lte: range.to } } : {}) }),
+      this.repository.findLedgerEntriesForProvider({ providerId: user.uid, ...(previous.from || previous.to ? { createdAt: { gte: previous.from, lte: previous.to } } : {}) }),
+      this.repository.findPendingPayoutsForProvider(user.uid),
+      this.repository.findDefaultPayoutMethodForProvider(user.uid),
     ]);
     const availableForPayout = await this.availableBalance(user.uid);
     const totalEarnings = this.sumLedger(ledger, [ProviderEarningsLedgerType.ORDER_EARNING, ProviderEarningsLedgerType.ADJUSTMENT], [ProviderEarningsLedgerDirection.CREDIT]);
@@ -28,7 +32,7 @@ export class ProviderEarningsPayoutsService {
   async earningsChart(user: AuthUserContext, query: EarningsChartQueryDto) {
     await this.getApprovedActiveProvider(user.uid);
     const range = this.chartRange(query.range ?? 'DAILY', query.fromDate, query.toDate);
-    const ledger = await this.prisma.providerEarningsLedger.findMany({ where: { providerId: user.uid, direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: range.from, lte: range.to } } });
+    const ledger = await this.repository.findEarningsChartRows({ providerId: user.uid, direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: range.from, lte: range.to } });
     const values = range.labels.map(() => 0);
     for (const item of ledger) { const index = Math.min(values.length - 1, Math.max(0, Math.floor((item.createdAt.getTime() - range.from.getTime()) / range.bucketMs))); values[index] += Number(item.amount); }
     return { data: { range: query.range ?? 'DAILY', labels: range.labels, values: values.map((value) => this.money(value)), currency: ledger[0]?.currency ?? 'USD' }, message: 'Provider earnings chart fetched successfully.' };
@@ -41,13 +45,13 @@ export class ProviderEarningsPayoutsService {
     if (query.type && query.type !== EarningsLedgerTypeFilter.ALL) where.type = query.type;
     if (query.status && query.status !== EarningsLedgerStatusFilter.ALL) where.status = query.status;
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
-    const [items, total] = await this.prisma.$transaction([this.prisma.providerEarningsLedger.findMany({ where, include: { providerOrder: { select: { orderNumber: true } } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }), this.prisma.providerEarningsLedger.count({ where })]);
+    const [items, total] = await this.repository.findLedgerEntriesAndCountForProvider(where, { skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => ({ id: item.id, type: item.type, description: item.description, amount: Number(item.amount), currency: item.currency, status: item.status, orderNumber: item.providerOrder?.orderNumber ?? null, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider earnings ledger fetched successfully.' };
   }
 
   async payoutSummary(user: AuthUserContext) {
     await this.getApprovedActiveProvider(user.uid);
-    const payouts = await this.prisma.providerPayout.findMany({ where: { providerId: user.uid } });
+    const payouts = await this.repository.findPayoutsForProvider({ providerId: user.uid });
     return { data: { totalPaidOut: this.sumPayouts(payouts, [ProviderPayoutStatus.COMPLETED]), pendingPayouts: this.sumPayouts(payouts, [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING]), failedPayouts: payouts.filter((item) => item.status === ProviderPayoutStatus.FAILED).length, currency: payouts[0]?.currency ?? 'USD' }, message: 'Provider payout summary fetched successfully.' };
   }
 
@@ -56,7 +60,7 @@ export class ProviderEarningsPayoutsService {
     const page = query.page ?? 1; const limit = Math.min(query.limit ?? 20, 100);
     const range = this.dateRange(query.range ?? PayoutHistoryRange.ALL_TIME, query.fromDate, query.toDate);
     const where: Prisma.ProviderPayoutWhereInput = { providerId: user.uid, ...(query.status && query.status !== PayoutStatusFilter.ALL ? { status: query.status } : {}), ...(range.from || range.to ? { createdAt: { gte: range.from, lte: range.to } } : {}) };
-    const [items, total] = await this.prisma.$transaction([this.prisma.providerPayout.findMany({ where, include: { payoutMethod: true }, orderBy: { [query.sortBy ?? PayoutSortBy.createdAt]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit }), this.prisma.providerPayout.count({ where })]);
+    const [items, total] = await this.repository.findPayoutsAndCountForProvider(where, { orderBy: { [query.sortBy ?? PayoutSortBy.createdAt]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toPayoutListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider payouts fetched successfully.' };
   }
 
@@ -110,11 +114,11 @@ export class ProviderEarningsPayoutsService {
     return { requestedAmount: this.money(amount), processingFee: 0, totalToReceive: this.money(amount), availableBalance, currency: method.currency, destination: { id: method.id, bankName: method.bankName, maskedAccount: method.maskedAccount }, expectedArrivalText: '2-3 Business Days' };
   }
 
-  private async availableBalance(providerId: string): Promise<number> { const items = await this.prisma.providerEarningsLedger.findMany({ where: { providerId, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING] } } }); return this.money(items.reduce((sum, item) => sum + (item.direction === ProviderEarningsLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount)), 0)); }
+  private async availableBalance(providerId: string): Promise<number> { const items = await this.repository.findLedgerForAvailableBalance(providerId); return this.money(items.reduce((sum, item) => sum + (item.direction === ProviderEarningsLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount)), 0)); }
   private async getApprovedActiveProvider(id: string) { const provider = await this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } }); if (!provider) throw new NotFoundException('Provider not found'); if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access earnings and payouts'); return provider; }
-  private async getOwnedPayoutMethod(providerId: string, id: string): Promise<ProviderPayoutMethod> { const method = await this.prisma.providerPayoutMethod.findFirst({ where: { id, providerId, deletedAt: null } }); if (!method) throw new NotFoundException('Provider payout method not found'); return method; }
-  private async defaultPayoutMethod(providerId: string): Promise<ProviderPayoutMethod> { const method = await this.prisma.providerPayoutMethod.findFirst({ where: { providerId, isDefault: true, deletedAt: null } }); if (!method) throw new NotFoundException('Default payout method not found'); return method; }
-  private async getOwnedPayout(providerId: string, id: string) { const payout = await this.prisma.providerPayout.findFirst({ where: { id, providerId }, include: { payoutMethod: true } }); if (!payout) throw new NotFoundException('Provider payout not found'); return payout; }
+  private async getOwnedPayoutMethod(providerId: string, id: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findPayoutMethodForProvider(providerId, id); if (!method) throw new NotFoundException('Provider payout method not found'); return method; }
+  private async defaultPayoutMethod(providerId: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findDefaultPayoutMethodForProvider(providerId); if (!method) throw new NotFoundException('Default payout method not found'); return method; }
+  private async getOwnedPayout(providerId: string, id: string) { const payout = await this.repository.findPayoutByIdForProvider(providerId, id); if (!payout) throw new NotFoundException('Provider payout not found'); return payout; }
   private toPayoutMethod(method: ProviderPayoutMethod) { return { id: method.id, bankName: method.bankName, maskedAccount: method.maskedAccount, verificationStatus: method.verificationStatus }; }
   private toPayoutListItem(item: ProviderPayout & { payoutMethod: ProviderPayoutMethod }) { return { id: item.id, transactionId: item.transactionId, title: 'Payout to Bank', amount: Number(item.amount), currency: item.currency, status: item.status, destination: { bankName: item.payoutMethod.bankName, maskedAccount: item.payoutMethod.maskedAccount }, expectedArrivalText: this.expectedArrivalText(item), createdAt: item.createdAt }; }
   private toPayoutDetail(item: ProviderPayout & { payoutMethod: ProviderPayoutMethod }) { return { ...this.toPayoutListItem(item), failureReason: item.failureReason, referenceId: item.externalPayoutId ?? `PAY-${item.id.slice(-6).toUpperCase()}-TRX`, createdAt: item.createdAt }; }
