@@ -20,6 +20,46 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.customerSubscription.findFirst({ where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.INCOMPLETE] } }, include: CUSTOMER_SUBSCRIPTION_WITH_PLAN, orderBy: { createdAt: 'desc' } });
   }
 
+  findCurrentActionSubscriptionForUser(userId: string) {
+    return this.prisma.customerSubscription.findFirst({ where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.PAST_DUE] } }, orderBy: { createdAt: 'desc' } });
+  }
+
+  findSubscriptionForUser(userId: string, id: string) {
+    return this.prisma.customerSubscription.findFirst({ where: { id, userId } });
+  }
+
+  createCustomerSubscription(data: Prisma.CustomerSubscriptionUncheckedCreateInput) {
+    return this.prisma.customerSubscription.create({ data });
+  }
+
+  updateCustomerSubscriptionStatus(id: string, data: Prisma.CustomerSubscriptionUpdateArgs['data']) {
+    return this.prisma.customerSubscription.update({ where: { id }, data });
+  }
+
+  markSubscriptionCancelled(id: string, data: Prisma.CustomerSubscriptionUpdateArgs['data']) {
+    return this.prisma.customerSubscription.update({ where: { id }, data });
+  }
+
+  reactivateSubscription(id: string) {
+    return this.prisma.customerSubscription.update({ where: { id }, data: { cancelAtPeriodEnd: false, status: CustomerSubscriptionStatus.ACTIVE, isPremium: true, cancelledAt: null } });
+  }
+
+  findSubscriptionWithStripeCustomer(userId: string) {
+    return this.prisma.customerSubscription.findFirst({ where: { userId, stripeCustomerId: { not: null } } });
+  }
+
+  findUserByIdOrThrow(id: string) {
+    return this.prisma.user.findUniqueOrThrow({ where: { id } });
+  }
+
+  updatePlanStripeIds(id: string, data: Prisma.SubscriptionPlanUpdateArgs['data']) {
+    return this.prisma.subscriptionPlan.update({ where: { id }, data });
+  }
+
+  findCouponByCode(code: string) {
+    return this.prisma.coupon.findFirst({ where: { code: code.trim().toUpperCase(), isActive: true, deletedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
+  }
+
   findSubscriptionInvoicesForUser(where: Prisma.CustomerSubscriptionInvoiceWhereInput, params: { skip: number; take: number }) {
     return this.prisma.customerSubscriptionInvoice.findMany({ where, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });
   }
