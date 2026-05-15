@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DisputeActorType, DisputeStatus, NotificationRecipientType, OrderStatus, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, ProviderOrderStatus, RefundRequestStatus } from '@prisma/client';
+import { NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { AdminTransactionsRepository } from './admin-transactions.repository';
 import { RefundPolicySettingsService } from '../refund-policy-settings/refund-policy-settings.service';
 import { AdminGatewayProvider, AdminNotificationChannel, AdminRefundType, AdminTransactionExportFormat, AdminTransactionRange, AdminTransactionSortBy, AdminTransactionSortOrder, AdminTransactionStatus, AdminTransactionStatsDto, AdminTransactionType, ExportAdminTransactionsDto, ListAdminTransactionsDto, NotifyTransactionUserDto, OpenTransactionDisputeDto, RefundAdminTransactionDto } from './dto/admin-transactions.dto';
 
@@ -12,7 +12,7 @@ type FileResult = { content: string; filename: string; contentType: string };
 
 @Injectable()
 export class AdminTransactionsService {
-  constructor(private readonly prisma: PrismaService, private readonly auditLog: AuditLogWriterService, private readonly refundPolicy: RefundPolicySettingsService) {}
+  constructor(private readonly adminTransactionsRepository: AdminTransactionsRepository, private readonly auditLog: AuditLogWriterService, private readonly refundPolicy: RefundPolicySettingsService) {}
 
   async stats(query: AdminTransactionStatsDto) {
     const items = await this.transactions(query);
@@ -48,11 +48,7 @@ export class AdminTransactionsService {
 
   async timeline(id: string) {
     const item = await this.getTransaction(id);
-    const [refunds, disputes, audits] = await Promise.all([
-      this.prisma.refundRequest.findMany({ where: { paymentId: item.paymentId }, orderBy: { createdAt: 'asc' } }),
-      this.prisma.disputeCase.findMany({ where: { OR: [{ paymentId: item.paymentId }, { linkedPaymentId: item.paymentId }, { transactionId: item.transactionId }] }, orderBy: { createdAt: 'asc' } }),
-      this.prisma.adminAuditLog.findMany({ where: { targetId: item.paymentId, action: { in: ['TRANSACTION_REFUNDED_BY_ADMIN', 'TRANSACTION_DISPUTE_OPENED', 'TRANSACTION_NOTIFICATION_SENT', 'TRANSACTION_RECEIPT_DOWNLOADED'] } }, orderBy: { createdAt: 'asc' } }),
-    ]);
+    const [refunds, disputes, audits] = await this.adminTransactionsRepository.findTransactionTimeline(item.paymentId, item.transactionId);
     const events = [{ status: 'INITIATED', title: 'Initiated', description: 'Checkout session started by user via mobile application.', source: 'User Session', timestamp: item.createdAt }, { status: this.statusTitle(item.status), title: this.statusTitle(item.status), description: this.timelineDescription(item), source: item.gatewayReference ? 'Gateway Response' : 'System Auto-Update', timestamp: item.createdAt }, ...refunds.map((refund) => ({ status: refund.status, title: 'Refund Updated', description: `Refund ${refund.transactionId ?? refund.id} ${refund.status.toLowerCase().replaceAll('_', ' ')}.`, source: 'Refund Workflow', timestamp: refund.createdAt })), ...disputes.map((dispute) => ({ status: dispute.status, title: 'Dispute Opened', description: `${dispute.caseId} opened for ${dispute.reason}.`, source: 'Admin Dispute Manager', timestamp: dispute.createdAt })), ...audits.map((audit) => ({ status: audit.action, title: audit.actionLabel ?? this.label(audit.action), description: `${this.label(audit.action)} completed.`, source: 'Audit Log', timestamp: audit.createdAt }))].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     return { data: events, message: 'Transaction timeline fetched successfully.' };
   }
@@ -65,20 +61,14 @@ export class AdminTransactionsService {
     const refundAmount = dto.refundType === AdminRefundType.FULL ? remainingRefundableAmount : this.money(dto.refundAmount);
     if (refundAmount <= 0) throw new BadRequestException('Refund amount must be greater than 0');
     if (refundAmount > remainingRefundableAmount) throw new BadRequestException('Refund amount cannot exceed remaining refundable amount');
-    const providerOrder = await this.prisma.providerOrder.findFirst({ where: { orderId: item.orderId ?? undefined }, include: { items: true }, orderBy: { createdAt: 'asc' } });
+    const providerOrder = item.orderId ? await this.adminTransactionsRepository.findProviderOrderForRefund(item.orderId) : null;
     if (!item.orderId || !providerOrder) throw new BadRequestException('Order/provider order is required to refund this transaction');
     const categoryIds = await this.categoryIdsForOrder(item.orderId);
     const policyResult = await this.refundPolicy.evaluateRefundEligibility({ deliveredAt: this.deliveredAt(providerOrder.fulfilledAt, item.createdAt), categoryIds, requestedAmount: refundAmount, remainingRefundableAmount, paymentRefundable: true });
     if (!policyResult.eligible && !policyResult.manualReviewRequired) throw new BadRequestException(policyResult.reasons[0] ?? 'Refund is not eligible');
     const refundId = this.refundId(item.paymentId);
     const newStatus = refundAmount >= remainingRefundableAmount ? AdminTransactionStatus.REFUNDED : AdminTransactionStatus.PARTIALLY_REFUNDED;
-    await this.prisma.$transaction(async (tx) => {
-      await tx.refundRequest.create({ data: { orderId: item.orderId as string, providerOrderId: providerOrder.id, userId: item.userId, providerId: providerOrder.providerId, paymentId: item.paymentId, requestedAmount: new Prisma.Decimal(refundAmount), approvedAmount: new Prisma.Decimal(refundAmount), currency: item.currency, customerReason: dto.reason, status: RefundRequestStatus.REFUNDED, providerComment: dto.comment?.trim(), transactionId: refundId, stripeRefundId: item.gatewayProvider === AdminGatewayProvider.STRIPE ? `stripe_refund_${item.paymentId}` : null, approvedAt: new Date(), refundedAt: new Date() } });
-      await tx.payment.update({ where: { id: item.paymentId }, data: { status: newStatus === AdminTransactionStatus.REFUNDED ? PaymentStatus.REFUNDED : item.paymentStatus, metadataJson: this.mergeMetadata(item.metadata, { adminRefundStatus: newStatus, lastRefundId: refundId, lastRefundAmount: refundAmount }) } });
-      if (newStatus === AdminTransactionStatus.REFUNDED) await tx.order.update({ where: { id: item.orderId as string }, data: { paymentStatus: PaymentStatus.REFUNDED, status: OrderStatus.COMPLETED } });
-      await tx.providerOrderTimeline.create({ data: { providerOrderId: providerOrder.id, createdById: user.uid, status: newStatus === AdminTransactionStatus.REFUNDED ? ProviderOrderStatus.REFUNDED : providerOrder.status, title: 'Admin refund processed', description: dto.comment?.trim() ?? `Admin processed ${dto.refundType.toLowerCase()} refund.`, metadataJson: { paymentId: item.paymentId, refundId, refundAmount, reason: dto.reason } } });
-      if (dto.notifyUser ?? true) await tx.notification.create({ data: { recipientId: item.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Transaction refunded', message: `Your refund of ${refundAmount} ${item.currency} has been processed.`, type: 'TRANSACTION_REFUND_PROCESSED', metadataJson: { paymentId: item.paymentId, refundId, refundAmount } } });
-    });
+    await this.adminTransactionsRepository.processRefund({ actorId: user.uid, orderId: item.orderId, providerOrderId: providerOrder.id, providerOrderStatus: providerOrder.status, userId: item.userId, providerId: providerOrder.providerId, paymentId: item.paymentId, requestedAmount: new Prisma.Decimal(refundAmount), approvedAmount: new Prisma.Decimal(refundAmount), currency: item.currency, customerReason: dto.reason, providerComment: dto.comment?.trim(), transactionId: refundId, stripeRefundId: item.gatewayProvider === AdminGatewayProvider.STRIPE ? `stripe_refund_${item.paymentId}` : null, paymentStatus: newStatus === AdminTransactionStatus.REFUNDED ? PaymentStatus.REFUNDED : item.paymentStatus, paymentMetadata: this.mergeMetadata(item.metadata, { adminRefundStatus: newStatus, lastRefundId: refundId, lastRefundAmount: refundAmount }), updateOrderAsRefunded: newStatus === AdminTransactionStatus.REFUNDED, timelineTitle: 'Admin refund processed', timelineDescription: dto.comment?.trim() ?? `Admin processed ${dto.refundType.toLowerCase()} refund.`, timelineMetadata: { paymentId: item.paymentId, refundId, refundAmount, reason: dto.reason }, notifyUser: dto.notifyUser ?? true, notificationMessage: `Your refund of ${refundAmount} ${item.currency} has been processed.` });
     await this.auditLog.write({ actorId: user.uid, targetId: item.paymentId, targetType: 'TRANSACTION', action: 'TRANSACTION_REFUNDED_BY_ADMIN', module: 'Transaction Monitoring', beforeJson: { refundedAmount, remainingRefundableAmount }, afterJson: { refundId, refundAmount, status: newStatus, policy: policyResult } });
     return { data: { transactionId: item.transactionId, refundId, refundAmount, currency: item.currency, status: newStatus }, message: 'Transaction refunded successfully.' };
   }
@@ -86,15 +76,10 @@ export class AdminTransactionsService {
   async openDispute(user: AuthUserContext, id: string, dto: OpenTransactionDisputeDto) {
     const item = await this.getTransaction(id);
     if (!item.orderId) throw new BadRequestException('Order is required to open a dispute from this transaction');
-    const duplicate = await this.prisma.disputeCase.findFirst({ where: { OR: [{ paymentId: item.paymentId }, { linkedPaymentId: item.paymentId }, { transactionId: item.transactionId }], status: { in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW, DisputeStatus.ESCALATED] } } });
+    const duplicate = await this.adminTransactionsRepository.findOpenDispute(item.paymentId, item.transactionId);
     if (duplicate) throw new BadRequestException('An open dispute already exists for this transaction');
-    const providerOrder = await this.prisma.providerOrder.findFirst({ where: { orderId: item.orderId }, orderBy: { createdAt: 'asc' } });
-    const dispute = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.disputeCase.create({ data: { caseId: this.caseId(), userId: item.userId, orderId: item.orderId as string, transactionId: item.transactionId, paymentId: item.paymentId, providerId: providerOrder?.providerId, linkedTransactionId: item.transactionId, linkedPaymentId: item.paymentId, linkedOrderId: item.orderId, amount: new Prisma.Decimal(item.amount), currency: item.currency, reason: dto.reason, claimDetails: dto.claimDetails.trim(), priority: dto.priority, status: DisputeStatus.OPEN, slaDeadlineAt: new Date(Date.now() + 72 * 3_600_000), assignedToId: dto.assignToId } });
-      await tx.disputeTimeline.create({ data: { disputeId: created.id, type: 'TRANSACTION_DISPUTE_OPENED', title: 'Dispute opened from transaction', description: dto.claimDetails.trim(), actorId: user.uid, actorType: DisputeActorType.ADMIN, metadataJson: { paymentId: item.paymentId, transactionId: item.transactionId } } });
-      if (dto.assignToId) await tx.notification.create({ data: { recipientId: dto.assignToId, recipientType: NotificationRecipientType.ADMIN, title: 'Transaction dispute assigned', message: `${created.caseId} was opened from transaction ${item.transactionId}.`, type: 'ADMIN_TRANSACTION_DISPUTE_ASSIGNED', metadataJson: { disputeId: created.id, caseId: created.caseId, paymentId: item.paymentId } } });
-      return created;
-    });
+    const providerOrder = await this.adminTransactionsRepository.findProviderOrderForDispute(item.orderId);
+    const dispute = await this.adminTransactionsRepository.openDispute({ actorId: user.uid, caseId: this.caseId(), userId: item.userId, orderId: item.orderId, transactionId: item.transactionId, paymentId: item.paymentId, providerId: providerOrder?.providerId, amount: new Prisma.Decimal(item.amount), currency: item.currency, reason: dto.reason, claimDetails: dto.claimDetails.trim(), priority: dto.priority, slaDeadlineAt: new Date(Date.now() + 72 * 3_600_000), assignedToId: dto.assignToId });
     await this.auditLog.write({ actorId: user.uid, targetId: item.paymentId, targetType: 'TRANSACTION', action: 'TRANSACTION_DISPUTE_OPENED', module: 'Transaction Monitoring', afterJson: { disputeId: dispute.id, caseId: dispute.caseId, transactionId: item.transactionId } });
     return { data: { disputeId: dispute.id, caseId: dispute.caseId, transactionId: item.transactionId, status: dispute.status }, message: 'Dispute opened successfully.' };
   }
@@ -108,7 +93,7 @@ export class AdminTransactionsService {
 
   async notifyUser(user: AuthUserContext, id: string, dto: NotifyTransactionUserDto) {
     const item = await this.getTransaction(id);
-    if (dto.channel === AdminNotificationChannel.IN_APP || dto.channel === AdminNotificationChannel.BOTH) await this.prisma.notification.create({ data: { recipientId: item.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: dto.subject.trim(), message: dto.message.trim(), type: 'ADMIN_TRANSACTION_NOTIFICATION', metadataJson: { paymentId: item.paymentId, transactionId: item.transactionId, includeReceipt: dto.includeReceipt ?? false } } });
+    if (dto.channel === AdminNotificationChannel.IN_APP || dto.channel === AdminNotificationChannel.BOTH) await this.adminTransactionsRepository.createTransactionNotification({ recipientId: item.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: dto.subject.trim(), message: dto.message.trim(), type: 'ADMIN_TRANSACTION_NOTIFICATION', metadataJson: { paymentId: item.paymentId, transactionId: item.transactionId, includeReceipt: dto.includeReceipt ?? false } });
     await this.auditLog.write({ actorId: user.uid, targetId: item.paymentId, targetType: 'TRANSACTION', action: 'TRANSACTION_NOTIFICATION_SENT', module: 'Transaction Monitoring', afterJson: { channel: dto.channel, subject: dto.subject, includeReceipt: dto.includeReceipt ?? false } });
     return { data: { transactionId: item.transactionId, notificationSent: true, channel: dto.channel }, message: 'Notification sent successfully.' };
   }
@@ -124,7 +109,7 @@ export class AdminTransactionsService {
 
   private async transactions(query: Partial<ListAdminTransactionsDto>): Promise<NormalizedAdminTransaction[]> {
     const where = this.paymentWhere(query);
-    const payments = await this.prisma.payment.findMany({ where, include: this.paymentInclude(), orderBy: { createdAt: 'desc' }, take: 10000 });
+    const payments = await this.adminTransactionsRepository.findPayments({ where, include: this.paymentInclude(), orderBy: { createdAt: 'desc' }, take: 10000 });
     const items = payments.map((payment) => this.normalize(payment));
     return items.filter((item) => this.matches(item, query));
   }
@@ -151,7 +136,7 @@ export class AdminTransactionsService {
   }
 
   private async getTransaction(id: string): Promise<NormalizedAdminTransaction> {
-    const payment = await this.prisma.payment.findFirst({ where: { OR: [{ id }, { providerPaymentIntentId: id }] }, include: this.paymentInclude() });
+    const payment = await this.adminTransactionsRepository.findPayment({ where: { OR: [{ id }, { providerPaymentIntentId: id }] }, include: this.paymentInclude() });
     if (!payment) throw new NotFoundException('Transaction not found');
     return this.normalize(payment);
   }
@@ -178,8 +163,8 @@ export class AdminTransactionsService {
   private maskPaymentMethod(item: NormalizedAdminTransaction): string { const brand = this.stringValue(item.metadata.cardBrand) ?? (item.paymentMethod === PaymentMethod.STRIPE_CARD ? 'Visa' : item.paymentMethod.replaceAll('_', ' ')); const last4 = this.stringValue(item.metadata.cardLast4); return last4 ? `${brand} **** ${last4}` : brand; }
   private settlementStatus(item: NormalizedAdminTransaction): string { if (item.status === AdminTransactionStatus.SUCCESS || item.status === AdminTransactionStatus.REFUNDED || item.status === AdminTransactionStatus.PARTIALLY_REFUNDED) return 'CLEARED'; if (item.status === AdminTransactionStatus.FAILED) return 'FAILED'; return 'PENDING'; }
   private isPaymentRefundable(item: NormalizedAdminTransaction): boolean { return item.paymentStatus === PaymentStatus.SUCCEEDED && item.status !== AdminTransactionStatus.REFUNDED; }
-  private async refundedAmount(paymentId: string): Promise<number> { const rows = await this.prisma.refundRequest.findMany({ where: { paymentId, status: { in: [RefundRequestStatus.APPROVED, RefundRequestStatus.REFUND_PROCESSING, RefundRequestStatus.REFUNDED] } } }); return this.money(rows.reduce((sum, row) => sum + Number(row.approvedAmount ?? row.requestedAmount), 0)); }
-  private async categoryIdsForOrder(orderId: string): Promise<string[]> { const items = await this.prisma.orderItem.findMany({ where: { orderId }, include: { gift: { select: { categoryId: true } } } }); return [...new Set(items.map((item) => item.gift.categoryId))]; }
+  private async refundedAmount(paymentId: string): Promise<number> { const rows = await this.adminTransactionsRepository.findRefundRequestsForPayment(paymentId); return this.money(rows.reduce((sum, row) => sum + Number(row.approvedAmount ?? row.requestedAmount), 0)); }
+  private async categoryIdsForOrder(orderId: string): Promise<string[]> { const items = await this.adminTransactionsRepository.findOrderItemCategories(orderId); return [...new Set(items.map((item) => item.gift.categoryId))]; }
   private deliveredAt(fulfilledAt: Date | null, fallback: Date): Date { return fulfilledAt ?? fallback; }
   private safeExportFilters(query: ExportAdminTransactionsDto): Record<string, unknown> { const { search, fromDate, toDate, transactionType, status, gatewayProvider, userId, providerId, format } = query; return { search, fromDate, toDate, transactionType, status, gatewayProvider, userId, providerId, format }; }
   private timelineDescription(item: NormalizedAdminTransaction): string { if (item.status === AdminTransactionStatus.SUCCESS) return 'Funds successfully transferred to the merchant escrow account.'; if (item.status === AdminTransactionStatus.FAILED) return 'Gateway or system marked the transaction as failed.'; if (item.status === AdminTransactionStatus.PENDING) return 'Transaction is pending settlement or review.'; return 'Refund state updated for this transaction.'; }

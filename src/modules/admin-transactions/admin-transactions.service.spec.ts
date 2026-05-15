@@ -1,6 +1,7 @@
 import { DisputePriority, DisputeReason, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { AdminTransactionsRepository } from './admin-transactions.repository';
 import { AdminTransactionsService } from './admin-transactions.service';
 import { AdminNotificationChannel, AdminRefundReason, AdminRefundType, AdminTransactionStatus, AdminTransactionType } from './dto/admin-transactions.dto';
 
@@ -41,8 +42,9 @@ function createService(overrides: Partial<{ refundRequests: unknown[]; disputes:
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const refundPolicy = { getActivePolicy: jest.fn().mockResolvedValue({ refundWindowDays: 30 }), evaluateRefundEligibility: jest.fn().mockResolvedValue({ eligible: true, manualReviewRequired: false, reasons: [], policy: { refundWindowDays: 30 } }) };
-  const service = new AdminTransactionsService(prisma as never, auditLog as never, refundPolicy as never);
-  return { service, prisma, auditLog, refundPolicy };
+  const adminTransactionsRepository = new AdminTransactionsRepository(prisma as never);
+  const service = new AdminTransactionsService(adminTransactionsRepository, auditLog as never, refundPolicy as never);
+  return { service, prisma, auditLog, refundPolicy, adminTransactionsRepository };
 }
 
 describe('AdminTransactionsService', () => {
@@ -136,6 +138,7 @@ describe('Admin transaction monitoring source safety', () => {
     expect(controller).toContain('Refund amount is server-validated');
     expect(controller).toContain('Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed');
     expect(service).toContain('safeExportFilters');
+    expect(service).toContain('AdminTransactionsRepository');
     expect(dto).toContain('AdminTransactionType');
   });
 });
