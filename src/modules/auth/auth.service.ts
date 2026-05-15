@@ -176,10 +176,7 @@ export class AuthService implements OnModuleInit {
       throw error;
     });
 
-    const user = await this.prisma.user.findUnique({
-      where: { email: this.normalizeEmail(dto.email) },
-      include: { adminRole: true },
-    });
+    const user = await this.authRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
       await this.loginAttemptsService.record({
@@ -273,10 +270,7 @@ export class AuthService implements OnModuleInit {
     }
 
     const tokens = await this.issueTokens(user, undefined, ipAddress, this.normalizeUserAgent(userAgent));
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    await this.authRepository.updateLastLoginAt(user.id);
     await this.loginAttemptsService.record({
       email: dto.email,
       status: LoginAttemptStatus.SUCCESS,
@@ -751,7 +745,7 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: payload.uid } });
+    const user = await this.authRepository.findUserById(payload.uid);
     if (!user?.refreshTokenHash || user.deletedAt || !user.isActive) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -761,9 +755,7 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Invalid refresh token');
     }
     if (payload.sessionId) {
-      const session = await this.prisma.authSession.findFirst({
-        where: { id: payload.sessionId, userId: user.id, revokedAt: null },
-      });
+      const session = await this.authSessionsRepository.findRefreshSession(payload.sessionId, user.id);
       if (!session || !(await bcrypt.compare(dto.refreshToken, session.refreshTokenHash))) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -776,12 +768,9 @@ export class AuthService implements OnModuleInit {
   }
 
   async logout(user: AuthUserContext) {
-    await this.prisma.user.update({ where: { id: user.uid }, data: { refreshTokenHash: null } });
+    await this.authRepository.clearRefreshTokenHash(user.uid);
     if (user.sessionId) {
-      await this.prisma.authSession.updateMany({
-        where: { id: user.sessionId, userId: user.uid, revokedAt: null },
-        data: { revokedAt: new Date() },
-      });
+      await this.authSessionsRepository.revokeCurrentSession(user.sessionId, user.uid);
     }
     return { data: null, message: 'Logout successful' };
   }
@@ -973,15 +962,14 @@ export class AuthService implements OnModuleInit {
     adminPermissions?: Prisma.InputJsonValue;
   }): Promise<User> {
     const email = this.normalizeEmail(input.email);
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.authRepository.findExistingUserByEmail(email);
 
     if (existing) {
       throw new ConflictException('User already exists');
     }
 
     const otp = this.generateOtp();
-    return this.prisma.user.create({
-      data: {
+    return this.authRepository.createAuthUser({
         email,
         password: await bcrypt.hash(input.password, 10),
         firstName: input.firstName.trim(),
@@ -1007,8 +995,7 @@ export class AuthService implements OnModuleInit {
         adminPermissions: input.adminPermissions ?? undefined,
         verificationOtp: otp,
         verificationOtpExpiresAt: this.generateOtpExpiry(),
-      },
-    });
+      });
   }
 
   private async getProvider(providerId: string): Promise<User> {
@@ -1100,16 +1087,12 @@ export class AuthService implements OnModuleInit {
 
   private async issueTokens(user: User, existingSessionId?: string, ipAddress?: string, userAgent?: string) {
     const session = existingSessionId
-      ? await this.prisma.authSession.update({ where: { id: existingSessionId }, data: { lastActiveAt: new Date() } })
-      : await this.prisma.authSession.create({
-          data: {
-            userId: user.id,
-            refreshTokenHash: 'pending',
-            deviceName: userAgent ? this.deviceName(userAgent) : 'Current device',
-            ipAddress,
-            userAgent,
-            lastActiveAt: new Date(),
-          },
+      ? await this.authSessionsRepository.touchSession(existingSessionId)
+      : await this.authSessionsRepository.createRefreshSession({
+          userId: user.id,
+          deviceName: userAgent ? this.deviceName(userAgent) : 'Current device',
+          ipAddress,
+          userAgent,
         });
     const payload: TokenPayload = {
       uid: user.id,
@@ -1136,10 +1119,7 @@ export class AuthService implements OnModuleInit {
     );
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash } }),
-      this.prisma.authSession.update({ where: { id: session.id }, data: { refreshTokenHash } }),
-    ]);
+    await this.authSessionsRepository.storeRefreshTokenHash(user.id, session.id, refreshTokenHash);
 
     return { accessToken, refreshToken };
   }
@@ -1335,9 +1315,7 @@ export class AuthService implements OnModuleInit {
   }
 
   private async getProviderBusinessCategory(categoryId: string) {
-    const category = await this.prisma.providerBusinessCategory.findUnique({
-      where: { id: categoryId },
-    });
+    const category = await this.authRepository.findProviderBusinessCategory(categoryId);
     if (!category || !category.isActive) {
       throw new NotFoundException('Provider business category not found');
     }

@@ -40,7 +40,7 @@ describe('Provider profile auth surface source safety', () => {
     expect(schema).toContain('model AuthSession');
     expect(authSessionsRepository).toContain('userId');
     expect(service).toContain('isCurrent: session.id === user.sessionId');
-    expect(service).toContain('revokedAt: new Date()');
+    expect(authSessionsRepository).toContain('revokedAt: new Date()');
     expect(service).not.toContain('refreshTokenHash: session.refreshTokenHash');
   });
 });

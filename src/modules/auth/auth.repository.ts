@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -7,6 +8,34 @@ export class AuthRepository {
 
   findActiveUserById(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
+  }
+
+  findUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email }, include: { adminRole: true } });
+  }
+
+  findUserById(userId: string) {
+    return this.prisma.user.findUnique({ where: { id: userId } });
+  }
+
+  updateLastLoginAt(userId: string) {
+    return this.prisma.user.update({ where: { id: userId }, data: { lastLoginAt: new Date() } });
+  }
+
+  clearRefreshTokenHash(userId: string) {
+    return this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null } });
+  }
+
+  findProviderBusinessCategory(categoryId: string) {
+    return this.prisma.providerBusinessCategory.findUnique({ where: { id: categoryId } });
+  }
+
+  findExistingUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  createAuthUser(data: Prisma.UserUncheckedCreateInput) {
+    return this.prisma.user.create({ data });
   }
 
   updateOwnProfile(userId: string, params: { firstName?: string; lastName?: string; phone?: string; avatarUrl?: string }) {
