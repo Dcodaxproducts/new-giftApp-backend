@@ -4,6 +4,7 @@ import { join } from 'path';
 describe('Provider order refund/cancelled views source safety', () => {
   const service = readFileSync(join(__dirname, 'provider-orders.service.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-orders.dto.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-orders.repository.ts'), 'utf8');
 
   it('provider orders list/history support refund and cancellation statuses', () => {
     for (const status of ['REFUND_REQUESTED', 'REFUND_PROCESSING', 'REFUNDED', 'REFUND_REJECTED', 'CANCELLED', 'REJECTED', 'READY_TO_FULFILL', 'OUT_FOR_DELIVERY']) {
@@ -42,7 +43,7 @@ describe('Provider order refund/cancelled views source safety', () => {
   });
 
   it('provider ownership still scopes details before refund info is loaded', () => {
-    expect(service).toContain('where: { id, providerId }');
+    expect(repository).toContain('where: { id, providerId }');
     expect(service).toContain('include: this.listInclude()');
   });
 });

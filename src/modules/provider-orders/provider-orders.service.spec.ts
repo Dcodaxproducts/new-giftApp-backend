@@ -56,14 +56,14 @@ describe('Provider assigned orders source safety', () => {
   it('accepts only pending orders and creates timeline plus customer notification', () => {
     expect(service).toContain('Only pending provider orders can be accepted');
     expect(service).toContain('ProviderOrderStatus.ACCEPTED');
-    expect(service).toContain('providerOrderTimeline.create');
+    expect(providerOrdersRepository).toContain('providerOrderTimeline.create');
     expect(service).toContain('CUSTOMER_ORDER_ACCEPTED');
   });
 
   it('rejects only pending orders with reason and creates notifications', () => {
     expect(service).toContain('Only pending provider orders can be rejected');
     expect(service).toContain('ProviderOrderStatus.REJECTED');
-    expect(service).toContain('rejectionReason: dto.reason');
+    expect(providerOrdersRepository).toContain('rejectionReason: params.reason');
     expect(service).toContain('CUSTOMER_ORDER_REJECTED');
     expect(service).toContain('ADMIN_ORDER_REQUIRES_REVIEW');
   });

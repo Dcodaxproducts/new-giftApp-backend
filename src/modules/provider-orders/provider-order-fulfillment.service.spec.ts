@@ -6,6 +6,7 @@ describe('Provider order fulfillment source safety', () => {
   const controller = readFileSync(join(__dirname, 'provider-orders.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-orders.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-orders.repository.ts'), 'utf8');
 
   it('adds provider fulfillment APIs under Provider Orders', () => {
     expect(controller).toContain("@Patch(':id/status')");
@@ -45,9 +46,9 @@ describe('Provider order fulfillment source safety', () => {
     expect(service).toContain('getOwnedProviderOrder(user.uid, id)');
     expect(service).toContain('assertCanFulfill(order)');
     expect(service).toContain('Cannot fulfill unpaid order');
-    expect(service).toContain('status: ProviderOrderStatus.SHIPPED');
+    expect(repository).toContain('status: ProviderOrderStatus.SHIPPED');
     expect(service).toContain('dispatchAt');
-    expect(service).toContain('fulfilledAt');
+    expect(repository).toContain('fulfilledAt');
   });
 
   it('fulfill action creates timeline, notification, and parent order sync', () => {
@@ -59,7 +60,7 @@ describe('Provider order fulfillment source safety', () => {
   });
 
   it('status updates create timeline and notifications', () => {
-    expect(service).toContain('providerOrderTimeline.create');
+    expect(repository).toContain('providerOrderTimeline.create');
     expect(service).toContain('metadataJson: { trackingNumber');
     expect(service).toContain('ORDER_${dto.status}');
     expect(service).toContain('PROVIDER_ORDER_STATUS_UPDATED');
@@ -75,7 +76,7 @@ describe('Provider order fulfillment source safety', () => {
 
   it('message buyer stores order message and creates customer notification', () => {
     expect(dto).toContain('ProviderOrderMessageChannel');
-    expect(service).toContain('orderMessage.create');
+    expect(repository).toContain('orderMessage.create');
     expect(service).toContain('PROVIDER_MESSAGE_RECEIVED');
     expect(service).toContain('recipientId: order.order.userId');
   });

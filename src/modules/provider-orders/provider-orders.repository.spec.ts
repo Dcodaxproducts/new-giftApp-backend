@@ -74,12 +74,39 @@ describe('Provider orders repository cleanup', () => {
     expect(service).not.toContain('paymentMethodDetails');
   });
 
-  it('write/action flows are still handled by service in this batch', () => {
+  it('repository owns action and write DB calls while service owns decisions', () => {
+    for (const method of ['runActionTransaction', 'findProviderOrderForAction', 'markProviderOrderAccepted', 'markProviderOrderRejected', 'updateProviderOrderStatus', 'fulfillProviderOrder', 'createProviderOrderTimelineEntry', 'createCustomerOrderNotification', 'createOrderBuyerMessage', 'updateProviderOrderChecklist', 'syncParentOrderStatus', 'upsertOrderEarningLedger']) expect(repository).toContain(method);
+    expect(repository).toContain('tx.providerOrder.update');
+    expect(repository).toContain('tx.providerOrderTimeline.create');
+    expect(repository).toContain('tx.notification.create');
+    expect(repository).toContain('tx.orderMessage.create');
+    expect(repository).toContain('this.prisma.providerOrderChecklist.update');
+    expect(repository).toContain('tx.order.update');
+    expect(repository).toContain('tx.providerEarningsLedger.upsert');
     expect(service).toContain('async accept');
-    expect(service).toContain('this.prisma.$transaction(async (tx)');
     expect(service).toContain('async reject');
     expect(service).toContain('async updateStatus');
     expect(service).toContain('async fulfill');
     expect(service).toContain('async messageBuyer');
+  });
+
+  it('action flows preserve provider ownership, transitions, parent sync, and notifications', () => {
+    expect(service).toContain('getOwnedProviderOrder(user.uid, id)');
+    expect(repository).toContain('where: { id, providerId }');
+    expect(service).toContain('Only pending provider orders can be accepted');
+    expect(service).toContain('Only pending provider orders can be rejected');
+    expect(service).toContain('assertTransition(order.status, dto.status)');
+    expect(service).toContain('assertCanFulfill(order)');
+    expect(service).toContain('syncParentOrder(tx, order.orderId)');
+    expect(service).toContain('createProviderOrderTimelineEntry');
+    expect(service).toContain('createCustomerOrderNotification');
+  });
+
+  it('checklist and message buyer behavior remain unchanged', () => {
+    expect(service).toContain('updateProviderOrderChecklist(order.id');
+    expect(service).not.toContain('status: dto.status, itemsPacked');
+    expect(service).toContain('createOrderBuyerMessage');
+    expect(service).toContain('PROVIDER_MESSAGE_RECEIVED');
+    expect(service).toContain('senderRole: UserRole.PROVIDER');
   });
 });
