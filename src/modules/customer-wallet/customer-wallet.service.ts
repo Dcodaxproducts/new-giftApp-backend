@@ -4,19 +4,23 @@ import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
+import { CustomerWalletRepository } from './customer-wallet.repository';
 
 type StripeIntentCreateResult = { id: string; client_secret: string | null; status: string };
 
 @Injectable()
 export class CustomerWalletService {
   private stripeClient?: InstanceType<typeof Stripe>;
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly repository: CustomerWalletRepository,
+  ) {}
 
   async overview(user: AuthUserContext) {
     const wallet = await this.getOrCreateWallet(user.uid);
     const [defaultPaymentMethod, defaultBankAccount] = await Promise.all([
-      this.prisma.customerPaymentMethod.findFirst({ where: { userId: user.uid, isDefault: true, deletedAt: null } }),
-      this.prisma.customerBankAccount.findFirst({ where: { userId: user.uid, isDefault: true, deletedAt: null } }),
+      this.repository.findDefaultPaymentMethodForUser(user.uid),
+      this.repository.findDefaultBankAccountForUser(user.uid),
     ]);
     const cashBalance = Number(wallet.cashBalance);
     const giftCredits = Number(wallet.giftCredits);
@@ -44,10 +48,7 @@ export class CustomerWalletService {
     if (query.type && query.type !== WalletHistoryType.ALL) where.type = query.type;
     if (query.status && query.status !== WalletHistoryStatus.ALL) where.status = query.status;
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.customerWalletLedger.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
-      this.prisma.customerWalletLedger.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findWalletHistoryRows({ where, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Wallet history fetched successfully.' };
   }
 
@@ -85,7 +86,7 @@ export class CustomerWalletService {
     await this.notify(userId, 'Reward credit added', `${Number(rewardLedger.amount)} ${rewardLedger.currency} reward credit was added to your wallet.`, 'REWARD_CREDIT_ADDED', { rewardLedgerId: rewardLedger.id });
   }
 
-  private async getOrCreateWallet(userId: string): Promise<CustomerWallet> { return (await this.prisma.customerWallet.findUnique({ where: { userId } })) ?? this.prisma.customerWallet.create({ data: { userId, currency: this.currency() } }); }
+  private async getOrCreateWallet(userId: string): Promise<CustomerWallet> { return (await this.repository.findWalletByUserId(userId)) ?? this.repository.createWalletForUser(userId, this.currency()); }
   private toPaymentMethod(item: CustomerPaymentMethod) { return { id: item.stripePaymentMethodId, type: item.type, brand: item.brand, last4: item.last4, expiryMonth: item.expiryMonth, expiryYear: item.expiryYear, isDefault: item.isDefault }; }
   private toBankAccount(item: CustomerBankAccount) { return { id: item.id, accountHolderName: item.accountHolderName, bankName: item.bankName, last4: item.last4, maskedAccount: item.maskedAccount, isDefault: item.isDefault }; }
   private toHistoryItem(item: CustomerWalletLedger) { return { id: item.id, type: item.type, title: this.title(item), description: item.description, amount: item.direction === CustomerWalletLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount), currency: item.currency, status: item.status, transactionId: item.transactionId, createdAt: item.createdAt }; }
