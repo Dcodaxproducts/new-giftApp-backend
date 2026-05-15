@@ -7,6 +7,12 @@ export const PROVIDER_INVENTORY_INCLUDE = Prisma.validator<Prisma.GiftInclude>()
   variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
 });
 
+export type ProviderInventoryVariantWrite = {
+  id?: string;
+  createData: Prisma.GiftVariantCreateWithoutGiftInput;
+  updateData: Prisma.GiftVariantUpdateInput;
+};
+
 @Injectable()
 export class ProviderInventoryRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -36,5 +42,54 @@ export class ProviderInventoryRepository {
 
   findOwnedItemById(providerId: string, id: string) {
     return this.prisma.gift.findFirst({ where: { id, providerId, deletedAt: null }, include: PROVIDER_INVENTORY_INCLUDE });
+  }
+
+  findActiveCategory(categoryId: string) {
+    return this.prisma.giftCategory.findFirst({ where: { id: categoryId, isActive: true, deletedAt: null } });
+  }
+
+  findBySku(sku: string, exceptId?: string) {
+    return this.prisma.gift.findFirst({ where: { sku, deletedAt: null, ...(exceptId ? { id: { not: exceptId } } : {}) } });
+  }
+
+  findBySlug(slug: string, exceptId?: string) {
+    return this.prisma.gift.findFirst({ where: { slug, ...(exceptId ? { id: { not: exceptId } } : {}) } });
+  }
+
+  findVariantBySku(skus: string[], giftId?: string) {
+    return this.prisma.giftVariant.findFirst({ where: { sku: { in: skus }, deletedAt: null, giftId: giftId ? { not: giftId } : undefined } });
+  }
+
+  findVariantsByIdsForItem(giftId: string, ids: string[]) {
+    return this.prisma.giftVariant.findMany({ where: { id: { in: ids }, giftId, deletedAt: null }, select: { id: true } });
+  }
+
+  createItemWithVariants(data: Prisma.GiftCreateArgs['data']) {
+    return this.prisma.gift.create({ data, include: PROVIDER_INVENTORY_INCLUDE });
+  }
+
+  updateItemWithVariants(params: { id: string; data: Prisma.GiftUpdateArgs['data']; variants?: ProviderInventoryVariantWrite[]; replaceVariants: boolean; incomingIds: string[]; clearDefault: boolean }) {
+    return this.prisma.$transaction(async (tx) => {
+      const base = await tx.gift.update({ where: { id: params.id }, data: params.data });
+      if (params.variants) await this.upsertVariants(tx, { id: params.id, variants: params.variants, replaceVariants: params.replaceVariants, incomingIds: params.incomingIds, clearDefault: params.clearDefault });
+      return tx.gift.findUniqueOrThrow({ where: { id: base.id }, include: PROVIDER_INVENTORY_INCLUDE });
+    });
+  }
+
+  private async upsertVariants(tx: Prisma.TransactionClient, params: { id: string; variants: ProviderInventoryVariantWrite[]; replaceVariants: boolean; incomingIds: string[]; clearDefault: boolean }) {
+    if (params.replaceVariants) await tx.giftVariant.updateMany({ where: { giftId: params.id, deletedAt: null, id: { notIn: params.incomingIds } }, data: { deletedAt: new Date(), isActive: false, isDefault: false } });
+    if (params.clearDefault) await tx.giftVariant.updateMany({ where: { giftId: params.id, deletedAt: null }, data: { isDefault: false } });
+    for (const variant of params.variants) {
+      if (variant.id) await tx.giftVariant.update({ where: { id: variant.id }, data: variant.updateData });
+      else await tx.giftVariant.create({ data: { giftId: params.id, ...variant.createData } });
+    }
+  }
+
+  updateAvailability(id: string, status: GiftStatus) {
+    return this.prisma.gift.update({ where: { id }, data: { status }, include: PROVIDER_INVENTORY_INCLUDE });
+  }
+
+  softDeleteItem(id: string) {
+    return this.prisma.gift.delete({ where: { id } });
   }
 }
