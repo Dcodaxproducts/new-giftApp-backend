@@ -24,6 +24,9 @@ import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { AuthPasswordRepository } from './auth-password.repository';
+import { AuthRepository } from './auth.repository';
+import { AuthSessionsRepository } from './auth-sessions.repository';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
 import { MailerService } from '../mailer/mailer.service';
 import { CustomerReferralsService } from '../customer-referrals/customer-referrals.service';
@@ -77,6 +80,9 @@ export class AuthService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly loginAttemptsService: LoginAttemptsService,
     private readonly mailerService: MailerService,
+    private readonly authRepository: AuthRepository,
+    private readonly authSessionsRepository: AuthSessionsRepository,
+    private readonly authPasswordRepository: AuthPasswordRepository,
     @Optional() private readonly customerReferralsService?: CustomerReferralsService,
   ) {}
 
@@ -797,22 +803,11 @@ export class AuthService implements OnModuleInit {
       dbUser.verificationOtpExpiresAt.getTime() >= Date.now();
 
     if (!isValid) {
-      await this.prisma.user.update({
-        where: { id: dbUser.id },
-        data: { verificationOtpAttempts: { increment: 1 } },
-      });
+      await this.authPasswordRepository.incrementVerificationOtpAttempts(dbUser.id);
       throw new BadRequestException('Invalid or expired OTP');
     }
 
-    const updated = await this.prisma.user.update({
-      where: { id: dbUser.id },
-      data: {
-        isVerified: true,
-        verificationOtp: null,
-        verificationOtpExpiresAt: null,
-        verificationOtpAttempts: 0,
-      },
-    });
+    const updated = await this.authPasswordRepository.markEmailVerified(dbUser.id);
 
     return { data: await this.toAuthUser(updated), message: 'Email verified successfully' };
   }
@@ -825,14 +820,7 @@ export class AuthService implements OnModuleInit {
     }
 
     const otp = this.generateOtp();
-    await this.prisma.user.update({
-      where: { id: dbUser.id },
-      data: {
-        verificationOtp: otp,
-        verificationOtpExpiresAt: this.generateOtpExpiry(),
-        verificationOtpAttempts: 0,
-      },
-    });
+    await this.authPasswordRepository.storeVerificationOtp(dbUser.id, otp, this.generateOtpExpiry());
     await this.mailerService.sendVerificationEmail(dbUser.email, otp);
 
     return {
@@ -842,35 +830,19 @@ export class AuthService implements OnModuleInit {
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: this.normalizeEmail(dto.email) },
-    });
+    const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || user.deletedAt) {
       throw new BadRequestException('No account found with this email address.');
     }
 
     const otp = this.generateOtp();
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetPasswordOtp: otp,
-        resetPasswordOtpExpiresAt: this.generateOtpExpiry(),
-        resetPasswordOtpAttempts: 0,
-      },
-    });
+    await this.authPasswordRepository.storeResetPasswordOtp(user.id, otp, this.generateOtpExpiry());
 
     try {
       await this.mailerService.sendPasswordResetEmail(user.email, otp);
     } catch {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          resetPasswordOtp: null,
-          resetPasswordOtpExpiresAt: null,
-          resetPasswordOtpAttempts: 0,
-        },
-      });
+      await this.authPasswordRepository.clearResetPasswordOtp(user.id);
       throw new ServiceUnavailableException('Unable to send password reset email. Please try again later.');
     }
 
@@ -880,9 +852,7 @@ export class AuthService implements OnModuleInit {
   }
 
   async verifyResetOtp(dto: VerifyResetOtpDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: this.normalizeEmail(dto.email) },
-    });
+    const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || user.deletedAt) {
       throw new BadRequestException('Invalid or expired OTP');
@@ -898,10 +868,7 @@ export class AuthService implements OnModuleInit {
       user.resetPasswordOtpExpiresAt.getTime() >= Date.now();
 
     if (!isValid) {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { resetPasswordOtpAttempts: { increment: 1 } },
-      });
+      await this.authPasswordRepository.incrementResetPasswordOtpAttempts(user.id);
       throw new BadRequestException('Invalid or expired OTP');
     }
 
@@ -914,16 +881,7 @@ export class AuthService implements OnModuleInit {
     this.assertPasswordMeetsSecurity(dto.newPassword);
     const user = await this.userFromResetOtp(dto);
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: await bcrypt.hash(dto.newPassword, 10),
-        refreshTokenHash: null,
-        resetPasswordOtp: null,
-        resetPasswordOtpExpiresAt: null,
-        resetPasswordOtpAttempts: 0,
-      },
-    });
+    await this.authPasswordRepository.resetPassword(user.id, await bcrypt.hash(dto.newPassword, 10));
 
     return { message: 'Password has been reset successfully.' };
   }
@@ -935,10 +893,7 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Current password is invalid');
     }
 
-    await this.prisma.user.update({
-      where: { id: dbUser.id },
-      data: { password: await bcrypt.hash(dto.newPassword, 10), refreshTokenHash: null },
-    });
+    await this.authPasswordRepository.changePassword(dbUser.id, await bcrypt.hash(dto.newPassword, 10));
 
     return { data: null, message: 'Password changed successfully' };
   }
@@ -949,24 +904,24 @@ export class AuthService implements OnModuleInit {
   }
 
   async updateMe(user: AuthUserContext, dto: UpdateOwnProfileDto) {
-    const updated = await this.prisma.user.update({ where: { id: user.uid }, data: { firstName: dto.firstName?.trim(), lastName: dto.lastName?.trim(), phone: dto.phone?.trim(), avatarUrl: dto.avatarUrl?.trim() } });
+    const updated = await this.authRepository.updateOwnProfile(user.uid, { firstName: dto.firstName?.trim(), lastName: dto.lastName?.trim(), phone: dto.phone?.trim(), avatarUrl: dto.avatarUrl?.trim() });
     return { data: await this.toAuthUser(updated), message: 'Profile updated successfully.' };
   }
 
   async sessions(user: AuthUserContext) {
-    const sessions = await this.prisma.authSession.findMany({ where: { userId: user.uid, revokedAt: null }, orderBy: { lastActiveAt: 'desc' } });
+    const sessions = await this.authSessionsRepository.findActiveSessionsByUserId(user.uid);
     return { data: sessions.map((session) => ({ id: session.id, deviceName: session.deviceName ?? 'Unknown device', location: session.location, ipAddress: session.ipAddress, isCurrent: session.id === user.sessionId, lastActiveAt: session.lastActiveAt })), message: 'Active sessions fetched successfully.' };
   }
 
   async logoutAllSessions(user: AuthUserContext) {
-    await this.prisma.authSession.updateMany({ where: { userId: user.uid, revokedAt: null, id: user.sessionId ? { not: user.sessionId } : undefined }, data: { revokedAt: new Date() } });
+    await this.authSessionsRepository.revokeOtherSessions(user.uid, user.sessionId);
     return { success: true, message: 'Other sessions logged out successfully.' };
   }
 
   async revokeSession(user: AuthUserContext, id: string) {
-    const session = await this.prisma.authSession.findFirst({ where: { id, userId: user.uid, revokedAt: null } });
+    const session = await this.authSessionsRepository.findActiveSessionForUser(user.uid, id);
     if (!session) throw new NotFoundException('Session not found');
-    await this.prisma.authSession.delete({ where: { id } });
+    await this.authSessionsRepository.deleteSession(id);
     return { success: true, message: 'Session revoked successfully.' };
   }
 
@@ -975,45 +930,19 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Administrative accounts must be managed by Super Admin');
     }
 
-    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.authSession.deleteMany({ where: { userId: user.uid } });
-      await tx.notification.deleteMany({ where: { recipientId: user.uid } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: user.uid } });
-      await tx.uploadedFile.deleteMany({ where: { ownerId: user.uid } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: user.uid } });
-      await tx.loginAttempt.updateMany({ where: { userId: user.uid }, data: { userId: null } });
-      await tx.customerWishlist.deleteMany({ where: { userId: user.uid } });
-      await tx.cartItem.deleteMany({ where: { cart: { userId: user.uid } } });
-      await tx.cart.deleteMany({ where: { userId: user.uid } });
-      await tx.customerEventReminderJob.deleteMany({ where: { userId: user.uid } });
-      await tx.customerEvent.deleteMany({ where: { userId: user.uid } });
-      await tx.customerReminder.deleteMany({ where: { userId: user.uid } });
-      await tx.customerBankAccount.deleteMany({ where: { userId: user.uid } });
-      await tx.customerPaymentMethod.deleteMany({ where: { userId: user.uid } });
-      await tx.customerWalletLedger.deleteMany({ where: { userId: user.uid } });
-      await tx.customerWallet.deleteMany({ where: { userId: user.uid } });
-      await tx.rewardLedger.deleteMany({ where: { userId: user.uid } });
-      await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: user.uid }, { referredUserId: user.uid }] } });
-      await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId: user.uid } });
-      await tx.customerRecurringPayment.deleteMany({ where: { userId: user.uid } });
-      await tx.customerContact.deleteMany({ where: { userId: user.uid } });
-      await tx.user.delete({ where: { id: user.uid } });
-    });
+    await this.authRepository.deleteAccountCascade(user.uid);
 
     return { data: null, message: 'Account deleted successfully' };
   }
 
   async cancelDeletion(user: AuthUserContext) {
-    const dbUser = await this.prisma.user.findUnique({ where: { id: user.uid } });
+    const dbUser = await this.authRepository.findUserForDeletionCancel(user.uid);
 
     if (!dbUser?.deletedAt || !dbUser.deleteAfter || dbUser.deleteAfter <= new Date()) {
       throw new BadRequestException('Account is not scheduled for deletion');
     }
 
-    await this.prisma.user.update({
-      where: { id: dbUser.id },
-      data: { isActive: true, deletedAt: null, deleteAfter: null },
-    });
+    await this.authRepository.cancelDeletion(dbUser.id);
 
     return { data: null, message: 'Account deletion cancelled' };
   }
@@ -1137,7 +1066,7 @@ export class AuthService implements OnModuleInit {
   }
 
   private async getActiveUser(userId: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.authRepository.findActiveUserById(userId);
 
     if (!user || user.deletedAt || !user.isActive) {
       throw new NotFoundException('User not found');
@@ -1376,9 +1305,7 @@ export class AuthService implements OnModuleInit {
   }
 
   private async userFromResetOtp(dto: ResetPasswordDto): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: this.normalizeEmail(dto.email) },
-    });
+    const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || user.deletedAt) {
       throw new BadRequestException('No account found with this email address.');
@@ -1394,10 +1321,7 @@ export class AuthService implements OnModuleInit {
       user.resetPasswordOtpExpiresAt.getTime() >= Date.now();
 
     if (!isValid) {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { resetPasswordOtpAttempts: { increment: 1 } },
-      });
+      await this.authPasswordRepository.incrementResetPasswordOtpAttempts(user.id);
       throw new BadRequestException('Invalid or expired OTP');
     }
 

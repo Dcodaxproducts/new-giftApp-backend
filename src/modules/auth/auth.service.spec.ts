@@ -2,7 +2,10 @@ import { BadRequestException, ForbiddenException, ServiceUnavailableException } 
 import { Prisma, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { resetPasswordTemplate } from '../../mail/templates/reset-password.template';
+import { AuthPasswordRepository } from './auth-password.repository';
+import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
+import { AuthSessionsRepository } from './auth-sessions.repository';
 
 function createAuthService(superAdminCount: number) {
   const superAdmin = {
@@ -58,12 +61,18 @@ function createAuthService(superAdminCount: number) {
     },
     adminAuditLog: { create: jest.fn() },
   };
+  const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
+  const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
+  const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
     prisma as unknown as ConstructorParameters<typeof AuthService>[0],
     {} as unknown as ConstructorParameters<typeof AuthService>[1],
     { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[2],
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
     {} as unknown as ConstructorParameters<typeof AuthService>[4],
+    authRepository,
+    authSessionsRepository,
+    authPasswordRepository,
   );
   return { service, prisma };
 }
@@ -119,12 +128,18 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
   const mailer = {
     sendPasswordResetEmail: mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
   };
+  const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
+  const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
+  const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
     prisma as unknown as ConstructorParameters<typeof AuthService>[0],
     {} as unknown as ConstructorParameters<typeof AuthService>[1],
     { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[2],
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
     mailer as unknown as ConstructorParameters<typeof AuthService>[4],
+    authRepository,
+    authSessionsRepository,
+    authPasswordRepository,
   );
   return { service, prisma, mailer };
 }
@@ -299,6 +314,9 @@ function createAdminCreationService(options?: {
     adminAuditLog: { create: jest.fn() },
     $transaction: jest.fn(async (operations: Array<Promise<unknown>>) => Promise.all(operations)),
   };
+  const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
+  const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
+  const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
     prisma as unknown as ConstructorParameters<typeof AuthService>[0],
     {} as unknown as ConstructorParameters<typeof AuthService>[1],
@@ -307,6 +325,9 @@ function createAdminCreationService(options?: {
     {
       sendAdminInviteEmail: options?.mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
     } as unknown as ConstructorParameters<typeof AuthService>[4],
+    authRepository,
+    authSessionsRepository,
+    authPasswordRepository,
   );
   return { service, prisma, adminRole, createdAdmin };
 }

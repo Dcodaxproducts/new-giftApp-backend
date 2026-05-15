@@ -6,12 +6,15 @@ import { LoginAttemptsModule } from '../login-attempts/login-attempts.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { CustomerReferralsModule } from '../customer-referrals/customer-referrals.module';
 import { AuthController } from './auth.controller';
+import { AuthPasswordRepository } from './auth-password.repository';
+import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
+import { AuthSessionsRepository } from './auth-sessions.repository';
 
 @Module({
   imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule, CustomerReferralsModule],
   controllers: [AuthController],
-  providers: [AuthService, PrismaService, JwtAuthGuard],
+  providers: [AuthService, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, PrismaService, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

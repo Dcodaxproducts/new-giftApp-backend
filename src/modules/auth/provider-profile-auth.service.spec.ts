@@ -4,6 +4,8 @@ import { join } from 'path';
 describe('Provider profile auth surface source safety', () => {
   const controller = readFileSync(join(__dirname, 'auth.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, 'auth.service.ts'), 'utf8');
+  const authRepository = readFileSync(join(__dirname, 'auth.repository.ts'), 'utf8');
+  const authSessionsRepository = readFileSync(join(__dirname, 'auth-sessions.repository.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/auth.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
 
@@ -27,7 +29,7 @@ describe('Provider profile auth surface source safety', () => {
   it('patch me updates only common own profile fields', () => {
     expect(dto).toContain('class UpdateOwnProfileDto');
     expect(service).toContain('async updateMe(user: AuthUserContext');
-    expect(service).toContain('where: { id: user.uid }');
+    expect(authRepository).toContain('where: { id: userId }');
     expect(service).toContain('firstName: dto.firstName');
     expect(service).not.toContain('role: dto.role');
     expect(dto).not.toContain('isActive');
@@ -36,7 +38,7 @@ describe('Provider profile auth surface source safety', () => {
 
   it('generic auth sessions are own-user scoped and do not expose refresh token hashes', () => {
     expect(schema).toContain('model AuthSession');
-    expect(service).toContain('userId: user.uid');
+    expect(authSessionsRepository).toContain('userId');
     expect(service).toContain('isCurrent: session.id === user.sessionId');
     expect(service).toContain('revokedAt: new Date()');
     expect(service).not.toContain('refreshTokenHash: session.refreshTokenHash');
