@@ -1,7 +1,9 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { SocialModerationAction, SocialPostStatus, SocialPostVisibility, SocialReportReason, SocialReportSeverity, SocialReportStatus, SocialReportingEscalationRule, UserRole } from '@prisma/client';
+import { SocialModerationRepository } from './social-moderation.repository';
 import { SocialModerationService } from './social-moderation.service';
+import { SocialReportingRulesRepository } from './social-reporting-rules.repository';
 
 const now = new Date('2026-05-14T10:00:00.000Z');
 const user = { id: 'user_1', firstName: 'Sarah', lastName: 'Jenkins', avatarUrl: 'avatar.png', createdAt: new Date('2022-12-01T00:00:00.000Z') };
@@ -19,7 +21,9 @@ function createService() {
     $transaction: jest.fn(async (input: unknown): Promise<unknown> => typeof input === 'function' ? (input as (tx: typeof prisma) => Promise<unknown>)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  return { service: new SocialModerationService(prisma as never, auditLog as never), prisma, auditLog };
+  const socialModerationRepository = new SocialModerationRepository(prisma as never);
+  const socialReportingRulesRepository = new SocialReportingRulesRepository(prisma as never);
+  return { service: new SocialModerationService(socialModerationRepository, socialReportingRulesRepository, auditLog as never), prisma, auditLog, socialModerationRepository, socialReportingRulesRepository };
 }
 
 describe('SocialModerationService', () => {

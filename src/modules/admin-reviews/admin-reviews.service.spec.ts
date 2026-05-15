@@ -3,6 +3,8 @@ import { join } from 'path';
 
 describe('Admin Ratings & Reviews Management module', () => {
   const service = readFileSync(join(__dirname, 'admin-reviews.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'admin-reviews.repository.ts'), 'utf8');
+  const policiesRepository = readFileSync(join(__dirname, 'admin-review-policies.repository.ts'), 'utf8');
   const reviewsController = readFileSync(join(__dirname, 'admin-reviews.controller.ts'), 'utf8');
   const policiesController = readFileSync(join(__dirname, 'review-policies.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'admin-reviews.module.ts'), 'utf8');
@@ -80,14 +82,14 @@ describe('Admin Ratings & Reviews Management module', () => {
     expect(service).toContain('externalProfileUrl');
     expect(service).toContain('fullReviewText');
     expect(service).toContain('flagReasons(review)');
-    expect(service).toContain('reviewModerationLog.findMany');
+    expect(repository).toContain('reviewModerationLog.findMany');
     expect(service).toContain('actorName');
   });
 
   it('implements moderation actions, ReviewModerationLog, audit log, and no physical delete', () => {
     for (const action of ['APPROVE', 'HIDE', 'REMOVE', 'RESTORE', 'MARK_SPAM', 'MARK_FAKE']) expect(schema).toContain(action);
     expect(service).toContain('status: map[dto.action]');
-    expect(service).toContain('reviewModerationLog.create');
+    expect(repository).toContain('reviewModerationLog.create');
     expect(service).toContain('REVIEW_${dto.action}');
     expect(service).toContain('deletedAt: null');
     expect(service).not.toContain('review.delete');
@@ -102,8 +104,8 @@ describe('Admin Ratings & Reviews Management module', () => {
   });
 
   it('implements dashboard and analytics aggregations from reviews, logs, policies, and flagged records', () => {
-    expect(service).toContain('review.aggregate');
-    expect(service).toContain('reviewModerationLog.findMany');
+    expect(repository).toContain('review.aggregate');
+    expect(repository).toContain('reviewModerationLog.findMany');
     expect(service).toContain('getOrCreatePolicy');
     expect(service).toContain('flaggedSummary');
     expect(service).toContain('ratingDistribution');
@@ -115,6 +117,7 @@ describe('Admin Ratings & Reviews Management module', () => {
     expect(policiesController).toContain("@Patch()");
     expect(policiesController).toContain("@Post('test')");
     expect(service).toContain('REVIEW_POLICY_UPDATED');
+    expect(policiesRepository).toContain('reviewPolicy.update');
     expect(service).toContain('sampleReviewText.toLowerCase()');
     expect(policiesController).toContain('No external AI call');
     expect(reviewsController).not.toContain('auto-mod');
@@ -127,6 +130,6 @@ describe('Admin Ratings & Reviews Management module', () => {
     expect(service).toContain('Report Count');
     expect(service).toContain('Transaction ID');
     expect(service).not.toContain("'Customer Email'");
-    expect(service).toContain('response: { where: { deletedAt: null }');
+    expect(repository).toContain('response: { where: { deletedAt: null }');
   });
 });

@@ -2,7 +2,8 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { NotificationRecipientType, Prisma, Review, ReviewFlagReason, ReviewModerationAction, ReviewModerationActorType, ReviewPolicy, ReviewSeverity, ReviewSource, ReviewStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { AdminReviewPoliciesRepository } from './admin-review-policies.repository';
+import { ADMIN_REVIEW_INCLUDE, AdminReviewsRepository } from './admin-reviews.repository';
 import { AllReviewSeverity, AllReviewSource, AllReviewStatus, ExportReviewsDto, FlaggedSummaryDto, FlaggedWindow, ListReviewsDto, ModerateReviewDto, ModerationLogsDto, ModerationQueueDto, ReviewExportFormat, ReviewSortBy, ReviewStatsDto, ReviewStatsRange, SortOrder, TestReviewPolicyDto, UpdateReviewPoliciesDto } from './dto/admin-reviews.dto';
 
 type ReviewWithRelations = Review & {
@@ -22,23 +23,14 @@ type ReviewPolicyView = {
 
 @Injectable()
 export class AdminReviewsService {
-  constructor(private readonly prisma: PrismaService, private readonly auditLog: AuditLogWriterService) {}
+  constructor(private readonly reviewsRepository: AdminReviewsRepository, private readonly policiesRepository: AdminReviewPoliciesRepository, private readonly auditLog: AuditLogWriterService) {}
 
   async dashboard() {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const policy = await this.getOrCreatePolicy();
-    const [agg, totalReviews, newReviewsThisWeek, flaggedQueueCount, criticalFlaggedCount, autoModeratedCount, recentLogs, flaggedBySeverity] = await this.prisma.$transaction([
-      this.prisma.review.aggregate({ where: { deletedAt: null }, _avg: { rating: true } }),
-      this.prisma.review.count({ where: { deletedAt: null } }),
-      this.prisma.review.count({ where: { deletedAt: null, createdAt: { gte: weekAgo } } }),
-      this.prisma.review.count({ where: { deletedAt: null, status: ReviewStatus.FLAGGED } }),
-      this.prisma.review.count({ where: { deletedAt: null, status: ReviewStatus.FLAGGED, severity: ReviewSeverity.CRITICAL } }),
-      this.prisma.review.count({ where: { deletedAt: null, autoModerated: true } }),
-      this.prisma.reviewModerationLog.findMany({ orderBy: { createdAt: 'desc' }, take: 5, include: { review: { select: { reviewCode: true } } } }),
-      this.prisma.review.groupBy({ by: ['severity'], where: { deletedAt: null, status: ReviewStatus.FLAGGED, createdAt: { gte: dayAgo } }, orderBy: { severity: 'asc' }, _count: { _all: true } }),
-    ]);
+    const [agg, totalReviews, newReviewsThisWeek, flaggedQueueCount, criticalFlaggedCount, autoModeratedCount, recentLogs, flaggedBySeverity] = await this.reviewsRepository.getDashboardRows({ weekAgo, dayAgo });
     const policyView = this.policyView(policy);
     const currentConfidence = policyView.autoModeration.currentConfidence;
     return { data: { health: { averageRating: this.round(agg._avg.rating ?? 0), averageRatingDelta: 0, totalReviews, newReviewsThisWeek, flaggedQueueCount, criticalFlaggedCount, autoModeratedCount, autoModerationAccuracy: currentConfidence }, systemWarning: { enabled: currentConfidence < policyView.autoModeration.confidenceWarningThreshold, title: 'System Warning', message: currentConfidence < policyView.autoModeration.confidenceWarningThreshold ? `Auto-moderation confidence dropped to ${currentConfidence}%. Review recommended.` : 'Auto-moderation is operating within configured thresholds.', severity: currentConfidence < policyView.autoModeration.confidenceWarningThreshold ? 'WARNING' : 'INFO' }, sla: { overallResponseTimeHours: await this.averageResponseHours(), slaTargetHours: 4, addressedWithinSlaPercent: await this.slaPercent(4) }, recentModerationActivity: recentLogs.map((log) => ({ id: log.id, action: log.action, reviewId: log.review.reviewCode, timestamp: log.createdAt, outcome: log.outcome, reason: log.comment ?? log.reason ?? null })), activePolicies: this.activePolicies(policyView), flaggedSummary: { critical: this.countSeverity(flaggedBySeverity, ReviewSeverity.CRITICAL), high: this.countSeverity(flaggedBySeverity, ReviewSeverity.HIGH), medium: this.countSeverity(flaggedBySeverity, ReviewSeverity.MEDIUM), low: this.countSeverity(flaggedBySeverity, ReviewSeverity.LOW), window: FlaggedWindow.LAST_24H } }, message: 'Review dashboard fetched successfully.' };
@@ -46,17 +38,7 @@ export class AdminReviewsService {
 
   async stats(query: ReviewStatsDto) {
     const where = this.dateWhere(query);
-    const [agg, totalReviews, flaggedReviews, removedReviews, hiddenReviews, publishedReviews, autoModeratedCount, manualModeratedCount, ratingRows] = await this.prisma.$transaction([
-      this.prisma.review.aggregate({ where, _avg: { rating: true } }),
-      this.prisma.review.count({ where }),
-      this.prisma.review.count({ where: { ...where, status: ReviewStatus.FLAGGED } }),
-      this.prisma.review.count({ where: { ...where, status: ReviewStatus.REMOVED } }),
-      this.prisma.review.count({ where: { ...where, status: ReviewStatus.HIDDEN } }),
-      this.prisma.review.count({ where: { ...where, status: ReviewStatus.PUBLISHED } }),
-      this.prisma.reviewModerationLog.count({ where: { autoModerated: true, ...this.logDateWhere(query) } }),
-      this.prisma.reviewModerationLog.count({ where: { autoModerated: false, ...this.logDateWhere(query) } }),
-      this.prisma.review.groupBy({ by: ['rating'], where, orderBy: { rating: 'asc' }, _count: { _all: true } }),
-    ]);
+    const [agg, totalReviews, flaggedReviews, removedReviews, hiddenReviews, publishedReviews, autoModeratedCount, manualModeratedCount, ratingRows] = await this.reviewsRepository.getReviewStatsRows({ where, logWhere: this.logDateWhere(query) });
     return { data: { averageRating: this.round(agg._avg.rating ?? 0), totalReviews, flaggedReviews, removedReviews, hiddenReviews, publishedReviews, autoModeratedCount, manualModeratedCount, ratingDistribution: this.ratingDistribution(ratingRows, totalReviews) }, message: 'Review stats fetched successfully.' };
   }
 
@@ -64,23 +46,20 @@ export class AdminReviewsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where = this.reviewWhere(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.review.findMany({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.review.count({ where }),
-    ]);
+    const [items, total] = await this.reviewsRepository.findReviewsAndCount({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.reviewListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reviews fetched successfully.' };
   }
 
   async details(id: string) {
-    const review = await this.prisma.review.findFirst({ where: { id, deletedAt: null }, include: this.reviewInclude() });
+    const review = await this.reviewsRepository.findReviewById(id);
     if (!review) throw new NotFoundException('Review not found');
-    const logs = await this.prisma.reviewModerationLog.findMany({ where: { reviewId: id }, include: { actor: { select: { firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, take: 50 });
+    const logs = await this.reviewsRepository.findReviewDetailsLogs(id);
     return { data: { id: review.id, reviewCode: review.reviewCode, reviewer: { id: review.customer.id, name: this.name(review.customer), avatarUrl: review.customer.avatarUrl }, source: review.source, externalProfileUrl: review.externalProfileUrl, rating: review.rating, fullReviewText: review.comment, transactionId: this.transactionId(review), reviewDate: review.createdAt, status: this.displayStatus(review.status), flags: { reportCount: review.reportCount, reasons: this.flagReasons(review) }, moderationHistory: logs.map((log) => ({ action: this.displayStatus(log.outcome), actorType: log.actorType, actorName: log.actor ? this.name(log.actor) : this.actorName(log.actorType), createdAt: log.createdAt })) }, message: 'Review details fetched successfully.' };
   }
 
   async flaggedSummary(query: FlaggedSummaryDto) {
     const window = query.window ?? FlaggedWindow.LAST_24H;
-    const rows = await this.prisma.review.groupBy({ by: ['severity'], where: { deletedAt: null, status: ReviewStatus.FLAGGED, createdAt: { gte: this.windowStart(window) } }, orderBy: { severity: 'asc' }, _count: { _all: true } });
+    const rows = await this.reviewsRepository.findFlaggedSummaryRows(this.windowStart(window));
     const critical = this.countSeverity(rows, ReviewSeverity.CRITICAL);
     return { data: { window, critical: { count: critical, status: critical > 0 ? 'OVERDUE' : 'CLEAR' }, high: { count: this.countSeverity(rows, ReviewSeverity.HIGH), status: 'DUE_IN_2H' }, medium: { count: this.countSeverity(rows, ReviewSeverity.MEDIUM), status: 'DUE_IN_6H' }, low: { count: this.countSeverity(rows, ReviewSeverity.LOW), status: 'DUE_IN_18H' }, recommendation: { enabled: critical >= 10, message: critical >= 10 ? 'System detected an anomaly in Critical queue influx.' : 'Flagged review volume is within normal range.' } }, message: 'Flagged review summary fetched successfully.' };
   }
@@ -89,20 +68,17 @@ export class AdminReviewsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.ReviewWhereInput = { deletedAt: null, status: query.status ?? { in: [ReviewStatus.FLAGGED, ReviewStatus.PENDING] }, ...(query.severity && query.severity !== AllReviewSeverity.ALL ? { severity: query.severity } : {}), ...(query.reason ? { flagReason: query.reason } : {}) };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.review.findMany({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.review.count({ where }),
-    ]);
+    const [items, total] = await this.reviewsRepository.findReviewsAndCount({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => ({ id: item.id, reviewCode: item.reviewCode, rating: item.rating, comment: item.comment, severity: item.severity, flagReason: item.flagReason, status: item.status, createdAt: item.createdAt, slaDueAt: this.slaDueAt(item), customer: { name: this.name(item.customer) }, provider: { businessName: this.providerName(item.provider) } })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Review moderation queue fetched successfully.' };
   }
 
   async moderate(user: AuthUserContext, id: string, dto: ModerateReviewDto) {
     this.assertActionPermission(user, dto.action);
-    const review = await this.prisma.review.findFirst({ where: { id, deletedAt: null } });
+    const review = await this.reviewsRepository.findReviewRawById(id);
     if (!review) throw new NotFoundException('Review not found');
     const data = this.actionUpdate(dto);
-    const updated = await this.prisma.review.update({ where: { id }, data });
-    await this.prisma.reviewModerationLog.create({ data: { reviewId: id, actorId: user.uid, actorType: user.role === UserRole.SUPER_ADMIN ? ReviewModerationActorType.SUPER_ADMIN : ReviewModerationActorType.ADMIN, action: dto.action, outcome: updated.status, reason: this.actionReason(dto), comment: dto.comment, autoModerated: false, beforeJson: this.reviewSnapshot(review), afterJson: this.reviewSnapshot(updated) } });
+    const updated = await this.reviewsRepository.updateReview(id, data);
+    await this.reviewsRepository.createReviewModerationLog({ reviewId: id, actorId: user.uid, actorType: user.role === UserRole.SUPER_ADMIN ? ReviewModerationActorType.SUPER_ADMIN : ReviewModerationActorType.ADMIN, action: dto.action, outcome: updated.status, reason: this.actionReason(dto), comment: dto.comment, autoModerated: false, beforeJson: this.reviewSnapshot(review), afterJson: this.reviewSnapshot(updated) });
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'REVIEW', action: `REVIEW_${dto.action}`, beforeJson: this.reviewSnapshot(review), afterJson: this.reviewSnapshot(updated) });
     await this.createModerationNotifications(updated, dto);
     return { data: { id, status: updated.status, lastModerationAction: dto.action }, message: 'Review moderated successfully.' };
@@ -112,10 +88,7 @@ export class AdminReviewsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.ReviewModerationLogWhereInput = { reviewId: query.reviewId, action: query.action, actorId: query.actorId, ...(query.fromDate || query.toDate ? { createdAt: { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } } : {}) };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.reviewModerationLog.findMany({ where, include: { review: { select: { reviewCode: true } }, actor: { select: { id: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
-      this.prisma.reviewModerationLog.count({ where }),
-    ]);
+    const [items, total] = await this.reviewsRepository.findModerationLogsAndCount({ where, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => ({ id: item.id, reviewId: item.reviewId, reviewCode: item.review.reviewCode, action: item.action, outcome: item.outcome, reason: item.reason, actor: item.actor ? { id: item.actor.id, name: this.name(item.actor) } : { id: 'system', name: 'System Auto Moderator' }, autoModerated: item.autoModerated, confidence: item.confidence, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Review moderation logs fetched successfully.' };
   }
 
@@ -124,7 +97,7 @@ export class AdminReviewsService {
   async updatePolicies(user: AuthUserContext, dto: UpdateReviewPoliciesDto) {
     const current = await this.getOrCreatePolicy();
     const before = this.policyView(current);
-    const updated = await this.prisma.reviewPolicy.update({ where: { id: current.id }, data: { autoApprovalRulesJson: { enabled: dto.autoApprovalRules.enabled, minRating: dto.autoApprovalRules.minRating, minConfidence: dto.autoApprovalRules.minConfidence }, spamDetectionJson: { enabled: dto.spamDetection.enabled, autoHideConfidenceThreshold: dto.spamDetection.autoHideConfidenceThreshold }, abuseThresholdsJson: { enabled: dto.abuseThresholds.enabled, warningThreshold: dto.abuseThresholds.warningThreshold, autoRemoveThreshold: dto.abuseThresholds.autoRemoveThreshold }, visibilityRulesJson: { enabled: dto.visibilityRules.enabled, hideUntilModerated: dto.visibilityRules.hideUntilModerated }, autoModerationJson: { enabled: dto.autoModeration.enabled, confidenceWarningThreshold: dto.autoModeration.confidenceWarningThreshold, currentConfidence: before.autoModeration.currentConfidence }, updatedById: user.uid } });
+    const updated = await this.policiesRepository.updatePolicy(current.id, { autoApprovalRulesJson: { enabled: dto.autoApprovalRules.enabled, minRating: dto.autoApprovalRules.minRating, minConfidence: dto.autoApprovalRules.minConfidence }, spamDetectionJson: { enabled: dto.spamDetection.enabled, autoHideConfidenceThreshold: dto.spamDetection.autoHideConfidenceThreshold }, abuseThresholdsJson: { enabled: dto.abuseThresholds.enabled, warningThreshold: dto.abuseThresholds.warningThreshold, autoRemoveThreshold: dto.abuseThresholds.autoRemoveThreshold }, visibilityRulesJson: { enabled: dto.visibilityRules.enabled, hideUntilModerated: dto.visibilityRules.hideUntilModerated }, autoModerationJson: { enabled: dto.autoModeration.enabled, confidenceWarningThreshold: dto.autoModeration.confidenceWarningThreshold, currentConfidence: before.autoModeration.currentConfidence }, updatedById: user.uid });
     const after = this.policyView(updated);
     await this.auditLog.write({ actorId: user.uid, targetId: updated.id, targetType: 'REVIEW_POLICY', action: 'REVIEW_POLICY_UPDATED', beforeJson: before, afterJson: after });
     return { data: after, message: 'Review policies updated successfully.' };
@@ -142,7 +115,7 @@ export class AdminReviewsService {
 
   async export(query: ExportReviewsDto) {
     const where = this.reviewWhere(query);
-    const items = await this.prisma.review.findMany({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), take: 10000 });
+    const items = await this.reviewsRepository.findReviewsForExport({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder) });
     const rows = [['Review Code', 'Reviewer', 'Rating', 'Source', 'Status', 'Report Count', 'Flag Reasons', 'Provider', 'Order Number', 'Transaction ID', 'Has Provider Response', 'Created At'], ...items.map((item) => [item.reviewCode, this.name(item.customer), String(item.rating), item.source, this.displayStatus(item.status), String(item.reportCount), this.flagReasons(item).join('|'), this.providerName(item.provider), item.order.orderNumber, this.transactionId(item), item.response ? 'YES' : 'NO', item.createdAt.toISOString()])];
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n');
     const format = query.format ?? ReviewExportFormat.CSV;
@@ -177,18 +150,18 @@ export class AdminReviewsService {
     return { deletedAt: null, createdAt: { ...(start ? { gte: start } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } };
   }
   private logDateWhere(query: ReviewStatsDto): Prisma.ReviewModerationLogWhereInput { const createdAt = this.dateWhere(query).createdAt as Prisma.DateTimeFilter | undefined; return createdAt ? { createdAt } : {}; }
-  private reviewInclude() { return { customer: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } }, provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } }, order: { select: { id: true, orderNumber: true, createdAt: true, payment: { select: { id: true, providerPaymentIntentId: true, createdAt: true } } } }, response: { where: { deletedAt: null }, select: { id: true, body: true, createdAt: true } } } satisfies Prisma.ReviewInclude; }
+  private reviewInclude() { return ADMIN_REVIEW_INCLUDE; }
   private reviewOrder(sortBy?: ReviewSortBy, sortOrder?: SortOrder): Prisma.ReviewOrderByWithRelationInput { const order = sortOrder === SortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ReviewSortBy.RATING) return { rating: order }; if (sortBy === ReviewSortBy.REPORT_COUNT) return { reportCount: order }; if (sortBy === ReviewSortBy.SEVERITY) return { severity: order }; return { createdAt: order }; }
   private reviewListItem(review: ReviewWithRelations) { return { id: review.id, reviewCode: review.reviewCode, reviewer: { id: review.customer.id, name: this.name(review.customer), avatarInitials: this.initials(review.customer) }, source: review.source, rating: review.rating, contentPreview: this.preview(review.comment), fullContent: review.comment, flags: { reportCount: review.reportCount, label: `${review.reportCount} reports` }, status: this.displayStatus(review.status), transactionId: this.transactionId(review), reviewDate: review.createdAt, severity: review.severity, flagReason: review.flagReason, customer: { id: review.customer.id, name: this.name(review.customer), avatarUrl: review.customer.avatarUrl }, provider: { id: review.provider.id, businessName: this.providerName(review.provider) }, order: { id: review.order.id, orderNumber: review.order.orderNumber }, providerResponse: review.response ? { id: review.response.id, body: review.response.body, createdAt: review.response.createdAt } : null, createdAt: review.createdAt }; }
   private actionUpdate(dto: ModerateReviewDto): Prisma.ReviewUpdateInput { const map: Record<ReviewModerationAction, ReviewStatus> = { APPROVE: ReviewStatus.PUBLISHED, HIDE: ReviewStatus.HIDDEN, REMOVE: ReviewStatus.REMOVED, PENALIZE: ReviewStatus.PENALIZED, RESTORE: ReviewStatus.PUBLISHED, MARK_SPAM: ReviewStatus.HIDDEN, MARK_FAKE: ReviewStatus.REMOVED, AUTO_HIDDEN: ReviewStatus.HIDDEN, AUTO_APPROVED: ReviewStatus.PUBLISHED, AUTO_FLAGGED: ReviewStatus.FLAGGED }; if (!this.manualActions().has(dto.action)) throw new BadRequestException('Unsupported manual moderation action'); const reason = this.actionReason(dto); return { status: map[dto.action], flagReason: reason, flagReasonsJson: reason ? [reason] : [] }; }
   private actionReason(dto: ModerateReviewDto): ReviewFlagReason { if (dto.action === ReviewModerationAction.MARK_SPAM) return ReviewFlagReason.SPAM; if (dto.action === ReviewModerationAction.MARK_FAKE) return ReviewFlagReason.FAKE_REVIEW; return dto.reason; }
   private manualActions(): Set<ReviewModerationAction> { return new Set([ReviewModerationAction.APPROVE, ReviewModerationAction.HIDE, ReviewModerationAction.REMOVE, ReviewModerationAction.PENALIZE, ReviewModerationAction.RESTORE, ReviewModerationAction.MARK_SPAM, ReviewModerationAction.MARK_FAKE]); }
-  private async getOrCreatePolicy(): Promise<ReviewPolicy> { const existing = await this.prisma.reviewPolicy.findFirst({ orderBy: { createdAt: 'asc' } }); return existing ?? this.prisma.reviewPolicy.create({ data: { autoApprovalRulesJson: { enabled: true, minRating: 4, minConfidence: 90 }, spamDetectionJson: { enabled: true, autoHideConfidenceThreshold: 85 }, abuseThresholdsJson: { enabled: true, warningThreshold: 3, autoRemoveThreshold: 5, status: 'WARNING' }, visibilityRulesJson: { enabled: true, hideUntilModerated: true }, autoModerationJson: { enabled: true, confidenceWarningThreshold: 85, currentConfidence: 82 } } }); }
+  private async getOrCreatePolicy(): Promise<ReviewPolicy> { const existing = await this.policiesRepository.findFirstPolicy(); return existing ?? this.policiesRepository.createDefaultPolicy(); }
   private policyView(policy: ReviewPolicy): ReviewPolicyView { const autoApprovalRules = this.object(policy.autoApprovalRulesJson); const spamDetection = this.object(policy.spamDetectionJson); const abuseThresholds = this.object(policy.abuseThresholdsJson); const visibilityRules = this.object(policy.visibilityRulesJson); const autoModeration = this.object(policy.autoModerationJson); return { autoApprovalRules: { enabled: this.bool(autoApprovalRules.enabled, true), minRating: this.num(autoApprovalRules.minRating, 4), minConfidence: this.num(autoApprovalRules.minConfidence, 90) }, spamDetection: { enabled: this.bool(spamDetection.enabled, true), autoHideConfidenceThreshold: this.num(spamDetection.autoHideConfidenceThreshold, 85) }, abuseThresholds: { enabled: this.bool(abuseThresholds.enabled, true), warningThreshold: this.num(abuseThresholds.warningThreshold, 3), autoRemoveThreshold: this.num(abuseThresholds.autoRemoveThreshold, 5), status: abuseThresholds.status === 'ACTIVE' ? 'ACTIVE' : 'WARNING' }, visibilityRules: { enabled: this.bool(visibilityRules.enabled, true), hideUntilModerated: this.bool(visibilityRules.hideUntilModerated, true) }, autoModeration: { enabled: this.bool(autoModeration.enabled, true), confidenceWarningThreshold: this.num(autoModeration.confidenceWarningThreshold, 85), currentConfidence: this.num(autoModeration.currentConfidence, 82) } }; }
   private activePolicies(policy: ReviewPolicyView) { return [{ key: 'autoApprovalRules', label: 'Auto-approval rules', status: policy.autoApprovalRules.enabled ? 'ACTIVE' : 'INACTIVE' }, { key: 'spamDetection', label: 'Spam detection', status: policy.spamDetection.enabled ? 'ACTIVE' : 'INACTIVE' }, { key: 'abuseThresholds', label: 'Abuse thresholds', status: policy.abuseThresholds.status }, { key: 'visibilityRules', label: 'Visibility rules', status: policy.visibilityRules.enabled ? 'ACTIVE' : 'INACTIVE' }]; }
-  private async averageResponseHours(): Promise<number> { const logs = await this.prisma.reviewModerationLog.findMany({ select: { createdAt: true, review: { select: { createdAt: true } } }, take: 200 }); if (!logs.length) return 0; return this.round(logs.reduce((sum, log) => sum + Math.max(0, log.createdAt.getTime() - log.review.createdAt.getTime()) / 3_600_000, 0) / logs.length); }
-  private async slaPercent(hours: number): Promise<number> { const logs = await this.prisma.reviewModerationLog.findMany({ select: { createdAt: true, review: { select: { createdAt: true } } }, take: 200 }); if (!logs.length) return 100; return Math.round((logs.filter((log) => log.createdAt.getTime() - log.review.createdAt.getTime() <= hours * 3_600_000).length / logs.length) * 100); }
-  private async createModerationNotifications(review: Review, dto: ModerateReviewDto): Promise<void> { const notifications: Prisma.NotificationCreateManyInput[] = []; if (dto.notifyProvider) notifications.push({ recipientId: review.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'Review moderation update', message: `A review was ${review.status.toLowerCase()} by admin moderation.`, type: 'REVIEW_MODERATION', metadataJson: { reviewId: review.id, action: dto.action } }); if (dto.notifyUser ?? dto.notifyCustomer) notifications.push({ recipientId: review.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Review moderation update', message: `Your review was ${review.status.toLowerCase()} by platform moderation.`, type: 'REVIEW_MODERATION', metadataJson: { reviewId: review.id, action: dto.action } }); if (notifications.length) await this.prisma.notification.createMany({ data: notifications }); }
+  private async averageResponseHours(): Promise<number> { const logs = await this.reviewsRepository.findResponseTimingLogs(); if (!logs.length) return 0; return this.round(logs.reduce((sum, log) => sum + Math.max(0, log.createdAt.getTime() - log.review.createdAt.getTime()) / 3_600_000, 0) / logs.length); }
+  private async slaPercent(hours: number): Promise<number> { const logs = await this.reviewsRepository.findResponseTimingLogs(); if (!logs.length) return 100; return Math.round((logs.filter((log) => log.createdAt.getTime() - log.review.createdAt.getTime() <= hours * 3_600_000).length / logs.length) * 100); }
+  private async createModerationNotifications(review: Review, dto: ModerateReviewDto): Promise<void> { const notifications: Prisma.NotificationCreateManyInput[] = []; if (dto.notifyProvider) notifications.push({ recipientId: review.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'Review moderation update', message: `A review was ${review.status.toLowerCase()} by admin moderation.`, type: 'REVIEW_MODERATION', metadataJson: { reviewId: review.id, action: dto.action } }); if (dto.notifyUser ?? dto.notifyCustomer) notifications.push({ recipientId: review.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Review moderation update', message: `Your review was ${review.status.toLowerCase()} by platform moderation.`, type: 'REVIEW_MODERATION', metadataJson: { reviewId: review.id, action: dto.action } }); if (notifications.length) await this.reviewsRepository.createModerationNotifications(notifications); }
   private ratingDistribution(rows: { rating: number; _count?: true | { _all?: number } }[], total: number) { const distribution = { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 }; for (const row of rows) distribution[String(row.rating) as keyof typeof distribution] = total ? Math.round((this.groupCount(row._count) / total) * 100) : 0; return distribution; }
   private countSeverity(rows: { severity: ReviewSeverity; _count?: true | { _all?: number } }[], severity: ReviewSeverity): number { return this.groupCount(rows.find((row) => row.severity === severity)?._count); }
   private groupCount(count?: true | { _all?: number }): number { return count && typeof count === 'object' ? count._all ?? 0 : 0; }
