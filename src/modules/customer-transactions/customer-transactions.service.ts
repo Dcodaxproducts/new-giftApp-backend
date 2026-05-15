@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { Payment, PaymentMethod, PaymentStatus, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { CUSTOMER_TRANSACTION_INCLUDE, CustomerTransactionsRepository } from './customer-transactions.repository';
 import { CustomerTransactionExportFormat, CustomerTransactionPaymentMethod, CustomerTransactionSortBy, CustomerTransactionSortOrder, CustomerTransactionStatus, CustomerTransactionSummaryDto, CustomerTransactionType, ExportCustomerTransactionsDto, ListCustomerTransactionsDto } from './dto/customer-transactions.dto';
 
-type PaymentWithRelations = Prisma.PaymentGetPayload<{ include: { order: { include: { items: { include: { gift: { select: { name: true } } } } } }; moneyGift: { include: { recipientContact: true } }; recurringPaymentOccurrences: { include: { recurringPayment: { include: { recipientContact: true } } } } } }>;
+type PaymentWithRelations = Prisma.PaymentGetPayload<{ include: typeof CUSTOMER_TRANSACTION_INCLUDE }>;
 type NormalizedTransaction = { id: string; userId: string; transactionId: string; paymentId: string; orderId: string | null; moneyGiftId: string | null; recurringPaymentId: string | null; type: CustomerTransactionType; status: CustomerTransactionStatus; amount: number; currency: string; paymentMethod: PaymentMethod; gatewayReference: string | null; description: string; recipientContactId: string | null; recipient: { id: string; name: string; avatarUrl: string | null } | null; giftName: string | null; orderReference: string | null; billingAddress: string | null; subtotal: number; discount: number; deliveryFee: number; tax: number; total: number; createdAt: Date; failureReason: string | null };
 
 @Injectable()
 export class CustomerTransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: CustomerTransactionsRepository) {}
 
   async list(user: AuthUserContext, query: ListCustomerTransactionsDto) {
     const page = query.page ?? 1;
@@ -51,7 +51,7 @@ export class CustomerTransactionsService {
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
     if (query.paymentMethod && query.paymentMethod !== CustomerTransactionPaymentMethod.ALL) where.paymentMethod = query.paymentMethod;
     if (query.minAmount !== undefined || query.maxAmount !== undefined) where.amount = { gte: query.minAmount === undefined ? undefined : new Prisma.Decimal(query.minAmount), lte: query.maxAmount === undefined ? undefined : new Prisma.Decimal(query.maxAmount) };
-    const payments = await this.prisma.payment.findMany({ where, include: { order: { include: { items: { include: { gift: { select: { name: true } } } } } }, moneyGift: { include: { recipientContact: true } }, recurringPaymentOccurrences: { include: { recurringPayment: { include: { recipientContact: true } } } } }, orderBy: { createdAt: 'desc' } });
+    const payments = await this.repository.findManyForCustomerHistory(where);
     return payments.map((payment) => this.normalize(payment)).filter((item) => this.matches(item, query));
   }
 
@@ -84,7 +84,7 @@ export class CustomerTransactionsService {
   }
 
   private async getOwnedTransaction(userId: string, id: string): Promise<NormalizedTransaction> {
-    const payment = await this.prisma.payment.findFirst({ where: { userId, OR: [{ id }, { providerPaymentIntentId: id }] }, include: { order: { include: { items: { include: { gift: { select: { name: true } } } } } }, moneyGift: { include: { recipientContact: true } }, recurringPaymentOccurrences: { include: { recurringPayment: { include: { recipientContact: true } } } } } });
+    const payment = await this.repository.findOwnedTransactionById(userId, id);
     if (!payment) throw new NotFoundException('Transaction not found');
     return this.normalize(payment);
   }

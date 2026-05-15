@@ -3,6 +3,7 @@ import { join } from 'path';
 
 describe('Customer Transactions module', () => {
   const service = readFileSync(join(__dirname, 'customer-transactions.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'customer-transactions.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'customer-transactions.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/customer-transactions.dto.ts'), 'utf8');
   const appModule = readFileSync(join(__dirname, '../../app.module.ts'), 'utf8');
@@ -13,7 +14,7 @@ describe('Customer Transactions module', () => {
   });
 
   it('customer cannot list another user’s transactions', () => {
-    expect(service).toContain('this.prisma.payment.findMany({ where');
+    expect(repository).toContain('this.prisma.payment.findMany({ where');
     expect(service).toContain('userId');
   });
 
@@ -47,7 +48,7 @@ describe('Customer Transactions module', () => {
   });
 
   it('transaction detail requires ownership', () => {
-    expect(service).toContain('findFirst({ where: { userId');
+    expect(repository).toContain('findFirst({ where: { userId');
     expect(service).toContain('Transaction not found');
   });
 
