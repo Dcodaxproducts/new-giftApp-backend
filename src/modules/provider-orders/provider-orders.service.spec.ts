@@ -7,6 +7,7 @@ describe('Provider assigned orders source safety', () => {
   const dto = readFileSync(join(__dirname, 'dto/provider-orders.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const customerMarketplace = readFileSync(join(__dirname, '../customer-marketplace/customer-marketplace.service.ts'), 'utf8');
+  const customerOrdersRepository = readFileSync(join(__dirname, '../customer-marketplace/customer-orders.repository.ts'), 'utf8');
 
   it('exposes provider-only Provider Orders APIs with static routes before :id', () => {
     expect(controller).toContain("@ApiTags('03 Provider - Orders')");
@@ -35,7 +36,8 @@ describe('Provider assigned orders source safety', () => {
 
   it('creates provider split snapshots when customer order is created', () => {
     expect(customerMarketplace).toContain('ProviderOrderStatus.PENDING');
-    expect(customerMarketplace).toContain('providerOrderItem.create');
+    expect(customerMarketplace).toContain('createProviderOrderItem');
+    expect(customerOrdersRepository).toContain('providerOrderItem.create');
     expect(customerMarketplace).toContain('nameSnapshot: orderItem.gift.name');
     expect(customerMarketplace).toContain('imageUrl: this.firstImage(orderItem.gift.imageUrls)');
   });

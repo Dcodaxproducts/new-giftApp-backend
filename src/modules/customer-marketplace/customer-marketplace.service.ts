@@ -239,10 +239,10 @@ export class CustomerMarketplaceService {
   }
 
   async createOrder(user: AuthUserContext, dto: CreateOrderDto) {
-    const cart = dto.cartId ? await this.getActiveCartById(user.uid, dto.cartId) : await this.getActiveCart(user.uid);
+    const cart = await this.getCheckoutCart(user.uid, dto.cartId);
     if (cart.items.length === 0) throw new BadRequestException('Cart is empty');
-    const address = await this.getAddress(user.uid, dto.deliveryAddressId);
-    const gifts = await this.prisma.gift.findMany({ where: { id: { in: cart.items.map((item) => item.giftId) }, ...this.availableGiftWhere() }, include: this.giftInclude() });
+    const address = await this.getCheckoutDeliveryAddress(user.uid, dto.deliveryAddressId);
+    const gifts = await this.customerOrdersRepository.findGiftsForCheckout({ giftIds: cart.items.map((item) => item.giftId), where: this.availableGiftWhere(), include: this.giftInclude() });
     const giftById = new Map(gifts.map((gift) => [gift.id, gift]));
     for (const item of cart.items) {
       const gift = giftById.get(item.giftId);
@@ -251,30 +251,30 @@ export class CustomerMarketplaceService {
       this.assertStock(gift, variant, item.quantity);
     }
     const summary = this.cartSummary(cart.items);
-    const payment = dto.paymentId ? await this.prisma.payment.findFirst({ where: { id: dto.paymentId, userId: user.uid } }) : null;
+    const payment = dto.paymentId ? await this.customerOrdersRepository.findPaymentForUser(user.uid, dto.paymentId) : null;
     const paymentMethod = payment?.paymentMethod ?? dto.paymentMethod ?? PaymentMethod.COD;
     if (paymentMethod === PaymentMethod.STRIPE_CARD && payment?.status !== PaymentStatus.SUCCEEDED) throw new BadRequestException('Successful payment is required before creating this order');
     if (payment && (Number(payment.amount) !== summary.total || payment.currency !== summary.currency)) throw new BadRequestException('Payment amount does not match cart total');
-    const order = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.order.create({ data: { userId: user.uid, orderNumber: this.nextOrderNumber(), status: paymentMethod === PaymentMethod.STRIPE_CARD ? OrderStatus.CONFIRMED : OrderStatus.PENDING, paymentStatus: payment?.status ?? PaymentStatus.PENDING, paymentMethod, paymentId: payment?.id, subtotal: new Prisma.Decimal(summary.subtotal), discountTotal: new Prisma.Decimal(summary.discountTotal), deliveryFee: new Prisma.Decimal(summary.deliveryFee), tax: new Prisma.Decimal(summary.tax), total: new Prisma.Decimal(summary.total), currency: summary.currency, deliveryAddressId: address.id, recipientName: address.fullName, recipientPhone: address.phone, giftMessage: cart.items[0]?.giftMessage, scheduledDeliveryAt: cart.items[0]?.scheduledDeliveryAt ?? null } });
+    const providerIds = [...new Set(cart.items.map((item) => item.providerId))];
+    const order = await this.customerOrdersRepository.runCheckoutTransaction(async (tx) => {
+      const created = await this.customerOrdersRepository.createOrderWithItems(tx, { userId: user.uid, orderNumber: this.nextOrderNumber(), status: paymentMethod === PaymentMethod.STRIPE_CARD ? OrderStatus.CONFIRMED : OrderStatus.PENDING, paymentStatus: payment?.status ?? PaymentStatus.PENDING, paymentMethod, paymentId: payment?.id, subtotal: new Prisma.Decimal(summary.subtotal), discountTotal: new Prisma.Decimal(summary.discountTotal), deliveryFee: new Prisma.Decimal(summary.deliveryFee), tax: new Prisma.Decimal(summary.tax), total: new Prisma.Decimal(summary.total), currency: summary.currency, deliveryAddressId: address.id, recipientName: address.fullName, recipientPhone: address.phone, giftMessage: cart.items[0]?.giftMessage, scheduledDeliveryAt: cart.items[0]?.scheduledDeliveryAt ?? null });
       for (const item of cart.items) {
-        if (item.variantId) await tx.giftVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { decrement: item.quantity } } });
-        else await tx.gift.update({ where: { id: item.giftId }, data: { stockQuantity: { decrement: item.quantity } } });
-        await tx.orderItem.create({ data: { orderId: created.id, giftId: item.giftId, variantId: item.variantId, providerId: item.providerId, quantity: item.quantity, unitPrice: item.unitPriceSnapshot, discountAmount: item.discountAmountSnapshot, finalUnitPrice: item.finalUnitPriceSnapshot, total: new Prisma.Decimal(Number(item.finalUnitPriceSnapshot) * item.quantity), promotionalOfferId: item.promotionalOfferId, status: OrderStatus.PENDING } });
+        if (item.variantId) await this.customerOrdersRepository.decrementVariantStock(tx, item.variantId, item.quantity);
+        else await this.customerOrdersRepository.decrementGiftStock(tx, item.giftId, item.quantity);
+        await this.customerOrdersRepository.createOrderItem(tx, { orderId: created.id, giftId: item.giftId, variantId: item.variantId, providerId: item.providerId, quantity: item.quantity, unitPrice: item.unitPriceSnapshot, discountAmount: item.discountAmountSnapshot, finalUnitPrice: item.finalUnitPriceSnapshot, total: new Prisma.Decimal(Number(item.finalUnitPriceSnapshot) * item.quantity), promotionalOfferId: item.promotionalOfferId, status: OrderStatus.PENDING });
       }
-      for (const providerId of [...new Set(cart.items.map((item) => item.providerId))]) {
+      for (const providerId of providerIds) {
         const providerItems = cart.items.filter((item) => item.providerId === providerId);
         const providerSubtotal = providerItems.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0);
         const providerDiscount = providerItems.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0);
-        const providerOrder = await tx.providerOrder.create({ data: { orderId: created.id, providerId, orderNumber: created.orderNumber, status: ProviderOrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), platformFee: new Prisma.Decimal(0), totalPayout: new Prisma.Decimal(providerSubtotal - providerDiscount), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency } });
-        const orderItems = await tx.orderItem.findMany({ where: { orderId: created.id, providerId }, include: { gift: { select: { name: true, imageUrls: true } }, variant: { select: { name: true } } } });
-        for (const orderItem of orderItems) await tx.providerOrderItem.create({ data: { providerOrderId: providerOrder.id, orderItemId: orderItem.id, giftId: orderItem.giftId, variantId: orderItem.variantId, nameSnapshot: orderItem.gift.name, variantNameSnapshot: orderItem.variant?.name, quantity: orderItem.quantity, unitPrice: orderItem.finalUnitPrice, total: orderItem.total, imageUrl: this.firstImage(orderItem.gift.imageUrls) } });
+        const providerOrder = await this.customerOrdersRepository.createProviderSubOrder(tx, { orderId: created.id, providerId, orderNumber: created.orderNumber, status: ProviderOrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), platformFee: new Prisma.Decimal(0), totalPayout: new Prisma.Decimal(providerSubtotal - providerDiscount), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency });
+        const orderItems = await this.customerOrdersRepository.findProviderOrderItems(tx, created.id, providerId);
+        for (const orderItem of orderItems) await this.customerOrdersRepository.createProviderOrderItem(tx, { providerOrderId: providerOrder.id, orderItemId: orderItem.id, giftId: orderItem.giftId, variantId: orderItem.variantId, nameSnapshot: orderItem.gift.name, variantNameSnapshot: orderItem.variant?.name, quantity: orderItem.quantity, unitPrice: orderItem.finalUnitPrice, total: orderItem.total, imageUrl: this.firstImage(orderItem.gift.imageUrls) });
       }
-      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-      await tx.cart.update({ where: { id: cart.id }, data: { status: CartStatus.CHECKED_OUT } });
-      if (payment) await tx.payment.update({ where: { id: payment.id }, data: { orderId: created.id } });
-      await tx.notification.create({ data: { recipientId: user.uid, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Gift order created', message: 'Your gift order has been created successfully.', type: 'ORDER', metadataJson: { orderId: created.id } } });
-      for (const providerId of [...new Set(cart.items.map((item) => item.providerId))]) await tx.notification.create({ data: { recipientId: providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New order received', message: 'You received a new gift order.', type: 'ORDER', metadataJson: { orderId: created.id } } });
+      await this.customerOrdersRepository.markCartCheckedOut(tx, cart.id);
+      if (payment) await this.customerOrdersRepository.linkPaymentToOrder(tx, payment.id, created.id);
+      await this.customerOrdersRepository.createOrderNotification(tx, { recipientId: user.uid, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Gift order created', message: 'Your gift order has been created successfully.', orderId: created.id });
+      for (const providerId of providerIds) await this.customerOrdersRepository.createOrderNotification(tx, { recipientId: providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New order received', message: 'You received a new gift order.', orderId: created.id });
       return created;
     });
     return this.orderDetails(user, order.id);
@@ -322,7 +322,9 @@ export class CustomerMarketplaceService {
   private async getReminder(userId: string, id: string): Promise<CustomerReminder> { const reminder = await this.prisma.customerReminder.findFirst({ where: { id, userId, deletedAt: null } }); if (!reminder) throw new NotFoundException('Reminder not found'); return reminder; }
   private async getOrCreateActiveCart(userId: string) { return this.customerCartRepository.findOrCreateActiveCart(userId); }
   private async getActiveCart(userId: string): Promise<CartView> { const cart = await this.getOrCreateActiveCart(userId); return this.customerCartRepository.findCartWithItemsById(cart.id); }
-  private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: { orderBy: { createdAt: 'desc' }, include: this.cartItemInclude() } } }); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
+  private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.customerOrdersRepository.findActiveCartForCheckout(userId, cartId); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
+  private async getCheckoutCart(userId: string, cartId?: string): Promise<CartView> { const cart = await this.customerOrdersRepository.findActiveCartForCheckout(userId, cartId); if (!cart) { if (cartId) throw new NotFoundException('Active cart not found'); return this.getActiveCart(userId); } return cart; }
+  private async getCheckoutDeliveryAddress(userId: string, addressId: string): Promise<CustomerAddress> { const address = await this.customerOrdersRepository.findDeliveryAddressForUser(userId, addressId); if (!address) throw new NotFoundException('Address not found'); return address; }
   private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.prisma.customerWishlist.findMany({ where: { userId, giftId: { in: giftIds } }, select: { giftId: true } }); return new Set(rows.map((row) => row.giftId)); }
 
   private async assertContact(userId: string, id: string): Promise<void> { const contact = await this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!contact) throw new NotFoundException('Contact not found'); }
