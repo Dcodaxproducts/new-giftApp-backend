@@ -18,6 +18,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { CUSTOMER_ORDER_INCLUDE, CustomerOrdersRepository } from './customer-orders.repository';
 import {
   AddCartItemDto,
   CreateCustomerAddressDto,
@@ -48,11 +49,14 @@ type CartItemView = {
 };
 
 type CartView = { id: string; userId: string; status: CartStatus; items: CartItemView[]; createdAt: Date; updatedAt: Date };
-type OrderView = Prisma.OrderGetPayload<{ include: { items: { include: { gift: { select: { id: true; name: true; imageUrls: true } }; variant: { select: { id: true; name: true } } } }; providerOrders: true; payment: true } }>;
+type OrderView = Prisma.OrderGetPayload<{ include: typeof CUSTOMER_ORDER_INCLUDE }>;
 
 @Injectable()
 export class CustomerMarketplaceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly customerOrdersRepository: CustomerOrdersRepository,
+  ) {}
 
   async home(user: AuthUserContext) {
     const [defaultAddress, upcomingReminder, categories, discounted] = await this.prisma.$transaction([
@@ -278,16 +282,13 @@ export class CustomerMarketplaceService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.OrderWhereInput = { userId: user.uid, status: query.status, createdAt: query.fromDate || query.toDate ? { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } : undefined };
-    const [orders, total] = await this.prisma.$transaction([
-      this.prisma.order.findMany({ where, include: this.orderInclude(), orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
-      this.prisma.order.count({ where }),
-    ]);
+    const [orders, total] = await this.customerOrdersRepository.findManyAndCountForCustomerOrders({ where, skip: (page - 1) * limit, take: limit });
     const data = orders.map((order) => this.toOrderListItem(order, query.type));
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Orders fetched successfully' };
   }
 
   async orderDetails(user: AuthUserContext, id: string) {
-    const order = await this.prisma.order.findFirst({ where: { id, userId: user.uid }, include: this.orderInclude() });
+    const order = await this.customerOrdersRepository.findOwnedOrderById(user.uid, id);
     if (!order) throw new NotFoundException('Order not found');
     return { data: this.toOrder(order), message: 'Order fetched successfully' };
   }
@@ -311,7 +312,6 @@ export class CustomerMarketplaceService {
   private activeOfferWhere(): Prisma.PromotionalOfferWhereInput { const now = new Date(); return { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: true, deletedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }], item: this.availableGiftWhere() }; }
   private giftInclude() { return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }, provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, providerFulfillmentMethods: true } }, variants: { where: { isActive: true, deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }], select: { id: true, name: true, price: true, originalPrice: true, stockQuantity: true, sku: true, isPopular: true, isDefault: true, sortOrder: true, isActive: true, deletedAt: true } }, promotionalOffers: { where: this.activeOfferWhere(), orderBy: { discountValue: 'desc' }, select: { id: true, title: true, discountType: true, discountValue: true, startDate: true, endDate: true } } }); }
   private cartItemInclude() { return Prisma.validator<Prisma.CartItemInclude>()({ gift: { select: { id: true, name: true, imageUrls: true, currency: true } }, variant: { select: { id: true, name: true } } }); }
-  private orderInclude() { return Prisma.validator<Prisma.OrderInclude>()({ items: { include: { gift: { select: { id: true, name: true, imageUrls: true } }, variant: { select: { id: true, name: true } } } }, providerOrders: true, payment: true }); }
   private giftOrderBy(sortBy?: CustomerGiftSortBy): Prisma.GiftOrderByWithRelationInput { if (sortBy === CustomerGiftSortBy.PRICE_LOW_TO_HIGH) return { price: 'asc' }; if (sortBy === CustomerGiftSortBy.PRICE_HIGH_TO_LOW) return { price: 'desc' }; if (sortBy === CustomerGiftSortBy.RATING) return { ratingPlaceholder: 'desc' }; return { createdAt: 'desc' }; }
 
   private async getAvailableGift(id: string): Promise<GiftView> { const gift = await this.prisma.gift.findFirst({ where: { id, ...this.availableGiftWhere() }, include: this.giftInclude() }); if (!gift) throw new NotFoundException('Gift not found or unavailable'); return gift; }
