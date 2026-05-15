@@ -3,6 +3,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { GiftStatus, PaymentStatus, PromotionalOfferApprovalStatus, PromotionalOfferStatus, ProviderApprovalStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { ProviderDashboardRepository } from './provider-dashboard.repository';
 import { ProviderDashboardService } from './provider-dashboard.service';
 
 const approvedProvider = {
@@ -42,12 +43,14 @@ function createService(provider: Record<string, unknown> | null = approvedProvid
     gift: { count: jest.fn().mockResolvedValue(128) },
     $transaction: jest.fn().mockImplementation((queries: Promise<unknown>[]) => Promise.all(queries)),
   };
-  return { service: new ProviderDashboardService(prisma as unknown as ConstructorParameters<typeof ProviderDashboardService>[0]), prisma };
+  const repository = new ProviderDashboardRepository(prisma as unknown as ConstructorParameters<typeof ProviderDashboardRepository>[0]);
+  return { service: new ProviderDashboardService(repository), prisma };
 }
 
 describe('Provider dashboard source safety', () => {
   const controller = readFileSync(join(__dirname, 'provider-dashboard.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, 'provider-dashboard.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-dashboard.repository.ts'), 'utf8');
 
   it('adds one provider-only dashboard endpoint without duplicate profile API', () => {
     expect(controller).toContain("@ApiTags('03 Provider - Dashboard')");
@@ -60,6 +63,7 @@ describe('Provider dashboard source safety', () => {
   it('derives provider id from JWT and blocks pending/inactive providers', () => {
     expect(service).toContain('getApprovedActiveProvider(user.uid)');
     expect(service).not.toContain('query.providerId');
+    expect(repository).toContain('role: UserRole.PROVIDER');
     expect(service).toContain('ProviderApprovalStatus.APPROVED');
     expect(service).toContain('!provider.isActive');
     expect(service).toContain('ForbiddenException');

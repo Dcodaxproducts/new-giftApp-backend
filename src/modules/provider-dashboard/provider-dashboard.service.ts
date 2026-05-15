@@ -1,14 +1,14 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { GiftStatus, PaymentStatus, Prisma, PromotionalOfferApprovalStatus, PromotionalOfferStatus, ProviderApprovalStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { PaymentStatus, Prisma, ProviderApprovalStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { ProviderDashboardRepository } from './provider-dashboard.repository';
 
 type DashboardProvider = Awaited<ReturnType<ProviderDashboardService['getApprovedActiveProvider']>>;
 type RecentProviderOrder = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true } }>;
 
 @Injectable()
 export class ProviderDashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ProviderDashboardRepository) {}
 
   async get(user: AuthUserContext) {
     const provider = await this.getApprovedActiveProvider(user.uid);
@@ -16,16 +16,7 @@ export class ProviderDashboardService {
     const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - ((now.getUTCDay() + 6) % 7)));
-    const baseOrderWhere: Prisma.ProviderOrderWhereInput = { providerId: provider.id };
-
-    const [todayOrders, pendingOrders, activeOffers, totalItems, performanceOrders, recentOrders] = await this.prisma.$transaction([
-      this.prisma.providerOrder.count({ where: { ...baseOrderWhere, createdAt: { gte: todayStart, lte: todayEnd } } }),
-      this.prisma.providerOrder.count({ where: { ...baseOrderWhere, status: ProviderOrderStatus.PENDING } }),
-      this.prisma.promotionalOffer.count({ where: { providerId: provider.id, deletedAt: null, isActive: true, status: PromotionalOfferStatus.ACTIVE, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] } }),
-      this.prisma.gift.count({ where: { providerId: provider.id, deletedAt: null, status: { not: GiftStatus.INACTIVE } } }),
-      this.prisma.providerOrder.findMany({ where: { ...baseOrderWhere, createdAt: { gte: weekStart, lte: now } }, select: { createdAt: true, totalPayout: true, total: true, currency: true } }),
-      this.prisma.providerOrder.findMany({ where: baseOrderWhere, include: { order: true, items: true }, orderBy: { createdAt: 'desc' }, take: 5 }),
-    ]);
+    const [todayOrders, pendingOrders, activeOffers, totalItems, performanceOrders, recentOrders] = await this.repository.findDashboardData({ providerId: provider.id, todayStart, todayEnd, weekStart, now });
 
     return {
       data: {
@@ -39,7 +30,7 @@ export class ProviderDashboardService {
   }
 
   private async getApprovedActiveProvider(id: string) {
-    const provider = await this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } });
+    const provider = await this.repository.findProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
     if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) {
       throw new ForbiddenException('Only approved active providers can access dashboard');

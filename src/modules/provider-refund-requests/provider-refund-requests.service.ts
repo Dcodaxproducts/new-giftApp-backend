@@ -1,28 +1,25 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
+import { PaymentMethod, PaymentStatus, Prisma, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { PROVIDER_REFUND_REQUEST_INCLUDE, ProviderRefundRequestsRepository } from './provider-refund-requests.repository';
 import { ApproveProviderRefundRequestDto, ListProviderRefundRequestsDto, ProviderRefundRequestSortBy, ProviderRefundRequestSortOrder, ProviderRefundRequestStatusFilter, RejectProviderRefundRequestDto } from './dto/provider-refund-requests.dto';
 
-type RefundRequestView = Prisma.RefundRequestGetPayload<{ include: { user: true; order: true; providerOrder: { include: { items: true; order: true } }; payment: true } }>;
+type RefundRequestView = Prisma.RefundRequestGetPayload<{ include: typeof PROVIDER_REFUND_REQUEST_INCLUDE }>;
 
 @Injectable()
 export class ProviderRefundRequestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ProviderRefundRequestsRepository) {}
 
   async list(user: AuthUserContext, query: ListProviderRefundRequestsDto) {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 20, 100);
     const where = this.where(user.uid, query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.refundRequest.findMany({ where, include: this.include(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.refundRequest.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findManyForProviderList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider refund requests fetched successfully.' };
   }
 
   async summary(user: AuthUserContext) {
-    const items = await this.prisma.refundRequest.findMany({ where: { providerId: user.uid } });
+    const items = await this.repository.findManyByProviderId(user.uid);
     const count = (status: RefundRequestStatus) => items.filter((item) => item.status === status).length;
     const sum = (status: RefundRequestStatus, field: 'requestedAmount' | 'approvedAmount') => this.money(items.filter((item) => item.status === status).reduce((total, item) => total + Number(item[field] ?? 0), 0));
     return { data: { requested: count(RefundRequestStatus.REQUESTED), approved: count(RefundRequestStatus.APPROVED), rejected: count(RefundRequestStatus.REJECTED), refunded: count(RefundRequestStatus.REFUNDED), failed: count(RefundRequestStatus.FAILED), currency: items[0]?.currency ?? 'PKR', requestedAmountTotal: sum(RefundRequestStatus.REQUESTED, 'requestedAmount'), refundedAmountTotal: sum(RefundRequestStatus.REFUNDED, 'approvedAmount') }, message: 'Provider refund request summary fetched successfully.' };
@@ -38,39 +35,23 @@ export class ProviderRefundRequestsService {
     if (dto.refundAmount > refundableAmount) throw new BadRequestException('Refund amount cannot exceed refundable amount');
     const status = this.shouldProcessAsync(refund) ? RefundRequestStatus.REFUND_PROCESSING : RefundRequestStatus.REFUNDED;
     const transactionId = status === RefundRequestStatus.REFUNDED ? this.refundTransactionId(refund.id) : null;
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const item = await tx.refundRequest.update({ where: { id: refund.id }, data: { status, approvedAmount: dto.refundAmount, providerComment: dto.comment?.trim(), approvedAt: new Date(), refundedAt: status === RefundRequestStatus.REFUNDED ? new Date() : null, transactionId, stripeRefundId: this.stripeRefundPlaceholder(refund) } });
-      await tx.providerOrderTimeline.create({ data: { providerOrderId: refund.providerOrderId, createdById: user.uid, status: status === RefundRequestStatus.REFUNDED ? ProviderOrderStatus.REFUNDED : refund.providerOrder.status, title: 'Refund approved', description: dto.comment?.trim() ?? 'Provider approved the refund request.', metadataJson: { refundRequestId: refund.id, refundAmount: dto.refundAmount, status } } });
-      if (status === RefundRequestStatus.REFUNDED) {
-        await tx.providerOrder.update({ where: { id: refund.providerOrderId }, data: { status: ProviderOrderStatus.REFUNDED } });
-        await tx.order.update({ where: { id: refund.orderId }, data: { status: OrderStatus.COMPLETED, paymentStatus: PaymentStatus.REFUNDED } });
-        if (refund.paymentId) await tx.payment.update({ where: { id: refund.paymentId }, data: { status: PaymentStatus.REFUNDED } });
-      }
-      if (dto.notifyCustomer ?? true) await tx.notification.create({ data: { recipientId: refund.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: status === RefundRequestStatus.REFUNDED ? 'Refund processed' : 'Refund approved', message: status === RefundRequestStatus.REFUNDED ? 'Your refund was approved and processed.' : 'Your refund was approved and is being processed.', type: status === RefundRequestStatus.REFUNDED ? 'CUSTOMER_REFUND_PROCESSED' : 'CUSTOMER_REFUND_APPROVED', metadataJson: { refundRequestId: refund.id, providerOrderId: refund.providerOrderId, refundAmount: dto.refundAmount, transactionId } } });
-      return item;
-    });
+    const updated = await this.repository.approveWithSideEffects({ refundId: refund.id, providerOrderId: refund.providerOrderId, orderId: refund.orderId, paymentId: refund.paymentId, userId: refund.userId, actorId: user.uid, status, refundAmount: dto.refundAmount, providerComment: dto.comment?.trim(), transactionId, stripeRefundId: this.stripeRefundPlaceholder(refund), providerOrderStatus: refund.providerOrder.status, notifyCustomer: dto.notifyCustomer ?? true });
     return { data: { id: updated.id, status: updated.status, refundAmount: Number(updated.approvedAmount), transactionId: updated.transactionId }, message: status === RefundRequestStatus.REFUNDED ? 'Refund approved and processed successfully.' : 'Refund approved and queued for processing.' };
   }
 
   async reject(user: AuthUserContext, id: string, dto: RejectProviderRefundRequestDto) {
     const refund = await this.getOwnedRefundRequest(user.uid, id);
     this.assertRequested(refund);
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const item = await tx.refundRequest.update({ where: { id: refund.id }, data: { status: RefundRequestStatus.REJECTED, rejectionReason: dto.reason, providerComment: dto.comment?.trim(), rejectedAt: new Date() } });
-      await tx.providerOrderTimeline.create({ data: { providerOrderId: refund.providerOrderId, createdById: user.uid, status: refund.providerOrder.status, title: 'Refund rejected', description: dto.comment?.trim() ?? this.rejectReasonLabel(dto.reason), metadataJson: { refundRequestId: refund.id, reason: dto.reason } } });
-      if (dto.notifyCustomer ?? true) await tx.notification.create({ data: { recipientId: refund.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Refund rejected', message: dto.comment?.trim() ?? this.rejectReasonLabel(dto.reason), type: 'CUSTOMER_REFUND_REJECTED', metadataJson: { refundRequestId: refund.id, providerOrderId: refund.providerOrderId, reason: dto.reason } } });
-      return item;
-    });
+    const updated = await this.repository.rejectWithSideEffects({ refundId: refund.id, providerOrderId: refund.providerOrderId, userId: refund.userId, actorId: user.uid, reason: dto.reason, providerComment: dto.comment?.trim(), description: dto.comment?.trim() ?? this.rejectReasonLabel(dto.reason), providerOrderStatus: refund.providerOrder.status, notifyCustomer: dto.notifyCustomer ?? true });
     return { data: { id: updated.id, status: updated.status, rejectionReason: updated.rejectionReason }, message: 'Refund request rejected successfully.' };
   }
 
   rejectReasons() { return { data: [{ key: RefundRejectReason.ITEM_DELIVERED_AS_DESCRIBED, label: 'Item was delivered as described' }, { key: RefundRejectReason.NO_DAMAGE_EVIDENCE, label: 'No evidence of damage provided' }, { key: RefundRejectReason.REFUND_WINDOW_EXPIRED, label: 'Refund window has expired' }, { key: RefundRejectReason.NOT_COVERED_BY_POLICY, label: 'Issue not covered under refund policy' }, { key: RefundRejectReason.OTHER, label: 'Other' }], message: 'Refund rejection reasons fetched successfully.' }; }
   private where(providerId: string, query: ListProviderRefundRequestsDto): Prisma.RefundRequestWhereInput { const where: Prisma.RefundRequestWhereInput = { providerId }; if (query.status && query.status !== ProviderRefundRequestStatusFilter.ALL) where.status = query.status; if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined }; if (query.search) where.OR = [{ providerOrder: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { user: { firstName: { contains: query.search, mode: 'insensitive' } } }, { user: { lastName: { contains: query.search, mode: 'insensitive' } } }, { user: { email: { contains: query.search, mode: 'insensitive' } } }]; return where; }
   private orderBy(sortBy?: ProviderRefundRequestSortBy, sortOrder?: ProviderRefundRequestSortOrder): Prisma.RefundRequestOrderByWithRelationInput { const direction = sortOrder === ProviderRefundRequestSortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ProviderRefundRequestSortBy.AMOUNT) return { requestedAmount: direction }; if (sortBy === ProviderRefundRequestSortBy.STATUS) return { status: direction }; return { createdAt: direction }; }
-  private include() { return Prisma.validator<Prisma.RefundRequestInclude>()({ user: true, order: true, providerOrder: { include: { items: true, order: true } }, payment: true }); }
-  private async getOwnedRefundRequest(providerId: string, id: string): Promise<RefundRequestView> { const refund = await this.prisma.refundRequest.findFirst({ where: { id, providerId }, include: this.include() }); if (!refund) throw new NotFoundException('Refund request not found'); return refund; }
+  private async getOwnedRefundRequest(providerId: string, id: string): Promise<RefundRequestView> { const refund = await this.repository.findOwnedByProvider(providerId, id); if (!refund) throw new NotFoundException('Refund request not found'); return refund; }
   private assertRequested(refund: RefundRequestView): void { if (refund.status !== RefundRequestStatus.REQUESTED) throw new BadRequestException('Only requested refund requests can be actioned'); }
-  private async refundableAmount(refund: RefundRequestView): Promise<number> { const processed = await this.prisma.refundRequest.findMany({ where: { providerOrderId: refund.providerOrderId, status: { in: [RefundRequestStatus.APPROVED, RefundRequestStatus.REFUND_PROCESSING, RefundRequestStatus.REFUNDED] }, id: { not: refund.id } } }); return this.money(Number(refund.providerOrder.total) - processed.reduce((sum, item) => sum + Number(item.approvedAmount ?? item.requestedAmount), 0)); }
+  private async refundableAmount(refund: RefundRequestView): Promise<number> { const processed = await this.repository.findProcessedForProviderOrder(refund.providerOrderId, refund.id); return this.money(Number(refund.providerOrder.total) - processed.reduce((sum, item) => sum + Number(item.approvedAmount ?? item.requestedAmount), 0)); }
   private shouldProcessAsync(refund: RefundRequestView): boolean { return refund.payment?.paymentMethod === PaymentMethod.STRIPE_CARD && refund.payment.status === PaymentStatus.PROCESSING; }
   private stripeRefundPlaceholder(refund: RefundRequestView): string | null { if (refund.payment?.paymentMethod !== PaymentMethod.STRIPE_CARD || !refund.payment.providerPaymentIntentId) return null; return `stripe_refund_pending_${refund.id}`; }
   private refundTransactionId(id: string): string { return `RF-${id.slice(-8).toUpperCase()}`; }
