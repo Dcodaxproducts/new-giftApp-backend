@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Gift, GiftCategory, GiftModerationStatus, GiftStatus, GiftVariant, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from './gift-management.repository';
 import {
   ApproveGiftDto,
   CreateGiftCategoryDto,
@@ -35,23 +35,21 @@ type GiftWithRelations = Gift & {
 @Injectable()
 export class GiftManagementService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly giftManagementRepository: GiftManagementRepository,
     private readonly auditLog: AuditLogWriterService,
   ) {}
 
   async createCategory(user: AuthUserContext, dto: CreateGiftCategoryDto) {
-    const category = await this.prisma.giftCategory.create({
-      data: {
-        name: dto.name.trim(),
-        slug: await this.uniqueCategorySlug(dto.name),
-        description: dto.description?.trim(),
-        iconKey: dto.iconKey?.trim(),
-        color: dto.color ?? dto.backgroundColor,
-        backgroundColor: dto.backgroundColor ?? dto.color ?? '#F3E8FF',
-        imageUrl: dto.imageUrl?.trim(),
-        sortOrder: dto.sortOrder ?? 0,
-        isActive: dto.isActive ?? true,
-      },
+    const category = await this.giftManagementRepository.createGiftCategory({
+      name: dto.name.trim(),
+      slug: await this.uniqueCategorySlug(dto.name),
+      description: dto.description?.trim(),
+      iconKey: dto.iconKey?.trim(),
+      color: dto.color ?? dto.backgroundColor,
+      backgroundColor: dto.backgroundColor ?? dto.color ?? '#F3E8FF',
+      imageUrl: dto.imageUrl?.trim(),
+      sortOrder: dto.sortOrder ?? 0,
+      isActive: dto.isActive ?? true,
     });
     await this.audit(user.uid, category.id, 'GIFT_CATEGORY_CREATED', undefined, this.toCategory(category, 0));
     return { data: this.toCategory(category, 0), message: 'Gift category created successfully' };
@@ -65,16 +63,7 @@ export class GiftManagementService {
       isActive: query.isActive,
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
     };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.giftCategory.findMany({
-        where,
-        include: { _count: { select: { gifts: { where: { deletedAt: null } } } } },
-        orderBy: this.categoryOrderBy(query.sortBy, query.sortOrder),
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.giftCategory.count({ where }),
-    ]);
+    const [items, total] = await this.giftManagementRepository.findGiftCategoriesAndCount({ where, orderBy: this.categoryOrderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return {
       data: items.map((item) => this.toCategory(item, item._count.gifts)),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
@@ -83,15 +72,12 @@ export class GiftManagementService {
   }
 
   async lookupActiveCategories() {
-    const categories = await this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, backgroundColor: true, imageUrl: true, color: true } });
+    const categories = await this.giftManagementRepository.findGiftCategoryLookup();
     return { data: categories.map((category) => ({ ...category, backgroundColor: category.backgroundColor ?? category.color ?? '#F3E8FF' })), message: 'Gift category lookup fetched successfully' };
   }
 
   async categoryStats() {
-    const [totalCategories, activeGiftItems] = await this.prisma.$transaction([
-      this.prisma.giftCategory.count({ where: { deletedAt: null } }),
-      this.prisma.gift.count({ where: { deletedAt: null, status: GiftStatus.ACTIVE } }),
-    ]);
+    const [totalCategories, activeGiftItems] = await this.giftManagementRepository.findGiftCategoryStats();
     return {
       data: {
         totalCategories,
@@ -105,26 +91,23 @@ export class GiftManagementService {
 
   async categoryDetails(id: string) {
     const category = await this.getCategory(id);
-    const totalGifts = await this.prisma.gift.count({ where: { categoryId: id, deletedAt: null } });
+    const totalGifts = await this.giftManagementRepository.countGiftsByCategory(id);
     return { data: this.toCategory(category, totalGifts), message: 'Gift category details fetched successfully' };
   }
 
   async updateCategory(user: AuthUserContext, id: string, dto: UpdateGiftCategoryDto) {
     const category = await this.getCategory(id);
-    const before = this.toCategory(category, await this.prisma.gift.count({ where: { categoryId: id, deletedAt: null } }));
-    const updated = await this.prisma.giftCategory.update({
-      where: { id },
-      data: {
-        name: dto.name?.trim(),
-        slug: dto.name ? await this.uniqueCategorySlug(dto.name, id) : undefined,
-        description: dto.description?.trim(),
-        iconKey: dto.iconKey?.trim(),
-        color: dto.color,
-        backgroundColor: dto.backgroundColor ?? dto.color,
-        imageUrl: dto.imageUrl?.trim(),
-        sortOrder: dto.sortOrder,
-        isActive: dto.isActive,
-      },
+    const before = this.toCategory(category, await this.giftManagementRepository.countGiftsByCategory(id));
+    const updated = await this.giftManagementRepository.updateGiftCategory(id, {
+      name: dto.name?.trim(),
+      slug: dto.name ? await this.uniqueCategorySlug(dto.name, id) : undefined,
+      description: dto.description?.trim(),
+      iconKey: dto.iconKey?.trim(),
+      color: dto.color,
+      backgroundColor: dto.backgroundColor ?? dto.color,
+      imageUrl: dto.imageUrl?.trim(),
+      sortOrder: dto.sortOrder,
+      isActive: dto.isActive,
     });
     await this.audit(user.uid, id, 'GIFT_CATEGORY_UPDATED', before, this.toCategory(updated, before.totalGifts));
     return { data: this.toCategory(updated, before.totalGifts), message: 'Gift category updated successfully' };
@@ -132,9 +115,9 @@ export class GiftManagementService {
 
   async deleteCategory(user: AuthUserContext, id: string) {
     const category = await this.getCategory(id);
-    const gifts = await this.prisma.gift.count({ where: { categoryId: id, deletedAt: null } });
+    const gifts = await this.giftManagementRepository.countGiftsByCategory(id);
     if (gifts > 0) throw new BadRequestException('Category has attached gifts and cannot be deleted');
-    await this.prisma.giftCategory.delete({ where: { id } });
+    await this.giftManagementRepository.softDeleteGiftCategory(id);
     await this.audit(user.uid, id, 'GIFT_CATEGORY_DELETED', this.toCategory(category, 0), null);
     return { data: null, message: 'Gift category deleted successfully' };
   }
@@ -150,29 +133,26 @@ export class GiftManagementService {
       ? (dto.moderationStatus ?? GiftModerationStatus.APPROVED)
       : GiftModerationStatus.PENDING;
     const status = this.statusFromStock(dto.stockQuantity ?? 0, dto.isPublished ?? false, moderationStatus);
-    const gift = await this.prisma.gift.create({
-      data: {
-        name: dto.name.trim(),
-        slug: await this.uniqueGiftSlug(dto.name),
-        description: dto.description?.trim(),
-        shortDescription: dto.shortDescription?.trim(),
-        categoryId: dto.categoryId,
-        providerId,
-        price: new Prisma.Decimal(dto.price),
-        currency: dto.currency ?? 'USD',
-        stockQuantity: dto.stockQuantity ?? 0,
-        sku: dto.sku?.trim(),
-        imageUrls: dto.imageUrls ?? [],
-        isPublished: dto.isPublished ?? false,
-        isFeatured: dto.isFeatured ?? false,
-        tags: dto.tags ?? [],
-        moderationStatus,
-        status,
-        approvedAt: moderationStatus === GiftModerationStatus.APPROVED ? new Date() : null,
-        approvedBy: moderationStatus === GiftModerationStatus.APPROVED ? user.uid : null,
-        variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
-      },
-      include: this.giftInclude(),
+    const gift = await this.giftManagementRepository.createGiftWithVariants({
+      name: dto.name.trim(),
+      slug: await this.uniqueGiftSlug(dto.name),
+      description: dto.description?.trim(),
+      shortDescription: dto.shortDescription?.trim(),
+      categoryId: dto.categoryId,
+      providerId,
+      price: new Prisma.Decimal(dto.price),
+      currency: dto.currency ?? 'USD',
+      stockQuantity: dto.stockQuantity ?? 0,
+      sku: dto.sku?.trim(),
+      imageUrls: dto.imageUrls ?? [],
+      isPublished: dto.isPublished ?? false,
+      isFeatured: dto.isFeatured ?? false,
+      tags: dto.tags ?? [],
+      moderationStatus,
+      status,
+      approvedAt: moderationStatus === GiftModerationStatus.APPROVED ? new Date() : null,
+      approvedBy: moderationStatus === GiftModerationStatus.APPROVED ? user.uid : null,
+      variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
     });
     await this.audit(user.uid, gift.id, 'GIFT_CREATED', undefined, this.toGiftDetail(gift));
     return { data: this.toGiftDetail(gift), message: 'Gift created successfully' };
@@ -182,19 +162,12 @@ export class GiftManagementService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where = this.giftWhere(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.gift.findMany({ where, include: this.giftInclude(), orderBy: this.giftOrderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.gift.count({ where }),
-    ]);
+    const [items, total] = await this.giftManagementRepository.findGiftsAndCountForAdmin({ where, orderBy: this.giftOrderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((gift) => this.toGiftListItem(gift)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gifts fetched successfully' };
   }
 
   async giftStats() {
-    const [totalGifts, activeListings, pendingApproval] = await this.prisma.$transaction([
-      this.prisma.gift.count({ where: { deletedAt: null } }),
-      this.prisma.gift.count({ where: { deletedAt: null, status: GiftStatus.ACTIVE } }),
-      this.prisma.gift.count({ where: { deletedAt: null, moderationStatus: GiftModerationStatus.PENDING } }),
-    ]);
+    const [totalGifts, activeListings, pendingApproval] = await this.giftManagementRepository.findGiftStats();
     return {
       data: { totalGifts, totalGiftsChangePercent: 0, activeListings, activeListingsChangePercent: 0, pendingApproval, pendingApprovalChangePercent: 0 },
       message: 'Gift inventory stats fetched successfully',
@@ -218,10 +191,8 @@ export class GiftManagementService {
     const nextModeration = user.role === UserRole.PROVIDER && gift.moderationStatus === GiftModerationStatus.APPROVED
       ? GiftModerationStatus.PENDING
       : gift.moderationStatus;
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const base = await tx.gift.update({
-        where: { id },
-        data: {
+    const updated = await this.giftManagementRepository.runGiftTransaction(async (tx) => {
+      const base = await this.giftManagementRepository.updateGiftBase(tx, id, {
         name: dto.name?.trim(),
         slug: dto.name ? await this.uniqueGiftSlug(dto.name, id) : undefined,
         description: dto.description?.trim(),
@@ -238,10 +209,9 @@ export class GiftManagementService {
         tags: dto.tags,
         moderationStatus: nextModeration,
         status: dto.stockQuantity === 0 ? GiftStatus.OUT_OF_STOCK : undefined,
-        },
       });
       if (dto.variants) await this.upsertVariants(tx, id, dto.variants, dto.replaceVariants ?? false);
-      return tx.gift.findUniqueOrThrow({ where: { id: base.id }, include: this.giftInclude() });
+      return this.giftManagementRepository.findGiftByIdWithVariantsTx(tx, base.id);
     });
     await this.audit(user.uid, id, 'GIFT_UPDATED', this.toGiftDetail(gift), this.toGiftDetail(updated));
     return { data: this.toGiftDetail(updated), message: 'Gift updated successfully' };
@@ -250,7 +220,7 @@ export class GiftManagementService {
   async updateGiftStatus(user: AuthUserContext, id: string, dto: UpdateGiftStatusDto) {
     const gift = await this.getGift(id);
     this.assertCanManageGift(user, gift);
-    const updated = await this.prisma.gift.update({ where: { id }, data: { status: dto.status, isPublished: dto.status === GiftStatus.ACTIVE ? true : gift.isPublished }, include: this.giftInclude() });
+    const updated = await this.giftManagementRepository.updateGiftStatus(id, { status: dto.status, isPublished: dto.status === GiftStatus.ACTIVE ? true : gift.isPublished });
     await this.audit(user.uid, id, 'GIFT_STATUS_CHANGED', { status: gift.status, reason: dto.reason }, { status: updated.status, reason: dto.reason });
     return { data: this.toGiftDetail(updated), message: 'Gift status updated successfully' };
   }
@@ -258,13 +228,13 @@ export class GiftManagementService {
   async deleteGift(user: AuthUserContext, id: string) {
     const gift = await this.getGift(id);
     this.assertCanManageGift(user, gift);
-    await this.prisma.gift.delete({ where: { id } });
+    await this.giftManagementRepository.softDeleteGift(id);
     await this.audit(user.uid, id, 'GIFT_DELETED', this.toGiftDetail(gift), null);
     return { data: null, message: 'Gift deleted successfully' };
   }
 
   async exportGifts(query: ExportGiftsDto) {
-    const gifts = await this.prisma.gift.findMany({ where: this.giftWhere(query), include: this.giftInclude(), orderBy: { createdAt: 'desc' }, take: 10000 });
+    const gifts = await this.giftManagementRepository.findGiftsForExport(this.giftWhere(query));
     const rows = [['ID', 'Name', 'SKU', 'Category', 'Provider', 'Price', 'Currency', 'Status', 'Moderation', 'Published'], ...gifts.map((gift) => [gift.id, gift.name, gift.sku ?? '', gift.category.name, this.providerName(gift.provider), gift.price.toString(), gift.currency, gift.status, gift.moderationStatus, String(gift.isPublished)])];
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n');
     return { filename: `gifts.${query.format === ExportFormat.XLSX ? 'xlsx' : 'csv'}`, contentType: query.format === ExportFormat.XLSX ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv; charset=utf-8', content: csv };
@@ -274,16 +244,13 @@ export class GiftManagementService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where: Prisma.GiftWhereInput = { deletedAt: null, moderationStatus: query.status, providerId: query.providerId, ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}) };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.gift.findMany({ where, include: this.giftInclude(), orderBy: query.sortBy === ModerationSortBy.NAME ? { name: this.dir(query.sortOrder) } : { createdAt: this.dir(query.sortOrder) }, skip: (page - 1) * limit, take: limit }),
-      this.prisma.gift.count({ where }),
-    ]);
+    const [items, total] = await this.giftManagementRepository.findGiftModerationQueue({ where, orderBy: query.sortBy === ModerationSortBy.NAME ? { name: this.dir(query.sortOrder) } : { createdAt: this.dir(query.sortOrder) }, skip: (page - 1) * limit, take: limit });
     return { data: items.map((gift) => ({ id: gift.id, name: gift.name, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, imageUrl: this.firstImage(gift), submittedAt: gift.createdAt, moderationStatus: gift.moderationStatus, status: gift.moderationStatus })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gift moderation queue fetched successfully' };
   }
 
   async approveGift(user: AuthUserContext, id: string, dto: ApproveGiftDto) {
     const gift = await this.getGift(id);
-    const updated = await this.prisma.gift.update({ where: { id }, data: { moderationStatus: GiftModerationStatus.APPROVED, status: dto.publishNow ? GiftStatus.ACTIVE : gift.status, isPublished: dto.publishNow ?? gift.isPublished, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null }, include: this.giftInclude() });
+    const updated = await this.giftManagementRepository.updateGiftModerationStatus(id, { moderationStatus: GiftModerationStatus.APPROVED, status: dto.publishNow ? GiftStatus.ACTIVE : gift.status, isPublished: dto.publishNow ?? gift.isPublished, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null });
     const data = { id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, approvedAt: updated.approvedAt, approvedBy: updated.approvedBy };
     await this.audit(user.uid, id, 'GIFT_APPROVED', this.toGiftDetail(gift), data);
     return { data, message: 'Gift approved successfully' };
@@ -291,7 +258,7 @@ export class GiftManagementService {
 
   async rejectGift(user: AuthUserContext, id: string, dto: RejectGiftDto) {
     const gift = await this.getGift(id);
-    const updated = await this.prisma.gift.update({ where: { id }, data: { moderationStatus: GiftModerationStatus.REJECTED, isPublished: false, status: GiftStatus.INACTIVE, rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment?.trim() }, include: this.giftInclude() });
+    const updated = await this.giftManagementRepository.updateGiftModerationStatus(id, { moderationStatus: GiftModerationStatus.REJECTED, isPublished: false, status: GiftStatus.INACTIVE, rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment?.trim() });
     const data = { id, moderationStatus: updated.moderationStatus, status: updated.status, rejectedAt: updated.rejectedAt, rejectedBy: updated.rejectedBy, rejectionReason: updated.rejectionReason, rejectionComment: updated.rejectionComment };
     await this.audit(user.uid, id, 'GIFT_REJECTED', this.toGiftDetail(gift), data);
     return { data, message: 'Gift rejected successfully' };
@@ -299,32 +266,32 @@ export class GiftManagementService {
 
   async flagGift(user: AuthUserContext, id: string, dto: FlagGiftDto) {
     const gift = await this.getGift(id);
-    const updated = await this.prisma.gift.update({ where: { id }, data: { moderationStatus: GiftModerationStatus.FLAGGED, flaggedAt: new Date(), flaggedBy: user.uid, flagReason: dto.reason, flagComment: dto.comment?.trim() }, include: this.giftInclude() });
+    const updated = await this.giftManagementRepository.updateGiftModerationStatus(id, { moderationStatus: GiftModerationStatus.FLAGGED, flaggedAt: new Date(), flaggedBy: user.uid, flagReason: dto.reason, flagComment: dto.comment?.trim() });
     const data = { id, moderationStatus: updated.moderationStatus, status: updated.status, flaggedAt: updated.flaggedAt, flaggedBy: updated.flaggedBy, flagReason: updated.flagReason, flagComment: updated.flagComment };
     await this.audit(user.uid, id, 'GIFT_FLAGGED', this.toGiftDetail(gift), data);
     return { data, message: 'Gift flagged successfully' };
   }
 
   private async getCategory(id: string): Promise<GiftCategory> {
-    const category = await this.prisma.giftCategory.findFirst({ where: { id, deletedAt: null } });
+    const category = await this.giftManagementRepository.findGiftCategoryById(id);
     if (!category) throw new NotFoundException('Gift category not found');
     return category;
   }
 
   private async getGift(id: string): Promise<GiftWithRelations> {
-    const gift = await this.prisma.gift.findFirst({ where: { id, deletedAt: null }, include: this.giftInclude() });
+    const gift = await this.giftManagementRepository.findGiftByIdWithVariants(id);
     if (!gift) throw new NotFoundException('Gift not found');
     return gift;
   }
 
   private async assertCategory(id: string) { await this.getCategory(id); }
   private async assertProvider(id: string) {
-    const provider = await this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } });
+    const provider = await this.giftManagementRepository.findProviderById(id);
     if (!provider) throw new BadRequestException('Provider must exist and have PROVIDER role');
   }
   private async assertUniqueSku(sku?: string, exceptGiftId?: string) {
     if (!sku) return;
-    const existing = await this.prisma.gift.findFirst({ where: { sku: sku.trim(), id: exceptGiftId ? { not: exceptGiftId } : undefined, deletedAt: null } });
+    const existing = await this.giftManagementRepository.findGiftBySku(sku, exceptGiftId);
     if (existing) throw new BadRequestException('Gift SKU already exists');
   }
 
@@ -339,7 +306,7 @@ export class GiftManagementService {
   private categoryOrderBy(sortBy?: GiftCategorySortBy, sortOrder?: SortOrder): Prisma.GiftCategoryOrderByWithRelationInput { return { [sortBy === GiftCategorySortBy.NAME || sortBy === GiftCategorySortBy.SORT_ORDER ? sortBy : 'createdAt']: this.dir(sortOrder) }; }
   private giftOrderBy(sortBy?: GiftSortBy, sortOrder?: SortOrder): Prisma.GiftOrderByWithRelationInput { const field = sortBy === GiftSortBy.NAME || sortBy === GiftSortBy.PRICE || sortBy === GiftSortBy.STOCK_QUANTITY ? sortBy : sortBy === GiftSortBy.RATING ? 'ratingPlaceholder' : 'createdAt'; return { [field]: this.dir(sortOrder) }; }
   private dir(sortOrder?: SortOrder): Prisma.SortOrder { return sortOrder === SortOrder.ASC ? 'asc' : 'desc'; }
-  private giftInclude() { return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true } }, provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } }, variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] } }); }
+  private giftInclude() { return GIFT_MANAGEMENT_INCLUDE; }
 
   private normalizeVariants(variants?: GiftVariantDto[]): GiftVariantDto[] {
     if (!variants?.length) return [];
@@ -349,21 +316,21 @@ export class GiftManagementService {
     return normalized;
   }
   private assertSingleDefaultVariant(variants?: GiftVariantDto[]): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
-  private async assertVariantSkus(variants?: GiftVariantDto[], giftId?: string): Promise<void> { const skus = (variants ?? []).map((variant) => variant.sku?.trim()).filter((sku): sku is string => Boolean(sku)); if (new Set(skus).size !== skus.length) throw new BadRequestException('Variant SKU must be unique'); if (!skus.length) return; const existing = await this.prisma.giftVariant.findFirst({ where: { sku: { in: skus }, deletedAt: null, giftId: giftId ? { not: giftId } : undefined } }); if (existing) throw new BadRequestException('Variant SKU already exists'); }
+  private async assertVariantSkus(variants?: GiftVariantDto[], giftId?: string): Promise<void> { const skus = (variants ?? []).map((variant) => variant.sku?.trim()).filter((sku): sku is string => Boolean(sku)); if (new Set(skus).size !== skus.length) throw new BadRequestException('Variant SKU must be unique'); if (!skus.length) return; const existing = await this.giftManagementRepository.findGiftVariantBySku(skus, giftId); if (existing) throw new BadRequestException('Variant SKU already exists'); }
   private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
   private variantUpdateData(variant: GiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
   private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: GiftVariantDto[], replaceVariants: boolean): Promise<void> {
     const normalized = this.normalizeVariants(variants);
     const incomingIds = normalized.map((variant) => variant.id).filter((id): id is string => Boolean(id));
-    if (replaceVariants) await tx.giftVariant.updateMany({ where: { giftId, deletedAt: null, id: { notIn: incomingIds } }, data: { deletedAt: new Date(), isActive: false, isDefault: false } });
-    if (normalized.some((variant) => variant.isDefault)) await tx.giftVariant.updateMany({ where: { giftId, deletedAt: null }, data: { isDefault: false } });
+    if (replaceVariants) await this.giftManagementRepository.softDeleteVariantsForGift(tx, giftId, incomingIds);
+    if (normalized.some((variant) => variant.isDefault)) await this.giftManagementRepository.clearDefaultVariantsForGift(tx, giftId);
     for (const variant of normalized) {
       if (variant.id) {
-        const existing = await tx.giftVariant.findFirst({ where: { id: variant.id, giftId, deletedAt: null } });
+        const existing = await this.giftManagementRepository.findGiftVariantForGift(tx, giftId, variant.id);
         if (!existing) throw new BadRequestException('Variant does not belong to gift');
-        await tx.giftVariant.update({ where: { id: variant.id }, data: this.variantUpdateData(variant) });
+        await this.giftManagementRepository.updateGiftVariant(tx, variant.id, this.variantUpdateData(variant));
       } else {
-        await tx.giftVariant.create({ data: { giftId, ...this.variantCreateData(variant) } });
+        await this.giftManagementRepository.createGiftVariant(tx, { giftId, ...this.variantCreateData(variant) });
       }
     }
   }
@@ -377,8 +344,8 @@ export class GiftManagementService {
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
   private statusFromStock(stockQuantity: number, isPublished: boolean, moderationStatus: GiftModerationStatus): GiftStatus { if (stockQuantity === 0) return GiftStatus.OUT_OF_STOCK; return isPublished && moderationStatus === GiftModerationStatus.APPROVED ? GiftStatus.ACTIVE : GiftStatus.INACTIVE; }
   private assertCanManageGift(user: AuthUserContext, gift: Gift): void { if (user.role === UserRole.PROVIDER && gift.providerId !== user.uid) throw new ForbiddenException('Provider cannot manage another provider gift'); }
-  private async uniqueCategorySlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.prisma.giftCategory.findFirst({ where: { slug, id: exceptId ? { not: exceptId } : undefined } })); }
-  private async uniqueGiftSlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.prisma.gift.findFirst({ where: { slug, id: exceptId ? { not: exceptId } : undefined } })); }
+  private async uniqueCategorySlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftCategoryBySlug(slug, exceptId)); }
+  private async uniqueGiftSlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftBySlug(slug, exceptId)); }
   private async uniqueSlug(name: string, exists: (slug: string) => Promise<unknown>): Promise<string> { const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'; let slug = base; let i = 1; while (await exists(slug)) slug = `${base}-${i++}`; return slug; }
   private async audit(actorId: string, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> {
     await this.auditLog.write({

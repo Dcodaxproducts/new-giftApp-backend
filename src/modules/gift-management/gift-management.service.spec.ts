@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GiftModerationStatus, GiftStatus, UserRole } from '@prisma/client';
+import { GiftManagementRepository } from './gift-management.repository';
 import { GiftManagementService } from './gift-management.service';
 
 function createService() {
@@ -25,11 +26,12 @@ function createService() {
     adminAuditLog: { create: jest.fn() },
   };
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
+  const repository = new GiftManagementRepository(prisma as unknown as ConstructorParameters<typeof GiftManagementRepository>[0]);
   const service = new GiftManagementService(
-    prisma as unknown as ConstructorParameters<typeof GiftManagementService>[0],
+    repository,
     audit as unknown as ConstructorParameters<typeof GiftManagementService>[1],
   );
-  return { service, prisma, audit };
+  return { service, prisma, audit, repository };
 }
 
 describe('GiftManagementService', () => {
