@@ -5,6 +5,8 @@ describe('Provider Chat and Reviews module', () => {
   const service = readFileSync(join(__dirname, 'provider-interactions.service.ts'), 'utf8');
   const chatRepository = readFileSync(join(__dirname, 'provider-buyer-chat.repository.ts'), 'utf8');
   const interactionsRepository = readFileSync(join(__dirname, 'provider-interactions.repository.ts'), 'utf8');
+  const reviewsRepository = readFileSync(join(__dirname, 'provider-reviews.repository.ts'), 'utf8');
+  const reviewResponsesRepository = readFileSync(join(__dirname, 'provider-review-responses.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'provider-interactions.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'provider-interactions.module.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-interactions.dto.ts'), 'utf8');
@@ -80,6 +82,22 @@ describe('Provider Chat and Reviews module', () => {
     expect(service).toContain('Chat thread not found');
   });
 
+
+  it('repository owns Prisma access for provider review flows', () => {
+    expect(service).toContain('reviewsRepository.findReviewSummaryForProvider');
+    expect(service).toContain('reviewsRepository.findReviewsForProvider');
+    expect(service).toContain('reviewResponsesRepository.findReviewResponseForProvider');
+    expect(service).toContain('reviewResponsesRepository.createReviewResponse');
+    expect(reviewsRepository).toContain('prisma.review.findMany');
+    expect(reviewResponsesRepository).toContain('prisma.reviewResponse.create');
+  });
+
+  it('provider can only fetch own reviews and can manage only own public response', () => {
+    expect(service).toContain('getOwnedReview(user.uid, id)');
+    expect(service).toContain('Review not found');
+    expect(service).toContain('providerId: user.uid');
+  });
+
   it('exposes provider review routes with summary/filter-options before details', () => {
     for (const route of ["@Get('reviews/summary')", "@Get('reviews')", "@Get('reviews/filter-options')", "@Get('reviews/:id')", "@Post('reviews/:id/response')", "@Patch('reviews/:id/response')", "@Delete('reviews/:id/response')"]) expect(controller).toContain(route);
     expect(controller.indexOf("@Get('reviews/summary')")).toBeLessThan(controller.indexOf("@Get('reviews/:id')"));
@@ -91,15 +109,15 @@ describe('Provider Chat and Reviews module', () => {
     expect(service).toContain('providerId, deletedAt: null');
     expect(service).toContain('ReviewStatus.HIDDEN');
     expect(service).toContain('ReviewStatus.REMOVED');
-    expect(interactionsRepository).toContain('review.aggregate');
+    expect(reviewsRepository).toContain('review.aggregate');
     expect(service).toContain('ratingDistribution');
   });
 
   it('allows one active public response and prevents editing customer review content', () => {
     expect(service).toContain('Active response already exists for this review');
-    expect(interactionsRepository).toContain('reviewResponse.create');
-    expect(interactionsRepository).toContain('reviewResponse.update');
-    expect(interactionsRepository).toContain('reviewResponse.delete');
+    expect(reviewResponsesRepository).toContain('reviewResponse.create');
+    expect(reviewResponsesRepository).toContain('reviewResponse.update');
+    expect(reviewResponsesRepository).toContain('reviewResponse.delete');
     expect(service).not.toContain('review.update');
     expect(service).not.toContain('comment: dto.body');
   });
@@ -107,6 +125,6 @@ describe('Provider Chat and Reviews module', () => {
   it('notifies customer when provider responds to review', () => {
     expect(service).toContain('Provider responded to your review');
     expect(service).toContain('REVIEW_RESPONSE');
-    expect(service).toContain('createRegisteredUserNotification');
+    expect(service).toContain('createCustomerNotification');
   });
 });

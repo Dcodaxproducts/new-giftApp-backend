@@ -3,6 +3,8 @@ import { ChatMessageType, ChatSenderType, NotificationRecipientType, Prisma, Pro
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderBuyerChatRepository } from './provider-buyer-chat.repository';
 import { ProviderInteractionsRepository } from './provider-interactions.repository';
+import { ProviderReviewResponsesRepository } from './provider-review-responses.repository';
+import { ProviderReviewsRepository } from './provider-reviews.repository';
 import { GetProviderOrderChatDto, ListProviderChatsDto, ListProviderReviewsDto, ProviderChatDetailsDto, ProviderReviewSortBy, SendProviderChatMessageDto, SortOrder, ReviewResponseDto } from './dto/provider-interactions.dto';
 
 type CustomerView = { id: string; firstName: string; lastName: string; avatarUrl: string | null; isActive?: boolean };
@@ -14,6 +16,8 @@ export class ProviderInteractionsService {
   constructor(
     private readonly buyerChatRepository: ProviderBuyerChatRepository,
     private readonly interactionsRepository: ProviderInteractionsRepository,
+    private readonly reviewsRepository: ProviderReviewsRepository,
+    private readonly reviewResponsesRepository: ProviderReviewResponsesRepository,
   ) {}
 
   async getOrderChat(user: AuthUserContext, providerOrderId: string, query: GetProviderOrderChatDto) {
@@ -67,7 +71,7 @@ export class ProviderInteractionsService {
 
   async reviewSummary(user: AuthUserContext) {
     const where = this.publicReviewWhere(user.uid);
-    const [agg, count, rows] = await this.interactionsRepository.findReviewSummary(where);
+    const [agg, count, rows] = await this.reviewsRepository.findReviewSummaryForProvider(where);
     return { data: { averageRating: this.round(agg._avg.rating ?? 0), reviewCount: count, distribution: this.ratingDistribution(rows, count) }, message: 'Review summary fetched successfully.' };
   }
 
@@ -75,7 +79,7 @@ export class ProviderInteractionsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.ReviewWhereInput = { ...this.publicReviewWhere(user.uid), rating: query.rating, ...(query.hasResponse !== undefined ? { response: query.hasResponse ? { is: { deletedAt: null } } : { is: null } } : {}), ...(query.search ? { OR: [{ comment: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }] } : {}) };
-    const [items, total] = await this.interactionsRepository.findReviewsAndCount({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await Promise.all([this.reviewsRepository.findReviewsForProvider({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }), this.reviewsRepository.countReviewsForProvider(where)]);
     return { data: items.map((item) => this.reviewItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reviews fetched successfully.' };
   }
 
@@ -89,24 +93,24 @@ export class ProviderInteractionsService {
   async createResponse(user: AuthUserContext, reviewId: string, dto: ReviewResponseDto) {
     const review = await this.getOwnedReview(user.uid, reviewId);
     if (review.response && !review.response.deletedAt) throw new BadRequestException('Active response already exists for this review');
-    const response = review.response ? await this.interactionsRepository.updateReviewResponseByReviewId(reviewId, { body: dto.body, providerId: user.uid, deletedAt: null }) : await this.interactionsRepository.createReviewResponse({ reviewId, providerId: user.uid, body: dto.body });
-    await this.interactionsRepository.createRegisteredUserNotification({ data: { recipientId: review.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider responded to your review', message: dto.body, type: 'REVIEW_RESPONSE', metadataJson: { reviewId, responseId: response.id } } } as unknown as Prisma.NotificationCreateInput);
+    const response = review.response ? await this.reviewResponsesRepository.updateReviewResponseByReviewId(reviewId, { body: dto.body, providerId: user.uid, deletedAt: null }) : await this.reviewResponsesRepository.createReviewResponse({ reviewId, providerId: user.uid, body: dto.body });
+    await this.reviewResponsesRepository.createCustomerNotification({ data: { recipientId: review.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider responded to your review', message: dto.body, type: 'REVIEW_RESPONSE', metadataJson: { reviewId, responseId: response.id } } } as unknown as Prisma.NotificationCreateInput);
     return { data: { id: response.id, body: response.body, createdAt: response.createdAt }, message: 'Review response posted successfully.' };
   }
 
   async updateResponse(user: AuthUserContext, reviewId: string, dto: ReviewResponseDto) {
     await this.getOwnedReview(user.uid, reviewId);
-    const response = await this.interactionsRepository.findReviewResponse({ where: { reviewId, providerId: user.uid, deletedAt: null } });
+    const response = await this.reviewResponsesRepository.findReviewResponseForProvider({ where: { reviewId, providerId: user.uid, deletedAt: null } });
     if (!response) throw new NotFoundException('Review response not found');
-    const updated = await this.interactionsRepository.updateReviewResponseById(response.id, { body: dto.body });
+    const updated = await this.reviewResponsesRepository.updateReviewResponse(response.id, { body: dto.body });
     return { data: { id: updated.id, body: updated.body, createdAt: updated.createdAt }, message: 'Review response updated successfully.' };
   }
 
   async deleteResponse(user: AuthUserContext, reviewId: string) {
     await this.getOwnedReview(user.uid, reviewId);
-    const response = await this.interactionsRepository.findReviewResponse({ where: { reviewId, providerId: user.uid, deletedAt: null } });
+    const response = await this.reviewResponsesRepository.findReviewResponseForProvider({ where: { reviewId, providerId: user.uid, deletedAt: null } });
     if (!response) throw new NotFoundException('Review response not found');
-    await this.interactionsRepository.deleteReviewResponse(response.id);
+    await this.reviewResponsesRepository.softDeleteReviewResponse(response.id);
     return { data: null, message: 'Review response deleted successfully.' };
   }
 
@@ -121,7 +125,7 @@ export class ProviderInteractionsService {
   private assertMessagePayload(dto: SendProviderChatMessageDto): void { const attachments = dto.attachmentUrls ?? []; if (dto.messageType === ChatMessageType.TEXT && !dto.body?.trim()) throw new BadRequestException('body is required for TEXT messages'); if (dto.messageType !== ChatMessageType.TEXT && attachments.length === 0) throw new BadRequestException('attachmentUrls are required for attachment messages'); }
   private publicReviewWhere(providerId: string): Prisma.ReviewWhereInput { return { providerId, deletedAt: null, status: { notIn: [ReviewStatus.HIDDEN, ReviewStatus.REMOVED] } }; }
   private reviewInclude() { return { customer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } }, order: { select: { id: true, orderNumber: true, createdAt: true } }, response: { select: { id: true, body: true, createdAt: true, deletedAt: true } } } satisfies Prisma.ReviewInclude; }
-  private async getOwnedReview(providerId: string, id: string): Promise<ReviewWithRelations> { const review = await this.interactionsRepository.findReviewForProvider({ where: { id, ...this.publicReviewWhere(providerId) }, include: this.reviewInclude() }); if (!review) throw new NotFoundException('Review not found'); return review; }
+  private async getOwnedReview(providerId: string, id: string): Promise<ReviewWithRelations> { const review = await this.reviewsRepository.findReviewForProvider({ where: { id, ...this.publicReviewWhere(providerId) }, include: this.reviewInclude() }); if (!review) throw new NotFoundException('Review not found'); return review; }
   private reviewOrder(sortBy?: ProviderReviewSortBy, sortOrder?: SortOrder): Prisma.ReviewOrderByWithRelationInput { const order = sortOrder === SortOrder.ASC ? 'asc' : 'desc'; return sortBy === ProviderReviewSortBy.RATING ? { rating: order } : { createdAt: order }; }
   private reviewItem(review: ReviewWithRelations) { return { id: review.id, orderId: review.order.id, orderNumber: review.order.orderNumber, customer: this.customer(review.customer), rating: review.rating, comment: review.comment, createdAt: review.createdAt, isNew: Date.now() - review.createdAt.getTime() < 7 * 24 * 60 * 60 * 1000, likesCount: review.likesCount, response: review.response && !review.response.deletedAt ? { id: review.response.id, body: review.response.body, createdAt: review.response.createdAt } : null }; }
   private ratingDistribution(rows: { rating: number; _count?: true | { _all?: number } }[], total: number) { const distribution = { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 }; for (const row of rows) distribution[String(row.rating) as keyof typeof distribution] = total ? Math.round((this.groupCount(row._count) / total) * 100) : 0; return distribution; }
