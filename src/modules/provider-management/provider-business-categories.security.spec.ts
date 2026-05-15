@@ -4,6 +4,7 @@ import { join } from 'path';
 describe('Provider business category security', () => {
   const controller = readFileSync(join(__dirname, 'provider-business-categories.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, 'provider-business-categories.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-business-categories.repository.ts'), 'utf8');
 
   it('keeps only public list and protects details/mutations with dashboard roles and permissions', () => {
     expect(controller).toContain('@Permissions(\'providerBusinessCategories.read\')');
@@ -19,6 +20,6 @@ describe('Provider business category security', () => {
   it('public list returns active non-deleted categories only and delete is soft guarded', () => {
     expect(service).toContain('isActive: true');
     expect(service).toContain('activeProviders > 0');
-    expect(service).toContain('providerBusinessCategory.delete');
+    expect(repository).toContain('providerBusinessCategory.delete');
   });
 });

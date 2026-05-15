@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CustomerContact, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { CustomerContactsRepository } from './customer-contacts.repository';
 import { CreateCustomerContactDto, CustomerContactSortBy, ListCustomerContactsDto, SortOrder, UpdateCustomerContactDto } from './dto/customer-contacts.dto';
 
 @Injectable()
 export class CustomerContactsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: CustomerContactsRepository) {}
 
   async list(user: AuthUserContext, query: ListCustomerContactsDto) {
     const page = query.page ?? 1;
@@ -22,16 +22,13 @@ export class CustomerContactsService {
         { relationship: { contains: query.search, mode: 'insensitive' } },
       ] } : {}),
     };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.customerContact.findMany({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.customerContact.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findManyForList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((contact) => this.toListItem(contact)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Contacts fetched successfully' };
   }
 
   async create(user: AuthUserContext, dto: CreateCustomerContactDto) {
     this.assertHasContactMethod(dto);
-    const contact = await this.prisma.customerContact.create({ data: { ...this.createData(dto), userId: user.uid } });
+    const contact = await this.repository.create({ ...this.createData(dto), userId: user.uid });
     return { data: this.toDetail(contact), message: 'Contact created successfully' };
   }
 
@@ -47,18 +44,18 @@ export class CustomerContactsService {
       address: dto.address ?? existing.address ?? undefined,
     };
     this.assertHasContactMethod(merged);
-    const contact = await this.prisma.customerContact.update({ where: { id: existing.id }, data: { ...this.data(dto), name: dto.name?.trim() } });
+    const contact = await this.repository.update(existing.id, { ...this.data(dto), name: dto.name?.trim() });
     return { data: this.toDetail(contact), message: 'Contact updated successfully' };
   }
 
   async delete(user: AuthUserContext, id: string) {
     const existing = await this.getOwnedContact(user.uid, id);
-    await this.prisma.customerContact.delete({ where: { id: existing.id } });
+    await this.repository.delete(existing.id);
     return { message: 'Contact deleted successfully.' };
   }
 
   private async getOwnedContact(userId: string, id: string): Promise<CustomerContact> {
-    const contact = await this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null } });
+    const contact = await this.repository.findOwnedByUser(userId, id);
     if (!contact) throw new NotFoundException('Contact not found.');
     return contact;
   }

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma, RefundPolicySettings } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { RefundPolicySettingsRepository } from './refund-policy-settings.repository';
 import { ListRefundPolicyAuditLogsDto, UpdateRefundPolicySettingsDto } from './dto/refund-policy-settings.dto';
 
 type SettingsWithUpdater = RefundPolicySettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
@@ -36,7 +36,7 @@ export interface RefundEligibilityResult {
 
 @Injectable()
 export class RefundPolicySettingsService {
-  constructor(private readonly prisma: PrismaService, private readonly auditLog: AuditLogWriterService, private readonly configService: ConfigService) {}
+  constructor(private readonly repository: RefundPolicySettingsRepository, private readonly auditLog: AuditLogWriterService, private readonly configService: ConfigService) {}
 
   async get() {
     const settings = await this.getOrCreate();
@@ -51,18 +51,14 @@ export class RefundPolicySettingsService {
 
     const current = await this.getOrCreate();
     const before = this.toAuditView(current);
-    const updated = await this.prisma.refundPolicySettings.update({
-      where: { id: current.id },
-      data: {
-        refundWindowDays: dto.refundWindowDays,
-        autoRefundThresholdAmount: new Prisma.Decimal(dto.autoRefundThresholdAmount),
-        currency: dto.currency.toUpperCase(),
-        autoApproveSmallRefunds: dto.autoApproveSmallRefunds,
-        smallRefundAutoApproveAmount: new Prisma.Decimal(dto.smallRefundAutoApproveAmount),
-        eligibleCategoryIdsJson: dto.eligibleCategoryIds,
-        updatedById: user.uid,
-      },
-      include: { updatedBy: { select: { id: true, firstName: true, lastName: true } } },
+    const updated = await this.repository.updateSettings(current.id, {
+      refundWindowDays: dto.refundWindowDays,
+      autoRefundThresholdAmount: new Prisma.Decimal(dto.autoRefundThresholdAmount),
+      currency: dto.currency.toUpperCase(),
+      autoApproveSmallRefunds: dto.autoApproveSmallRefunds,
+      smallRefundAutoApproveAmount: new Prisma.Decimal(dto.smallRefundAutoApproveAmount),
+      eligibleCategoryIdsJson: dto.eligibleCategoryIds,
+      updatedById: user.uid,
     });
     const after = this.toAuditView(updated);
     await this.writeAudit(user, current.id, before, after, ipAddress, userAgent);
@@ -73,10 +69,7 @@ export class RefundPolicySettingsService {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 20, 100);
     const where: Prisma.AdminAuditLogWhereInput = { action: 'REFUND_POLICY_SETTINGS_UPDATED', createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.adminAuditLog.findMany({ where, include: { actor: { select: { id: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
-      this.prisma.adminAuditLog.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: this.name(item.actor) } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Refund policy audit logs fetched successfully.' };
   }
 
@@ -118,18 +111,18 @@ export class RefundPolicySettingsService {
   }
 
   private async getOrCreate(): Promise<SettingsWithUpdater> {
-    const existing = await this.prisma.refundPolicySettings.findFirst({ orderBy: { createdAt: 'asc' }, include: { updatedBy: { select: { id: true, firstName: true, lastName: true } } } });
+    const existing = await this.repository.findFirstSettings();
     if (existing) return existing;
-    return this.prisma.refundPolicySettings.create({ data: { currency: this.platformCurrency() }, include: { updatedBy: { select: { id: true, firstName: true, lastName: true } } } });
+    return this.repository.createDefaultSettings(this.platformCurrency());
   }
 
   private async activeCategories(ids: string[]): Promise<EligibleCategory[]> {
     if (!ids.length) return [];
-    return this.prisma.giftCategory.findMany({ where: { id: { in: ids }, isActive: true, deletedAt: null }, select: { id: true, name: true }, orderBy: { sortOrder: 'asc' } });
+    return this.repository.findActiveCategories(ids);
   }
 
   private async assertActiveCategories(ids: string[]): Promise<void> {
-    const categories = await this.prisma.giftCategory.findMany({ where: { id: { in: ids }, deletedAt: null }, select: { id: true, isActive: true } });
+    const categories = await this.repository.findCategoriesForValidation(ids);
     const foundIds = new Set(categories.map((category) => category.id));
     const missingIds = ids.filter((id) => !foundIds.has(id));
     if (missingIds.length) throw new BadRequestException(`Eligible category IDs do not exist: ${missingIds.join(', ')}`);

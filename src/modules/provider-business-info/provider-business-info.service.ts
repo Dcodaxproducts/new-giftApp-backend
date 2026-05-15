@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { ProviderBusinessInfoRepository } from './provider-business-info.repository';
 import { ProviderBusinessHourDto, UpdateProviderBusinessInfoDto } from './dto/provider-business-info.dto';
 
 @Injectable()
 export class ProviderBusinessInfoService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ProviderBusinessInfoRepository) {}
 
   async get(user: AuthUserContext) {
     const provider = await this.getProvider(user.uid);
@@ -35,9 +35,7 @@ export class ProviderBusinessInfoService {
       'fulfillmentMethods',
     ].some((key) => dto[key as keyof UpdateProviderBusinessInfoDto] !== undefined);
 
-    const updated = await this.prisma.user.update({
-      where: { id: user.uid },
-      data: {
+    const updated = await this.repository.updateProvider(user.uid, {
         providerBusinessName: dto.businessName?.trim(),
         providerLegalName: dto.legalName?.trim(),
         providerTaxId: dto.taxId?.trim(),
@@ -54,11 +52,9 @@ export class ProviderBusinessInfoService {
         providerAutoAcceptOrders: dto.autoAcceptOrders,
         providerApprovalStatus: materialChange ? ProviderApprovalStatus.PENDING : provider.providerApprovalStatus,
         isApproved: materialChange ? false : provider.isApproved,
-      },
     });
 
-    await this.prisma.adminAuditLog.create({
-      data: {
+    await this.repository.createAuditLog({
         actorId: user.uid,
         targetId: user.uid,
         targetType: 'PROVIDER',
@@ -66,25 +62,19 @@ export class ProviderBusinessInfoService {
         beforeJson: this.toJson(this.auditInfo(provider)),
         afterJson: this.toJson(this.auditInfo(updated)),
         metadataJson: { verificationRequired: materialChange },
-      },
     });
 
     if (materialChange) {
-      const admins = await this.prisma.user.findMany({
-        where: { role: UserRole.SUPER_ADMIN, isActive: true, deletedAt: null },
-        select: { id: true },
-      });
+      const admins = await this.repository.findActiveSuperAdmins();
       await Promise.all(
         admins.map((admin) =>
-          this.prisma.notification.create({
-            data: {
+          this.repository.createNotification({
               recipientId: admin.id,
               recipientType: NotificationRecipientType.ADMIN,
               title: 'Provider business info changed',
               message: 'A provider updated business information and needs review.',
               type: 'ADMIN_PROVIDER_REVIEW_NEEDED',
               metadataJson: { providerId: user.uid },
-            },
           }),
         ),
       );
@@ -97,22 +87,20 @@ export class ProviderBusinessInfoService {
   }
 
   private async getProvider(id: string) {
-    const provider = await this.prisma.user.findFirst({
-      where: { id, role: UserRole.PROVIDER, deletedAt: null },
-    });
+    const provider = await this.repository.findProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
     return provider;
   }
 
   private async getProviderBusinessCategory(id: string) {
-    const category = await this.prisma.providerBusinessCategory.findFirst({ where: { id, deletedAt: null } });
+    const category = await this.repository.findBusinessCategoryById(id);
     if (!category) throw new NotFoundException('Provider business category not found');
     return category;
   }
 
   private async toBusinessInfo(provider: Awaited<ReturnType<ProviderBusinessInfoService['getProvider']>>) {
     const category = provider.providerBusinessCategoryId
-      ? await this.prisma.providerBusinessCategory.findUnique({ where: { id: provider.providerBusinessCategoryId } })
+      ? await this.repository.findBusinessCategoryByIdIncludingInactive(provider.providerBusinessCategoryId)
       : null;
 
     return {

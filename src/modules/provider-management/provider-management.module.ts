@@ -6,6 +6,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { ProviderBusinessCategoriesController } from './provider-business-categories.controller';
+import { ProviderBusinessCategoriesRepository } from './provider-business-categories.repository';
 import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
 import { ProviderManagementController } from './provider-management.controller';
 import { ProviderManagementService } from './provider-management.service';
@@ -13,6 +14,6 @@ import { ProviderManagementService } from './provider-management.service';
 @Module({
   imports: [AuthModule, JwtModule.register({}), MailerModule],
   controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
-  providers: [ProviderManagementService, ProviderBusinessCategoriesService, PrismaService, AuditLogWriterService, AccountStatusService],
+  providers: [ProviderManagementService, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, PrismaService, AuditLogWriterService, AccountStatusService],
 })
 export class ProviderManagementModule {}

@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
+import { CustomerContactsRepository } from './customer-contacts.repository';
 import { CustomerContactsService } from './customer-contacts.service';
 
 const now = new Date('2026-05-08T10:00:00.000Z');
@@ -32,7 +33,8 @@ function createService(foundContact: typeof contact | null = contact) {
     },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
-  const service = new CustomerContactsService(prisma as unknown as ConstructorParameters<typeof CustomerContactsService>[0]);
+  const repository = new CustomerContactsRepository(prisma as unknown as ConstructorParameters<typeof CustomerContactsRepository>[0]);
+  const service = new CustomerContactsService(repository);
   return { service, prisma };
 }
 

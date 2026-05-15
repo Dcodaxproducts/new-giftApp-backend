@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { RefundPolicySettingsRepository } from './refund-policy-settings.repository';
 import { RefundPolicySettingsService } from './refund-policy-settings.service';
 
 const now = new Date('2026-05-14T10:00:00.000Z');
@@ -33,7 +34,8 @@ function createService() {
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const configService = { get: jest.fn((key: string, fallback?: string) => key === 'STRIPE_CURRENCY' ? 'PKR' : fallback) };
-  const service = new RefundPolicySettingsService(prisma as never, auditLog as never, configService as unknown as ConfigService);
+  const repository = new RefundPolicySettingsRepository(prisma as never);
+  const service = new RefundPolicySettingsService(repository, auditLog as never, configService as unknown as ConfigService);
   return { service, prisma, auditLog };
 }
 

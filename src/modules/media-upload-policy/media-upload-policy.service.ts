@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/com
 import { MediaUploadPolicy, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { MediaUploadPolicyRepository } from './media-upload-policy.repository';
 import { CreatePresignedUploadDto, UploadFolder } from '../storage/dto/create-presigned-upload.dto';
 import { ListMediaUploadPolicyAuditLogsDto, UpdateMediaUploadPolicyDto } from './dto/media-upload-policy.dto';
 
@@ -28,7 +28,7 @@ export class MediaUploadPolicyService {
     mp4: ['video/mp4'], mov: ['video/quicktime'], mp3: ['audio/mpeg'], wav: ['audio/wav', 'audio/x-wav'],
   };
 
-  constructor(private readonly prisma: PrismaService, private readonly auditLog: AuditLogWriterService) {}
+  constructor(private readonly repository: MediaUploadPolicyRepository, private readonly auditLog: AuditLogWriterService) {}
 
   async get() { return { data: this.toView(await this.getOrCreate()), message: 'Media upload policy fetched successfully.' }; }
 
@@ -37,7 +37,7 @@ export class MediaUploadPolicyService {
     const before = this.toView(current);
     const allowedFileTypes = this.sanitizeAllowedTypes(dto.allowedFileTypes as unknown as Record<string, boolean>, dto.blockSvgUploads);
     if (!allowedFileTypes.jpeg && !allowedFileTypes.jpg && !allowedFileTypes.png && !allowedFileTypes.gif && !allowedFileTypes.webp) throw new BadRequestException('At least one image file type must be enabled.');
-    const updated = await this.prisma.mediaUploadPolicy.update({ where: { id: current.id }, data: { allowedFileTypesJson: allowedFileTypes, maxImageSizeMb: dto.maxImageSizeMb, maxVideoSizeMb: dto.maxVideoSizeMb, maxAudioSizeMb: dto.maxAudioSizeMb, scanUploads: dto.scanUploads, blockSvgUploads: dto.blockSvgUploads, updatedById: user.uid }, include: { updatedBy: { select: { id: true, firstName: true, lastName: true } } } });
+    const updated = await this.repository.updatePolicy(current.id, { allowedFileTypesJson: allowedFileTypes, maxImageSizeMb: dto.maxImageSizeMb, maxVideoSizeMb: dto.maxVideoSizeMb, maxAudioSizeMb: dto.maxAudioSizeMb, scanUploads: dto.scanUploads, blockSvgUploads: dto.blockSvgUploads, updatedById: user.uid });
     const after = this.toView(updated);
     await this.auditLog.write({ actorId: user.uid, targetId: updated.id, targetType: 'MEDIA_UPLOAD_POLICY', action: 'MEDIA_UPLOAD_POLICY_UPDATED', beforeJson: before, afterJson: after, ipAddress, userAgent: this.normalizeUserAgent(userAgent) });
     return { data: { allowedFileTypes: after.allowedFileTypes, maxImageSizeMb: after.maxImageSizeMb, maxVideoSizeMb: after.maxVideoSizeMb, maxAudioSizeMb: after.maxAudioSizeMb }, message: 'Media upload policy updated successfully.' };
@@ -47,10 +47,7 @@ export class MediaUploadPolicyService {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 20, 100);
     const where: Prisma.AdminAuditLogWhereInput = { action: 'MEDIA_UPLOAD_POLICY_UPDATED', createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } };
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.adminAuditLog.findMany({ where, include: { actor: { select: { id: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
-      this.prisma.adminAuditLog.count({ where }),
-    ]);
+    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: `${item.actor.firstName} ${item.actor.lastName}`.trim() } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Media upload policy audit logs fetched successfully.' };
   }
 
@@ -78,9 +75,9 @@ export class MediaUploadPolicyService {
   }
 
   private async getOrCreate(): Promise<MediaUploadPolicy & { updatedBy?: { id: string; firstName: string; lastName: string } | null }> {
-    const existing = await this.prisma.mediaUploadPolicy.findFirst({ orderBy: { createdAt: 'asc' }, include: { updatedBy: { select: { id: true, firstName: true, lastName: true } } } });
+    const existing = await this.repository.findFirstPolicy();
     if (existing) return existing;
-    return this.prisma.mediaUploadPolicy.create({ data: { allowedFileTypesJson: this.defaultAllowedTypes(), maxImageSizeMb: 10, maxVideoSizeMb: 500, maxAudioSizeMb: 50, scanUploads: true, blockSvgUploads: true }, include: { updatedBy: { select: { id: true, firstName: true, lastName: true } } } });
+    return this.repository.createDefaultPolicy({ allowedFileTypesJson: this.defaultAllowedTypes(), maxImageSizeMb: 10, maxVideoSizeMb: 500, maxAudioSizeMb: 50, scanUploads: true, blockSvgUploads: true });
   }
 
   private toView(policy: MediaUploadPolicy & { updatedBy?: { id: string; firstName: string; lastName: string } | null }): PolicyView { const allowedFileTypes = this.allowedTypes(policy.allowedFileTypesJson); return { allowedFileTypes, maxImageSizeMb: policy.maxImageSizeMb, maxVideoSizeMb: policy.maxVideoSizeMb, maxAudioSizeMb: policy.maxAudioSizeMb, scanUploads: policy.scanUploads, blockSvgUploads: policy.blockSvgUploads, updatedAt: policy.updatedAt, updatedBy: policy.updatedBy ? { id: policy.updatedBy.id, name: `${policy.updatedBy.firstName} ${policy.updatedBy.lastName}`.trim() } : null }; }

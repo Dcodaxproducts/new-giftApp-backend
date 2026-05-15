@@ -3,6 +3,7 @@ import { join } from 'path';
 
 describe('Media upload policy source safety', () => {
   const service = readFileSync(join(__dirname, 'media-upload-policy.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'media-upload-policy.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'media-upload-policy.controller.ts'), 'utf8');
   const storage = readFileSync(join(__dirname, '../storage/storage.service.ts'), 'utf8');
   const storageDto = readFileSync(join(__dirname, '../storage/dto/create-presigned-upload.dto.ts'), 'utf8');
@@ -63,6 +64,6 @@ describe('Media upload policy source safety', () => {
     expect(service).toContain('MEDIA_UPLOAD_POLICY_UPDATED');
     expect(service).toContain('beforeJson: before');
     expect(service).toContain('afterJson: after');
-    expect(service).toContain('adminAuditLog.findMany');
+    expect(repository).toContain('adminAuditLog.findMany');
   });
 });

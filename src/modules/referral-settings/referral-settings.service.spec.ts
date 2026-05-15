@@ -3,6 +3,7 @@ import { join } from 'path';
 
 describe('Referral settings source safety', () => {
   const service = readFileSync(join(__dirname, 'referral-settings.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'referral-settings.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'referral-settings.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/referral-settings.dto.ts'), 'utf8');
   const referrals = readFileSync(join(__dirname, '../customer-referrals/customer-referrals.service.ts'), 'utf8');
@@ -69,6 +70,6 @@ describe('Referral settings source safety', () => {
     expect(service).toContain('REFERRAL_SETTINGS_UPDATED');
     expect(service).toContain('REFERRAL_PROGRAM_ACTIVATED');
     expect(service).toContain('REFERRAL_PROGRAM_DEACTIVATED');
-    expect(service).toContain('adminAuditLog.findMany');
+    expect(repository).toContain('adminAuditLog.findMany');
   });
 });

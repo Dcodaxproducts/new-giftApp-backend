@@ -4,11 +4,13 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ProviderFulfillmentMethodDto } from '../auth/dto/auth.dto';
 import { ProviderBusinessDayDto } from './dto/provider-business-info.dto';
+import { ProviderBusinessInfoRepository } from './provider-business-info.repository';
 import { ProviderBusinessInfoService } from './provider-business-info.service';
 
 describe('Provider business info source safety', () => {
   const controller = readFileSync(join(__dirname, 'provider-business-info.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, 'provider-business-info.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-business-info.repository.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-business-info.dto.ts'), 'utf8');
 
   it('exposes provider-only business info endpoints without duplicate profile routes', () => {
@@ -20,8 +22,8 @@ describe('Provider business info source safety', () => {
   });
 
   it('updates own provider only and blocks status self-approval fields', () => {
-    expect(service).toContain('where: { id, role: UserRole.PROVIDER');
-    expect(service).toContain('where: { id: user.uid }');
+    expect(repository).toContain('where: { id, role: UserRole.PROVIDER');
+    expect(repository).toContain('where: { id }');
     expect(dto).not.toContain('approvalStatus');
     expect(dto).not.toContain('isActive');
     expect(service).not.toContain('providerApprovalStatus: dto.approvalStatus');
@@ -76,7 +78,8 @@ function createBusinessInfoService(overrides: Record<string, unknown> = {}) {
     adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit_1' }) },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
   };
-  return { service: new ProviderBusinessInfoService(prisma as unknown as ConstructorParameters<typeof ProviderBusinessInfoService>[0]), prisma };
+  const repository = new ProviderBusinessInfoRepository(prisma as unknown as ConstructorParameters<typeof ProviderBusinessInfoRepository>[0]);
+  return { service: new ProviderBusinessInfoService(repository), prisma };
 }
 
 describe('ProviderBusinessInfoService mobile profile fields', () => {

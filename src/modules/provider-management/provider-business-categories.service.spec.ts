@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { UserRole } from '@prisma/client';
+import { ProviderBusinessCategoriesRepository } from './provider-business-categories.repository';
 import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
 
 function createService() {
@@ -10,7 +11,8 @@ function createService() {
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  const service = new ProviderBusinessCategoriesService(prisma as unknown as ConstructorParameters<typeof ProviderBusinessCategoriesService>[0], auditLog as unknown as ConstructorParameters<typeof ProviderBusinessCategoriesService>[1]);
+  const repository = new ProviderBusinessCategoriesRepository(prisma as unknown as ConstructorParameters<typeof ProviderBusinessCategoriesRepository>[0]);
+  const service = new ProviderBusinessCategoriesService(repository, auditLog as unknown as ConstructorParameters<typeof ProviderBusinessCategoriesService>[1]);
   return { service, prisma, auditLog, category };
 }
 
