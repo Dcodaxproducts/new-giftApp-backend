@@ -3,6 +3,8 @@ import { join } from 'path';
 
 describe('Customer referrals and rewards source safety', () => {
   const serviceSource = readFileSync(join(__dirname, 'customer-referrals.service.ts'), 'utf8');
+  const referralsRepositorySource = readFileSync(join(__dirname, 'customer-referrals.repository.ts'), 'utf8');
+  const rewardsRepositorySource = readFileSync(join(__dirname, 'customer-rewards.repository.ts'), 'utf8');
   const controllerSource = readFileSync(join(__dirname, 'customer-referrals.controller.ts'), 'utf8');
   const authDtoSource = readFileSync(join(__dirname, '../auth/dto/auth.dto.ts'), 'utf8');
   const authServiceSource = readFileSync(join(__dirname, '../auth/auth.service.ts'), 'utf8');
@@ -37,6 +39,28 @@ describe('Customer referrals and rewards source safety', () => {
     expect(linkSource).not.toContain('/share/${user.uid}');
   });
 
+
+  it('repository owns Prisma access and referral link generation remains unchanged', () => {
+    expect(serviceSource).toContain('referralsRepository.findReferralSummaryForUser');
+    expect(serviceSource).toContain('rewardsRepository.createRewardRedemption');
+    expect(serviceSource).toContain('referralsRepository.findOrCreateReferralCode');
+    expect(referralsRepositorySource).toContain('prisma.referral.findMany');
+    expect(referralsRepositorySource).toContain('prisma.user.update');
+    expect(rewardsRepositorySource).toContain('prisma.rewardLedger.create');
+    expect(rewardsRepositorySource).toContain('prisma.rewardLedger.findMany');
+  });
+
+  it('customer can fetch own referral summary and reward balance remains ledger-derived', () => {
+    expect(serviceSource).toContain('summary(user: AuthUserContext)');
+    expect(serviceSource).toContain('availableCredit(ledger)');
+    expect(serviceSource).toContain('rewardBalance(user.uid)');
+  });
+
+  it('history is customer-scoped and redeem cannot exceed available balance', () => {
+    expect(serviceSource).toContain('const where: Prisma.ReferralWhereInput = { referrerUserId: user.uid }');
+    expect(serviceSource).toContain('if (amount > balance.availableCredit)');
+  });
+
   it('signup accepts referralCode, blocks invalid codes, and records joined referrals only after registration', () => {
     expect(authDtoSource).toContain('referralCode?: string');
     expect(authServiceSource).toContain('assertValidReferralCode(dto.referralCode)');
@@ -57,8 +81,8 @@ describe('Customer referrals and rewards source safety', () => {
   });
 
   it('customer history and ledger queries are scoped to the authenticated owner', () => {
-    expect(serviceSource).toContain('where: { referrerUserId: user.uid }');
-    expect(serviceSource).toContain('where: { userId: user.uid }');
+    expect(serviceSource).toContain('const where: Prisma.ReferralWhereInput = { referrerUserId: user.uid }');
+    expect(rewardsRepositorySource).toContain('findRewardLedgerForUser');
     expect(serviceSource).not.toContain('referrerUserId: query.userId');
   });
 
@@ -67,6 +91,7 @@ describe('Customer referrals and rewards source safety', () => {
     expect(redeemSource).toContain('if (amount > balance.availableCredit)');
     expect(redeemSource).toContain('Insufficient reward credit');
     expect(redeemSource).toContain('type: RewardLedgerType.REDEEMED');
+    expect(redeemSource).toContain('creditRewardRedemption(user.uid, entry)');
     expect(redeemSource).toContain('Reward redeemed');
   });
 });
