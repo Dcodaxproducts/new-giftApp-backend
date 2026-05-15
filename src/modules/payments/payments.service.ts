@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
-import { CartStatus, MoneyGiftStatus, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
+import { MoneyGiftStatus, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { MoneyGiftsRepository } from './money-gifts.repository';
+import { StripeWebhookEventsRepository } from './stripe-webhook-events.repository';
 import { CustomerReferralsService } from '../customer-referrals/customer-referrals.service';
 import { CustomerWalletService } from '../customer-wallet/customer-wallet.service';
 import { CustomerSubscriptionsService } from '../customer-subscriptions/customer-subscriptions.service';
@@ -38,11 +39,12 @@ export class PaymentsService {
   private stripeClient?: InstanceType<typeof Stripe>;
 
   constructor(
-    private readonly prisma: PrismaService,
     private readonly customerReferralsService: CustomerReferralsService,
     private readonly customerWalletService: CustomerWalletService,
     private readonly customerSubscriptionsService: CustomerSubscriptionsService,
     private readonly repository: PaymentsRepository,
+    private readonly moneyGiftsRepository: MoneyGiftsRepository,
+    private readonly stripeWebhookEventsRepository: StripeWebhookEventsRepository,
   ) {}
 
   paymentMethods() {
@@ -61,7 +63,7 @@ export class PaymentsService {
     if (cart.items.length === 0) throw new BadRequestException('Cart is empty');
     const summary = this.cartSummary(cart.items);
     const provider = dto.paymentMethod === PaymentMethod.STRIPE_CARD ? PaymentProvider.STRIPE : PaymentProvider.MANUAL;
-    const payment = await this.prisma.payment.create({ data: { userId: user.uid, provider, amount: new Prisma.Decimal(summary.total), currency: summary.currency, status: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod, metadataJson: { cartId: cart.id, summary } } });
+    const payment = await this.repository.createPayment({ userId: user.uid, provider, amount: new Prisma.Decimal(summary.total), currency: summary.currency, status: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod, metadataJson: { cartId: cart.id, summary } });
 
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) {
       return { data: this.toPaymentResponse(payment), message: 'Payment intent created successfully.' };
@@ -73,7 +75,7 @@ export class PaymentsService {
       automatic_payment_methods: { enabled: true },
       metadata: { paymentId: payment.id, cartId: cart.id, userId: user.uid },
     });
-    const updated = await this.prisma.payment.update({ where: { id: payment.id }, data: { providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { cartId: cart.id, summary, stripeStatus: intent.status } } });
+    const updated = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { cartId: cart.id, summary, stripeStatus: intent.status } });
     return { data: { ...this.toPaymentResponse(updated), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey(), amount: this.toSmallestUnit(summary.total, summary.currency), currency: summary.currency }, message: 'Payment intent created successfully.' };
   }
 
@@ -82,7 +84,7 @@ export class PaymentsService {
     if (payment.providerPaymentIntentId !== dto.stripePaymentIntentId) throw new BadRequestException('Stripe PaymentIntent does not match payment');
     const intent = await this.stripe().paymentIntents.retrieve(dto.stripePaymentIntentId) as StripeIntentLike;
     const status = this.statusFromStripe(intent.status);
-    const updated = await this.prisma.payment.update({ where: { id: payment.id }, data: { status, failureReason: intent.last_payment_error?.message ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status }) } });
+    const updated = await this.repository.updatePaymentConfirmation({ id: payment.id, status, failureReason: intent.last_payment_error?.message ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status }) });
     if (status === PaymentStatus.SUCCEEDED) {
       await this.customerWalletService.creditWalletTopUp(updated);
       await this.customerReferralsService.awardReferralForFirstEligiblePurchase(user.uid, payment.id, Number(updated.amount));
@@ -146,39 +148,39 @@ export class PaymentsService {
   async createMoneyGift(user: AuthUserContext, dto: CreateMoneyGiftDto) {
     const currency = this.currency(dto.currency);
     if (currency !== this.currency()) throw new BadRequestException('Currency does not match configured payment currency');
-    const contact = await this.prisma.customerContact.findFirst({ where: { id: dto.recipientContactId, userId: user.uid, deletedAt: null } });
+    const contact = await this.moneyGiftsRepository.findOwnedRecipientContact(user.uid, dto.recipientContactId);
     if (!contact) throw new NotFoundException('Contact not found');
     const provider = dto.paymentMethod === PaymentMethod.STRIPE_CARD ? PaymentProvider.STRIPE : PaymentProvider.MANUAL;
-    const moneyGift = await this.prisma.moneyGift.create({ data: { userId: user.uid, recipientContactId: contact.id, amount: new Prisma.Decimal(dto.amount), currency, message: dto.message?.trim(), messageMediaUrlsJson: dto.messageMediaUrls ?? [], deliveryDate: new Date(dto.deliveryDate), repeatAnnually: dto.repeatAnnually ?? false, status: MoneyGiftStatus.PAYMENT_PENDING } });
-    const payment = await this.prisma.payment.create({ data: { userId: user.uid, moneyGiftId: moneyGift.id, provider, amount: new Prisma.Decimal(dto.amount), currency, status: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod, metadataJson: { moneyGiftId: moneyGift.id } } });
-    await this.prisma.moneyGift.update({ where: { id: moneyGift.id }, data: { paymentId: payment.id } });
+    const moneyGift = await this.moneyGiftsRepository.createMoneyGift({ userId: user.uid, recipientContactId: contact.id, amount: new Prisma.Decimal(dto.amount), currency, message: dto.message?.trim() ?? null, messageMediaUrlsJson: dto.messageMediaUrls ?? [], deliveryDate: new Date(dto.deliveryDate), repeatAnnually: dto.repeatAnnually ?? false });
+    const payment = await this.repository.createPayment({ userId: user.uid, moneyGiftId: moneyGift.id, provider, amount: new Prisma.Decimal(dto.amount), currency, status: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod, metadataJson: { moneyGiftId: moneyGift.id } });
+    await this.moneyGiftsRepository.attachPaymentToMoneyGift(moneyGift.id, payment.id);
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) {
       return { data: { ...this.toMoneyGift(moneyGift), payment: this.toPaymentResponse(payment) }, message: 'Money gift created successfully.' };
     }
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(dto.amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true }, metadata: { paymentId: payment.id, moneyGiftId: moneyGift.id, userId: user.uid } });
-    const updatedPayment = await this.prisma.payment.update({ where: { id: payment.id }, data: { providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { moneyGiftId: moneyGift.id, stripeStatus: intent.status } } });
+    const updatedPayment = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { moneyGiftId: moneyGift.id, stripeStatus: intent.status } });
     return { data: { ...this.toMoneyGift(moneyGift), payment: { ...this.toPaymentResponse(updatedPayment), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey(), amount: this.toSmallestUnit(dto.amount, currency), currency } }, message: 'Money gift created successfully.' };
   }
 
   async moneyGifts(user: AuthUserContext) {
-    const items = await this.prisma.moneyGift.findMany({ where: { userId: user.uid }, include: { recipientContact: true }, orderBy: { createdAt: 'desc' } });
+    const items = await this.moneyGiftsRepository.findMoneyGiftsByUserId(user.uid);
     return { data: items.map((item) => this.toMoneyGift(item)), message: 'Money gifts fetched successfully.' };
   }
 
   async moneyGiftDetails(user: AuthUserContext, id: string) {
-    const item = await this.prisma.moneyGift.findFirst({ where: { id, userId: user.uid }, include: { recipientContact: true } });
+    const item = await this.moneyGiftsRepository.findOwnedMoneyGift(user.uid, id);
     if (!item) throw new NotFoundException('Money gift not found');
     return { data: this.toMoneyGift(item), message: 'Money gift fetched successfully.' };
   }
 
   private async getOwnedCart(userId: string, cartId: string): Promise<CartWithItems> {
-    const cart = await this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: true } });
+    const cart = await this.repository.findOwnedActiveCartWithItems(userId, cartId);
     if (!cart) throw new NotFoundException('Active cart not found');
     return cart;
   }
 
   private async getOwnedPayment(userId: string, id: string): Promise<Payment> {
-    const payment = await this.prisma.payment.findFirst({ where: { id, userId } });
+    const payment = await this.repository.findOwnedPayment(userId, id);
     if (!payment) throw new NotFoundException('Payment not found');
     return payment;
   }
@@ -198,14 +200,14 @@ export class PaymentsService {
   }
 
   private async updateFromStripeIntent(intent: StripeIntentLike, status: PaymentStatus, failureReason?: string) {
-    const payment = await this.prisma.payment.findUnique({ where: { providerPaymentIntentId: intent.id } });
+    const payment = await this.stripeWebhookEventsRepository.findPaymentByProviderIntentId(intent.id);
     if (!payment) return;
     const finalStatuses: PaymentStatus[] = [PaymentStatus.SUCCEEDED, PaymentStatus.FAILED, PaymentStatus.CANCELLED];
     if (finalStatuses.includes(payment.status) && payment.status === status) return;
-    const updated = await this.prisma.payment.update({ where: { id: payment.id }, data: { status, failureReason, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status, webhookPaymentIntentId: intent.id }) } });
+    const updated = await this.stripeWebhookEventsRepository.updatePaymentStatus({ id: payment.id, status, failureReason: failureReason ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status, webhookPaymentIntentId: intent.id }) });
     if (updated.moneyGiftId && status === PaymentStatus.SUCCEEDED) {
-      const deliveryDate = await this.prisma.moneyGift.findUnique({ where: { id: updated.moneyGiftId }, select: { deliveryDate: true } });
-      await this.prisma.moneyGift.update({ where: { id: updated.moneyGiftId }, data: { status: deliveryDate && deliveryDate.deliveryDate > new Date() ? MoneyGiftStatus.SCHEDULED : MoneyGiftStatus.SENT } });
+      const deliveryDate = await this.stripeWebhookEventsRepository.findMoneyGiftDeliveryDate(updated.moneyGiftId);
+      await this.stripeWebhookEventsRepository.updateMoneyGiftStatus(updated.moneyGiftId, deliveryDate && deliveryDate.deliveryDate > new Date() ? MoneyGiftStatus.SCHEDULED : MoneyGiftStatus.SENT);
       await this.notify(updated.userId, 'Money gift paid', 'Your money gift payment was completed.', 'MONEY_GIFT_SENT', { paymentId: updated.id, moneyGiftId: updated.moneyGiftId });
     }
     if (status === PaymentStatus.SUCCEEDED) {
@@ -257,5 +259,5 @@ export class PaymentsService {
   private toSavedPaymentMethod(item: { stripePaymentMethodId: string; type: string; brand: string | null; last4: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean }) { return { id: item.stripePaymentMethodId, type: item.type, brand: item.brand, last4: item.last4, expiryMonth: item.expiryMonth, expiryYear: item.expiryYear, isDefault: item.isDefault }; }
   private toPaymentResponse(payment: Payment) { return { paymentId: payment.id, provider: payment.provider, stripePaymentIntentId: payment.providerPaymentIntentId, amount: Number(payment.amount), currency: payment.currency, status: payment.status, paymentMethod: payment.paymentMethod, failureReason: payment.failureReason, createdAt: payment.createdAt, updatedAt: payment.updatedAt }; }
   private toMoneyGift(item: { id: string; amount: Prisma.Decimal; currency: string; recipientContactId: string; message: string | null; messageMediaUrlsJson: Prisma.JsonValue; deliveryDate: Date; repeatAnnually: boolean; status: MoneyGiftStatus; createdAt: Date; updatedAt: Date; recipientContact?: { name: string; phone: string | null; email: string | null; avatarUrl: string | null } }) { return { id: item.id, amount: Number(item.amount), currency: item.currency, recipientContactId: item.recipientContactId, recipient: item.recipientContact ? { name: item.recipientContact.name, phone: item.recipientContact.phone, email: item.recipientContact.email, avatarUrl: item.recipientContact.avatarUrl } : undefined, message: item.message, messageMediaUrls: Array.isArray(item.messageMediaUrlsJson) ? item.messageMediaUrlsJson.filter((value): value is string => typeof value === 'string') : [], deliveryDate: item.deliveryDate, repeatAnnually: item.repeatAnnually, status: item.status, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
-  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.prisma.notification.create({ data: { recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: metadata } }); }
+  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.repository.createNotification(recipientId, title, message, type, metadata); }
 }

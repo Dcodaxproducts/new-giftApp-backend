@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { CartStatus, NotificationRecipientType, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -51,5 +51,29 @@ export class PaymentsRepository {
 
   upsertSavedPaymentMethod(params: { stripePaymentMethodId: string; update: Prisma.CustomerPaymentMethodUpdateInput; create: Prisma.CustomerPaymentMethodUncheckedCreateInput }) {
     return this.prisma.customerPaymentMethod.upsert({ where: { stripePaymentMethodId: params.stripePaymentMethodId }, update: params.update, create: params.create });
+  }
+
+  findOwnedActiveCartWithItems(userId: string, cartId: string) {
+    return this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: true } });
+  }
+
+  createPayment(params: { userId: string; provider: PaymentProvider; amount: Prisma.Decimal; currency: string; status: PaymentStatus; paymentMethod: string; metadataJson: Prisma.InputJsonObject; moneyGiftId?: string }) {
+    return this.prisma.payment.create({ data: { userId: params.userId, provider: params.provider, amount: params.amount, currency: params.currency, status: params.status, paymentMethod: params.paymentMethod as never, metadataJson: params.metadataJson, ...(params.moneyGiftId ? { moneyGiftId: params.moneyGiftId } : {}) } });
+  }
+
+  updatePaymentIntent(params: { id: string; providerPaymentIntentId: string; status: PaymentStatus; metadataJson: Prisma.InputJsonObject }) {
+    return this.prisma.payment.update({ where: { id: params.id }, data: { providerPaymentIntentId: params.providerPaymentIntentId, status: params.status, metadataJson: params.metadataJson } });
+  }
+
+  findOwnedPayment(userId: string, id: string) {
+    return this.prisma.payment.findFirst({ where: { id, userId } });
+  }
+
+  updatePaymentConfirmation(params: { id: string; status: PaymentStatus; failureReason: string | null; metadataJson: Prisma.InputJsonObject }) {
+    return this.prisma.payment.update({ where: { id: params.id }, data: { status: params.status, failureReason: params.failureReason, metadataJson: params.metadataJson } });
+  }
+
+  createNotification(recipientId: string, title: string, message: string, type: string, metadataJson: Prisma.InputJsonObject) {
+    return this.prisma.notification.create({ data: { recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson } });
   }
 }

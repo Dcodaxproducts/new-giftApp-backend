@@ -2,8 +2,10 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { MoneyGiftsRepository } from './money-gifts.repository';
 import { PaymentsRepository } from './payments.repository';
 import { PaymentsService } from './payments.service';
+import { StripeWebhookEventsRepository } from './stripe-webhook-events.repository';
 
 const savedMethod = { id: 'saved_1', userId: 'customer_1', stripeCustomerId: 'cus_1', stripePaymentMethodId: 'pm_card_visa', type: 'CARD', brand: 'visa', last4: '4242', expiryMonth: 9, expiryYear: 2028, isDefault: true, deletedAt: null, createdAt: new Date(), updatedAt: new Date() };
 const dbUser = { id: 'customer_1', email: 'customer@example.com', firstName: 'Jane', lastName: 'Doe' };
@@ -27,15 +29,19 @@ function createService(overrides: Partial<{ method: unknown; activeRecurring: nu
     $transaction: jest.fn().mockImplementation((items: Promise<unknown>[]) => Promise.all(items)),
   };
   const repository = new PaymentsRepository(prisma as unknown as ConstructorParameters<typeof PaymentsRepository>[0]);
+  const moneyGiftsRepository = new MoneyGiftsRepository(prisma as unknown as ConstructorParameters<typeof MoneyGiftsRepository>[0]);
+  const stripeWebhookEventsRepository = new StripeWebhookEventsRepository(prisma as unknown as ConstructorParameters<typeof StripeWebhookEventsRepository>[0]);
   const referrals = { awardReferralForFirstEligiblePurchase: jest.fn() };
   const wallet = { creditWalletTopUp: jest.fn(), failWalletTopUp: jest.fn() };
   const subscriptions = { handleStripeSubscriptionEvent: jest.fn() };
-  return { service: new PaymentsService(prisma as never, referrals as never, wallet as never, subscriptions as never, repository), prisma };
+  return { service: new PaymentsService(referrals as never, wallet as never, subscriptions as never, repository, moneyGiftsRepository, stripeWebhookEventsRepository), prisma };
 }
 
 describe('Payments source safety', () => {
   const serviceSource = readFileSync(join(__dirname, 'payments.service.ts'), 'utf8');
   const repositorySource = readFileSync(join(__dirname, 'payments.repository.ts'), 'utf8');
+  const moneyGiftsRepositorySource = readFileSync(join(__dirname, 'money-gifts.repository.ts'), 'utf8');
+  const stripeWebhookEventsRepositorySource = readFileSync(join(__dirname, 'stripe-webhook-events.repository.ts'), 'utf8');
   const controllerSource = readFileSync(join(__dirname, 'payments.controller.ts'), 'utf8');
   const schemaSource = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
 
@@ -48,6 +54,7 @@ describe('Payments source safety', () => {
 
   it('Stripe webhook verifies signature and handles success/failure/cancel events', () => {
     expect(serviceSource).toContain('webhooks.constructEvent(rawBody, signature, secret)');
+    expect(stripeWebhookEventsRepositorySource).toContain('findPaymentByProviderIntentId');
     expect(serviceSource).toContain('payment_intent.succeeded');
     expect(serviceSource).toContain('payment_intent.payment_failed');
     expect(serviceSource).toContain('payment_intent.canceled');
@@ -59,7 +66,8 @@ describe('Payments source safety', () => {
   it('money gift creates Stripe payment intent and requires own recipient contact', () => {
     expect(serviceSource).toContain('createMoneyGift');
     expect(serviceSource).toContain('recipientContactId: contact.id');
-    expect(serviceSource).toContain('userId: user.uid, deletedAt: null');
+    expect(moneyGiftsRepositorySource).toContain('findOwnedRecipientContact');
+    expect(moneyGiftsRepositorySource).toContain('userId, deletedAt: null');
     expect(serviceSource).toContain('moneyGiftId: moneyGift.id');
   });
 
@@ -85,6 +93,8 @@ describe('Payments source safety', () => {
     expect(controllerSource).toContain("@Delete(':id')");
     expect(controllerSource).toContain("@Patch(':id/default')");
     expect(repositorySource).toContain('findSavedPaymentMethodsByUserId');
+    expect(repositorySource).toContain('findOwnedActiveCartWithItems');
+    expect(repositorySource).toContain('createPayment');
     expect(repositorySource).toContain('findSavedPaymentMethodForUser');
     expect(repositorySource).toContain('findActiveRecurringUsageByPaymentMethod');
     expect(repositorySource).toContain('deleteSavedPaymentMethod');
