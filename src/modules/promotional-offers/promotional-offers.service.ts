@@ -2,17 +2,19 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Gift, Prisma, PromotionalOffer, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
+import { OfferWithRelations, PromotionalOffersRepository, promotionalOfferInclude } from './promotional-offers.repository';
+import { ProviderOffersRepository } from './provider-offers.repository';
 import { ApproveOfferDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, RejectOfferDto, SortOrder, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from './dto/promotional-offers.dto';
 
-type OfferWithRelations = PromotionalOffer & {
-  item: Pick<Gift, 'id' | 'name' | 'imageUrls' | 'price' | 'currency' | 'status' | 'moderationStatus'>;
-  provider: { id: string; email: string; providerBusinessName: string | null; firstName: string; lastName: string };
-};
+;
 
 @Injectable()
 export class PromotionalOffersService {
-  constructor(private readonly prisma: PrismaService, private readonly auditLog: AuditLogWriterService) {}
+  constructor(
+    private readonly promotionalOffersRepository: PromotionalOffersRepository,
+    private readonly providerOffersRepository: ProviderOffersRepository,
+    private readonly auditLog: AuditLogWriterService,
+  ) {}
 
   async listProvider(user: AuthUserContext, query: ListProviderOffersDto) {
     return this.list({ ...query, providerId: user.uid });
@@ -23,8 +25,7 @@ export class PromotionalOffersService {
     this.validateDiscount(dto.discountType, dto.discountValue, Number(item.price));
     this.validateDates(dto.startDate, dto.endDate);
     const approvalStatus = PromotionalOfferApprovalStatus.PENDING;
-    const offer = await this.prisma.promotionalOffer.create({
-      data: {
+    const offer = await this.providerOffersRepository.createProviderOffer( {
         providerId: user.uid,
         itemId: item.id,
         title: dto.title.trim(),
@@ -38,9 +39,7 @@ export class PromotionalOffersService {
         approvalStatus,
         status: this.computeStatus(dto.isActive ?? true, approvalStatus, new Date(dto.startDate), dto.endDate ? new Date(dto.endDate) : null),
         createdBy: user.uid,
-      },
-      include: this.include(),
-    });
+      });
     await this.audit(user.uid, offer.id, 'PROVIDER_PROMOTIONAL_OFFER_CREATED', undefined, this.toDetail(offer));
     return { data: this.toDetail(offer), message: 'Promotional offer created successfully' };
   }
@@ -73,8 +72,7 @@ export class PromotionalOffersService {
     this.validateDiscount(dto.discountType, dto.discountValue, Number(item.price));
     this.validateDates(dto.startDate, dto.endDate);
     const approvalStatus = dto.approvalStatus ?? PromotionalOfferApprovalStatus.APPROVED;
-    const offer = await this.prisma.promotionalOffer.create({
-      data: {
+    const offer = await this.promotionalOffersRepository.createOffer( {
         providerId: dto.providerId,
         itemId: item.id,
         title: dto.title.trim(),
@@ -90,9 +88,7 @@ export class PromotionalOffersService {
         approvedAt: approvalStatus === PromotionalOfferApprovalStatus.APPROVED ? new Date() : null,
         approvedBy: approvalStatus === PromotionalOfferApprovalStatus.APPROVED ? user.uid : null,
         createdBy: user.uid,
-      },
-      include: this.include(),
-    });
+      });
     await this.audit(user.uid, offer.id, 'ADMIN_PROMOTIONAL_OFFER_CREATED', undefined, this.toDetail(offer));
     return { data: this.toDetail(offer), message: 'Promotional offer created successfully' };
   }
@@ -104,14 +100,14 @@ export class PromotionalOffersService {
 
   async approve(user: AuthUserContext, id: string, dto: ApproveOfferDto) {
     const offer = await this.getOffer(id);
-    const updated = await this.prisma.promotionalOffer.update({ where: { id }, data: { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, status: this.computeStatus(offer.isActive, PromotionalOfferApprovalStatus.APPROVED, offer.startDate, offer.endDate), updatedBy: user.uid }, include: this.include() });
+    const updated = await this.promotionalOffersRepository.approveOffer(id, { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, status: this.computeStatus(offer.isActive, PromotionalOfferApprovalStatus.APPROVED, offer.startDate, offer.endDate), updatedBy: user.uid });
     await this.audit(user.uid, id, 'PROMOTIONAL_OFFER_APPROVED', { ...this.toDetail(offer), comment: dto.comment, notifyProvider: dto.notifyProvider }, this.toDetail(updated));
     return { data: this.toDetail(updated), message: 'Promotional offer approved successfully' };
   }
 
   async reject(user: AuthUserContext, id: string, dto: RejectOfferDto) {
     const offer = await this.getOffer(id);
-    const updated = await this.prisma.promotionalOffer.update({ where: { id }, data: { approvalStatus: PromotionalOfferApprovalStatus.REJECTED, rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment, status: PromotionalOfferStatus.REJECTED, updatedBy: user.uid }, include: this.include() });
+    const updated = await this.promotionalOffersRepository.rejectOffer(id, { approvalStatus: PromotionalOfferApprovalStatus.REJECTED, rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment, status: PromotionalOfferStatus.REJECTED, updatedBy: user.uid });
     await this.audit(user.uid, id, 'PROMOTIONAL_OFFER_REJECTED', this.toDetail(offer), { ...this.toDetail(updated), notifyProvider: dto.notifyProvider });
     return { data: this.toDetail(updated), message: 'Promotional offer rejected successfully' };
   }
@@ -128,20 +124,12 @@ export class PromotionalOffersService {
 
   async stats() {
     const now = new Date();
-    const base = { deletedAt: null };
-    const [totalOffers, activeOffers, scheduledOffers, pendingApproval, expiredOffers, rejectedOffers] = await this.prisma.$transaction([
-      this.prisma.promotionalOffer.count({ where: base }),
-      this.prisma.promotionalOffer.count({ where: { ...base, isActive: true, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gt: now } }] } }),
-      this.prisma.promotionalOffer.count({ where: { ...base, isActive: true, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, startDate: { gt: now } } }),
-      this.prisma.promotionalOffer.count({ where: { ...base, approvalStatus: PromotionalOfferApprovalStatus.PENDING } }),
-      this.prisma.promotionalOffer.count({ where: { ...base, endDate: { lte: now } } }),
-      this.prisma.promotionalOffer.count({ where: { ...base, approvalStatus: PromotionalOfferApprovalStatus.REJECTED } }),
-    ]);
+    const { totalOffers, activeOffers, scheduledOffers, pendingApproval, expiredOffers, rejectedOffers } = await this.promotionalOffersRepository.countOfferStats(now);
     return { data: { totalOffers, activeOffers, scheduledOffers, pendingApproval, expiredOffers, rejectedOffers }, message: 'Promotional offer stats fetched successfully' };
   }
 
   async export(user: AuthUserContext, query: ListPromotionalOffersDto) {
-    const items = await this.prisma.promotionalOffer.findMany({ where: this.where(query), include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), take: 10000 });
+    const items = await this.promotionalOffersRepository.findManyOffers({ where: this.where(query), include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), take: 10000 });
     const rows = [['ID', 'Title', 'Provider', 'Item', 'Discount Type', 'Discount Value', 'Status', 'Approval', 'Start Date', 'End Date'], ...items.map((offer) => [offer.id, offer.title, this.providerName(offer.provider), offer.item.name, offer.discountType, offer.discountValue.toString(), this.computeOfferStatus(offer), offer.approvalStatus, offer.startDate.toISOString(), offer.endDate?.toISOString() ?? ''])];
     await this.audit(user.uid, null, 'PROMOTIONAL_OFFERS_EXPORTED', undefined, { filters: query, count: items.length });
     return { content: rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n'), filename: 'promotional-offers.csv', contentType: 'text/csv' };
@@ -151,10 +139,9 @@ export class PromotionalOffersService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where = this.where(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.promotionalOffer.findMany({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.promotionalOffer.count({ where }),
-    ]);
+    const [items, total] = 'providerId' in query && query.providerId
+      ? await this.providerOffersRepository.findProviderOffersAndCount({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit })
+      : await this.promotionalOffersRepository.findOffersAndCount({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((offer) => this.toListItem(offer)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Promotional offers fetched successfully' };
   }
 
@@ -200,32 +187,45 @@ export class PromotionalOffersService {
     this.validateDates(startDate.toISOString(), endDate?.toISOString());
     const materialChanged = this.materialChanged(dto);
     const approvalStatus = resetApprovalOnMaterialChange && materialChanged && offer.approvalStatus === PromotionalOfferApprovalStatus.APPROVED ? PromotionalOfferApprovalStatus.PENDING : offer.approvalStatus;
-    const updated = await this.prisma.promotionalOffer.update({ where: { id: offer.id }, data: { title: dto.title?.trim(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue), startDate: dto.startDate ? new Date(dto.startDate) : undefined, endDate: dto.endDate ? new Date(dto.endDate) : undefined, eligibilityRules: dto.eligibilityRules?.trim(), isActive: dto.isActive, approvalStatus, approvedAt: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedAt, approvedBy: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedBy, status: this.computeStatus(dto.isActive ?? offer.isActive, approvalStatus, startDate, endDate), updatedBy: actorId }, include: this.include() });
+    const updated = await this.updateOfferRecord(offer, { title: dto.title?.trim(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue), startDate: dto.startDate ? new Date(dto.startDate) : undefined, endDate: dto.endDate ? new Date(dto.endDate) : undefined, eligibilityRules: dto.eligibilityRules?.trim(), isActive: dto.isActive, approvalStatus, approvedAt: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedAt, approvedBy: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedBy, status: this.computeStatus(dto.isActive ?? offer.isActive, approvalStatus, startDate, endDate), updatedBy: actorId });
     await this.audit(actorId, offer.id, action, this.toDetail(offer), this.toDetail(updated));
     return { data: this.toDetail(updated), message: 'Promotional offer updated successfully' };
   }
 
   private async updateStatus(actorId: string, offer: OfferWithRelations, dto: UpdateOfferStatusDto, action: string) {
     if (dto.isActive && offer.approvalStatus !== PromotionalOfferApprovalStatus.APPROVED) throw new BadRequestException('Offer cannot be active until approved');
-    const updated = await this.prisma.promotionalOffer.update({ where: { id: offer.id }, data: { isActive: dto.isActive, status: this.computeStatus(dto.isActive, offer.approvalStatus, offer.startDate, offer.endDate), updatedBy: actorId }, include: this.include() });
+    const updated = await this.updateOfferStatusRecord(offer, { isActive: dto.isActive, status: this.computeStatus(dto.isActive, offer.approvalStatus, offer.startDate, offer.endDate), updatedBy: actorId });
     await this.audit(actorId, offer.id, action, { ...this.toDetail(offer), reason: dto.reason }, this.toDetail(updated));
     return { data: this.toDetail(updated), message: 'Promotional offer status updated successfully' };
   }
 
   private async deleteOffer(actorId: string, offer: OfferWithRelations, action: string) {
-    await this.prisma.promotionalOffer.delete({ where: { id: offer.id } });
+    await this.deleteOfferRecord(offer);
     await this.audit(actorId, offer.id, action, this.toDetail(offer), null);
     return { data: null, message: 'Promotional offer deleted successfully' };
   }
 
+
+  private updateOfferRecord(offer: OfferWithRelations, data: Prisma.PromotionalOfferUncheckedUpdateInput) {
+    return offer.providerId ? this.providerOffersRepository.updateProviderOffer(offer.id, data) : this.promotionalOffersRepository.updateOffer(offer.id, data);
+  }
+
+  private updateOfferStatusRecord(offer: OfferWithRelations, data: Prisma.PromotionalOfferUncheckedUpdateInput) {
+    return offer.providerId ? this.providerOffersRepository.updateProviderOfferStatus(offer.id, data) : this.promotionalOffersRepository.updateOfferStatus(offer.id, data);
+  }
+
+  private deleteOfferRecord(offer: OfferWithRelations) {
+    return offer.providerId ? this.providerOffersRepository.deleteProviderOffer(offer.id) : this.promotionalOffersRepository.deleteOffer(offer.id);
+  }
+
   private async getOffer(id: string, providerId?: string): Promise<OfferWithRelations> {
-    const offer = await this.prisma.promotionalOffer.findFirst({ where: { id, providerId, deletedAt: null }, include: this.include() });
+    const offer = providerId ? await this.providerOffersRepository.findProviderOfferById(providerId, id) : await this.promotionalOffersRepository.findOfferById(id);
     if (!offer) throw new NotFoundException('Promotional offer not found');
     return offer;
   }
 
   private async getProviderItem(providerId: string, itemId: string): Promise<Gift> {
-    const item = await this.prisma.gift.findFirst({ where: { id: itemId, providerId, deletedAt: null } });
+    const item = await this.providerOffersRepository.findProviderItem(providerId, itemId);
     if (!item) throw new ForbiddenException('Item does not belong to provider');
     return item;
   }
@@ -240,7 +240,7 @@ export class PromotionalOffersService {
   private computeStatus(isActive: boolean, approvalStatus: PromotionalOfferApprovalStatus, startDate: Date, endDate: Date | null): PromotionalOfferStatus { if (approvalStatus === PromotionalOfferApprovalStatus.PENDING) return PromotionalOfferStatus.PENDING; if (approvalStatus === PromotionalOfferApprovalStatus.REJECTED) return PromotionalOfferStatus.REJECTED; if (!isActive) return PromotionalOfferStatus.INACTIVE; const now = new Date(); if (endDate && endDate.getTime() <= now.getTime()) return PromotionalOfferStatus.EXPIRED; if (startDate.getTime() > now.getTime()) return PromotionalOfferStatus.SCHEDULED; return PromotionalOfferStatus.ACTIVE; }
   private computeOfferStatus(offer: PromotionalOffer) { return this.computeStatus(offer.isActive, offer.approvalStatus, offer.startDate, offer.endDate); }
   private order(sortBy?: PromotionalOfferSortBy, sortOrder?: SortOrder): Prisma.PromotionalOfferOrderByWithRelationInput { const field = sortBy ?? PromotionalOfferSortBy.CREATED_AT; return { [field]: sortOrder === SortOrder.ASC ? 'asc' : 'desc' }; }
-  private include() { return { item: { select: { id: true, name: true, imageUrls: true, price: true, currency: true, status: true, moderationStatus: true } }, provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } } } as const; }
+  private include() { return promotionalOfferInclude; }
   private toListItem(offer: OfferWithRelations) { return { id: offer.id, title: offer.title, description: offer.description, discountType: offer.discountType, discountValue: Number(offer.discountValue), status: this.computeOfferStatus(offer), approvalStatus: offer.approvalStatus, startDate: offer.startDate, endDate: offer.endDate, isActive: offer.isActive, item: { id: offer.item.id, name: offer.item.name, imageUrl: this.firstImage(offer.item.imageUrls) }, endsInText: this.endsInText(offer.endDate) }; }
   private toDetail(offer: OfferWithRelations) { return { ...this.toListItem(offer), eligibilityRules: offer.eligibilityRules, provider: { id: offer.provider.id, name: this.providerName(offer.provider), email: offer.provider.email }, rejectionReason: offer.rejectionReason, rejectionComment: offer.rejectionComment, createdAt: offer.createdAt, updatedAt: offer.updatedAt }; }
   private providerName(provider: OfferWithRelations['provider']) { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }

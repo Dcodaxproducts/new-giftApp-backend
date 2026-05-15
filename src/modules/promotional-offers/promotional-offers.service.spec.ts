@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GiftModerationStatus, GiftStatus, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferStatus, UserRole } from '@prisma/client';
+import { PromotionalOffersRepository } from './promotional-offers.repository';
 import { PromotionalOffersService } from './promotional-offers.service';
+import { ProviderOffersRepository } from './provider-offers.repository';
 
 function createService() {
   const item = { id: 'gift_1', name: 'Gift', imageUrls: ['https://cdn/gift.png'], price: { toString: () => '100' }, currency: 'USD', status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.APPROVED, providerId: 'provider_1', deletedAt: null };
@@ -12,8 +14,14 @@ function createService() {
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  const service = new PromotionalOffersService(prisma as unknown as ConstructorParameters<typeof PromotionalOffersService>[0], auditLog as unknown as ConstructorParameters<typeof PromotionalOffersService>[1]);
-  return { service, prisma, auditLog, offer };
+  const promotionalOffersRepository = new PromotionalOffersRepository(prisma as unknown as ConstructorParameters<typeof PromotionalOffersRepository>[0]);
+  const providerOffersRepository = new ProviderOffersRepository(prisma as unknown as ConstructorParameters<typeof ProviderOffersRepository>[0]);
+  const service = new PromotionalOffersService(
+    promotionalOffersRepository,
+    providerOffersRepository,
+    auditLog as unknown as ConstructorParameters<typeof PromotionalOffersService>[2],
+  );
+  return { service, prisma, auditLog, offer, promotionalOffersRepository, providerOffersRepository };
 }
 
 describe('PromotionalOffersService', () => {
