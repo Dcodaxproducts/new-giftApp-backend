@@ -20,6 +20,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { CustomerCartRepository } from './customer-cart.repository';
 import { CUSTOMER_ORDER_INCLUDE, CustomerOrdersRepository } from './customer-orders.repository';
+import { CustomerMarketplaceRepository } from './customer-marketplace.repository';
 import {
   AddCartItemDto,
   CreateCustomerAddressDto,
@@ -58,25 +59,17 @@ export class CustomerMarketplaceService {
     private readonly prisma: PrismaService,
     private readonly customerCartRepository: CustomerCartRepository,
     private readonly customerOrdersRepository: CustomerOrdersRepository,
+    private readonly customerMarketplaceRepository: CustomerMarketplaceRepository,
   ) {}
 
   async home(user: AuthUserContext) {
-    const [defaultAddress, upcomingReminder, categories, discounted] = await this.prisma.$transaction([
-      this.prisma.customerAddress.findFirst({ where: { userId: user.uid, isDefault: true, deletedAt: null }, orderBy: { createdAt: 'desc' } }),
-      this.prisma.customerReminder.findFirst({ where: { userId: user.uid, isActive: true, deletedAt: null, reminderDate: { gte: new Date() } }, orderBy: { reminderDate: 'asc' } }),
-      this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null, gifts: { some: this.availableGiftWhere() } }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }], take: 12, select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }),
-      this.prisma.gift.findMany({ where: { ...this.availableGiftWhere(), promotionalOffers: { some: this.activeOfferWhere() } }, include: this.giftInclude(), orderBy: { createdAt: 'desc' }, take: 12 }),
-    ]);
+    const [defaultAddress, upcomingReminder, categories, discounted] = await this.customerMarketplaceRepository.findCustomerHomeData({ userId: user.uid, giftWhere: this.availableGiftWhere(), activeOfferWhere: this.activeOfferWhere(), giftInclude: this.giftInclude() });
     const wishlist = await this.wishlistGiftIds(user.uid, discounted.map((gift) => gift.id));
     return { data: { greeting: 'Welcome back', defaultAddress: defaultAddress ? this.toAddress(defaultAddress) : null, upcomingReminder: upcomingReminder ? this.toReminder(upcomingReminder) : null, categories: categories.map((category) => this.toCategory(category)), discountedGifts: discounted.map((gift) => this.toGiftCard(gift, wishlist)) }, message: 'Customer home fetched successfully' };
   }
 
   async categories() {
-    const categories = await this.prisma.giftCategory.findMany({
-      where: { isActive: true, deletedAt: null, gifts: { some: this.availableGiftWhere() } },
-      include: { _count: { select: { gifts: { where: this.availableGiftWhere() } } } },
-      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    });
+    const categories = await this.customerMarketplaceRepository.findMarketplaceCategories(this.availableGiftWhere());
     return { data: categories.map((category) => ({ ...this.toCategory(category), totalGifts: category._count.gifts })), message: 'Customer categories fetched successfully' };
   }
 
@@ -84,10 +77,7 @@ export class CustomerMarketplaceService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where = this.customerGiftWhere(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.gift.findMany({ where, include: this.giftInclude(), orderBy: this.giftOrderBy(query.sortBy), skip: (page - 1) * limit, take: limit }),
-      this.prisma.gift.count({ where }),
-    ]);
+    const [items, total] = await this.customerMarketplaceRepository.findMarketplaceGiftsAndCount({ where, include: this.giftInclude(), orderBy: this.giftOrderBy(query.sortBy), skip: (page - 1) * limit, take: limit });
     const wishlist = await this.wishlistGiftIds(user.uid, items.map((gift) => gift.id));
     const data = items.map((gift) => this.toGiftListItem(gift, wishlist));
     if (query.sortBy === CustomerGiftSortBy.DISCOUNT) data.sort((a, b) => (b.activeOffer?.discountAmount ?? 0) - (a.activeOffer?.discountAmount ?? 0));
@@ -97,18 +87,14 @@ export class CustomerMarketplaceService {
   discountedGifts(user: AuthUserContext, query: CustomerGiftListDto) { return this.gifts(user, { ...query, offerOnly: true }); }
 
   async giftDetails(user: AuthUserContext, id: string) {
-    const gift = await this.prisma.gift.findFirst({ where: { id, ...this.availableGiftWhere() }, include: this.giftInclude() });
+    const gift = await this.customerMarketplaceRepository.findGiftDetailsForCustomer(id, { where: this.availableGiftWhere(), include: this.giftInclude() });
     if (!gift) throw new NotFoundException('Gift not found');
     const wishlist = await this.wishlistGiftIds(user.uid, [gift.id]);
     return { data: this.toGiftDetail(gift, wishlist), message: 'Gift details fetched successfully' };
   }
 
   async filterOptions() {
-    const [categories, price, providers] = await this.prisma.$transaction([
-      this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null, gifts: { some: this.availableGiftWhere() } }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }),
-      this.prisma.gift.aggregate({ where: this.availableGiftWhere(), _min: { price: true }, _max: { price: true } }),
-      this.prisma.user.findMany({ where: this.approvedProviderWhere(), orderBy: { providerBusinessName: 'asc' }, select: { providerBusinessName: true, firstName: true, lastName: true } }),
-    ]);
+    const [categories, price, providers] = await this.customerMarketplaceRepository.findGiftFilterOptions({ giftWhere: this.availableGiftWhere(), approvedProviderWhere: this.approvedProviderWhere() });
     return { data: { sortOptions: Object.values(CustomerGiftSortBy), categories: categories.map((category) => this.toCategory(category)), priceRange: { min: Number(price._min.price ?? 0), max: Number(price._max.price ?? 0) }, ratingOptions: [4.5, 4.0, 3.5], brands: providers.map((provider) => this.providerName(provider)).filter(Boolean), deliveryOptions: Object.values(CustomerDeliveryOption) }, message: 'Gift filter options fetched successfully' };
   }
 
@@ -325,7 +311,7 @@ export class CustomerMarketplaceService {
   private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.customerOrdersRepository.findActiveCartForCheckout(userId, cartId); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
   private async getCheckoutCart(userId: string, cartId?: string): Promise<CartView> { const cart = await this.customerOrdersRepository.findActiveCartForCheckout(userId, cartId); if (!cart) { if (cartId) throw new NotFoundException('Active cart not found'); return this.getActiveCart(userId); } return cart; }
   private async getCheckoutDeliveryAddress(userId: string, addressId: string): Promise<CustomerAddress> { const address = await this.customerOrdersRepository.findDeliveryAddressForUser(userId, addressId); if (!address) throw new NotFoundException('Address not found'); return address; }
-  private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.prisma.customerWishlist.findMany({ where: { userId, giftId: { in: giftIds } }, select: { giftId: true } }); return new Set(rows.map((row) => row.giftId)); }
+  private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.customerMarketplaceRepository.findCustomerWishlistGiftIds(userId, giftIds); return new Set(rows.map((row) => row.giftId)); }
 
   private async assertContact(userId: string, id: string): Promise<void> { const contact = await this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!contact) throw new NotFoundException('Contact not found'); }
   private async assertCartContact(userId: string, id: string): Promise<void> { const contact = await this.customerCartRepository.findContactForUser(userId, id); if (!contact) throw new NotFoundException('Contact not found'); }

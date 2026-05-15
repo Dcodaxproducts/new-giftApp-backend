@@ -4,11 +4,12 @@ import { PrismaService } from '../../database/prisma.service';
 import { CustomerMarketplaceController } from './customer-marketplace.controller';
 import { CustomerCartRepository } from './customer-cart.repository';
 import { CustomerOrdersRepository } from './customer-orders.repository';
+import { CustomerMarketplaceRepository } from './customer-marketplace.repository';
 import { CustomerMarketplaceService } from './customer-marketplace.service';
 
 @Module({
   imports: [JwtModule.register({})],
   controllers: [CustomerMarketplaceController],
-  providers: [CustomerMarketplaceService, CustomerCartRepository, CustomerOrdersRepository, PrismaService],
+  providers: [CustomerMarketplaceService, CustomerCartRepository, CustomerOrdersRepository, CustomerMarketplaceRepository, PrismaService],
 })
 export class CustomerMarketplaceModule {}
