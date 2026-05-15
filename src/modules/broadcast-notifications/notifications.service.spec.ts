@@ -1,5 +1,8 @@
 import { NotificationDevicePlatform, UserRole } from '@prisma/client';
 import { NotificationActionDto, NotificationFilterDto, NotificationTypeDto } from './dto/broadcast-notifications.dto';
+import { DeviceTokensRepository } from './device-tokens.repository';
+import { NotificationPreferencesRepository } from './notification-preferences.repository';
+import { NotificationsRepository } from './notifications.repository';
 import { NotificationsService } from './notifications.service';
 
 function createService() {
@@ -13,8 +16,17 @@ function createService() {
   };
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
   const gateway = { emitToUser: jest.fn() };
-  const service = new NotificationsService(prisma as unknown as ConstructorParameters<typeof NotificationsService>[0], audit as unknown as ConstructorParameters<typeof NotificationsService>[1], gateway as unknown as ConstructorParameters<typeof NotificationsService>[2]);
-  return { service, prisma, audit, gateway };
+  const notificationsRepository = new NotificationsRepository(prisma as unknown as ConstructorParameters<typeof NotificationsRepository>[0]);
+  const notificationPreferencesRepository = new NotificationPreferencesRepository(prisma as unknown as ConstructorParameters<typeof NotificationPreferencesRepository>[0]);
+  const deviceTokensRepository = new DeviceTokensRepository(prisma as unknown as ConstructorParameters<typeof DeviceTokensRepository>[0]);
+  const service = new NotificationsService(
+    notificationsRepository,
+    notificationPreferencesRepository,
+    deviceTokensRepository,
+    audit as unknown as ConstructorParameters<typeof NotificationsService>[3],
+    gateway as unknown as ConstructorParameters<typeof NotificationsService>[4],
+  );
+  return { service, prisma, audit, gateway, notificationsRepository, notificationPreferencesRepository, deviceTokensRepository };
 }
 
 const user = { uid: 'user_1', role: UserRole.REGISTERED_USER };

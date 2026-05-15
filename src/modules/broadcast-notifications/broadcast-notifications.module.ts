@@ -10,9 +10,12 @@ import { BroadcastRecipientsRepository } from './broadcast-recipients.repository
 import { BroadcastQueueService } from './broadcast-queue.service';
 import { BroadcastsController } from './broadcasts.controller';
 import { BroadcastsService } from './broadcasts.service';
+import { DeviceTokensRepository } from './device-tokens.repository';
+import { NotificationPreferencesRepository } from './notification-preferences.repository';
 import { EmailNotificationAdapter, InAppNotificationAdapter, NotificationAdapterRegistry, PushNotificationAdapter } from './notification-adapters';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
+import { NotificationsRepository } from './notifications.repository';
 import { NotificationsService } from './notifications.service';
 
 @Module({
@@ -25,6 +28,9 @@ import { NotificationsService } from './notifications.service';
     BroadcastNotificationsRepository,
     BroadcastRecipientsRepository,
     NotificationsService,
+    NotificationsRepository,
+    NotificationPreferencesRepository,
+    DeviceTokensRepository,
     BroadcastQueueService,
     BroadcastDeliveryService,
     NotificationsGateway,
