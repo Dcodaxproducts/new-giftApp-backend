@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PaymentStatus, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayoutAccountType, ProviderPayoutExternalProvider, ProviderPayoutMethodType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -12,10 +12,11 @@ const ledger = { id: 'ledger_1', providerId: 'provider_1', providerOrderId: 'po_
 const payout = { id: 'payout_1', providerId: 'provider_1', payoutMethodId: 'method_1', transactionId: 'TXN-2026-001234', amount: 500, processingFee: 0, totalToReceive: 500, currency: 'USD', status: ProviderPayoutStatus.PENDING, externalPayoutId: null, failureReason: null, expectedArrivalAt: new Date(), completedAt: null, idempotencyKey: 'idem_1', createdAt: new Date(), updatedAt: new Date(), payoutMethod };
 const providerOrder = { id: 'po_1', providerId: 'provider_1', orderId: 'order_1', orderNumber: 'PO-10293', totalPayout: 1200, total: 1500, currency: 'USD', status: ProviderOrderStatus.DELIVERED, order: { orderNumber: 'ORD-10293', paymentStatus: PaymentStatus.SUCCEEDED } };
 
-function createService(overrides: Partial<{ ledgers: unknown[]; payoutMethod: unknown; payout: unknown; duplicate: unknown; providerOrder: unknown }> = {}) {
+function createService(overrides: Partial<{ ledgers: unknown[]; payoutMethod: unknown; payout: unknown; duplicate: unknown; providerOrder: unknown; provider: unknown }> = {}) {
   const ledgers = overrides.ledgers ?? [ledger];
+  const currentProvider = Object.prototype.hasOwnProperty.call(overrides, 'provider') ? overrides.provider : provider;
   const prisma = {
-    user: { findFirst: jest.fn().mockResolvedValue(provider) },
+    user: { findFirst: jest.fn().mockResolvedValue(currentProvider) },
     providerEarningsLedger: { findMany: jest.fn().mockResolvedValue(ledgers), count: jest.fn().mockResolvedValue(ledgers.length), create: jest.fn().mockResolvedValue({ ...ledger, type: ProviderEarningsLedgerType.PAYOUT, direction: ProviderEarningsLedgerDirection.DEBIT, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }), updateMany: jest.fn().mockResolvedValue({ count: 1 }), upsert: jest.fn() },
     providerPayoutMethod: { findFirst: jest.fn().mockResolvedValue(Object.prototype.hasOwnProperty.call(overrides, 'payoutMethod') ? overrides.payoutMethod : payoutMethod) },
     providerPayout: { findMany: jest.fn().mockResolvedValue([payout]), count: jest.fn().mockResolvedValue(1), findFirst: jest.fn().mockImplementation(({ where }) => where?.idempotencyKey ? Promise.resolve(overrides.duplicate ?? null) : Promise.resolve(Object.prototype.hasOwnProperty.call(overrides, 'payout') ? overrides.payout : payout)), create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payout, ...data, payoutMethod })), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payout, ...data, payoutMethod })) },
@@ -24,7 +25,7 @@ function createService(overrides: Partial<{ ledgers: unknown[]; payoutMethod: un
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
   const repository = new ProviderEarningsPayoutsRepository(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsRepository>[0]);
-  return { service: new ProviderEarningsPayoutsService(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsService>[0], repository), prisma, repository };
+  return { service: new ProviderEarningsPayoutsService(repository), prisma, repository };
 }
 
 describe('Provider earnings/payouts source safety', () => {
@@ -45,6 +46,8 @@ describe('Provider earnings/payouts source safety', () => {
     expect(service).not.toContain('dto.providerId');
   });
   it('adds repository methods for provider-scoped read APIs without route changes', () => {
+    expect(repository).toContain('findProviderUserById');
+    expect(repository).toContain("role: 'PROVIDER'");
     expect(repository).toContain('findLedgerEntriesForProvider');
     expect(repository).toContain('countLedgerEntriesForProvider');
     expect(repository).toContain('findEarningsChartRows');
@@ -74,11 +77,16 @@ describe('Provider earnings/payouts source safety', () => {
     expect(service).not.toContain('providerEarningsLedger.updateMany');
     expect(service).not.toContain('providerPayout.update');
     expect(service).not.toContain('providerOrder.findUnique');
+    expect(service).not.toContain('this.prisma');
+    expect(service).not.toContain('PrismaService');
   });
 });
 
 describe('ProviderEarningsPayoutsService', () => {
-  it('provider can fetch own earnings summary', async () => { const { service, prisma } = createService(); const result = await service.earningsSummary({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.message).toBe('Provider earnings summary fetched successfully.'); expect(result.data.availableForPayout).toBe(1500); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
+  it('approved active provider can access earnings summary', async () => { const { service, prisma } = createService(); const result = await service.earningsSummary({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.message).toBe('Provider earnings summary fetched successfully.'); expect(result.data.availableForPayout).toBe(1500); expect(prisma.user.findFirst).toHaveBeenCalledWith({ where: { id: 'provider_1', role: 'PROVIDER', deletedAt: null } }); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
+  it('pending provider is rejected with existing behavior', async () => { const { service } = createService({ provider: { ...provider, providerApprovalStatus: ProviderApprovalStatus.PENDING } }); await expect(service.earningsSummary({ uid: 'provider_1', role: UserRole.PROVIDER }, {})).rejects.toThrow(ForbiddenException); });
+  it('inactive provider is rejected with existing behavior', async () => { const { service } = createService({ provider: { ...provider, isActive: false } }); await expect(service.payoutHistory({ uid: 'provider_1', role: UserRole.PROVIDER }, {})).rejects.toThrow(ForbiddenException); });
+  it('suspended provider is rejected with existing behavior', async () => { const { service } = createService({ provider: { ...provider, suspendedAt: new Date() } }); await expect(service.payoutPreview({ uid: 'provider_1', role: UserRole.PROVIDER }, { amount: 100 })).rejects.toThrow(ForbiddenException); });
   it('provider cannot see another provider earnings through summary scope', async () => { const { service, prisma } = createService(); await service.earningsSummary({ uid: 'provider_2', role: UserRole.PROVIDER }, {}); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_2' }) })); });
   it('earnings chart is provider-scoped', async () => { const { service, prisma } = createService(); const result = await service.earningsChart({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data.values).toHaveLength(7); expect(prisma.providerEarningsLedger.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });
   it('ledger is provider-scoped', async () => { const { service, prisma } = createService(); const result = await service.earningsLedger({ uid: 'provider_1', role: UserRole.PROVIDER }, {}); expect(result.data[0]).toEqual(expect.objectContaining({ type: ProviderEarningsLedgerType.ORDER_EARNING, orderNumber: 'ORD-10293' })); expect(prisma.providerEarningsLedger.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1' }) })); });

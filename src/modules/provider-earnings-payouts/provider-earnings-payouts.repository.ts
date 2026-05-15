@@ -14,6 +14,10 @@ export const PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInc
 export class ProviderEarningsPayoutsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  findProviderUserById(id: string) {
+    return this.prisma.user.findFirst({ where: { id, role: 'PROVIDER', deletedAt: null } });
+  }
+
   findLedgerEntriesForProvider(where: Prisma.ProviderEarningsLedgerWhereInput, params?: { skip?: number; take?: number; includeOrder?: boolean }) {
     return this.prisma.providerEarningsLedger.findMany({
       where,

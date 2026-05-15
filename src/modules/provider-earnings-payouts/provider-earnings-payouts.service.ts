@@ -1,16 +1,12 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
+import { NotificationRecipientType, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
 import { CancelProviderPayoutDto, EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, RequestProviderPayoutDto, SortOrder } from './dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from './provider-earnings-payouts.repository';
 
 @Injectable()
 export class ProviderEarningsPayoutsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly repository: ProviderEarningsPayoutsRepository,
-  ) {}
+  constructor(private readonly repository: ProviderEarningsPayoutsRepository) {}
 
   async earningsSummary(user: AuthUserContext, query: EarningsSummaryQueryDto) {
     await this.getApprovedActiveProvider(user.uid);
@@ -116,7 +112,7 @@ export class ProviderEarningsPayoutsService {
   }
 
   private async availableBalance(providerId: string): Promise<number> { const items = await this.repository.findLedgerForAvailableBalance(providerId); return this.money(items.reduce((sum, item) => sum + (item.direction === ProviderEarningsLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount)), 0)); }
-  private async getApprovedActiveProvider(id: string) { const provider = await this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } }); if (!provider) throw new NotFoundException('Provider not found'); if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access earnings and payouts'); return provider; }
+  private async getApprovedActiveProvider(id: string) { const provider = await this.repository.findProviderUserById(id); if (!provider) throw new NotFoundException('Provider not found'); if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access earnings and payouts'); return provider; }
   private async getOwnedPayoutMethod(providerId: string, id: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findPayoutMethodForProvider(providerId, id); if (!method) throw new NotFoundException('Provider payout method not found'); return method; }
   private async defaultPayoutMethod(providerId: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findDefaultPayoutMethodForProvider(providerId); if (!method) throw new NotFoundException('Default payout method not found'); return method; }
   private async getOwnedPayout(providerId: string, id: string) { const payout = await this.repository.findPayoutByIdForProvider(providerId, id); if (!payout) throw new NotFoundException('Provider payout not found'); return payout; }
