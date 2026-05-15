@@ -4,6 +4,7 @@ import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { ChatDetailsDto, CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, GetOrderChatDto, ListCustomerChatsDto, ListCustomerReviewsDto, ListProviderReportsDto, ProviderReportStatusFilter, SendChatMessageDto, UpdateReviewDto } from './dto/customer-provider-interactions.dto';
+import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from './customer-reviews.repository';
 
 type ProviderView = { id: string; providerBusinessName: string | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
@@ -19,7 +20,10 @@ type ChatThreadView = {
 
 @Injectable()
 export class CustomerProviderInteractionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly customerReviewsRepository: CustomerReviewsRepository,
+  ) {}
 
   async getOrderChat(user: AuthUserContext, orderId: string, query: GetOrderChatDto) {
     const order = await this.getOwnedOrder(user.uid, orderId);
@@ -78,16 +82,16 @@ export class CustomerProviderInteractionsService {
   }
 
   async submitReview(user: AuthUserContext, orderId: string, dto: CreateReviewDto) {
-    const order = await this.getOwnedOrder(user.uid, orderId);
+    const order = await this.getOrderForReview(user.uid, orderId);
     const providerOrder = order.providerOrders.find((item) => item.providerId === dto.providerId);
     if (!providerOrder) throw new ForbiddenException('Provider is not part of this order');
     if (!this.isReviewable(order.status, providerOrder.status)) throw new BadRequestException('Only delivered or completed orders can be reviewed');
-    const existing = await this.prisma.review.findFirst({ where: { userId: user.uid, providerOrderId: providerOrder.id, deletedAt: null, status: { notIn: [ReviewStatus.REMOVED] } } });
+    const existing = await this.customerReviewsRepository.findExistingReviewForProviderOrder(user.uid, providerOrder.id, [ReviewStatus.REMOVED]);
     if (existing) throw new BadRequestException('You have already reviewed this provider order');
     const moderation = this.moderateText(dto.comment, dto.rating);
-    const review = await this.prisma.review.create({ data: { reviewCode: await this.reviewCode(), orderId: order.id, providerOrderId: providerOrder.id, providerId: dto.providerId, userId: user.uid, rating: dto.rating, comment: dto.comment, status: moderation.status, severity: moderation.severity, flagReason: moderation.flagReason, autoModerated: moderation.autoModerated, moderationConfidence: moderation.confidence, detectedCategoriesJson: moderation.categories } });
-    if (moderation.autoModerated) await this.prisma.reviewModerationLog.create({ data: { reviewId: review.id, actorType: ReviewModerationActorType.SYSTEM, action: moderation.status === ReviewStatus.PUBLISHED ? ReviewModerationAction.AUTO_APPROVED : ReviewModerationAction.AUTO_FLAGGED, outcome: review.status, reason: moderation.flagReason, autoModerated: true, confidence: moderation.confidence, afterJson: { status: review.status, categories: moderation.categories } } });
-    if (review.status === ReviewStatus.PUBLISHED) await this.prisma.notification.create({ data: { recipientId: dto.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New provider review', message: `A customer submitted a ${dto.rating}-star review.`, type: 'PROVIDER_REVIEW', metadataJson: { reviewId: review.id, orderId: order.id, providerOrderId: providerOrder.id } } });
+    const review = await this.customerReviewsRepository.createReview({ reviewCode: await this.reviewCode(), orderId: order.id, providerOrderId: providerOrder.id, providerId: dto.providerId, userId: user.uid, rating: dto.rating, comment: dto.comment, status: moderation.status, severity: moderation.severity, flagReason: moderation.flagReason, autoModerated: moderation.autoModerated, moderationConfidence: moderation.confidence, detectedCategoriesJson: moderation.categories });
+    if (moderation.autoModerated) await this.customerReviewsRepository.createReviewModerationLog({ reviewId: review.id, actorType: ReviewModerationActorType.SYSTEM, action: moderation.status === ReviewStatus.PUBLISHED ? ReviewModerationAction.AUTO_APPROVED : ReviewModerationAction.AUTO_FLAGGED, outcome: review.status, reason: moderation.flagReason, autoModerated: true, confidence: moderation.confidence, afterJson: { status: review.status, categories: moderation.categories } });
+    if (review.status === ReviewStatus.PUBLISHED) await this.customerReviewsRepository.createReviewNotification({ recipientId: dto.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New provider review', message: `A customer submitted a ${dto.rating}-star review.`, type: 'PROVIDER_REVIEW', metadataJson: { reviewId: review.id, orderId: order.id, providerOrderId: providerOrder.id } });
     return { data: this.reviewSummary(review), message: 'Review submitted successfully.' };
   }
 
@@ -95,31 +99,31 @@ export class CustomerProviderInteractionsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.ReviewWhereInput = { userId: user.uid, deletedAt: null, rating: query.rating, providerId: query.providerId, ...(query.status && query.status !== CustomerReviewStatusFilter.ALL ? { status: query.status } : {}) };
-    const [items, total] = await this.prisma.$transaction([this.prisma.review.findMany({ where, include: this.reviewInclude(), orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }), this.prisma.review.count({ where })]);
+    const [items, total] = await this.customerReviewsRepository.findReviewsAndCountForUser({ where, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.reviewItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reviews fetched successfully.' };
   }
 
   async reviewDetails(user: AuthUserContext, id: string) {
-    const review = await this.prisma.review.findFirst({ where: { id, userId: user.uid, deletedAt: null }, include: this.reviewInclude() });
+    const review = await this.customerReviewsRepository.findReviewForUser(user.uid, id);
     if (!review) throw new NotFoundException('Review not found');
     return { data: this.reviewItem(review), message: 'Review fetched successfully.' };
   }
 
   async updateReview(user: AuthUserContext, id: string, dto: UpdateReviewDto) {
-    const current = await this.prisma.review.findFirst({ where: { id, userId: user.uid, deletedAt: null } });
+    const current = await this.customerReviewsRepository.findReviewForUser(user.uid, id);
     if (!current) throw new NotFoundException('Review not found');
     if (current.status === ReviewStatus.REMOVED) throw new BadRequestException('Removed reviews cannot be updated');
     const rating = dto.rating ?? current.rating;
     const comment = dto.comment ?? current.comment;
     const moderation = this.moderateText(comment, rating);
-    const updated = await this.prisma.review.update({ where: { id }, data: { rating, comment, status: moderation.status, severity: moderation.severity, flagReason: moderation.flagReason, autoModerated: moderation.autoModerated, moderationConfidence: moderation.confidence, detectedCategoriesJson: moderation.categories } });
+    const updated = await this.customerReviewsRepository.updateReview(id, { rating, comment, status: moderation.status, severity: moderation.severity, flagReason: moderation.flagReason, autoModerated: moderation.autoModerated, moderationConfidence: moderation.confidence, detectedCategoriesJson: moderation.categories });
     return { data: this.reviewSummary(updated), message: 'Review updated successfully.' };
   }
 
   async deleteReview(user: AuthUserContext, id: string) {
-    const review = await this.prisma.review.findFirst({ where: { id, userId: user.uid, deletedAt: null } });
+    const review = await this.customerReviewsRepository.findReviewForUser(user.uid, id);
     if (!review) throw new NotFoundException('Review not found');
-    await this.prisma.review.delete({ where: { id } });
+    await this.customerReviewsRepository.softDeleteReview(id);
     return { data: null, message: 'Review deleted successfully.' };
   }
 
@@ -158,6 +162,7 @@ export class CustomerProviderInteractionsService {
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
+  private async getOrderForReview(customerId: string, orderId: string): Promise<OrderWithProviderOrders> { const order = await this.customerReviewsRepository.findOrderForReviewByUser(customerId, orderId); if (!order) throw new NotFoundException('Order not found'); return order; }
   private firstProviderOrder(order: OrderWithProviderOrders) { const providerOrder = order.providerOrders[0]; if (!providerOrder) throw new BadRequestException('Provider order not found for this order'); return providerOrder; }
   private async getOwnedThread(customerId: string, threadId: string) { const thread = await this.prisma.chatThread.findFirst({ where: { id: threadId, customerId }, include: this.threadInclude() }); if (!thread) throw new NotFoundException('Chat thread not found'); return thread; }
   private threadInclude() { return { order: { select: { id: true, orderNumber: true } }, provider: { select: { id: true, providerBusinessName: true, avatarUrl: true, firstName: true, lastName: true, isActive: true } }, lastMessage: { select: { body: true, createdAt: true } } } satisfies Prisma.ChatThreadInclude; }
@@ -169,8 +174,8 @@ export class CustomerProviderInteractionsService {
   private assertMessagePayload(dto: SendChatMessageDto): void { const attachments = dto.attachmentUrls ?? []; if (dto.messageType === ChatMessageType.TEXT && !dto.body?.trim()) throw new BadRequestException('body is required for TEXT messages'); if (dto.messageType !== ChatMessageType.TEXT && attachments.length === 0) throw new BadRequestException('attachmentUrls are required for attachment messages'); }
   private isReviewable(orderStatus: OrderStatus, providerStatus: ProviderOrderStatus): boolean { return orderStatus === OrderStatus.DELIVERED || orderStatus === OrderStatus.COMPLETED || providerStatus === ProviderOrderStatus.DELIVERED || providerStatus === ProviderOrderStatus.COMPLETED; }
   private moderateText(comment: string, rating: number) { const text = comment.toLowerCase(); const categories = [/spam|scam|click/.test(text) ? 'SPAM' : null, /fake|fraud/.test(text) ? 'FAKE_REVIEW' : null, /abuse|hate|threat/.test(text) ? 'ABUSE' : null].filter((value): value is string => Boolean(value)); const confidence = Math.min(95, 55 + categories.length * 20 + (rating <= 2 ? 8 : 0)); const flagged = categories.length > 0; return { status: flagged ? ReviewStatus.FLAGGED : ReviewStatus.PUBLISHED, severity: categories.includes('ABUSE') ? ReviewSeverity.HIGH : flagged ? ReviewSeverity.MEDIUM : ReviewSeverity.LOW, flagReason: categories.includes('SPAM') ? ReviewFlagReason.SPAM : categories.includes('FAKE_REVIEW') ? ReviewFlagReason.FAKE_REVIEW : categories.includes('ABUSE') ? ReviewFlagReason.ABUSE : null, autoModerated: true, confidence, categories }; }
-  private async reviewCode(): Promise<string> { for (let attempt = 0; attempt < 5; attempt += 1) { const code = `RV-${randomInt(10000, 99999)}`; const exists = await this.prisma.review.findUnique({ where: { reviewCode: code } }); if (!exists) return code; } return `RV-${Date.now()}`; }
-  private reviewInclude() { return { provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } }, order: { select: { id: true, orderNumber: true } }, response: { where: { deletedAt: null }, select: { id: true, body: true, createdAt: true } } } satisfies Prisma.ReviewInclude; }
+  private async reviewCode(): Promise<string> { for (let attempt = 0; attempt < 5; attempt += 1) { const code = `RV-${randomInt(10000, 99999)}`; const exists = await this.customerReviewsRepository.findReviewCode(code); if (!exists) return code; } return `RV-${Date.now()}`; }
+  private reviewInclude() { return CUSTOMER_REVIEW_INCLUDE; }
   private reviewItem(review: { id: string; provider: { id: string; providerBusinessName: string | null; firstName: string; lastName: string }; order: { id: string; orderNumber: string }; rating: number; comment: string; status: ReviewStatus; response: { id: string; body: string; createdAt: Date } | null; createdAt: Date }) { return { id: review.id, provider: { id: review.provider.id, businessName: review.provider.providerBusinessName ?? `${review.provider.firstName} ${review.provider.lastName}`.trim() }, order: review.order, rating: review.rating, comment: review.comment, status: review.status, providerResponse: review.response, createdAt: review.createdAt }; }
   private reviewSummary(review: { id: string; rating: number; comment: string; status: ReviewStatus; providerId: string; orderId: string; createdAt: Date }) { return { id: review.id, rating: review.rating, comment: review.comment, status: review.status, providerId: review.providerId, orderId: review.orderId, createdAt: review.createdAt }; }
   private async assertProviderRelationship(customerId: string, providerId: string, orderId?: string): Promise<void> { const order = await this.prisma.order.findFirst({ where: { userId: customerId, ...(orderId ? { id: orderId } : {}), providerOrders: { some: { providerId } } } }); if (order) return; const thread = await this.prisma.chatThread.findFirst({ where: { customerId, providerId } }); if (thread) return; const review = await this.prisma.review.findFirst({ where: { userId: customerId, providerId, deletedAt: null } }); if (review) return; throw new ForbiddenException('You can report only providers you have interacted with'); }

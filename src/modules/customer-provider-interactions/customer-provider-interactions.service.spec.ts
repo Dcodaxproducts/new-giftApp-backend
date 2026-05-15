@@ -5,6 +5,7 @@ describe('Customer Provider Interaction module', () => {
   const service = readFileSync(join(__dirname, 'customer-provider-interactions.service.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'customer-provider-interactions.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'customer-provider-interactions.module.ts'), 'utf8');
+  const customerReviewsRepository = readFileSync(join(__dirname, 'customer-reviews.repository.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/customer-provider-interactions.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const storageDto = readFileSync(join(__dirname, '../storage/dto/create-presigned-upload.dto.ts'), 'utf8');
@@ -61,8 +62,9 @@ describe('Customer Provider Interaction module', () => {
     for (const route of ["@Post('orders/:id/reviews')", "@Get('reviews')", "@Get('reviews/:id')", "@Patch('reviews/:id')", "@Delete('reviews/:id')"]) expect(controller).toContain(route);
     expect(service).toContain('Only delivered or completed orders can be reviewed');
     expect(service).toContain('You have already reviewed this provider order');
-    expect(service).toContain('review.delete');
-    expect(service).not.toContain('review.update({ where: { id }, data: { deletedAt');
+    expect(service).toContain('softDeleteReview(id)');
+    expect(customerReviewsRepository).toContain('data: { deletedAt: new Date() }');
+    expect(customerReviewsRepository).not.toContain('review.delete');
   });
 
   it('connects customer reviews to admin/provider moderation and notifications', () => {
