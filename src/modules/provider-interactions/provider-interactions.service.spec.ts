@@ -3,6 +3,8 @@ import { join } from 'path';
 
 describe('Provider Chat and Reviews module', () => {
   const service = readFileSync(join(__dirname, 'provider-interactions.service.ts'), 'utf8');
+  const chatRepository = readFileSync(join(__dirname, 'provider-buyer-chat.repository.ts'), 'utf8');
+  const interactionsRepository = readFileSync(join(__dirname, 'provider-interactions.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'provider-interactions.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'provider-interactions.module.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-interactions.dto.ts'), 'utf8');
@@ -43,9 +45,10 @@ describe('Provider Chat and Reviews module', () => {
 
   it('enforces provider order/thread ownership for chats and creates buyer notifications', () => {
     expect(service).toContain('getOwnedProviderOrder(user.uid, providerOrderId)');
-    expect(service).toContain('where: { id, providerId }');
     expect(service).toContain('getOwnedThread(user.uid, threadId)');
-    expect(service).toContain('senderType: ChatSenderType.PROVIDER');
+    expect(interactionsRepository).toContain('findProviderOrderForChat');
+    expect(chatRepository).toContain('findThreadForProvider');
+    expect(chatRepository).toContain('createChatMessage');
     expect(service).toContain('isReadByCustomer: false');
     expect(service).toContain('isReadByProvider: true');
     expect(service).toContain('New provider message');
@@ -55,9 +58,26 @@ describe('Provider Chat and Reviews module', () => {
     expect(dto).toContain('ChatMessageType');
     expect(service).toContain('body is required for TEXT messages');
     expect(service).toContain('attachmentUrls are required for attachment messages');
-    expect(service).toContain('senderType: ChatSenderType.CUSTOMER');
-    expect(service).toContain('isReadByProvider: true');
+    expect(chatRepository).toContain('senderType: ChatSenderType.CUSTOMER');
+    expect(chatRepository).toContain('isReadByProvider: true');
     expect(storageService).toContain('UploadFolder.CHAT_ATTACHMENTS');
+  });
+
+
+  it('repository owns Prisma access for provider buyer chat flows', () => {
+    expect(service).toContain('buyerChatRepository.findChatsForProvider');
+    expect(service).toContain('buyerChatRepository.findThreadForProvider');
+    expect(service).toContain('buyerChatRepository.findOrCreateThreadForProviderOrder');
+    expect(service).toContain('buyerChatRepository.markThreadReadForProvider');
+    expect(chatRepository).toContain('prisma.chatThread.findMany');
+    expect(chatRepository).toContain('prisma.chatMessage.create');
+  });
+
+  it('provider can only access own order chat and cannot message unrelated customers', () => {
+    expect(service).toContain('getOwnedProviderOrder(user.uid, providerOrderId)');
+    expect(service).toContain('getOwnedThread(user.uid, threadId)');
+    expect(service).toContain('Provider order not found');
+    expect(service).toContain('Chat thread not found');
   });
 
   it('exposes provider review routes with summary/filter-options before details', () => {
@@ -71,15 +91,15 @@ describe('Provider Chat and Reviews module', () => {
     expect(service).toContain('providerId, deletedAt: null');
     expect(service).toContain('ReviewStatus.HIDDEN');
     expect(service).toContain('ReviewStatus.REMOVED');
-    expect(service).toContain('review.aggregate');
+    expect(interactionsRepository).toContain('review.aggregate');
     expect(service).toContain('ratingDistribution');
   });
 
   it('allows one active public response and prevents editing customer review content', () => {
     expect(service).toContain('Active response already exists for this review');
-    expect(service).toContain('reviewResponse.create');
-    expect(service).toContain('reviewResponse.update');
-    expect(service).toContain('reviewResponse.delete');
+    expect(interactionsRepository).toContain('reviewResponse.create');
+    expect(interactionsRepository).toContain('reviewResponse.update');
+    expect(interactionsRepository).toContain('reviewResponse.delete');
     expect(service).not.toContain('review.update');
     expect(service).not.toContain('comment: dto.body');
   });
@@ -87,6 +107,6 @@ describe('Provider Chat and Reviews module', () => {
   it('notifies customer when provider responds to review', () => {
     expect(service).toContain('Provider responded to your review');
     expect(service).toContain('REVIEW_RESPONSE');
-    expect(service).toContain('recipientType: NotificationRecipientType.REGISTERED_USER');
+    expect(service).toContain('createRegisteredUserNotification');
   });
 });
