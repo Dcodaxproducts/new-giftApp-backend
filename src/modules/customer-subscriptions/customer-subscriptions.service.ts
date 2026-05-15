@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { BillingCycle, Coupon, CouponDiscountType, CustomerSubscription, CustomerSubscriptionCancelMode, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, NotificationRecipientType, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, SubscriptionPlan, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
+import { BillingCycle, Coupon, CouponDiscountType, CustomerSubscription, CustomerSubscriptionCancelMode, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, NotificationRecipientType, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, SubscriptionPlan } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { ApplyCouponDto, ConfirmSubscriptionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from './dto/customer-subscriptions.dto';
+import { CustomerSubscriptionsRepository } from './customer-subscriptions.repository';
 
 type PlanFeature = { key: string; label: string; description?: string | null; enabled: boolean };
 type StripeSubscriptionLike = { id: string; status: string; customer?: string | { id: string } | null; current_period_start?: number; current_period_end?: number; cancel_at_period_end?: boolean; latest_invoice?: string | { payment_intent?: string | { client_secret?: string | null; id?: string } | null } | null; items?: { data?: { price?: { id?: string } }[] } };
@@ -12,10 +13,13 @@ type StripeInvoiceLike = { id: string; subscription?: string | { id: string } | 
 @Injectable()
 export class CustomerSubscriptionsService {
   private stripeClient?: InstanceType<typeof Stripe>;
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly repository: CustomerSubscriptionsRepository,
+  ) {}
 
   async plans(query: ListCustomerSubscriptionPlansDto) {
-    const plans = await this.prisma.subscriptionPlan.findMany({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null }, orderBy: [{ isPopular: 'desc' }, { monthlyPrice: 'asc' }] });
+    const plans = await this.repository.findPublicActivePlans();
     return { data: plans.map((plan) => this.planItem(plan, query.billingCycle)), message: 'Subscription plans fetched successfully.' };
   }
 
@@ -69,8 +73,8 @@ export class CustomerSubscriptionsService {
     return { data: { id: updated.id, status: updated.status, cancelAtPeriodEnd: updated.cancelAtPeriodEnd }, message: 'Subscription reactivated successfully.' };
   }
 
-  async invoices(user: AuthUserContext, query: ListSubscriptionInvoicesDto) { const page = query.page ?? 1; const limit = query.limit ?? 20; const where: Prisma.CustomerSubscriptionInvoiceWhereInput = { userId: user.uid, ...(query.status && query.status !== InvoiceStatusFilter.ALL ? { status: query.status } : {}) }; const [items, total] = await this.prisma.$transaction([this.prisma.customerSubscriptionInvoice.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }), this.prisma.customerSubscriptionInvoice.count({ where })]); return { data: items.map((item) => this.invoiceItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Subscription invoices fetched successfully.' }; }
-  async invoiceDetails(user: AuthUserContext, id: string) { const invoice = await this.prisma.customerSubscriptionInvoice.findFirst({ where: { id, userId: user.uid } }); if (!invoice) throw new NotFoundException('Subscription invoice not found'); return { data: this.invoiceItem(invoice), message: 'Subscription invoice fetched successfully.' }; }
+  async invoices(user: AuthUserContext, query: ListSubscriptionInvoicesDto) { const page = query.page ?? 1; const limit = query.limit ?? 20; const where: Prisma.CustomerSubscriptionInvoiceWhereInput = { userId: user.uid, ...(query.status && query.status !== InvoiceStatusFilter.ALL ? { status: query.status } : {}) }; const [items, total] = await this.repository.findSubscriptionInvoicesAndCountForUser(where, { skip: (page - 1) * limit, take: limit }); return { data: items.map((item) => this.invoiceItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Subscription invoices fetched successfully.' }; }
+  async invoiceDetails(user: AuthUserContext, id: string) { const invoice = await this.repository.findSubscriptionInvoiceForUser(user.uid, id); if (!invoice) throw new NotFoundException('Subscription invoice not found'); return { data: this.invoiceItem(invoice), message: 'Subscription invoice fetched successfully.' }; }
 
   async applyCoupon(_user: AuthUserContext, dto: ApplyCouponDto) { const plan = await this.publicPlan(dto.planId); const coupon = await this.validCoupon(dto.planId, dto.couponCode); const result = this.finalPrice(plan, dto.billingCycle, coupon); return { data: { planPrice: result.planPrice, discountAmount: result.discountAmount, finalPrice: result.finalPrice, currency: plan.currency, coupon: { code: coupon.code, discountType: coupon.discountType, discountValue: Number(coupon.discountValue) } }, message: 'Coupon applied successfully.' }; }
 
@@ -81,9 +85,9 @@ export class CustomerSubscriptionsService {
 
   async subscriptionSummary(userId: string) { const current = await this.activeSubscription(userId); if (!current) return { isPremium: false, status: 'FREE', planId: null, planName: null, billingCycle: null }; return { isPremium: current.isPremium, status: current.status, planId: current.planId, planName: current.plan.name, billingCycle: current.billingCycle }; }
 
-  private async currentPayload(userId: string) { const current = await this.prisma.customerSubscription.findFirst({ where: { userId }, include: { plan: true }, orderBy: { createdAt: 'desc' } }); if (!current || !this.isPremiumStatus(current.status)) return { status: 'FREE', isPremium: false, plan: null, features: [] }; return { status: current.status, isPremium: current.isPremium, plan: { id: current.plan.id, name: current.plan.name, billingCycle: current.billingCycle, price: this.planPrice(current.plan, current.billingCycle), currency: current.plan.currency }, features: this.features(current.plan), currentPeriodStart: current.currentPeriodStart, currentPeriodEnd: current.currentPeriodEnd, cancelAtPeriodEnd: current.cancelAtPeriodEnd, stripeSubscriptionId: current.stripeSubscriptionId }; }
-  private async publicPlan(id: string): Promise<SubscriptionPlan> { const plan = await this.prisma.subscriptionPlan.findFirst({ where: { id, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null } }); if (!plan) throw new NotFoundException('Subscription plan not found'); return plan; }
-  private async activeSubscription(userId: string) { return this.prisma.customerSubscription.findFirst({ where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.INCOMPLETE] } }, include: { plan: true }, orderBy: { createdAt: 'desc' } }); }
+  private async currentPayload(userId: string) { const current = await this.repository.findCurrentSubscriptionForUser(userId); if (!current || !this.isPremiumStatus(current.status)) return { status: 'FREE', isPremium: false, plan: null, features: [] }; return { status: current.status, isPremium: current.isPremium, plan: { id: current.plan.id, name: current.plan.name, billingCycle: current.billingCycle, price: this.planPrice(current.plan, current.billingCycle), currency: current.plan.currency }, features: this.features(current.plan), currentPeriodStart: current.currentPeriodStart, currentPeriodEnd: current.currentPeriodEnd, cancelAtPeriodEnd: current.cancelAtPeriodEnd, stripeSubscriptionId: current.stripeSubscriptionId }; }
+  private async publicPlan(id: string): Promise<SubscriptionPlan> { const plan = await this.repository.findPlanById(id); if (!plan) throw new NotFoundException('Subscription plan not found'); return plan; }
+  private async activeSubscription(userId: string) { return this.repository.findActiveSubscriptionForUser(userId); }
   private async requireCurrent(userId: string): Promise<CustomerSubscription> { const sub = await this.prisma.customerSubscription.findFirst({ where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.PAST_DUE] } }, orderBy: { createdAt: 'desc' } }); if (!sub) throw new NotFoundException('Active subscription not found'); return sub; }
   private async ownedSubscription(userId: string, id: string): Promise<CustomerSubscription> { const sub = await this.prisma.customerSubscription.findFirst({ where: { id, userId } }); if (!sub) throw new NotFoundException('Subscription not found'); return sub; }
   private planItem(plan: SubscriptionPlan, cycle?: BillingCycle) { const monthly = Number(plan.monthlyPrice); const yearly = Number(plan.yearlyPrice); return { id: plan.id, name: plan.name, description: plan.description, monthlyPrice: monthly, yearlyPrice: yearly, currency: plan.currency, isPopular: plan.isPopular, yearlySavingsPercent: monthly > 0 ? Math.max(0, Math.round((1 - yearly / (monthly * 12)) * 100)) : 0, billingCycle: cycle, features: this.features(plan), limits: this.object(plan.limitsJson) }; }
