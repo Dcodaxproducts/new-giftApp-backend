@@ -24,8 +24,10 @@ import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { AdminRolesRepository } from './admin-roles.repository';
 import { AdminStaffRepository } from './admin-staff.repository';
 import { AuthPasswordRepository } from './auth-password.repository';
+import { PermissionsCatalogRepository } from './permissions-catalog.repository';
 import { AuthRepository } from './auth.repository';
 import { AuthSessionsRepository } from './auth-sessions.repository';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
@@ -51,7 +53,7 @@ import {
   UpdateRolePermissionsDto,
 } from './dto/admin-management.dto';
 import { ListAuditLogsDto } from './dto/audit-logs.dto';
-import { PERMISSION_CATALOG, SUPER_ADMIN_PERMISSIONS } from './permission-catalog';
+import { SUPER_ADMIN_PERMISSIONS } from './permission-catalog';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -82,6 +84,8 @@ export class AuthService implements OnModuleInit {
     private readonly loginAttemptsService: LoginAttemptsService,
     private readonly mailerService: MailerService,
     private readonly adminStaffRepository: AdminStaffRepository,
+    private readonly adminRolesRepository: AdminRolesRepository,
+    private readonly permissionsCatalogRepository: PermissionsCatalogRepository,
     private readonly authRepository: AuthRepository,
     private readonly authSessionsRepository: AuthSessionsRepository,
     private readonly authPasswordRepository: AuthPasswordRepository,
@@ -480,7 +484,7 @@ export class AuthService implements OnModuleInit {
           }
         : {}),
     };
-    const roles = await this.prisma.adminRole.findMany({
+    const roles = await this.adminRolesRepository.findManyAdminRoles({
       where,
       include: { _count: { select: { admins: true } } },
       orderBy: { createdAt: 'asc' },
@@ -508,18 +512,16 @@ export class AuthService implements OnModuleInit {
 
   async createAdminRole(user: AuthUserContext, dto: CreateAdminRoleDto) {
     const slug = this.slugify(dto.name);
-    const existing = await this.prisma.adminRole.findUnique({ where: { slug } });
+    const existing = await this.adminRolesRepository.findAdminRoleBySlug(slug);
     if (existing && !existing.deletedAt) {
       throw new ConflictException('Admin role already exists');
     }
-    const role = await this.prisma.adminRole.create({
-      data: {
-        name: dto.name.trim(),
-        slug,
-        description: dto.description?.trim(),
-        permissions: dto.permissions,
-        isSystem: false,
-      },
+    const role = await this.adminRolesRepository.createAdminRole({
+      name: dto.name.trim(),
+      slug,
+      description: dto.description?.trim(),
+      permissions: dto.permissions,
+      isSystem: false,
     });
     await this.recordAudit(user.uid, null, 'ADMIN_ROLE_CREATED', null, this.toAdminRole(role));
     return { data: this.toAdminRole(role), message: 'Admin role created successfully' };
@@ -531,13 +533,10 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Super Admin role cannot be modified.');
     }
     const before = this.toAdminRole(role);
-    const updated = await this.prisma.adminRole.update({
-      where: { id: role.id },
-      data: {
-        name: dto.name?.trim(),
-        description: dto.description?.trim(),
-        isActive: dto.isActive,
-      },
+    const updated = await this.adminRolesRepository.updateAdminRole(role.id, {
+      name: dto.name?.trim(),
+      description: dto.description?.trim(),
+      isActive: dto.isActive,
     });
     await this.recordAudit(user.uid, null, 'ADMIN_ROLE_UPDATED', before, this.toAdminRole(updated));
     return { data: this.toAdminRole(updated), message: 'Admin role updated successfully' };
@@ -549,14 +548,7 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Super Admin role cannot be modified.');
     }
     const before = this.toAdminRole(role);
-    const updated = await this.prisma.adminRole.update({
-      where: { id: role.id },
-      data: { permissions: dto.permissions },
-    });
-    await this.prisma.user.updateMany({
-      where: { adminRoleId: role.id },
-      data: { adminPermissions: dto.permissions },
-    });
+    const updated = await this.adminRolesRepository.updateAdminRolePermissions(role.id, dto.permissions);
     await this.recordAudit(user.uid, null, 'ADMIN_ROLE_PERMISSIONS_UPDATED', before, this.toAdminRole(updated));
 
     return {
@@ -573,17 +565,17 @@ export class AuthService implements OnModuleInit {
     if (role.isSystem) {
       throw new ForbiddenException('System roles cannot be deleted');
     }
-    const adminCount = await this.prisma.user.count({ where: { adminRoleId: role.id, deletedAt: null } });
+    const adminCount = await this.adminRolesRepository.countAdminsUsingRole(role.id);
     if (adminCount > 0) {
       throw new BadRequestException('Role cannot be deleted while admins are assigned to it');
     }
-    await this.prisma.adminRole.delete({ where: { id: role.id } });
+    await this.adminRolesRepository.deleteAdminRole(role.id);
     await this.recordAudit(user.uid, null, 'ADMIN_ROLE_DELETED', this.toAdminRole(role), null);
     return { data: null, message: 'Admin role deleted successfully' };
   }
 
   permissionCatalog() {
-    return { data: PERMISSION_CATALOG, message: 'Permission catalog fetched successfully' };
+    return { data: this.permissionsCatalogRepository.getPermissionCatalog(), message: 'Permission catalog fetched successfully' };
   }
 
   async listAuditLogs(_user: AuthUserContext, query: ListAuditLogsDto) {
@@ -1432,7 +1424,7 @@ export class AuthService implements OnModuleInit {
     description: string,
     permissions: Record<string, string[]>,
   ): Promise<AdminRole> {
-    const existing = await this.prisma.adminRole.findUnique({ where: { slug } });
+    const existing = await this.adminRolesRepository.findAdminRoleBySlug(slug);
     if (existing) {
       return this.prisma.adminRole.update({
         where: { id: existing.id },

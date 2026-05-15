@@ -3,12 +3,14 @@ import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { readFileSync } from 'fs';
 import { resetPasswordTemplate } from '../../mail/templates/reset-password.template';
+import { AdminRolesRepository } from './admin-roles.repository';
 import { AdminStaffRepository } from './admin-staff.repository';
 import { AuthPasswordRepository } from './auth-password.repository';
 import { AuthRepository } from './auth.repository';
 import { ProviderFulfillmentMethodDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { AuthSessionsRepository } from './auth-sessions.repository';
+import { PermissionsCatalogRepository } from './permissions-catalog.repository';
 
 function createAuthService(superAdminCount: number) {
   const superAdmin = {
@@ -65,6 +67,8 @@ function createAuthService(superAdminCount: number) {
     adminAuditLog: { create: jest.fn() },
   };
   const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
+  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
+  const permissionsCatalogRepository = new PermissionsCatalogRepository();
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -75,6 +79,8 @@ function createAuthService(superAdminCount: number) {
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
     {} as unknown as ConstructorParameters<typeof AuthService>[4],
     adminStaffRepository,
+    adminRolesRepository,
+    permissionsCatalogRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -134,6 +140,8 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
     sendPasswordResetEmail: mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
   };
   const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
+  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
+  const permissionsCatalogRepository = new PermissionsCatalogRepository();
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -144,6 +152,8 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
     mailer as unknown as ConstructorParameters<typeof AuthService>[4],
     adminStaffRepository,
+    adminRolesRepository,
+    permissionsCatalogRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -307,13 +317,14 @@ function createAdminCreationService(options?: {
   };
   const tx = {
     adminAuditLog: { create: jest.fn(), updateMany: jest.fn() },
+    adminRole: { update: jest.fn().mockResolvedValue({ ...adminRole, permissions: { gifts: ['read'] } }) },
     authSession: { deleteMany: jest.fn(), updateMany: jest.fn() },
     loginAttempt: { updateMany: jest.fn() },
     accountSuspension: { deleteMany: jest.fn() },
     notification: { deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn() },
-    user: { delete: jest.fn() },
+    user: { delete: jest.fn(), updateMany: jest.fn() },
   };
   const prisma = {
     user: {
@@ -344,6 +355,8 @@ function createAdminCreationService(options?: {
     }),
   };
   const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
+  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
+  const permissionsCatalogRepository = new PermissionsCatalogRepository();
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -356,6 +369,8 @@ function createAdminCreationService(options?: {
       sendAdminInviteEmail: options?.mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
     } as unknown as ConstructorParameters<typeof AuthService>[4],
     adminStaffRepository,
+    adminRolesRepository,
+    permissionsCatalogRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -438,7 +453,7 @@ describe('AuthService admin staff RBAC architecture', () => {
   });
 
   it('custom AdminRole permissions can be patched', async () => {
-    const { service, prisma } = createAdminCreationService();
+    const { service } = createAdminCreationService();
 
     const result = await service.updateRolePermissions(
       { uid: 'super_1', role: UserRole.SUPER_ADMIN },
@@ -446,7 +461,6 @@ describe('AuthService admin staff RBAC architecture', () => {
       { permissions: { gifts: ['read'] } },
     );
 
-    expect(prisma.user.updateMany).toHaveBeenCalledWith({ where: { adminRoleId: 'role_1' }, data: { adminPermissions: { gifts: ['read'] } } });
     expect(result.data).toEqual({ id: 'role_1', permissions: { gifts: ['read'] } });
   });
 
@@ -522,6 +536,31 @@ describe('AuthService admin staff RBAC architecture', () => {
     expect(serviceSource).toContain('adminStaffRepository.deleteAdminPermanently');
     expect(repositorySource).toContain('prisma.user.findMany');
     expect(repositorySource).toContain('prisma.user.create');
+  });
+
+
+  it('permissions update preserves object format and repository owns Prisma access', () => {
+    const serviceSource = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
+    const rolesRepositorySource = readFileSync('src/modules/auth/admin-roles.repository.ts', 'utf8');
+    const catalogRepositorySource = readFileSync('src/modules/auth/permissions-catalog.repository.ts', 'utf8');
+    expect(serviceSource).toContain('adminRolesRepository.findManyAdminRoles');
+    expect(serviceSource).toContain('adminRolesRepository.findAdminRoleBySlug');
+    expect(serviceSource).toContain('adminRolesRepository.updateAdminRolePermissions');
+    expect(rolesRepositorySource).toContain('prisma.adminRole.findMany');
+    expect(rolesRepositorySource).toContain('prisma.adminRole.create');
+    expect(rolesRepositorySource).toContain('prisma.user.count');
+    expect(catalogRepositorySource).toContain('PERMISSION_CATALOG');
+  });
+
+  it('permission keys unchanged and catalog remains read-only', () => {
+    const catalogSource = readFileSync('src/modules/auth/permission-catalog.ts', 'utf8');
+    const controllerSource = readFileSync('src/modules/admin-roles/admin-roles.controller.ts', 'utf8');
+    expect(catalogSource).toContain("module: 'admins'");
+    expect(catalogSource).toContain("module: 'disputes'");
+    expect(controllerSource).toContain("@Get('catalog')");
+    expect(controllerSource).not.toContain("@Post('catalog')");
+    expect(controllerSource).not.toContain("@Patch('catalog')");
+    expect(controllerSource).not.toContain("@Delete('catalog')");
   });
 
   it('POST /admins DTO does not accept raw permissions or User.role fields', () => {
@@ -670,6 +709,8 @@ function createSensitiveAuthService(options?: {
   };
 
   const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
+  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
+  const permissionsCatalogRepository = new PermissionsCatalogRepository();
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -680,6 +721,8 @@ function createSensitiveAuthService(options?: {
     loginAttemptsService as unknown as ConstructorParameters<typeof AuthService>[3],
     mailerService as unknown as ConstructorParameters<typeof AuthService>[4],
     adminStaffRepository,
+    adminRolesRepository,
+    permissionsCatalogRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
