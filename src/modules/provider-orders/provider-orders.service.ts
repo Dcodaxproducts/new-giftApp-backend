@@ -3,23 +3,24 @@ import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, P
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from './provider-orders.repository';
 
 type ProviderOrderView = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true; refundRequests: true } }>;
 type ProviderOrderDetail = ProviderOrderView;
 
 @Injectable()
 export class ProviderOrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly providerOrdersRepository: ProviderOrdersRepository,
+  ) {}
 
   async list(user: AuthUserContext, query: ListProviderOrdersDto) {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 20, 100);
     const where = this.where(user.uid, query);
     const orderBy = this.orderBy(query.sortBy, query.sortOrder);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.providerOrder.findMany({ where, include: this.listInclude(), orderBy, skip: (page - 1) * limit, take: limit }),
-      this.prisma.providerOrder.count({ where }),
-    ]);
+    const [items, total] = await this.providerOrdersRepository.findManyAndCountProviderOrders({ where, include: this.listInclude(), orderBy, skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider orders fetched successfully.' };
   }
 
@@ -28,26 +29,20 @@ export class ProviderOrdersService {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 20, 100);
     const where = this.historyWhere(user.uid, query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.providerOrder.findMany({ where, include: this.listInclude(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }),
-      this.prisma.providerOrder.count({ where }),
-    ]);
+    const [items, total] = await this.providerOrdersRepository.findManyAndCountProviderOrders({ where, include: this.listInclude(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
     return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider order history fetched successfully.' };
   }
 
   async recent(user: AuthUserContext, query: ProviderRecentOrdersDto) {
     const limit = Math.min(query.limit ?? 5, 50);
-    const items = await this.prisma.providerOrder.findMany({ where: { providerId: user.uid }, orderBy: { createdAt: 'desc' }, take: limit });
+    const items = await this.providerOrdersRepository.findRecentProviderOrders(user.uid, limit);
     return { data: items.map((item) => ({ id: item.id, orderNumber: item.orderNumber ?? item.id, status: item.status, amount: Number(item.totalPayout ?? item.total), currency: item.currency, createdAt: item.createdAt })), message: 'Recent provider orders fetched successfully.' };
   }
 
   async performance(user: AuthUserContext, query: ProviderPerformanceDto) {
     const range = this.performanceRange(query);
     const previous = this.previousRange(range.from, range.to);
-    const [orders, previousOrders] = await Promise.all([
-      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: range.from, lte: range.to } } }),
-      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: previous.from, lte: previous.to } } }),
-    ]);
+    const [orders, previousOrders] = await this.providerOrdersRepository.findPerformanceRows({ providerId: user.uid, range, previous });
     const completedOrders = orders.filter((item) => (new Set<ProviderOrderStatus>([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED])).has(item.status)).length;
     const nonCancelled = orders.filter((item) => !(new Set<ProviderOrderStatus>([ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED, ProviderOrderStatus.REFUNDED])).has(item.status)).length;
     const previousCompleted = previousOrders.filter((item) => (new Set<ProviderOrderStatus>([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED])).has(item.status)).length;
@@ -62,10 +57,7 @@ export class ProviderOrdersService {
   async revenueAnalytics(user: AuthUserContext, query: ProviderRevenueAnalyticsDto) {
     const range = this.revenueRange(query);
     const previous = this.previousRange(range.from, range.to);
-    const [orders, previousOrders] = await Promise.all([
-      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: range.from, lte: range.to }, status: { in: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] } } }),
-      this.prisma.providerOrder.findMany({ where: { providerId: user.uid, createdAt: { gte: previous.from, lte: previous.to }, status: { in: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] } } }),
-    ]);
+    const [orders, previousOrders] = await this.providerOrdersRepository.findRevenueAnalyticsRows({ providerId: user.uid, range, previous, statuses: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] });
     const totalRevenue = this.money(orders.reduce((sum, item) => sum + this.revenueValue(item), 0));
     const previousRevenue = this.money(previousOrders.reduce((sum, item) => sum + this.revenueValue(item), 0));
     return { data: { totalRevenue, currency: orders[0]?.currency ?? 'PKR', deltaPercent: this.deltaPercent(totalRevenue, previousRevenue), points: this.revenuePoints(orders, query.range ?? ProviderRevenueRange.DAILY, range.from) }, message: 'Provider revenue analytics fetched successfully.' };
@@ -75,7 +67,7 @@ export class ProviderOrdersService {
 
   async export(user: AuthUserContext, query: ProviderOrdersExportDto): Promise<StreamableFile> {
     const where = this.exportWhere(user.uid, query);
-    const items = await this.prisma.providerOrder.findMany({ where, include: this.listInclude(), orderBy: { createdAt: 'desc' } });
+    const items = await this.providerOrdersRepository.findProviderOrdersForExport({ where, include: this.listInclude() });
     const rows = [['Order Number', 'Customer', 'Status', 'Amount', 'Currency', 'Created At'], ...items.map((item) => [item.orderNumber ?? item.order.orderNumber, item.order.recipientName, item.status, String(Number(item.totalPayout ?? item.total)), item.currency, item.createdAt.toISOString()])];
     return new StreamableFile(Buffer.from(rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n')), { type: 'text/csv', disposition: 'attachment; filename="provider-orders.csv"' });
   }
@@ -86,21 +78,14 @@ export class ProviderOrdersService {
     const end = query.toDate ? new Date(query.toDate) : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     const base: Prisma.ProviderOrderWhereInput = { providerId: user.uid };
     const todayWhere: Prisma.ProviderOrderWhereInput = { ...base, createdAt: { gte: start, lte: end } };
-    const [today, pendingCount, processingCount, shippedCount, completedCount, cancelledCount] = await this.prisma.$transaction([
-      this.prisma.providerOrder.findMany({ where: todayWhere }),
-      this.prisma.providerOrder.count({ where: { ...base, status: ProviderOrderStatus.PENDING } }),
-      this.prisma.providerOrder.count({ where: { ...base, status: { in: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED] } } }),
-      this.prisma.providerOrder.count({ where: { ...base, status: ProviderOrderStatus.SHIPPED } }),
-      this.prisma.providerOrder.count({ where: { ...base, status: { in: [ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] } } }),
-      this.prisma.providerOrder.count({ where: { ...base, status: { in: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED, ProviderOrderStatus.REFUNDED] } } }),
-    ]);
+    const [today, pendingCount, processingCount, shippedCount, completedCount, cancelledCount] = await this.providerOrdersRepository.findProviderOrderSummary({ base, todayWhere });
     const todayRevenue = this.money(today.reduce((sum, item) => sum + Number(item.totalPayout ?? item.total), 0));
     return { data: { todayOrderCount: today.length, todayRevenue, pendingCount, processingCount, shippedCount, completedCount, cancelledCount, currency: today[0]?.currency ?? 'PKR' }, message: 'Provider order summary fetched successfully.' };
   }
 
   async details(user: AuthUserContext, id: string) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    const address = await this.prisma.customerAddress.findFirst({ where: { id: order.order.deliveryAddressId, userId: order.order.userId } });
+    const order = await this.getOwnedProviderOrderForRead(user.uid, id);
+    const address = await this.providerOrdersRepository.findCustomerAddressForProviderOrder({ deliveryAddressId: order.order.deliveryAddressId, userId: order.order.userId });
     return { data: this.toDetails(order, address), message: 'Provider order fetched successfully.' };
   }
 
@@ -172,15 +157,15 @@ export class ProviderOrdersService {
   }
 
   async timeline(user: AuthUserContext, id: string) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    const timeline = await this.prisma.providerOrderTimeline.findMany({ where: { providerOrderId: order.id }, orderBy: { createdAt: 'asc' } });
+    const order = await this.getOwnedProviderOrderForRead(user.uid, id);
+    const timeline = await this.providerOrdersRepository.findProviderOrderTimeline(order.id);
     const data = [{ status: 'ORDERED', title: 'Ordered', description: 'System confirmed the order.', createdAt: order.createdAt }, ...timeline.map((item) => ({ status: item.status, title: item.title, description: item.description, createdAt: item.createdAt }))];
     return { data, message: 'Order timeline fetched successfully.' };
   }
 
   async checklist(user: AuthUserContext, id: string) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    const checklist = await this.getOrCreateChecklist(order.id);
+    const order = await this.getOwnedProviderOrderForRead(user.uid, id);
+    const checklist = await this.getOrCreateChecklistForRead(order.id);
     return { data: this.toChecklist(checklist), message: 'Order checklist fetched successfully.' };
   }
 
@@ -245,7 +230,8 @@ export class ProviderOrdersService {
   }
 
   private orderBy(sortBy?: ProviderOrderSortBy, sortOrder?: ProviderOrderSortOrder): Prisma.ProviderOrderOrderByWithRelationInput { const direction = sortOrder === ProviderOrderSortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ProviderOrderSortBy.AMOUNT) return { total: direction }; if (sortBy === ProviderOrderSortBy.STATUS) return { status: direction }; return { createdAt: direction }; }
-  private listInclude() { return Prisma.validator<Prisma.ProviderOrderInclude>()({ order: true, items: true, refundRequests: { orderBy: { requestedAt: 'desc' }, take: 1 } }); }
+  private listInclude() { return PROVIDER_ORDER_LIST_INCLUDE; }
+  private async getOwnedProviderOrderForRead(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.providerOrdersRepository.findProviderOrderById(providerId, id, this.listInclude()); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private async getOwnedProviderOrder(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.prisma.providerOrder.findFirst({ where: { id, providerId }, include: this.listInclude() }); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private latestRefund(item: ProviderOrderView) { return item.refundRequests[0] ?? null; }
   private refundSummary(item: ProviderOrderView) { const refund = this.latestRefund(item); return refund ? { id: refund.id, status: refund.status, requestedAmount: Number(refund.requestedAmount), requestedAt: refund.requestedAt } : null; }
@@ -327,6 +313,7 @@ export class ProviderOrdersService {
     return OrderStatus.PROCESSING;
   }
 
+  private async getOrCreateChecklistForRead(providerOrderId: string) { return (await this.providerOrdersRepository.findProviderOrderChecklist(providerOrderId)) ?? this.prisma.providerOrderChecklist.create({ data: { providerOrderId } }); }
   private async getOrCreateChecklist(providerOrderId: string) { return (await this.prisma.providerOrderChecklist.findUnique({ where: { providerOrderId } })) ?? this.prisma.providerOrderChecklist.create({ data: { providerOrderId } }); }
   private toChecklist(item: { providerOrderId: string; itemsPacked: boolean; giftMessageAttached: boolean; addressVerified: boolean; customerContactChecked: boolean; readyForCourier: boolean; customItemsJson: Prisma.JsonValue }) { return { orderId: item.providerOrderId, itemsPacked: item.itemsPacked, giftMessageAttached: item.giftMessageAttached, addressVerified: item.addressVerified, customerContactChecked: item.customerContactChecked, readyForCourier: item.readyForCourier, customItems: Array.isArray(item.customItemsJson) ? item.customItemsJson : [] }; }
   private rejectReasonLabel(reason: ProviderOrderRejectReason | RefundRejectReason): string { return this.rejectReasons().data.find((item) => item.key === reason)?.label ?? this.statusLabel(reason); }

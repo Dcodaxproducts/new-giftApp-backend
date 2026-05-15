@@ -5,6 +5,7 @@ describe('Provider order history and performance source safety', () => {
   const service = readFileSync(join(__dirname, 'provider-orders.service.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'provider-orders.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/provider-orders.dto.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-orders.repository.ts'), 'utf8');
 
   it('adds provider history/performance static routes before :id', () => {
     for (const route of ["@Get('history')", "@Get('performance')", "@Get('analytics/revenue')", "@Get('analytics/ratings')", "@Get('recent')", "@Get('export')"]) {
@@ -16,7 +17,8 @@ describe('Provider order history and performance source safety', () => {
 
   it('scopes history, recent, analytics, and export to own provider', () => {
     expect(service).toContain('historyWhere(user.uid, query)');
-    expect(service).toContain('where: { providerId: user.uid }');
+    expect(service).toContain('providerId: user.uid');
+    expect(repository).toContain('where: { providerId }');
     expect(service).toContain('exportWhere(user.uid, query)');
     expect(service).not.toContain('query.providerId');
   });
@@ -32,7 +34,7 @@ describe('Provider order history and performance source safety', () => {
 
   it('recent orders returns latest own orders with default limit', () => {
     expect(service).toContain('query.limit ?? 5');
-    expect(service).toContain("orderBy: { createdAt: 'desc' }");
+    expect(repository).toContain("orderBy: { createdAt: 'desc' }");
     expect(service).toContain('Recent provider orders fetched successfully.');
   });
 

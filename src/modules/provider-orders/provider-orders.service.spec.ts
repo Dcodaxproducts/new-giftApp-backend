@@ -8,6 +8,7 @@ describe('Provider assigned orders source safety', () => {
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const customerMarketplace = readFileSync(join(__dirname, '../customer-marketplace/customer-marketplace.service.ts'), 'utf8');
   const customerOrdersRepository = readFileSync(join(__dirname, '../customer-marketplace/customer-orders.repository.ts'), 'utf8');
+  const providerOrdersRepository = readFileSync(join(__dirname, 'provider-orders.repository.ts'), 'utf8');
 
   it('exposes provider-only Provider Orders APIs with static routes before :id', () => {
     expect(controller).toContain("@ApiTags('03 Provider - Orders')");
@@ -20,7 +21,7 @@ describe('Provider assigned orders source safety', () => {
 
   it('scopes all provider order reads/writes to the logged-in provider', () => {
     expect(service).toContain('providerId: user.uid');
-    expect(service).toContain('where: { id, providerId }');
+    expect(providerOrdersRepository).toContain('where: { id, providerId }');
     expect(service).not.toContain('query.providerId');
     expect(service).toContain('Provider order not found');
   });
