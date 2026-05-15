@@ -33,11 +33,11 @@ export class CustomerWalletService {
     if (currency !== this.currency()) throw new BadRequestException('Currency does not match configured payment currency');
     const wallet = await this.getOrCreateWallet(user.uid);
     const amount = this.money(dto.amount);
-    const ledger = await this.prisma.customerWalletLedger.create({ data: { userId: user.uid, walletId: wallet.id, type: CustomerWalletLedgerType.TOP_UP, direction: CustomerWalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: CustomerWalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' } });
-    const payment = await this.prisma.payment.create({ data: { userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripePaymentMethodId: dto.stripePaymentMethodId } } });
-    await this.prisma.customerWalletLedger.update({ where: { id: ledger.id }, data: { paymentId: payment.id } });
+    const ledger = await this.repository.createWalletLedgerEntry({ userId: user.uid, walletId: wallet.id, type: CustomerWalletLedgerType.TOP_UP, direction: CustomerWalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: CustomerWalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
+    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripePaymentMethodId: dto.stripePaymentMethodId } });
+    await this.repository.markWalletTopUpPending(ledger.id, payment.id);
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), payment_method: dto.stripePaymentMethodId, automatic_payment_methods: dto.stripePaymentMethodId ? undefined : { enabled: true }, confirm: false, metadata: { paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid } }) as StripeIntentCreateResult;
-    const updatedPayment = await this.prisma.payment.update({ where: { id: payment.id }, data: { providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, stripePaymentMethodId: dto.stripePaymentMethodId } } });
+    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, stripePaymentMethodId: dto.stripePaymentMethodId } });
     return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, clientSecret: intent.client_secret, amount, currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 

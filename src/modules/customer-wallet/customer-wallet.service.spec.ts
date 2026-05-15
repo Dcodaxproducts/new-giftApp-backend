@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { CustomerWalletLedgerDirection, CustomerWalletLedgerStatus, CustomerWalletLedgerType, UserRole } from '@prisma/client';
+import { CustomerWalletLedgerDirection, CustomerWalletLedgerStatus, CustomerWalletLedgerType, PaymentMethod, PaymentProvider, PaymentStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { CustomerWalletRepository } from './customer-wallet.repository';
@@ -10,6 +10,8 @@ const wallet = { id: 'wallet_1', userId: 'customer_1', cashBalance: 100, giftCre
 const ledger = { id: 'ledger_1', userId: 'customer_1', walletId: 'wallet_1', paymentId: null, rewardLedgerId: null, type: CustomerWalletLedgerType.TOP_UP, direction: CustomerWalletLedgerDirection.CREDIT, amount: 50, currency: 'USD', status: CustomerWalletLedgerStatus.SUCCESS, transactionId: 'TXN-1', description: 'Wallet top-up completed.', metadataJson: {}, createdAt: new Date(), updatedAt: new Date() };
 const paymentMethod = { id: 'pm_1', userId: 'customer_1', stripePaymentMethodId: 'pm_card_visa', type: 'CARD', brand: 'visa', last4: '4242', expiryMonth: 9, expiryYear: 2028, isDefault: true, deletedAt: null };
 const bankAccount = { id: 'bank_1', userId: 'customer_1', accountHolderName: 'John Smith', bankName: 'Chase Bank', maskedAccount: '**** 8821', last4: '8821', isDefault: true, deletedAt: null };
+const pendingLedger = { ...ledger, id: 'ledger_pending', status: CustomerWalletLedgerStatus.PENDING, description: 'Wallet top-up pending payment.' };
+const payment = { id: 'payment_1', userId: 'customer_1', provider: PaymentProvider.STRIPE, amount: 50, currency: 'USD', status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, providerPaymentIntentId: null, metadataJson: {} };
 
 function createService(overrides: Partial<{ wallet: unknown; ledgerRows: unknown[] }> = {}) {
   const walletResult = Object.prototype.hasOwnProperty.call(overrides, 'wallet') ? overrides.wallet : wallet;
@@ -22,13 +24,21 @@ function createService(overrides: Partial<{ wallet: unknown; ledgerRows: unknown
     },
     customerPaymentMethod: { findFirst: jest.fn().mockResolvedValue(paymentMethod) },
     customerBankAccount: { findFirst: jest.fn().mockResolvedValue(bankAccount), findMany: jest.fn(), updateMany: jest.fn(), update: jest.fn(), create: jest.fn(), delete: jest.fn() },
-    customerWalletLedger: { findMany: jest.fn().mockResolvedValue(ledgerRows), count: jest.fn().mockResolvedValue(ledgerRows.length), create: jest.fn(), findFirst: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
-    payment: { create: jest.fn(), update: jest.fn() },
+    customerWalletLedger: { findMany: jest.fn().mockResolvedValue(ledgerRows), count: jest.fn().mockResolvedValue(ledgerRows.length), create: jest.fn().mockResolvedValue(pendingLedger), findFirst: jest.fn(), update: jest.fn().mockResolvedValue({ ...pendingLedger, paymentId: payment.id }), updateMany: jest.fn() },
+    payment: { create: jest.fn().mockResolvedValue(payment), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payment, ...data })) },
     notification: { create: jest.fn() },
     $transaction: jest.fn().mockImplementation((input: unknown) => Array.isArray(input) ? Promise.all(input as Promise<unknown>[]) : (input as (tx: unknown) => unknown)(prisma)),
   };
   const repository = new CustomerWalletRepository(prisma as unknown as ConstructorParameters<typeof CustomerWalletRepository>[0]);
   return { service: new CustomerWalletService(prisma as unknown as ConstructorParameters<typeof CustomerWalletService>[0], repository), prisma, repository };
+}
+
+function mockStripe(service: CustomerWalletService) {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+  process.env.STRIPE_CURRENCY = 'USD';
+  const create = jest.fn().mockResolvedValue({ id: 'pi_1', client_secret: 'secret_1', status: 'requires_confirmation' });
+  Object.defineProperty(service, 'stripeClient', { value: { paymentIntents: { create } }, configurable: true });
+  return create;
 }
 
 describe('Customer wallet source safety', () => {
@@ -45,7 +55,7 @@ describe('Customer wallet source safety', () => {
     expect(schema).toContain('model CustomerWalletLedger');
     expect(schema).toContain('cashBalance Decimal');
     expect(schema).toContain('giftCredits Decimal');
-    expect(walletService).toContain('customerWalletLedger.create');
+    expect(walletRepository).toContain('customerWalletLedger.create');
     expect(walletService).toContain('cashBalance: { increment: ledger.amount }');
     expect(walletService).toContain('giftCredits: { increment: rewardLedger.amount }');
   });
@@ -64,6 +74,7 @@ describe('Customer wallet source safety', () => {
     expect(walletRepository).toContain('createWalletForUser');
     expect(walletRepository).toContain('customerWallet.create({ data: { userId');
     expect(walletService).not.toContain('query.userId');
+    expect(walletService).not.toContain('dto.userId');
   });
 
   it('repository owns wallet overview and history reads', () => {
@@ -85,6 +96,17 @@ describe('Customer wallet source safety', () => {
     expect(walletService).toContain('creditWalletTopUp(payment');
     expect(paymentsService).toContain('creditWalletTopUp(updated)');
     expect(walletService).toContain('CustomerWalletLedgerStatus.SUCCESS');
+  });
+
+  it('repository owns wallet top-up write queries while service keeps Stripe orchestration', () => {
+    expect(walletRepository).toContain('createWalletLedgerEntry');
+    expect(walletRepository).toContain('createWalletTopUpPayment');
+    expect(walletRepository).toContain('markWalletTopUpPending');
+    expect(walletRepository).toContain('markWalletTopUpPaymentProcessing');
+    expect(walletService).toContain('paymentIntents.create');
+    expect(walletService).not.toContain('customerWalletLedger.create({ data: { userId: user.uid');
+    expect(walletService).not.toContain('payment.create({ data: { userId: user.uid');
+    expect(walletService).not.toContain('payment.update({ where: { id: payment.id }');
   });
 
   it('referral reward redemption credits wallet ledger as gift credits', () => {
@@ -167,5 +189,46 @@ describe('CustomerWalletService read APIs', () => {
       skip: 0,
       take: 20,
     }));
+  });
+
+  it('customer can create wallet top-up payment', async () => {
+    const { service, prisma } = createService();
+    const stripeCreate = mockStripe(service);
+    const result = await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD, stripePaymentMethodId: 'pm_card_visa' });
+    expect(result.message).toBe('Wallet top-up payment created successfully.');
+    expect(result.data).toEqual(expect.objectContaining({ walletTopUpId: 'ledger_pending', paymentId: 'payment_1', clientSecret: 'secret_1', amount: 50, currency: 'USD', status: 'PAYMENT_PENDING' }));
+    expect(stripeCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 5000, currency: 'usd', payment_method: 'pm_card_visa', metadata: { paymentId: 'payment_1', walletTopUpId: 'ledger_pending', userId: 'customer_1' } }));
+    expect(prisma.payment.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payment_1' }, data: expect.objectContaining({ providerPaymentIntentId: 'pi_1', status: PaymentStatus.PROCESSING }) }));
+  });
+
+  it('wallet top-up uses logged-in user only', async () => {
+    const { service, prisma } = createService();
+    mockStripe(service);
+    await service.addFunds({ uid: 'customer_2', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD });
+    expect(prisma.customerWalletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId: 'customer_2', walletId: 'wallet_1' }) }));
+    expect(prisma.payment.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId: 'customer_2' }) }));
+  });
+
+  it('amount validation remains unchanged at DTO level and service money formatting', async () => {
+    const dto = readFileSync(join(__dirname, 'dto/customer-wallet.dto.ts'), 'utf8');
+    expect(dto).toContain('@Min(0.01)');
+    const { service, prisma } = createService();
+    mockStripe(service);
+    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50.129, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD });
+    expect(prisma.customerWalletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ amount: expect.objectContaining({}) }) }));
+  });
+
+  it('wallet ledger behavior remains unchanged for top-up pending flow', async () => {
+    const { service, prisma } = createService();
+    mockStripe(service);
+    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD });
+    expect(prisma.customerWalletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: CustomerWalletLedgerType.TOP_UP, direction: CustomerWalletLedgerDirection.CREDIT, status: CustomerWalletLedgerStatus.PENDING, description: 'Wallet top-up pending payment.' }) }));
+    expect(prisma.customerWalletLedger.update).toHaveBeenCalledWith({ where: { id: 'ledger_pending' }, data: { paymentId: 'payment_1' } });
+  });
+
+  it('rejects unsupported payment method and currency as before', async () => {
+    const { service } = createService();
+    await expect(service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.COD })).rejects.toThrow('Wallet top-up currently supports STRIPE_CARD only');
+    await expect(service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'EUR', paymentMethod: PaymentMethod.STRIPE_CARD })).rejects.toThrow('Currency does not match configured payment currency');
   });
 });
