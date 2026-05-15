@@ -1,9 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { AccountType, LoginAttemptStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
+import { AccountType, LoginAttemptStatus, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { AccountStatusService } from '../../common/services/account-status.service';
-import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
 import {
   ExportFormat,
@@ -20,6 +18,7 @@ import {
   UpdateRegisteredUserDto,
   UpdateRegisteredUserStatusDto,
 } from './dto/user-management.dto';
+import { UserManagementRepository } from './user-management.repository';
 
 interface UserStats {
   ordersCount: number;
@@ -40,24 +39,20 @@ interface UserActivityItem {
 @Injectable()
 export class UserManagementService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userManagementRepository: UserManagementRepository,
     private readonly mailerService: MailerService,
-    private readonly accountStatusService: AccountStatusService,
   ) {}
 
   async list(query: ListRegisteredUsersDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where = this.buildRegisteredUserWhere(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.user.findMany({
-        where,
-        orderBy: this.toOrderBy(query.sortBy, query.sortOrder),
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.user.count({ where }),
-    ]);
+    const [items, total] = await this.userManagementRepository.findUsersAndCount({
+      where,
+      orderBy: this.toOrderBy(query.sortBy, query.sortOrder),
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
     return {
       data: items.map((user) => this.toListItem(user, this.emptyStats())),
@@ -77,15 +72,12 @@ export class UserManagementService {
   async update(user: AuthUserContext, id: string, dto: UpdateRegisteredUserDto) {
     const target = await this.getRegisteredUser(id);
     const before = this.toDetail(target, this.emptyStats());
-    const updated = await this.prisma.user.update({
-      where: { id: target.id },
-      data: {
-        firstName: dto.firstName?.trim(),
-        lastName: dto.lastName?.trim(),
-        phone: dto.phone?.trim(),
-        avatarUrl: dto.avatarUrl?.trim(),
-        location: dto.location?.trim(),
-      },
+    const updated = await this.userManagementRepository.updateUser(target.id, {
+      firstName: dto.firstName?.trim(),
+      lastName: dto.lastName?.trim(),
+      phone: dto.phone?.trim(),
+      avatarUrl: dto.avatarUrl?.trim(),
+      location: dto.location?.trim(),
     });
     await this.recordAudit(user.uid, target.id, 'REGISTERED_USER_UPDATED', before, this.toDetail(updated, this.emptyStats()));
 
@@ -96,27 +88,44 @@ export class UserManagementService {
   }
 
   async updateStatus(user: AuthUserContext, id: string, dto: UpdateRegisteredUserStatusDto) {
-    const response = await this.accountStatusService.updateStatus({
-      actorId: user.uid,
-      accountId: id,
-      accountType: AccountType.REGISTERED_USER,
-      status: dto.status,
-      reason: dto.reason,
-      comment: dto.comment,
-      notify: dto.notifyUser,
-      activeStatuses: [RegisteredUserStatusUpdate.ACTIVE],
-      suspendedStatus: RegisteredUserStatusUpdate.SUSPENDED,
-      actionPrefix: 'REGISTERED_USER',
-      targetType: 'REGISTERED_USER',
-    });
+    const target = await this.getRegisteredUser(id);
+
+    if (dto.status === RegisteredUserStatusUpdate.SUSPENDED) {
+      const response = await this.suspendRegisteredUser(user, target, dto.reason, dto.comment, dto.notifyUser);
+      return { data: response, message: 'User suspended successfully' };
+    }
+
+    const isActive = dto.status === RegisteredUserStatusUpdate.ACTIVE;
+    const updated = target.suspendedAt
+      ? await this.userManagementRepository.clearSuspensionAndUpdateStatus({
+          userId: target.id,
+          actorId: user.uid,
+          isActive,
+          refreshTokenHash: isActive ? target.refreshTokenHash : null,
+        })
+      : await this.userManagementRepository.updateUserStatus(target.id, {
+          isActive,
+          suspensionReason: null,
+          suspensionComment: null,
+          suspendedAt: null,
+          suspendedBy: null,
+          refreshTokenHash: isActive ? target.refreshTokenHash : null,
+        });
+
+    await this.recordAudit(
+      user.uid,
+      target.id,
+      'REGISTERED_USER_STATUS_CHANGED',
+      this.toStatusSnapshot(target),
+      this.toStatusSnapshot(updated),
+    );
+    await this.notifyStatusChange(updated, dto.notifyUser, dto.status, dto.comment);
 
     return {
-      data: response,
-      message: dto.status === RegisteredUserStatusUpdate.SUSPENDED
-        ? 'User suspended successfully'
-        : dto.status === RegisteredUserStatusUpdate.ACTIVE
-          ? 'User unsuspended successfully'
-          : 'User disabled successfully',
+      data: this.toStatusResponse(updated, dto.status),
+      message: dto.status === RegisteredUserStatusUpdate.ACTIVE
+        ? 'User unsuspended successfully'
+        : 'User disabled successfully',
     };
   }
 
@@ -134,19 +143,18 @@ export class UserManagementService {
     id: string,
     dto: { comment?: string; notifyUser?: boolean },
   ) {
-    const response = await this.accountStatusService.unsuspend({
-      actorId: user.uid,
-      accountId: id,
-      accountType: AccountType.REGISTERED_USER,
-      comment: dto.comment,
-      notify: dto.notifyUser,
-      activeStatuses: [RegisteredUserStatusUpdate.ACTIVE],
-      suspendedStatus: RegisteredUserStatusUpdate.SUSPENDED,
-      actionPrefix: 'REGISTERED_USER',
-      targetType: 'REGISTERED_USER',
-    });
+    const target = await this.getRegisteredUser(id);
+    const updated = await this.userManagementRepository.unsuspendUser({ userId: target.id, actorId: user.uid });
+    await this.recordAudit(
+      user.uid,
+      target.id,
+      'REGISTERED_USER_UNSUSPENDED',
+      this.toStatusSnapshot(target),
+      this.toStatusSnapshot(updated),
+    );
+    await this.notifyStatusChange(updated, dto.notifyUser, RegisteredUserStatusUpdate.ACTIVE, dto.comment);
 
-    return { data: response, message: 'User unsuspended successfully' };
+    return { data: this.toStatusResponse(updated, RegisteredUserStatusUpdate.ACTIVE), message: 'User unsuspended successfully' };
   }
 
   async resetPassword(
@@ -158,16 +166,10 @@ export class UserManagementService {
     const emailRequested = dto.sendEmail ?? true;
     const notificationRequested = dto.sendNotification ?? true;
 
-    await this.prisma.user.update({
-      where: { id: target.id },
-      data: {
-        password: await bcrypt.hash(dto.newPassword, 10),
-        resetPasswordOtp: null,
-        resetPasswordOtpExpiresAt: null,
-        resetPasswordOtpAttempts: 0,
-        refreshTokenHash: null,
-      },
-    });
+    await this.userManagementRepository.updateUserPasswordHash(
+      target.id,
+      await bcrypt.hash(dto.newPassword, 10),
+    );
 
     const notificationSent = notificationRequested
       ? await this.createPasswordChangedNotification(target.id)
@@ -201,40 +203,9 @@ export class UserManagementService {
 
   async permanentlyDelete(user: AuthUserContext, id: string) {
     const target = await this.getRegisteredUser(id);
-    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.adminAuditLog.create({
-        data: {
-          actorId: user.uid,
-          targetId: target.id,
-          targetType: 'REGISTERED_USER',
-          action: 'REGISTERED_USER_PERMANENTLY_DELETED',
-          beforeJson: { id: target.id, email: target.email, role: target.role },
-          afterJson: { reason: 'Permanent delete requested from user management.', deleteRelatedRecords: true },
-        },
-      });
-
-      await tx.authSession.deleteMany({ where: { userId: target.id } });
-      await tx.notification.deleteMany({ where: { recipientId: target.id } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: target.id } });
-      await tx.uploadedFile.deleteMany({ where: { ownerId: target.id } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: target.id } });
-      await tx.loginAttempt.updateMany({ where: { userId: target.id }, data: { userId: null } });
-      await tx.customerWishlist.deleteMany({ where: { userId: target.id } });
-      await tx.cartItem.deleteMany({ where: { cart: { userId: target.id } } });
-      await tx.cart.deleteMany({ where: { userId: target.id } });
-      await tx.customerEventReminderJob.deleteMany({ where: { userId: target.id } });
-      await tx.customerEvent.deleteMany({ where: { userId: target.id } });
-      await tx.customerReminder.deleteMany({ where: { userId: target.id } });
-      await tx.customerBankAccount.deleteMany({ where: { userId: target.id } });
-      await tx.customerPaymentMethod.deleteMany({ where: { userId: target.id } });
-      await tx.customerWalletLedger.deleteMany({ where: { userId: target.id } });
-      await tx.customerWallet.deleteMany({ where: { userId: target.id } });
-      await tx.rewardLedger.deleteMany({ where: { userId: target.id } });
-      await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: target.id }, { referredUserId: target.id }] } });
-      await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId: target.id } });
-      await tx.customerRecurringPayment.deleteMany({ where: { userId: target.id } });
-      await tx.customerContact.deleteMany({ where: { userId: target.id } });
-      await tx.user.delete({ where: { id: target.id } });
+    await this.userManagementRepository.deleteRegisteredUserPermanently({
+      actorId: user.uid,
+      target,
     });
 
     return {
@@ -248,18 +219,7 @@ export class UserManagementService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const requestedType = query.type ?? UserActivityType.ALL;
-    const [loginAttempts, auditLogs] = await this.prisma.$transaction([
-      this.prisma.loginAttempt.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: 200,
-      }),
-      this.prisma.adminAuditLog.findMany({
-        where: { targetId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: 200,
-      }),
-    ]);
+    const { loginAttempts, auditLogs } = await this.userManagementRepository.findUserActivity(user.id);
     const activities = [
       ...loginAttempts.map((attempt): UserActivityItem => ({
         id: attempt.id,
@@ -291,7 +251,7 @@ export class UserManagementService {
   }
 
   async exportRegisteredUsers(query: ExportRegisteredUsersDto) {
-    const users = await this.prisma.user.findMany({
+    const users = await this.userManagementRepository.findManyUsers({
       where: this.buildRegisteredUserWhere(query),
       orderBy: { createdAt: 'desc' },
       take: 10000,
@@ -439,9 +399,7 @@ export class UserManagementService {
   }
 
   private async getRegisteredUser(id: string): Promise<User> {
-    const user = await this.prisma.user.findFirst({
-      where: { id, role: UserRole.REGISTERED_USER, deletedAt: null },
-    });
+    const user = await this.userManagementRepository.findUserById(id);
 
     if (!user) {
       throw new NotFoundException('Registered user not found');
@@ -541,10 +499,10 @@ export class UserManagementService {
     };
   }
 
-  private toStatusResponse(user: User) {
+  private toStatusResponse(user: User, status?: string) {
     return {
       id: user.id,
-      status: this.toStatus(user),
+      status: status ?? this.toStatus(user),
       isActive: user.isActive,
       suspension: this.toSuspension(user),
     };
@@ -596,6 +554,47 @@ export class UserManagementService {
     };
   }
 
+  private async suspendRegisteredUser(
+    actor: AuthUserContext,
+    target: User,
+    reason: string | undefined,
+    comment: string | undefined,
+    notifyUser: boolean | undefined,
+  ) {
+    if (!reason) {
+      throw new BadRequestException('Suspension reason is required');
+    }
+
+    const updated = await this.userManagementRepository.suspendUser({
+      userId: target.id,
+      accountType: AccountType.REGISTERED_USER,
+      reason,
+      comment,
+      actorId: actor.uid,
+    });
+    await this.recordAudit(
+      actor.uid,
+      target.id,
+      'REGISTERED_USER_SUSPENDED',
+      this.toStatusSnapshot(target),
+      this.toStatusSnapshot(updated),
+    );
+    await this.notifyStatusChange(updated, notifyUser, RegisteredUserStatusUpdate.SUSPENDED, comment);
+
+    return this.toStatusResponse(updated, RegisteredUserStatusUpdate.SUSPENDED);
+  }
+
+  private toStatusSnapshot(user: User) {
+    return {
+      id: user.id,
+      isActive: user.isActive,
+      suspensionReason: user.suspensionReason,
+      suspensionComment: user.suspensionComment,
+      suspendedAt: user.suspendedAt,
+      suspendedBy: user.suspendedBy,
+    };
+  }
+
   private async notifyStatusChange(
     user: User,
     notifyUser: boolean | undefined,
@@ -639,16 +638,7 @@ export class UserManagementService {
   }
 
   private async createPasswordChangedNotification(userId: string): Promise<boolean> {
-    await this.prisma.notification.create({
-      data: {
-        recipientId: userId,
-        recipientType: NotificationRecipientType.REGISTERED_USER,
-        type: 'SECURITY',
-        title: 'Password changed',
-        message: 'Your account password was changed by the support team.',
-        metadataJson: { action: 'PASSWORD_CHANGED_BY_ADMIN' },
-      },
-    });
+    await this.userManagementRepository.createPasswordChangedNotification(userId);
     return true;
   }
 
@@ -659,15 +649,13 @@ export class UserManagementService {
     beforeJson: unknown,
     afterJson: unknown,
   ): Promise<void> {
-    await this.prisma.adminAuditLog.create({
-      data: {
-        actorId,
-        targetId,
-        targetType: this.inferTargetType(action),
-        action,
-        beforeJson: beforeJson === null ? undefined : (beforeJson),
-        afterJson: afterJson === null ? undefined : (afterJson),
-      },
+    await this.userManagementRepository.createAuditLog({
+      actorId,
+      targetId,
+      targetType: this.inferTargetType(action),
+      action,
+      beforeJson: beforeJson === null ? undefined : beforeJson,
+      afterJson: afterJson === null ? undefined : afterJson,
     });
   }
 
