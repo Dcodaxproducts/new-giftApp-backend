@@ -3,6 +3,7 @@ import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { readFileSync } from 'fs';
 import { resetPasswordTemplate } from '../../mail/templates/reset-password.template';
+import { AdminStaffRepository } from './admin-staff.repository';
 import { AuthPasswordRepository } from './auth-password.repository';
 import { AuthRepository } from './auth.repository';
 import { ProviderFulfillmentMethodDto } from './dto/auth.dto';
@@ -63,6 +64,7 @@ function createAuthService(superAdminCount: number) {
     },
     adminAuditLog: { create: jest.fn() },
   };
+  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -72,6 +74,7 @@ function createAuthService(superAdminCount: number) {
     { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[2],
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
     {} as unknown as ConstructorParameters<typeof AuthService>[4],
+    adminStaffRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -130,6 +133,7 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
   const mailer = {
     sendPasswordResetEmail: mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
   };
+  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -139,6 +143,7 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
     { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[2],
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
     mailer as unknown as ConstructorParameters<typeof AuthService>[4],
+    adminStaffRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -300,6 +305,16 @@ function createAdminCreationService(options?: {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const tx = {
+    adminAuditLog: { create: jest.fn(), updateMany: jest.fn() },
+    authSession: { deleteMany: jest.fn(), updateMany: jest.fn() },
+    loginAttempt: { updateMany: jest.fn() },
+    accountSuspension: { deleteMany: jest.fn() },
+    notification: { deleteMany: jest.fn() },
+    notificationDeviceToken: { deleteMany: jest.fn() },
+    uploadedFile: { deleteMany: jest.fn() },
+    user: { delete: jest.fn() },
+  };
   const prisma = {
     user: {
       findUnique: jest.fn().mockResolvedValue(null),
@@ -308,14 +323,27 @@ function createAdminCreationService(options?: {
       count: jest.fn().mockResolvedValue(options?.assignedAdminCount ?? 1),
       update: jest.fn(),
       updateMany: jest.fn(),
+      delete: tx.user.delete,
     },
     adminRole: {
       findUnique: jest.fn().mockResolvedValue(adminRole),
       update: jest.fn().mockResolvedValue({ ...adminRole, permissions: { gifts: ['read'] } }),
     },
-    adminAuditLog: { create: jest.fn() },
-    $transaction: jest.fn(async (operations: Array<Promise<unknown>>) => Promise.all(operations)),
+    authSession: tx.authSession,
+    loginAttempt: tx.loginAttempt,
+    accountSuspension: tx.accountSuspension,
+    notification: tx.notification,
+    notificationDeviceToken: tx.notificationDeviceToken,
+    uploadedFile: tx.uploadedFile,
+    adminAuditLog: tx.adminAuditLog,
+    $transaction: jest.fn(async (operations: Array<Promise<unknown>> | ((txArg: typeof tx) => Promise<unknown>)) => {
+      if (typeof operations === 'function') {
+        return operations(tx);
+      }
+      return Promise.all(operations);
+    }),
   };
+  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -327,6 +355,7 @@ function createAdminCreationService(options?: {
     {
       sendAdminInviteEmail: options?.mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
     } as unknown as ConstructorParameters<typeof AuthService>[4],
+    adminStaffRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -335,7 +364,7 @@ function createAdminCreationService(options?: {
 }
 
 describe('AuthService admin staff RBAC architecture', () => {
-  it('GET /admins lists only User.role = ADMIN staff, not SUPER_ADMIN accounts', async () => {
+  it('SUPER_ADMIN can list admins', async () => {
     const { service, prisma } = createAdminCreationService();
 
     await service.listAdmins({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, {});
@@ -346,7 +375,7 @@ describe('AuthService admin staff RBAC architecture', () => {
     expect(countCalls[0][0].where).toMatchObject({ role: UserRole.ADMIN, deletedAt: null });
   });
 
-  it('POST /admins creates User.role = ADMIN and roleId points to AdminRole.id', async () => {
+  it('SUPER_ADMIN can create ADMIN staff and roleId assignment remains unchanged', async () => {
     const { service, prisma } = createAdminCreationService();
 
     const result = await service.createAdmin(
@@ -366,10 +395,11 @@ describe('AuthService admin staff RBAC architecture', () => {
       },
     );
 
-    const createCalls = prisma.user.create.mock.calls as Array<[{ data: { role: UserRole; adminRoleId: string } }]>;
+    const createCalls = prisma.user.create.mock.calls as Array<[{ data: { role: UserRole; adminRoleId: string; mustChangePassword: boolean } }]>;
     const createCall = createCalls[0][0];
     expect(createCall.data.role).toBe(UserRole.ADMIN);
     expect(createCall.data.adminRoleId).toBe('role_1');
+    expect(createCall.data.mustChangePassword).toBe(true);
     expect(result.data).toEqual({ id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: false });
   });
 
@@ -438,6 +468,60 @@ describe('AuthService admin staff RBAC architecture', () => {
       'role_1',
       { name: 'Updated' },
     )).rejects.toThrow('Super Admin role cannot be modified.');
+  });
+
+
+  it('active-status behavior remains unchanged', async () => {
+    const { service, prisma, createdAdmin } = createAdminCreationService();
+    prisma.user.findUnique.mockResolvedValueOnce({ ...createdAdmin, adminRole: null });
+    prisma.user.update.mockResolvedValueOnce({ ...createdAdmin, adminRole: null, isActive: false, refreshTokenHash: null });
+
+    const result = await service.updateAdminActiveStatus(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      'admin_1',
+      { isActive: false },
+    );
+
+    expect(result).toEqual({ data: { id: 'admin_1', isActive: false }, message: 'Admin disabled successfully' });
+  });
+
+  it('password reset behavior remains unchanged', async () => {
+    const { service, prisma, createdAdmin } = createAdminCreationService();
+    prisma.user.findUnique.mockResolvedValueOnce({ ...createdAdmin, adminRole: null });
+
+    await expect(service.resetAdminPassword(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      'admin_1',
+      { temporaryPassword: 'Temp@123456', mustChangePassword: true },
+    )).resolves.toEqual({ data: null, message: 'Temporary password generated successfully' });
+
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'admin_1' } }));
+  });
+
+  it('permanent delete behavior remains unchanged', async () => {
+    const { service, prisma, createdAdmin } = createAdminCreationService();
+    prisma.user.findUnique.mockResolvedValueOnce({ ...createdAdmin, adminRole: null });
+
+    await expect(service.permanentlyDeleteAdmin(
+      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
+      'admin_1',
+      { confirmation: 'PERMANENTLY_DELETE_ADMIN', reason: 'Security cleanup' },
+    )).resolves.toEqual({ data: { deletedAdminId: 'admin_1' }, message: 'Admin staff user permanently deleted successfully.' });
+
+    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'admin_1' } });
+  });
+
+  it('repository owns Prisma access for admin staff flows', () => {
+    const serviceSource = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
+    const repositorySource = readFileSync('src/modules/auth/admin-staff.repository.ts', 'utf8');
+    expect(serviceSource).toContain('adminStaffRepository.findManyAdmins');
+    expect(serviceSource).toContain('adminStaffRepository.findAdminById');
+    expect(serviceSource).toContain('adminStaffRepository.createAdminUser');
+    expect(serviceSource).toContain('adminStaffRepository.updateAdminUser');
+    expect(serviceSource).toContain('adminStaffRepository.updateAdminPasswordHash');
+    expect(serviceSource).toContain('adminStaffRepository.deleteAdminPermanently');
+    expect(repositorySource).toContain('prisma.user.findMany');
+    expect(repositorySource).toContain('prisma.user.create');
   });
 
   it('POST /admins DTO does not accept raw permissions or User.role fields', () => {
@@ -530,6 +614,7 @@ function createSensitiveAuthService(options?: {
       findFirst: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
+      delete: jest.fn(),
       create: jest.fn(),
     },
     providerBusinessCategory: {
@@ -584,6 +669,7 @@ function createSensitiveAuthService(options?: {
     captureSignupReferral: jest.fn().mockResolvedValue(undefined),
   };
 
+  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -593,6 +679,7 @@ function createSensitiveAuthService(options?: {
     configService as unknown as ConstructorParameters<typeof AuthService>[2],
     loginAttemptsService as unknown as ConstructorParameters<typeof AuthService>[3],
     mailerService as unknown as ConstructorParameters<typeof AuthService>[4],
+    adminStaffRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,

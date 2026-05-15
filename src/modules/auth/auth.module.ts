@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { LoginAttemptsModule } from '../login-attempts/login-attempts.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { CustomerReferralsModule } from '../customer-referrals/customer-referrals.module';
+import { AdminStaffRepository } from './admin-staff.repository';
 import { AuthController } from './auth.controller';
 import { AuthPasswordRepository } from './auth-password.repository';
 import { AuthRepository } from './auth.repository';
@@ -14,7 +15,7 @@ import { AuthSessionsRepository } from './auth-sessions.repository';
 @Module({
   imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule, CustomerReferralsModule],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, PrismaService, JwtAuthGuard],
+  providers: [AuthService, AdminStaffRepository, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, PrismaService, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

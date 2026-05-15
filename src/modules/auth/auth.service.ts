@@ -24,6 +24,7 @@ import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { AdminStaffRepository } from './admin-staff.repository';
 import { AuthPasswordRepository } from './auth-password.repository';
 import { AuthRepository } from './auth.repository';
 import { AuthSessionsRepository } from './auth-sessions.repository';
@@ -80,6 +81,7 @@ export class AuthService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly loginAttemptsService: LoginAttemptsService,
     private readonly mailerService: MailerService,
+    private readonly adminStaffRepository: AdminStaffRepository,
     private readonly authRepository: AuthRepository,
     private readonly authSessionsRepository: AuthSessionsRepository,
     private readonly authPasswordRepository: AuthPasswordRepository,
@@ -299,18 +301,14 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Temporary password is required when generateTemporaryPassword is false');
     }
 
-    const admin = await this.createUser({
+    const admin = await this.createAdminUser({
       email: dto.email,
       password: temporaryPassword,
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
-      role: UserRole.ADMIN,
-      isApproved: true,
-      isVerified: true,
       isActive: dto.isActive ?? true,
       mustChangePassword: dto.mustChangePassword ?? true,
-      providerApprovalStatus: null,
       adminTitle: dto.title?.trim(),
       adminRoleId: adminRole?.id,
       avatarUrl: dto.avatarUrl,
@@ -373,15 +371,15 @@ export class AuthService implements OnModuleInit {
     };
     const sortBy = query.sortBy ?? 'createdAt';
     const sortOrder = query.sortOrder === SortOrderDto.ASC ? 'asc' : 'desc';
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.user.findMany({
+    const [items, total] = await Promise.all([
+      this.adminStaffRepository.findManyAdmins({
         where,
         include: { adminRole: true },
         orderBy: { [sortBy]: sortOrder },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prisma.user.count({ where }),
+      this.adminStaffRepository.countAdmins(where),
     ]);
 
     return {
@@ -412,20 +410,16 @@ export class AuthService implements OnModuleInit {
     }
     const adminRole = dto.roleId ? await this.getAdminRole(dto.roleId) : admin.adminRole;
     const before = this.toAdminDetail(admin, admin.adminRole);
-    const updated = await this.prisma.user.update({
-      where: { id: admin.id },
-      data: {
-        firstName: dto.firstName?.trim(),
-        lastName: dto.lastName?.trim(),
-        phone: dto.phone?.trim(),
-        avatarUrl: dto.avatarUrl,
-        adminTitle: dto.title?.trim(),
-        adminRoleId: dto.roleId,
-        adminPermissions: adminRole?.permissions ?? undefined,
-        isActive: dto.isActive,
-        refreshTokenHash: dto.isActive === false ? null : admin.refreshTokenHash,
-      },
-      include: { adminRole: true },
+    const updated = await this.adminStaffRepository.updateAdminUser(admin.id, {
+      firstName: dto.firstName?.trim(),
+      lastName: dto.lastName?.trim(),
+      phone: dto.phone?.trim(),
+      avatarUrl: dto.avatarUrl,
+      adminTitle: dto.title?.trim(),
+      adminRoleId: dto.roleId,
+      adminPermissions: adminRole?.permissions ?? undefined,
+      isActive: dto.isActive,
+      refreshTokenHash: dto.isActive === false ? null : admin.refreshTokenHash,
     });
     await this.recordAudit(user.uid, admin.id, 'ADMIN_UPDATED', before, this.toAdminDetail(updated, updated.adminRole));
 
@@ -446,14 +440,7 @@ export class AuthService implements OnModuleInit {
   async resetAdminPassword(user: AuthUserContext, adminId: string, dto: ResetAdminPasswordDto) {
     const admin = await this.getAdmin(adminId);
     const temporaryPassword = dto.temporaryPassword ?? this.generateTemporaryPassword();
-    await this.prisma.user.update({
-      where: { id: admin.id },
-      data: {
-        password: await bcrypt.hash(temporaryPassword, 10),
-        mustChangePassword: dto.mustChangePassword ?? true,
-        refreshTokenHash: null,
-      },
-    });
+    await this.adminStaffRepository.updateAdminPasswordHash(admin.id, await bcrypt.hash(temporaryPassword, 10), dto.mustChangePassword ?? true);
     await this.recordAudit(user.uid, admin.id, 'ADMIN_PASSWORD_RESET', null, { mustChangePassword: dto.mustChangePassword ?? true });
 
     return { data: null, message: 'Temporary password generated successfully' };
@@ -474,26 +461,7 @@ export class AuthService implements OnModuleInit {
       throw new ForbiddenException('Only ADMIN staff users can be permanently deleted');
     }
 
-    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.adminAuditLog.create({
-        data: {
-          actorId: user.uid,
-          targetId: admin.id,
-          targetType: 'ADMIN',
-          action: 'ADMIN_STAFF_PERMANENTLY_DELETED',
-          beforeJson: { id: admin.id, email: admin.email, role: admin.role },
-          afterJson: { reason: dto.reason },
-        },
-      });
-      await tx.authSession.deleteMany({ where: { userId: admin.id } });
-      await tx.loginAttempt.updateMany({ where: { userId: admin.id }, data: { userId: null } });
-      await tx.adminAuditLog.updateMany({ where: { actorId: admin.id }, data: { actorId: null } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: admin.id } });
-      await tx.notification.deleteMany({ where: { recipientId: admin.id } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: admin.id } });
-      await tx.uploadedFile.deleteMany({ where: { ownerId: admin.id } });
-      await tx.user.delete({ where: { id: admin.id } });
-    });
+    await this.adminStaffRepository.deleteAdminPermanently({ actorId: user.uid, adminId: admin.id, reason: dto.reason, beforeJson: { id: admin.id, email: admin.email, role: admin.role } });
 
     return { data: { deletedAdminId: admin.id }, message: 'Admin staff user permanently deleted successfully.' };
   }
@@ -998,6 +966,47 @@ export class AuthService implements OnModuleInit {
       });
   }
 
+  private async createAdminUser(input: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    isActive: boolean;
+    mustChangePassword: boolean;
+    adminRoleId?: string;
+    adminTitle?: string;
+    avatarUrl?: string;
+    adminPermissions?: Prisma.InputJsonValue;
+  }): Promise<User> {
+    const email = this.normalizeEmail(input.email);
+    const existing = await this.adminStaffRepository.findAdminByEmail(email);
+
+    if (existing) {
+      throw new ConflictException('User already exists');
+    }
+
+    return this.adminStaffRepository.createAdminUser({
+      email,
+      password: await bcrypt.hash(input.password, 10),
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      phone: input.phone?.trim(),
+      avatarUrl: input.avatarUrl,
+      role: UserRole.ADMIN,
+      adminRoleId: input.adminRoleId,
+      isVerified: true,
+      isActive: input.isActive,
+      isApproved: true,
+      mustChangePassword: input.mustChangePassword,
+      providerApprovalStatus: null,
+      adminTitle: input.adminTitle,
+      adminPermissions: input.adminPermissions ?? undefined,
+      verificationOtp: this.generateOtp(),
+      verificationOtpExpiresAt: this.generateOtpExpiry(),
+    });
+  }
+
   private async getProvider(providerId: string): Promise<User> {
     const provider = await this.prisma.user.findUnique({
       where: { id: providerId },
@@ -1027,10 +1036,7 @@ export class AuthService implements OnModuleInit {
   }
 
   private async getAdmin(adminId: string): Promise<User & { adminRole: AdminRole | null }> {
-    const admin = await this.prisma.user.findUnique({
-      where: { id: adminId },
-      include: { adminRole: true },
-    });
+    const admin = await this.adminStaffRepository.findAdminById(adminId);
 
     if (
       !admin ||
@@ -1044,7 +1050,7 @@ export class AuthService implements OnModuleInit {
   }
 
   private async getAdminRole(roleId: string): Promise<AdminRole> {
-    const role = await this.prisma.adminRole.findUnique({ where: { id: roleId } });
+    const role = await this.adminStaffRepository.findAdminRoleById(roleId);
     if (!role || role.deletedAt || !role.isActive) {
       throw new NotFoundException('Admin role not found');
     }
