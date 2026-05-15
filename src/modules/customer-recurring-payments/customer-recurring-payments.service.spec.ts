@@ -2,12 +2,12 @@ import { BadRequestException } from '@nestjs/common';
 import { CustomerRecurringPaymentCancelMode, CustomerRecurringPaymentFrequency, CustomerRecurringPaymentOccurrenceStatus, CustomerRecurringPaymentStatus } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { PrismaService } from '../../database/prisma.service';
+import { CustomerRecurringPaymentsRepository } from './customer-recurring-payments.repository';
 import { CustomerRecurringPaymentsService } from './customer-recurring-payments.service';
 import { Weekday } from './dto/customer-recurring-payments.dto';
 
 describe('CustomerRecurringPaymentsService schedule rules', () => {
-  const service = new CustomerRecurringPaymentsService({} as PrismaService);
+  const service = new CustomerRecurringPaymentsService({} as CustomerRecurringPaymentsRepository);
 
   it('daily schedule calculates nextBillingAt', () => {
     const next = service.calculateNextBillingAt(CustomerRecurringPaymentFrequency.DAILY, { time: '09:00', timezone: 'Asia/Karachi' }, new Date('2026-05-09T08:00:00.000Z'));
@@ -41,6 +41,7 @@ describe('CustomerRecurringPaymentsService schedule rules', () => {
 
 describe('Customer recurring payment source safety', () => {
   const source = readFileSync(join(__dirname, 'customer-recurring-payments.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'customer-recurring-payments.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'customer-recurring-payments.controller.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
 
@@ -48,17 +49,17 @@ describe('Customer recurring payment source safety', () => {
     expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
     expect(source).toContain('async create');
     expect(source).toContain('await this.assertOwnedContact(user.uid, dto.recipientContactId)');
-    expect(source).toContain('userId: user.uid, deletedAt: null');
+    expect(repository).toContain('findContactForCustomer');
   });
 
   it('user can list only own recurring payments and cannot fetch another user’s recurring payment', () => {
     expect(source).toContain('return { userId, deletedAt: null');
-    expect(source).toContain('where: { id, userId, deletedAt: null }');
+    expect(repository).toContain('findByIdForCustomer');
   });
 
   it('pause works only for ACTIVE recurring payment', () => {
     expect(source).toContain('item.status !== CustomerRecurringPaymentStatus.ACTIVE');
-    expect(source).toContain('status: CustomerRecurringPaymentStatus.PAUSED');
+    expect(repository).toContain('status: CustomerRecurringPaymentStatus.PAUSED');
   });
 
   it('resume works only for PAUSED recurring payment', () => {
@@ -83,8 +84,31 @@ describe('Customer recurring payment source safety', () => {
   });
 
   it('saved payment methods are owned by user', () => {
-    expect(source).toContain('customerPaymentMethod.findMany({ where: { userId: user.uid, deletedAt: null }');
+    expect(repository).toContain('findSavedPaymentMethodsForCustomer');
     expect(source).toContain('Payment method is used by an active recurring payment');
+  });
+
+
+  it('repository owns Prisma access for recurring payment module', () => {
+    expect(source).toContain('repository.findManyForCustomer');
+    expect(source).toContain('repository.createRecurringPayment');
+    expect(source).toContain('repository.pauseRecurringPayment');
+    expect(source).toContain('repository.resumeRecurringPayment');
+    expect(source).toContain('repository.cancelRecurringPayment');
+    expect(source).toContain('repository.findBillingHistory');
+    expect(repository).toContain('prisma.customerRecurringPayment.findMany');
+    expect(repository).toContain('prisma.customerRecurringPayment.create');
+    expect(repository).toContain('prisma.customerRecurringPaymentOccurrence.findMany');
+  });
+
+  it('customer cannot access another customer recurring payment and history is customer-scoped', () => {
+    expect(repository).toContain('findByIdForCustomer');
+    expect(source).toContain('const where: Prisma.CustomerRecurringPaymentOccurrenceWhereInput = { recurringPaymentId: id, userId: user.uid, status }');
+  });
+
+  it('create validates own saved payment method and schedule behavior remains unchanged', () => {
+    expect(source).toContain('await this.assertOwnedPaymentMethod(user.uid, dto.stripePaymentMethodId)');
+    expect(source).toContain('calculateNextBillingAt(dto.frequency, dto.schedule, startDate)');
   });
 
   it('scheduler charges due recurring payments', () => {
@@ -94,8 +118,8 @@ describe('Customer recurring payment source safety', () => {
   });
 
   it('successful charge creates occurrence and money gift', () => {
-    expect(source).toContain('customerRecurringPaymentOccurrence.create');
-    expect(source).toContain('moneyGift.create');
+    expect(repository).toContain('createOccurrence');
+    expect(repository).toContain('createMoneyGift');
     expect(source).toContain('CustomerRecurringPaymentOccurrenceStatus.SUCCESS');
   });
 
