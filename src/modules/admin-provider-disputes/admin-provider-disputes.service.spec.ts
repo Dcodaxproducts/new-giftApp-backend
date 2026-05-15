@@ -3,6 +3,12 @@ import { join } from 'path';
 
 describe('Admin Provider Dispute Management Core module', () => {
   const service = readFileSync(join(__dirname, 'admin-provider-disputes.service.ts'), 'utf8');
+  const disputesRepository = readFileSync(join(__dirname, 'admin-provider-disputes.repository.ts'), 'utf8');
+  const evidenceRepository = readFileSync(join(__dirname, 'provider-dispute-evidence.repository.ts'), 'utf8');
+  const rulingsRepository = readFileSync(join(__dirname, 'provider-dispute-rulings.repository.ts'), 'utf8');
+  const financialRepository = readFileSync(join(__dirname, 'provider-dispute-financial.repository.ts'), 'utf8');
+  const resolutionRepository = readFileSync(join(__dirname, 'provider-dispute-resolution.repository.ts'), 'utf8');
+  const logsRepository = readFileSync(join(__dirname, 'provider-dispute-logs.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, 'admin-provider-disputes.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'admin-provider-disputes.module.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/admin-provider-disputes.dto.ts'), 'utf8');
@@ -21,6 +27,12 @@ describe('Admin Provider Dispute Management Core module', () => {
   it('registers module and swagger groups', () => {
     expect(appModule).toContain('AdminProviderDisputesModule');
     expect(moduleFile).toContain('AdminProviderDisputesController');
+    expect(moduleFile).toContain('AdminProviderDisputesRepository');
+    expect(moduleFile).toContain('ProviderDisputeEvidenceRepository');
+    expect(moduleFile).toContain('ProviderDisputeRulingsRepository');
+    expect(moduleFile).toContain('ProviderDisputeFinancialRepository');
+    expect(moduleFile).toContain('ProviderDisputeResolutionRepository');
+    expect(moduleFile).toContain('ProviderDisputeLogsRepository');
     expect(controller).toContain("@ApiTags('02 Admin - Provider Dispute Manager')");
     expect(controller).toContain("@ApiTags('02 Admin - Provider Dispute Evidence')");
   });
@@ -53,7 +65,7 @@ describe('Admin Provider Dispute Management Core module', () => {
   it('admin can list provider disputes with filters', () => {
     expect(controller).toContain('@Get()');
     expect(controller).toContain('list(@Query() query: ListProviderDisputesDto)');
-    expect(service).toContain('providerDisputeCase.findMany');
+    expect(disputesRepository).toContain('providerDisputeCase.findMany');
     expect(service).toContain('ProviderDisputeStatusFilter.ALL');
     expect(dto).toContain('sortBy?: ProviderDisputeSortBy');
   });
@@ -68,6 +80,7 @@ describe('Admin Provider Dispute Management Core module', () => {
   it('admin can fetch evidence exchange and storage allows provider-dispute-evidence folder', () => {
     expect(controller).toContain("@Get(':id/evidence')");
     expect(service).toContain('customerEvidence');
+    expect(evidenceRepository).toContain('providerDisputeEvidence.findMany');
     expect(service).toContain('providerEvidence');
     expect(storageDto).toContain("PROVIDER_DISPUTE_EVIDENCE = 'provider-dispute-evidence'");
     expect(storageService).toContain('UploadFolder.PROVIDER_DISPUTE_EVIDENCE');
@@ -76,19 +89,20 @@ describe('Admin Provider Dispute Management Core module', () => {
   it('admin can request additional evidence', () => {
     expect(controller).toContain("@Post(':id/evidence/request')");
     expect(controller).toContain("@Permissions('providerDisputes.evidence.request')");
-    expect(service).toContain('ADDITIONAL_EVIDENCE_REQUESTED');
+    expect(evidenceRepository).toContain('ADDITIONAL_EVIDENCE_REQUESTED');
     expect(service).toContain('notifyEvidenceTargets');
+    expect(evidenceRepository).toContain('notification.createMany');
   });
 
   it('admin can mark evidence review complete and it moves case to RULING_PENDING', () => {
     expect(controller).toContain("@Post(':id/evidence/mark-reviewed')");
-    expect(service).toContain('EVIDENCE_REVIEW_COMPLETED');
+    expect(evidenceRepository).toContain('EVIDENCE_REVIEW_COMPLETED');
     expect(service).toContain('ProviderDisputeStatus.RULING_PENDING');
   });
 
   it('admin can add internal notes and timeline records evidence actions', () => {
     expect(controller).toContain("@Post(':id/notes')");
-    expect(service).toContain('providerDisputeNote.create');
+    expect(logsRepository).toContain('providerDisputeNote.create');
     for (const action of ['PROVIDER_DISPUTE_CREATED', 'CUSTOMER_EVIDENCE_SUBMITTED', 'PROVIDER_EVIDENCE_SUBMITTED', 'ADDITIONAL_EVIDENCE_REQUESTED', 'EVIDENCE_REVIEW_STARTED', 'EVIDENCE_REVIEW_COMPLETED']) {
       expect(schema + service).toContain(action);
     }
@@ -124,7 +138,7 @@ describe('Admin Provider Dispute Management Core module', () => {
   it('payout linkage requires confirmation and creates provider financial adjustment', () => {
     expect(controller).toContain("@Post(':id/payout-penalty-linkage')");
     expect(service).toContain('confirmFinancialAccuracy must be true');
-    expect(service).toContain('providerFinancialAdjustment.createMany');
+    expect(financialRepository).toContain('providerFinancialAdjustment.createMany');
     expect(schema).toContain('model ProviderFinancialAdjustment');
   });
 
@@ -135,7 +149,8 @@ describe('Admin Provider Dispute Management Core module', () => {
   });
 
   it('all ruling actions create timeline and audit log', () => {
-    for (const action of ['RULING_MADE', 'RULING_DRAFT_SAVED', 'PAYOUT_PENALTY_LINKED', 'FINAL_ATTESTATION_COMPLETED']) expect(service).toContain(action);
+    for (const action of ['RULING_MADE', 'RULING_DRAFT_SAVED']) expect(rulingsRepository).toContain(action);
+    for (const action of ['PAYOUT_PENALTY_LINKED', 'FINAL_ATTESTATION_COMPLETED']) expect(financialRepository).toContain(action);
     expect(service).toContain('auditLog.write');
   });
 
@@ -155,17 +170,17 @@ describe('Admin Provider Dispute Management Core module', () => {
   it('finalize handles split liability partial refund and applies provider deduction', () => {
     expect(service).toContain('ProviderDisputeFinalRuling.SPLIT_LIABILITY');
     expect(service).toContain('providerDeduction');
-    expect(service).toContain('providerFinancialAdjustment.updateMany');
+    expect(resolutionRepository).toContain('providerFinancialAdjustment.updateMany');
   });
 
   it('finalize applies penalty when selected and creates financial audit log', () => {
     expect(service).toContain('penaltyApplied');
-    expect(service).toContain('Service Fee Penalty');
+    expect(service + resolutionRepository).toContain('Service Fee Penalty');
     expect(schema).toContain('model ProviderDisputeFinancialLog');
   });
 
   it('finalize creates communication log and timeline entry', () => {
-    expect(service).toContain('createCommunicationLogEntriesTx');
+    expect(service + resolutionRepository + logsRepository).toContain('createCommunicationLogEntries');
     expect(service).toContain('PROVIDER_DISPUTE_FINALIZED');
     expect(schema).toContain('model ProviderDisputeCommunicationLog');
   });
@@ -182,6 +197,6 @@ describe('Admin Provider Dispute Management Core module', () => {
     expect(controller).toContain("@Permissions('providerDisputes.logs.export')");
     expect(controller).toContain("@Post(':id/notify-again')");
     expect(service).toContain('NOTIFICATION_RESENT');
-    expect(service).toContain('createCommunicationLogEntriesTx');
+    expect(service + resolutionRepository + logsRepository).toContain('createCommunicationLogEntries');
   });
 });
