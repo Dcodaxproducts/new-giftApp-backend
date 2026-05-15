@@ -18,6 +18,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { CustomerCartRepository } from './customer-cart.repository';
 import { CUSTOMER_ORDER_INCLUDE, CustomerOrdersRepository } from './customer-orders.repository';
 import {
   AddCartItemDto,
@@ -55,6 +56,7 @@ type OrderView = Prisma.OrderGetPayload<{ include: typeof CUSTOMER_ORDER_INCLUDE
 export class CustomerMarketplaceService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly customerCartRepository: CustomerCartRepository,
     private readonly customerOrdersRepository: CustomerOrdersRepository,
   ) {}
 
@@ -317,8 +319,8 @@ export class CustomerMarketplaceService {
   private async getAvailableGift(id: string): Promise<GiftView> { const gift = await this.prisma.gift.findFirst({ where: { id, ...this.availableGiftWhere() }, include: this.giftInclude() }); if (!gift) throw new NotFoundException('Gift not found or unavailable'); return gift; }
   private async getAddress(userId: string, id: string): Promise<CustomerAddress> { const address = await this.prisma.customerAddress.findFirst({ where: { id, userId, deletedAt: null } }); if (!address) throw new NotFoundException('Address not found'); return address; }
   private async getReminder(userId: string, id: string): Promise<CustomerReminder> { const reminder = await this.prisma.customerReminder.findFirst({ where: { id, userId, deletedAt: null } }); if (!reminder) throw new NotFoundException('Reminder not found'); return reminder; }
-  private async getOrCreateActiveCart(userId: string) { return (await this.prisma.cart.findFirst({ where: { userId, status: CartStatus.ACTIVE } })) ?? this.prisma.cart.create({ data: { userId } }); }
-  private async getActiveCart(userId: string): Promise<CartView> { const cart = await this.getOrCreateActiveCart(userId); return this.prisma.cart.findUniqueOrThrow({ where: { id: cart.id }, include: { items: { orderBy: { createdAt: 'desc' }, include: this.cartItemInclude() } } }); }
+  private async getOrCreateActiveCart(userId: string) { return (await this.customerCartRepository.findActiveCartForUser(userId)) ?? this.prisma.cart.create({ data: { userId } }); }
+  private async getActiveCart(userId: string): Promise<CartView> { const cart = await this.getOrCreateActiveCart(userId); return this.customerCartRepository.findCartWithItemsById(cart.id); }
   private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: { orderBy: { createdAt: 'desc' }, include: this.cartItemInclude() } } }); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
   private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.prisma.customerWishlist.findMany({ where: { userId, giftId: { in: giftIds } }, select: { giftId: true } }); return new Set(rows.map((row) => row.giftId)); }
 
