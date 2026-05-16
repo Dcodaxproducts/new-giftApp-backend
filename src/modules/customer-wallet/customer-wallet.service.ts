@@ -1,8 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { CustomerBankAccount, CustomerPaymentMethod, CustomerWallet, CustomerWalletLedger, CustomerWalletLedgerDirection, CustomerWalletLedgerStatus, CustomerWalletLedgerType, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, RewardLedger } from '@prisma/client';
+import { CustomerBankAccount, CustomerPaymentMethod, CustomerWallet, CustomerWalletLedger, CustomerWalletLedgerDirection, CustomerWalletLedgerStatus, CustomerWalletLedgerType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, RewardLedger } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
 import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
 import { CustomerWalletRepository } from './customer-wallet.repository';
 
@@ -12,7 +11,6 @@ type StripeIntentCreateResult = { id: string; client_secret: string | null; stat
 export class CustomerWalletService {
   private stripeClient?: InstanceType<typeof Stripe>;
   constructor(
-    private readonly prisma: PrismaService,
     private readonly repository: CustomerWalletRepository,
   ) {}
 
@@ -67,19 +65,19 @@ export class CustomerWalletService {
   async creditWalletTopUp(payment: Payment): Promise<void> {
     const metadata = this.metadata(payment.metadataJson);
     if (!metadata.walletTopUpId) return;
-    const ledger = await this.prisma.customerWalletLedger.findFirst({ where: { id: metadata.walletTopUpId, userId: payment.userId } });
+    const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId });
     if (!ledger || ledger.status === CustomerWalletLedgerStatus.SUCCESS) return;
-    await this.prisma.$transaction([this.prisma.customerWalletLedger.update({ where: { id: ledger.id }, data: { status: CustomerWalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: payment.id } }), this.prisma.customerWallet.update({ where: { id: ledger.walletId }, data: { cashBalance: { increment: ledger.amount } } })]);
+    await this.repository.completeWalletTopUp({ ledgerId: ledger.id, walletId: ledger.walletId, amount: ledger.amount, paymentId: payment.id });
     await this.notify(payment.userId, 'Wallet top-up succeeded', `${Number(ledger.amount)} ${ledger.currency} was added to your wallet.`, 'WALLET_TOP_UP_SUCCEEDED', { paymentId: payment.id, walletLedgerId: ledger.id });
   }
 
-  async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.prisma.customerWalletLedger.updateMany({ where: { id: metadata.walletTopUpId, userId: payment.userId, status: CustomerWalletLedgerStatus.PENDING }, data: { status: CustomerWalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' } }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
+  async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.repository.updateWalletTopUpStatus({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId, status: CustomerWalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
 
   async creditRewardRedemption(userId: string, rewardLedger: RewardLedger): Promise<void> {
     const wallet = await this.getOrCreateWallet(userId);
-    const existing = await this.prisma.customerWalletLedger.findFirst({ where: { userId, rewardLedgerId: rewardLedger.id } });
+    const existing = await this.repository.findRewardWalletLedger({ userId, rewardLedgerId: rewardLedger.id });
     if (existing) return;
-    await this.prisma.$transaction([this.prisma.customerWalletLedger.create({ data: { userId, walletId: wallet.id, type: CustomerWalletLedgerType.REWARD_CREDIT, direction: CustomerWalletLedgerDirection.CREDIT, amount: rewardLedger.amount, currency: rewardLedger.currency, status: CustomerWalletLedgerStatus.SUCCESS, rewardLedgerId: rewardLedger.id, transactionId: this.transactionId(), description: 'Referral reward credit added to wallet.' } }), this.prisma.customerWallet.update({ where: { id: wallet.id }, data: { giftCredits: { increment: rewardLedger.amount } } })]);
+    await this.repository.creditRewardWallet({ userId, walletId: wallet.id, rewardLedgerId: rewardLedger.id, amount: rewardLedger.amount, currency: rewardLedger.currency, transactionId: this.transactionId() });
     await this.notify(userId, 'Reward credit added', `${Number(rewardLedger.amount)} ${rewardLedger.currency} reward credit was added to your wallet.`, 'REWARD_CREDIT_ADDED', { rewardLedgerId: rewardLedger.id });
   }
 
@@ -97,5 +95,5 @@ export class CustomerWalletService {
   private zeroDecimalCurrencies(): Set<string> { return new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'XAF', 'XOF', 'XPF']); }
   private stripe(): InstanceType<typeof Stripe> { const key = process.env.STRIPE_SECRET_KEY; if (!key) throw new ServiceUnavailableException('Stripe is not configured'); this.stripeClient ??= new Stripe(key); return this.stripeClient; }
   private money(value: number): number { return Number(value.toFixed(2)); }
-  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.prisma.notification.create({ data: { recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: metadata } }); }
+  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.repository.createCustomerNotification({ recipientId, title, message, type, metadataJson: metadata }); }
 }
