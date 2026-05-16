@@ -31,4 +31,15 @@ describe('admin bounded-context source ownership', () => {
     expect(source).toContain("key: 'logs.export'");
     expect(source).toContain('SUPER_ADMIN_PERMISSIONS');
   });
+
+  it('keeps legacy admin/RBAC repositories out of auth module ownership', () => {
+    const authModule = readFileSync('src/modules/auth/auth.module.ts', 'utf8');
+
+    expect(existsSync('src/modules/auth/admin-staff.repository.ts')).toBe(false);
+    expect(existsSync('src/modules/auth/admin-roles.repository.ts')).toBe(false);
+    expect(existsSync('src/modules/auth/permissions-catalog.repository.ts')).toBe(false);
+    expect(authModule).not.toContain('AdminStaffRepository');
+    expect(authModule).not.toContain('AdminRolesRepository');
+    expect(authModule).not.toContain('PermissionsCatalogRepository');
+  });
 });

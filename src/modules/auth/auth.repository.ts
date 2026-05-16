@@ -100,20 +100,12 @@ export class AuthRepository {
     return this.prisma.user.update({ where: { id: userId }, data });
   }
 
-  countOtherActiveSuperAdmins(currentSuperAdminId: string) {
-    return this.prisma.user.count({ where: { role: UserRole.SUPER_ADMIN, isActive: true, deletedAt: null, id: { not: currentSuperAdminId } } });
-  }
-
   findCustomerSubscriptionSummary(userId: string) {
     return this.prisma.customerSubscription.findFirst({
       where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.PAST_DUE, CustomerSubscriptionStatus.INCOMPLETE] } },
       include: { plan: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
-  }
-
-  createAdminAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
-    return this.prisma.adminAuditLog.create({ data });
   }
 
   updateCanonicalSuperAdmin(id: string, data: Prisma.UserUncheckedUpdateInput) {
@@ -124,6 +116,14 @@ export class AuthRepository {
     return this.prisma.user.updateMany({
       where: { role: UserRole.SUPER_ADMIN, id: { not: canonicalSuperAdminId } },
       data: { role: UserRole.ADMIN, isApproved: false, isActive: false, adminPermissions: Prisma.JsonNull, refreshTokenHash: null },
+    });
+  }
+
+  upsertSystemRole(params: { name: string; slug: string; description: string; permissions: Prisma.InputJsonValue }) {
+    return this.prisma.adminRole.upsert({
+      where: { slug: params.slug },
+      create: { name: params.name, slug: params.slug, description: params.description, permissions: params.permissions, isSystem: true, isActive: true },
+      update: { name: params.name, description: params.description, permissions: params.permissions, isSystem: true, isActive: true, deletedAt: null },
     });
   }
 }

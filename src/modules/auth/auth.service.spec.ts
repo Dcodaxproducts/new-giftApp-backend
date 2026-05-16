@@ -1,113 +1,13 @@
-import { BadRequestException, ForbiddenException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
+import { BadRequestException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { readFileSync } from 'fs';
 import { resetPasswordTemplate } from '../../mail/templates/reset-password.template';
-import { AdminRolesRepository } from './admin-roles.repository';
-import { AdminStaffRepository } from './admin-staff.repository';
 import { AuthPasswordRepository } from './auth-password.repository';
 import { AuthRepository } from './auth.repository';
 import { ProviderFulfillmentMethodDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { AuthSessionsRepository } from './auth-sessions.repository';
-import { PermissionsCatalogRepository } from './permissions-catalog.repository';
-
-function createAuthService(superAdminCount: number) {
-  const superAdmin = {
-    id: 'super_1',
-    email: 'super@example.com',
-    password: 'hash',
-    role: UserRole.SUPER_ADMIN,
-    firstName: 'Super',
-    lastName: 'Admin',
-    phone: null,
-    avatarUrl: null,
-    location: null,
-    adminRoleId: null,
-    isVerified: true,
-    isActive: true,
-    isApproved: true,
-    mustChangePassword: false,
-    lastLoginAt: null,
-    adminTitle: null,
-    adminPermissions: {},
-    providerBusinessName: null,
-    providerServiceArea: null,
-    providerDocuments: null,
-    providerApprovalStatus: null,
-    providerApprovedAt: null,
-    providerApprovedBy: null,
-    providerRejectedAt: null,
-    providerRejectedBy: null,
-    providerRejectionReason: null,
-    providerRejectionComment: null,
-    verificationOtp: null,
-    verificationOtpExpiresAt: null,
-    verificationOtpAttempts: 0,
-    resetPasswordOtp: null,
-    resetPasswordOtpExpiresAt: null,
-    resetPasswordOtpAttempts: 0,
-    suspensionReason: null,
-    suspensionComment: null,
-    suspendedAt: null,
-    suspendedBy: null,
-    refreshTokenHash: null,
-    deletedAt: null,
-    deleteAfter: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    adminRole: null,
-  };
-  const prisma = {
-    user: {
-      findUnique: jest.fn().mockResolvedValue(superAdmin),
-      count: jest.fn().mockResolvedValue(superAdminCount),
-      update: jest.fn(),
-    },
-    adminAuditLog: { create: jest.fn() },
-  };
-  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
-  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
-  const permissionsCatalogRepository = new PermissionsCatalogRepository();
-  const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
-  const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
-  const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
-  const service = new AuthService(
-    {} as unknown as ConstructorParameters<typeof AuthService>[0],
-    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[1],
-    {} as unknown as ConstructorParameters<typeof AuthService>[2],
-    {} as unknown as ConstructorParameters<typeof AuthService>[3],
-    adminStaffRepository,
-    adminRolesRepository,
-    permissionsCatalogRepository,
-    authRepository,
-    authSessionsRepository,
-    authPasswordRepository,
-  );
-  return { service, prisma };
-}
-
-describe('AuthService admin safety', () => {
-  it('last super admin cannot be disabled', async () => {
-    const { service } = createAuthService(0);
-
-    await expect(service.updateAdminActiveStatus(
-      { uid: 'other_super', role: UserRole.SUPER_ADMIN },
-      'super_1',
-      { isActive: false },
-    )).rejects.toThrow(ForbiddenException);
-  });
-
-  it('super admin cannot be downgraded to assigned admin role', async () => {
-    const { service } = createAuthService(1);
-
-    await expect(service.updateAdmin(
-      { uid: 'other_super', role: UserRole.SUPER_ADMIN },
-      'super_1',
-      { roleId: 'manager_role' },
-    )).rejects.toThrow(ForbiddenException);
-  });
-});
 
 const resetUser = {
   id: 'user_1',
@@ -138,9 +38,6 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
   const mailer = {
     sendPasswordResetEmail: mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
   };
-  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
-  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
-  const permissionsCatalogRepository = new PermissionsCatalogRepository();
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -149,9 +46,6 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
     { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[1],
     {} as unknown as ConstructorParameters<typeof AuthService>[2],
     mailer as unknown as ConstructorParameters<typeof AuthService>[3],
-    adminStaffRepository,
-    adminRolesRepository,
-    permissionsCatalogRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -252,333 +146,19 @@ describe('reset password email template', () => {
   });
 });
 
-function createAdminCreationService(options?: {
-  mailerRejects?: boolean;
-  adminRoleActive?: boolean;
-  assignedAdminCount?: number;
-}) {
-  const adminRole = {
-    id: 'role_1',
-    name: 'Gift Manager',
-    slug: 'GIFT_MANAGER',
-    description: 'Gift access',
-    permissions: { gifts: ['read', 'create'], giftCategories: ['read'] },
-    isSystem: false,
-    isActive: options?.adminRoleActive ?? true,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const createdAdmin = {
-    id: 'admin_1',
-    email: 'staff@example.com',
-    password: 'hash',
-    role: UserRole.ADMIN,
-    firstName: 'Operations',
-    lastName: 'Staff',
-    phone: '+15550000002',
-    avatarUrl: 'https://cdn.yourdomain.com/admin-avatars/staff.png',
-    location: null,
-    adminRoleId: 'role_1',
-    isVerified: true,
-    isActive: true,
-    isApproved: true,
-    mustChangePassword: true,
-    lastLoginAt: null,
-    adminTitle: 'Operations Manager',
-    adminPermissions: adminRole.permissions,
-    providerBusinessName: null,
-    providerServiceArea: null,
-    providerDocuments: null,
-    providerApprovalStatus: null,
-    providerApprovedAt: null,
-    providerApprovedBy: null,
-    providerRejectedAt: null,
-    providerRejectedBy: null,
-    providerRejectionReason: null,
-    providerRejectionComment: null,
-    verificationOtp: null,
-    verificationOtpExpiresAt: null,
-    verificationOtpAttempts: 0,
-    resetPasswordOtp: null,
-    resetPasswordOtpExpiresAt: null,
-    resetPasswordOtpAttempts: 0,
-    suspensionReason: null,
-    suspensionComment: null,
-    suspendedAt: null,
-    suspendedBy: null,
-    refreshTokenHash: null,
-    deletedAt: null,
-    deleteAfter: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const tx = {
-    adminAuditLog: { create: jest.fn(), updateMany: jest.fn() },
-    adminRole: { update: jest.fn().mockResolvedValue({ ...adminRole, permissions: { gifts: ['read'] } }) },
-    authSession: { deleteMany: jest.fn(), updateMany: jest.fn() },
-    loginAttempt: { updateMany: jest.fn() },
-    accountSuspension: { deleteMany: jest.fn() },
-    notification: { deleteMany: jest.fn() },
-    notificationDeviceToken: { deleteMany: jest.fn() },
-    uploadedFile: { deleteMany: jest.fn() },
-    user: { delete: jest.fn(), updateMany: jest.fn() },
-  };
-  const prisma = {
-    user: {
-      findUnique: jest.fn().mockResolvedValue(null),
-      create: jest.fn().mockResolvedValue(createdAdmin),
-      findMany: jest.fn().mockResolvedValue([createdAdmin]),
-      count: jest.fn().mockResolvedValue(options?.assignedAdminCount ?? 1),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      delete: tx.user.delete,
-    },
-    adminRole: {
-      findUnique: jest.fn().mockResolvedValue(adminRole),
-      update: jest.fn().mockResolvedValue({ ...adminRole, permissions: { gifts: ['read'] } }),
-    },
-    authSession: tx.authSession,
-    loginAttempt: tx.loginAttempt,
-    accountSuspension: tx.accountSuspension,
-    notification: tx.notification,
-    notificationDeviceToken: tx.notificationDeviceToken,
-    uploadedFile: tx.uploadedFile,
-    adminAuditLog: tx.adminAuditLog,
-    $transaction: jest.fn(async (operations: Array<Promise<unknown>> | ((txArg: typeof tx) => Promise<unknown>)) => {
-      if (typeof operations === 'function') {
-        return operations(tx);
-      }
-      return Promise.all(operations);
-    }),
-  };
-  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
-  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
-  const permissionsCatalogRepository = new PermissionsCatalogRepository();
-  const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
-  const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
-  const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
-  const service = new AuthService(
-    {} as unknown as ConstructorParameters<typeof AuthService>[0],
-    { get: jest.fn((key: string, fallback?: string) => (key === 'APP_FRONTEND_URL' ? 'https://app.giftapp.com' : fallback)) } as unknown as ConstructorParameters<typeof AuthService>[1],
-    {} as unknown as ConstructorParameters<typeof AuthService>[2],
-    {
-      sendAdminInviteEmail: options?.mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
-    } as unknown as ConstructorParameters<typeof AuthService>[3],
-    adminStaffRepository,
-    adminRolesRepository,
-    permissionsCatalogRepository,
-    authRepository,
-    authSessionsRepository,
-    authPasswordRepository,
-  );
-  return { service, prisma, adminRole, createdAdmin };
-}
+describe('AuthService bounded-context boundary', () => {
+  it('does not expose legacy admin staff or RBAC methods', () => {
+    const source = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
 
-describe('AuthService admin staff RBAC architecture', () => {
-  it('SUPER_ADMIN can list admins', async () => {
-    const { service, prisma } = createAdminCreationService();
-
-    await service.listAdmins({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, {});
-
-    const findManyCalls = prisma.user.findMany.mock.calls as Array<[{ where: Prisma.UserWhereInput }]>;
-    const countCalls = prisma.user.count.mock.calls as Array<[{ where: Prisma.UserWhereInput }]>;
-    expect(findManyCalls[0][0].where).toMatchObject({ role: UserRole.ADMIN, deletedAt: null });
-    expect(countCalls[0][0].where).toMatchObject({ role: UserRole.ADMIN, deletedAt: null });
-  });
-
-  it('SUPER_ADMIN can create ADMIN staff and roleId assignment remains unchanged', async () => {
-    const { service, prisma } = createAdminCreationService();
-
-    const result = await service.createAdmin(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      {
-        email: 'staff@example.com',
-        temporaryPassword: 'Temp@123456',
-        generateTemporaryPassword: false,
-        mustChangePassword: true,
-        firstName: 'Operations',
-        lastName: 'Staff',
-        phone: '+15550000002',
-        title: 'Operations Manager',
-        roleId: 'role_1',
-        avatarUrl: 'https://cdn.yourdomain.com/admin-avatars/staff.png',
-        isActive: true,
-      },
-    );
-
-    const createCalls = prisma.user.create.mock.calls as Array<[{ data: { role: UserRole; adminRoleId: string; mustChangePassword: boolean } }]>;
-    const createCall = createCalls[0][0];
-    expect(createCall.data.role).toBe(UserRole.ADMIN);
-    expect(createCall.data.adminRoleId).toBe('role_1');
-    expect(createCall.data.mustChangePassword).toBe(true);
-    expect(result.data).toEqual({ id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: false });
-  });
-
-  it('POST /admins requires valid roleId', async () => {
-    const { service, prisma } = createAdminCreationService();
-    prisma.adminRole.findUnique.mockResolvedValueOnce(null);
-
-    await expect(service.createAdmin(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      { email: 'staff@example.com', firstName: 'Operations', lastName: 'Staff', roleId: 'missing_role' },
-    )).rejects.toThrow('Admin role not found');
-  });
-
-  it('POST /admins sends invite email when sendInviteEmail=true', async () => {
-    const { service } = createAdminCreationService();
-
-    await expect(service.createAdmin(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      { email: 'staff@example.com', temporaryPassword: 'Temp@123456', generateTemporaryPassword: false, firstName: 'Operations', lastName: 'Staff', roleId: 'role_1', sendInviteEmail: true },
-    )).resolves.toEqual({
-      data: { id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: true },
-      message: 'Admin staff user created successfully and invite email sent.',
-    });
-  });
-
-  it('POST /admins returns success even if invite email fails', async () => {
-    const { service } = createAdminCreationService({ mailerRejects: true });
-
-    await expect(service.createAdmin(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      { email: 'staff@example.com', temporaryPassword: 'Temp@123456', generateTemporaryPassword: false, firstName: 'Operations', lastName: 'Staff', roleId: 'role_1', sendInviteEmail: true },
-    )).resolves.toEqual({
-      data: { id: 'admin_1', email: 'staff@example.com', role: UserRole.ADMIN, roleId: 'role_1', inviteEmailSent: false },
-      message: 'Admin staff user created successfully, but invite email could not be sent.',
-    });
-  });
-
-  it('custom AdminRole permissions can be patched', async () => {
-    const { service } = createAdminCreationService();
-
-    const result = await service.updateRolePermissions(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      'role_1',
-      { permissions: { gifts: ['read'] } },
-    );
-
-    expect(result.data).toEqual({ id: 'role_1', permissions: { gifts: ['read'] } });
-  });
-
-  it('custom AdminRole cannot be deleted if adminCount > 0', async () => {
-    const { service } = createAdminCreationService({ assignedAdminCount: 2 });
-
-    await expect(service.deleteAdminRole(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      'role_1',
-    )).rejects.toThrow('Role cannot be deleted while admins are assigned to it');
-  });
-
-  it('system Super Admin role cannot be modified', async () => {
-    const { service, prisma, adminRole } = createAdminCreationService();
-    prisma.adminRole.findUnique.mockResolvedValueOnce({ ...adminRole, slug: UserRole.SUPER_ADMIN, isSystem: true });
-
-    await expect(service.updateAdminRole(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      'role_1',
-      { name: 'Updated' },
-    )).rejects.toThrow('Super Admin role cannot be modified.');
-  });
-
-
-  it('active-status behavior remains unchanged', async () => {
-    const { service, prisma, createdAdmin } = createAdminCreationService();
-    prisma.user.findUnique.mockResolvedValueOnce({ ...createdAdmin, adminRole: null });
-    prisma.user.update.mockResolvedValueOnce({ ...createdAdmin, adminRole: null, isActive: false, refreshTokenHash: null });
-
-    const result = await service.updateAdminActiveStatus(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      'admin_1',
-      { isActive: false },
-    );
-
-    expect(result).toEqual({ data: { id: 'admin_1', isActive: false }, message: 'Admin disabled successfully' });
-  });
-
-  it('password reset behavior remains unchanged', async () => {
-    const { service, prisma, createdAdmin } = createAdminCreationService();
-    prisma.user.findUnique.mockResolvedValueOnce({ ...createdAdmin, adminRole: null });
-
-    await expect(service.resetAdminPassword(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      'admin_1',
-      { temporaryPassword: 'Temp@123456', mustChangePassword: true },
-    )).resolves.toEqual({ data: null, message: 'Temporary password generated successfully' });
-
-    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'admin_1' } }));
-  });
-
-  it('permanent delete behavior remains unchanged', async () => {
-    const { service, prisma, createdAdmin } = createAdminCreationService();
-    prisma.user.findUnique.mockResolvedValueOnce({ ...createdAdmin, adminRole: null });
-
-    await expect(service.permanentlyDeleteAdmin(
-      { uid: 'super_1', role: UserRole.SUPER_ADMIN },
-      'admin_1',
-      { confirmation: 'PERMANENTLY_DELETE_ADMIN', reason: 'Security cleanup' },
-    )).resolves.toEqual({ data: { deletedAdminId: 'admin_1' }, message: 'Admin staff user permanently deleted successfully.' });
-
-    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'admin_1' } });
-  });
-
-  it('repository owns Prisma access for admin staff flows', () => {
-    const serviceSource = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
-    const repositorySource = readFileSync('src/modules/auth/admin-staff.repository.ts', 'utf8');
-    expect(serviceSource).toContain('adminStaffRepository.findManyAdmins');
-    expect(serviceSource).toContain('adminStaffRepository.findAdminById');
-    expect(serviceSource).toContain('adminStaffRepository.createAdminUser');
-    expect(serviceSource).toContain('adminStaffRepository.updateAdminUser');
-    expect(serviceSource).toContain('adminStaffRepository.updateAdminPasswordHash');
-    expect(serviceSource).toContain('adminStaffRepository.deleteAdminPermanently');
-    expect(repositorySource).toContain('prisma.user.findMany');
-    expect(repositorySource).toContain('prisma.user.create');
-  });
-
-
-  it('permissions update preserves object format and repository owns Prisma access', () => {
-    const serviceSource = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
-    const rolesRepositorySource = readFileSync('src/modules/auth/admin-roles.repository.ts', 'utf8');
-    const catalogRepositorySource = readFileSync('src/modules/auth/permissions-catalog.repository.ts', 'utf8');
-    expect(serviceSource).toContain('adminRolesRepository.findManyAdminRoles');
-    expect(serviceSource).toContain('adminRolesRepository.findAdminRoleBySlug');
-    expect(serviceSource).toContain('adminRolesRepository.updateAdminRolePermissions');
-    expect(rolesRepositorySource).toContain('prisma.adminRole.findMany');
-    expect(rolesRepositorySource).toContain('prisma.adminRole.create');
-    expect(rolesRepositorySource).toContain('prisma.user.count');
-    expect(catalogRepositorySource).toContain('PERMISSION_CATALOG');
-  });
-
-  it('permission keys unchanged and catalog remains read-only', () => {
-    const catalogSource = readFileSync('src/modules/admin-roles/constants/permission-catalog.ts', 'utf8');
-    const controllerSource = readFileSync('src/modules/admin-roles/admin-roles.controller.ts', 'utf8');
-    expect(catalogSource).toContain("module: 'admins'");
-    expect(catalogSource).toContain("module: 'disputes'");
-    expect(controllerSource).toContain("@Get('catalog')");
-    expect(controllerSource).not.toContain("@Post('catalog')");
-    expect(controllerSource).not.toContain("@Patch('catalog')");
-    expect(controllerSource).not.toContain("@Delete('catalog')");
-  });
-
-  it('POST /admins DTO does not accept raw permissions or User.role fields', () => {
-    const dtoSource = readFileSync('src/modules/admin-management/dto/admin-management.dto.ts', 'utf8');
-    const createAdminBlock = dtoSource.slice(
-      dtoSource.indexOf('export class CreateAdminDto'),
-      dtoSource.indexOf('export class UpdateAdminDto'),
-    );
-
-    expect(createAdminBlock).not.toContain('permissions?:');
-    expect(createAdminBlock).not.toContain('permissions!:');
-    expect(createAdminBlock).not.toContain('role!:');
-  });
-
-  it('permission catalog remains read-only', () => {
-    const controllerSource = readFileSync('src/modules/admin-roles/admin-roles.controller.ts', 'utf8');
-
-    expect(controllerSource).toContain("@Get('catalog')");
-    expect(controllerSource).not.toContain("@Post('catalog')");
-    expect(controllerSource).not.toContain("@Patch('catalog')");
-    expect(controllerSource).not.toContain("@Delete('catalog')");
+    expect(source).not.toContain('async createAdmin(');
+    expect(source).not.toContain('async listAdmins(');
+    expect(source).not.toContain('async adminDetails(');
+    expect(source).not.toContain('async updateAdmin(');
+    expect(source).not.toContain('async resetAdminPassword(');
+    expect(source).not.toContain('async permanentlyDeleteAdmin(');
+    expect(source).not.toContain('async createAdminRole(');
+    expect(source).not.toContain('async updateRolePermissions(');
+    expect(source).not.toContain('permissionCatalog()');
   });
 });
 
@@ -705,9 +285,6 @@ function createSensitiveAuthService(options?: {
     captureSignupReferral: jest.fn().mockResolvedValue(undefined),
   };
 
-  const adminStaffRepository = new AdminStaffRepository(prisma as unknown as ConstructorParameters<typeof AdminStaffRepository>[0]);
-  const adminRolesRepository = new AdminRolesRepository(prisma as unknown as ConstructorParameters<typeof AdminRolesRepository>[0]);
-  const permissionsCatalogRepository = new PermissionsCatalogRepository();
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
@@ -716,9 +293,6 @@ function createSensitiveAuthService(options?: {
     configService as unknown as ConstructorParameters<typeof AuthService>[1],
     loginAttemptsService as unknown as ConstructorParameters<typeof AuthService>[2],
     mailerService as unknown as ConstructorParameters<typeof AuthService>[3],
-    adminStaffRepository,
-    adminRolesRepository,
-    permissionsCatalogRepository,
     authRepository,
     authSessionsRepository,
     authPasswordRepository,

@@ -112,4 +112,15 @@ describe('AdminManagementService', () => {
 
     await expect(service.permanentlyDelete({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'admin_1', { confirmation: 'PERMANENTLY_DELETE_ADMIN', reason: 'Cleanup' })).rejects.toThrow(ForbiddenException);
   });
+
+  it('preserves super admin downgrade and last-active safety checks', async () => {
+    const { service, repository } = createService();
+    const superAdminUser = { ...adminUser, id: 'super_1', role: UserRole.SUPER_ADMIN };
+
+    repository.findAdminById.mockResolvedValue(superAdminUser);
+    await expect(service.update({ uid: 'other_super', role: UserRole.SUPER_ADMIN }, 'super_1', { roleId: 'role_1' })).rejects.toThrow(ForbiddenException);
+
+    repository.countOtherActiveSuperAdmins.mockResolvedValueOnce(0);
+    await expect(service.updateActiveStatus({ uid: 'other_super', role: UserRole.SUPER_ADMIN }, 'super_1', { isActive: false })).rejects.toThrow(ForbiddenException);
+  });
 });
