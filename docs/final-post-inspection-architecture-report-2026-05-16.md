@@ -95,7 +95,7 @@ What changed:
 
 - `AdminManagementService` no longer operates as an `AuthService` wrapper.
 - Local persistence now lives in `src/modules/admin-management/admin-management.repository.ts`.
-- Local DTO boundary exists via `src/modules/admin-management/dto/admin-management.dto.ts` re-exports.
+- Local DTO source now lives at `src/modules/admin-management/dto/admin-management.dto.ts`; it is no longer an auth DTO re-export.
 - Business orchestration remains in the local service:
   - admin creation
   - temp password generation/hashing orchestration
@@ -119,7 +119,7 @@ What changed:
 - Local persistence now lives in:
   - `src/modules/admin-roles/admin-roles.repository.ts`
   - `src/modules/admin-roles/permissions-catalog.repository.ts`
-- Local DTO boundary exists via `src/modules/admin-roles/dto/admin-roles.dto.ts` re-exports.
+- Local DTO source now lives at `src/modules/admin-roles/dto/admin-roles.dto.ts`; it is no longer an auth DTO re-export.
 - Business orchestration remains in the local service:
   - role CRUD
   - system-role protection
@@ -236,7 +236,7 @@ Remaining risks are low and non-blocking:
    - Runtime bounded-context callers now use local services.
    - Legacy compatibility logic remains to avoid circular dependency risk and breaking callers/tests.
 
-2. DTO ownership is normalized through local re-export boundaries rather than full physical source relocation.
+2. DTO ownership is now physically localized: admin-management owns admin staff DTOs and admin-roles owns RBAC DTOs.
    - This is safe and behavior-preserving.
    - A future cleanup can fully relocate the source DTO definitions if desired.
 

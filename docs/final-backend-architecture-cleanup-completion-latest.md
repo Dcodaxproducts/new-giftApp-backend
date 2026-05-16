@@ -5,20 +5,46 @@ Repository: `/opt/projects/new-giftApp-backend-clean`
 
 ## 1. Executive summary
 
-The backend cleanup objective is complete for the application/service layers: active API/business modules now follow **Controller → Service → Repository → Prisma** with **zero direct Prisma usage in controllers** and **zero direct Prisma usage in feature services**.
+The backend architecture cleanup is complete for the inspected runtime layers.
 
-The only remaining direct Prisma usage outside repositories is the **documented shared-infrastructure exception** at `src/common/services/audit-log.service.ts`, which remains intentionally centralized for append-only audit writes and redaction.
+Current runtime source state:
 
-No intentional API behavior changes were made.
-No route paths were intentionally changed.
-No DTO/request/response shapes were intentionally changed.
-No guards or permissions were intentionally changed.
-No Prisma schema changes were made.
-Swagger duplicate route check passes.
+- Controllers with direct Prisma usage: **0**
+- Guards with direct Prisma usage: **0**
+- Adapters with direct Prisma usage: **0**
+- Feature services with direct Prisma usage: **0**
+- Common services with direct Prisma usage: **0**
+- Repositories with Prisma usage: **76** allowed repository files
+- Modules with Prisma provider/import references: **1** allowed module, `src/database/database.module.ts`
+- Specs with Prisma mocks/source checks: **49** allowed spec files
+- Database PrismaService: **allowed**, `src/database/prisma.service.ts`
 
-## 2. All modules marked DONE
+No intentional API behavior changes were made. No route paths, DTO/request/response shapes, guards, permissions, Swagger tags, or Prisma schema were intentionally changed.
 
-DONE modules:
+## 2. Final direct Prisma usage summary
+
+| Runtime layer | Direct Prisma count | Status |
+|---|---:|---|
+| Controllers | 0 | PASS |
+| Guards | 0 | PASS |
+| Adapters | 0 | PASS |
+| Feature services | 0 | PASS |
+| Common services | 0 | PASS |
+| Repositories | 76 | Allowed |
+| Modules | 1 | Allowed: `DatabaseModule` provider/export wiring only |
+| Specs | 49 | Allowed test mocks/source assertions |
+| Database PrismaService | 1 | Allowed Prisma client wrapper |
+
+### Notes
+
+- The previous `src/common/services/audit-log.service.ts` direct Prisma exception is no longer present. Audit writes now go through `src/common/repositories/audit-log-writer.repository.ts`.
+- `JwtAuthGuard` no longer uses Prisma directly. It reads through `src/common/repositories/jwt-auth.repository.ts`.
+- Notification adapters no longer use Prisma directly. They write through broadcast-notification repositories.
+- `PrismaService` is provided/exported by `src/database/database.module.ts`; feature modules import `DatabaseModule` instead of directly providing `PrismaService`.
+
+## 3. Module completion status
+
+All active API/business modules are marked **DONE** for the cleanup goal.
 
 - admin-disputes
 - admin-management
@@ -59,125 +85,67 @@ DONE modules:
 - subscription-plans
 - user-management
 
-## 3. Any modules still PARTIALLY_DONE
+`mailer` remains infrastructure-only and does not own persistence.
 
-No API/business module remains PARTIALLY_DONE for the cleanup goal.
+## 4. Repository layer coverage summary
 
-Documented exceptions / non-module infra notes:
+Persistence access is repository-first. Runtime Prisma usage is limited to repository files plus the database service/module wiring.
 
-- `src/common/services/audit-log.service.ts` — intentional shared-infrastructure direct Prisma exception.
-- `mailer` — infrastructure-only module; repository layer is not applicable because it does not own persistence.
+Notable final ownership:
 
-## 4. Any remaining direct Prisma usage in services
+| Bounded context | Final status |
+|---|---|
+| admin-management | Owns local controller/service/repository/DTO source. No auth persistence boundary dependency. |
+| admin-roles | Owns local controller/service/repository/DTO source and permission catalog. No auth permission catalog dependency. |
+| auth | Owns auth/register/login/session/password/account/provider bootstrap flows only. Legacy admin staff/RBAC wrappers and auth-level admin repositories removed. |
+| common audit writer | Uses `AuditLogWriterService` → `AuditLogWriterRepository` → Prisma. No common-service direct Prisma. |
+| JWT guard | Uses `JwtAuthRepository`. No guard direct Prisma. |
+| broadcast notification adapters | Use repositories. No adapter direct Prisma. |
 
-### Feature services
-- Count: **0**
-- Result: **No direct Prisma usage remains in feature services.**
+## 5. DTO and permission catalog ownership
 
-### Common services
-- Count: **1 documented exception**
-- File:
-  - `src/common/services/audit-log.service.ts`
-- Reason:
-  - Shared append-only audit writer used across modules.
-  - Centralizes payload redaction and audit persistence.
-  - Avoids broad provider rewiring for no behavior gain.
+| Area | Final status |
+|---|---|
+| admin-management DTOs | Local source at `src/modules/admin-management/dto/admin-management.dto.ts` |
+| admin-roles DTOs | Local source at `src/modules/admin-roles/dto/admin-roles.dto.ts` |
+| permission catalog | Local admin-roles source at `src/modules/admin-roles/constants/permission-catalog.ts` |
+| auth admin DTO source | Removed |
+| auth permission catalog source | Removed |
 
-## 5. Direct Prisma usage in controllers count
+The permission catalog file was moved as a 100% content-preserving rename during cleanup, so permission keys/module names stayed unchanged.
 
-- Controllers with direct Prisma usage: **0**
+## 6. Auth boundary status
 
-## 6. Repository layer coverage table
+`AuthService` no longer owns admin staff or RBAC business operations.
 
-| Module | Repository coverage | Notes |
-|---|---|---|
-| admin-disputes | DONE | 5 repositories |
-| admin-management | DONE | Orchestration via shared auth persistence |
-| admin-provider-disputes | DONE | 6 repositories |
-| admin-reviews | DONE | 2 repositories |
-| admin-roles | DONE | Uses shared auth/admin role persistence |
-| admin-transactions | DONE | 1 repository |
-| audit-logs | DONE | 1 repository + shared audit writer exception documented separately |
-| auth | DONE | 6 repositories |
-| broadcast-notifications | DONE | 7 repositories |
-| customer-contacts | DONE | 1 repository |
-| customer-events | DONE | 1 repository |
-| customer-marketplace | DONE | 3 repositories |
-| customer-provider-interactions | DONE | 4 repositories |
-| customer-recurring-payments | DONE | 1 repository |
-| customer-referrals | DONE | 2 repositories |
-| customer-subscriptions | DONE | 1 repository |
-| customer-transactions | DONE | 1 repository |
-| customer-wallet | DONE | 1 repository |
-| gift-management | DONE | 1 repository |
-| login-attempts | DONE | 1 repository |
-| mailer | N/A | Infra-only, no owned persistence |
-| media-upload-policy | DONE | 1 repository |
-| payments | DONE | 3 repositories |
-| promotional-offers | DONE | 2 repositories |
-| provider-business-info | DONE | 1 repository |
-| provider-dashboard | DONE | 1 repository |
-| provider-earnings-payouts | DONE | 1 repository |
-| provider-interactions | DONE | 4 repositories |
-| provider-inventory | DONE | 1 repository |
-| provider-management | DONE | 2 repositories |
-| provider-orders | DONE | 1 repository |
-| provider-payout-methods | DONE | 1 repository |
-| provider-refund-requests | DONE | 1 repository |
-| referral-settings | DONE | 1 repository |
-| refund-policy-settings | DONE | 1 repository |
-| social-moderation | DONE | 2 repositories |
-| storage | DONE | 2 repositories |
-| subscription-plans | DONE | 3 repositories |
-| user-management | DONE | 1 repository |
+Removed from AuthService:
 
-## 7. DTO folder coverage table
+- `createAdmin`
+- `listAdmins`
+- `adminDetails`
+- `updateAdmin`
+- `updateAdminActiveStatus`
+- `resetAdminPassword`
+- `permanentlyDeleteAdmin`
+- `listAdminRoles`
+- `adminRoleDetails`
+- `createAdminRole`
+- `updateAdminRole`
+- `updateRolePermissions`
+- `deleteAdminRole`
+- `permissionCatalog`
 
-| Module | DTO folder | Notes |
-|---|---|---|
-| admin-disputes | Yes | Local DTOs present |
-| admin-management | No | Uses shared/admin auth DTOs |
-| admin-provider-disputes | Yes | Local DTOs present |
-| admin-reviews | Yes | Local DTOs present |
-| admin-roles | No | Uses shared/admin auth DTOs |
-| admin-transactions | Yes | Local DTOs present |
-| audit-logs | No | DTOs not required locally for current scope |
-| auth | Yes | Local DTOs present |
-| broadcast-notifications | Yes | Local DTOs present |
-| customer-contacts | Yes | Local DTOs present |
-| customer-events | Yes | Local DTOs present |
-| customer-marketplace | Yes | Local DTOs present |
-| customer-provider-interactions | Yes | Local DTOs present |
-| customer-recurring-payments | Yes | Local DTOs present |
-| customer-referrals | Yes | Local DTOs present |
-| customer-subscriptions | Yes | Local DTOs present |
-| customer-transactions | Yes | Local DTOs present |
-| customer-wallet | Yes | Local DTOs present |
-| gift-management | Yes | Local DTOs present |
-| login-attempts | Yes | Local DTOs present |
-| mailer | No | Infra-only |
-| media-upload-policy | Yes | Local DTOs present |
-| payments | Yes | Local DTOs present |
-| promotional-offers | Yes | Local DTOs present |
-| provider-business-info | Yes | Local DTOs present |
-| provider-dashboard | No | Query/response shape handled without local dto folder |
-| provider-earnings-payouts | Yes | Local DTOs present |
-| provider-interactions | Yes | Local DTOs present |
-| provider-inventory | Yes | Local DTOs present |
-| provider-management | Yes | Local DTOs present |
-| provider-orders | Yes | Local DTOs present |
-| provider-payout-methods | Yes | Local DTOs present |
-| provider-refund-requests | Yes | Local DTOs present |
-| referral-settings | Yes | Local DTOs present |
-| refund-policy-settings | Yes | Local DTOs present |
-| social-moderation | Yes | Local DTOs present |
-| storage | Yes | Local DTOs present |
-| subscription-plans | Yes | Local DTOs present |
-| user-management | Yes | Local DTOs present |
+Removed obsolete auth repositories:
 
-## 8. Swagger/API stability status
+- `src/modules/auth/admin-staff.repository.ts`
+- `src/modules/auth/admin-roles.repository.ts`
+- `src/modules/auth/permissions-catalog.repository.ts`
 
-Current API/reference status:
+The only admin-adjacent behavior still in auth is super-admin bootstrap/system-role upsert during `onModuleInit`, implemented through `AuthRepository` to avoid circular module imports.
+
+## 7. Swagger/API stability status
+
+Current generated OpenAPI status:
 
 - `openapi_paths=322`
 - `operations=402`
@@ -189,30 +157,11 @@ Baseline comparison:
 - Baseline `operations=402` → unchanged
 - Baseline `duplicates=0` → unchanged
 
-Conclusion:
+Conclusion: no route count drift and no duplicate method+path conflicts detected.
 
-- No route count drift detected.
-- No duplicate method+path conflicts detected.
-- Swagger/API reference generation completed successfully.
+## 8. Verification results
 
-## 9. Security/production safety status
-
-- Guards and permission behavior were not intentionally changed.
-- No controller was changed to bypass service/repository boundaries.
-- Audit log redaction remains centralized.
-- Prisma schema was not changed.
-- Lint, tests, build, and Prisma validation/generation all pass.
-- Cleanup result is production-safer than the pre-cleanup state because persistence now lives behind repositories instead of service/controller-level direct Prisma calls.
-
-## 10. Prisma/migration caveat
-
-**Production DB migration/baseline must be verified against the actual deployment database before production release.**
-
-No Prisma schema changes were made in this completion pass, but deployment safety still requires explicit confirmation of real production migration/baseline state before release.
-
-## 11. Final verification results
-
-Commands executed successfully:
+Commands required for final verification:
 
 ```bash
 npm run lint
@@ -224,7 +173,7 @@ python3 docs/generated/generate_full_api_pdf.py
 python3 duplicate-route-check snippet against docs/generated/openapi.json
 ```
 
-Results:
+Final results:
 
 | Check | Result |
 |---|---|
@@ -238,158 +187,31 @@ Results:
 | openapi_paths | 322 |
 | operations | 402 |
 | duplicates | 0 |
-| test suites count | 81 |
-| test count | 683 |
+| test suites | 86 |
+| tests | 690 |
 
-## 12. Remaining non-blocking technical debt
+## 9. Security/production safety status
 
-- `src/common/services/audit-log.service.ts` remains a documented shared-infrastructure direct Prisma exception.
-- Some modules intentionally use shared DTOs instead of local `dto/` folders (`admin-management`, `admin-roles`).
-- `provider-dashboard` does not currently maintain a dedicated local `dto/` folder.
-- `mailer` remains infrastructure-only and outside repository-layer expectations.
-- Runtime Swagger export depends on valid application boot prerequisites (notably database configuration); the checked-in OpenAPI artifact remained stable at the baseline counts.
+- Guards and permission behavior were not intentionally changed.
+- No controller bypasses service/repository boundaries.
+- No feature service or common service performs direct Prisma access.
+- Prisma schema was not changed.
+- API route surface stayed stable.
+- Persistence additions should remain repository-first going forward.
 
-## 13. Final recommendation
+## 10. Remaining blockers
 
-The backend cleanup should be treated as **complete for the architecture goal**.
+No architecture-cleanup blockers remain.
 
-Recommendation:
+Deployment caveat: production DB migration/baseline state must still be verified against the actual deployment database before production release. No Prisma schema changes were introduced by this cleanup pass.
 
-- Accept the cleanup as finished.
-- Keep `AuditLogWriterService` as the only documented common-service exception unless a future shared CommonModule extraction is explicitly planned.
-- Treat any future persistence additions as repository-first by default.
-- Before production release, verify the real deployment database migration/baseline state.
+## 11. Final recommendation
 
----
+Treat the backend architecture cleanup as complete.
 
-## Direct Prisma scan by layer
+Recommended next steps:
 
-Scan rule used for direct usage: `this.prisma.*` or `prisma.*` call sites.
-
-### controllers (0)
-- None
-
-### services (0)
-- None
-
-### repositories (74, allowed)
-- `src/common/repositories/account-status.repository.ts`
-- `src/modules/admin-disputes/admin-dispute-decisions.repository.ts`
-- `src/modules/admin-disputes/admin-dispute-evidence.repository.ts`
-- `src/modules/admin-disputes/admin-dispute-linkage.repository.ts`
-- `src/modules/admin-disputes/admin-dispute-tracking.repository.ts`
-- `src/modules/admin-disputes/admin-disputes.repository.ts`
-- `src/modules/admin-provider-disputes/admin-provider-disputes.repository.ts`
-- `src/modules/admin-provider-disputes/provider-dispute-evidence.repository.ts`
-- `src/modules/admin-provider-disputes/provider-dispute-financial.repository.ts`
-- `src/modules/admin-provider-disputes/provider-dispute-logs.repository.ts`
-- `src/modules/admin-provider-disputes/provider-dispute-resolution.repository.ts`
-- `src/modules/admin-provider-disputes/provider-dispute-rulings.repository.ts`
-- `src/modules/admin-reviews/admin-review-policies.repository.ts`
-- `src/modules/admin-reviews/admin-reviews.repository.ts`
-- `src/modules/admin-transactions/admin-transactions.repository.ts`
-- `src/modules/audit-logs/audit-logs.repository.ts`
-- `src/modules/auth/admin-roles.repository.ts`
-- `src/modules/auth/admin-staff.repository.ts`
-- `src/modules/auth/auth-password.repository.ts`
-- `src/modules/auth/auth-sessions.repository.ts`
-- `src/modules/auth/auth.repository.ts`
-- `src/modules/broadcast-notifications/broadcast-delivery.repository.ts`
-- `src/modules/broadcast-notifications/broadcast-notifications.repository.ts`
-- `src/modules/broadcast-notifications/broadcast-queue.repository.ts`
-- `src/modules/broadcast-notifications/broadcast-recipients.repository.ts`
-- `src/modules/broadcast-notifications/device-tokens.repository.ts`
-- `src/modules/broadcast-notifications/notification-preferences.repository.ts`
-- `src/modules/broadcast-notifications/notifications.repository.ts`
-- `src/modules/customer-contacts/customer-contacts.repository.ts`
-- `src/modules/customer-events/customer-events.repository.ts`
-- `src/modules/customer-marketplace/customer-cart.repository.ts`
-- `src/modules/customer-marketplace/customer-marketplace.repository.ts`
-- `src/modules/customer-marketplace/customer-orders.repository.ts`
-- `src/modules/customer-provider-interactions/customer-chats.repository.ts`
-- `src/modules/customer-provider-interactions/customer-provider-interactions.repository.ts`
-- `src/modules/customer-provider-interactions/customer-provider-reports.repository.ts`
-- `src/modules/customer-provider-interactions/customer-reviews.repository.ts`
-- `src/modules/customer-recurring-payments/customer-recurring-payments.repository.ts`
-- `src/modules/customer-referrals/customer-referrals.repository.ts`
-- `src/modules/customer-referrals/customer-rewards.repository.ts`
-- `src/modules/customer-subscriptions/customer-subscriptions.repository.ts`
-- `src/modules/customer-transactions/customer-transactions.repository.ts`
-- `src/modules/customer-wallet/customer-wallet.repository.ts`
-- `src/modules/gift-management/gift-management.repository.ts`
-- `src/modules/login-attempts/login-attempts.repository.ts`
-- `src/modules/media-upload-policy/media-upload-policy.repository.ts`
-- `src/modules/payments/money-gifts.repository.ts`
-- `src/modules/payments/payments.repository.ts`
-- `src/modules/payments/stripe-webhook-events.repository.ts`
-- `src/modules/promotional-offers/promotional-offers.repository.ts`
-- `src/modules/promotional-offers/provider-offers.repository.ts`
-- `src/modules/provider-business-info/provider-business-info.repository.ts`
-- `src/modules/provider-dashboard/provider-dashboard.repository.ts`
-- `src/modules/provider-earnings-payouts/provider-earnings-payouts.repository.ts`
-- `src/modules/provider-interactions/provider-buyer-chat.repository.ts`
-- `src/modules/provider-interactions/provider-interactions.repository.ts`
-- `src/modules/provider-interactions/provider-review-responses.repository.ts`
-- `src/modules/provider-interactions/provider-reviews.repository.ts`
-- `src/modules/provider-inventory/provider-inventory.repository.ts`
-- `src/modules/provider-management/provider-business-categories.repository.ts`
-- `src/modules/provider-management/provider-management.repository.ts`
-- `src/modules/provider-orders/provider-orders.repository.ts`
-- `src/modules/provider-payout-methods/provider-payout-methods.repository.ts`
-- `src/modules/provider-refund-requests/provider-refund-requests.repository.ts`
-- `src/modules/referral-settings/referral-settings.repository.ts`
-- `src/modules/refund-policy-settings/refund-policy-settings.repository.ts`
-- `src/modules/social-moderation/social-moderation.repository.ts`
-- `src/modules/social-moderation/social-reporting-rules.repository.ts`
-- `src/modules/storage/storage.repository.ts`
-- `src/modules/storage/uploads.repository.ts`
-- `src/modules/subscription-plans/coupons.repository.ts`
-- `src/modules/subscription-plans/plan-features.repository.ts`
-- `src/modules/subscription-plans/subscription-plans.repository.ts`
-- `src/modules/user-management/user-management.repository.ts`
-
-### common services (1, documented exception)
-- `src/common/services/audit-log.service.ts`
-
-### specs (38)
-- `src/common/services/account-status.service.spec.ts`
-- `src/common/services/audit-log.service.spec.ts`
-- `src/modules/admin-reviews/admin-reviews.repository.spec.ts`
-- `src/modules/admin-transactions/admin-transactions.service.spec.ts`
-- `src/modules/audit-logs/audit-logs.service.spec.ts`
-- `src/modules/auth/auth.service.spec.ts`
-- `src/modules/broadcast-notifications/broadcast-notifications.repository.spec.ts`
-- `src/modules/broadcast-notifications/broadcasts.service.spec.ts`
-- `src/modules/broadcast-notifications/notifications.service.spec.ts`
-- `src/modules/customer-contacts/customer-contacts.service.spec.ts`
-- `src/modules/customer-events/customer-events.service.spec.ts`
-- `src/modules/customer-marketplace/customer-cart.repository.spec.ts`
-- `src/modules/customer-marketplace/customer-orders.repository.spec.ts`
-- `src/modules/customer-provider-interactions/customer-reviews.repository.spec.ts`
-- `src/modules/customer-recurring-payments/customer-recurring-payments.service.spec.ts`
-- `src/modules/customer-referrals/customer-referrals.service.spec.ts`
-- `src/modules/customer-subscriptions/customer-subscriptions.service.spec.ts`
-- `src/modules/customer-transactions/customer-transactions.service.spec.ts`
-- `src/modules/customer-wallet/customer-wallet.service.spec.ts`
-- `src/modules/gift-management/gift-management.repository.spec.ts`
-- `src/modules/gift-management/gift-management.service.spec.ts`
-- `src/modules/payments/payments.service.spec.ts`
-- `src/modules/promotional-offers/promotional-offers.service.spec.ts`
-- `src/modules/provider-business-info/provider-business-info.service.spec.ts`
-- `src/modules/provider-dashboard/provider-dashboard.service.spec.ts`
-- `src/modules/provider-earnings-payouts/provider-earnings-payouts.service.spec.ts`
-- `src/modules/provider-interactions/provider-interactions.service.spec.ts`
-- `src/modules/provider-inventory/provider-inventory.service.spec.ts`
-- `src/modules/provider-management/provider-business-categories.service.spec.ts`
-- `src/modules/provider-management/provider-management.service.spec.ts`
-- `src/modules/provider-orders/provider-orders.repository.spec.ts`
-- `src/modules/provider-payout-methods/provider-payout-methods.service.spec.ts`
-- `src/modules/provider-refund-requests/provider-refund-requests.service.spec.ts`
-- `src/modules/refund-policy-settings/refund-policy-settings.service.spec.ts`
-- `src/modules/social-moderation/social-moderation.service.spec.ts`
-- `src/modules/storage/storage-ownership-rules.spec.ts`
-- `src/modules/subscription-plans/subscription-plans.service.spec.ts`
-- `src/modules/user-management/user-management.service.spec.ts`
-
-### scripts (0)
-- None
+1. Keep future persistence changes repository-first.
+2. Keep admin-management/admin-roles as the owning bounded contexts for staff/RBAC behavior.
+3. Keep AuthService limited to auth/session/account/provider-auth concerns.
+4. Use the static architecture scan as a regression gate in future cleanup or CI work.
