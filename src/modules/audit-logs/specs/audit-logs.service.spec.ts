@@ -100,7 +100,7 @@ describe('System logs / audit trail source checks', () => {
   const controller = readFileSync(join(__dirname, '../controllers/audit-logs.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, '../services/audit-logs.service.ts'), 'utf8');
   const providerService = readFileSync(join(__dirname, '../../provider-management/services/provider-management.service.ts'), 'utf8');
-  const userService = readFileSync(join(__dirname, '../../user-management/services/user-management.service.ts'), 'utf8');
+  const userService = readFileSync(join(__dirname, '../../user-management/services/user-management-core.service.ts'), 'utf8');
   const disputeService = readFileSync(join(__dirname, '../../admin-disputes/services/admin-disputes.service.ts'), 'utf8');
 
   it('is SUPER_ADMIN only and exposes static routes before :id', () => {

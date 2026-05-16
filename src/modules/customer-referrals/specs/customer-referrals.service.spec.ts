@@ -7,7 +7,7 @@ describe('Customer referrals and rewards source safety', () => {
   const rewardsRepositorySource = readFileSync(join(__dirname, '../repositories/customer-rewards.repository.ts'), 'utf8');
   const controllerSource = readFileSync(join(__dirname, '../controllers/customer-referrals.controller.ts'), 'utf8');
   const authDtoSource = readFileSync(join(__dirname, '../../auth/dto/auth.dto.ts'), 'utf8');
-  const authServiceSource = readFileSync(join(__dirname, '../../auth/services/auth.service.ts'), 'utf8');
+  const authServiceSource = readFileSync(join(__dirname, '../../auth/services/auth-core.service.ts'), 'utf8');
   const paymentServiceSource = readFileSync(join(__dirname, '../../payments/services/payments.service.ts'), 'utf8');
   const schemaSource = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
 

@@ -68,7 +68,7 @@ describe('Customer Premium Subscription module', () => {
   const moduleFile = readFileSync(join(__dirname, '../customer-subscriptions.module.ts'), 'utf8');
   const appModule = readFileSync(join(__dirname, '../../../app.module.ts'), 'utf8');
   const payments = readFileSync(join(__dirname, '../../payments/services/payments.service.ts'), 'utf8');
-  const auth = readFileSync(join(__dirname, '../../auth/services/auth.service.ts'), 'utf8');
+  const auth = readFileSync(join(__dirname, '../../auth/services/auth-core.service.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
 
   it('adds customer subscription schemas without duplicating admin plans', () => {

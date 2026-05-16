@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { SuspensionReason } from '../dto/user-management.dto';
 import { UserManagementRepository } from '../repositories/user-management.repository';
-import { UserManagementService } from '../services/user-management.service';
+import { UserManagementCoreService } from '../services/user-management-core.service';
 
 function createService() {
   const prisma = {
@@ -46,9 +46,9 @@ function createService() {
     sendAccountStatusEmail: jest.fn(),
   };
   const repository = new UserManagementRepository(prisma as unknown as ConstructorParameters<typeof UserManagementRepository>[0]);
-  const service = new UserManagementService(
+  const service = new UserManagementCoreService(
     repository,
-    mailer as unknown as ConstructorParameters<typeof UserManagementService>[1],
+    mailer as unknown as ConstructorParameters<typeof UserManagementCoreService>[1],
   );
   return { service, prisma, mailer, repository };
 }
@@ -76,6 +76,19 @@ const registeredUser = {
 };
 
 describe('UserManagementService', () => {
+  it('facade delegates to focused user-management services', () => {
+    const source = readFileSync('src/modules/user-management/services/user-management.service.ts', 'utf8');
+    const moduleSource = readFileSync('src/modules/user-management/user-management.module.ts', 'utf8');
+
+    for (const dependency of ['UserManagementListService', 'UserManagementStatusService', 'UserManagementPasswordService', 'UserManagementDeleteService', 'UserManagementExportService']) {
+      expect(source).toContain(dependency);
+      expect(moduleSource).toContain(dependency);
+    }
+    expect(source).toContain('return this.listFlow.list(query)');
+    expect(source).toContain('return this.statusFlow.updateStatus(user, id, dto)');
+    expect(source).not.toContain('this.userManagementRepository');
+  });
+
   it('GET /users excludes ADMIN and PROVIDER accounts', async () => {
     const { service, prisma } = createService();
 

@@ -3,7 +3,7 @@ import { join } from 'path';
 
 describe('Provider profile auth surface source safety', () => {
   const controller = readFileSync(join(__dirname, '../controllers/auth.controller.ts'), 'utf8');
-  const service = readFileSync(join(__dirname, '../services/auth.service.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../services/auth-core.service.ts'), 'utf8');
   const authRepository = readFileSync(join(__dirname, '../repositories/auth.repository.ts'), 'utf8');
   const authSessionsRepository = readFileSync(join(__dirname, '../repositories/auth-sessions.repository.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/auth.dto.ts'), 'utf8');

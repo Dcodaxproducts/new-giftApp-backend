@@ -6,7 +6,7 @@ import { resetPasswordTemplate } from '../../../mail/templates/reset-password.te
 import { AuthPasswordRepository } from '../repositories/auth-password.repository';
 import { AuthRepository } from '../repositories/auth.repository';
 import { ProviderFulfillmentMethodDto } from '../dto/auth.dto';
-import { AuthService } from '../services/auth.service';
+import { AuthCoreService } from '../services/auth-core.service';
 import { AuthSessionsRepository } from '../repositories/auth-sessions.repository';
 
 const resetUser = {
@@ -41,11 +41,11 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
-  const service = new AuthService(
-    {} as unknown as ConstructorParameters<typeof AuthService>[0],
-    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[1],
-    {} as unknown as ConstructorParameters<typeof AuthService>[2],
-    mailer as unknown as ConstructorParameters<typeof AuthService>[3],
+  const service = new AuthCoreService(
+    {} as unknown as ConstructorParameters<typeof AuthCoreService>[0],
+    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthCoreService>[1],
+    {} as unknown as ConstructorParameters<typeof AuthCoreService>[2],
+    mailer as unknown as ConstructorParameters<typeof AuthCoreService>[3],
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -172,6 +172,19 @@ describe('AuthService bounded-context boundary', () => {
     expect(authDto).not.toContain('export class CreateAdminDto');
     expect(authDto).not.toContain('export class RejectProviderDto');
     expect(authDto).not.toContain('export class UpdateUserActiveStatusDto');
+  });
+
+  it('AuthService delegates to focused auth services', () => {
+    const source = readFileSync('src/modules/auth/services/auth.service.ts', 'utf8');
+    const moduleSource = readFileSync('src/modules/auth/auth.module.ts', 'utf8');
+
+    for (const dependency of ['AuthRegistrationService', 'AuthLoginService', 'AuthPasswordService', 'AuthSessionService', 'AuthProfileService']) {
+      expect(source).toContain(dependency);
+      expect(moduleSource).toContain(dependency);
+    }
+    expect(source).toContain('return this.registration.registerUser(dto)');
+    expect(source).toContain('return this.loginFlow.login(dto, ipAddress, userAgent)');
+    expect(source).not.toContain('this.authRepository');
   });
 });
 
@@ -301,11 +314,11 @@ function createSensitiveAuthService(options?: {
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
-  const service = new AuthService(
-    jwtService as unknown as ConstructorParameters<typeof AuthService>[0],
-    configService as unknown as ConstructorParameters<typeof AuthService>[1],
-    loginAttemptsService as unknown as ConstructorParameters<typeof AuthService>[2],
-    mailerService as unknown as ConstructorParameters<typeof AuthService>[3],
+  const service = new AuthCoreService(
+    jwtService as unknown as ConstructorParameters<typeof AuthCoreService>[0],
+    configService as unknown as ConstructorParameters<typeof AuthCoreService>[1],
+    loginAttemptsService as unknown as ConstructorParameters<typeof AuthCoreService>[2],
+    mailerService as unknown as ConstructorParameters<typeof AuthCoreService>[3],
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -405,8 +418,8 @@ describe('AuthService sensitive auth behavior', () => {
     expect(service.createGuestSession({})).toEqual({ data: { role: 'GUEST_USER', capabilities: ['VIEW_ONBOARDING', 'EXPLORE_FEATURES'] }, message: 'Guest session initialized' });
   });
 
-  it('auth.service.ts no longer imports PrismaService or uses this.prisma', () => {
-    const source = readFileSync('src/modules/auth/services/auth.service.ts', 'utf8');
+  it('auth core service no longer imports PrismaService or uses this.prisma', () => {
+    const source = readFileSync('src/modules/auth/services/auth-core.service.ts', 'utf8');
     const authRepositorySource = readFileSync('src/modules/auth/repositories/auth.repository.ts', 'utf8');
     expect(source).not.toContain('PrismaService');
     expect(source).not.toContain('this.prisma');

@@ -3,7 +3,7 @@ import { join } from 'path';
 
 describe('User management repository cleanup', () => {
   const moduleDir = __dirname;
-  const service = readFileSync(join(moduleDir, '../services/user-management.service.ts'), 'utf8');
+  const service = readFileSync(join(moduleDir, '../services/user-management-core.service.ts'), 'utf8');
   const repository = readFileSync(join(moduleDir, '../repositories/user-management.repository.ts'), 'utf8');
   const moduleFile = readFileSync(join(moduleDir, '../user-management.module.ts'), 'utf8');
   const controller = readFileSync(join(moduleDir, '../controllers/user-management.controller.ts'), 'utf8');
