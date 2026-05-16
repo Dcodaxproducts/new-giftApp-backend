@@ -4,9 +4,9 @@ import { AuditLogWriterRepository } from '../../common/repositories/audit-log-wr
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { RefundPolicySettingsModule } from '../refund-policy-settings/refund-policy-settings.module';
-import { AdminTransactionsController } from './admin-transactions.controller';
-import { AdminTransactionsRepository } from './admin-transactions.repository';
-import { AdminTransactionsService } from './admin-transactions.service';
+import { AdminTransactionsController } from './controllers/admin-transactions.controller';
+import { AdminTransactionsRepository } from './repositories/admin-transactions.repository';
+import { AdminTransactionsService } from './services/admin-transactions.service';
 
 @Module({
   imports: [JwtModule.register({}), RefundPolicySettingsModule],

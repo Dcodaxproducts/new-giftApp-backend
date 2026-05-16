@@ -18,7 +18,7 @@ describe('Access guard consistency', () => {
 
   it('keeps permanent delete and audit logs SUPER_ADMIN only', () => {
     const users = source('modules/user-management/user-management.controller.ts');
-    const providers = source('modules/provider-management/provider-management.controller.ts');
+    const providers = source('modules/provider-management/controllers/provider-management.controller.ts');
     const auditLogs = source('modules/audit-logs/audit-logs.controller.ts');
 
     expect(users).toContain("@Delete(':id')\n  @Roles(UserRole.SUPER_ADMIN)");
@@ -31,7 +31,7 @@ describe('Access guard consistency', () => {
     for (const file of [
       'modules/provider-inventory/provider-inventory.controller.ts',
       'modules/promotional-offers/provider-promotional-offers.controller.ts',
-      'modules/provider-orders/provider-orders.controller.ts',
+      'modules/provider-orders/controllers/provider-orders.controller.ts',
     ]) {
       const controller = source(file);
       expect(controller).toContain('@UseGuards(JwtAuthGuard, RolesGuard)');
@@ -70,12 +70,12 @@ describe('Access guard consistency', () => {
   it('uses requested permission names for admin user, provider, gift, moderation, broadcast and plan APIs', () => {
     const joined = [
       source('modules/user-management/user-management.controller.ts'),
-      source('modules/provider-management/provider-management.controller.ts'),
-      source('modules/gift-management/gift-categories.controller.ts'),
-      source('modules/gift-management/gifts.controller.ts'),
-      source('modules/gift-management/gift-moderation.controller.ts'),
-      source('modules/broadcast-notifications/broadcasts.controller.ts'),
-      source('modules/subscription-plans/subscription-plans.controller.ts'),
+      source('modules/provider-management/controllers/provider-management.controller.ts'),
+      source('modules/gift-management/controllers/gift-categories.controller.ts'),
+      source('modules/gift-management/controllers/gifts.controller.ts'),
+      source('modules/gift-management/controllers/gift-moderation.controller.ts'),
+      source('modules/broadcast-notifications/controllers/broadcasts.controller.ts'),
+      source('modules/subscription-plans/controllers/subscription-plans.controller.ts'),
     ].join('\n');
 
     for (const permission of [

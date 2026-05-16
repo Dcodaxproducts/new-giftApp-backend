@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Broadcast, BroadcastChannel, NotificationRecipientType, User, UserRole } from '@prisma/client';
 import { MailerService } from '../mailer/mailer.service';
-import { NotificationsRepository } from './notifications.repository';
+import { NotificationsRepository } from './repositories/notifications.repository';
 
 export interface DeliveryAdapterInput {
   broadcast: Broadcast;

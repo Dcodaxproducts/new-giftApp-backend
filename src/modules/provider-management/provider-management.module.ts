@@ -7,12 +7,12 @@ import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 import { MailerModule } from '../mailer/mailer.module';
-import { ProviderBusinessCategoriesController } from './provider-business-categories.controller';
-import { ProviderBusinessCategoriesRepository } from './provider-business-categories.repository';
-import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
-import { ProviderManagementController } from './provider-management.controller';
-import { ProviderManagementRepository } from './provider-management.repository';
-import { ProviderManagementService } from './provider-management.service';
+import { ProviderBusinessCategoriesController } from './controllers/provider-business-categories.controller';
+import { ProviderBusinessCategoriesRepository } from './repositories/provider-business-categories.repository';
+import { ProviderBusinessCategoriesService } from './services/provider-business-categories.service';
+import { ProviderManagementController } from './controllers/provider-management.controller';
+import { ProviderManagementRepository } from './repositories/provider-management.repository';
+import { ProviderManagementService } from './services/provider-management.service';
 
 @Module({
   imports: [AuthModule, JwtModule.register({}), MailerModule],

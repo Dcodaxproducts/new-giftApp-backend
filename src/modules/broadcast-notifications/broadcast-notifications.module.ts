@@ -5,21 +5,21 @@ import { AuditLogWriterRepository } from '../../common/repositories/audit-log-wr
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
-import { BroadcastDeliveryRepository } from './broadcast-delivery.repository';
-import { BroadcastDeliveryService } from './broadcast-delivery.service';
-import { BroadcastNotificationsRepository } from './broadcast-notifications.repository';
-import { BroadcastRecipientsRepository } from './broadcast-recipients.repository';
-import { BroadcastQueueRepository } from './broadcast-queue.repository';
-import { BroadcastQueueService } from './broadcast-queue.service';
-import { BroadcastsController } from './broadcasts.controller';
-import { BroadcastsService } from './broadcasts.service';
-import { DeviceTokensRepository } from './device-tokens.repository';
-import { NotificationPreferencesRepository } from './notification-preferences.repository';
+import { BroadcastDeliveryRepository } from './repositories/broadcast-delivery.repository';
+import { BroadcastDeliveryService } from './services/broadcast-delivery.service';
+import { BroadcastNotificationsRepository } from './repositories/broadcast-notifications.repository';
+import { BroadcastRecipientsRepository } from './repositories/broadcast-recipients.repository';
+import { BroadcastQueueRepository } from './repositories/broadcast-queue.repository';
+import { BroadcastQueueService } from './services/broadcast-queue.service';
+import { BroadcastsController } from './controllers/broadcasts.controller';
+import { BroadcastsService } from './services/broadcasts.service';
+import { DeviceTokensRepository } from './repositories/device-tokens.repository';
+import { NotificationPreferencesRepository } from './repositories/notification-preferences.repository';
 import { EmailNotificationAdapter, InAppNotificationAdapter, NotificationAdapterRegistry, PushNotificationAdapter } from './notification-adapters';
-import { NotificationsController } from './notifications.controller';
+import { NotificationsController } from './controllers/notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
-import { NotificationsRepository } from './notifications.repository';
-import { NotificationsService } from './notifications.service';
+import { NotificationsRepository } from './repositories/notifications.repository';
+import { NotificationsService } from './services/notifications.service';
 
 @Module({
   imports: [ConfigModule, JwtModule.register({})],

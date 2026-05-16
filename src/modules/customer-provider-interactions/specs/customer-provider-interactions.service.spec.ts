@@ -1,0 +1,112 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+describe('Customer Provider Interaction module', () => {
+  const service = readFileSync(join(__dirname, '../services/customer-provider-interactions.service.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../controllers/customer-provider-interactions.controller.ts'), 'utf8');
+  const moduleFile = readFileSync(join(__dirname, '../customer-provider-interactions.module.ts'), 'utf8');
+  const customerReviewsRepository = readFileSync(join(__dirname, '../repositories/customer-reviews.repository.ts'), 'utf8');
+  const customerChatsRepository = readFileSync(join(__dirname, '../repositories/customer-chats.repository.ts'), 'utf8');
+  const customerProviderReportsRepository = readFileSync(join(__dirname, '../repositories/customer-provider-reports.repository.ts'), 'utf8');
+  const customerProviderInteractionsRepository = readFileSync(join(__dirname, '../repositories/customer-provider-interactions.repository.ts'), 'utf8');
+  const dto = readFileSync(join(__dirname, '../dto/customer-provider-interactions.dto.ts'), 'utf8');
+  const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
+  const storageDto = readFileSync(join(__dirname, '../../storage/dto/create-presigned-upload.dto.ts'), 'utf8');
+  const storageService = readFileSync(join(__dirname, '../../storage/storage.service.ts'), 'utf8');
+  const appModule = readFileSync(join(__dirname, '../../../app.module.ts'), 'utf8');
+  const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
+
+  it('registers customer provider interaction module and Swagger groups', () => {
+    expect(appModule).toContain('CustomerProviderInteractionsModule');
+    expect(moduleFile).toContain('CustomerProviderInteractionsController');
+    expect(moduleFile).toContain('CustomerChatsRepository');
+    expect(moduleFile).toContain('CustomerProviderReportsRepository');
+    expect(moduleFile).toContain('CustomerProviderInteractionsRepository');
+    expect(controller).toContain("@ApiTags('05 Customer - Provider Chat')");
+    expect(controller).toContain("@ApiTags('05 Customer - Reviews')");
+    expect(controller).toContain("@ApiTags('05 Customer - Provider Reports')");
+    expect(main).toContain("'05 Customer - Provider Chat'");
+    expect(main).toContain("'05 Customer - Reviews'");
+    expect(main).toContain("'05 Customer - Provider Reports'");
+  });
+
+  it('uses shared chat/review models and creates provider report model', () => {
+    expect(schema).toContain('model ChatThread');
+    expect(schema).toContain('model ChatMessage');
+    expect(schema).toContain('model Review');
+    expect(schema).toContain('model ReviewResponse');
+    expect(schema).toContain('model ProviderReport');
+    expect(schema).toContain('ProviderReportReason');
+    expect(schema).toContain('ProviderReportStatus');
+  });
+
+  it('exposes required customer chat routes with quick replies before :threadId', () => {
+    for (const route of ["@Get('chats')", "@Get('chats/quick-replies')", "@Get('chats/:threadId')", "@Post('chats/:threadId/messages')", "@Patch('chats/:threadId/read')", "@Get('orders/:id/chat')", "@Post('orders/:id/chat')"]) expect(controller).toContain(route);
+    expect(controller.indexOf("@Get('chats/quick-replies')")).toBeLessThan(controller.indexOf("@Get('chats/:threadId')"));
+    expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
+  });
+
+  it('enforces order ownership and provider order ownership for chat creation and messaging', () => {
+    expect(service).toContain('getOwnedOrder(user.uid, orderId)');
+    expect(service).toContain('providerOrderId: providerOrder.id');
+    expect(service).toContain('getOwnedThread(user.uid, threadId)');
+    expect(customerChatsRepository).toContain('senderType: ChatSenderType.CUSTOMER');
+    expect(customerChatsRepository).toContain('isReadByCustomer: true');
+    expect(customerChatsRepository).toContain('isReadByProvider: false');
+    expect(customerChatsRepository).toContain('CHAT_MESSAGE');
+  });
+
+  it('validates chat message payloads and marks customer-owned chats read', () => {
+    expect(dto).toContain('ChatMessageType');
+    expect(service).toContain('body is required for TEXT messages');
+    expect(service).toContain('attachmentUrls are required for attachment messages');
+    expect(customerChatsRepository).toContain('senderType: ChatSenderType.PROVIDER');
+    expect(customerChatsRepository).toContain('isReadByCustomer: true');
+  });
+
+  it('exposes customer review CRUD routes and blocks duplicate provider order reviews', () => {
+    for (const route of ["@Post('orders/:id/reviews')", "@Get('reviews')", "@Get('reviews/:id')", "@Patch('reviews/:id')", "@Delete('reviews/:id')"]) expect(controller).toContain(route);
+    expect(service).toContain('Only delivered or completed orders can be reviewed');
+    expect(service).toContain('You have already reviewed this provider order');
+    expect(service).toContain('softDeleteReview(id)');
+    expect(customerReviewsRepository).toContain('data: { deletedAt: new Date() }');
+    expect(customerReviewsRepository).not.toContain('review.delete');
+  });
+
+  it('connects customer reviews to admin/provider moderation and notifications', () => {
+    expect(service).toContain('ReviewModerationActorType.SYSTEM');
+    expect(service).toContain('ReviewModerationAction.AUTO_APPROVED');
+    expect(service).toContain('ReviewModerationAction.AUTO_FLAGGED');
+    expect(service).toContain('PROVIDER_REVIEW');
+    expect(service).toContain('detectedCategoriesJson');
+  });
+
+  it('exposes provider report reasons before provider report details and validates relationships', () => {
+    for (const route of ["@Get('provider-report-reasons')", "@Post('providers/:providerId/reports')", "@Get('provider-reports')", "@Get('provider-reports/:id')"]) expect(controller).toContain(route);
+    expect(controller.indexOf("@Get('provider-report-reasons')")).toBeLessThan(controller.indexOf("@Get('provider-reports/:id')"));
+    expect(service).toContain('assertProviderRelationship');
+    expect(service).toContain('You can report only providers you have interacted with');
+    expect(service).toContain('An active report for this provider/order/reason already exists');
+  });
+
+  it('creates customer/admin notifications for provider reports and provider notifications for chat/reviews', () => {
+    expect(customerProviderReportsRepository).toContain('Provider report submitted');
+    expect(customerProviderReportsRepository).toContain('PROVIDER_REPORT_ADMIN');
+    expect(customerChatsRepository).toContain('New customer message');
+    expect(service).toContain('New provider review');
+  });
+
+  it('customer-provider-interactions.service.ts no longer imports PrismaService or uses this.prisma', () => {
+    expect(service).not.toContain('PrismaService');
+    expect(service).not.toContain('this.prisma');
+    expect(customerChatsRepository).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(customerProviderReportsRepository).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(customerProviderInteractionsRepository).toContain('constructor(private readonly prisma: PrismaService)');
+  });
+
+  it('adds provider report evidence upload folder for registered users', () => {
+    expect(storageDto).toContain("PROVIDER_REPORT_EVIDENCE = 'provider-report-evidence'");
+    expect(storageService).toContain('UploadFolder.PROVIDER_REPORT_EVIDENCE');
+    expect(storageService).toContain('Registered users can upload only allowed customer files');
+  });
+});

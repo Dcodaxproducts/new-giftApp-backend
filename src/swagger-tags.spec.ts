@@ -24,7 +24,7 @@ describe('Swagger professional tag grouping', () => {
   });
 
   it('admin reviews swagger sections exist and provider support section is currently omitted', () => {
-    const reviews = readFileSync(join(__dirname, 'modules/admin-reviews/admin-reviews.controller.ts'), 'utf8') + readFileSync(join(__dirname, 'modules/admin-reviews/review-policies.controller.ts'), 'utf8');
+    const reviews = readFileSync(join(__dirname, 'modules/admin-reviews/controllers/admin-reviews.controller.ts'), 'utf8') + readFileSync(join(__dirname, 'modules/admin-reviews/controllers/review-policies.controller.ts'), 'utf8');
     expect(reviews).toContain("02 Admin - Reviews Management");
     expect(reviews).toContain("02 Admin - Review Moderation");
     expect(reviews).toContain("02 Admin - Review Policies");
@@ -37,10 +37,10 @@ describe('Swagger professional tag grouping', () => {
     const files = [
       'auth/auth.controller.ts',
       'user-management/user-management.controller.ts',
-      'provider-management/provider-management.controller.ts',
-      'provider-management/provider-business-categories.controller.ts',
+      'provider-management/controllers/provider-management.controller.ts',
+      'provider-management/controllers/provider-business-categories.controller.ts',
       'provider-business-info/provider-business-info.controller.ts',
-      'provider-orders/provider-orders.controller.ts',
+      'provider-orders/controllers/provider-orders.controller.ts',
       'provider-refund-requests/provider-refund-requests.controller.ts',
       'customer-wallet/customer-wallet.controller.ts',
     ];

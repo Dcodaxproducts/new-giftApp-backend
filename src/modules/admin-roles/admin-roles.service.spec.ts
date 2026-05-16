@@ -29,7 +29,7 @@ function createService() {
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const catalogRepository = { getPermissionCatalog: jest.fn().mockReturnValue([{ module: 'admins' }]) };
-  const service = new AdminRolesService(auditLog as never, repository as never, catalogRepository as never);
+  const service = new AdminRolesService(auditLog as never, repository as never, catalogRepository);
   return { service, repository, auditLog, catalogRepository };
 }
 

@@ -39,25 +39,25 @@ describe('Swagger and static route hardening', () => {
   });
 
   it('customer gift static routes stay before gift id route', () => {
-    const source = readFileSync(join(root, 'src/modules/customer-marketplace/customer-marketplace.controller.ts'), 'utf8');
+    const source = readFileSync(join(root, 'src/modules/customer-marketplace/controllers/customer-marketplace.controller.ts'), 'utf8');
     expectBefore(source, "@Get('gifts/discounted')", "@Get('gifts/:id')");
     expectBefore(source, "@Get('gifts/filter-options')", "@Get('gifts/:id')");
   });
 
   it('provider and admin static routes stay before dynamic id routes', () => {
-    const providers = readFileSync(join(root, 'src/modules/provider-management/provider-management.controller.ts'), 'utf8');
+    const providers = readFileSync(join(root, 'src/modules/provider-management/controllers/provider-management.controller.ts'), 'utf8');
     expectBefore(providers, "@Get('export')", "@Get(':id')");
     expectBefore(providers, "@Get('stats')", "@Get(':id')");
     expectBefore(providers, "@Get('lookup')", "@Get(':id')");
-    const gifts = readFileSync(join(root, 'src/modules/gift-management/gifts.controller.ts'), 'utf8');
+    const gifts = readFileSync(join(root, 'src/modules/gift-management/controllers/gifts.controller.ts'), 'utf8');
     expectBefore(gifts, "@Get('stats')", "@Get(':id')");
     expectBefore(gifts, "@Get('export')", "@Get(':id')");
-    const plans = readFileSync(join(root, 'src/modules/subscription-plans/subscription-plans.controller.ts'), 'utf8');
+    const plans = readFileSync(join(root, 'src/modules/subscription-plans/controllers/subscription-plans.controller.ts'), 'utf8');
     expectBefore(plans, "@Get('stats')", "@Get(':id')");
   });
 
   it('notification static routes stay before notification id read route', () => {
-    const source = readFileSync(join(root, 'src/modules/broadcast-notifications/notifications.controller.ts'), 'utf8');
+    const source = readFileSync(join(root, 'src/modules/broadcast-notifications/controllers/notifications.controller.ts'), 'utf8');
     expectBefore(source, "@Get('summary')", "@Patch(':id/read')");
     expectBefore(source, "@Get('preferences')", "@Patch(':id/read')");
   });
