@@ -4,6 +4,7 @@ import { ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminProviderFulfillmentMethodDto, ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from './dto/provider-management.dto';
+import { ProviderManagementRepository } from './provider-management.repository';
 import { ProviderManagementService } from './provider-management.service';
 
 
@@ -73,22 +74,28 @@ function createService(overrides: Record<string, unknown> = {}) {
     sendProviderMessageEmail: jest.fn(),
     sendProviderInviteEmail: jest.fn(),
   };
+  const repository = new ProviderManagementRepository(prisma as never);
   const service = new ProviderManagementService(
-    prisma as unknown as ConstructorParameters<typeof ProviderManagementService>[0],
+    repository,
     mailer as unknown as ConstructorParameters<typeof ProviderManagementService>[1],
-    { updateStatus: jest.fn(), unsuspend: jest.fn() } as unknown as ConstructorParameters<typeof ProviderManagementService>[2],
   );
-  return { service, prisma, mailer };
+  return { service, repository, prisma, mailer };
 }
 
 describe('ProviderManagementService', () => {
-  it('GET /providers excludes REGISTERED_USER and ADMIN accounts', async () => {
+  it('admin can list providers with filters through repository-owned Prisma access', async () => {
     const { service, prisma } = createService();
 
-    await service.list({});
+    await service.list({ search: 'Premium', approvalStatus: ProviderApprovalStatus.PENDING });
 
     expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ role: UserRole.PROVIDER }),
+      where: expect.objectContaining({
+        role: UserRole.PROVIDER,
+        providerApprovalStatus: ProviderApprovalStatus.PENDING,
+        OR: expect.arrayContaining([
+          expect.objectContaining({ providerBusinessName: expect.objectContaining({ contains: 'Premium' }) }),
+        ]),
+      }),
     }));
   });
 
@@ -189,6 +196,17 @@ describe('ProviderManagementService', () => {
       fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP],
       generateTemporaryPassword: false,
     })).rejects.toThrow(BadRequestException);
+  });
+
+  it('provider-management.service.ts no longer imports PrismaService or uses this.prisma', () => {
+    const serviceSource = readFileSync(join(__dirname, 'provider-management.service.ts'), 'utf8');
+    const repositorySource = readFileSync(join(__dirname, 'provider-management.repository.ts'), 'utf8');
+
+    expect(serviceSource).not.toContain('PrismaService');
+    expect(serviceSource).not.toContain('this.prisma');
+    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repositorySource).toContain('findManyProviders');
+    expect(repositorySource).toContain('deleteProviderPermanently');
   });
 
   it('Swagger shows consistent admin provider create payload and self-registration remains unchanged', () => {

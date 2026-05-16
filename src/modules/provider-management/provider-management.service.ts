@@ -6,12 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { AccountType, NotificationRecipientType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
+import { NotificationRecipientType, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { AccountStatusService } from '../../common/services/account-status.service';
-import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
 import {
   CreateProviderDto,
@@ -27,13 +25,12 @@ import {
   ProviderLifecycleReason,
   ProviderItemStatus,
   ProviderLookupDto,
-  ProviderSortBy,
   ProviderStatusFilter,
   ProviderStatusUpdate,
-  SortOrder,
   UpdateProviderDto,
   UpdateProviderStatusDto,
 } from './dto/provider-management.dto';
+import { ProviderManagementRepository } from './provider-management.repository';
 
 interface ProviderStats {
   revenue: number;
@@ -60,23 +57,16 @@ export class ProviderManagementService {
   private readonly logger = new Logger(ProviderManagementService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: ProviderManagementRepository,
     private readonly mailerService: MailerService,
-    private readonly accountStatusService: AccountStatusService,
   ) {}
 
   async list(query: ListProvidersDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    const where = this.buildProviderWhere(query);
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.user.findMany({
-        where,
-        orderBy: this.toOrderBy(query.sortBy, query.sortOrder),
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.user.count({ where }),
+    const [items, total] = await Promise.all([
+      this.repository.findManyProviders(query, { skip: (page - 1) * limit, take: limit }),
+      this.repository.countProviders(query),
     ]);
 
     return {
@@ -87,11 +77,7 @@ export class ProviderManagementService {
   }
 
   async stats() {
-    const [totalProviders, pendingApproval, inactiveProviders] = await this.prisma.$transaction([
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, providerApprovalStatus: ProviderApprovalStatus.PENDING } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, isActive: false } }),
-    ]);
+    const { totalProviders, pendingApproval, inactiveProviders } = await this.repository.findProviderStats();
     const inactiveRate = totalProviders === 0 ? 0 : Number(((inactiveProviders / totalProviders) * 100).toFixed(2));
 
     return {
@@ -117,24 +103,7 @@ export class ProviderManagementService {
   }
 
   async lookup(query: ProviderLookupDto) {
-    const providers = await this.prisma.user.findMany({
-      where: {
-        role: UserRole.PROVIDER,
-        deletedAt: null,
-        providerApprovalStatus: query.approvalStatus ?? ProviderApprovalStatus.APPROVED,
-        isActive: query.isActive ?? true,
-        ...(query.search
-          ? {
-              OR: [
-                { providerBusinessName: { contains: query.search, mode: 'insensitive' } },
-                { email: { contains: query.search, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: { providerBusinessName: 'asc' },
-      take: query.limit ?? 20,
-    });
+    const providers = await this.repository.findProviderLookup(query);
 
     return {
       data: providers.map((provider) => ({ id: provider.id, businessName: this.businessName(provider), email: provider.email })),
@@ -144,7 +113,7 @@ export class ProviderManagementService {
 
   async create(user: AuthUserContext, dto: CreateProviderDto) {
     const email = dto.email.trim().toLowerCase();
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.repository.findProviderByEmail(email);
     if (existing && !existing.deletedAt) {
       throw new ConflictException('Email already exists');
     }
@@ -161,8 +130,7 @@ export class ProviderManagementService {
     this.assertPasswordMeetsSecurity(temporaryPassword);
 
     const approvalStatus = dto.approvalStatus ?? ProviderApprovalStatus.PENDING;
-    const provider = await this.prisma.user.create({
-      data: {
+    const provider = await this.repository.createProviderWithUser({
         email,
         password: await bcrypt.hash(temporaryPassword, 10),
         firstName: dto.firstName.trim(),
@@ -185,7 +153,6 @@ export class ProviderManagementService {
         providerApprovalStatus: approvalStatus,
         providerApprovedAt: approvalStatus === ProviderApprovalStatus.APPROVED ? new Date() : null,
         providerApprovedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
-      },
     });
 
     const inviteEmailSent = dto.sendInviteEmail ?? true
@@ -221,9 +188,7 @@ export class ProviderManagementService {
   async update(user: AuthUserContext, id: string, dto: UpdateProviderDto) {
     const provider = await this.getProvider(id);
     const before = this.toDetail(provider, this.emptyProviderStats());
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
+    const updated = await this.repository.updateProvider(provider.id, {
         firstName: dto.businessName?.trim(),
         lastName: dto.businessName ? 'Provider' : undefined,
         phone: dto.phone?.trim(),
@@ -232,7 +197,6 @@ export class ProviderManagementService {
         providerBusinessName: dto.businessName?.trim(),
         providerServiceArea: dto.serviceArea?.trim(),
         providerDocuments: dto.documentUrls,
-      },
     });
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, this.emptyProviderStats()));
 
@@ -291,7 +255,7 @@ export class ProviderManagementService {
     }
   }
 
-  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+  private flattenPermissions(permissions?: AuthUserContext['permissions']): Set<string> {
     const granted = new Set<string>();
     if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) {
       return granted;
@@ -332,33 +296,18 @@ export class ProviderManagementService {
     }
 
     const provider = await this.getProvider(id);
-    const activeOrders = await this.prisma.providerOrder.count({
-      where: { providerId: provider.id, status: { in: ['PENDING', 'ACCEPTED', 'PROCESSING', 'PACKED', 'READY_FOR_PICKUP', 'SHIPPED', 'OUT_FOR_DELIVERY'] } },
-    });
+    const activeOrders = await this.repository.countActiveProcessingOrders(provider.id);
     if (activeOrders > 0) {
       throw new ConflictException('Provider has active processing orders and cannot be permanently deleted');
     }
 
-    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.adminAuditLog.create({
-        data: {
-          actorId: user.uid,
-          targetId: provider.id,
-          targetType: 'PROVIDER',
-          action: 'PROVIDER_PERMANENTLY_DELETED',
-          beforeJson: { id: provider.id, email: provider.email, role: provider.role },
-          afterJson: { reason: dto.reason, deleteRelatedRecords: dto.deleteRelatedRecords ?? true },
-        },
-      });
-      await tx.authSession.deleteMany({ where: { userId: provider.id } });
-      await tx.notification.deleteMany({ where: { recipientId: provider.id } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: provider.id } });
-      await tx.uploadedFile.deleteMany({ where: { ownerId: provider.id } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: provider.id } });
-      await tx.loginAttempt.updateMany({ where: { userId: provider.id }, data: { userId: null } });
-      await tx.promotionalOffer.deleteMany({ where: { providerId: provider.id } });
-      await tx.gift.deleteMany({ where: { providerId: provider.id } });
-      await tx.user.delete({ where: { id: provider.id } });
+    await this.repository.deleteProviderPermanently({
+      actorId: user.uid,
+      providerId: provider.id,
+      providerEmail: provider.email,
+      providerRole: provider.role,
+      reason: dto.reason,
+      deleteRelatedRecords: dto.deleteRelatedRecords ?? true,
     });
 
     return {
@@ -399,11 +348,7 @@ export class ProviderManagementService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const requestedType = query.type ?? ProviderActivityType.ALL;
-    const logs = await this.prisma.adminAuditLog.findMany({
-      where: { targetId: provider.id },
-      orderBy: { createdAt: 'desc' },
-      take: 200,
-    });
+    const logs = await this.repository.findProviderActivity(provider.id);
     const activities = logs
       .map((log): ProviderActivityItem => this.toAuditActivity(log))
       .filter((activity) => requestedType === ProviderActivityType.ALL || activity.type === requestedType);
@@ -417,11 +362,7 @@ export class ProviderManagementService {
   }
 
   async export(query: ExportProvidersDto) {
-    const providers = await this.prisma.user.findMany({
-      where: this.buildProviderWhere(query),
-      orderBy: { createdAt: 'desc' },
-      take: 10000,
-    });
+    const providers = await this.repository.findManyProviders(query, { skip: 0, take: 10000 });
     const rows = this.toExportRows(providers);
     const isXlsx = query.format === ExportFormat.XLSX;
 
@@ -443,63 +384,13 @@ export class ProviderManagementService {
   }
 
   private async getProvider(id: string): Promise<User> {
-    const provider = await this.prisma.user.findFirst({
-      where: { id, role: UserRole.PROVIDER, deletedAt: null },
-    });
+    const provider = await this.repository.findProviderById(id);
 
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
 
     return provider;
-  }
-
-  private buildProviderWhere(query: ListProvidersDto | ExportProvidersDto): Prisma.UserWhereInput {
-    return {
-      role: UserRole.PROVIDER,
-      deletedAt: null,
-      ...(query.search
-        ? {
-            OR: [
-              { providerBusinessName: { contains: query.search, mode: 'insensitive' } },
-              { email: { contains: query.search, mode: 'insensitive' } },
-              { phone: { contains: query.search, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-      ...this.statusWhere(query.status),
-      ...(query.approvalStatus && query.approvalStatus !== 'ALL'
-        ? { providerApprovalStatus: query.approvalStatus }
-        : {}),
-    };
-  }
-
-  private statusWhere(status?: ProviderStatusFilter): Prisma.UserWhereInput {
-    switch (status) {
-      case ProviderStatusFilter.ACTIVE:
-        return { isActive: true, suspendedAt: null, providerApprovalStatus: ProviderApprovalStatus.APPROVED };
-      case ProviderStatusFilter.INACTIVE:
-      case ProviderStatusFilter.DISABLED:
-        return { isActive: false, suspendedAt: null };
-      case ProviderStatusFilter.SUSPENDED:
-        return { suspendedAt: { not: null } };
-      case ProviderStatusFilter.ALL:
-      case undefined:
-        return {};
-    }
-  }
-
-  private toOrderBy(sortBy?: ProviderSortBy, sortOrder?: SortOrder): Prisma.UserOrderByWithRelationInput {
-    const direction = sortOrder === SortOrder.ASC ? 'asc' : 'desc';
-    if (sortBy === ProviderSortBy.BUSINESS_NAME) {
-      return { providerBusinessName: direction };
-    }
-
-    if (sortBy === ProviderSortBy.APPROVAL_STATUS) {
-      return { providerApprovalStatus: direction };
-    }
-
-    return { createdAt: direction };
   }
 
   private toListItem(provider: User, stats: ProviderStats) {
@@ -729,7 +620,7 @@ export class ProviderManagementService {
   }
 
   private async getProviderBusinessCategory(categoryId: string): Promise<void> {
-    const category = await this.prisma.providerBusinessCategory.findUnique({ where: { id: categoryId } });
+    const category = await this.repository.findProviderBusinessCategory(categoryId);
     if (!category || !category.isActive) {
       throw new NotFoundException('Provider business category not found');
     }
@@ -765,9 +656,7 @@ export class ProviderManagementService {
 
   private async approveProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
+    const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isApproved: true,
         isActive: true,
         providerApprovalStatus: ProviderApprovalStatus.APPROVED,
@@ -781,17 +670,14 @@ export class ProviderManagementService {
         suspensionComment: null,
         suspendedAt: null,
         suspendedBy: null,
-      },
     });
-    await this.prisma.accountSuspension.updateMany({ where: { accountId: provider.id, isActive: true }, data: { isActive: false, unsuspendedBy: user.uid, unsuspendedAt: new Date() } });
+    await this.repository.deactivateActiveAccountSuspensions(provider.id, user.uid);
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_APPROVED', before, updated, dto, 'Provider approved successfully.');
   }
 
   private async rejectProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
+    const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isApproved: false,
         isActive: false,
         providerApprovalStatus: ProviderApprovalStatus.REJECTED,
@@ -800,7 +686,6 @@ export class ProviderManagementService {
         providerRejectionReason: dto.reason,
         providerRejectionComment: dto.comment?.trim(),
         refreshTokenHash: null,
-      },
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_REJECTED', before, updated, dto, 'Provider rejected successfully.');
   }
@@ -812,60 +697,47 @@ export class ProviderManagementService {
 
     const before = this.toLifecycleResponse(provider);
     if (provider.suspendedAt && dto.status === ProviderStatusUpdate.ACTIVE) {
-      await this.prisma.accountSuspension.updateMany({ where: { accountId: provider.id, isActive: true }, data: { isActive: false, unsuspendedBy: user.uid, unsuspendedAt: new Date() } });
+      await this.repository.deactivateActiveAccountSuspensions(provider.id, user.uid);
     }
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
+    const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isActive: dto.status === ProviderStatusUpdate.ACTIVE,
         suspensionReason: null,
         suspensionComment: null,
         suspendedAt: null,
         suspendedBy: null,
         refreshTokenHash: dto.status === ProviderStatusUpdate.ACTIVE ? provider.refreshTokenHash : null,
-      },
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_STATUS_UPDATED', before, updated, dto, 'Provider status updated successfully.');
   }
 
   private async suspendProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
-    await this.prisma.accountSuspension.create({
-      data: {
-        accountId: provider.id,
-        accountType: AccountType.PROVIDER,
-        reason: dto.reason ?? ProviderLifecycleReason.OTHER,
-        comment: dto.comment?.trim(),
-        suspendedBy: user.uid,
-        isActive: true,
-      },
+    await this.repository.createAccountSuspension({
+      accountId: provider.id,
+      reason: dto.reason ?? ProviderLifecycleReason.OTHER,
+      comment: dto.comment?.trim(),
+      suspendedBy: user.uid,
     });
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
+    const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isActive: false,
         suspensionReason: dto.reason,
         suspensionComment: dto.comment?.trim(),
         suspendedAt: new Date(),
         suspendedBy: user.uid,
         refreshTokenHash: null,
-      },
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_SUSPENDED', before, updated, dto, 'Provider suspended successfully.');
   }
 
   private async unsuspendProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
-    await this.prisma.accountSuspension.updateMany({ where: { accountId: provider.id, isActive: true }, data: { isActive: false, unsuspendedBy: user.uid, unsuspendedAt: new Date() } });
-    const updated = await this.prisma.user.update({
-      where: { id: provider.id },
-      data: {
+    await this.repository.deactivateActiveAccountSuspensions(provider.id, user.uid);
+    const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isActive: true,
         suspensionReason: null,
         suspensionComment: null,
         suspendedAt: null,
         suspendedBy: null,
-      },
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_UNSUSPENDED', before, updated, dto, 'Provider unsuspended successfully.');
   }
@@ -917,15 +789,13 @@ export class ProviderManagementService {
       return;
     }
 
-    await this.prisma.notification.create({
-      data: {
+    await this.repository.createProviderNotification({
         recipientId: provider.id,
         recipientType: NotificationRecipientType.PROVIDER,
         title: this.providerNotificationTitle(status),
         message: this.providerNotificationMessage(status),
         type: status,
         metadataJson: { action: status },
-      },
     });
 
     try {
@@ -982,15 +852,13 @@ export class ProviderManagementService {
     beforeJson: unknown,
     afterJson: unknown,
   ): Promise<void> {
-    await this.prisma.adminAuditLog.create({
-      data: {
+    await this.repository.createAuditLog({
         actorId,
         targetId,
         targetType: this.inferTargetType(action),
         action,
         beforeJson: beforeJson === null ? undefined : (beforeJson),
         afterJson: afterJson === null ? undefined : (afterJson),
-      },
     });
   }
 

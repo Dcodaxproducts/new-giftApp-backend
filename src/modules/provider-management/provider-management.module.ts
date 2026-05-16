@@ -9,11 +9,12 @@ import { ProviderBusinessCategoriesController } from './provider-business-catego
 import { ProviderBusinessCategoriesRepository } from './provider-business-categories.repository';
 import { ProviderBusinessCategoriesService } from './provider-business-categories.service';
 import { ProviderManagementController } from './provider-management.controller';
+import { ProviderManagementRepository } from './provider-management.repository';
 import { ProviderManagementService } from './provider-management.service';
 
 @Module({
   imports: [AuthModule, JwtModule.register({}), MailerModule],
   controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
-  providers: [ProviderManagementService, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, PrismaService, AuditLogWriterService, AccountStatusService],
+  providers: [ProviderManagementService, ProviderManagementRepository, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, PrismaService, AuditLogWriterService, AccountStatusService],
 })
 export class ProviderManagementModule {}
