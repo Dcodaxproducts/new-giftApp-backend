@@ -4,9 +4,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
+import { BroadcastDeliveryRepository } from './broadcast-delivery.repository';
 import { BroadcastDeliveryService } from './broadcast-delivery.service';
 import { BroadcastNotificationsRepository } from './broadcast-notifications.repository';
 import { BroadcastRecipientsRepository } from './broadcast-recipients.repository';
+import { BroadcastQueueRepository } from './broadcast-queue.repository';
 import { BroadcastQueueService } from './broadcast-queue.service';
 import { BroadcastsController } from './broadcasts.controller';
 import { BroadcastsService } from './broadcasts.service';
@@ -27,6 +29,8 @@ import { NotificationsService } from './notifications.service';
     BroadcastsService,
     BroadcastNotificationsRepository,
     BroadcastRecipientsRepository,
+    BroadcastDeliveryRepository,
+    BroadcastQueueRepository,
     NotificationsService,
     NotificationsRepository,
     NotificationPreferencesRepository,

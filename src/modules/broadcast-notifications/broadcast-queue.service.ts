@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { BroadcastStatus } from '@prisma/client';
 import { Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
-import { PrismaService } from '../../database/prisma.service';
 import { BroadcastDeliveryService } from './broadcast-delivery.service';
+import { BroadcastQueueRepository } from './broadcast-queue.repository';
 
 @Injectable()
 export class BroadcastQueueService implements OnModuleInit {
@@ -14,7 +14,7 @@ export class BroadcastQueueService implements OnModuleInit {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly repository: BroadcastQueueRepository,
     private readonly delivery: BroadcastDeliveryService,
   ) {}
 
@@ -52,7 +52,7 @@ export class BroadcastQueueService implements OnModuleInit {
   }
 
   private async runIfStillScheduled(broadcastId: string): Promise<void> {
-    const broadcast = await this.prisma.broadcast.findUnique({ where: { id: broadcastId } });
+    const broadcast = await this.repository.findBroadcastById(broadcastId);
     if (broadcast?.status === BroadcastStatus.SCHEDULED) {
       await this.delivery.process(broadcastId);
     }

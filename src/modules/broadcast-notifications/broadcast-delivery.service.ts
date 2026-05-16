@@ -1,23 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BroadcastChannel, BroadcastDeliveryStatus, BroadcastStatus, NotificationRecipientType, Prisma, UserRole } from '@prisma/client';
-import { PrismaService } from '../../database/prisma.service';
+import { BroadcastDeliveryRepository } from './broadcast-delivery.repository';
 import { NotificationAdapterRegistry } from './notification-adapters';
 import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class BroadcastDeliveryService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: BroadcastDeliveryRepository,
     private readonly adapters: NotificationAdapterRegistry,
     private readonly gateway: NotificationsGateway,
   ) {}
 
   async process(broadcastId: string): Promise<void> {
-    const broadcast = await this.prisma.broadcast.findUnique({ where: { id: broadcastId } });
+    const broadcast = await this.repository.findBroadcastById(broadcastId);
     if (!broadcast) throw new NotFoundException('Broadcast not found');
     if (broadcast.status === BroadcastStatus.CANCELLED || broadcast.status === BroadcastStatus.SENT) return;
 
-    await this.prisma.broadcast.update({ where: { id: broadcastId }, data: { status: BroadcastStatus.PROCESSING, startedAt: new Date() } });
+    await this.repository.markBroadcastProcessing(broadcastId);
     this.gateway.emitEvent('broadcast.processing', { broadcastId, status: BroadcastStatus.PROCESSING });
 
     const channels = this.channels(broadcast.channels);
@@ -29,32 +29,24 @@ export class BroadcastDeliveryService {
 
     for (const recipient of recipients) {
       for (const channel of channels) {
-        const delivery = await this.prisma.broadcastDelivery.create({
-          data: {
+        const delivery = await this.repository.createBroadcastDelivery({
             broadcastId,
             recipientId: recipient.id,
             recipientType: this.recipientType(recipient.role),
             channel,
             status: BroadcastDeliveryStatus.QUEUED,
             email: recipient.email,
-          },
         });
         try {
           const providerMessageId = await this.adapters.adapter(channel).send({ broadcast, recipient, deliveryId: delivery.id });
-          await this.prisma.broadcastDelivery.update({
-            where: { id: delivery.id },
-            data: { status: BroadcastDeliveryStatus.DELIVERED, providerMessageId, sentAt: new Date(), deliveredAt: new Date() },
-          });
+          await this.repository.markBroadcastDeliveryDelivered({ deliveryId: delivery.id, providerMessageId });
           sent += 1;
           if (channel === BroadcastChannel.IN_APP) {
             this.gateway.emitToUser(recipient.id, 'notification.received', { broadcastId, title: broadcast.title, message: broadcast.message });
           }
         } catch (error) {
           failed += 1;
-          await this.prisma.broadcastDelivery.update({
-            where: { id: delivery.id },
-            data: { status: BroadcastDeliveryStatus.FAILED, failureReason: error instanceof Error ? error.message : 'Unknown delivery error' },
-          });
+          await this.repository.markBroadcastDeliveryFailed({ deliveryId: delivery.id, failureReason: error instanceof Error ? error.message : 'Unknown delivery error' });
           this.gateway.emitEvent('broadcast.delivery.failed', { broadcastId, deliveryId: delivery.id });
         }
         processed += 1;
@@ -70,23 +62,13 @@ export class BroadcastDeliveryService {
       }
     }
 
-    await this.prisma.broadcast.update({ where: { id: broadcastId }, data: { status: BroadcastStatus.SENT, completedAt: new Date() } });
+    await this.repository.markBroadcastSent(broadcastId);
     this.gateway.emitEvent('broadcast.delivery.completed', { broadcastId, status: BroadcastStatus.SENT, targeted, processed, sent, failed, progressPercent: 100 });
   }
 
   private async resolveRecipients(targeting: Prisma.JsonObject | null) {
     const roles = this.targetRoles(targeting);
-    return this.prisma.user.findMany({
-      where: {
-        role: { in: roles },
-        deletedAt: null,
-        deleteAfter: null,
-        isActive: true,
-        suspendedAt: null,
-        ...(this.onlyVerified(targeting) ? { isVerified: true } : {}),
-      },
-      take: 10000,
-    });
+    return this.repository.findBroadcastRecipients({ roles, onlyVerified: this.onlyVerified(targeting) });
   }
 
   private targetRoles(targeting: Prisma.JsonObject | null): UserRole[] {
