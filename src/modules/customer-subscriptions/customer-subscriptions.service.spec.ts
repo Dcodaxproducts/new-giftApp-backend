@@ -42,7 +42,7 @@ function createService(overrides: Partial<{ plans: unknown[]; current: unknown; 
     $transaction: jest.fn().mockImplementation((items: Promise<unknown>[]) => Promise.all(items)),
   };
   const repository = new CustomerSubscriptionsRepository(prisma as unknown as ConstructorParameters<typeof CustomerSubscriptionsRepository>[0]);
-  return { service: new CustomerSubscriptionsService(prisma as unknown as ConstructorParameters<typeof CustomerSubscriptionsService>[0], repository), prisma, repository };
+  return { service: new CustomerSubscriptionsService(repository), prisma, repository };
 }
 
 function mockStripe(service: CustomerSubscriptionsService) {
@@ -149,9 +149,9 @@ describe('Customer Premium Subscription module', () => {
     expect(payments).toContain('handleStripeSubscriptionEvent');
     expect(service).toContain('invoice.payment_succeeded');
     expect(service).toContain('invoice.payment_failed');
-    expect(service).toContain('customerSubscriptionInvoice.upsert');
-    expect(service).toContain('payment.create');
-    expect(service).toContain('customerSubscriptionId: sub.id');
+    expect(repository).toContain('customerSubscriptionInvoice.upsert');
+    expect(repository).toContain('payment.create');
+    expect(repository).toContain('customerSubscriptionId: params.customerSubscriptionId');
   });
 
   it('adds subscription entitlement summary to auth/me', () => {
@@ -162,6 +162,16 @@ describe('Customer Premium Subscription module', () => {
 });
 
 describe('CustomerSubscriptionsService read APIs', () => {
+  it('customer-subscriptions.service.ts no longer imports PrismaService or uses this.prisma', () => {
+    const serviceSource = readFileSync(join(__dirname, 'customer-subscriptions.service.ts'), 'utf8');
+    const repositorySource = readFileSync(join(__dirname, 'customer-subscriptions.repository.ts'), 'utf8');
+    expect(serviceSource).not.toContain('PrismaService');
+    expect(serviceSource).not.toContain('this.prisma');
+    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repositorySource).toContain('createSubscriptionInvoice');
+    expect(repositorySource).toContain('createSubscriptionTransaction');
+  });
+
   it('customer can list public active plans', async () => {
     const { service, prisma } = createService();
     const result = await service.plans({ billingCycle: BillingCycle.MONTHLY });
