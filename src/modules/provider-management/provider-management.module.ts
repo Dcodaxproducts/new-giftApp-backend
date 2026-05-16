@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { AccountStatusRepository } from '../../common/repositories/account-status.repository';
 import { AccountStatusService } from '../../common/services/account-status.service';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
@@ -15,6 +16,6 @@ import { ProviderManagementService } from './provider-management.service';
 @Module({
   imports: [AuthModule, JwtModule.register({}), MailerModule],
   controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
-  providers: [ProviderManagementService, ProviderManagementRepository, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, PrismaService, AuditLogWriterService, AccountStatusService],
+  providers: [ProviderManagementService, ProviderManagementRepository, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, PrismaService, AuditLogWriterService, AccountStatusService, AccountStatusRepository],
 })
 export class ProviderManagementModule {}

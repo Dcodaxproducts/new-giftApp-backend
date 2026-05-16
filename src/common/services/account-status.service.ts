@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AccountType, User, UserRole } from '@prisma/client';
-import { PrismaService } from '../../database/prisma.service';
+import { AccountStatusRepository } from '../repositories/account-status.repository';
 import { MailerService } from '../../modules/mailer/mailer.service';
 import { AuditLogWriterService } from './audit-log.service';
 
@@ -23,7 +23,7 @@ export interface AccountStatusInput {
 @Injectable()
 export class AccountStatusService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: AccountStatusRepository,
     private readonly auditLog: AuditLogWriterService,
     private readonly mailerService: MailerService,
   ) {}
@@ -40,16 +40,13 @@ export class AccountStatusService {
     }
 
     const isActive = input.activeStatuses.includes(input.status);
-    const updated = await this.prisma.user.update({
-      where: { id: account.id },
-      data: {
-        isActive,
-        suspensionReason: null,
-        suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
-        refreshTokenHash: isActive ? account.refreshTokenHash : null,
-      },
+    const updated = await this.repository.updateAccountStatus(account.id, {
+      isActive,
+      suspensionReason: null,
+      suspensionComment: null,
+      suspendedAt: null,
+      suspendedBy: null,
+      refreshTokenHash: isActive ? account.refreshTokenHash : null,
     });
 
     await this.auditLog.write({
@@ -72,26 +69,20 @@ export class AccountStatusService {
       throw new BadRequestException('Suspension reason is required');
     }
 
-    await this.prisma.accountSuspension.create({
-      data: {
-        accountId: account.id,
-        accountType: input.accountType,
-        reason: input.reason,
-        comment: input.comment?.trim(),
-        suspendedBy: input.actorId,
-        isActive: true,
-      },
+    await this.repository.createAccountSuspension({
+      accountId: account.id,
+      accountType: input.accountType,
+      reason: input.reason,
+      comment: input.comment?.trim(),
+      suspendedBy: input.actorId,
     });
-    const updated = await this.prisma.user.update({
-      where: { id: account.id },
-      data: {
-        isActive: false,
-        suspensionReason: input.reason,
-        suspensionComment: input.comment?.trim(),
-        suspendedAt: new Date(),
-        suspendedBy: input.actorId,
-        refreshTokenHash: null,
-      },
+    const updated = await this.repository.updateAccountStatus(account.id, {
+      isActive: false,
+      suspensionReason: input.reason,
+      suspensionComment: input.comment?.trim(),
+      suspendedAt: new Date(),
+      suspendedBy: input.actorId,
+      refreshTokenHash: null,
     });
 
     await this.auditLog.write({
@@ -112,15 +103,12 @@ export class AccountStatusService {
   async unsuspend(input: Omit<AccountStatusInput, 'status' | 'reason'>) {
     const account = await this.getAccount(input.accountId, input.accountType);
     await this.unsuspendActiveRecord(account.id, input.actorId);
-    const updated = await this.prisma.user.update({
-      where: { id: account.id },
-      data: {
-        isActive: true,
-        suspensionReason: null,
-        suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
-      },
+    const updated = await this.repository.updateAccountStatus(account.id, {
+      isActive: true,
+      suspensionReason: null,
+      suspensionComment: null,
+      suspendedAt: null,
+      suspendedBy: null,
     });
     await this.auditLog.write({
       actorId: input.actorId,
@@ -139,9 +127,7 @@ export class AccountStatusService {
 
   private async getAccount(accountId: string, accountType: AccountType): Promise<User> {
     const role = this.toUserRole(accountType);
-    const account = await this.prisma.user.findFirst({
-      where: { id: accountId, role, deletedAt: null },
-    });
+    const account = await this.repository.findAccountById(accountId, role);
 
     if (!account) {
       throw new NotFoundException('Account not found');
@@ -151,10 +137,7 @@ export class AccountStatusService {
   }
 
   private async unsuspendActiveRecord(accountId: string, actorId: string): Promise<void> {
-    await this.prisma.accountSuspension.updateMany({
-      where: { accountId, isActive: true },
-      data: { isActive: false, unsuspendedBy: actorId, unsuspendedAt: new Date() },
-    });
+    await this.repository.deactivateActiveSuspensions(accountId, actorId);
   }
 
   private toUserRole(accountType: AccountType): UserRole {

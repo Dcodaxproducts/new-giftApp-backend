@@ -24,6 +24,9 @@ export interface AuditInput {
   userAgent?: string;
 }
 
+// Intentional shared-infrastructure exception: this writer is registered directly by many
+// feature modules. Keeping the single append-only Prisma write here avoids broad module
+// provider rewiring while preserving centralized audit redaction semantics.
 @Injectable()
 export class AuditLogWriterService {
   constructor(private readonly prisma: PrismaService) {}

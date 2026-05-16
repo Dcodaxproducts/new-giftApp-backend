@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { BadRequestException } from '@nestjs/common';
+import { readFileSync } from 'fs';
 import { AccountType, UserRole } from '@prisma/client';
+import { AccountStatusRepository } from '../repositories/account-status.repository';
 import { AccountStatusService } from './account-status.service';
 
 const baseUser = {
@@ -61,15 +63,25 @@ function createService() {
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const mailer = { sendAccountStatusEmail: jest.fn().mockResolvedValue(undefined) };
+  const repository = new AccountStatusRepository(prisma as unknown as ConstructorParameters<typeof AccountStatusRepository>[0]);
   const service = new AccountStatusService(
-    prisma as unknown as ConstructorParameters<typeof AccountStatusService>[0],
+    repository,
     auditLog as unknown as ConstructorParameters<typeof AccountStatusService>[1],
     mailer as unknown as ConstructorParameters<typeof AccountStatusService>[2],
   );
-  return { service, prisma, auditLog, mailer };
+  return { service, repository, prisma, auditLog, mailer };
 }
 
 describe('AccountStatusService', () => {
+  it('uses repository for account status persistence', () => {
+    const serviceSource = readFileSync('src/common/services/account-status.service.ts', 'utf8');
+    const repositorySource = readFileSync('src/common/repositories/account-status.repository.ts', 'utf8');
+    expect(serviceSource).not.toContain('PrismaService');
+    expect(serviceSource).not.toContain('this.prisma');
+    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repositorySource).toContain('createAccountSuspension');
+  });
+
   it('creates suspension history and disables account on suspend', async () => {
     const { service, prisma, auditLog } = createService();
 
