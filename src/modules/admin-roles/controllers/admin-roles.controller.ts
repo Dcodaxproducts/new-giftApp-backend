@@ -1,17 +1,17 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import {
   CreateAdminRoleDto,
   ListAdminRolesDto,
   UpdateAdminRoleDto,
   UpdateRolePermissionsDto,
-} from './dto/admin-roles.dto';
-import { AdminRolesService } from './admin-roles.service';
+} from '../dto/admin-roles.dto';
+import { AdminRolesService } from '../services/admin-roles.service';
 
 @ApiTags('02 Admin - Roles & Permissions')
 @ApiBearerAuth()

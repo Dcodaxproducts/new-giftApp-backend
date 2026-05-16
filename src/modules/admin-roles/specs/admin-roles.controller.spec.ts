@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { AdminRolesController, PermissionCatalogController } from './admin-roles.controller';
-import { AdminRolesService } from './admin-roles.service';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { AdminRolesController, PermissionCatalogController } from '../controllers/admin-roles.controller';
+import { AdminRolesService } from '../services/admin-roles.service';
 
 const superAdmin = { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN };
 

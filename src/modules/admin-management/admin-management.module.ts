@@ -3,9 +3,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { MailerModule } from '../mailer/mailer.module';
-import { AdminManagementController } from './admin-management.controller';
-import { AdminManagementRepository } from './admin-management.repository';
-import { AdminManagementService } from './admin-management.service';
+import { AdminManagementController } from './controllers/admin-management.controller';
+import { AdminManagementRepository } from './repositories/admin-management.repository';
+import { AdminManagementService } from './services/admin-management.service';
 
 @Module({
   imports: [MailerModule, DatabaseModule],

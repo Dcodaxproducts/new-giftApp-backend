@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Admin roles RBAC security', () => {
-  const source = readFileSync(join(__dirname, 'admin-roles.controller.ts'), 'utf8');
+  const source = readFileSync(join(__dirname, '../controllers/admin-roles.controller.ts'), 'utf8');
 
   it('admin roles APIs are guarded and restricted to SUPER_ADMIN', () => {
     expect(source).toContain('@UseGuards(JwtAuthGuard, RolesGuard)');

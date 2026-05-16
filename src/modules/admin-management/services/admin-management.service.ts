@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { AdminRole, Prisma, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
-import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { MailerService } from '../mailer/mailer.service';
+import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
+import { AuditLogWriterService } from '../../../common/services/audit-log.service';
+import { MailerService } from '../../mailer/mailer.service';
 import {
   AdminStatusFilter,
   CreateAdminDto,
@@ -15,8 +15,8 @@ import {
   SortOrderDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
-} from './dto/admin-management.dto';
-import { AdminManagementRepository } from './admin-management.repository';
+} from '../dto/admin-management.dto';
+import { AdminManagementRepository } from '../repositories/admin-management.repository';
 
 @Injectable()
 export class AdminManagementService {

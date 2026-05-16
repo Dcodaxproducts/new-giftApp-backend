@@ -7,8 +7,8 @@ function source(path: string): string {
 
 describe('Access guard consistency', () => {
   it('keeps Admin Roles and Staff Management SUPER_ADMIN only', () => {
-    const adminRoles = source('modules/admin-roles/admin-roles.controller.ts');
-    const adminStaff = source('modules/admin-management/admin-management.controller.ts');
+    const adminRoles = source('modules/admin-roles/controllers/admin-roles.controller.ts');
+    const adminStaff = source('modules/admin-management/controllers/admin-management.controller.ts');
 
     expect(adminRoles).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(adminRoles).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');

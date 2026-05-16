@@ -5,10 +5,10 @@ import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import {
   AdminRolesController,
   PermissionCatalogController,
-} from './admin-roles.controller';
-import { AdminRolesRepository } from './admin-roles.repository';
-import { PermissionsCatalogRepository } from './permissions-catalog.repository';
-import { AdminRolesService } from './admin-roles.service';
+} from './controllers/admin-roles.controller';
+import { AdminRolesRepository } from './repositories/admin-roles.repository';
+import { PermissionsCatalogRepository } from './repositories/permissions-catalog.repository';
+import { AdminRolesService } from './services/admin-roles.service';
 
 @Module({
   imports: [DatabaseModule],

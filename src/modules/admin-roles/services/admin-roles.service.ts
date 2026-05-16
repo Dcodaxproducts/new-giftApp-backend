@@ -1,15 +1,15 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { AdminRole, Prisma, UserRole } from '@prisma/client';
-import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { AuditLogWriterService } from '../../common/services/audit-log.service';
+import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
+import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import {
   CreateAdminRoleDto,
   ListAdminRolesDto,
   UpdateAdminRoleDto,
   UpdateRolePermissionsDto,
-} from './dto/admin-roles.dto';
-import { AdminRolesRepository } from './admin-roles.repository';
-import { PermissionsCatalogRepository } from './permissions-catalog.repository';
+} from '../dto/admin-roles.dto';
+import { AdminRolesRepository } from '../repositories/admin-roles.repository';
+import { PermissionsCatalogRepository } from '../repositories/permissions-catalog.repository';
 
 @Injectable()
 export class AdminRolesService {

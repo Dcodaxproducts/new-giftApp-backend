@@ -1,7 +1,7 @@
 import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
-import { AdminManagementService } from './admin-management.service';
+import { AdminManagementService } from '../services/admin-management.service';
 
 const superAdmin = { uid: 'super_1', role: UserRole.SUPER_ADMIN };
 const adminRole = {
@@ -60,8 +60,8 @@ function createService() {
 
 describe('AdminManagementService', () => {
   it('has local repository boundary and no longer only delegates to AuthService', () => {
-    const source = readFileSync('src/modules/admin-management/admin-management.service.ts', 'utf8');
-    const repositorySource = readFileSync('src/modules/admin-management/admin-management.repository.ts', 'utf8');
+    const source = readFileSync('src/modules/admin-management/services/admin-management.service.ts', 'utf8');
+    const repositorySource = readFileSync('src/modules/admin-management/repositories/admin-management.repository.ts', 'utf8');
     expect(source).toContain('AdminManagementRepository');
     expect(source).not.toContain('AuthService');
     expect(source).toContain('this.repository.createAdminUser');

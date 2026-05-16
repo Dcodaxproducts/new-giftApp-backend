@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
-import { AdminRolesService } from './admin-roles.service';
+import { AdminRolesService } from '../services/admin-roles.service';
 
 const superAdmin = { uid: 'super_1', role: UserRole.SUPER_ADMIN };
 const role = {
@@ -35,9 +35,9 @@ function createService() {
 
 describe('AdminRolesService', () => {
   it('has local repositories and no longer only delegates to AuthService', () => {
-    const source = readFileSync('src/modules/admin-roles/admin-roles.service.ts', 'utf8');
-    const repositorySource = readFileSync('src/modules/admin-roles/admin-roles.repository.ts', 'utf8');
-    const catalogSource = readFileSync('src/modules/admin-roles/permissions-catalog.repository.ts', 'utf8');
+    const source = readFileSync('src/modules/admin-roles/services/admin-roles.service.ts', 'utf8');
+    const repositorySource = readFileSync('src/modules/admin-roles/repositories/admin-roles.repository.ts', 'utf8');
+    const catalogSource = readFileSync('src/modules/admin-roles/repositories/permissions-catalog.repository.ts', 'utf8');
     expect(source).toContain('AdminRolesRepository');
     expect(source).toContain('PermissionsCatalogRepository');
     expect(source).not.toContain('AuthService');

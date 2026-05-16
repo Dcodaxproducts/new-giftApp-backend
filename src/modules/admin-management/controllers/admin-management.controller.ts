@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
 import {
   CreateAdminDto,
   ListAdminsDto,
@@ -12,8 +12,8 @@ import {
   ResetAdminPasswordDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
-} from './dto/admin-management.dto';
-import { AdminManagementService } from './admin-management.service';
+} from '../dto/admin-management.dto';
+import { AdminManagementService } from '../services/admin-management.service';
 
 @ApiTags('02 Admin - Staff Management')
 @ApiBearerAuth()
