@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { PromotionalOffersManagementController } from './promotional-offers-management.controller';
@@ -11,6 +12,6 @@ import { ProviderPromotionalOffersController } from './provider-promotional-offe
 @Module({
   imports: [JwtModule.register({})],
   controllers: [ProviderPromotionalOffersController, PromotionalOffersManagementController],
-  providers: [PromotionalOffersService, PromotionalOffersRepository, ProviderOffersRepository, PrismaService, AuditLogWriterService],
+  providers: [PromotionalOffersService, PromotionalOffersRepository, ProviderOffersRepository, PrismaService, AuditLogWriterRepository, AuditLogWriterService],
 })
 export class PromotionalOffersModule {}

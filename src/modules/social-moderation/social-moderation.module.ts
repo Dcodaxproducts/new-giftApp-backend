@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { SocialModerationController, SocialReportingRulesController } from './social-moderation.controller';
@@ -7,5 +8,5 @@ import { SocialModerationRepository } from './social-moderation.repository';
 import { SocialModerationService } from './social-moderation.service';
 import { SocialReportingRulesRepository } from './social-reporting-rules.repository';
 
-@Module({ imports: [JwtModule.register({})], controllers: [SocialModerationController, SocialReportingRulesController], providers: [SocialModerationService, SocialModerationRepository, SocialReportingRulesRepository, AuditLogWriterService, PrismaService] })
+@Module({ imports: [JwtModule.register({})], controllers: [SocialModerationController, SocialReportingRulesController], providers: [SocialModerationService, SocialModerationRepository, SocialReportingRulesRepository, AuditLogWriterRepository, AuditLogWriterService, PrismaService] })
 export class SocialModerationModule {}

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { MailerService } from '../mailer/mailer.service';
@@ -25,6 +26,7 @@ import { NotificationsService } from './notifications.service';
   controllers: [BroadcastsController, NotificationsController],
   providers: [
     PrismaService,
+    AuditLogWriterRepository,
     AuditLogWriterService,
     BroadcastsService,
     BroadcastNotificationsRepository,

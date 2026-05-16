@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PrismaService } from '../../database/prisma.service';
 import { AdminProviderDisputesController } from './admin-provider-disputes.controller';
@@ -23,6 +24,7 @@ import { ProviderDisputeRulingsRepository } from './provider-dispute-rulings.rep
     ProviderDisputeResolutionRepository,
     ProviderDisputeLogsRepository,
     PrismaService,
+    AuditLogWriterRepository,
     AuditLogWriterService,
   ],
   exports: [AdminProviderDisputesService],

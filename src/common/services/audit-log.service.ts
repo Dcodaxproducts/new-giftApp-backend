@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AuditLogSeverity, AuditLogStatus, Prisma } from '@prisma/client';
-import { PrismaService } from '../../database/prisma.service';
+import { AuditLogWriterRepository } from '../repositories/audit-log-writer.repository';
 
 export interface AuditInput {
   actorId: string | null;
@@ -24,41 +24,36 @@ export interface AuditInput {
   userAgent?: string;
 }
 
-// Intentional shared-infrastructure exception: this writer is registered directly by many
-// feature modules. Keeping the single append-only Prisma write here avoids broad module
-// provider rewiring while preserving centralized audit redaction semantics.
 @Injectable()
 export class AuditLogWriterService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: AuditLogWriterRepository) {}
 
   async write(input: AuditInput): Promise<void> {
     const requestPayload = this.sanitize(input.requestPayloadJson ?? input.beforeJson);
     const responsePayload = this.sanitize(input.responsePayloadJson ?? input.afterJson);
     const metadata = this.sanitize(input.metadataJson);
-    await this.prisma.adminAuditLog.create({
-      data: {
-        logReference: this.logReference(),
-        eventId: this.eventId(),
-        actorId: input.actorId,
-        actorType: input.actorType ?? null,
-        actorNameSnapshot: input.actorNameSnapshot ?? null,
-        targetId: input.targetId,
-        targetType: input.targetType,
-        action: input.action,
-        actionLabel: input.actionLabel ?? this.label(input.action),
-        module: input.module ?? this.module(input.action),
-        environment: input.environment ?? process.env.APP_ENV ?? process.env.NODE_ENV ?? 'production',
-        status: input.status ?? this.status(input.action),
-        severity: input.severity ?? this.severity(input.action),
-        beforeJson: input.beforeJson === undefined ? undefined : (this.sanitize(input.beforeJson) as Prisma.InputJsonValue),
-        afterJson: input.afterJson === undefined ? undefined : (this.sanitize(input.afterJson) as Prisma.InputJsonValue),
-        requestPayloadJson: requestPayload === undefined ? undefined : (requestPayload as Prisma.InputJsonValue),
-        responsePayloadJson: responsePayload === undefined ? undefined : (responsePayload as Prisma.InputJsonValue),
-        metadataJson: metadata === undefined ? undefined : (metadata as Prisma.InputJsonValue),
-        durationMs: input.durationMs,
-        ipAddress: input.ipAddress,
-        userAgent: input.userAgent,
-      },
+    await this.repository.createAdminAuditLog({
+      logReference: this.logReference(),
+      eventId: this.eventId(),
+      actorId: input.actorId,
+      actorType: input.actorType ?? null,
+      actorNameSnapshot: input.actorNameSnapshot ?? null,
+      targetId: input.targetId,
+      targetType: input.targetType,
+      action: input.action,
+      actionLabel: input.actionLabel ?? this.label(input.action),
+      module: input.module ?? this.module(input.action),
+      environment: input.environment ?? process.env.APP_ENV ?? process.env.NODE_ENV ?? 'production',
+      status: input.status ?? this.status(input.action),
+      severity: input.severity ?? this.severity(input.action),
+      beforeJson: input.beforeJson === undefined ? undefined : (this.sanitize(input.beforeJson) as Prisma.InputJsonValue),
+      afterJson: input.afterJson === undefined ? undefined : (this.sanitize(input.afterJson) as Prisma.InputJsonValue),
+      requestPayloadJson: requestPayload === undefined ? undefined : (requestPayload as Prisma.InputJsonValue),
+      responsePayloadJson: responsePayload === undefined ? undefined : (responsePayload as Prisma.InputJsonValue),
+      metadataJson: metadata === undefined ? undefined : (metadata as Prisma.InputJsonValue),
+      durationMs: input.durationMs,
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
     });
   }
 
