@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { JwtAuthModule } from './common/auth/jwt-auth.module';
 import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
 import { PublicController } from './public.controller';
@@ -45,6 +46,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    JwtAuthModule,
     AuthModule,
     AdminDisputesModule,
     AdminProviderDisputesModule,
