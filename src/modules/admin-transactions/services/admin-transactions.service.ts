@@ -3,7 +3,7 @@ import { NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, Pay
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { AdminTransactionsRepository } from '../repositories/admin-transactions.repository';
-import { RefundPolicySettingsService } from '../../refund-policy-settings/refund-policy-settings.service';
+import { RefundPolicySettingsService } from '../../refund-policy-settings/services/refund-policy-settings.service';
 import { AdminGatewayProvider, AdminNotificationChannel, AdminRefundType, AdminTransactionExportFormat, AdminTransactionRange, AdminTransactionSortBy, AdminTransactionSortOrder, AdminTransactionStatus, AdminTransactionStatsDto, AdminTransactionType, ExportAdminTransactionsDto, ListAdminTransactionsDto, NotifyTransactionUserDto, OpenTransactionDisputeDto, RefundAdminTransactionDto } from '../dto/admin-transactions.dto';
 
 type PaymentRecord = Prisma.PaymentGetPayload<{ include: ReturnType<AdminTransactionsService['paymentInclude']> }>;

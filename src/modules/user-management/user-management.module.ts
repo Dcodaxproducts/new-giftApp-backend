@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
 import { MailerModule } from '../mailer/mailer.module';
-import { UserManagementController } from './user-management.controller';
-import { UserManagementRepository } from './user-management.repository';
-import { UserManagementService } from './user-management.service';
+import { UserManagementController } from './controllers/user-management.controller';
+import { UserManagementRepository } from './repositories/user-management.repository';
+import { UserManagementService } from './services/user-management.service';
 
 @Module({
   imports: [MailerModule, DatabaseModule],

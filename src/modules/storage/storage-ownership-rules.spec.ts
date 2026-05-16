@@ -4,7 +4,7 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { PrismaService } from '../../database/prisma.service';
 import { StorageRepository } from './storage.repository';
 import { UploadsRepository } from './uploads.repository';
-import { MediaUploadPolicyService } from '../media-upload-policy/media-upload-policy.service';
+import { MediaUploadPolicyService } from '../media-upload-policy/services/media-upload-policy.service';
 import { UploadFolder, CreatePresignedUploadDto } from './dto/create-presigned-upload.dto';
 import { StorageService } from './storage.service';
 

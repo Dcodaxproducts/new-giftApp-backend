@@ -35,14 +35,14 @@ describe('Swagger professional tag grouping', () => {
   it('old unnumbered tag names are not used by controllers', () => {
     const root = join(__dirname, 'modules');
     const files = [
-      'auth/auth.controller.ts',
-      'user-management/user-management.controller.ts',
+      'auth/controllers/auth.controller.ts',
+      'user-management/controllers/user-management.controller.ts',
       'provider-management/controllers/provider-management.controller.ts',
       'provider-management/controllers/provider-business-categories.controller.ts',
-      'provider-business-info/provider-business-info.controller.ts',
+      'provider-business-info/controllers/provider-business-info.controller.ts',
       'provider-orders/controllers/provider-orders.controller.ts',
-      'provider-refund-requests/provider-refund-requests.controller.ts',
-      'customer-wallet/customer-wallet.controller.ts',
+      'provider-refund-requests/controllers/provider-refund-requests.controller.ts',
+      'customer-wallet/controllers/customer-wallet.controller.ts',
     ];
     const source = files.map((file) => readFileSync(join(root, file), 'utf8')).join('\n');
     expect(source).not.toContain("@ApiTags('Auth')");

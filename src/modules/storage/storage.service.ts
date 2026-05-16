@@ -8,7 +8,7 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { StorageRepository } from './storage.repository';
 import { UploadsRepository } from './uploads.repository';
-import { MediaUploadPolicyService } from '../media-upload-policy/media-upload-policy.service';
+import { MediaUploadPolicyService } from '../media-upload-policy/services/media-upload-policy.service';
 import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto, UploadFolder } from './dto/create-presigned-upload.dto';
 
 type UploadOwnership = {

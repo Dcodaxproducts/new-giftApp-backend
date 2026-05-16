@@ -17,9 +17,9 @@ describe('Access guard consistency', () => {
   });
 
   it('keeps permanent delete and audit logs SUPER_ADMIN only', () => {
-    const users = source('modules/user-management/user-management.controller.ts');
+    const users = source('modules/user-management/controllers/user-management.controller.ts');
     const providers = source('modules/provider-management/controllers/provider-management.controller.ts');
-    const auditLogs = source('modules/audit-logs/audit-logs.controller.ts');
+    const auditLogs = source('modules/audit-logs/controllers/audit-logs.controller.ts');
 
     expect(users).toContain("@Delete(':id')\n  @Roles(UserRole.SUPER_ADMIN)");
     expect(providers).toContain("@Delete(':id')\n  @Roles(UserRole.SUPER_ADMIN)");
@@ -29,8 +29,8 @@ describe('Access guard consistency', () => {
 
   it('documents and enforces provider-only app controllers', () => {
     for (const file of [
-      'modules/provider-inventory/provider-inventory.controller.ts',
-      'modules/promotional-offers/provider-promotional-offers.controller.ts',
+      'modules/provider-inventory/controllers/provider-inventory.controller.ts',
+      'modules/promotional-offers/controllers/provider-promotional-offers.controller.ts',
       'modules/provider-orders/controllers/provider-orders.controller.ts',
     ]) {
       const controller = source(file);
@@ -42,11 +42,11 @@ describe('Access guard consistency', () => {
 
   it('documents and enforces customer-only money/payment/referral controllers', () => {
     for (const file of [
-      'modules/customer-referrals/customer-referrals.controller.ts',
-      'modules/customer-wallet/customer-wallet.controller.ts',
-      'modules/customer-recurring-payments/customer-recurring-payments.controller.ts',
-      'modules/customer-transactions/customer-transactions.controller.ts',
-      'modules/payments/payments.controller.ts',
+      'modules/customer-referrals/controllers/customer-referrals.controller.ts',
+      'modules/customer-wallet/controllers/customer-wallet.controller.ts',
+      'modules/customer-recurring-payments/controllers/customer-recurring-payments.controller.ts',
+      'modules/customer-transactions/controllers/customer-transactions.controller.ts',
+      'modules/payments/controllers/payments.controller.ts',
     ]) {
       const controller = source(file);
       expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
@@ -56,8 +56,8 @@ describe('Access guard consistency', () => {
   });
 
   it('keeps super-admin-only settings mutations and audit logs aligned with docs', () => {
-    const referralSettings = source('modules/referral-settings/referral-settings.controller.ts');
-    const mediaPolicy = source('modules/media-upload-policy/media-upload-policy.controller.ts');
+    const referralSettings = source('modules/referral-settings/controllers/referral-settings.controller.ts');
+    const mediaPolicy = source('modules/media-upload-policy/controllers/media-upload-policy.controller.ts');
 
     expect(referralSettings).toContain("@Patch()\n  @Roles(UserRole.SUPER_ADMIN)");
     expect(referralSettings).toContain("@Post('activate')\n  @Roles(UserRole.SUPER_ADMIN)");
@@ -69,7 +69,7 @@ describe('Access guard consistency', () => {
 
   it('uses requested permission names for admin user, provider, gift, moderation, broadcast and plan APIs', () => {
     const joined = [
-      source('modules/user-management/user-management.controller.ts'),
+      source('modules/user-management/controllers/user-management.controller.ts'),
       source('modules/provider-management/controllers/provider-management.controller.ts'),
       source('modules/gift-management/controllers/gift-categories.controller.ts'),
       source('modules/gift-management/controllers/gifts.controller.ts'),

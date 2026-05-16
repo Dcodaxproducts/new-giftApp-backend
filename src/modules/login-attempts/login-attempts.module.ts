@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { LoginAttemptsController } from './login-attempts.controller';
-import { LoginAttemptsRepository } from './login-attempts.repository';
-import { LoginAttemptsService } from './login-attempts.service';
+import { LoginAttemptsController } from './controllers/login-attempts.controller';
+import { LoginAttemptsRepository } from './repositories/login-attempts.repository';
+import { LoginAttemptsService } from './services/login-attempts.service';
 
 @Module({
   imports: [DatabaseModule],

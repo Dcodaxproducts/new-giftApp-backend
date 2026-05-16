@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { CustomerEventsController } from './customer-events.controller';
-import { CustomerEventsRepository } from './customer-events.repository';
-import { CustomerEventsService } from './customer-events.service';
+import { CustomerEventsController } from './controllers/customer-events.controller';
+import { CustomerEventsRepository } from './repositories/customer-events.repository';
+import { CustomerEventsService } from './services/customer-events.service';
 
 @Module({
   imports: [DatabaseModule],
