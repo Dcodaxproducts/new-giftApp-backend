@@ -81,6 +81,15 @@ export class RegisterProviderDto extends RegisterUserDto {
   autoAcceptOrders?: boolean;
 }
 
+
+export class GuestSessionDto {
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  capabilities?: string[];
+}
+
 export class LoginDto {
   @ApiProperty()
   @IsEmail()

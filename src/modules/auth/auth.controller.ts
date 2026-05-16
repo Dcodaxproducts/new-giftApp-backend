@@ -4,10 +4,10 @@ import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
-import { GuestSessionDto } from './dto/admin-auth.dto';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
+  GuestSessionDto,
   LoginDto,
   RefreshDto,
   RegisterProviderDto,

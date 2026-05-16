@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuditLogStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogsRepository } from './audit-logs.repository';
-import { AuditLogSortBy, AuditLogStatsDto, AuditLogStatusFilter, AuditLogUsersDto, ListAuditLogsDto, SortOrder } from '../auth/dto/audit-logs.dto';
+import { AuditLogSortBy, AuditLogStatsDto, AuditLogStatusFilter, AuditLogUsersDto, ListAuditLogsDto, SortOrder } from './dto/audit-logs.dto';
 
 @Injectable()
 export class AuditLogsService {

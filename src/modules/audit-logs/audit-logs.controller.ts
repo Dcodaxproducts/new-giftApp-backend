@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../common/decorators/current-us
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { AuditLogStatsDto, AuditLogUsersDto, ListAuditLogsDto } from '../auth/dto/audit-logs.dto';
+import { AuditLogStatsDto, AuditLogUsersDto, ListAuditLogsDto } from './dto/audit-logs.dto';
 import { AuditLogsService } from './audit-logs.service';
 
 @ApiTags('02 Admin - System Logs & Audit Trail')

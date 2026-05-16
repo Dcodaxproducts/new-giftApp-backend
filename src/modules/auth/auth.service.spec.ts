@@ -147,7 +147,7 @@ describe('reset password email template', () => {
 });
 
 describe('AuthService bounded-context boundary', () => {
-  it('does not expose legacy admin staff or RBAC methods', () => {
+  it('does not expose legacy admin staff, provider/user management, audit, or RBAC methods', () => {
     const source = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
 
     expect(source).not.toContain('async createAdmin(');
@@ -159,6 +159,19 @@ describe('AuthService bounded-context boundary', () => {
     expect(source).not.toContain('async createAdminRole(');
     expect(source).not.toContain('async updateRolePermissions(');
     expect(source).not.toContain('permissionCatalog()');
+    expect(source).not.toContain('async listAuditLogs(');
+    expect(source).not.toContain('async approveProvider(');
+    expect(source).not.toContain('async rejectProvider(');
+    expect(source).not.toContain('async updateUserActiveStatus(');
+  });
+
+  it('auth DTO folder contains only auth-owned DTOs', () => {
+    const authDto = readFileSync('src/modules/auth/dto/auth.dto.ts', 'utf8');
+
+    expect(authDto).toContain('export class GuestSessionDto');
+    expect(authDto).not.toContain('export class CreateAdminDto');
+    expect(authDto).not.toContain('export class RejectProviderDto');
+    expect(authDto).not.toContain('export class UpdateUserActiveStatusDto');
   });
 });
 

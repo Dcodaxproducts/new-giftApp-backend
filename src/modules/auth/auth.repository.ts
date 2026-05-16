@@ -1,4 +1,4 @@
-import { CustomerSubscriptionStatus, Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { CustomerSubscriptionStatus, Prisma, UserRole } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -75,29 +75,6 @@ export class AuthRepository {
 
   cancelDeletion(userId: string) {
     return this.prisma.user.update({ where: { id: userId }, data: { isActive: true, deletedAt: null, deleteAfter: null } });
-  }
-
-  findAuditLogsAndCount(params: { where: Prisma.AdminAuditLogWhereInput; skip: number; take: number }) {
-    return this.prisma.$transaction([
-      this.prisma.adminAuditLog.findMany({ where: params.where, include: { actor: { select: { id: true, email: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
-      this.prisma.adminAuditLog.count({ where: params.where }),
-    ]);
-  }
-
-  findAuditTargetsByIds(targetIds: string[]) {
-    return this.prisma.user.findMany({ where: { id: { in: targetIds } }, select: { id: true, email: true, firstName: true, lastName: true } });
-  }
-
-  findProviderById(providerId: string) {
-    return this.prisma.user.findUnique({ where: { id: providerId } });
-  }
-
-  updateProviderApproval(providerId: string, data: { isApproved: boolean; isActive?: boolean; providerApprovalStatus: ProviderApprovalStatus }) {
-    return this.prisma.user.update({ where: { id: providerId }, data });
-  }
-
-  updateUserActiveStatus(userId: string, data: { isActive: boolean; refreshTokenHash: string | null }) {
-    return this.prisma.user.update({ where: { id: userId }, data });
   }
 
   findCustomerSubscriptionSummary(userId: string) {

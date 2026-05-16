@@ -28,16 +28,11 @@ import { AuthSessionsRepository } from './auth-sessions.repository';
 import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
 import { MailerService } from '../mailer/mailer.service';
 import { CustomerReferralsService } from '../customer-referrals/customer-referrals.service';
-import {
-  GuestSessionDto,
-  RejectProviderDto,
-  UpdateUserActiveStatusDto,
-} from './dto/admin-auth.dto';
-import { ListAuditLogsDto } from './dto/audit-logs.dto';
 import { SUPER_ADMIN_PERMISSIONS } from '../admin-roles/constants/permission-catalog';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
+  GuestSessionDto,
   LoginDto,
   RefreshDto,
   RegisterProviderDto,
@@ -269,87 +264,6 @@ export class AuthService implements OnModuleInit {
         ...tokens,
       },
       message: 'Login successful',
-    };
-  }
-
-  async listAuditLogs(_user: AuthUserContext, query: ListAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const where: Prisma.AdminAuditLogWhereInput = {
-      actorId: query.actorId,
-      targetId: query.targetId,
-      action: query.action,
-    };
-    const [items, total] = await this.authRepository.findAuditLogsAndCount({ where, skip: (page - 1) * limit, take: limit });
-    const targetIds = [...new Set(items.map((item) => item.targetId).filter((id): id is string => id !== null))];
-    const targets = targetIds.length > 0
-      ? await this.authRepository.findAuditTargetsByIds(targetIds)
-      : [];
-    const targetById = new Map(targets.map((target) => [target.id, target]));
-
-    return {
-      data: items.map((item) => ({ ...item, target: item.targetId ? (targetById.get(item.targetId) ?? null) : null })),
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-      message: 'Audit logs fetched successfully',
-    };
-  }
-
-  async approveProvider(_user: AuthUserContext, providerId: string) {
-    const provider = await this.getProvider(providerId);
-    const updated = await this.authRepository.updateProviderApproval(provider.id, {
-      isApproved: true,
-      isActive: true,
-      providerApprovalStatus: ProviderApprovalStatus.APPROVED,
-    });
-
-    return {
-      data: await this.toAuthUser(updated),
-      message: 'Provider approved successfully',
-    };
-  }
-
-  async rejectProvider(
-    _user: AuthUserContext,
-    providerId: string,
-    dto: RejectProviderDto,
-  ) {
-    const provider = await this.getProvider(providerId);
-    const updated = await this.authRepository.updateProviderApproval(provider.id, {
-      isApproved: false,
-      providerApprovalStatus: ProviderApprovalStatus.REJECTED,
-    });
-
-    return {
-      data: await this.toAuthUser(updated),
-      message: dto.reason
-        ? `Provider rejected successfully: ${dto.reason}`
-        : 'Provider rejected successfully',
-    };
-  }
-
-  async updateUserActiveStatus(
-    user: AuthUserContext,
-    targetUserId: string,
-    dto: UpdateUserActiveStatusDto,
-  ) {
-    const target = await this.authRepository.findUserById(targetUserId);
-
-    if (!target || target.deletedAt) {
-      throw new NotFoundException('User not found');
-    }
-
-    this.assertCanToggleActiveStatus(user, target);
-
-    const updated = await this.authRepository.updateUserActiveStatus(target.id, {
-      isActive: dto.isActive,
-      refreshTokenHash: dto.isActive ? target.refreshTokenHash : null,
-    });
-
-    return {
-      data: await this.toAuthUser(updated),
-      message: dto.isActive
-        ? 'User account activated successfully'
-        : 'User account deactivated successfully',
     };
   }
 
@@ -627,17 +541,6 @@ export class AuthService implements OnModuleInit {
       });
   }
 
-  private async getProvider(providerId: string): Promise<User> {
-    const provider = await this.authRepository.findProviderById(providerId);
-
-    if (!provider || provider.deletedAt || provider.role !== UserRole.PROVIDER) {
-      throw new NotFoundException('Provider not found');
-    }
-
-    return provider;
-  }
-
-
   private async getActiveUser(userId: string): Promise<User> {
     const user = await this.authRepository.findActiveUserById(userId);
 
@@ -646,29 +549,6 @@ export class AuthService implements OnModuleInit {
     }
 
     return user;
-  }
-
-  private assertCanToggleActiveStatus(user: AuthUserContext, target: User): void {
-    if (target.role === UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('Super Admin active status cannot be changed');
-    }
-
-    if (user.uid === target.id) {
-      throw new ForbiddenException('You cannot change your own active status');
-    }
-
-    if (user.role === UserRole.SUPER_ADMIN) {
-      return;
-    }
-
-    if (
-      user.role === UserRole.ADMIN &&
-      (target.role === UserRole.REGISTERED_USER || target.role === UserRole.PROVIDER)
-    ) {
-      return;
-    }
-
-    throw new ForbiddenException('Your role cannot change this account status');
   }
 
   private async issueTokens(user: User, existingSessionId?: string, ipAddress?: string, userAgent?: string) {

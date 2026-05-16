@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { AuditLogSeverity, AuditLogStatus, LoginAttemptStatus, UserRole } from '@prisma/client';
-import { AuditLogStatusFilter } from '../auth/dto/audit-logs.dto';
+import { AuditLogStatusFilter } from './dto/audit-logs.dto';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AuditLogsRepository } from './audit-logs.repository';
