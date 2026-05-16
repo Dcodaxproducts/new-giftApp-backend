@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
 import { AdminProviderDisputesController } from './controllers/admin-provider-disputes.controller';
 import { AdminProviderDisputesRepository } from './repositories/admin-provider-disputes.repository';
 import { AdminProviderDisputesService } from './services/admin-provider-disputes.service';
@@ -13,7 +13,7 @@ import { ProviderDisputeResolutionRepository } from './repositories/provider-dis
 import { ProviderDisputeRulingsRepository } from './repositories/provider-dispute-rulings.repository';
 
 @Module({
-  imports: [JwtModule.register({})],
+  imports: [JwtModule.register({}), DatabaseModule],
   controllers: [AdminProviderDisputesController],
   providers: [
     AdminProviderDisputesService,
@@ -23,7 +23,6 @@ import { ProviderDisputeRulingsRepository } from './repositories/provider-disput
     ProviderDisputeFinancialRepository,
     ProviderDisputeResolutionRepository,
     ProviderDisputeLogsRepository,
-    PrismaService,
     AuditLogWriterRepository,
     AuditLogWriterService,
   ],

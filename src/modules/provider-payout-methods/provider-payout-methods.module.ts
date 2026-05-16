@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from '../../database/prisma.service';
 import { ProviderPayoutMethodsController } from './provider-payout-methods.controller';
 import { ProviderPayoutMethodsRepository } from './provider-payout-methods.repository';
 import { ProviderPayoutMethodsService } from './provider-payout-methods.service';
 
-@Module({ imports: [JwtModule.register({})], controllers: [ProviderPayoutMethodsController], providers: [ProviderPayoutMethodsService, ProviderPayoutMethodsRepository, PrismaService] })
+@Module({ imports: [JwtModule.register({}), DatabaseModule], controllers: [ProviderPayoutMethodsController], providers: [ProviderPayoutMethodsService, ProviderPayoutMethodsRepository] })
 export class ProviderPayoutMethodsModule {}

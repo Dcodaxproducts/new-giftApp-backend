@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from '../../database/prisma.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { LoginAttemptsModule } from '../login-attempts/login-attempts.module';
 import { MailerModule } from '../mailer/mailer.module';
@@ -16,9 +16,9 @@ import { AuthSessionsRepository } from './auth-sessions.repository';
 import { PermissionsCatalogRepository } from './permissions-catalog.repository';
 
 @Module({
-  imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule, CustomerReferralsModule],
+  imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule, CustomerReferralsModule, DatabaseModule],
   controllers: [AuthController],
-  providers: [AuthService, AdminStaffRepository, AdminRolesRepository, PermissionsCatalogRepository, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, JwtAuthRepository, PrismaService, JwtAuthGuard],
+  providers: [AuthService, AdminStaffRepository, AdminRolesRepository, PermissionsCatalogRepository, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, JwtAuthRepository, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

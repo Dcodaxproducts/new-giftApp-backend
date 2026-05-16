@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { PrismaService } from '../../database/prisma.service';
 import { ReferralSettingsController } from './referral-settings.controller';
 import { ReferralSettingsRepository } from './referral-settings.repository';
 import { ReferralSettingsService } from './referral-settings.service';
 
 @Module({
-  imports: [JwtModule.register({})],
+  imports: [JwtModule.register({}), DatabaseModule],
   controllers: [ReferralSettingsController],
-  providers: [ReferralSettingsService, ReferralSettingsRepository, AuditLogWriterRepository, AuditLogWriterService, PrismaService],
+  providers: [ReferralSettingsService, ReferralSettingsRepository, AuditLogWriterRepository, AuditLogWriterService],
   exports: [ReferralSettingsService],
 })
 export class ReferralSettingsModule {}

@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from '../../database/prisma.service';
 import { LoginAttemptsController } from './login-attempts.controller';
 import { LoginAttemptsRepository } from './login-attempts.repository';
 import { LoginAttemptsService } from './login-attempts.service';
 
 @Module({
-  imports: [JwtModule.register({})],
+  imports: [JwtModule.register({}), DatabaseModule],
   controllers: [LoginAttemptsController],
-  providers: [LoginAttemptsService, LoginAttemptsRepository, PrismaService],
+  providers: [LoginAttemptsService, LoginAttemptsRepository],
   exports: [LoginAttemptsService],
 })
 export class LoginAttemptsModule {}
