@@ -6,6 +6,9 @@ describe('Customer Provider Interaction module', () => {
   const controller = readFileSync(join(__dirname, 'customer-provider-interactions.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, 'customer-provider-interactions.module.ts'), 'utf8');
   const customerReviewsRepository = readFileSync(join(__dirname, 'customer-reviews.repository.ts'), 'utf8');
+  const customerChatsRepository = readFileSync(join(__dirname, 'customer-chats.repository.ts'), 'utf8');
+  const customerProviderReportsRepository = readFileSync(join(__dirname, 'customer-provider-reports.repository.ts'), 'utf8');
+  const customerProviderInteractionsRepository = readFileSync(join(__dirname, 'customer-provider-interactions.repository.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, 'dto/customer-provider-interactions.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const storageDto = readFileSync(join(__dirname, '../storage/dto/create-presigned-upload.dto.ts'), 'utf8');
@@ -16,6 +19,9 @@ describe('Customer Provider Interaction module', () => {
   it('registers customer provider interaction module and Swagger groups', () => {
     expect(appModule).toContain('CustomerProviderInteractionsModule');
     expect(moduleFile).toContain('CustomerProviderInteractionsController');
+    expect(moduleFile).toContain('CustomerChatsRepository');
+    expect(moduleFile).toContain('CustomerProviderReportsRepository');
+    expect(moduleFile).toContain('CustomerProviderInteractionsRepository');
     expect(controller).toContain("@ApiTags('05 Customer - Provider Chat')");
     expect(controller).toContain("@ApiTags('05 Customer - Reviews')");
     expect(controller).toContain("@ApiTags('05 Customer - Provider Reports')");
@@ -44,18 +50,18 @@ describe('Customer Provider Interaction module', () => {
     expect(service).toContain('getOwnedOrder(user.uid, orderId)');
     expect(service).toContain('providerOrderId: providerOrder.id');
     expect(service).toContain('getOwnedThread(user.uid, threadId)');
-    expect(service).toContain('senderType: ChatSenderType.CUSTOMER');
-    expect(service).toContain('isReadByCustomer: true');
-    expect(service).toContain('isReadByProvider: false');
-    expect(service).toContain('CHAT_MESSAGE');
+    expect(customerChatsRepository).toContain('senderType: ChatSenderType.CUSTOMER');
+    expect(customerChatsRepository).toContain('isReadByCustomer: true');
+    expect(customerChatsRepository).toContain('isReadByProvider: false');
+    expect(customerChatsRepository).toContain('CHAT_MESSAGE');
   });
 
   it('validates chat message payloads and marks customer-owned chats read', () => {
     expect(dto).toContain('ChatMessageType');
     expect(service).toContain('body is required for TEXT messages');
     expect(service).toContain('attachmentUrls are required for attachment messages');
-    expect(service).toContain('senderType: ChatSenderType.PROVIDER');
-    expect(service).toContain('isReadByCustomer: true');
+    expect(customerChatsRepository).toContain('senderType: ChatSenderType.PROVIDER');
+    expect(customerChatsRepository).toContain('isReadByCustomer: true');
   });
 
   it('exposes customer review CRUD routes and blocks duplicate provider order reviews', () => {
@@ -84,10 +90,18 @@ describe('Customer Provider Interaction module', () => {
   });
 
   it('creates customer/admin notifications for provider reports and provider notifications for chat/reviews', () => {
-    expect(service).toContain('Provider report submitted');
-    expect(service).toContain('PROVIDER_REPORT_ADMIN');
-    expect(service).toContain('New customer message');
+    expect(customerProviderReportsRepository).toContain('Provider report submitted');
+    expect(customerProviderReportsRepository).toContain('PROVIDER_REPORT_ADMIN');
+    expect(customerChatsRepository).toContain('New customer message');
     expect(service).toContain('New provider review');
+  });
+
+  it('customer-provider-interactions.service.ts no longer imports PrismaService or uses this.prisma', () => {
+    expect(service).not.toContain('PrismaService');
+    expect(service).not.toContain('this.prisma');
+    expect(customerChatsRepository).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(customerProviderReportsRepository).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(customerProviderInteractionsRepository).toContain('constructor(private readonly prisma: PrismaService)');
   });
 
   it('adds provider report evidence upload folder for registered users', () => {
