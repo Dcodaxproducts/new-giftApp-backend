@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { CouponsController } from './controllers/coupons.controller';
@@ -12,7 +11,7 @@ import { SubscriptionPlansRepository } from './repositories/subscription-plans.r
 import { SubscriptionPlansService } from './services/subscription-plans.service';
 
 @Module({
-  imports: [JwtModule.register({}), DatabaseModule],
+  imports: [DatabaseModule],
   controllers: [SubscriptionPlansController, PlanFeaturesController, CouponsController],
   providers: [SubscriptionPlansService, SubscriptionPlansRepository, PlanFeaturesRepository, CouponsRepository, AuditLogWriterRepository, AuditLogWriterService],
 })

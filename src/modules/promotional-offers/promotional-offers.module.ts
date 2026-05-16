@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { PromotionalOffersManagementController } from './promotional-offers-management.controller';
@@ -10,7 +9,7 @@ import { ProviderOffersRepository } from './provider-offers.repository';
 import { ProviderPromotionalOffersController } from './provider-promotional-offers.controller';
 
 @Module({
-  imports: [JwtModule.register({}), DatabaseModule],
+  imports: [DatabaseModule],
   controllers: [ProviderPromotionalOffersController, PromotionalOffersManagementController],
   providers: [PromotionalOffersService, PromotionalOffersRepository, ProviderOffersRepository, AuditLogWriterRepository, AuditLogWriterService],
 })

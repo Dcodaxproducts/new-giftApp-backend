@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { JwtModule } from '@nestjs/jwt';
 import { CustomerReferralsModule } from '../customer-referrals/customer-referrals.module';
 import { CustomerWalletModule } from '../customer-wallet/customer-wallet.module';
 import { CustomerSubscriptionsModule } from '../customer-subscriptions/customer-subscriptions.module';
@@ -11,7 +10,7 @@ import { PaymentsService } from './payments.service';
 import { StripeWebhookEventsRepository } from './stripe-webhook-events.repository';
 
 @Module({
-  imports: [JwtModule.register({}), CustomerReferralsModule, CustomerWalletModule, CustomerSubscriptionsModule, DatabaseModule],
+  imports: [CustomerReferralsModule, CustomerWalletModule, CustomerSubscriptionsModule, DatabaseModule],
   controllers: [CustomerPaymentsController, CustomerPaymentMethodsController, StripeWebhookController, CustomerMoneyGiftsController],
   providers: [PaymentsService, PaymentsRepository, MoneyGiftsRepository, StripeWebhookEventsRepository],
   exports: [PaymentsService],

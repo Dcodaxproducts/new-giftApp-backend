@@ -17,7 +17,8 @@ describe('Provider Chat and Reviews module', () => {
 
   it('registers provider interaction module and Swagger groups', () => {
     expect(appModule).toContain('ProviderInteractionsModule');
-    expect(moduleFile).toContain('JwtModule.register({})');
+    expect(moduleFile).toContain('DatabaseModule');
+    expect(moduleFile).not.toContain('JwtModule.register({})');
     expect(controller).toContain("@ApiTags('03 Provider - Buyer Chat')");
     expect(controller).toContain("@ApiTags('03 Provider - Reviews')");
     expect(main).toContain("'03 Provider - Buyer Chat'");

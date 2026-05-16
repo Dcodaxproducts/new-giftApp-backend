@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { JwtModule } from '@nestjs/jwt';
 import { AccountStatusRepository } from '../../common/repositories/account-status.repository';
 import { AccountStatusService } from '../../common/services/account-status.service';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { AuthModule } from '../auth/auth.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { ProviderBusinessCategoriesController } from './controllers/provider-business-categories.controller';
 import { ProviderBusinessCategoriesRepository } from './repositories/provider-business-categories.repository';
@@ -15,7 +13,7 @@ import { ProviderManagementRepository } from './repositories/provider-management
 import { ProviderManagementService } from './services/provider-management.service';
 
 @Module({
-  imports: [AuthModule, JwtModule.register({}), MailerModule, DatabaseModule],
+  imports: [MailerModule, DatabaseModule],
   controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
   providers: [ProviderManagementService, ProviderManagementRepository, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, AuditLogWriterRepository, AuditLogWriterService, AccountStatusService, AccountStatusRepository],
 })

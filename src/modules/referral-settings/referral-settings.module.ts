@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { ReferralSettingsController } from './referral-settings.controller';
@@ -8,7 +7,7 @@ import { ReferralSettingsRepository } from './referral-settings.repository';
 import { ReferralSettingsService } from './referral-settings.service';
 
 @Module({
-  imports: [JwtModule.register({}), DatabaseModule],
+  imports: [DatabaseModule],
   controllers: [ReferralSettingsController],
   providers: [ReferralSettingsService, ReferralSettingsRepository, AuditLogWriterRepository, AuditLogWriterService],
   exports: [ReferralSettingsService],

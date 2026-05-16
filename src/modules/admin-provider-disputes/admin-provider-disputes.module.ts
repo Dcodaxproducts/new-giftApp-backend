@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { AdminProviderDisputesController } from './controllers/admin-provider-disputes.controller';
@@ -13,7 +12,7 @@ import { ProviderDisputeResolutionRepository } from './repositories/provider-dis
 import { ProviderDisputeRulingsRepository } from './repositories/provider-dispute-rulings.repository';
 
 @Module({
-  imports: [JwtModule.register({}), DatabaseModule],
+  imports: [DatabaseModule],
   controllers: [AdminProviderDisputesController],
   providers: [
     AdminProviderDisputesService,
