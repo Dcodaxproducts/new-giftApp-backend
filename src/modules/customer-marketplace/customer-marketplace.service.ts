@@ -16,7 +16,6 @@ import {
   UserRole,
   ProviderApprovalStatus,
 } from '@prisma/client';
-import { PrismaService } from '../../database/prisma.service';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { CustomerCartRepository } from './customer-cart.repository';
 import { CUSTOMER_ORDER_INCLUDE, CustomerOrdersRepository } from './customer-orders.repository';
@@ -56,7 +55,6 @@ type OrderView = Prisma.OrderGetPayload<{ include: typeof CUSTOMER_ORDER_INCLUDE
 @Injectable()
 export class CustomerMarketplaceService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly customerCartRepository: CustomerCartRepository,
     private readonly customerOrdersRepository: CustomerOrdersRepository,
     private readonly customerMarketplaceRepository: CustomerMarketplaceRepository,
@@ -99,34 +97,30 @@ export class CustomerMarketplaceService {
   }
 
   async wishlist(user: AuthUserContext) {
-    const rows = await this.prisma.customerWishlist.findMany({ where: { userId: user.uid }, orderBy: { createdAt: 'desc' } });
-    const gifts = await this.prisma.gift.findMany({ where: { id: { in: rows.map((row) => row.giftId) }, ...this.availableGiftWhere() }, include: this.giftInclude() });
+    const rows = await this.customerMarketplaceRepository.findCustomerWishlistRows(user.uid);
+    const gifts = await this.customerMarketplaceRepository.findWishlistGifts({ giftIds: rows.map((row) => row.giftId), where: this.availableGiftWhere(), include: this.giftInclude() });
     const wishlist = new Set(rows.map((row) => row.giftId));
     return { data: gifts.map((gift) => this.toGiftListItem(gift, wishlist)), message: 'Wishlist fetched successfully' };
   }
 
   async addWishlist(user: AuthUserContext, giftId: string) {
     await this.getAvailableGift(giftId);
-    await this.prisma.customerWishlist.upsert({ where: { userId_giftId: { userId: user.uid, giftId } }, create: { userId: user.uid, giftId }, update: {} });
+    await this.customerMarketplaceRepository.addCustomerWishlistGift(user.uid, giftId);
     return { data: { giftId }, message: 'Gift added to wishlist successfully' };
   }
 
   async removeWishlist(user: AuthUserContext, giftId: string) {
-    await this.prisma.customerWishlist.deleteMany({ where: { userId: user.uid, giftId } });
+    await this.customerMarketplaceRepository.removeCustomerWishlistGift(user.uid, giftId);
     return { data: null, message: 'Gift removed from wishlist successfully' };
   }
 
   async addresses(user: AuthUserContext) {
-    const items = await this.prisma.customerAddress.findMany({ where: { userId: user.uid, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+    const items = await this.customerMarketplaceRepository.findCustomerAddresses(user.uid);
     return { data: items.map((item) => this.toAddress(item)), message: 'Addresses fetched successfully' };
   }
 
   async createAddress(user: AuthUserContext, dto: CreateCustomerAddressDto) {
-    const address = await this.prisma.$transaction(async (tx) => {
-      const shouldDefault = dto.isDefault ?? (await tx.customerAddress.count({ where: { userId: user.uid, deletedAt: null } })) === 0;
-      if (shouldDefault) await tx.customerAddress.updateMany({ where: { userId: user.uid, deletedAt: null }, data: { isDefault: false } });
-      return tx.customerAddress.create({ data: { userId: user.uid, label: dto.label.trim(), fullName: dto.fullName.trim(), phone: dto.phone.trim(), line1: dto.line1.trim(), line2: dto.line2?.trim(), city: dto.city.trim(), state: dto.state?.trim(), country: dto.country.trim(), postalCode: dto.postalCode?.trim(), latitude: dto.latitude === undefined ? undefined : new Prisma.Decimal(dto.latitude), longitude: dto.longitude === undefined ? undefined : new Prisma.Decimal(dto.longitude), deliveryInstructions: dto.deliveryInstructions?.trim(), isDefault: shouldDefault } });
-    });
+    const address = await this.customerMarketplaceRepository.createCustomerAddress({ userId: user.uid, isDefault: dto.isDefault, data: { userId: user.uid, label: dto.label.trim(), fullName: dto.fullName.trim(), phone: dto.phone.trim(), line1: dto.line1.trim(), line2: dto.line2?.trim(), city: dto.city.trim(), state: dto.state?.trim(), country: dto.country.trim(), postalCode: dto.postalCode?.trim(), latitude: dto.latitude === undefined ? undefined : new Prisma.Decimal(dto.latitude), longitude: dto.longitude === undefined ? undefined : new Prisma.Decimal(dto.longitude), deliveryInstructions: dto.deliveryInstructions?.trim() } });
     return { data: this.toAddress(address), message: 'Address created successfully' };
   }
 
@@ -134,35 +128,29 @@ export class CustomerMarketplaceService {
 
   async updateAddress(user: AuthUserContext, id: string, dto: UpdateCustomerAddressDto) {
     await this.getAddress(user.uid, id);
-    const address = await this.prisma.$transaction(async (tx) => {
-      if (dto.isDefault) await tx.customerAddress.updateMany({ where: { userId: user.uid, deletedAt: null, id: { not: id } }, data: { isDefault: false } });
-      return tx.customerAddress.update({ where: { id }, data: this.addressData(dto) });
-    });
+    const address = await this.customerMarketplaceRepository.updateCustomerAddress({ userId: user.uid, id, isDefault: dto.isDefault, data: this.addressData(dto) });
     return { data: this.toAddress(address), message: 'Address updated successfully' };
   }
 
   async deleteAddress(user: AuthUserContext, id: string) {
     await this.getAddress(user.uid, id);
-    await this.prisma.customerAddress.delete({ where: { id } });
+    await this.customerMarketplaceRepository.deleteCustomerAddress(id);
     return { data: null, message: 'Address deleted successfully' };
   }
 
   async setDefaultAddress(user: AuthUserContext, id: string) {
     await this.getAddress(user.uid, id);
-    const address = await this.prisma.$transaction(async (tx) => {
-      await tx.customerAddress.updateMany({ where: { userId: user.uid, deletedAt: null }, data: { isDefault: false } });
-      return tx.customerAddress.update({ where: { id }, data: { isDefault: true } });
-    });
+    const address = await this.customerMarketplaceRepository.setDefaultCustomerAddress(user.uid, id);
     return { data: this.toAddress(address), message: 'Default address updated successfully' };
   }
 
   async reminders(user: AuthUserContext) {
-    const items = await this.prisma.customerReminder.findMany({ where: { userId: user.uid, deletedAt: null }, orderBy: { reminderDate: 'asc' } });
+    const items = await this.customerMarketplaceRepository.findCustomerReminders(user.uid);
     return { data: items.map((item) => this.toReminder(item)), message: 'Reminders fetched successfully' };
   }
 
   async createReminder(user: AuthUserContext, dto: CreateCustomerReminderDto) {
-    const reminder = await this.prisma.customerReminder.create({ data: { userId: user.uid, title: dto.title.trim(), recipientName: dto.recipientName.trim(), eventType: dto.eventType, reminderDate: new Date(dto.reminderDate), notes: dto.notes?.trim(), isActive: dto.isActive ?? true } });
+    const reminder = await this.customerMarketplaceRepository.createCustomerReminder({ userId: user.uid, title: dto.title.trim(), recipientName: dto.recipientName.trim(), eventType: dto.eventType, reminderDate: new Date(dto.reminderDate), notes: dto.notes?.trim(), isActive: dto.isActive ?? true });
     return { data: this.toReminder(reminder), message: 'Reminder created successfully' };
   }
 
@@ -170,13 +158,13 @@ export class CustomerMarketplaceService {
 
   async updateReminder(user: AuthUserContext, id: string, dto: UpdateCustomerReminderDto) {
     await this.getReminder(user.uid, id);
-    const reminder = await this.prisma.customerReminder.update({ where: { id }, data: { title: dto.title?.trim(), recipientName: dto.recipientName?.trim(), eventType: dto.eventType, reminderDate: dto.reminderDate ? new Date(dto.reminderDate) : undefined, notes: dto.notes?.trim(), isActive: dto.isActive } });
+    const reminder = await this.customerMarketplaceRepository.updateCustomerReminder(id, { title: dto.title?.trim(), recipientName: dto.recipientName?.trim(), eventType: dto.eventType, reminderDate: dto.reminderDate ? new Date(dto.reminderDate) : undefined, notes: dto.notes?.trim(), isActive: dto.isActive });
     return { data: this.toReminder(reminder), message: 'Reminder updated successfully' };
   }
 
   async deleteReminder(user: AuthUserContext, id: string) {
     await this.getReminder(user.uid, id);
-    await this.prisma.customerReminder.delete({ where: { id } });
+    await this.customerMarketplaceRepository.deleteCustomerReminder(id);
     return { data: null, message: 'Reminder deleted successfully' };
   }
 
@@ -302,10 +290,10 @@ export class CustomerMarketplaceService {
   private cartItemInclude() { return Prisma.validator<Prisma.CartItemInclude>()({ gift: { select: { id: true, name: true, imageUrls: true, currency: true } }, variant: { select: { id: true, name: true } } }); }
   private giftOrderBy(sortBy?: CustomerGiftSortBy): Prisma.GiftOrderByWithRelationInput { if (sortBy === CustomerGiftSortBy.PRICE_LOW_TO_HIGH) return { price: 'asc' }; if (sortBy === CustomerGiftSortBy.PRICE_HIGH_TO_LOW) return { price: 'desc' }; if (sortBy === CustomerGiftSortBy.RATING) return { ratingPlaceholder: 'desc' }; return { createdAt: 'desc' }; }
 
-  private async getAvailableGift(id: string): Promise<GiftView> { const gift = await this.prisma.gift.findFirst({ where: { id, ...this.availableGiftWhere() }, include: this.giftInclude() }); if (!gift) throw new NotFoundException('Gift not found or unavailable'); return gift; }
-  private async getAddress(userId: string, id: string): Promise<CustomerAddress> { const address = await this.prisma.customerAddress.findFirst({ where: { id, userId, deletedAt: null } }); if (!address) throw new NotFoundException('Address not found'); return address; }
+  private async getAvailableGift(id: string): Promise<GiftView> { const gift = await this.customerMarketplaceRepository.findAvailableGift(id, { where: this.availableGiftWhere(), include: this.giftInclude() }); if (!gift) throw new NotFoundException('Gift not found or unavailable'); return gift; }
+  private async getAddress(userId: string, id: string): Promise<CustomerAddress> { const address = await this.customerMarketplaceRepository.findCustomerAddressById(userId, id); if (!address) throw new NotFoundException('Address not found'); return address; }
   private async getCartAddress(userId: string, id: string): Promise<CustomerAddress> { const address = await this.customerCartRepository.findAddressForUser(userId, id); if (!address) throw new NotFoundException('Address not found'); return address; }
-  private async getReminder(userId: string, id: string): Promise<CustomerReminder> { const reminder = await this.prisma.customerReminder.findFirst({ where: { id, userId, deletedAt: null } }); if (!reminder) throw new NotFoundException('Reminder not found'); return reminder; }
+  private async getReminder(userId: string, id: string): Promise<CustomerReminder> { const reminder = await this.customerMarketplaceRepository.findCustomerReminderById(userId, id); if (!reminder) throw new NotFoundException('Reminder not found'); return reminder; }
   private async getOrCreateActiveCart(userId: string) { return this.customerCartRepository.findOrCreateActiveCart(userId); }
   private async getActiveCart(userId: string): Promise<CartView> { const cart = await this.getOrCreateActiveCart(userId); return this.customerCartRepository.findCartWithItemsById(cart.id); }
   private async getActiveCartById(userId: string, cartId: string): Promise<CartView> { const cart = await this.customerOrdersRepository.findActiveCartForCheckout(userId, cartId); if (!cart) throw new NotFoundException('Active cart not found'); return cart; }
@@ -313,9 +301,9 @@ export class CustomerMarketplaceService {
   private async getCheckoutDeliveryAddress(userId: string, addressId: string): Promise<CustomerAddress> { const address = await this.customerOrdersRepository.findDeliveryAddressForUser(userId, addressId); if (!address) throw new NotFoundException('Address not found'); return address; }
   private async wishlistGiftIds(userId: string, giftIds: string[]): Promise<Set<string>> { if (giftIds.length === 0) return new Set(); const rows = await this.customerMarketplaceRepository.findCustomerWishlistGiftIds(userId, giftIds); return new Set(rows.map((row) => row.giftId)); }
 
-  private async assertContact(userId: string, id: string): Promise<void> { const contact = await this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!contact) throw new NotFoundException('Contact not found'); }
+  private async assertContact(userId: string, id: string): Promise<void> { const contact = await this.customerMarketplaceRepository.findCustomerContactById(userId, id); if (!contact) throw new NotFoundException('Contact not found'); }
   private async assertCartContact(userId: string, id: string): Promise<void> { const contact = await this.customerCartRepository.findContactForUser(userId, id); if (!contact) throw new NotFoundException('Contact not found'); }
-  private async assertEvent(userId: string, id: string): Promise<void> { const event = await this.prisma.customerEvent.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } }); if (!event) throw new NotFoundException('Event not found'); }
+  private async assertEvent(userId: string, id: string): Promise<void> { const event = await this.customerMarketplaceRepository.findCustomerEventById(userId, id); if (!event) throw new NotFoundException('Event not found'); }
   private async assertCartEvent(userId: string, id: string): Promise<void> { const event = await this.customerCartRepository.findEventForUser(userId, id); if (!event) throw new NotFoundException('Event not found'); }
   private resolveVariant(gift: GiftView, variantId?: string): GiftVariantView | null { if (gift.variants.length === 0) return null; if (!variantId) return gift.variants.find((candidate) => candidate.isDefault) ?? null; const variant = gift.variants.find((candidate) => candidate.id === variantId); if (!variant) throw new BadRequestException('Variant does not belong to gift'); return variant; }
   private assertStock(gift: GiftView, variant: GiftVariantView | null, quantity: number): void { const stock = variant?.stockQuantity ?? gift.stockQuantity; if (stock < quantity) throw new BadRequestException('Requested quantity exceeds available stock'); }

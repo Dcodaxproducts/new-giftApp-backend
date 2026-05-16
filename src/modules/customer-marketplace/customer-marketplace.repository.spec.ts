@@ -18,6 +18,12 @@ describe('Customer marketplace repository cleanup', () => {
     expect(controller).toContain("@ApiTags('05 Customer - Marketplace')");
   });
 
+  it('customer-marketplace.service.ts no longer imports PrismaService or uses this.prisma', () => {
+    expect(service).not.toContain('PrismaService');
+    expect(service).not.toContain('this.prisma');
+    expect(repository).toContain('constructor(private readonly prisma: PrismaService)');
+  });
+
   it('repository owns marketplace read queries', () => {
     expect(repository).toContain('findCustomerHomeData');
     expect(repository).toContain('findMarketplaceCategories');
@@ -28,6 +34,11 @@ describe('Customer marketplace repository cleanup', () => {
     expect(repository).toContain('findGiftDetailsForCustomer');
     expect(repository).toContain('findGiftFilterOptions');
     expect(repository).toContain('findCustomerWishlistGiftIds');
+    expect(repository).toContain('findCustomerWishlistRows');
+    expect(repository).toContain('findWishlistGifts');
+    expect(repository).toContain('addCustomerWishlistGift');
+    expect(repository).toContain('removeCustomerWishlistGift');
+    expect(repository).toContain('findAvailableGift');
     expect(repository).toContain('findDefaultAddressForUser');
     expect(repository).toContain('findUpcomingReminderForUser');
   });

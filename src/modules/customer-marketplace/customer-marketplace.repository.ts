@@ -61,4 +61,86 @@ export class CustomerMarketplaceRepository {
   findCustomerWishlistGiftIds(userId: string, giftIds: string[]) {
     return this.prisma.customerWishlist.findMany({ where: { userId, giftId: { in: giftIds } }, select: { giftId: true } });
   }
+
+  findCustomerWishlistRows(userId: string) {
+    return this.prisma.customerWishlist.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } });
+  }
+
+  findWishlistGifts(params: { giftIds: string[]; where: Prisma.GiftWhereInput; include: Prisma.GiftInclude }) {
+    return this.prisma.gift.findMany({ where: { id: { in: params.giftIds }, ...params.where }, include: params.include });
+  }
+
+  addCustomerWishlistGift(userId: string, giftId: string) {
+    return this.prisma.customerWishlist.upsert({ where: { userId_giftId: { userId, giftId } }, create: { userId, giftId }, update: {} });
+  }
+
+  removeCustomerWishlistGift(userId: string, giftId: string) {
+    return this.prisma.customerWishlist.deleteMany({ where: { userId, giftId } });
+  }
+
+  findCustomerAddresses(userId: string) {
+    return this.prisma.customerAddress.findMany({ where: { userId, deletedAt: null }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+  }
+
+  createCustomerAddress(params: { userId: string; data: Prisma.CustomerAddressUncheckedCreateInput; isDefault?: boolean }) {
+    return this.prisma.$transaction(async (tx) => {
+      const shouldDefault = params.isDefault ?? (await tx.customerAddress.count({ where: { userId: params.userId, deletedAt: null } })) === 0;
+      if (shouldDefault) await tx.customerAddress.updateMany({ where: { userId: params.userId, deletedAt: null }, data: { isDefault: false } });
+      return tx.customerAddress.create({ data: { ...params.data, isDefault: shouldDefault } });
+    });
+  }
+
+  findCustomerAddressById(userId: string, id: string) {
+    return this.prisma.customerAddress.findFirst({ where: { id, userId, deletedAt: null } });
+  }
+
+  updateCustomerAddress(params: { userId: string; id: string; data: Prisma.CustomerAddressUncheckedUpdateInput; isDefault?: boolean }) {
+    return this.prisma.$transaction(async (tx) => {
+      if (params.isDefault) await tx.customerAddress.updateMany({ where: { userId: params.userId, deletedAt: null, id: { not: params.id } }, data: { isDefault: false } });
+      return tx.customerAddress.update({ where: { id: params.id }, data: params.data });
+    });
+  }
+
+  deleteCustomerAddress(id: string) {
+    return this.prisma.customerAddress.delete({ where: { id } });
+  }
+
+  setDefaultCustomerAddress(userId: string, id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.customerAddress.updateMany({ where: { userId, deletedAt: null }, data: { isDefault: false } });
+      return tx.customerAddress.update({ where: { id }, data: { isDefault: true } });
+    });
+  }
+
+  findCustomerReminders(userId: string) {
+    return this.prisma.customerReminder.findMany({ where: { userId, deletedAt: null }, orderBy: { reminderDate: 'asc' } });
+  }
+
+  createCustomerReminder(data: Prisma.CustomerReminderUncheckedCreateInput) {
+    return this.prisma.customerReminder.create({ data });
+  }
+
+  findCustomerReminderById(userId: string, id: string) {
+    return this.prisma.customerReminder.findFirst({ where: { id, userId, deletedAt: null } });
+  }
+
+  updateCustomerReminder(id: string, data: Prisma.CustomerReminderUncheckedUpdateInput) {
+    return this.prisma.customerReminder.update({ where: { id }, data });
+  }
+
+  deleteCustomerReminder(id: string) {
+    return this.prisma.customerReminder.delete({ where: { id } });
+  }
+
+  findAvailableGift(id: string, params: { where: Prisma.GiftWhereInput; include: Prisma.GiftInclude }) {
+    return this.prisma.gift.findFirst({ where: { id, ...params.where }, include: params.include });
+  }
+
+  findCustomerContactById(userId: string, id: string) {
+    return this.prisma.customerContact.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } });
+  }
+
+  findCustomerEventById(userId: string, id: string) {
+    return this.prisma.customerEvent.findFirst({ where: { id, userId, deletedAt: null }, select: { id: true } });
+  }
 }
