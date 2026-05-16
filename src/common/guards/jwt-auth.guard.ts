@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { AuthUserContext } from '../decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
+import { JwtAuthRepository } from '../repositories/jwt-auth.repository';
 
 interface JwtPayload extends AuthUserContext {
   type?: string;
@@ -16,7 +16,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly repository: JwtAuthRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -31,17 +31,14 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       });
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.uid },
-        include: { adminRole: true },
-      });
+      const user = await this.repository.findUserForJwtGuard(payload.uid);
 
       if (!user || user.deletedAt || !user.isActive) {
         throw new ForbiddenException('Account is inactive');
       }
 
       if (payload.sessionId) {
-        const session = await this.prisma.authSession.findFirst({ where: { id: payload.sessionId, userId: user.id, revokedAt: null } });
+        const session = await this.repository.findActiveSessionForJwtGuard(payload.sessionId, user.id);
         if (!session) throw new UnauthorizedException('Session has expired');
       }
 
@@ -55,13 +52,6 @@ export class JwtAuthGuard implements CanActivate {
         throw new ForbiddenException('Your provider account is pending approval. You cannot access this module yet.');
       }
 
-      if (payload.sessionId) {
-        const session = await this.prisma.authSession.findFirst({
-          where: { id: payload.sessionId, userId: user.id, revokedAt: null },
-          select: { id: true },
-        });
-        if (!session) throw new UnauthorizedException('Session expired');
-      }
 
       request.user = {
         uid: user.id,
