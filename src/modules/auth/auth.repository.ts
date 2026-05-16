@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { CustomerSubscriptionStatus, Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -75,5 +75,55 @@ export class AuthRepository {
 
   cancelDeletion(userId: string) {
     return this.prisma.user.update({ where: { id: userId }, data: { isActive: true, deletedAt: null, deleteAfter: null } });
+  }
+
+  findAuditLogsAndCount(params: { where: Prisma.AdminAuditLogWhereInput; skip: number; take: number }) {
+    return this.prisma.$transaction([
+      this.prisma.adminAuditLog.findMany({ where: params.where, include: { actor: { select: { id: true, email: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
+      this.prisma.adminAuditLog.count({ where: params.where }),
+    ]);
+  }
+
+  findAuditTargetsByIds(targetIds: string[]) {
+    return this.prisma.user.findMany({ where: { id: { in: targetIds } }, select: { id: true, email: true, firstName: true, lastName: true } });
+  }
+
+  findProviderById(providerId: string) {
+    return this.prisma.user.findUnique({ where: { id: providerId } });
+  }
+
+  updateProviderApproval(providerId: string, data: { isApproved: boolean; isActive?: boolean; providerApprovalStatus: ProviderApprovalStatus }) {
+    return this.prisma.user.update({ where: { id: providerId }, data });
+  }
+
+  updateUserActiveStatus(userId: string, data: { isActive: boolean; refreshTokenHash: string | null }) {
+    return this.prisma.user.update({ where: { id: userId }, data });
+  }
+
+  countOtherActiveSuperAdmins(currentSuperAdminId: string) {
+    return this.prisma.user.count({ where: { role: UserRole.SUPER_ADMIN, isActive: true, deletedAt: null, id: { not: currentSuperAdminId } } });
+  }
+
+  findCustomerSubscriptionSummary(userId: string) {
+    return this.prisma.customerSubscription.findFirst({
+      where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.PAST_DUE, CustomerSubscriptionStatus.INCOMPLETE] } },
+      include: { plan: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  createAdminAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
+    return this.prisma.adminAuditLog.create({ data });
+  }
+
+  updateCanonicalSuperAdmin(id: string, data: Prisma.UserUncheckedUpdateInput) {
+    return this.prisma.user.update({ where: { id }, data });
+  }
+
+  demoteOtherSuperAdmins(canonicalSuperAdminId: string) {
+    return this.prisma.user.updateMany({
+      where: { role: UserRole.SUPER_ADMIN, id: { not: canonicalSuperAdminId } },
+      data: { role: UserRole.ADMIN, isApproved: false, isActive: false, adminPermissions: Prisma.JsonNull, refreshTokenHash: null },
+    });
   }
 }

@@ -73,11 +73,10 @@ function createAuthService(superAdminCount: number) {
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
-    prisma as unknown as ConstructorParameters<typeof AuthService>[0],
-    {} as unknown as ConstructorParameters<typeof AuthService>[1],
-    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[2],
+    {} as unknown as ConstructorParameters<typeof AuthService>[0],
+    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[1],
+    {} as unknown as ConstructorParameters<typeof AuthService>[2],
     {} as unknown as ConstructorParameters<typeof AuthService>[3],
-    {} as unknown as ConstructorParameters<typeof AuthService>[4],
     adminStaffRepository,
     adminRolesRepository,
     permissionsCatalogRepository,
@@ -146,11 +145,10 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
-    prisma as unknown as ConstructorParameters<typeof AuthService>[0],
-    {} as unknown as ConstructorParameters<typeof AuthService>[1],
-    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[2],
-    {} as unknown as ConstructorParameters<typeof AuthService>[3],
-    mailer as unknown as ConstructorParameters<typeof AuthService>[4],
+    {} as unknown as ConstructorParameters<typeof AuthService>[0],
+    { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthService>[1],
+    {} as unknown as ConstructorParameters<typeof AuthService>[2],
+    mailer as unknown as ConstructorParameters<typeof AuthService>[3],
     adminStaffRepository,
     adminRolesRepository,
     permissionsCatalogRepository,
@@ -361,13 +359,12 @@ function createAdminCreationService(options?: {
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
-    prisma as unknown as ConstructorParameters<typeof AuthService>[0],
-    {} as unknown as ConstructorParameters<typeof AuthService>[1],
-    { get: jest.fn((key: string, fallback?: string) => (key === 'APP_FRONTEND_URL' ? 'https://app.giftapp.com' : fallback)) } as unknown as ConstructorParameters<typeof AuthService>[2],
-    {} as unknown as ConstructorParameters<typeof AuthService>[3],
+    {} as unknown as ConstructorParameters<typeof AuthService>[0],
+    { get: jest.fn((key: string, fallback?: string) => (key === 'APP_FRONTEND_URL' ? 'https://app.giftapp.com' : fallback)) } as unknown as ConstructorParameters<typeof AuthService>[1],
+    {} as unknown as ConstructorParameters<typeof AuthService>[2],
     {
       sendAdminInviteEmail: options?.mailerRejects ? jest.fn().mockRejectedValue(new Error('smtp down')) : jest.fn().mockResolvedValue(undefined),
-    } as unknown as ConstructorParameters<typeof AuthService>[4],
+    } as unknown as ConstructorParameters<typeof AuthService>[3],
     adminStaffRepository,
     adminRolesRepository,
     permissionsCatalogRepository,
@@ -715,11 +712,10 @@ function createSensitiveAuthService(options?: {
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
   const authPasswordRepository = new AuthPasswordRepository(prisma as unknown as ConstructorParameters<typeof AuthPasswordRepository>[0]);
   const service = new AuthService(
-    prisma as unknown as ConstructorParameters<typeof AuthService>[0],
-    jwtService as unknown as ConstructorParameters<typeof AuthService>[1],
-    configService as unknown as ConstructorParameters<typeof AuthService>[2],
-    loginAttemptsService as unknown as ConstructorParameters<typeof AuthService>[3],
-    mailerService as unknown as ConstructorParameters<typeof AuthService>[4],
+    jwtService as unknown as ConstructorParameters<typeof AuthService>[0],
+    configService as unknown as ConstructorParameters<typeof AuthService>[1],
+    loginAttemptsService as unknown as ConstructorParameters<typeof AuthService>[2],
+    mailerService as unknown as ConstructorParameters<typeof AuthService>[3],
     adminStaffRepository,
     adminRolesRepository,
     permissionsCatalogRepository,
@@ -822,14 +818,17 @@ describe('AuthService sensitive auth behavior', () => {
     expect(service.createGuestSession({})).toEqual({ data: { role: 'GUEST_USER', capabilities: ['VIEW_ONBOARDING', 'EXPLORE_FEATURES'] }, message: 'Guest session initialized' });
   });
 
-  it('service no longer performs direct prisma DB access where repository owns it', () => {
+  it('auth.service.ts no longer imports PrismaService or uses this.prisma', () => {
     const source = readFileSync('src/modules/auth/auth.service.ts', 'utf8');
+    const authRepositorySource = readFileSync('src/modules/auth/auth.repository.ts', 'utf8');
+    expect(source).not.toContain('PrismaService');
+    expect(source).not.toContain('this.prisma');
     expect(source).toContain('authRepository.findUserByEmail');
     expect(source).toContain('authRepository.findUserById');
     expect(source).toContain('authSessionsRepository.findRefreshSession');
     expect(source).toContain('authSessionsRepository.createRefreshSession');
     expect(source).toContain('authSessionsRepository.storeRefreshTokenHash');
     expect(source).toContain('authRepository.createAuthUser');
-    expect(source).not.toContain("this.prisma.user.findUnique({\n      where: { email: this.normalizeEmail(dto.email) }");
+    expect(authRepositorySource).toContain('constructor(private readonly prisma: PrismaService)');
   });
 });

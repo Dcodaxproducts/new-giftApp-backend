@@ -30,6 +30,14 @@ export class AdminRolesRepository {
     return this.prisma.adminRole.update({ where: { id }, data });
   }
 
+  upsertSystemRole(params: { name: string; slug: string; description: string; permissions: Prisma.InputJsonValue }) {
+    return this.prisma.adminRole.upsert({
+      where: { slug: params.slug },
+      create: { name: params.name, slug: params.slug, description: params.description, permissions: params.permissions, isSystem: true, isActive: true },
+      update: { name: params.name, description: params.description, permissions: params.permissions, isSystem: true, isActive: true, deletedAt: null },
+    });
+  }
+
   updateAdminRolePermissions(id: string, permissions: Prisma.InputJsonValue) {
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.adminRole.update({ where: { id }, data: { permissions } });
