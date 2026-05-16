@@ -39,19 +39,21 @@ import {
 import {
   AdminStatusFilter,
   CreateAdminDto,
-  CreateAdminRoleDto,
-  ListAdminRolesDto,
   ListAdminsDto,
   PermanentlyDeleteAdminDto,
   ResetAdminPasswordDto,
   SortOrderDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
+} from '../admin-management/dto/admin-management.dto';
+import {
+  CreateAdminRoleDto,
+  ListAdminRolesDto,
   UpdateAdminRoleDto,
   UpdateRolePermissionsDto,
-} from './dto/admin-management.dto';
+} from '../admin-roles/dto/admin-roles.dto';
 import { ListAuditLogsDto } from './dto/audit-logs.dto';
-import { SUPER_ADMIN_PERMISSIONS } from './permission-catalog';
+import { SUPER_ADMIN_PERMISSIONS } from '../admin-roles/constants/permission-catalog';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,

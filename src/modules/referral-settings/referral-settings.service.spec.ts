@@ -8,7 +8,7 @@ describe('Referral settings source safety', () => {
   const dto = readFileSync(join(__dirname, 'dto/referral-settings.dto.ts'), 'utf8');
   const referrals = readFileSync(join(__dirname, '../customer-referrals/customer-referrals.service.ts'), 'utf8');
   const payments = readFileSync(join(__dirname, '../payments/payments.service.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../auth/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../admin-roles/constants/permission-catalog.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
 
   it('adds referral settings schema, snapshots, and permissions', () => {

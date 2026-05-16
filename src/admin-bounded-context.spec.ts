@@ -1,0 +1,34 @@
+import { existsSync, readFileSync } from 'fs';
+
+describe('admin bounded-context source ownership', () => {
+  it('keeps admin-management DTO source local', () => {
+    const source = readFileSync('src/modules/admin-management/dto/admin-management.dto.ts', 'utf8');
+
+    expect(source).toContain('export class CreateAdminDto');
+    expect(source).toContain('export class ListAdminsDto');
+    expect(source).toContain('export class PermanentlyDeleteAdminDto');
+    expect(source).not.toContain('CreateAdminRoleDto');
+    expect(source).not.toContain("from '../../auth/dto/admin-management.dto'");
+  });
+
+  it('keeps admin-roles DTO source local', () => {
+    const source = readFileSync('src/modules/admin-roles/dto/admin-roles.dto.ts', 'utf8');
+
+    expect(source).toContain('export class CreateAdminRoleDto');
+    expect(source).toContain('export class ListAdminRolesDto');
+    expect(source).toContain('export class UpdateRolePermissionsDto');
+    expect(source).not.toContain('CreateAdminDto');
+    expect(source).not.toContain("from '../../auth/dto/admin-management.dto'");
+  });
+
+  it('owns permission catalog outside auth with stable permission keys', () => {
+    const source = readFileSync('src/modules/admin-roles/constants/permission-catalog.ts', 'utf8');
+
+    expect(existsSync('src/modules/auth/permission-catalog.ts')).toBe(false);
+    expect(source).toContain("module: 'admins'");
+    expect(source).toContain("key: 'resetPassword'");
+    expect(source).toContain("module: 'providerDisputes'");
+    expect(source).toContain("key: 'logs.export'");
+    expect(source).toContain('SUPER_ADMIN_PERMISSIONS');
+  });
+});

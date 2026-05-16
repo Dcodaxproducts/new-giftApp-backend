@@ -100,7 +100,7 @@ describe('RefundPolicySettingsService', () => {
 
 describe('Refund policy settings source safety', () => {
   const controller = readFileSync(join(__dirname, 'refund-policy-settings.controller.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../auth/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../admin-roles/constants/permission-catalog.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const main = readFileSync(join(__dirname, '../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../swagger-access.ts'), 'utf8');

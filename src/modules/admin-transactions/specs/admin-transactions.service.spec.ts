@@ -115,7 +115,7 @@ describe('Admin transaction monitoring source safety', () => {
   const controller = readFileSync(join(__dirname, '../controllers/admin-transactions.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, '../services/admin-transactions.service.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/admin-transactions.dto.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../auth/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 

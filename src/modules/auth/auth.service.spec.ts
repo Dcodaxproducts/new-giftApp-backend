@@ -550,7 +550,7 @@ describe('AuthService admin staff RBAC architecture', () => {
   });
 
   it('permission keys unchanged and catalog remains read-only', () => {
-    const catalogSource = readFileSync('src/modules/auth/permission-catalog.ts', 'utf8');
+    const catalogSource = readFileSync('src/modules/admin-roles/constants/permission-catalog.ts', 'utf8');
     const controllerSource = readFileSync('src/modules/admin-roles/admin-roles.controller.ts', 'utf8');
     expect(catalogSource).toContain("module: 'admins'");
     expect(catalogSource).toContain("module: 'disputes'");
@@ -561,7 +561,7 @@ describe('AuthService admin staff RBAC architecture', () => {
   });
 
   it('POST /admins DTO does not accept raw permissions or User.role fields', () => {
-    const dtoSource = readFileSync('src/modules/auth/dto/admin-management.dto.ts', 'utf8');
+    const dtoSource = readFileSync('src/modules/admin-management/dto/admin-management.dto.ts', 'utf8');
     const createAdminBlock = dtoSource.slice(
       dtoSource.indexOf('export class CreateAdminDto'),
       dtoSource.indexOf('export class UpdateAdminDto'),

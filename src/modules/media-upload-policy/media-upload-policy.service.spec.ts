@@ -7,7 +7,7 @@ describe('Media upload policy source safety', () => {
   const controller = readFileSync(join(__dirname, 'media-upload-policy.controller.ts'), 'utf8');
   const storage = readFileSync(join(__dirname, '../storage/storage.service.ts'), 'utf8');
   const storageDto = readFileSync(join(__dirname, '../storage/dto/create-presigned-upload.dto.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../auth/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../admin-roles/constants/permission-catalog.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
 
   it('creates media upload policy schema and permission catalog entries', () => {

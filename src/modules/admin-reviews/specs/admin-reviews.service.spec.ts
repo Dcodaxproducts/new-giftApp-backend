@@ -9,7 +9,7 @@ describe('Admin Ratings & Reviews Management module', () => {
   const policiesController = readFileSync(join(__dirname, '../controllers/review-policies.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, '../admin-reviews.module.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../auth/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
   const appModule = readFileSync(join(__dirname, '../../../app.module.ts'), 'utf8');
 
   it('creates shared review models for admin and provider review flows', () => {
