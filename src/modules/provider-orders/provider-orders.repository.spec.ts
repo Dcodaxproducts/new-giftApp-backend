@@ -16,7 +16,7 @@ describe('Provider orders repository cleanup', () => {
   });
 
   it('repository owns read and analytics queries', () => {
-    for (const method of ['findManyProviderOrders', 'countProviderOrders', 'findManyAndCountProviderOrders', 'findProviderOrderById', 'findProviderOrderTimeline', 'findProviderOrderChecklist', 'findProviderOrderSummary', 'findRecentProviderOrders', 'findPerformanceRows', 'findRevenueAnalyticsRows', 'findRatingAnalyticsRows', 'findProviderOrdersForExport']) expect(repository).toContain(method);
+    for (const method of ['findManyProviderOrders', 'countProviderOrders', 'findManyAndCountProviderOrders', 'findProviderOrderById', 'findProviderOrderTimeline', 'findProviderOrderChecklist', 'getOrCreateChecklistForRead', 'findProviderOrderSummary', 'findRecentProviderOrders', 'findPerformanceRows', 'findRevenueAnalyticsRows', 'findRatingAnalyticsRows', 'findProviderOrdersForExport']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.providerOrder.findMany');
     expect(repository).toContain('this.prisma.providerOrder.count');
     expect(repository).toContain('this.prisma.providerOrder.findFirst');
@@ -24,6 +24,13 @@ describe('Provider orders repository cleanup', () => {
     expect(repository).toContain('this.prisma.providerOrderChecklist.findUnique');
     expect(repository).toContain('this.prisma.review.findMany');
     expect(moduleFile).toContain('ProviderOrdersRepository');
+  });
+
+  it('provider-orders.service.ts no longer imports PrismaService or uses this.prisma', () => {
+    expect(service).not.toContain('PrismaService');
+    expect(service).not.toContain('this.prisma');
+    expect(repository).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repository).toContain('getOrCreateChecklistForRead');
   });
 
   it('provider can list only own orders', () => {
@@ -42,7 +49,8 @@ describe('Provider orders repository cleanup', () => {
   it('timeline and checklist are provider scoped', () => {
     expect(service).toContain('const order = await this.getOwnedProviderOrderForRead(user.uid, id)');
     expect(service).toContain('findProviderOrderTimeline(order.id)');
-    expect(service).toContain('findProviderOrderChecklist(providerOrderId)');
+    expect(service).toContain('getOrCreateChecklistForRead(providerOrderId)');
+    expect(repository).toContain('findProviderOrderChecklist(providerOrderId)');
     expect(repository).toContain('where: { providerOrderId }');
   });
 

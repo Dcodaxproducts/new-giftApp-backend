@@ -139,6 +139,10 @@ export class ProviderOrdersRepository {
     return tx.user.findMany({ where: { role: 'SUPER_ADMIN', isActive: true, deletedAt: null }, select: { id: true } });
   }
 
+  async getOrCreateChecklistForRead(providerOrderId: string) {
+    return (await this.findProviderOrderChecklist(providerOrderId)) ?? this.prisma.providerOrderChecklist.create({ data: { providerOrderId } });
+  }
+
   getOrCreateChecklist(providerOrderId: string) {
     return this.prisma.providerOrderChecklist.upsert({ where: { providerOrderId }, update: {}, create: { providerOrderId } });
   }

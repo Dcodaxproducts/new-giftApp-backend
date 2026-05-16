@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../database/prisma.service';
 import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from './provider-orders.repository';
 
@@ -11,7 +10,6 @@ type ProviderOrderDetail = ProviderOrderView;
 @Injectable()
 export class ProviderOrdersService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly providerOrdersRepository: ProviderOrdersRepository,
   ) {}
 
@@ -299,7 +297,7 @@ export class ProviderOrdersService {
     return OrderStatus.PROCESSING;
   }
 
-  private async getOrCreateChecklistForRead(providerOrderId: string) { return (await this.providerOrdersRepository.findProviderOrderChecklist(providerOrderId)) ?? this.prisma.providerOrderChecklist.create({ data: { providerOrderId } }); }
+  private async getOrCreateChecklistForRead(providerOrderId: string) { return this.providerOrdersRepository.getOrCreateChecklistForRead(providerOrderId); }
   private async getOrCreateChecklist(providerOrderId: string) { return this.providerOrdersRepository.getOrCreateChecklist(providerOrderId); }
   private toChecklist(item: { providerOrderId: string; itemsPacked: boolean; giftMessageAttached: boolean; addressVerified: boolean; customerContactChecked: boolean; readyForCourier: boolean; customItemsJson: Prisma.JsonValue }) { return { orderId: item.providerOrderId, itemsPacked: item.itemsPacked, giftMessageAttached: item.giftMessageAttached, addressVerified: item.addressVerified, customerContactChecked: item.customerContactChecked, readyForCourier: item.readyForCourier, customItems: Array.isArray(item.customItemsJson) ? item.customItemsJson : [] }; }
   private rejectReasonLabel(reason: ProviderOrderRejectReason | RefundRejectReason): string { return this.rejectReasons().data.find((item) => item.key === reason)?.label ?? this.statusLabel(reason); }
