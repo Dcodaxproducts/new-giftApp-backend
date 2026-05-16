@@ -10,7 +10,7 @@ import {
   ListAdminRolesDto,
   UpdateAdminRoleDto,
   UpdateRolePermissionsDto,
-} from '../auth/dto/admin-management.dto';
+} from './dto/admin-roles.dto';
 import { AdminRolesService } from './admin-roles.service';
 
 @ApiTags('02 Admin - Roles & Permissions')

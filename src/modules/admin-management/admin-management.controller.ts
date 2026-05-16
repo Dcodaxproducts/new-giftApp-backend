@@ -12,7 +12,7 @@ import {
   ResetAdminPasswordDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
-} from '../auth/dto/admin-management.dto';
+} from './dto/admin-management.dto';
 import { AdminManagementService } from './admin-management.service';
 
 @ApiTags('02 Admin - Staff Management')
