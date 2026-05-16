@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { NotificationRecipientType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -46,5 +46,28 @@ export class NotificationsRepository {
 
   updateMetadata(id: string, metadataJson: Prisma.InputJsonValue) {
     return this.prisma.notification.update({ where: { id }, data: { metadataJson } });
+  }
+
+  createInAppBroadcastNotification(input: {
+    recipientId: string;
+    recipientType: NotificationRecipientType;
+    broadcastId: string;
+    title: string;
+    message: string;
+    imageUrl: string | null;
+    ctaUrl: string | null;
+  }) {
+    return this.prisma.notification.create({
+      data: {
+        recipientId: input.recipientId,
+        recipientType: input.recipientType,
+        broadcastId: input.broadcastId,
+        title: input.title,
+        message: input.message,
+        imageUrl: input.imageUrl,
+        ctaUrl: input.ctaUrl,
+        type: 'BROADCAST',
+      },
+    });
   }
 }

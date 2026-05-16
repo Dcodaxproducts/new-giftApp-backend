@@ -18,7 +18,7 @@ describe('Notifications repository cleanup', () => {
   });
 
   it('moves notifications, preferences, and device-token persistence into repositories', () => {
-    ['findNotificationsAndCount', 'countSummary', 'findOwnedNotification', 'markRead', 'markAllRead', 'updateMetadata'].forEach((method) => expect(notificationsRepository).toContain(method));
+    ['findNotificationsAndCount', 'countSummary', 'findOwnedNotification', 'markRead', 'markAllRead', 'updateMetadata', 'createInAppBroadcastNotification'].forEach((method) => expect(notificationsRepository).toContain(method));
     ['findPreferences', 'createPreferences', 'updatePreferences'].forEach((method) => expect(preferencesRepository).toContain(method));
     ['upsertDeviceToken', 'findOwnedDeviceToken', 'disableDeviceToken'].forEach((method) => expect(tokensRepository).toContain(method));
   });
