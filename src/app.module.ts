@@ -4,6 +4,7 @@ import { JwtAuthModule } from './common/auth/jwt-auth.module';
 import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
 import { PublicController } from './public.controller';
+import { AdminDashboardModule } from './modules/admin-dashboard/admin-dashboard.module';
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
 import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
 import { AdminTransactionsModule } from './modules/admin-transactions/admin-transactions.module';
@@ -48,6 +49,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     ConfigModule.forRoot({ isGlobal: true }),
     JwtAuthModule,
     AuthModule,
+    AdminDashboardModule,
     AdminDisputesModule,
     AdminProviderDisputesModule,
     AdminTransactionsModule,

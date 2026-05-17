@@ -152,6 +152,13 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'dashboard',
+    label: 'Dashboard Overview',
+    permissions: [
+      { key: 'read', label: 'View Dashboard Overview', description: 'View Super Admin dashboard analytics overview.' },
+    ],
+  },
+  {
     module: 'transactions',
     label: 'Transactions',
     permissions: [

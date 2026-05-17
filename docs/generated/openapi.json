@@ -1684,6 +1684,218 @@
         "x-access": "SUPER_ADMIN"
       }
     },
+    "/api/v1/admin/dashboard/overview": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only dashboard overview metrics. SUPER_ADMIN or ADMIN with dashboard.read. Read-only metrics are aggregated from existing users, providers, payments, and transaction records. Missing analytics sources return zeros instead of fake data.",
+        "operationId": "AdminDashboardController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalUsers": 128430,
+                      "totalUsersDeltaPercent": 12.5,
+                      "totalProviders": 1240,
+                      "totalProvidersDeltaPercent": 5.2,
+                      "transactions": 45200,
+                      "transactionsDeltaPercent": 18.1,
+                      "totalRevenue": 1240000,
+                      "totalRevenueDeltaPercent": 10.3,
+                      "currency": "USD"
+                    },
+                    "message": "Dashboard overview fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch Super Admin dashboard overview metrics",
+        "tags": [
+          "02 Admin - Dashboard Overview"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with dashboard.read",
+        "x-access": "SUPER_ADMIN or ADMIN with dashboard.read"
+      }
+    },
+    "/api/v1/admin/dashboard/revenue-trends": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only monthly revenue trends. SUPER_ADMIN or ADMIN with dashboard.read. Uses successful payment records for the last 12 calendar months and returns zero for months with no revenue.",
+        "operationId": "AdminDashboardController_revenueTrends",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "range": "LAST_12_MONTHS",
+                      "labels": [
+                        "Jan",
+                        "Feb",
+                        "Mar"
+                      ],
+                      "values": [
+                        12000,
+                        28000,
+                        16000
+                      ],
+                      "currency": "USD"
+                    },
+                    "message": "Revenue trends fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch monthly revenue trends",
+        "tags": [
+          "02 Admin - Dashboard Overview"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with dashboard.read",
+        "x-access": "SUPER_ADMIN or ADMIN with dashboard.read"
+      }
+    },
+    "/api/v1/admin/dashboard/gift-vs-payment": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only gift versus direct payment distribution. SUPER_ADMIN or ADMIN with dashboard.read. Distribution is calculated from successful payment records; money gift payments count as gift cards and all other successful payments count as direct payments.",
+        "operationId": "AdminDashboardController_giftVsPayment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "giftCardsPercent": 65,
+                      "directPaymentsPercent": 35
+                    },
+                    "message": "Gift vs payment distribution fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch gift vs direct payment distribution",
+        "tags": [
+          "02 Admin - Dashboard Overview"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with dashboard.read",
+        "x-access": "SUPER_ADMIN or ADMIN with dashboard.read"
+      }
+    },
+    "/api/v1/admin/dashboard/provider-performance": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table. SUPER_ADMIN or ADMIN with dashboard.read. Aggregates provider order success rate and fulfilled volume from existing provider order records without exposing payout or customer-sensitive data.",
+        "operationId": "AdminDashboardController_providerPerformance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "providerId": "provider_id",
+                        "providerName": "Stripe Integration",
+                        "successRate": 99.2,
+                        "totalVolume": 450230,
+                        "currency": "USD"
+                      }
+                    ],
+                    "message": "Provider performance fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider performance table",
+        "tags": [
+          "02 Admin - Dashboard Overview"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with dashboard.read",
+        "x-access": "SUPER_ADMIN or ADMIN with dashboard.read"
+      }
+    },
+    "/api/v1/admin/dashboard/recent-disputes": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data. SUPER_ADMIN or ADMIN with dashboard.read. Combines recent customer and provider dispute cases and returns non-sensitive case, customer display name, reason, and priority/status only.",
+        "operationId": "AdminDashboardController_recentDisputes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "dispute_id",
+                        "caseId": "DISP-9021",
+                        "userName": "Marcus Wright",
+                        "reason": "Unauthorized transaction",
+                        "status": "HIGH_PRIORITY"
+                      }
+                    ],
+                    "message": "Recent disputes fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch recent disputes table",
+        "tags": [
+          "02 Admin - Dashboard Overview"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with dashboard.read",
+        "x-access": "SUPER_ADMIN or ADMIN with dashboard.read"
+      }
+    },
     "/api/v1/admin/disputes/stats": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.",
@@ -21901,6 +22113,9 @@
     },
     {
       "name": "02 Admin - Promotional Offers Management"
+    },
+    {
+      "name": "02 Admin - Dashboard Overview"
     },
     {
       "name": "02 Admin - Transaction Monitoring"
