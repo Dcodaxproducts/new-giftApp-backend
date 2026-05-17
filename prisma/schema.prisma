@@ -928,6 +928,7 @@ model User {
   providerEarningsLedger              ProviderEarningsLedger[]
   providerPayouts                     ProviderPayout[]
   updatedPayoutSettings              AdminPayoutSettings[]              @relation("AdminPayoutSettingsUpdater")
+  updatedSystemSettings              SystemSettings[]                   @relation("SystemSettingsUpdater")
   updatedCommissionTiers             CommissionTier[]                    @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
@@ -2482,6 +2483,27 @@ model ProviderFinancialAdjustment {
   @@index([providerId, createdAt])
   @@index([disputeId, createdAt])
   @@map("provider_financial_adjustments")
+}
+
+model SystemSettings {
+  id                        String   @id @default(cuid())
+  applicationName           String   @default("Gift App") @map("application_name")
+  supportEmail              String   @default("support@giftapp.com") @map("support_email")
+  platformLogoUrl           String?  @map("platform_logo_url")
+  sessionTimeoutMinutes     Int      @default(30) @map("session_timeout_minutes")
+  adminMfaRequired          Boolean  @default(true) @map("admin_mfa_required")
+  passwordPolicyJson        Json     @default("{\"minLength\":8,\"requireUppercase\":true,\"requireLowercase\":true,\"requireNumber\":true,\"requireSymbol\":true}") @map("password_policy_json")
+  defaultCurrency           String   @default("USD") @map("default_currency")
+  transactionFeePercent     Decimal  @default(2.5) @map("transaction_fee_percent") @db.Decimal(5, 2)
+  pushNotificationsEnabled  Boolean  @default(true) @map("push_notifications_enabled")
+  emailNotificationsEnabled Boolean  @default(true) @map("email_notifications_enabled")
+  updatedById               String?  @map("updated_by_id")
+  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("SystemSettingsUpdater", fields: [updatedById], references: [id])
+
+  @@map("system_settings")
 }
 
 model AdminPayoutSettings {

@@ -44,6 +44,7 @@ import { PromotionalOffersModule } from './modules/promotional-offers/promotiona
 import { SocialModerationModule } from './modules/social-moderation/social-moderation.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
+import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
 
 @Module({
@@ -91,6 +92,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AuditLogsModule,
     SocialModerationModule,
     StorageModule,
+    SystemSettingsModule,
   ],
   controllers: [PublicController],
   providers: [MediaUrlSignerService, ResponseInterceptor],

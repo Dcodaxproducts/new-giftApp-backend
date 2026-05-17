@@ -123,6 +123,12 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/dashboard/provider-performance': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table.' },
   'GET /api/v1/admin/dashboard/recent-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data.' },
 
+  'GET /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned.' },
+  'PATCH /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission.' },
+  'POST /api/v1/admin/system-settings/logo': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only.' },
+  'POST /api/v1/admin/system-settings/smtp/test': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets.' },
+  'GET /api/v1/admin/system-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission.' },
+
   'GET /api/v1/admin/provider-payouts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },
   'GET /api/v1/admin/provider-payouts/trends': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },
   'GET /api/v1/admin/provider-payouts/earning-distribution': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },

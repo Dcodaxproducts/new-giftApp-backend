@@ -23336,6 +23336,221 @@
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
         "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
+    },
+    "/api/v1/admin/system-settings": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SUPER_ADMIN or ADMIN with systemSettings.read. SMTP secrets are never returned.",
+        "operationId": "SystemSettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "platformInfo": {
+                        "applicationName": "Gift App",
+                        "supportEmail": "support@giftapp.com",
+                        "platformLogoUrl": "https://cdn.example.com/logo.png"
+                      },
+                      "security": {
+                        "sessionTimeoutMinutes": 30,
+                        "adminMfaRequired": true,
+                        "passwordPolicy": {
+                          "minLength": 8,
+                          "requireUppercase": true,
+                          "requireLowercase": true,
+                          "requireNumber": true,
+                          "requireSymbol": true
+                        }
+                      },
+                      "payments": {
+                        "defaultCurrency": "USD",
+                        "transactionFeePercent": 2.5
+                      },
+                      "notifications": {
+                        "pushNotificationsEnabled": true,
+                        "emailNotificationsEnabled": true,
+                        "smtpConfigured": true
+                      }
+                    },
+                    "message": "System settings fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch system settings",
+        "tags": [
+          "02 Admin - System Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. SUPER_ADMIN or ADMIN with systemSettings.update. Session timeout and payment fee changes apply to future sessions/transactions only.",
+        "operationId": "SystemSettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSystemSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update system settings",
+        "tags": [
+          "02 Admin - System Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.update"
+      }
+    },
+    "/api/v1/admin/system-settings/logo": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. SUPER_ADMIN or ADMIN with systemSettings.update. Provide a completed Storage upload reference when available; only URL/reference is stored.",
+        "operationId": "SystemSettingsController_logo",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLogoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update system logo URL/reference",
+        "tags": [
+          "02 Admin - System Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.update"
+      }
+    },
+    "/api/v1/admin/system-settings/smtp/test": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. SUPER_ADMIN or ADMIN with systemSettings.update. Uses configured mailer and does not expose SMTP password or secrets.",
+        "operationId": "SystemSettingsController_smtpTest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmtpTestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send SMTP test email",
+        "tags": [
+          "02 Admin - System Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.update"
+      }
+    },
+    "/api/v1/admin/system-settings/audit-logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SUPER_ADMIN or ADMIN with systemSettings.read.",
+        "operationId": "SystemSettingsController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List system settings audit logs",
+        "tags": [
+          "02 Admin - System Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
+      }
     }
   },
   "info": {
@@ -23398,6 +23613,9 @@
     },
     {
       "name": "02 Admin - Media Upload Policy"
+    },
+    {
+      "name": "02 Admin - System Settings"
     },
     {
       "name": "02 Admin - System Logs & Audit Trail"
@@ -28467,6 +28685,165 @@
         },
         "required": [
           "uploadId"
+        ]
+      },
+      "PlatformInfoDto": {
+        "type": "object",
+        "properties": {
+          "applicationName": {
+            "type": "string",
+            "example": "Gift App"
+          },
+          "supportEmail": {
+            "type": "string",
+            "example": "support@giftapp.com"
+          },
+          "platformLogoUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/logo.png"
+          }
+        },
+        "required": [
+          "applicationName",
+          "supportEmail"
+        ]
+      },
+      "PasswordPolicyDto": {
+        "type": "object",
+        "properties": {
+          "minLength": {
+            "type": "number",
+            "example": 8
+          },
+          "requireUppercase": {
+            "type": "boolean",
+            "example": true
+          },
+          "requireLowercase": {
+            "type": "boolean",
+            "example": true
+          },
+          "requireNumber": {
+            "type": "boolean",
+            "example": true
+          },
+          "requireSymbol": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "minLength",
+          "requireUppercase",
+          "requireLowercase",
+          "requireNumber",
+          "requireSymbol"
+        ]
+      },
+      "SecuritySettingsDto": {
+        "type": "object",
+        "properties": {
+          "sessionTimeoutMinutes": {
+            "type": "number",
+            "example": 30
+          },
+          "adminMfaRequired": {
+            "type": "boolean",
+            "example": true
+          },
+          "passwordPolicy": {
+            "$ref": "#/components/schemas/PasswordPolicyDto"
+          }
+        },
+        "required": [
+          "sessionTimeoutMinutes",
+          "adminMfaRequired",
+          "passwordPolicy"
+        ]
+      },
+      "PaymentSettingsDto": {
+        "type": "object",
+        "properties": {
+          "defaultCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "transactionFeePercent": {
+            "type": "number",
+            "example": 2.5
+          }
+        },
+        "required": [
+          "defaultCurrency",
+          "transactionFeePercent"
+        ]
+      },
+      "NotificationSettingsDto": {
+        "type": "object",
+        "properties": {
+          "pushNotificationsEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "emailNotificationsEnabled": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "pushNotificationsEnabled",
+          "emailNotificationsEnabled"
+        ]
+      },
+      "UpdateSystemSettingsDto": {
+        "type": "object",
+        "properties": {
+          "platformInfo": {
+            "$ref": "#/components/schemas/PlatformInfoDto"
+          },
+          "security": {
+            "$ref": "#/components/schemas/SecuritySettingsDto"
+          },
+          "payments": {
+            "$ref": "#/components/schemas/PaymentSettingsDto"
+          },
+          "notifications": {
+            "$ref": "#/components/schemas/NotificationSettingsDto"
+          }
+        },
+        "required": [
+          "platformInfo",
+          "security",
+          "payments",
+          "notifications"
+        ]
+      },
+      "UpdateLogoDto": {
+        "type": "object",
+        "properties": {
+          "platformLogoUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/logo.png"
+          },
+          "uploadId": {
+            "type": "string",
+            "example": "upload_id"
+          }
+        },
+        "required": [
+          "platformLogoUrl"
+        ]
+      },
+      "SmtpTestDto": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "example": "admin@giftapp.com"
+          }
+        },
+        "required": [
+          "to"
         ]
       }
     }

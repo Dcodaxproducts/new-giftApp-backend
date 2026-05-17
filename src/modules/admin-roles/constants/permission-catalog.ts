@@ -255,6 +255,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'systemSettings',
+    label: 'System Settings',
+    permissions: [
+      { key: 'read', label: 'View System Settings', description: 'View platform, security, payment, and notification settings.' },
+      { key: 'update', label: 'Update System Settings', description: 'Update platform, security, payment, notification, logo, and SMTP test settings.' },
+    ],
+  },
+  {
     module: 'settings',
     label: 'Settings',
     permissions: [

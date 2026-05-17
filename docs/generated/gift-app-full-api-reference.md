@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-17 05:46 UTC
+Generated: 2026-05-17 06:10 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -23,6 +23,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Referral Settings (6 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
+- 02 Admin - System Settings (5 APIs)
 - 02 Admin - System Logs & Audit Trail (6 APIs)
 - 02 Admin - Dispute Manager (8 APIs)
 - 02 Admin - Dispute Evidence (1 APIs)
@@ -3886,6 +3887,154 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Summary: List media upload policy audit logs
 - Allowed role/access: SUPER_ADMIN
 - Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Media upload policy audit logs. SUPER_ADMIN only.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - System Settings
+
+### GET `/api/v1/admin/system-settings`
+
+- Summary: Fetch system settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SUPER_ADMIN or ADMIN with systemSettings.read. SMTP secrets are never returned.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "platformInfo": {
+      "applicationName": "Gift App",
+      "supportEmail": "support@giftapp.com",
+      "platformLogoUrl": "https://cdn.example.com/logo.png"
+    },
+    "security": {
+      "sessionTimeoutMinutes": 30,
+      "adminMfaRequired": true,
+      "passwordPolicy": {
+        "minLength": 8,
+        "requireUppercase": true,
+        "requireLowercase": true,
+        "requireNumber": true,
+        "requireSymbol": true
+      }
+    },
+    "payments": {
+      "defaultCurrency": "USD",
+      "transactionFeePercent": 2.5
+    },
+    "notifications": {
+      "pushNotificationsEnabled": true,
+      "emailNotificationsEnabled": true,
+      "smtpConfigured": true
+    }
+  },
+  "message": "System settings fetched successfully."
+}
+```
+
+### PATCH `/api/v1/admin/system-settings`
+
+- Summary: Update system settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. SUPER_ADMIN or ADMIN with systemSettings.update. Session timeout and payment fee changes apply to future sessions/transactions only.
+- Request payload(s):
+  - payload:
+```json
+{
+  "platformInfo": {
+    "applicationName": "Gift App",
+    "supportEmail": "support@giftapp.com",
+    "platformLogoUrl": "https://cdn.example.com/logo.png"
+  },
+  "security": {
+    "sessionTimeoutMinutes": 30,
+    "adminMfaRequired": true,
+    "passwordPolicy": {
+      "minLength": 8,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumber": true,
+      "requireSymbol": true
+    }
+  },
+  "payments": {
+    "defaultCurrency": "USD",
+    "transactionFeePercent": 2.5
+  },
+  "notifications": {
+    "pushNotificationsEnabled": true,
+    "emailNotificationsEnabled": true
+  }
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/system-settings/logo`
+
+- Summary: Update system logo URL/reference
+- Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. SUPER_ADMIN or ADMIN with systemSettings.update. Provide a completed Storage upload reference when available; only URL/reference is stored.
+- Request payload(s):
+  - payload:
+```json
+{
+  "platformLogoUrl": "https://cdn.example.com/logo.png",
+  "uploadId": "upload_id"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/system-settings/smtp/test`
+
+- Summary: Send SMTP test email
+- Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. SUPER_ADMIN or ADMIN with systemSettings.update. Uses configured mailer and does not expose SMTP password or secrets.
+- Request payload(s):
+  - payload:
+```json
+{
+  "to": "admin@giftapp.com"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/system-settings/audit-logs`
+
+- Summary: List system settings audit logs
+- Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SUPER_ADMIN or ADMIN with systemSettings.read.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
