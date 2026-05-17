@@ -159,6 +159,15 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'providerPayouts',
+    label: 'Provider Payouts',
+    permissions: [
+      { key: 'read', label: 'View Provider Payouts', description: 'View provider payout dashboard, lists, and details.' },
+      { key: 'export', label: 'Export Provider Payouts', description: 'Export provider payout records.' },
+      { key: 'initiate', label: 'Initiate Provider Payouts', description: 'Start provider payout workflows from the dashboard.' },
+    ],
+  },
+  {
     module: 'payoutSettings',
     label: 'Commission & Payout Settings',
     permissions: [

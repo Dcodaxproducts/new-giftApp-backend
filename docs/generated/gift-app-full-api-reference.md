@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-17 04:48 UTC
+Generated: 2026-05-17 05:05 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -15,6 +15,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
+- 02 Admin - Provider Payouts (6 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
@@ -2225,6 +2226,189 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "totalPages": 1
   },
   "message": "Payout settings audit logs fetched successfully."
+}
+```
+
+## 02 Admin - Provider Payouts
+
+### GET `/api/v1/admin/provider-payouts/stats`
+
+- Summary: Fetch provider payout dashboard stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Aggregates from provider payout records only; no frontend totals are trusted.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "totalPayoutsThisMonth": 128430,
+    "totalPayoutsDeltaPercent": 12.5,
+    "pendingPayouts": 12250,
+    "pendingPayoutsDeltaPercent": -2.4,
+    "completedPayouts": 116180,
+    "completedPayoutsDeltaPercent": 14.2,
+    "platformRevenue": 19264.5,
+    "platformRevenueDeltaPercent": 8.1,
+    "currency": "USD"
+  },
+  "message": "Provider payout stats fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/trends`
+
+- Summary: Fetch monthly provider payout trend
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "range": "LAST_12_MONTHS",
+    "labels": [
+      "Jan",
+      "Feb",
+      "Mar"
+    ],
+    "values": [
+      12000,
+      28000,
+      16000
+    ],
+    "currency": "USD"
+  },
+  "message": "Provider payout trends fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/earning-distribution`
+
+- Summary: Fetch earning distribution by provider tier
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Uses provider earnings ledger totals and active commission tier thresholds.
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "tierId": "tier_silver",
+      "tierName": "Silver Partner",
+      "providerCount": 18,
+      "totalEarnings": 450230,
+      "currency": "USD"
+    }
+  ],
+  "message": "Provider earning distribution fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/export`
+
+- Summary: Export provider payouts
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.export
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `status` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+  - `format` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts`
+
+- Summary: List provider payouts
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `status` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "payout_id",
+      "provider": {
+        "id": "provider_id",
+        "businessName": "TechSolutions Inc.",
+        "providerCode": "PRV-90210",
+        "avatarUrl": "https://cdn.example.com/provider.png"
+      },
+      "pendingAmount": 3420,
+      "currency": "USD",
+      "lastPayoutDate": "2023-10-12T00:00:00.000Z",
+      "nextPayoutDate": "2023-11-12T00:00:00.000Z",
+      "status": "COMPLETED"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Provider payouts fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/{id}`
+
+- Summary: Fetch provider payout details
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "provider": {
+      "id": "provider_id",
+      "businessName": "TechSolutions Inc.",
+      "providerCode": "PRV-90210",
+      "avatarUrl": "https://cdn.example.com/provider.png"
+    },
+    "pendingAmount": 3420,
+    "amount": 3420,
+    "processingFee": 42,
+    "totalToReceive": 3378,
+    "currency": "USD",
+    "status": "COMPLETED",
+    "destination": {
+      "id": "method_id",
+      "bankName": "Chase Bank",
+      "maskedAccount": "****1234",
+      "last4": "1234",
+      "verificationStatus": "VERIFIED"
+    },
+    "createdAt": "2023-10-12T00:00:00.000Z"
+  },
+  "message": "Provider payout details fetched successfully."
 }
 ```
 

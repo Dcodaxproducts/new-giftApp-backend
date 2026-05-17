@@ -7,6 +7,7 @@ import { PublicController } from './public.controller';
 import { AdminDashboardModule } from './modules/admin-dashboard/admin-dashboard.module';
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
 import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
+import { AdminProviderPayoutsModule } from './modules/admin-provider-payouts/admin-provider-payouts.module';
 import { AdminTransactionsModule } from './modules/admin-transactions/admin-transactions.module';
 import { AdminManagementModule } from './modules/admin-management/admin-management.module';
 import { AdminPayoutSettingsModule } from './modules/admin-payout-settings/admin-payout-settings.module';
@@ -53,6 +54,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminDashboardModule,
     AdminDisputesModule,
     AdminProviderDisputesModule,
+    AdminProviderPayoutsModule,
     AdminTransactionsModule,
     AdminManagementModule,
     AdminPayoutSettingsModule,

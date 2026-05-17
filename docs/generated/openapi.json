@@ -4084,6 +4084,489 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       }
     },
+    "/api/v1/admin/provider-payouts/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Aggregates from provider payout records only; no frontend totals are trusted.",
+        "operationId": "AdminProviderPayoutsController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalPayoutsThisMonth": 128430,
+                      "totalPayoutsDeltaPercent": 12.5,
+                      "pendingPayouts": 12250,
+                      "pendingPayoutsDeltaPercent": -2.4,
+                      "completedPayouts": 116180,
+                      "completedPayoutsDeltaPercent": 14.2,
+                      "platformRevenue": 19264.5,
+                      "platformRevenueDeltaPercent": 8.1,
+                      "currency": "USD"
+                    },
+                    "message": "Provider payout stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider payout dashboard stats",
+        "tags": [
+          "02 Admin - Provider Payouts"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
+    "/api/v1/admin/provider-payouts/trends": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.",
+        "operationId": "AdminProviderPayoutsController_trends",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "range": "LAST_12_MONTHS",
+                      "labels": [
+                        "Jan",
+                        "Feb",
+                        "Mar"
+                      ],
+                      "values": [
+                        12000,
+                        28000,
+                        16000
+                      ],
+                      "currency": "USD"
+                    },
+                    "message": "Provider payout trends fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch monthly provider payout trend",
+        "tags": [
+          "02 Admin - Provider Payouts"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
+    "/api/v1/admin/provider-payouts/earning-distribution": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Uses provider earnings ledger totals and active commission tier thresholds.",
+        "operationId": "AdminProviderPayoutsController_earningDistribution",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "tierId": "tier_silver",
+                        "tierName": "Silver Partner",
+                        "providerCount": 18,
+                        "totalEarnings": 450230,
+                        "currency": "USD"
+                      }
+                    ],
+                    "message": "Provider earning distribution fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch earning distribution by provider tier",
+        "tags": [
+          "02 Admin - Provider Payouts"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
+    "/api/v1/admin/provider-payouts/export": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.",
+        "operationId": "AdminProviderPayoutsController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "TechSolutions",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PENDING",
+                "PROCESSING",
+                "COMPLETED",
+                "FAILED",
+                "ON_HOLD",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status",
+                "nextPayoutDate"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CSV"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export provider payouts",
+        "tags": [
+          "02 Admin - Provider Payouts"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.export",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.export"
+      }
+    },
+    "/api/v1/admin/provider-payouts": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.",
+        "operationId": "AdminProviderPayoutsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "TechSolutions",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "PENDING",
+                "PROCESSING",
+                "COMPLETED",
+                "FAILED",
+                "ON_HOLD",
+                "REJECTED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "createdAt",
+                "amount",
+                "status",
+                "nextPayoutDate"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "payout_id",
+                        "provider": {
+                          "id": "provider_id",
+                          "businessName": "TechSolutions Inc.",
+                          "providerCode": "PRV-90210",
+                          "avatarUrl": "https://cdn.example.com/provider.png"
+                        },
+                        "pendingAmount": 3420,
+                        "currency": "USD",
+                        "lastPayoutDate": "2023-10-12T00:00:00.000Z",
+                        "nextPayoutDate": "2023-11-12T00:00:00.000Z",
+                        "status": "COMPLETED"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Provider payouts fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List provider payouts",
+        "tags": [
+          "02 Admin - Provider Payouts"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
+    "/api/v1/admin/provider-payouts/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.",
+        "operationId": "AdminProviderPayoutsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "payout_id",
+                      "provider": {
+                        "id": "provider_id",
+                        "businessName": "TechSolutions Inc.",
+                        "providerCode": "PRV-90210",
+                        "avatarUrl": "https://cdn.example.com/provider.png"
+                      },
+                      "pendingAmount": 3420,
+                      "amount": 3420,
+                      "processingFee": 42,
+                      "totalToReceive": 3378,
+                      "currency": "USD",
+                      "status": "COMPLETED",
+                      "destination": {
+                        "id": "method_id",
+                        "bankName": "Chase Bank",
+                        "maskedAccount": "****1234",
+                        "last4": "1234",
+                        "verificationStatus": "VERIFIED"
+                      },
+                      "createdAt": "2023-10-12T00:00:00.000Z"
+                    },
+                    "message": "Provider payout details fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch provider payout details",
+        "tags": [
+          "02 Admin - Provider Payouts"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
     "/api/v1/admin/transactions/stats": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.",
@@ -22553,6 +23036,9 @@
     },
     {
       "name": "02 Admin - Commission & Payout Settings"
+    },
+    {
+      "name": "02 Admin - Provider Payouts"
     },
     {
       "name": "02 Admin - Transaction Monitoring"
