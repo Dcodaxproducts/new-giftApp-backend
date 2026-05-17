@@ -99,8 +99,22 @@ describe('Customer orders repository cleanup', () => {
     expect(createOrderSource).toContain('providerSubtotal');
     expect(createOrderSource).toContain('providerDiscount');
     expect(createOrderSource).toContain('ProviderOrderStatus.PENDING');
+    expect(createOrderSource).toContain('this.providerPayoutCalculation(tx, providerId, providerSubtotal - providerDiscount)');
+    expect(createOrderSource).toContain('platformFee: new Prisma.Decimal(payout.platformFee)');
+    expect(createOrderSource).toContain('totalPayout: new Prisma.Decimal(payout.totalPayout)');
     expect(createOrderSource).toContain('createProviderSubOrder');
     expect(createOrderSource).toContain('createProviderOrderItem');
+  });
+
+  it('future provider payout calculations read admin payout settings and commission tiers', () => {
+    expect(repository).toContain('findActivePayoutSettings');
+    expect(repository).toContain('tx.adminPayoutSettings.findFirst');
+    expect(repository).toContain('findActiveCommissionTiers');
+    expect(repository).toContain('tx.commissionTier.findMany');
+    expect(repository).toContain('sumProviderOrderEarnings');
+    expect(repository).toContain('ProviderEarningsLedgerType.ORDER_EARNING');
+    expect(service).toContain('private async providerPayoutCalculation');
+    expect(service).toContain('tier?.commissionRatePercent ?? settings?.platformRatePercent ?? 0');
   });
 
   it('stock behavior remains unchanged', () => {

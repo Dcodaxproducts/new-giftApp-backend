@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CartStatus, NotificationRecipientType, Prisma } from '@prisma/client';
+import { CartStatus, NotificationRecipientType, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
 
@@ -81,6 +81,19 @@ export class CustomerOrdersRepository {
 
   createProviderSubOrder(tx: CheckoutTransaction, data: CreateProviderOrderData) {
     return tx.providerOrder.create({ data });
+  }
+
+  findActivePayoutSettings(tx: CheckoutTransaction) {
+    return tx.adminPayoutSettings.findFirst({ orderBy: { createdAt: 'asc' } });
+  }
+
+  findActiveCommissionTiers(tx: CheckoutTransaction) {
+    return tx.commissionTier.findMany({ where: { deletedAt: null, isActive: true }, orderBy: { orderVolumeThreshold: 'desc' } });
+  }
+
+  async sumProviderOrderEarnings(tx: CheckoutTransaction, providerId: string) {
+    const aggregate = await tx.providerEarningsLedger.aggregate({ where: { providerId, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true } });
+    return Number(aggregate._sum.amount ?? 0);
   }
 
   findProviderOrderItems(tx: CheckoutTransaction, orderId: string, providerId: string) {

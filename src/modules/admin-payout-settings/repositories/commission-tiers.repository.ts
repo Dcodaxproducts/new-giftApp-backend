@@ -11,7 +11,7 @@ export class CommissionTiersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findActiveTiers() {
-    return this.prisma.commissionTier.findMany({ where: { deletedAt: null }, include: COMMISSION_TIER_INCLUDE, orderBy: [{ sortOrder: 'asc' }, { orderVolumeThreshold: 'asc' }] });
+    return this.prisma.commissionTier.findMany({ where: { deletedAt: null, isActive: true }, include: COMMISSION_TIER_INCLUDE, orderBy: [{ sortOrder: 'asc' }, { orderVolumeThreshold: 'asc' }] });
   }
 
   findTierById(id: string) {

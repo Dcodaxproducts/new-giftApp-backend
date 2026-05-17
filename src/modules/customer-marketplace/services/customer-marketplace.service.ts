@@ -241,7 +241,8 @@ export class CustomerMarketplaceService {
         const providerItems = cart.items.filter((item) => item.providerId === providerId);
         const providerSubtotal = providerItems.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0);
         const providerDiscount = providerItems.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0);
-        const providerOrder = await this.customerOrdersRepository.createProviderSubOrder(tx, { orderId: created.id, providerId, orderNumber: created.orderNumber, status: ProviderOrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), platformFee: new Prisma.Decimal(0), totalPayout: new Prisma.Decimal(providerSubtotal - providerDiscount), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency });
+        const payout = await this.providerPayoutCalculation(tx, providerId, providerSubtotal - providerDiscount);
+        const providerOrder = await this.customerOrdersRepository.createProviderSubOrder(tx, { orderId: created.id, providerId, orderNumber: created.orderNumber, status: ProviderOrderStatus.PENDING, subtotal: new Prisma.Decimal(providerSubtotal), discountTotal: new Prisma.Decimal(providerDiscount), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(0), platformFee: new Prisma.Decimal(payout.platformFee), totalPayout: new Prisma.Decimal(payout.totalPayout), total: new Prisma.Decimal(providerSubtotal - providerDiscount), currency: summary.currency });
         const orderItems = await this.customerOrdersRepository.findProviderOrderItems(tx, created.id, providerId);
         for (const orderItem of orderItems) await this.customerOrdersRepository.createProviderOrderItem(tx, { providerOrderId: providerOrder.id, orderItemId: orderItem.id, giftId: orderItem.giftId, variantId: orderItem.variantId, nameSnapshot: orderItem.gift.name, variantNameSnapshot: orderItem.variant?.name, quantity: orderItem.quantity, unitPrice: orderItem.finalUnitPrice, total: orderItem.total, imageUrl: this.firstImage(orderItem.gift.imageUrls) });
       }
@@ -324,6 +325,18 @@ export class CustomerMarketplaceService {
   private toReminder(reminder: CustomerReminder) { return { id: reminder.id, title: reminder.title, recipientName: reminder.recipientName, eventType: reminder.eventType, reminderDate: reminder.reminderDate, notes: reminder.notes, isActive: reminder.isActive, createdAt: reminder.createdAt, updatedAt: reminder.updatedAt }; }
   private toCart(cart: CartView) { const items = cart.items.map((item) => this.toCartItem(item)); return { id: cart.id, status: cart.status, items, summary: this.cartSummary(cart.items), createdAt: cart.createdAt, updatedAt: cart.updatedAt }; }
   private toCartItem(item: CartItemView) { return { id: item.id, giftId: item.giftId, variantId: item.variantId, providerId: item.providerId, name: item.gift.name, variantName: item.variant?.name ?? null, quantity: item.quantity, unitPrice: Number(item.unitPriceSnapshot), discountAmount: Number(item.discountAmountSnapshot), finalUnitPrice: Number(item.finalUnitPriceSnapshot), lineTotal: Number(item.finalUnitPriceSnapshot) * item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), promotionalOfferId: item.promotionalOfferId, deliveryOption: item.deliveryOption, recipient: { contactId: item.recipientContactId, name: item.recipientName, phone: item.recipientPhone, addressId: item.recipientAddressId }, eventId: item.eventId, giftMessage: item.giftMessage, messageMediaUrls: this.stringArray(item.messageMediaUrlsJson), scheduledDeliveryAt: item.scheduledDeliveryAt, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
+  private async providerPayoutCalculation(tx: Prisma.TransactionClient, providerId: string, grossAmount: number): Promise<{ platformFee: number; totalPayout: number }> {
+    const [settings, tiers, providerEarnings] = await Promise.all([
+      this.customerOrdersRepository.findActivePayoutSettings(tx),
+      this.customerOrdersRepository.findActiveCommissionTiers(tx),
+      this.customerOrdersRepository.sumProviderOrderEarnings(tx, providerId),
+    ]);
+    const tier = tiers.find((item) => providerEarnings >= Number(item.orderVolumeThreshold));
+    const rate = Number(tier?.commissionRatePercent ?? settings?.platformRatePercent ?? 0);
+    const platformFee = this.money((grossAmount * rate) / 100);
+    return { platformFee, totalPayout: this.money(Math.max(grossAmount - platformFee, 0)) };
+  }
+
   private cartSummary(items: CartItemView[]) { const subtotal = items.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0); const discountTotal = items.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0); const deliveryFee = 0; const taxableTotal = Math.max(0, subtotal - discountTotal + deliveryFee); const tax = 0; const total = this.money(taxableTotal + tax); return { subtotal: this.money(subtotal), discountTotal: this.money(discountTotal), deliveryFee, tax, total, currency: process.env.STRIPE_CURRENCY ?? 'PKR' }; }
   private money(value: number): number { return Number(value.toFixed(2)); }
   private toOrderListItem(order: OrderView, type?: OrderHistoryType) { return { id: order.id, orderNumber: order.orderNumber, type: type === OrderHistoryType.PAYMENTS_SENT ? OrderHistoryType.PAYMENTS_SENT : OrderHistoryType.GIFTS_SENT, recipientName: order.recipientName, occasion: null, status: order.status, paymentStatus: order.paymentStatus, total: Number(order.total), currency: order.currency, createdAt: order.createdAt }; }
