@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-17 04:33 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-17 04:48 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -685,6 +685,136 @@
     }
   ],
   &quot;message&quot;: &quot;Recent disputes fetched successfully.&quot;
+}</pre></div><h2>02 Admin - Commission &amp; Payout Settings</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/payout-settings</code></div><div><span class="label">Summary:</span> Fetch commission and payout settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;platformRatePercent&quot;: 5,
+    &quot;minimumPayoutThreshold&quot;: 100,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;payoutSchedule&quot;: &quot;MONTHLY_LAST_DAY&quot;,
+    &quot;payoutTimeUtc&quot;: &quot;00:00&quot;,
+    &quot;autoPayoutEnabled&quot;: true,
+    &quot;lastUpdatedAt&quot;: &quot;2026-05-16T10:00:00.000Z&quot;,
+    &quot;commissionTiers&quot;: [
+      {
+        &quot;id&quot;: &quot;tier_standard&quot;,
+        &quot;name&quot;: &quot;Standard Tier&quot;,
+        &quot;commissionRatePercent&quot;: 15,
+        &quot;orderVolumeThreshold&quot;: 0,
+        &quot;sortOrder&quot;: 1,
+        &quot;isActive&quot;: true
+      },
+      {
+        &quot;id&quot;: &quot;tier_silver&quot;,
+        &quot;name&quot;: &quot;Silver Partner&quot;,
+        &quot;commissionRatePercent&quot;: 12.5,
+        &quot;orderVolumeThreshold&quot;: 5000,
+        &quot;sortOrder&quot;: 2,
+        &quot;isActive&quot;: true
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Payout settings fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/payout-settings</code></div><div><span class="label">Summary:</span> Update commission and payout settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. SUPER_ADMIN or ADMIN with payoutSettings.update. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.</div><div class="label">Request payload(s):</div><div class="small">update</div><pre>{
+  &quot;platformRatePercent&quot;: 5,
+  &quot;minimumPayoutThreshold&quot;: 100,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;payoutSchedule&quot;: &quot;MONTHLY_LAST_DAY&quot;,
+  &quot;payoutTimeUtc&quot;: &quot;00:00&quot;,
+  &quot;autoPayoutEnabled&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;platformRatePercent&quot;: 5,
+    &quot;minimumPayoutThreshold&quot;: 100,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;payoutSchedule&quot;: &quot;MONTHLY_LAST_DAY&quot;,
+    &quot;payoutTimeUtc&quot;: &quot;00:00&quot;,
+    &quot;autoPayoutEnabled&quot;: true,
+    &quot;lastUpdatedAt&quot;: &quot;2026-05-16T10:00:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Payout settings updated successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/payout-settings/commission-tiers</code></div><div><span class="label">Summary:</span> List commission tiers</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns active commission tiers ordered by sort order and threshold.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;tier_standard&quot;,
+      &quot;name&quot;: &quot;Standard Tier&quot;,
+      &quot;commissionRatePercent&quot;: 15,
+      &quot;orderVolumeThreshold&quot;: 0,
+      &quot;sortOrder&quot;: 1,
+      &quot;isActive&quot;: true
+    }
+  ],
+  &quot;message&quot;: &quot;Commission tiers fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/payout-settings/commission-tiers</code></div><div><span class="label">Summary:</span> Create commission tier</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. SUPER_ADMIN or ADMIN with payoutSettings.update. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.</div><div class="label">Request payload(s):</div><div class="small">create</div><pre>{
+  &quot;name&quot;: &quot;Gold Elite&quot;,
+  &quot;commissionRatePercent&quot;: 10,
+  &quot;orderVolumeThreshold&quot;: 15000,
+  &quot;sortOrder&quot;: 3,
+  &quot;isActive&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;tier_gold&quot;,
+    &quot;name&quot;: &quot;Gold Elite&quot;,
+    &quot;commissionRatePercent&quot;: 10,
+    &quot;orderVolumeThreshold&quot;: 15000,
+    &quot;sortOrder&quot;: 3,
+    &quot;isActive&quot;: true
+  },
+  &quot;message&quot;: &quot;Commission tier created successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/payout-settings/commission-tiers/{id}</code></div><div><span class="label">Summary:</span> Update commission tier</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. SUPER_ADMIN or ADMIN with payoutSettings.update. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">update</div><pre>{
+  &quot;name&quot;: &quot;Gold Elite&quot;,
+  &quot;commissionRatePercent&quot;: 10,
+  &quot;orderVolumeThreshold&quot;: 15000,
+  &quot;sortOrder&quot;: 3,
+  &quot;isActive&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;tier_gold&quot;,
+    &quot;name&quot;: &quot;Gold Elite&quot;,
+    &quot;commissionRatePercent&quot;: 10,
+    &quot;orderVolumeThreshold&quot;: 15000,
+    &quot;sortOrder&quot;: 3,
+    &quot;isActive&quot;: true
+  },
+  &quot;message&quot;: &quot;Commission tier updated successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method DELETE">DELETE</span> <code>/api/v1/admin/payout-settings/commission-tiers/{id}</code></div><div><span class="label">Summary:</span> Delete commission tier</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged. SUPER_ADMIN or ADMIN with payoutSettings.update. Soft-deletes a tier for future calculations only; historical payouts remain unchanged.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>&quot;&lt;standard success envelope&gt;&quot;</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;tier_gold&quot;,
+    &quot;deleted&quot;: true
+  },
+  &quot;message&quot;: &quot;Commission tier deleted successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/payout-settings/audit-logs</code></div><div><span class="label">Summary:</span> List payout settings audit logs</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with payoutSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;audit_log_id&quot;,
+      &quot;action&quot;: &quot;PAYOUT_SETTINGS_UPDATED&quot;,
+      &quot;actor&quot;: {
+        &quot;id&quot;: &quot;admin_id&quot;,
+        &quot;name&quot;: &quot;Alex Rivera&quot;
+      },
+      &quot;targetType&quot;: &quot;PAYOUT_SETTINGS&quot;,
+      &quot;before&quot;: {
+        &quot;platformRatePercent&quot;: 5
+      },
+      &quot;after&quot;: {
+        &quot;platformRatePercent&quot;: 6
+      },
+      &quot;createdAt&quot;: &quot;2026-05-16T10:00:00.000Z&quot;
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Payout settings audit logs fetched successfully.&quot;
 }</pre></div><h2>02 Admin - Transaction Monitoring</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/stats</code></div><div><span class="label">Summary:</span> Fetch transaction monitoring stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.</div><div class="label">Parameters:</div><ul><li><code>range</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>transactionType</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {

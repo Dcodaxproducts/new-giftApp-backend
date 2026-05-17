@@ -5648,6 +5648,440 @@
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard."
       }
     },
+    "/api/v1/admin/payout-settings": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.",
+        "operationId": "AdminPayoutSettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "platformRatePercent": 5,
+                      "minimumPayoutThreshold": 100,
+                      "currency": "USD",
+                      "payoutSchedule": "MONTHLY_LAST_DAY",
+                      "payoutTimeUtc": "00:00",
+                      "autoPayoutEnabled": true,
+                      "lastUpdatedAt": "2026-05-16T10:00:00.000Z",
+                      "commissionTiers": [
+                        {
+                          "id": "tier_standard",
+                          "name": "Standard Tier",
+                          "commissionRatePercent": 15,
+                          "orderVolumeThreshold": 0,
+                          "sortOrder": 1,
+                          "isActive": true
+                        },
+                        {
+                          "id": "tier_silver",
+                          "name": "Silver Partner",
+                          "commissionRatePercent": 12.5,
+                          "orderVolumeThreshold": 5000,
+                          "sortOrder": 2,
+                          "isActive": true
+                        }
+                      ]
+                    },
+                    "message": "Payout settings fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch commission and payout settings",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. SUPER_ADMIN or ADMIN with payoutSettings.update. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.",
+        "operationId": "AdminPayoutSettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAdminPayoutSettingsDto"
+              },
+              "examples": {
+                "update": {
+                  "value": {
+                    "platformRatePercent": 5,
+                    "minimumPayoutThreshold": 100,
+                    "currency": "USD",
+                    "payoutSchedule": "MONTHLY_LAST_DAY",
+                    "payoutTimeUtc": "00:00",
+                    "autoPayoutEnabled": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "platformRatePercent": 5,
+                      "minimumPayoutThreshold": 100,
+                      "currency": "USD",
+                      "payoutSchedule": "MONTHLY_LAST_DAY",
+                      "payoutTimeUtc": "00:00",
+                      "autoPayoutEnabled": true,
+                      "lastUpdatedAt": "2026-05-16T10:00:00.000Z"
+                    },
+                    "message": "Payout settings updated successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update commission and payout settings",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
+      }
+    },
+    "/api/v1/admin/payout-settings/commission-tiers": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns active commission tiers ordered by sort order and threshold.",
+        "operationId": "AdminPayoutSettingsController_tiers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "tier_standard",
+                        "name": "Standard Tier",
+                        "commissionRatePercent": 15,
+                        "orderVolumeThreshold": 0,
+                        "sortOrder": 1,
+                        "isActive": true
+                      }
+                    ],
+                    "message": "Commission tiers fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List commission tiers",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.read"
+      },
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. SUPER_ADMIN or ADMIN with payoutSettings.update. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.",
+        "operationId": "AdminPayoutSettingsController_createTier",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertCommissionTierDto"
+              },
+              "examples": {
+                "create": {
+                  "value": {
+                    "name": "Gold Elite",
+                    "commissionRatePercent": 10,
+                    "orderVolumeThreshold": 15000,
+                    "sortOrder": 3,
+                    "isActive": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "tier_gold",
+                      "name": "Gold Elite",
+                      "commissionRatePercent": 10,
+                      "orderVolumeThreshold": 15000,
+                      "sortOrder": 3,
+                      "isActive": true
+                    },
+                    "message": "Commission tier created successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create commission tier",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
+      }
+    },
+    "/api/v1/admin/payout-settings/commission-tiers/{id}": {
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. SUPER_ADMIN or ADMIN with payoutSettings.update. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.",
+        "operationId": "AdminPayoutSettingsController_updateTier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertCommissionTierDto"
+              },
+              "examples": {
+                "update": {
+                  "value": {
+                    "name": "Gold Elite",
+                    "commissionRatePercent": 10,
+                    "orderVolumeThreshold": 15000,
+                    "sortOrder": 3,
+                    "isActive": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "tier_gold",
+                      "name": "Gold Elite",
+                      "commissionRatePercent": 10,
+                      "orderVolumeThreshold": 15000,
+                      "sortOrder": 3,
+                      "isActive": true
+                    },
+                    "message": "Commission tier updated successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update commission tier",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
+      },
+      "delete": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged. SUPER_ADMIN or ADMIN with payoutSettings.update. Soft-deletes a tier for future calculations only; historical payouts remain unchanged.",
+        "operationId": "AdminPayoutSettingsController_deleteTier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "tier_gold",
+                      "deleted": true
+                    },
+                    "message": "Commission tier deleted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete commission tier",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
+      }
+    },
+    "/api/v1/admin/payout-settings/audit-logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.",
+        "operationId": "AdminPayoutSettingsController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "audit_log_id",
+                        "action": "PAYOUT_SETTINGS_UPDATED",
+                        "actor": {
+                          "id": "admin_id",
+                          "name": "Alex Rivera"
+                        },
+                        "targetType": "PAYOUT_SETTINGS",
+                        "before": {
+                          "platformRatePercent": 5
+                        },
+                        "after": {
+                          "platformRatePercent": 6
+                        },
+                        "createdAt": "2026-05-16T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Payout settings audit logs fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List payout settings audit logs",
+        "tags": [
+          "02 Admin - Commission & Payout Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.read"
+      }
+    },
     "/api/v1/admin/reviews/dashboard": {
       "get": {
         "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.",
@@ -22118,6 +22552,9 @@
       "name": "02 Admin - Dashboard Overview"
     },
     {
+      "name": "02 Admin - Commission & Payout Settings"
+    },
+    {
       "name": "02 Admin - Transaction Monitoring"
     },
     {
@@ -23234,6 +23671,90 @@
             "default": true
           }
         }
+      },
+      "UpdateAdminPayoutSettingsDto": {
+        "type": "object",
+        "properties": {
+          "platformRatePercent": {
+            "type": "number",
+            "example": 5,
+            "minimum": 0,
+            "maximum": 100
+          },
+          "minimumPayoutThreshold": {
+            "type": "number",
+            "example": 100,
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "payoutSchedule": {
+            "type": "string",
+            "enum": [
+              "WEEKLY_MONDAY",
+              "BIWEEKLY_FRIDAY",
+              "MONTHLY_LAST_DAY",
+              "MANUAL"
+            ],
+            "example": "MONTHLY_LAST_DAY"
+          },
+          "payoutTimeUtc": {
+            "type": "string",
+            "example": "00:00",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "autoPayoutEnabled": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "platformRatePercent",
+          "minimumPayoutThreshold",
+          "currency",
+          "payoutSchedule",
+          "payoutTimeUtc",
+          "autoPayoutEnabled"
+        ]
+      },
+      "UpsertCommissionTierDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Gold Elite",
+            "maxLength": 80
+          },
+          "commissionRatePercent": {
+            "type": "number",
+            "example": 10,
+            "minimum": 0,
+            "maximum": 100
+          },
+          "orderVolumeThreshold": {
+            "type": "number",
+            "example": 15000,
+            "minimum": 0
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 3,
+            "minimum": 1
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "commissionRatePercent",
+          "orderVolumeThreshold",
+          "sortOrder",
+          "isActive"
+        ]
       },
       "ModerateReviewDto": {
         "type": "object",

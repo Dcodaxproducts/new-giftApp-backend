@@ -9,6 +9,7 @@ import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.mod
 import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
 import { AdminTransactionsModule } from './modules/admin-transactions/admin-transactions.module';
 import { AdminManagementModule } from './modules/admin-management/admin-management.module';
+import { AdminPayoutSettingsModule } from './modules/admin-payout-settings/admin-payout-settings.module';
 import { AdminReviewsModule } from './modules/admin-reviews/admin-reviews.module';
 import { AdminRolesModule } from './modules/admin-roles/admin-roles.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
@@ -54,6 +55,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     AdminProviderDisputesModule,
     AdminTransactionsModule,
     AdminManagementModule,
+    AdminPayoutSettingsModule,
     AdminReviewsModule,
     AdminRolesModule,
     ProviderManagementModule,

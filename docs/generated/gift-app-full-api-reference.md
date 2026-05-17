@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-17 04:33 UTC
+Generated: 2026-05-17 04:48 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -14,6 +14,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Business Categories (5 APIs)
 - 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
+- 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
@@ -1993,6 +1994,237 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     }
   ],
   "message": "Recent disputes fetched successfully."
+}
+```
+
+## 02 Admin - Commission & Payout Settings
+
+### GET `/api/v1/admin/payout-settings`
+
+- Summary: Fetch commission and payout settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "platformRatePercent": 5,
+    "minimumPayoutThreshold": 100,
+    "currency": "USD",
+    "payoutSchedule": "MONTHLY_LAST_DAY",
+    "payoutTimeUtc": "00:00",
+    "autoPayoutEnabled": true,
+    "lastUpdatedAt": "2026-05-16T10:00:00.000Z",
+    "commissionTiers": [
+      {
+        "id": "tier_standard",
+        "name": "Standard Tier",
+        "commissionRatePercent": 15,
+        "orderVolumeThreshold": 0,
+        "sortOrder": 1,
+        "isActive": true
+      },
+      {
+        "id": "tier_silver",
+        "name": "Silver Partner",
+        "commissionRatePercent": 12.5,
+        "orderVolumeThreshold": 5000,
+        "sortOrder": 2,
+        "isActive": true
+      }
+    ]
+  },
+  "message": "Payout settings fetched successfully."
+}
+```
+
+### PATCH `/api/v1/admin/payout-settings`
+
+- Summary: Update commission and payout settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. SUPER_ADMIN or ADMIN with payoutSettings.update. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.
+- Request payload(s):
+  - update:
+```json
+{
+  "platformRatePercent": 5,
+  "minimumPayoutThreshold": 100,
+  "currency": "USD",
+  "payoutSchedule": "MONTHLY_LAST_DAY",
+  "payoutTimeUtc": "00:00",
+  "autoPayoutEnabled": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "platformRatePercent": 5,
+    "minimumPayoutThreshold": 100,
+    "currency": "USD",
+    "payoutSchedule": "MONTHLY_LAST_DAY",
+    "payoutTimeUtc": "00:00",
+    "autoPayoutEnabled": true,
+    "lastUpdatedAt": "2026-05-16T10:00:00.000Z"
+  },
+  "message": "Payout settings updated successfully."
+}
+```
+
+### GET `/api/v1/admin/payout-settings/commission-tiers`
+
+- Summary: List commission tiers
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns active commission tiers ordered by sort order and threshold.
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "tier_standard",
+      "name": "Standard Tier",
+      "commissionRatePercent": 15,
+      "orderVolumeThreshold": 0,
+      "sortOrder": 1,
+      "isActive": true
+    }
+  ],
+  "message": "Commission tiers fetched successfully."
+}
+```
+
+### POST `/api/v1/admin/payout-settings/commission-tiers`
+
+- Summary: Create commission tier
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. SUPER_ADMIN or ADMIN with payoutSettings.update. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.
+- Request payload(s):
+  - create:
+```json
+{
+  "name": "Gold Elite",
+  "commissionRatePercent": 10,
+  "orderVolumeThreshold": 15000,
+  "sortOrder": 3,
+  "isActive": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tier_gold",
+    "name": "Gold Elite",
+    "commissionRatePercent": 10,
+    "orderVolumeThreshold": 15000,
+    "sortOrder": 3,
+    "isActive": true
+  },
+  "message": "Commission tier created successfully."
+}
+```
+
+### PATCH `/api/v1/admin/payout-settings/commission-tiers/{id}`
+
+- Summary: Update commission tier
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. SUPER_ADMIN or ADMIN with payoutSettings.update. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - update:
+```json
+{
+  "name": "Gold Elite",
+  "commissionRatePercent": 10,
+  "orderVolumeThreshold": 15000,
+  "sortOrder": 3,
+  "isActive": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tier_gold",
+    "name": "Gold Elite",
+    "commissionRatePercent": 10,
+    "orderVolumeThreshold": 15000,
+    "sortOrder": 3,
+    "isActive": true
+  },
+  "message": "Commission tier updated successfully."
+}
+```
+
+### DELETE `/api/v1/admin/payout-settings/commission-tiers/{id}`
+
+- Summary: Delete commission tier
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged. SUPER_ADMIN or ADMIN with payoutSettings.update. Soft-deletes a tier for future calculations only; historical payouts remain unchanged.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tier_gold",
+    "deleted": true
+  },
+  "message": "Commission tier deleted successfully."
+}
+```
+
+### GET `/api/v1/admin/payout-settings/audit-logs`
+
+- Summary: List payout settings audit logs
+- Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "audit_log_id",
+      "action": "PAYOUT_SETTINGS_UPDATED",
+      "actor": {
+        "id": "admin_id",
+        "name": "Alex Rivera"
+      },
+      "targetType": "PAYOUT_SETTINGS",
+      "before": {
+        "platformRatePercent": 5
+      },
+      "after": {
+        "platformRatePercent": 6
+      },
+      "createdAt": "2026-05-16T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Payout settings audit logs fetched successfully."
 }
 ```
 

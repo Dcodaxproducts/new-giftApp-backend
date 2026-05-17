@@ -123,6 +123,14 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/dashboard/provider-performance': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table.' },
   'GET /api/v1/admin/dashboard/recent-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data.' },
 
+  'GET /api/v1/admin/payout-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.read', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read permission.' },
+  'PATCH /api/v1/admin/payout-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only.' },
+  'GET /api/v1/admin/payout-settings/commission-tiers': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.read', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read permission.' },
+  'POST /api/v1/admin/payout-settings/commission-tiers': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission.' },
+  'PATCH /api/v1/admin/payout-settings/commission-tiers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle.' },
+  'DELETE /api/v1/admin/payout-settings/commission-tiers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged.' },
+  'GET /api/v1/admin/payout-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.read', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read permission.' },
+
   'GET /api/v1/admin/transactions/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },
   'GET /api/v1/admin/transactions/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.export', description: 'SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets.' },
   'GET /api/v1/admin/transactions': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },

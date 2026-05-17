@@ -762,6 +762,14 @@ enum ProviderPayoutStatus {
   CANCELLED
 }
 
+enum AdminPayoutSchedule {
+  WEEKLY_MONDAY
+  BIWEEKLY_FRIDAY
+  MONTHLY_LAST_DAY
+  MANUAL
+}
+
+
 enum ProviderDisputeFinalRuling {
   CUSTOMER_WINS
   PROVIDER_WINS
@@ -917,6 +925,8 @@ model User {
   providerPayoutMethods               ProviderPayoutMethod[]
   providerEarningsLedger              ProviderEarningsLedger[]
   providerPayouts                     ProviderPayout[]
+  updatedPayoutSettings              AdminPayoutSettings[]              @relation("AdminPayoutSettingsUpdater")
+  updatedCommissionTiers             CommissionTier[]                    @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
   socialModerationLogs                SocialModerationLog[]                @relation("SocialModerationActor")
@@ -2470,6 +2480,42 @@ model ProviderFinancialAdjustment {
   @@index([providerId, createdAt])
   @@index([disputeId, createdAt])
   @@map("provider_financial_adjustments")
+}
+
+model AdminPayoutSettings {
+  id                     String              @id @default(cuid())
+  platformRatePercent    Decimal             @default(5) @map("platform_rate_percent") @db.Decimal(5, 2)
+  minimumPayoutThreshold Decimal             @default(100) @map("minimum_payout_threshold") @db.Decimal(10, 2)
+  currency               String              @default("USD")
+  payoutSchedule         AdminPayoutSchedule @default(MONTHLY_LAST_DAY) @map("payout_schedule")
+  payoutTimeUtc          String              @default("00:00") @map("payout_time_utc")
+  autoPayoutEnabled      Boolean             @default(true) @map("auto_payout_enabled")
+  updatedById            String?             @map("updated_by_id")
+  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("AdminPayoutSettingsUpdater", fields: [updatedById], references: [id])
+
+  @@map("admin_payout_settings")
+}
+
+model CommissionTier {
+  id                   String   @id @default(cuid())
+  name                 String
+  commissionRatePercent Decimal  @map("commission_rate_percent") @db.Decimal(5, 2)
+  orderVolumeThreshold Decimal  @map("order_volume_threshold") @db.Decimal(10, 2)
+  sortOrder            Int      @default(1) @map("sort_order")
+  isActive             Boolean  @default(true) @map("is_active")
+  updatedById          String?  @map("updated_by_id")
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("CommissionTierUpdater", fields: [updatedById], references: [id])
+
+  @@index([deletedAt, isActive, sortOrder])
+  @@index([orderVolumeThreshold, deletedAt])
+  @@map("commission_tiers")
 }
 
 model ProviderPayoutMethod {

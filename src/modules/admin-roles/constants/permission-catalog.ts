@@ -159,6 +159,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'payoutSettings',
+    label: 'Commission & Payout Settings',
+    permissions: [
+      { key: 'read', label: 'View Commission & Payout Settings', description: 'View platform commission, payout schedule, and commission tiers.' },
+      { key: 'update', label: 'Update Commission & Payout Settings', description: 'Update future payout settings and commission tiers.' },
+    ],
+  },
+  {
     module: 'transactions',
     label: 'Transactions',
     permissions: [
