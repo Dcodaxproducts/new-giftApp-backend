@@ -1,25 +1,23 @@
-# Admin Finance / Settings / Support Modules Integration Report
+# Admin Finance / Settings / Support Modules Integration Verification
 
 ## 1. Modules added
 
-- `AdminDashboardModule` — admin overview, revenue trends, gift/payment split, provider performance, and recent disputes.
-- `AdminProviderPayoutsModule` — pending payout queue, payout details/breakdown, approve/hold/reject/bulk approve/export, stats, and trends.
-- `AdminPayoutSettingsModule` — payout settings, active commission tiers, and audit logs.
-- `SystemSettingsModule` — platform/security/payment/notification settings, logo URL update, SMTP test, and audit logs.
-- `SupportChatModule` — separate admin support chat bounded context for provider/customer support tickets; it does not reuse or conflict with customer-provider order chat.
+- `admin-dashboard`
+- `admin-provider-payouts`
+- `admin-payout-settings`
+- `system-settings`
+- `support-chat`
 
 ## 2. APIs added
 
-### Admin dashboard
-
+### Admin Dashboard
 - `GET /api/v1/admin/dashboard/overview`
 - `GET /api/v1/admin/dashboard/revenue-trends`
 - `GET /api/v1/admin/dashboard/gift-vs-payment`
 - `GET /api/v1/admin/dashboard/provider-performance`
 - `GET /api/v1/admin/dashboard/recent-disputes`
 
-### Admin provider payouts
-
+### Admin Provider Payouts / Approvals
 - `GET /api/v1/admin/provider-payouts/stats`
 - `GET /api/v1/admin/provider-payouts/trends`
 - `GET /api/v1/admin/provider-payouts/earning-distribution`
@@ -32,8 +30,7 @@
 - `POST /api/v1/admin/provider-payouts/:id/hold`
 - `POST /api/v1/admin/provider-payouts/:id/reject`
 
-### Admin payout settings / commission
-
+### Admin Commission / Payout Settings
 - `GET /api/v1/admin/payout-settings`
 - `PATCH /api/v1/admin/payout-settings`
 - `GET /api/v1/admin/payout-settings/commission-tiers`
@@ -42,16 +39,14 @@
 - `DELETE /api/v1/admin/payout-settings/commission-tiers/:id`
 - `GET /api/v1/admin/payout-settings/audit-logs`
 
-### Admin system settings
-
+### Admin System Settings
 - `GET /api/v1/admin/system-settings`
 - `PATCH /api/v1/admin/system-settings`
 - `POST /api/v1/admin/system-settings/logo`
 - `POST /api/v1/admin/system-settings/smtp/test`
 - `GET /api/v1/admin/system-settings/audit-logs`
 
-### Admin support chat
-
+### Admin Support Chat
 - `GET /api/v1/admin/support-chats`
 - `GET /api/v1/admin/support-chats/stats`
 - `GET /api/v1/admin/support-chats/:id`
@@ -62,106 +57,89 @@
 
 ## 3. Existing modules reused
 
-- `ProviderEarningsPayoutsModule` / `ProviderEarningsPayoutsService` for provider payout requests, payout history, ledger summaries, and payout cancellation.
-- `ProviderOrdersModule` earning ledger upsert flow for completed/delivered provider orders.
-- `CustomerMarketplaceModule` checkout flow for provider sub-order creation and future payout base calculation.
-- `StorageModule` completed-upload ownership/status flow for system logo and support chat attachments.
-- `MailerModule` for SMTP test delivery.
-- `Notification` persistence for provider payout and support chat participant notifications.
-- `AuditLogWriterService` for payout settings, provider payout actions, and system settings audit entries.
-- Global `JwtAuthGuard`, `RolesGuard`, `PermissionsGuard`, response interceptor, and Swagger access metadata helpers.
+- `provider-earnings-payouts` for provider payout request/history lifecycle
+- `customer-marketplace` checkout/provider sub-order creation
+- `storage` for completed logo/support-chat attachment upload references
+- `mailer` for SMTP test sending
+- `broadcast-notifications` / notification table flow for payout + support chat notifications
+- `admin-roles` permission catalog and permission guard
+- `common/services/audit-log.service` for settings/payout audit trails
+- `database/prisma.service` repositories across all modules
 
 ## 4. Provider/customer flow integrations
 
-- Provider payout request flow verified at code/test level:
-  - Provider app creates `ProviderPayout` with `PENDING` status.
-  - A matching `ProviderEarningsLedger` debit is created with `PAYOUT_PENDING` status.
-  - A provider notification is created with type `PROVIDER_PAYOUT_REQUESTED`.
-  - Admin payout list reads the same `ProviderPayout` records, so pending provider requests appear in the admin queue.
-- Admin payout action flow verified:
-  - Approve transitions `PENDING`/`ON_HOLD` payout to `PROCESSING` and can notify the provider with `PROVIDER_PAYOUT_APPROVED`.
-  - Hold transitions `PENDING` payout to `ON_HOLD`, keeps ledger balance locked, stores the hold reason, and can notify the provider with `PROVIDER_PAYOUT_ON_HOLD`.
-  - Reject transitions `PENDING`/`ON_HOLD` payout to `REJECTED`, releases matching `PAYOUT_PENDING` ledger rows back to `AVAILABLE`, stores the rejection reason, and can notify the provider with `PROVIDER_PAYOUT_REJECTED`.
-  - Provider payout history reads the same provider-scoped `ProviderPayout` table and therefore reflects admin status changes.
-- Payout breakdown verified:
-  - Admin breakdown reads the payout, payout method, provider identity, and linked payout ledger rows.
-  - Full bank account numbers are not returned; payout destination uses masked account details.
-- Commission/payout-settings integration verified and fixed:
-  - Future customer checkout provider sub-orders now calculate `platformFee` and `totalPayout` from active payout settings / commission tiers.
-  - Active commission tiers are selected by provider historical order earnings threshold; if no tier applies, the global `platformRatePercent` is used.
-  - Existing historical payout/provider-order records are not recalculated.
-- Dashboard overview integration verified:
-  - Overview uses real `User`, provider, `Payment`, and successful-payment revenue aggregates.
-  - Revenue trends use successful payments.
-  - Provider performance uses provider orders and provider payout totals.
-- System settings integration verified:
-  - Read/update returns platform/security/payment/notification settings only.
-  - SMTP secrets are not stored in the settings response; only `smtpConfigured` is returned.
-  - SMTP test uses the existing mailer path and audits the test send without exposing credentials.
-- Support chat integration verified:
-  - Admin list/detail/read/reply/resolve/reopen use separate `SupportChat` / `SupportChatMessage` models.
-  - Support chat attachments must be completed uploads under `support-chat-attachments`.
-  - Admin replies/resolution/reopen actions create participant notifications.
-  - Customer-provider order chat remains separate and unaffected.
+### Verified payout/admin flow
+- Provider payout request is created from provider app flow in `provider-earnings-payouts` and stored as `ProviderPayout` with `PENDING` status plus locked `ProviderEarningsLedger` entry.
+- Admin payout list reads the same `ProviderPayout` records, so new provider requests appear in admin payout list as pending.
+- Admin payout breakdown reads locked payout ledger rows for transaction-level breakdown.
+- Admin approve/hold/reject updates the same `ProviderPayout` record used by provider payout history.
+- Reject releases locked ledger balance back to `AVAILABLE`; hold keeps balance locked; approve moves payout to `PROCESSING`.
+- Provider notifications are created on approve/hold/reject transitions.
+
+### Verified commission/settings integration
+- Customer checkout provider sub-order creation calls `providerPayoutCalculation(...)` before saving provider payout figures.
+- `providerPayoutCalculation(...)` reads:
+  - active `AdminPayoutSettings`
+  - active `CommissionTier` rows
+  - provider historical order earnings from `ProviderEarningsLedger`
+- Resulting provider sub-order writes set:
+  - `platformFee`
+  - `totalPayout`
+  - gross provider order `total`
+- This confirms commission rules affect future provider payout calculation rather than rewriting historical payouts.
+
+### Verified dashboard integration
+- Dashboard overview reads live aggregates from `user`, `payment`, `providerOrder`, `disputeCase`, and `providerDisputeCase` tables via repository methods.
+- Revenue metrics use succeeded payments only.
+- User/provider counts exclude deleted records and distinguish provider role correctly.
+
+### Verified system settings/support flow
+- System settings read/update persists only non-secret values.
+- SMTP settings exposure is reduced to `smtpConfigured` boolean only; secrets are not returned in response payloads.
+- SMTP test reuses mailer flow and audit logs the action.
+- Admin support chat can list/open existing chats, reply, mark read, resolve, and reopen.
+- Support chat replies validate attachment URLs against completed `support-chat-attachments` uploads.
 
 ## 5. Security rules verified
 
-- Admin finance/settings/support APIs require `SUPER_ADMIN` or `ADMIN` with module permissions.
-- Permission keys verified in catalog and Swagger access metadata:
-  - `providerPayouts.read`, `providerPayouts.approve`, `providerPayouts.hold`, `providerPayouts.reject`, `providerPayouts.export`
-  - `payoutSettings.read`, `payoutSettings.update`
-  - `systemSettings.read`, `systemSettings.update`
-  - `supportChats.read`, `supportChats.read.all`, `supportChats.reply`, `supportChats.resolve`
-- Support chat ADMIN scoping verified:
-  - ADMIN sees assigned chats only unless granted `supportChats.read.all`.
-  - SUPER_ADMIN can access all support chats.
-- Provider payout destination safety verified:
-  - Admin payout details/export use masked payout destination values.
-- System settings secret-safety verified:
-  - SMTP host/user/password/from values are not returned by `GET /admin/system-settings` or audit responses.
-- Storage safety verified:
-  - Logo update can be tied to a completed upload URL.
-  - Support chat message attachments must match completed `support-chat-attachments` uploads.
+- Dashboard, payout, payout-settings, system-settings, and support-chat routes are guarded by JWT + role/permission checks.
+- Admin access uses `SUPER_ADMIN` or explicit module permissions.
+- Support chat assignment scoping is enforced for `ADMIN` unless `supportChats.read.all` is granted.
+- System settings never return SMTP username/password/host values directly.
+- Payout admin responses expose masked payout destination data only.
+- Provider payout routes derive provider identity from JWT context and do not trust incoming provider IDs.
+- Settings and payout changes write admin audit logs.
 
 ## 6. Swagger status
 
-- Swagger/OpenAPI regenerated successfully.
-- Full API reference regenerated successfully:
-  - `docs/generated/openapi.json`
-  - `docs/generated/gift-app-full-api-reference.md`
-  - `docs/generated/gift-app-full-api-reference.html`
-  - `docs/generated/gift-app-full-api-reference.pdf`
-- Admin finance/settings/support focus paths present: 31.
-- OpenAPI totals after regeneration:
-  - `openapi_paths=353`
-  - `operations=437`
-- Duplicate route check result: `duplicates=0`.
+- Swagger regenerated successfully.
+- Relevant admin paths are present for dashboard, provider payouts, payout settings, system settings, and support chat.
+- `openapi_paths=353`
+- `operations=437`
+- Duplicate route check: `duplicates=0`
+- Full API PDF regenerated at `docs/generated/gift-app-full-api-reference.pdf`
 
 ## 7. Test/build status
 
-Final required verification commands passed:
+Final verification commands passed:
 
-```bash
-npm run lint
-npm run test -- --runInBand
-npm run build
-npm run prisma:validate
-npm run prisma:generate
-```
+- `npm run lint`
+- `npm run test -- --runInBand`
+- `npm run build`
+- `npm run prisma:validate`
+- `npm run prisma:generate`
 
 Results:
 
-- Lint: passed.
-- Jest: passed — `92` suites, `742` tests.
-- Build: passed.
-- Prisma validate: passed.
-- Prisma generate: passed.
-- Swagger/API reference regeneration: passed.
-- Duplicate route check: passed with `duplicates=0`.
+- Jest: `92` suites passed, `742` tests passed
+- Build: passed
+- Prisma validate: passed
+- Prisma generate: passed
+- Swagger regeneration: passed
+- Duplicate route check: passed
 
 ## 8. Remaining known gaps
 
-- Database schema sync/migration is still required before deployment/runtime use of the new admin finance/settings/support tables, enums, and upload folder references.
-- Admin payout approve currently transitions payout to `PROCESSING`; a separate settlement/webhook or operations step is still needed to mark payouts `COMPLETED` after real payment rail completion.
-- Support chat is admin-facing for existing support tickets. Public/provider/customer support-ticket creation endpoints are not part of this admin verification pass.
-- Typing indicator is schema/API-ready only for future realtime work; no Socket.IO typing-event flow was added in this pass.
+- Database migration/schema sync is still required in deployed environments for the admin payout/settings/system-settings/support-chat schema additions.
+- This verification is code + automated test based; no live end-to-end UI/database walkthrough was run against a deployed environment in this pass.
+- Admin support chat module covers admin-side list/open/reply/read/resolve/reopen workflows; participant-side ticket creation entrypoint is outside this admin verification scope.
