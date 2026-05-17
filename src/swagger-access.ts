@@ -123,6 +123,14 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/dashboard/provider-performance': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table.' },
   'GET /api/v1/admin/dashboard/recent-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data.' },
 
+  'GET /api/v1/admin/support-chats': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'SUPER_ADMIN all chats; ADMIN assigned chats unless supportChats.read.all.' },
+  'GET /api/v1/admin/support-chats/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Support chat counters.' },
+  'GET /api/v1/admin/support-chats/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Conversation details scoped to support chat.' },
+  'POST /api/v1/admin/support-chats/{id}/messages': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.reply', description: 'Reply with optional support-chat-attachments URLs.' },
+  'PATCH /api/v1/admin/support-chats/{id}/read': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Mark admin unread count read.' },
+  'POST /api/v1/admin/support-chats/{id}/resolve': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Resolve support chat and notify participant.' },
+  'POST /api/v1/admin/support-chats/{id}/reopen': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Reopen support chat and notify participant.' },
+
   'GET /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned.' },
   'PATCH /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission.' },
   'POST /api/v1/admin/system-settings/logo': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only.' },

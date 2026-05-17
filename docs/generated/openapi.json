@@ -23244,7 +23244,8 @@
                 "provider-report-evidence",
                 "dispute-evidence",
                 "provider-dispute-evidence",
-                "provider-support-attachments"
+                "provider-support-attachments",
+                "support-chat-attachments"
               ]
             }
           },
@@ -23551,6 +23552,339 @@
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.read",
         "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
       }
+    },
+    "/api/v1/admin/support-chats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. SUPER_ADMIN all chats; ADMIN assigned chats unless supportChats.read.all. SUPER_ADMIN sees all. ADMIN sees assigned chats unless granted supportChats.read.all.",
+        "operationId": "SupportChatController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "PROVIDER",
+                "REGISTERED_USER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "OPEN",
+                "ACTIVE",
+                "RESOLVED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "unreadOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "support_chat_id",
+                        "participant": {
+                          "id": "provider_id",
+                          "type": "PROVIDER",
+                          "name": "Luxe Unboxed",
+                          "avatarUrl": "https://cdn.example.com/avatar.png"
+                        },
+                        "subject": "Support Ticket",
+                        "lastMessage": "I've attached the new listing...",
+                        "lastMessageAt": "2026-05-16T10:00:00.000Z",
+                        "unreadCount": 2,
+                        "status": "ACTIVE"
+                      }
+                    ],
+                    "message": "Support chats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List admin support chats",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read"
+      }
+    },
+    "/api/v1/admin/support-chats/stats": {
+      "get": {
+        "operationId": "SupportChatController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch support chat stats",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Support chat counters."
+      }
+    },
+    "/api/v1/admin/support-chats/{id}": {
+      "get": {
+        "operationId": "SupportChatController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch support chat conversation details",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Conversation details scoped to support chat."
+      }
+    },
+    "/api/v1/admin/support-chats/{id}/messages": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.reply. Reply with optional support-chat-attachments URLs. Attachments must be completed uploads in support-chat-attachments folder.",
+        "operationId": "SupportChatController_reply",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendSupportChatMessageDto"
+              },
+              "examples": {
+                "text": {
+                  "value": {
+                    "messageType": "TEXT",
+                    "body": "I am checking this issue now.",
+                    "attachmentUrls": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reply to support chat",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.reply",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.reply"
+      }
+    },
+    "/api/v1/admin/support-chats/{id}/read": {
+      "patch": {
+        "operationId": "SupportChatController_read",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark support chat as read",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Mark admin unread count read."
+      }
+    },
+    "/api/v1/admin/support-chats/{id}/resolve": {
+      "post": {
+        "operationId": "SupportChatController_resolve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveSupportChatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resolve support chat and notify participant",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant."
+      }
+    },
+    "/api/v1/admin/support-chats/{id}/reopen": {
+      "post": {
+        "operationId": "SupportChatController_reopen",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveSupportChatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reopen support chat and notify participant",
+        "tags": [
+          "02 Admin - Support Chat"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant."
+      }
     }
   },
   "info": {
@@ -23616,6 +23950,9 @@
     },
     {
       "name": "02 Admin - System Settings"
+    },
+    {
+      "name": "02 Admin - Support Chat"
     },
     {
       "name": "02 Admin - System Logs & Audit Trail"
@@ -28639,7 +28976,8 @@
               "provider-report-evidence",
               "dispute-evidence",
               "provider-dispute-evidence",
-              "provider-support-attachments"
+              "provider-support-attachments",
+              "support-chat-attachments"
             ],
             "example": "gift-images",
             "description": "Upload folder. Normal users/providers should send only folder, fileName, contentType, and sizeBytes. Add giftId only for gift image uploads."
@@ -28845,6 +29183,51 @@
         "required": [
           "to"
         ]
+      },
+      "SendSupportChatMessageDto": {
+        "type": "object",
+        "properties": {
+          "messageType": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "IMAGE",
+              "AUDIO",
+              "VIDEO",
+              "FILE"
+            ],
+            "example": "TEXT"
+          },
+          "body": {
+            "type": "string",
+            "example": "I am checking this issue now."
+          },
+          "attachmentUrls": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "messageType",
+          "body",
+          "attachmentUrls"
+        ]
+      },
+      "ResolveSupportChatDto": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "example": "Issue resolved."
+          },
+          "notifyParticipant": {
+            "type": "boolean",
+            "example": true
+          }
+        }
       }
     }
   }

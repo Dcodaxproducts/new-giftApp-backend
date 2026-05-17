@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-17 06:10 UTC
+Generated: 2026-05-17 06:46 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -24,6 +24,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Settings (5 APIs)
+- 02 Admin - Support Chat (7 APIs)
 - 02 Admin - System Logs & Audit Trail (6 APIs)
 - 02 Admin - Dispute Manager (8 APIs)
 - 02 Admin - Dispute Evidence (1 APIs)
@@ -4040,6 +4041,168 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - `limit` (query, optional, number)
   - `fromDate` (query, optional, string)
   - `toDate` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - Support Chat
+
+### GET `/api/v1/admin/support-chats`
+
+- Summary: List admin support chats
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. SUPER_ADMIN all chats; ADMIN assigned chats unless supportChats.read.all. SUPER_ADMIN sees all. ADMIN sees assigned chats unless granted supportChats.read.all.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `participantType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `unreadOnly` (query, optional, boolean)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "support_chat_id",
+      "participant": {
+        "id": "provider_id",
+        "type": "PROVIDER",
+        "name": "Luxe Unboxed",
+        "avatarUrl": "https://cdn.example.com/avatar.png"
+      },
+      "subject": "Support Ticket",
+      "lastMessage": "I've attached the new listing...",
+      "lastMessageAt": "2026-05-16T10:00:00.000Z",
+      "unreadCount": 2,
+      "status": "ACTIVE"
+    }
+  ],
+  "message": "Support chats fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/support-chats/stats`
+
+- Summary: Fetch support chat stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Support chat counters.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/support-chats/{id}`
+
+- Summary: Fetch support chat conversation details
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Conversation details scoped to support chat.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/support-chats/{id}/messages`
+
+- Summary: Reply to support chat
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.reply
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.reply. Reply with optional support-chat-attachments URLs. Attachments must be completed uploads in support-chat-attachments folder.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - text:
+```json
+{
+  "messageType": "TEXT",
+  "body": "I am checking this issue now.",
+  "attachmentUrls": []
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/admin/support-chats/{id}/read`
+
+- Summary: Mark support chat as read
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Mark admin unread count read.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/support-chats/{id}/resolve`
+
+- Summary: Resolve support chat and notify participant
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "comment": "Issue resolved.",
+  "notifyParticipant": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/support-chats/{id}/reopen`
+
+- Summary: Reopen support chat and notify participant
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "comment": "Issue resolved.",
+  "notifyParticipant": true
+}
+```
 - Response body:
 ```json
 {

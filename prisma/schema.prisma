@@ -534,6 +534,23 @@ enum ChatSenderType {
   ADMIN
 }
 
+enum SupportChatParticipantType {
+  PROVIDER
+  REGISTERED_USER
+}
+
+enum SupportChatStatus {
+  OPEN
+  ACTIVE
+  RESOLVED
+}
+
+enum SupportChatSenderType {
+  PARTICIPANT
+  ADMIN
+  SYSTEM
+}
+
 enum ChatMessageType {
   TEXT
   IMAGE
@@ -905,6 +922,9 @@ model User {
   customerChatThreads                 ChatThread[]                         @relation("CustomerChatThread")
   providerChatThreads                 ChatThread[]                         @relation("ProviderChatThread")
   sentChatMessages                    ChatMessage[]                        @relation("ChatMessageSender")
+  supportChatsAsParticipant           SupportChat[]                        @relation("SupportChatParticipant")
+  assignedSupportChats                 SupportChat[]                        @relation("SupportChatAssignee")
+  supportChatMessages                  SupportChatMessage[]                 @relation("SupportChatMessageSender")
   submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
   receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
   reviewedProviderReports             ProviderReport[]                     @relation("ProviderReportReviewer")
@@ -2113,6 +2133,54 @@ model ChatMessage {
   @@index([threadId, createdAt])
   @@index([senderId, createdAt])
   @@map("chat_messages")
+}
+
+model SupportChat {
+  id                   String                     @id @default(cuid())
+  participantId        String                     @map("participant_id")
+  participantType      SupportChatParticipantType @map("participant_type")
+  subject              String                     @default("Support Ticket")
+  status               SupportChatStatus          @default(OPEN)
+  assignedAdminId      String?                    @map("assigned_admin_id")
+  lastMessageId        String?                    @unique @map("last_message_id")
+  lastMessageAt        DateTime?                  @map("last_message_at") @db.Timestamptz
+  participantUnreadCount Int                      @default(0) @map("participant_unread_count")
+  adminUnreadCount     Int                        @default(0) @map("admin_unread_count")
+  resolvedAt           DateTime?                  @map("resolved_at") @db.Timestamptz
+  resolvedById         String?                    @map("resolved_by_id")
+  createdAt            DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  participant User                 @relation("SupportChatParticipant", fields: [participantId], references: [id])
+  assignedAdmin User?              @relation("SupportChatAssignee", fields: [assignedAdminId], references: [id])
+  lastMessage SupportChatMessage?  @relation("SupportChatLastMessage", fields: [lastMessageId], references: [id])
+  messages SupportChatMessage[]    @relation("SupportChatMessages")
+
+  @@index([participantId, updatedAt])
+  @@index([assignedAdminId, status, updatedAt])
+  @@index([status, updatedAt])
+  @@map("support_chats")
+}
+
+model SupportChatMessage {
+  id                 String                @id @default(cuid())
+  supportChatId      String                @map("support_chat_id")
+  senderId           String                @map("sender_id")
+  senderType         SupportChatSenderType @map("sender_type")
+  messageType        ChatMessageType       @default(TEXT) @map("message_type")
+  body               String?
+  attachmentUrlsJson Json                  @default("[]") @map("attachment_urls_json")
+  readByAdminAt      DateTime?             @map("read_by_admin_at") @db.Timestamptz
+  readByParticipantAt DateTime?            @map("read_by_participant_at") @db.Timestamptz
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  supportChat SupportChat @relation("SupportChatMessages", fields: [supportChatId], references: [id])
+  sender User @relation("SupportChatMessageSender", fields: [senderId], references: [id])
+  lastForSupportChat SupportChat? @relation("SupportChatLastMessage")
+
+  @@index([supportChatId, createdAt])
+  @@index([senderId, createdAt])
+  @@map("support_chat_messages")
 }
 
 model ProviderReport {

@@ -19,6 +19,7 @@ export enum UploadFolder {
   DISPUTE_EVIDENCE = 'dispute-evidence',
   PROVIDER_DISPUTE_EVIDENCE = 'provider-dispute-evidence',
   PROVIDER_SUPPORT_ATTACHMENTS = 'provider-support-attachments',
+  SUPPORT_CHAT_ATTACHMENTS = 'support-chat-attachments',
 }
 
 export class CreatePresignedUploadDto {

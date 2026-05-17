@@ -255,6 +255,16 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'supportChats',
+    label: 'Support Chat',
+    permissions: [
+      { key: 'read', label: 'View Support Chats', description: 'View assigned support chats.' },
+      { key: 'read.all', label: 'View All Support Chats', description: 'View all support chats regardless of assignment.' },
+      { key: 'reply', label: 'Reply Support Chats', description: 'Reply to support tickets.' },
+      { key: 'resolve', label: 'Resolve Support Chats', description: 'Resolve and reopen support tickets.' },
+    ],
+  },
+  {
     module: 'systemSettings',
     label: 'System Settings',
     permissions: [

@@ -45,6 +45,7 @@ import { SocialModerationModule } from './modules/social-moderation/social-moder
 import { StorageModule } from './modules/storage/storage.module';
 import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
+import { SupportChatModule } from './modules/support-chat/support-chat.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
 
 @Module({
@@ -93,6 +94,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     SocialModerationModule,
     StorageModule,
     SystemSettingsModule,
+    SupportChatModule,
   ],
   controllers: [PublicController],
   providers: [MediaUrlSignerService, ResponseInterceptor],
