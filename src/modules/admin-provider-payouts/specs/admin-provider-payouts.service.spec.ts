@@ -1,8 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
-import { Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayoutStatus, ProviderPayoutVerificationStatus } from '@prisma/client';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutHoldReason, AdminProviderPayoutRejectReason, AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
@@ -21,9 +21,12 @@ function createService() {
     findPayoutById: jest.fn().mockResolvedValue(completedPayout),
     findPreviousCompletedPayout: jest.fn().mockResolvedValue(previousPayout),
     findLedgerEntries: jest.fn().mockResolvedValue([{ id: 'ledger_1', providerId: provider.id, amount: new Prisma.Decimal(6000), currency: 'USD', direction: ProviderEarningsLedgerDirection.CREDIT, type: ProviderEarningsLedgerType.ORDER_EARNING, status: ProviderEarningsLedgerStatus.AVAILABLE, description: 'Order earning', metadataJson: {}, createdAt: current, updatedAt: current, provider }]),
+    findPayoutLedgerEntries: jest.fn().mockResolvedValue([{ id: 'ledger_payout_1', providerOrderId: 'provider_order_1', amount: new Prisma.Decimal(199), currency: 'USD', description: 'Subscription - Professional Plan', providerOrder: { orderNumber: '88392' } }]),
     findCommissionTiers: jest.fn().mockResolvedValue([{ id: 'tier_standard', name: 'Standard Tier', commissionRatePercent: new Prisma.Decimal(15), orderVolumeThreshold: new Prisma.Decimal(0), sortOrder: 1, isActive: true, updatedById: null, deletedAt: null, createdAt: current, updatedAt: current }, { id: 'tier_silver', name: 'Silver Partner', commissionRatePercent: new Prisma.Decimal(12.5), orderVolumeThreshold: new Prisma.Decimal(5000), sortOrder: 2, isActive: true, updatedById: null, deletedAt: null, createdAt: current, updatedAt: current }]),
+    transitionPayout: jest.fn().mockImplementation((params: { status: ProviderPayoutStatus; failureReason?: string }) => Promise.resolve({ ...pendingPayout, status: params.status, failureReason: params.failureReason ?? null })),
   };
-  return { service: new AdminProviderPayoutsService(repository as unknown as AdminProviderPayoutsRepository), repository };
+  const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
+  return { service: new AdminProviderPayoutsService(repository as unknown as AdminProviderPayoutsRepository, auditLog as never), repository, auditLog };
 }
 
 describe('AdminProviderPayoutsService', () => {
@@ -42,10 +45,11 @@ describe('AdminProviderPayoutsService', () => {
     expect(calls[0]?.[0]).toMatchObject({ where: { providerId: provider.id, status: ProviderPayoutStatus.COMPLETED } });
   });
 
-  it('returns empty list for unsupported ON_HOLD/REJECTED filters without invalid Prisma enum queries', async () => {
+  it('filters ON_HOLD and REJECTED statuses through real provider payout statuses', async () => {
     const { service, repository } = createService();
-    await expect(service.list({ status: AdminProviderPayoutStatusFilter.ON_HOLD })).resolves.toMatchObject({ data: [], meta: { total: 0 } });
-    expect(repository.findPayouts).not.toHaveBeenCalled();
+    await service.list({ status: AdminProviderPayoutStatusFilter.ON_HOLD });
+    const calls = repository.findPayouts.mock.calls as unknown[][];
+    expect(calls[0]?.[0]).toMatchObject({ where: { status: ProviderPayoutStatus.ON_HOLD } });
   });
 
   it('exports using same filters and does not expose full bank account fields', async () => {
@@ -74,6 +78,49 @@ describe('AdminProviderPayoutsService', () => {
     expect(repository.findLedgerEntries).toHaveBeenCalledWith({ direction: ProviderEarningsLedgerDirection.CREDIT, type: ProviderEarningsLedgerType.ORDER_EARNING, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } });
   });
 
+  it('returns transaction breakdown from payout and locked ledger rows', async () => {
+    const { service } = createService();
+    const response = await service.breakdown('payout_1');
+    expect(response.data).toMatchObject({ payoutId: 'payout_1', grossAmount: 3420, processingFee: 42, netPayout: 3378, recentTransactions: [{ orderNumber: '88392', description: 'Subscription - Professional Plan', amount: 199 }] });
+  });
+
+  it('approves pending and on-hold payouts with audit and provider notification', async () => {
+    const { service, repository, auditLog } = createService();
+    repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
+    const response = await service.approve({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_2', { comment: 'Approved after verification.', notifyProvider: true });
+    expect(response.data.status).toBe(ProviderPayoutStatus.PROCESSING);
+    const transitionCalls = repository.transitionPayout.mock.calls as unknown[][];
+    expect(transitionCalls[0]?.[0]).toMatchObject({ status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, notification: { type: 'PROVIDER_PAYOUT_APPROVED' } });
+    const auditCalls = auditLog.write.mock.calls as unknown[][];
+    expect(auditCalls[0]?.[0]).toMatchObject({ action: 'PROVIDER_PAYOUT_APPROVED' });
+  });
+
+  it('holds payout without releasing locked ledger balance', async () => {
+    const { service, repository } = createService();
+    repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
+    await service.hold({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_2', { reason: AdminProviderPayoutHoldReason.BANK_VERIFICATION_PENDING, comment: 'Bank verification required.', notifyProvider: true });
+    expect(repository.transitionPayout).toHaveBeenCalledWith(expect.objectContaining({ status: ProviderPayoutStatus.ON_HOLD, releaseLedger: false }));
+  });
+
+  it('rejects payout and releases locked ledger balance', async () => {
+    const { service, repository, auditLog } = createService();
+    repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
+    const response = await service.reject({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_2', { reason: AdminProviderPayoutRejectReason.INVALID_BANK_ACCOUNT, comment: 'Bank details are invalid.', notifyProvider: true });
+    expect(response.data).toMatchObject({ status: ProviderPayoutStatus.REJECTED, ledgerReleased: true });
+    const transitionCalls = repository.transitionPayout.mock.calls as unknown[][];
+    expect(transitionCalls[0]?.[0]).toMatchObject({ status: ProviderPayoutStatus.REJECTED, releaseLedger: true, notification: { type: 'PROVIDER_PAYOUT_REJECTED' } });
+    const auditCalls = auditLog.write.mock.calls as unknown[][];
+    expect(auditCalls[0]?.[0]).toMatchObject({ action: 'PROVIDER_PAYOUT_REJECTED' });
+  });
+
+  it('rejects invalid status transitions and keeps bulk approve idempotent', async () => {
+    const { service, repository } = createService();
+    await expect(service.hold({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_1', { reason: AdminProviderPayoutHoldReason.BANK_VERIFICATION_PENDING, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
+    repository.findPayoutById.mockResolvedValueOnce(completedPayout).mockResolvedValueOnce(pendingPayout);
+    const response = await service.bulkApprove({ uid: 'admin_1', role: UserRole.ADMIN }, { payoutIds: ['payout_1', 'payout_2'], comment: 'Bulk approval', notifyProvider: false });
+    expect(response.data).toEqual(expect.arrayContaining([{ payoutId: 'payout_1', status: ProviderPayoutStatus.COMPLETED, success: true, idempotent: true }, { payoutId: 'payout_2', status: ProviderPayoutStatus.PROCESSING, success: true, idempotent: false }]));
+  });
+
   it('throws for missing payout details', async () => {
     const { service, repository } = createService();
     repository.findPayoutById.mockResolvedValueOnce(null);
@@ -89,7 +136,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 
   it('adds required routes, Swagger examples, and access metadata', () => {
-    expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts')");
+    expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts', '02 Admin - Provider Payout Approvals')");
     for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", '@Get()', "@Get(':id')"]) expect(controller).toContain(route);
     expect(controller).toContain('totalPayoutsThisMonth');
     expect(controller).toContain('TechSolutions Inc.');
@@ -102,7 +149,10 @@ describe('Admin provider payouts Swagger and permission safety', () => {
     expect(permissions).toContain("key: 'read'");
     expect(permissions).toContain("key: 'export'");
     expect(permissions).toContain("key: 'initiate'");
-    expect(controller.match(/@Permissions\('providerPayouts\.read'\)/g)).toHaveLength(5);
+    expect(controller.match(/@Permissions\('providerPayouts\.read'\)/g)).toHaveLength(6);
+    expect(controller).toContain("@Permissions('providerPayouts.approve')");
+    expect(controller).toContain("@Permissions('providerPayouts.hold')");
+    expect(controller).toContain("@Permissions('providerPayouts.reject')");
     expect(controller).toContain("@Permissions('providerPayouts.export')");
     expect(repository).toContain('this.prisma.providerPayout.findMany');
     expect(repository).toContain('this.prisma.providerEarningsLedger.findMany');

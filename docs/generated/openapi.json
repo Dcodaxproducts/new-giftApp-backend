@@ -4122,7 +4122,8 @@
         ],
         "summary": "Fetch provider payout dashboard stats",
         "tags": [
-          "02 Admin - Provider Payouts"
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -4169,7 +4170,8 @@
         ],
         "summary": "Fetch monthly provider payout trend",
         "tags": [
-          "02 Admin - Provider Payouts"
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -4211,7 +4213,8 @@
         ],
         "summary": "Fetch earning distribution by provider tier",
         "tags": [
-          "02 Admin - Provider Payouts"
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -4343,10 +4346,81 @@
         ],
         "summary": "Export provider payouts",
         "tags": [
-          "02 Admin - Provider Payouts"
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.export",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.export"
+      }
+    },
+    "/api/v1/admin/provider-payouts/bulk-approve": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.",
+        "operationId": "AdminProviderPayoutsController_bulkApprove",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkApproveProviderPayoutsDto"
+              },
+              "examples": {
+                "approve": {
+                  "value": {
+                    "payoutIds": [
+                      "payout_id_1",
+                      "payout_id_2"
+                    ],
+                    "comment": "Bulk approved after verification.",
+                    "notifyProvider": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "payoutId": "payout_id_1",
+                        "status": "PROCESSING",
+                        "success": true,
+                        "idempotent": false
+                      },
+                      {
+                        "payoutId": "payout_id_2",
+                        "status": "PROCESSING",
+                        "success": true,
+                        "idempotent": true
+                      }
+                    ],
+                    "message": "Bulk payout approval processed."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Bulk approve provider payouts",
+        "tags": [
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.approve",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.approve"
       }
     },
     "/api/v1/admin/provider-payouts": {
@@ -4496,10 +4570,273 @@
         ],
         "summary": "List provider payouts",
         "tags": [
-          "02 Admin - Provider Payouts"
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
+    "/api/v1/admin/provider-payouts/{id}/breakdown": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.",
+        "operationId": "AdminProviderPayoutsController_breakdown",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "payoutId": "payout_id",
+                      "provider": {
+                        "id": "provider_id",
+                        "businessName": "CloudTech Solutions",
+                        "merchantId": "MER-29401-2023"
+                      },
+                      "grossAmount": 4200,
+                      "platformFee": 420,
+                      "platformFeePercent": 10,
+                      "processingFee": 12.5,
+                      "netPayout": 3767.5,
+                      "currency": "USD",
+                      "recentTransactions": [
+                        {
+                          "orderNumber": "88392",
+                          "description": "Subscription - Professional Plan",
+                          "amount": 199
+                        }
+                      ]
+                    },
+                    "message": "Payout breakdown fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch pending payout transaction breakdown",
+        "tags": [
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
+      }
+    },
+    "/api/v1/admin/provider-payouts/{id}/approve": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.",
+        "operationId": "AdminProviderPayoutsController_approve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveProviderPayoutDto"
+              },
+              "examples": {
+                "approve": {
+                  "value": {
+                    "comment": "Approved after verification.",
+                    "notifyProvider": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "payout_id",
+                      "status": "PROCESSING"
+                    },
+                    "message": "Payout approved successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve provider payout",
+        "tags": [
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.approve",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.approve"
+      }
+    },
+    "/api/v1/admin/provider-payouts/{id}/hold": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.",
+        "operationId": "AdminProviderPayoutsController_hold",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoldProviderPayoutDto"
+              },
+              "examples": {
+                "hold": {
+                  "value": {
+                    "reason": "BANK_VERIFICATION_PENDING",
+                    "comment": "Bank verification required.",
+                    "notifyProvider": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "payout_id",
+                      "status": "ON_HOLD"
+                    },
+                    "message": "Payout held successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hold provider payout",
+        "tags": [
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.hold",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.hold"
+      }
+    },
+    "/api/v1/admin/provider-payouts/{id}/reject": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.",
+        "operationId": "AdminProviderPayoutsController_reject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectProviderPayoutDto"
+              },
+              "examples": {
+                "reject": {
+                  "value": {
+                    "reason": "INVALID_BANK_ACCOUNT",
+                    "comment": "Bank details are invalid.",
+                    "notifyProvider": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "payout_id",
+                      "status": "REJECTED",
+                      "ledgerReleased": true
+                    },
+                    "message": "Payout rejected successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reject provider payout",
+        "tags": [
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.reject",
+        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.reject"
       }
     },
     "/api/v1/admin/provider-payouts/{id}": {
@@ -4561,7 +4898,8 @@
         ],
         "summary": "Fetch provider payout details",
         "tags": [
-          "02 Admin - Provider Payouts"
+          "02 Admin - Provider Payouts",
+          "02 Admin - Provider Payout Approvals"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -23041,6 +23379,9 @@
       "name": "02 Admin - Provider Payouts"
     },
     {
+      "name": "02 Admin - Provider Payout Approvals"
+    },
+    {
       "name": "02 Admin - Transaction Monitoring"
     },
     {
@@ -23919,6 +24260,108 @@
         "required": [
           "note",
           "visibility"
+        ]
+      },
+      "BulkApproveProviderPayoutsDto": {
+        "type": "object",
+        "properties": {
+          "payoutIds": {
+            "example": [
+              "payout_id_1",
+              "payout_id_2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "example": "Bulk approved after review.",
+            "maxLength": 500
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "payoutIds",
+          "notifyProvider"
+        ]
+      },
+      "ApproveProviderPayoutDto": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "example": "Approved after verification.",
+            "maxLength": 500
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "notifyProvider"
+        ]
+      },
+      "HoldProviderPayoutDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "BANK_VERIFICATION_PENDING",
+              "COMPLIANCE_REVIEW",
+              "PROVIDER_DOCUMENTS_REQUIRED",
+              "OTHER"
+            ],
+            "example": "BANK_VERIFICATION_PENDING"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Bank verification required.",
+            "maxLength": 500
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "reason",
+          "notifyProvider"
+        ]
+      },
+      "RejectProviderPayoutDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "INVALID_BANK_ACCOUNT",
+              "FRAUD_RISK",
+              "COMPLIANCE_REJECTED",
+              "PROVIDER_INELIGIBLE",
+              "OTHER"
+            ],
+            "example": "INVALID_BANK_ACCOUNT"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Bank details are invalid.",
+            "maxLength": 500
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "reason",
+          "notifyProvider"
         ]
       },
       "RefundAdminTransactionDto": {

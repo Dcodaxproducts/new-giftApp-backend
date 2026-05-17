@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-17 05:05 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-17 05:46 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -862,6 +862,30 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/bulk-approve</code></div><div><span class="label">Summary:</span> Bulk approve provider payouts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.approve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.</div><div class="label">Request payload(s):</div><div class="small">approve</div><pre>{
+  &quot;payoutIds&quot;: [
+    &quot;payout_id_1&quot;,
+    &quot;payout_id_2&quot;
+  ],
+  &quot;comment&quot;: &quot;Bulk approved after verification.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;payoutId&quot;: &quot;payout_id_1&quot;,
+      &quot;status&quot;: &quot;PROCESSING&quot;,
+      &quot;success&quot;: true,
+      &quot;idempotent&quot;: false
+    },
+    {
+      &quot;payoutId&quot;: &quot;payout_id_2&quot;,
+      &quot;status&quot;: &quot;PROCESSING&quot;,
+      &quot;success&quot;: true,
+      &quot;idempotent&quot;: true
+    }
+  ],
+  &quot;message&quot;: &quot;Bulk payout approval processed.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts</code></div><div><span class="label">Summary:</span> List provider payouts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>providerId</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: [
@@ -887,6 +911,242 @@
     &quot;totalPages&quot;: 1
   },
   &quot;message&quot;: &quot;Provider payouts fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/{id}/breakdown</code></div><div><span class="label">Summary:</span> Fetch pending payout transaction breakdown</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;payoutId&quot;: &quot;payout_id&quot;,
+    &quot;provider&quot;: {
+      &quot;id&quot;: &quot;provider_id&quot;,
+      &quot;businessName&quot;: &quot;CloudTech Solutions&quot;,
+      &quot;merchantId&quot;: &quot;MER-29401-2023&quot;
+    },
+    &quot;grossAmount&quot;: 4200,
+    &quot;platformFee&quot;: 420,
+    &quot;platformFeePercent&quot;: 10,
+    &quot;processingFee&quot;: 12.5,
+    &quot;netPayout&quot;: 3767.5,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;recentTransactions&quot;: [
+      {
+        &quot;orderNumber&quot;: &quot;88392&quot;,
+        &quot;description&quot;: &quot;Subscription - Professional Plan&quot;,
+        &quot;amount&quot;: 199
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Payout breakdown fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/{id}/approve</code></div><div><span class="label">Summary:</span> Approve provider payout</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.approve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">approve</div><pre>{
+  &quot;comment&quot;: &quot;Approved after verification.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;status&quot;: &quot;PROCESSING&quot;
+  },
+  &quot;message&quot;: &quot;Payout approved successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/{id}/hold</code></div><div><span class="label">Summary:</span> Hold provider payout</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.hold</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">hold</div><pre>{
+  &quot;reason&quot;: &quot;BANK_VERIFICATION_PENDING&quot;,
+  &quot;comment&quot;: &quot;Bank verification required.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;status&quot;: &quot;ON_HOLD&quot;
+  },
+  &quot;message&quot;: &quot;Payout held successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/{id}/reject</code></div><div><span class="label">Summary:</span> Reject provider payout</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.reject</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">reject</div><pre>{
+  &quot;reason&quot;: &quot;INVALID_BANK_ACCOUNT&quot;,
+  &quot;comment&quot;: &quot;Bank details are invalid.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;status&quot;: &quot;REJECTED&quot;,
+    &quot;ledgerReleased&quot;: true
+  },
+  &quot;message&quot;: &quot;Payout rejected successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/{id}</code></div><div><span class="label">Summary:</span> Fetch provider payout details</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;provider&quot;: {
+      &quot;id&quot;: &quot;provider_id&quot;,
+      &quot;businessName&quot;: &quot;TechSolutions Inc.&quot;,
+      &quot;providerCode&quot;: &quot;PRV-90210&quot;,
+      &quot;avatarUrl&quot;: &quot;https://cdn.example.com/provider.png&quot;
+    },
+    &quot;pendingAmount&quot;: 3420,
+    &quot;amount&quot;: 3420,
+    &quot;processingFee&quot;: 42,
+    &quot;totalToReceive&quot;: 3378,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;status&quot;: &quot;COMPLETED&quot;,
+    &quot;destination&quot;: {
+      &quot;id&quot;: &quot;method_id&quot;,
+      &quot;bankName&quot;: &quot;Chase Bank&quot;,
+      &quot;maskedAccount&quot;: &quot;****1234&quot;,
+      &quot;last4&quot;: &quot;1234&quot;,
+      &quot;verificationStatus&quot;: &quot;VERIFIED&quot;
+    },
+    &quot;createdAt&quot;: &quot;2023-10-12T00:00:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Provider payout details fetched successfully.&quot;
+}</pre></div><h2>02 Admin - Provider Payout Approvals</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/stats</code></div><div><span class="label">Summary:</span> Fetch provider payout dashboard stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Aggregates from provider payout records only; no frontend totals are trusted.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;totalPayoutsThisMonth&quot;: 128430,
+    &quot;totalPayoutsDeltaPercent&quot;: 12.5,
+    &quot;pendingPayouts&quot;: 12250,
+    &quot;pendingPayoutsDeltaPercent&quot;: -2.4,
+    &quot;completedPayouts&quot;: 116180,
+    &quot;completedPayoutsDeltaPercent&quot;: 14.2,
+    &quot;platformRevenue&quot;: 19264.5,
+    &quot;platformRevenueDeltaPercent&quot;: 8.1,
+    &quot;currency&quot;: &quot;USD&quot;
+  },
+  &quot;message&quot;: &quot;Provider payout stats fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/trends</code></div><div><span class="label">Summary:</span> Fetch monthly provider payout trend</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;range&quot;: &quot;LAST_12_MONTHS&quot;,
+    &quot;labels&quot;: [
+      &quot;Jan&quot;,
+      &quot;Feb&quot;,
+      &quot;Mar&quot;
+    ],
+    &quot;values&quot;: [
+      12000,
+      28000,
+      16000
+    ],
+    &quot;currency&quot;: &quot;USD&quot;
+  },
+  &quot;message&quot;: &quot;Provider payout trends fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/earning-distribution</code></div><div><span class="label">Summary:</span> Fetch earning distribution by provider tier</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Uses provider earnings ledger totals and active commission tier thresholds.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;tierId&quot;: &quot;tier_silver&quot;,
+      &quot;tierName&quot;: &quot;Silver Partner&quot;,
+      &quot;providerCount&quot;: 18,
+      &quot;totalEarnings&quot;: 450230,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  ],
+  &quot;message&quot;: &quot;Provider earning distribution fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/export</code></div><div><span class="label">Summary:</span> Export provider payouts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.export</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>providerId</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li><li><code>format</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/bulk-approve</code></div><div><span class="label">Summary:</span> Bulk approve provider payouts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.approve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.</div><div class="label">Request payload(s):</div><div class="small">approve</div><pre>{
+  &quot;payoutIds&quot;: [
+    &quot;payout_id_1&quot;,
+    &quot;payout_id_2&quot;
+  ],
+  &quot;comment&quot;: &quot;Bulk approved after verification.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;payoutId&quot;: &quot;payout_id_1&quot;,
+      &quot;status&quot;: &quot;PROCESSING&quot;,
+      &quot;success&quot;: true,
+      &quot;idempotent&quot;: false
+    },
+    {
+      &quot;payoutId&quot;: &quot;payout_id_2&quot;,
+      &quot;status&quot;: &quot;PROCESSING&quot;,
+      &quot;success&quot;: true,
+      &quot;idempotent&quot;: true
+    }
+  ],
+  &quot;message&quot;: &quot;Bulk payout approval processed.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts</code></div><div><span class="label">Summary:</span> List provider payouts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>search</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>providerId</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;payout_id&quot;,
+      &quot;provider&quot;: {
+        &quot;id&quot;: &quot;provider_id&quot;,
+        &quot;businessName&quot;: &quot;TechSolutions Inc.&quot;,
+        &quot;providerCode&quot;: &quot;PRV-90210&quot;,
+        &quot;avatarUrl&quot;: &quot;https://cdn.example.com/provider.png&quot;
+      },
+      &quot;pendingAmount&quot;: 3420,
+      &quot;currency&quot;: &quot;USD&quot;,
+      &quot;lastPayoutDate&quot;: &quot;2023-10-12T00:00:00.000Z&quot;,
+      &quot;nextPayoutDate&quot;: &quot;2023-11-12T00:00:00.000Z&quot;,
+      &quot;status&quot;: &quot;COMPLETED&quot;
+    }
+  ],
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;limit&quot;: 20,
+    &quot;total&quot;: 1,
+    &quot;totalPages&quot;: 1
+  },
+  &quot;message&quot;: &quot;Provider payouts fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/{id}/breakdown</code></div><div><span class="label">Summary:</span> Fetch pending payout transaction breakdown</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;payoutId&quot;: &quot;payout_id&quot;,
+    &quot;provider&quot;: {
+      &quot;id&quot;: &quot;provider_id&quot;,
+      &quot;businessName&quot;: &quot;CloudTech Solutions&quot;,
+      &quot;merchantId&quot;: &quot;MER-29401-2023&quot;
+    },
+    &quot;grossAmount&quot;: 4200,
+    &quot;platformFee&quot;: 420,
+    &quot;platformFeePercent&quot;: 10,
+    &quot;processingFee&quot;: 12.5,
+    &quot;netPayout&quot;: 3767.5,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;recentTransactions&quot;: [
+      {
+        &quot;orderNumber&quot;: &quot;88392&quot;,
+        &quot;description&quot;: &quot;Subscription - Professional Plan&quot;,
+        &quot;amount&quot;: 199
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Payout breakdown fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/{id}/approve</code></div><div><span class="label">Summary:</span> Approve provider payout</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.approve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">approve</div><pre>{
+  &quot;comment&quot;: &quot;Approved after verification.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;status&quot;: &quot;PROCESSING&quot;
+  },
+  &quot;message&quot;: &quot;Payout approved successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/{id}/hold</code></div><div><span class="label">Summary:</span> Hold provider payout</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.hold</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">hold</div><pre>{
+  &quot;reason&quot;: &quot;BANK_VERIFICATION_PENDING&quot;,
+  &quot;comment&quot;: &quot;Bank verification required.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;status&quot;: &quot;ON_HOLD&quot;
+  },
+  &quot;message&quot;: &quot;Payout held successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/provider-payouts/{id}/reject</code></div><div><span class="label">Summary:</span> Reject provider payout</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.reject</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">reject</div><pre>{
+  &quot;reason&quot;: &quot;INVALID_BANK_ACCOUNT&quot;,
+  &quot;comment&quot;: &quot;Bank details are invalid.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;payout_id&quot;,
+    &quot;status&quot;: &quot;REJECTED&quot;,
+    &quot;ledgerReleased&quot;: true
+  },
+  &quot;message&quot;: &quot;Payout rejected successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/provider-payouts/{id}</code></div><div><span class="label">Summary:</span> Fetch provider payout details</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with providerPayouts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {

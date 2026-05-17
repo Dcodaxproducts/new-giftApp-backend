@@ -760,6 +760,8 @@ enum ProviderPayoutStatus {
   COMPLETED
   FAILED
   CANCELLED
+  ON_HOLD
+  REJECTED
 }
 
 enum AdminPayoutSchedule {

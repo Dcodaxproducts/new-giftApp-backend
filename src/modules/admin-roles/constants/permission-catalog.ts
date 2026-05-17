@@ -165,6 +165,9 @@ export const PERMISSION_CATALOG = [
       { key: 'read', label: 'View Provider Payouts', description: 'View provider payout dashboard, lists, and details.' },
       { key: 'export', label: 'Export Provider Payouts', description: 'Export provider payout records.' },
       { key: 'initiate', label: 'Initiate Provider Payouts', description: 'Start provider payout workflows from the dashboard.' },
+      { key: 'approve', label: 'Approve Provider Payouts', description: 'Approve pending provider payout requests.' },
+      { key: 'hold', label: 'Hold Provider Payouts', description: 'Place pending provider payout requests on hold.' },
+      { key: 'reject', label: 'Reject Provider Payouts', description: 'Reject provider payout requests and release locked balance when required.' },
     ],
   },
   {

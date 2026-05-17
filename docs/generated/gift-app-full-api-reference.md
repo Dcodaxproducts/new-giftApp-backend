@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-17 05:05 UTC
+Generated: 2026-05-17 05:46 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -15,7 +15,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
-- 02 Admin - Provider Payouts (6 APIs)
+- 02 Admin - Provider Payouts (11 APIs)
+- 02 Admin - Provider Payout Approvals (11 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
@@ -2329,6 +2330,45 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
+### POST `/api/v1/admin/provider-payouts/bulk-approve`
+
+- Summary: Bulk approve provider payouts
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.approve
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.
+- Request payload(s):
+  - approve:
+```json
+{
+  "payoutIds": [
+    "payout_id_1",
+    "payout_id_2"
+  ],
+  "comment": "Bulk approved after verification.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "payoutId": "payout_id_1",
+      "status": "PROCESSING",
+      "success": true,
+      "idempotent": false
+    },
+    {
+      "payoutId": "payout_id_2",
+      "status": "PROCESSING",
+      "success": true,
+      "idempotent": true
+    }
+  ],
+  "message": "Bulk payout approval processed."
+}
+```
+
 ### GET `/api/v1/admin/provider-payouts`
 
 - Summary: List provider payouts
@@ -2371,6 +2411,468 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "totalPages": 1
   },
   "message": "Provider payouts fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/{id}/breakdown`
+
+- Summary: Fetch pending payout transaction breakdown
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "payoutId": "payout_id",
+    "provider": {
+      "id": "provider_id",
+      "businessName": "CloudTech Solutions",
+      "merchantId": "MER-29401-2023"
+    },
+    "grossAmount": 4200,
+    "platformFee": 420,
+    "platformFeePercent": 10,
+    "processingFee": 12.5,
+    "netPayout": 3767.5,
+    "currency": "USD",
+    "recentTransactions": [
+      {
+        "orderNumber": "88392",
+        "description": "Subscription - Professional Plan",
+        "amount": 199
+      }
+    ]
+  },
+  "message": "Payout breakdown fetched successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/{id}/approve`
+
+- Summary: Approve provider payout
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.approve
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - approve:
+```json
+{
+  "comment": "Approved after verification.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "status": "PROCESSING"
+  },
+  "message": "Payout approved successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/{id}/hold`
+
+- Summary: Hold provider payout
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.hold
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - hold:
+```json
+{
+  "reason": "BANK_VERIFICATION_PENDING",
+  "comment": "Bank verification required.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "status": "ON_HOLD"
+  },
+  "message": "Payout held successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/{id}/reject`
+
+- Summary: Reject provider payout
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.reject
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - reject:
+```json
+{
+  "reason": "INVALID_BANK_ACCOUNT",
+  "comment": "Bank details are invalid.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "status": "REJECTED",
+    "ledgerReleased": true
+  },
+  "message": "Payout rejected successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/{id}`
+
+- Summary: Fetch provider payout details
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "provider": {
+      "id": "provider_id",
+      "businessName": "TechSolutions Inc.",
+      "providerCode": "PRV-90210",
+      "avatarUrl": "https://cdn.example.com/provider.png"
+    },
+    "pendingAmount": 3420,
+    "amount": 3420,
+    "processingFee": 42,
+    "totalToReceive": 3378,
+    "currency": "USD",
+    "status": "COMPLETED",
+    "destination": {
+      "id": "method_id",
+      "bankName": "Chase Bank",
+      "maskedAccount": "****1234",
+      "last4": "1234",
+      "verificationStatus": "VERIFIED"
+    },
+    "createdAt": "2023-10-12T00:00:00.000Z"
+  },
+  "message": "Provider payout details fetched successfully."
+}
+```
+
+## 02 Admin - Provider Payout Approvals
+
+### GET `/api/v1/admin/provider-payouts/stats`
+
+- Summary: Fetch provider payout dashboard stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Aggregates from provider payout records only; no frontend totals are trusted.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "totalPayoutsThisMonth": 128430,
+    "totalPayoutsDeltaPercent": 12.5,
+    "pendingPayouts": 12250,
+    "pendingPayoutsDeltaPercent": -2.4,
+    "completedPayouts": 116180,
+    "completedPayoutsDeltaPercent": 14.2,
+    "platformRevenue": 19264.5,
+    "platformRevenueDeltaPercent": 8.1,
+    "currency": "USD"
+  },
+  "message": "Provider payout stats fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/trends`
+
+- Summary: Fetch monthly provider payout trend
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "range": "LAST_12_MONTHS",
+    "labels": [
+      "Jan",
+      "Feb",
+      "Mar"
+    ],
+    "values": [
+      12000,
+      28000,
+      16000
+    ],
+    "currency": "USD"
+  },
+  "message": "Provider payout trends fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/earning-distribution`
+
+- Summary: Fetch earning distribution by provider tier
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Uses provider earnings ledger totals and active commission tier thresholds.
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "tierId": "tier_silver",
+      "tierName": "Silver Partner",
+      "providerCount": 18,
+      "totalEarnings": 450230,
+      "currency": "USD"
+    }
+  ],
+  "message": "Provider earning distribution fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/export`
+
+- Summary: Export provider payouts
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.export
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `status` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+  - `format` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/bulk-approve`
+
+- Summary: Bulk approve provider payouts
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.approve
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.
+- Request payload(s):
+  - approve:
+```json
+{
+  "payoutIds": [
+    "payout_id_1",
+    "payout_id_2"
+  ],
+  "comment": "Bulk approved after verification.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "payoutId": "payout_id_1",
+      "status": "PROCESSING",
+      "success": true,
+      "idempotent": false
+    },
+    {
+      "payoutId": "payout_id_2",
+      "status": "PROCESSING",
+      "success": true,
+      "idempotent": true
+    }
+  ],
+  "message": "Bulk payout approval processed."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts`
+
+- Summary: List provider payouts
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `status` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "payout_id",
+      "provider": {
+        "id": "provider_id",
+        "businessName": "TechSolutions Inc.",
+        "providerCode": "PRV-90210",
+        "avatarUrl": "https://cdn.example.com/provider.png"
+      },
+      "pendingAmount": 3420,
+      "currency": "USD",
+      "lastPayoutDate": "2023-10-12T00:00:00.000Z",
+      "nextPayoutDate": "2023-11-12T00:00:00.000Z",
+      "status": "COMPLETED"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Provider payouts fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/provider-payouts/{id}/breakdown`
+
+- Summary: Fetch pending payout transaction breakdown
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "payoutId": "payout_id",
+    "provider": {
+      "id": "provider_id",
+      "businessName": "CloudTech Solutions",
+      "merchantId": "MER-29401-2023"
+    },
+    "grossAmount": 4200,
+    "platformFee": 420,
+    "platformFeePercent": 10,
+    "processingFee": 12.5,
+    "netPayout": 3767.5,
+    "currency": "USD",
+    "recentTransactions": [
+      {
+        "orderNumber": "88392",
+        "description": "Subscription - Professional Plan",
+        "amount": 199
+      }
+    ]
+  },
+  "message": "Payout breakdown fetched successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/{id}/approve`
+
+- Summary: Approve provider payout
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.approve
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - approve:
+```json
+{
+  "comment": "Approved after verification.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "status": "PROCESSING"
+  },
+  "message": "Payout approved successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/{id}/hold`
+
+- Summary: Hold provider payout
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.hold
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - hold:
+```json
+{
+  "reason": "BANK_VERIFICATION_PENDING",
+  "comment": "Bank verification required.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "status": "ON_HOLD"
+  },
+  "message": "Payout held successfully."
+}
+```
+
+### POST `/api/v1/admin/provider-payouts/{id}/reject`
+
+- Summary: Reject provider payout
+- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.reject
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - reject:
+```json
+{
+  "reason": "INVALID_BANK_ACCOUNT",
+  "comment": "Bank details are invalid.",
+  "notifyProvider": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payout_id",
+    "status": "REJECTED",
+    "ledgerReleased": true
+  },
+  "message": "Payout rejected successfully."
 }
 ```
 
