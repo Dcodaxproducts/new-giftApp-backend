@@ -24701,7 +24701,7 @@
   },
   "info": {
     "title": "Gift App Backend",
-    "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, moderation, and audit workflows.",
+    "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
     "version": "0.1.0",
     "contact": {}
   },

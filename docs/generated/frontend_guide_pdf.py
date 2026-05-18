@@ -121,6 +121,18 @@ for key in ["admin", "user", "provider"]:
         for r in rows:
             html.append(f"<tr><td class='method {r['method']}'>{r['method']}</td><td class='path'>{escape(r['path'])}</td><td>{escape(r['purpose'])}</td><td class='access'>{escape(r['access'])}</td></tr>")
         html.append("</tbody></table>")
+        if module == "Admin - Message Moderation":
+            html.append("""
+<div class='notice'><b>Message moderation frontend notes:</b>
+<ul>
+  <li>Use the conversation list for the moderation queue and conversation detail for the flagged message preview / AI moderation alert.</li>
+  <li>Actions: block message, warn user, suspend account, dismiss flag, add internal private note, and reprocess. Use the next list item as the “Next Incident” source after an action.</li>
+  <li>Permissions: SUPER_ADMIN can perform all actions. ADMIN needs messageModeration.read for queue/detail, export for export, block/warn/suspend/dismiss for those actions, notes.create for private notes, and moderate for reprocess.</li>
+  <li>Redaction: flagged harmful content returns <code>body: null</code> by default and always includes <code>redactedBody</code>. Do not render raw harmful content unless a future explicit unmask permission is implemented.</li>
+  <li>Internal notes are admin-only and must never be rendered in customer/provider chat screens.</li>
+</ul>
+</div>
+""")
 
 html.append("<h2>WebSocket / Real-Time Guide</h2>")
 html.append("""
@@ -186,6 +198,13 @@ for key in ["admin", "user", "provider"]:
         for r in rows:
             md.append(f"| {r['method']} | `{r['path']}` | {r['purpose']} | {r['access']} |\n")
         md.append("\n")
+        if module == "Admin - Message Moderation":
+            md.append("**Message moderation frontend notes**\n\n")
+            md.append("- Use the conversation list for the moderation queue and conversation detail for the flagged message preview / AI moderation alert.\n")
+            md.append("- Actions: block message, warn user, suspend account, dismiss flag, add internal private note, and reprocess. Use the next list item as the `Next Incident` source after an action.\n")
+            md.append("- Permissions: SUPER_ADMIN can perform all actions. ADMIN needs `messageModeration.read` for queue/detail, `messageModeration.export` for export, `messageModeration.block`, `messageModeration.warn`, `messageModeration.suspend`, `messageModeration.dismiss`, `messageModeration.notes.create`, and `messageModeration.moderate` for reprocess.\n")
+            md.append("- Redaction: flagged harmful content returns `body: null` by default and always includes `redactedBody`. Do not render raw harmful content unless a future explicit unmask permission is implemented.\n")
+            md.append("- Internal notes are admin-only and must never be rendered in customer/provider chat screens.\n\n")
 md.append("## WebSocket / Real-Time Guide\n\n")
 md.append("### Notifications namespace\n\n")
 md.append("- Socket URL: `{API_BASE_URL}/notifications`.\n")

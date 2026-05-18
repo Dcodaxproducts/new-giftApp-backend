@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 05:56 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 ## Superadmin / Admin APIs
 
@@ -102,6 +102,14 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 05:56 PKT.
 | POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend the message sender account | SUPER_ADMIN or ADMIN with messageModeration |
 | POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn the message sender | SUPER_ADMIN or ADMIN with messageModeration |
 | GET | `/api/v1/admin/message-moderation/stats` | Fetch message moderation stats | SUPER_ADMIN or ADMIN with messageModeration |
+
+**Message moderation frontend notes**
+
+- Use the conversation list for the moderation queue and conversation detail for the flagged message preview / AI moderation alert.
+- Actions: block message, warn user, suspend account, dismiss flag, add internal private note, and reprocess. Use the next list item as the `Next Incident` source after an action.
+- Permissions: SUPER_ADMIN can perform all actions. ADMIN needs `messageModeration.read` for queue/detail, `messageModeration.export` for export, `messageModeration.block`, `messageModeration.warn`, `messageModeration.suspend`, `messageModeration.dismiss`, `messageModeration.notes.create`, and `messageModeration.moderate` for reprocess.
+- Redaction: flagged harmful content returns `body: null` by default and always includes `redactedBody`. Do not render raw harmful content unless a future explicit unmask permission is implemented.
+- Internal notes are admin-only and must never be rendered in customer/provider chat screens.
 
 ### Admin - Promotional Offers Management (10 APIs)
 
