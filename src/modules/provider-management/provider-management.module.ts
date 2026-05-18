@@ -16,5 +16,6 @@ import { ProviderManagementService } from './services/provider-management.servic
   imports: [MailerModule, DatabaseModule],
   controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
   providers: [ProviderManagementService, ProviderManagementRepository, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, AuditLogWriterRepository, AuditLogWriterService, AccountStatusService, AccountStatusRepository],
+  exports: [ProviderManagementService],
 })
 export class ProviderManagementModule {}

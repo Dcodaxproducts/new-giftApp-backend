@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 11:23 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
 
 ## Frontend Integration Flows
 
@@ -106,21 +106,24 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 11:23 PKT.
 | PATCH | `/api/v1/media-upload-policy` | Update global media upload policy | SUPER_ADMIN |
 | GET | `/api/v1/media-upload-policy/audit-logs` | List media upload policy audit logs | SUPER_ADMIN |
 
-### Admin - Message Moderation (12 APIs)
+### Admin - Message Moderation (15 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
+| GET | `/api/v1/admin/message-moderation/audit-logs` | Fetch message moderation audit logs | SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read |
 | GET | `/api/v1/admin/message-moderation/conversations` | List flagged message moderation conversations | SUPER_ADMIN or ADMIN with messageModeration.read |
 | GET | `/api/v1/admin/message-moderation/conversations/{id}` | Fetch message moderation conversation detail | SUPER_ADMIN or ADMIN with messageModeration.read |
-| GET | `/api/v1/admin/message-moderation/conversations/{id}/history` | Fetch message moderation conversation history | SUPER_ADMIN or ADMIN with messageModeration.read |
+| GET | `/api/v1/admin/message-moderation/conversations/{id}/history` | Fetch paginated message moderation conversation history | SUPER_ADMIN or ADMIN with messageModeration.read |
 | GET | `/api/v1/admin/message-moderation/export` | Export message moderation rows | SUPER_ADMIN or ADMIN with messageModeration.export |
 | GET | `/api/v1/admin/message-moderation/filter-options` | Fetch message moderation filter options | SUPER_ADMIN or ADMIN with messageModeration.read |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/block` | Block a flagged message | SUPER_ADMIN or ADMIN with messageModeration.block |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag` | Dismiss a moderation flag | SUPER_ADMIN or ADMIN with messageModeration.dismiss |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/block` | Hide a flagged message from chat participants | SUPER_ADMIN or ADMIN with messageModeration.moderate |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag` | Dismiss a moderation flag | SUPER_ADMIN or ADMIN with messageModeration.moderate |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/escalate` | Escalate a flagged message | SUPER_ADMIN or ADMIN with messageModeration.escalate |
 | POST | `/api/v1/admin/message-moderation/messages/{messageId}/note` | Add internal private moderation note | SUPER_ADMIN or ADMIN with messageModeration.notes.create |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/reprocess` | Reprocess a message through scanner | SUPER_ADMIN or ADMIN with messageModeration.moderate |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend the message sender account | SUPER_ADMIN or ADMIN with messageModeration.suspend |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn the message sender | SUPER_ADMIN or ADMIN with messageModeration.warn |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/reprocess` | Reprocess a message through scanner | SUPER_ADMIN or ADMIN with messageModeration.reprocess |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/restore` | Restore a hidden moderated message | SUPER_ADMIN or ADMIN with messageModeration.moderate |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend message sender account | SUPER_ADMIN or ADMIN with messageModeration.suspend |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn message sender | SUPER_ADMIN or ADMIN with messageModeration.warn |
 | GET | `/api/v1/admin/message-moderation/stats` | Fetch message moderation stats | SUPER_ADMIN or ADMIN with messageModeration.read |
 
 **Message moderation frontend notes**

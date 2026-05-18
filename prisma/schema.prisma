@@ -568,6 +568,11 @@ enum ChatMessageType {
   FILE
 }
 
+enum MessageVisibilityStatus {
+  VISIBLE
+  HIDDEN_BY_MODERATION
+}
+
 enum MessageModerationSource {
   CUSTOMER_PROVIDER_CHAT
   PROVIDER_BUYER_CHAT
@@ -591,11 +596,15 @@ enum MessageModerationFlagType {
 
 enum MessageModerationStatus {
   FLAGGED
+  PENDING_REVIEW
   UNDER_REVIEW
+  ACTION_TAKEN
   DISMISSED
   BLOCKED
   WARNED
   SUSPENDED
+  ESCALATED
+  RESOLVED
 }
 
 enum MessageModerationSeverity {
@@ -607,12 +616,15 @@ enum MessageModerationSeverity {
 
 enum MessageModerationAction {
   FLAGGED
+  HIDE_MESSAGE
+  RESTORE_MESSAGE
   BLOCK_MESSAGE
   WARN_USER
   SUSPEND_ACCOUNT
   DISMISS_FLAG
   ADD_NOTE
   REPROCESS
+  ESCALATE_MESSAGE
 }
 
 enum ProviderReportReason {
@@ -2229,6 +2241,10 @@ model ChatMessage {
   attachmentUrlsJson Json            @default("[]") @map("attachment_urls_json")
   isReadByCustomer   Boolean         @default(false) @map("is_read_by_customer")
   isReadByProvider   Boolean         @default(false) @map("is_read_by_provider")
+  visibilityStatus   MessageVisibilityStatus @default(VISIBLE) @map("visibility_status")
+  hiddenByModeration Boolean         @default(false) @map("hidden_by_moderation")
+  hiddenAt           DateTime?       @map("hidden_at") @db.Timestamptz
+  hiddenByAdminId    String?         @map("hidden_by_admin_id")
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
 
   thread        ChatThread  @relation("ThreadMessages", fields: [threadId], references: [id])
@@ -2279,6 +2295,10 @@ model SupportChatMessage {
   attachmentUrlsJson Json                  @default("[]") @map("attachment_urls_json")
   readByAdminAt      DateTime?             @map("read_by_admin_at") @db.Timestamptz
   readByParticipantAt DateTime?            @map("read_by_participant_at") @db.Timestamptz
+  visibilityStatus   MessageVisibilityStatus @default(VISIBLE) @map("visibility_status")
+  hiddenByModeration Boolean               @default(false) @map("hidden_by_moderation")
+  hiddenAt           DateTime?             @map("hidden_at") @db.Timestamptz
+  hiddenByAdminId    String?               @map("hidden_by_admin_id")
   createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz
 
   supportChat SupportChat @relation("SupportChatMessages", fields: [supportChatId], references: [id])
@@ -2317,11 +2337,32 @@ model MessageModerationCase {
   updatedAt          DateTime                    @updatedAt @map("updated_at") @db.Timestamptz
 
   logs MessageModerationLog[]
+  escalations MessageModerationEscalation[]
 
   @@index([source, status, severity, createdAt])
   @@index([participantId, createdAt])
   @@index([assignedToId, status])
   @@map("message_moderation_cases")
+}
+
+model MessageModerationEscalation {
+  id                String                 @id @default(cuid())
+  caseId            String                 @map("case_id")
+  messageId         String                 @map("message_id")
+  conversationId    String                 @map("conversation_id")
+  escalationType    String                 @map("escalation_type")
+  priority          MessageModerationSeverity
+  reason            String
+  assignedToAdminId String?                @map("assigned_to_admin_id")
+  status            String                 @default("ESCALATED")
+  createdByAdminId  String                 @map("created_by_admin_id")
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz
+
+  case MessageModerationCase @relation(fields: [caseId], references: [id])
+
+  @@index([messageId, createdAt])
+  @@index([assignedToAdminId, status])
+  @@map("message_moderation_escalations")
 }
 
 model MessageModerationLog {

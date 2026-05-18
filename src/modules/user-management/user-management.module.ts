@@ -15,5 +15,6 @@ import { UserManagementStatusService } from './services/user-management-status.s
   imports: [MailerModule, DatabaseModule],
   controllers: [UserManagementController],
   providers: [UserManagementService, UserManagementCoreService, UserManagementListService, UserManagementStatusService, UserManagementPasswordService, UserManagementDeleteService, UserManagementExportService, UserManagementRepository],
+  exports: [UserManagementService],
 })
 export class UserManagementModule {}

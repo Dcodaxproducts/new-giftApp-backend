@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 11:23 UTC
+Generated: 2026-05-18 12:01 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -17,7 +17,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Provider Payouts (11 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
-- 02 Admin - Message Moderation (12 APIs)
+- 02 Admin - Message Moderation (15 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
 - 02 Admin - Referral Settings (6 APIs)
@@ -2925,15 +2925,20 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List flagged message moderation conversations
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Returns redacted previews only.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `source` (query, optional, string)
-  - `flagType` (query, optional, string)
+  - `chatType` (query, optional, string)
   - `status` (query, optional, string)
   - `severity` (query, optional, string)
+  - `flagReason` (query, optional, string)
+  - `senderRole` (query, optional, string)
+  - `participantType` (query, optional, string)
+  - `assignedToAdminId` (query, optional, string)
+  - `source` (query, optional, string)
+  - `flagType` (query, optional, string)
   - `assignedToId` (query, optional, string)
   - `fromDate` (query, optional, string)
   - `toDate` (query, optional, string)
@@ -2945,33 +2950,41 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": [
     {
-      "id": "case_1",
-      "participant": {
-        "id": "user_1",
-        "name": "Alex Rivera",
-        "avatarUrl": "https://cdn.example.com/avatar.png",
-        "externalReference": "USR-99021"
-      },
-      "source": "WHATSAPP_BUSINESS",
-      "flag": {
-        "type": "PROFANITY",
-        "label": "Profanity Detected",
-        "severity": "HIGH",
-        "confidence": 0.94
-      },
-      "preview": "Hey, you are a total [REDACTED] if you think I'm...",
-      "status": "FLAGGED",
-      "lastMessageAt": "2026-05-18T14:02:00.000Z",
-      "timeAgo": "2m ago"
+      "id": "conversation_id",
+      "chatType": "BUYER_PROVIDER",
+      "status": "PENDING_REVIEW",
+      "severity": "HIGH",
+      "flaggedMessageCount": 2,
+      "lastFlaggedAt": "2026-05-18T10:00:00.000Z",
+      "participants": [
+        {
+          "id": "customer_id",
+          "type": "REGISTERED_USER",
+          "name": "Sarah Johnson",
+          "avatarUrl": null
+        },
+        {
+          "id": "provider_id",
+          "type": "PROVIDER",
+          "name": "Dcodax Gifts",
+          "avatarUrl": null
+        }
+      ],
+      "lastMessagePreview": "Please pay outside the platform...",
+      "flagReasons": [
+        "OFF_PLATFORM_PAYMENT",
+        "AUTO_FLAG_KEYWORD"
+      ],
+      "assignedTo": null
     }
   ],
   "meta": {
     "page": 1,
     "limit": 20,
-    "total": 12,
+    "total": 1,
     "totalPages": 1
   },
-  "message": "Message moderation conversations fetched successfully."
+  "message": "Flagged message conversations fetched successfully."
 }
 ```
 
@@ -2979,7 +2992,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Calculated from real moderation records.
 - Response body:
 ```json
 {
@@ -2993,7 +3006,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation filter options
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Sources include chat channels and external integration placeholders.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.
 - Response body:
 ```json
 {
@@ -3007,16 +3020,46 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export message moderation rows
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.export
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export remains moderation-safe and redacted.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export contains moderation-safe redacted fields only, not full private conversation history.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `source` (query, optional, string)
-  - `flagType` (query, optional, string)
+  - `chatType` (query, optional, string)
   - `status` (query, optional, string)
   - `severity` (query, optional, string)
+  - `flagReason` (query, optional, string)
+  - `senderRole` (query, optional, string)
+  - `participantType` (query, optional, string)
+  - `assignedToAdminId` (query, optional, string)
+  - `source` (query, optional, string)
+  - `flagType` (query, optional, string)
   - `assignedToId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/message-moderation/audit-logs`
+
+- Summary: Fetch message moderation audit logs
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `conversationId` (query, optional, string)
+  - `messageId` (query, optional, string)
+  - `actorAdminId` (query, optional, string)
+  - `action` (query, optional, string)
   - `fromDate` (query, optional, string)
   - `toDate` (query, optional, string)
   - `sortBy` (query, optional, string)
@@ -3034,7 +3077,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation conversation detail
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. Flagged harmful message body is null by default; redactedBody is always returned.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. SUPER_ADMIN or ADMIN with messageModeration.read. Returns participants, flagged messages, internal notes, and action history.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -3048,11 +3091,15 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/admin/message-moderation/conversations/{id}/history`
 
-- Summary: Fetch message moderation conversation history
+- Summary: Fetch paginated message moderation conversation history
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Returns moderation case history for the same conversation.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.
 - Parameters:
   - `id` (path, required, string)
+  - `beforeMessageId` (query, optional, string)
+  - `afterMessageId` (query, optional, string)
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
 - Response body:
 ```json
 {
@@ -3064,9 +3111,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/admin/message-moderation/messages/{messageId}/block`
 
-- Summary: Block a flagged message
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.block
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.block. SUPER_ADMIN or ADMIN with messageModeration.block permission. Creates moderation and audit logs. Creates moderation log and audit log; message is not physically deleted.
+- Summary: Hide a flagged message from chat participants
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Hide a flagged message from chat participants. Does not block the sender account. SUPER_ADMIN or ADMIN with messageModeration.moderate. Hide a flagged message from chat participants. Does not block the sender account. Internally records HIDE_MESSAGE and never physically deletes chat messages.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
@@ -3074,8 +3121,35 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "reason": "<string>",
+  "comment": "<string>",
   "internalNote": "<string>",
+  "notifyParticipants": true,
   "notifyUser": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/restore`
+
+- Summary: Restore a hidden moderated message
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Restores a message hidden by moderation. SUPER_ADMIN or ADMIN with messageModeration.moderate. Restores a message previously hidden by moderation and writes moderation/audit logs.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "FALSE_POSITIVE",
+  "comment": "<string>",
+  "notifyParticipants": true
 }
 ```
 - Response body:
@@ -3089,9 +3163,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/admin/message-moderation/messages/{messageId}/warn-user`
 
-- Summary: Warn the message sender
+- Summary: Warn message sender
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.warn
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. Creates warning notification, moderation log, and audit log when notifyUser=true.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. SUPER_ADMIN or ADMIN with messageModeration.warn. Warn the message sender. Sender may be registered user or provider. Does not expose internal notes to sender.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
@@ -3099,9 +3173,12 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "reason": "<string>",
+  "comment": "<string>",
   "warningMessage": "<string>",
   "internalNote": "<string>",
-  "notifyUser": true
+  "notifySender": true,
+  "notifyUser": true,
+  "warningSeverity": "LOW"
 }
 ```
 - Response body:
@@ -3115,9 +3192,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account`
 
-- Summary: Suspend the message sender account
+- Summary: Suspend message sender account
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.suspend
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. Uses existing user suspension fields and refuses ADMIN/SUPER_ADMIN accounts.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. SUPER_ADMIN or ADMIN with messageModeration.suspend. Suspends the message sender account using the correct registered-user/provider lifecycle service. Admin and Super Admin accounts cannot be suspended here.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
@@ -3125,7 +3202,11 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "reason": "<string>",
-  "duration": "TEMPORARY",
+  "comment": "<string>",
+  "suspensionScope": "ACCOUNT",
+  "durationDays": 1.0,
+  "notifySender": true,
+  "duration": "<string>",
   "suspendUntil": "<string>",
   "internalNote": "<string>",
   "notifyUser": true
@@ -3143,8 +3224,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### POST `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag`
 
 - Summary: Dismiss a moderation flag
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.dismiss
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.dismiss. SUPER_ADMIN or ADMIN with messageModeration.dismiss permission. Marks case dismissed, keeps message visible, and writes moderation/audit logs.
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. SUPER_ADMIN or ADMIN with messageModeration.moderate. Marks flag as false-positive/no-action and keeps the message visible.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
@@ -3152,6 +3233,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "reason": "<string>",
+  "comment": "<string>",
   "internalNote": "<string>"
 }
 ```
@@ -3168,7 +3250,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Add internal private moderation note
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.notes.create
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. Internal-only note visible to admin moderation users; creates audit log.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. SUPER_ADMIN or ADMIN with messageModeration.notes.create. Internal-only note is never visible to customer/provider participants.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
@@ -3190,15 +3272,44 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### POST `/api/v1/admin/message-moderation/messages/{messageId}/reprocess`
 
 - Summary: Reprocess a message through scanner
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Runs deterministic scanner again and updates the moderation case.
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.reprocess
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.reprocess. SUPER_ADMIN or ADMIN with messageModeration.reprocess permission. SUPER_ADMIN or ADMIN with messageModeration.reprocess. Re-runs the content scanner using current policy and stores scanner result snapshot without duplicating active flags for the same reason.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
+  "scannerMode": "CURRENT_POLICY",
+  "comment": "<string>",
   "reason": "<string>"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/escalate`
+
+- Summary: Escalate a flagged message
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.escalate
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.escalate. SUPER_ADMIN or ADMIN with messageModeration.escalate permission. SUPER_ADMIN or ADMIN with messageModeration.escalate. Escalates a flagged message to support, security, or dispute review.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "escalationType": "SUPPORT_REVIEW",
+  "priority": "HIGH",
+  "reason": "<string>",
+  "assignToAdminId": "<string>",
+  "notifyAssignedAdmin": true
 }
 ```
 - Response body:

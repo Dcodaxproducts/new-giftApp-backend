@@ -319,13 +319,14 @@ export const PERMISSION_CATALOG = [
 
     permissions: [
       { key: 'read', label: 'View Message Moderation', description: 'View flagged message conversations, detail, history, stats, and filter options.' },
-      { key: 'moderate', label: 'Reprocess Messages', description: 'Reprocess flagged messages through the moderation scanner.' },
       { key: 'export', label: 'Export Message Moderation', description: 'Export redacted message moderation queues.' },
-      { key: 'warn', label: 'Warn Message Senders', description: 'Warn users for harmful or suspicious messages.' },
-      { key: 'block', label: 'Block Messages', description: 'Block harmful messages without physically deleting them.' },
-      { key: 'suspend', label: 'Suspend Message Senders', description: 'Suspend non-admin message sender accounts.' },
-      { key: 'dismiss', label: 'Dismiss Message Flags', description: 'Dismiss false-positive message moderation flags.' },
+      { key: 'moderate', label: 'Moderate Messages', description: 'Hide, restore, or dismiss flagged messages without physically deleting them.' },
+      { key: 'warn', label: 'Warn Message Senders', description: 'Warn registered user or provider message senders.' },
+      { key: 'suspend', label: 'Suspend Message Senders', description: 'Suspend non-admin message sender accounts through lifecycle services.' },
       { key: 'notes.create', label: 'Create Message Moderation Notes', description: 'Create internal private moderation notes.' },
+      { key: 'reprocess', label: 'Reprocess Messages', description: 'Reprocess flagged messages through the moderation scanner.' },
+      { key: 'escalate', label: 'Escalate Messages', description: 'Escalate flagged messages to support, security, or dispute review.' },
+      { key: 'auditLogs.read', label: 'View Message Moderation Audit Logs', description: 'View compliance audit logs for message moderation actions.' },
     ],
   },
   {
