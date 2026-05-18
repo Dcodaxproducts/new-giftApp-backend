@@ -9,6 +9,7 @@ import { GetProviderOrderChatDto, ListProviderChatsDto, ListProviderReviewsDto, 
 import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
 import { MessageContentFilterService } from '../../messaging-settings/services/message-content-filter.service';
 import { MessagingPolicyService } from '../../messaging-settings/services/messaging-policy.service';
+import { UserSafetyService } from '../../user-safety/services/user-safety.service';
 
 type CustomerView = { id: string; firstName: string; lastName: string; avatarUrl: string | null; isActive?: boolean };
 type ThreadView = { id: string; orderId: string; providerOrderId: string; customerId: string; order: { id: string; orderNumber: string; userId: string }; customer: CustomerView; lastMessage: { body: string | null; createdAt: Date } | null };
@@ -24,6 +25,7 @@ export class ProviderInteractionsService {
     private readonly messageModerationService?: MessageModerationService,
     private readonly messagingPolicy?: MessagingPolicyService,
     private readonly messageContentFilter?: MessageContentFilterService,
+    private readonly userSafetyService?: UserSafetyService,
   ) {}
 
   async getOrderChat(user: AuthUserContext, providerOrderId: string, query: GetProviderOrderChatDto) {
@@ -64,6 +66,7 @@ export class ProviderInteractionsService {
     const thread = await this.getOwnedThread(user.uid, threadId);
     this.assertMessagePayload(dto);
     await this.messagingPolicy?.assertCanSend({ channel: 'buyerProvider', body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
+    await this.userSafetyService?.assertUsersCanInteract(user.uid, thread.customerId);
     const moderationHint = await this.messageContentFilter?.filter(dto.body);
     await this.assertAttachments(dto.attachmentUrls ?? []);
     const message = await this.buyerChatRepository.createChatMessage({ threadId, senderId: user.uid, senderType: ChatSenderType.PROVIDER, clientMessageId: dto.clientMessageId, messageType: dto.messageType, body: dto.body, attachmentUrlsJson: dto.attachmentUrls ?? [], isReadByCustomer: false, isReadByProvider: true });

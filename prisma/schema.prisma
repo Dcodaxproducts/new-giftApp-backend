@@ -631,6 +631,42 @@ enum ProviderReportStatus {
   REJECTED
 }
 
+enum UserSafetyReportReason {
+  HARASSMENT
+  SPAM
+  INAPPROPRIATE_CONTENT
+  FRAUD_OR_SCAM
+  OFF_PLATFORM_PAYMENT
+  IMPERSONATION
+  OTHER
+}
+
+enum UserSafetySourceType {
+  PROFILE
+  CHAT
+  FEED_ITEM
+  GROUP_GIFT
+  OTHER
+}
+
+enum UserSafetyReportStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  REVIEWED
+  WARNED
+  SUSPENDED
+  DISMISSED
+  ESCALATED
+}
+
+enum UserSafetyAdminAction {
+  MARK_REVIEWED
+  WARN_REPORTED_USER
+  SUSPEND_REPORTED_USER
+  DISMISS_REPORT
+  ESCALATE
+}
+
 enum DisputeStatus {
   OPEN
   IN_REVIEW
@@ -1010,6 +1046,12 @@ model User {
   updatedCommissionTiers             CommissionTier[]                    @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
+  submittedUserSafetyReports          UserSafetyReport[]                   @relation("UserSafetyReporter")
+  receivedUserSafetyReports           UserSafetyReport[]                   @relation("UserSafetyReported")
+  reviewedUserSafetyReports           UserSafetyReport[]                   @relation("UserSafetyReviewer")
+  blockedUsers                        UserBlock[]                          @relation("UserBlockBlocker")
+  blockedByUsers                      UserBlock[]                          @relation("UserBlockBlocked")
+  userSafetyModerationLogs            UserSafetyModerationLog[]            @relation("UserSafetyModerationActor")
   socialModerationLogs                SocialModerationLog[]                @relation("SocialModerationActor")
   socialWarnings                      UserWarning[]                        @relation("WarnedUser")
   issuedSocialWarnings                UserWarning[]                        @relation("WarningIssuer")
@@ -2324,6 +2366,68 @@ model ProviderReport {
   @@index([providerId, status])
   @@index([orderId])
   @@map("provider_reports")
+}
+
+model UserSafetyReport {
+  id               String                  @id @default(cuid())
+  reportId         String                  @unique @map("report_id")
+  reporterUserId   String                  @map("reporter_user_id")
+  reportedUserId   String                  @map("reported_user_id")
+  reason           UserSafetyReportReason
+  details          String
+  sourceType       UserSafetySourceType    @map("source_type")
+  sourceId         String?                 @map("source_id")
+  evidenceUrlsJson Json                    @default("[]") @map("evidence_urls_json")
+  status           UserSafetyReportStatus  @default(SUBMITTED)
+  adminComment     String?                 @map("admin_comment")
+  reviewedById     String?                 @map("reviewed_by_id")
+  reviewedAt       DateTime?               @map("reviewed_at") @db.Timestamptz
+  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+
+  reporter User  @relation("UserSafetyReporter", fields: [reporterUserId], references: [id])
+  reported User  @relation("UserSafetyReported", fields: [reportedUserId], references: [id])
+  reviewer User? @relation("UserSafetyReviewer", fields: [reviewedById], references: [id])
+  logs     UserSafetyModerationLog[]
+
+  @@index([reporterUserId, createdAt])
+  @@index([reportedUserId, status])
+  @@index([sourceType, sourceId])
+  @@index([reason, status])
+  @@map("user_safety_reports")
+}
+
+model UserBlock {
+  id            String   @id @default(cuid())
+  blockerUserId String   @map("blocker_user_id")
+  blockedUserId String   @map("blocked_user_id")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  blocker User @relation("UserBlockBlocker", fields: [blockerUserId], references: [id])
+  blocked User @relation("UserBlockBlocked", fields: [blockedUserId], references: [id])
+
+  @@unique([blockerUserId, blockedUserId])
+  @@index([blockedUserId])
+  @@map("user_blocks")
+}
+
+model UserSafetyModerationLog {
+  id        String                 @id @default(cuid())
+  reportId  String                 @map("report_id")
+  actorId   String                 @map("actor_id")
+  action    UserSafetyAdminAction
+  reason    String?
+  comment   String?
+  beforeJson Json?                 @map("before_json")
+  afterJson  Json?                 @map("after_json")
+  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz
+
+  report UserSafetyReport @relation(fields: [reportId], references: [id])
+  actor  User             @relation("UserSafetyModerationActor", fields: [actorId], references: [id])
+
+  @@index([reportId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("user_safety_moderation_logs")
 }
 
 model SocialPost {

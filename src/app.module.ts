@@ -51,6 +51,7 @@ import { SubscriptionPlansModule } from './modules/subscription-plans/subscripti
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { SupportChatModule } from './modules/support-chat/support-chat.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
+import { UserSafetyModule } from './modules/user-safety/user-safety.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     ProviderRefundRequestsModule,
     PromotionalOffersModule,
     UserManagementModule,
+    UserSafetyModule,
     CustomerContactsModule,
     CustomerEventsModule,
     CustomerMarketplaceModule,

@@ -8,6 +8,7 @@ import { ProviderReviewResponsesRepository } from './repositories/provider-revie
 import { ProviderReviewsRepository } from './repositories/provider-reviews.repository';
 import { MessageModerationModule } from '../message-moderation/message-moderation.module';
 import { MessagingSettingsModule } from '../messaging-settings/messaging-settings.module';
+import { UserSafetyModule } from '../user-safety/user-safety.module';
 
-@Module({ imports: [DatabaseModule, MessageModerationModule, MessagingSettingsModule], controllers: [ProviderInteractionsController], providers: [ProviderInteractionsService, ProviderBuyerChatRepository, ProviderInteractionsRepository, ProviderReviewsRepository, ProviderReviewResponsesRepository], exports: [ProviderInteractionsService] })
+@Module({ imports: [DatabaseModule, MessageModerationModule, MessagingSettingsModule, UserSafetyModule], controllers: [ProviderInteractionsController], providers: [ProviderInteractionsService, ProviderBuyerChatRepository, ProviderInteractionsRepository, ProviderReviewsRepository, ProviderReviewResponsesRepository], exports: [ProviderInteractionsService] })
 export class ProviderInteractionsModule {}

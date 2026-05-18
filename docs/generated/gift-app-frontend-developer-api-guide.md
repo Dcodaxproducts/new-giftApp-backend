@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 10:21 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 10:40 PKT.
 
 ## Frontend Integration Flows
 
@@ -395,6 +395,15 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:21 PKT.
 | POST | `/api/v1/users/{id}/suspend` | Create Users Suspend | SUPER_ADMIN or ADMIN with users.suspend |
 | POST | `/api/v1/users/{id}/unsuspend` | Create Users Unsuspend | SUPER_ADMIN or ADMIN with users.unsuspend |
 
+### Admin - User Safety Moderation (4 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/user-safety/reports` | List user safety reports | Authenticated |
+| GET | `/api/v1/admin/user-safety/reports/export` | Export user safety reports | Authenticated |
+| GET | `/api/v1/admin/user-safety/reports/{id}` | Fetch user safety report detail | Authenticated |
+| POST | `/api/v1/admin/user-safety/reports/{id}/action` | Moderate user safety report | Authenticated |
+
 ### Auth (16 APIs)
 
 | Method | Endpoint | Purpose | Access |
@@ -685,6 +694,18 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:21 PKT.
 | GET | `/api/v1/customer/transactions/summary` | Fetch own transaction summary | REGISTERED_USER |
 | GET | `/api/v1/customer/transactions/{id}` | Fetch own transaction details | REGISTERED_USER |
 | GET | `/api/v1/customer/transactions/{id}/receipt` | Download own transaction receipt | REGISTERED_USER |
+
+### Customer - User Safety (7 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/customer/blocked-users` | List blocked users | REGISTERED_USER |
+| POST | `/api/v1/customer/blocked-users/{userId}` | Block another user | REGISTERED_USER |
+| DELETE | `/api/v1/customer/blocked-users/{userId}` | Unblock user | REGISTERED_USER |
+| GET | `/api/v1/customer/user-report-reasons` | Fetch generic user report reasons | REGISTERED_USER |
+| GET | `/api/v1/customer/user-reports` | List own user safety reports | REGISTERED_USER |
+| GET | `/api/v1/customer/user-reports/{id}` | Fetch own user safety report detail | REGISTERED_USER |
+| POST | `/api/v1/customer/users/{userId}/reports` | Report another user | REGISTERED_USER |
 
 ### Customer - Wallet (3 APIs)
 

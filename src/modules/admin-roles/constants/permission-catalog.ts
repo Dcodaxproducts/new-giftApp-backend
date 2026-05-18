@@ -352,6 +352,15 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'userSafety',
+    label: 'User Safety Moderation',
+    permissions: [
+      { key: 'read', label: 'View User Safety Reports', description: 'View generic user safety report queues and details.' },
+      { key: 'moderate', label: 'Moderate User Safety Reports', description: 'Warn, suspend, dismiss, review, or escalate user safety reports.' },
+      { key: 'export', label: 'Export User Safety Reports', description: 'Export generic user safety reports.' },
+    ],
+  },
+  {
     module: 'reviews',
     label: 'Reviews Management',
     permissions: [

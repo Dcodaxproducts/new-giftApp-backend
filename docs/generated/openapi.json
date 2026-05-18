@@ -12405,6 +12405,500 @@
         "x-access": "SUPER_ADMIN"
       }
     },
+    "/api/v1/customer/user-report-reasons": {
+      "get": {
+        "operationId": "UserSafetyController_reasons",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch generic user report reasons",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/users/{userId}/reports": {
+      "post": {
+        "operationId": "UserSafetyController_report",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Report another user",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/user-reports": {
+      "get": {
+        "operationId": "UserSafetyController_reports",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVIEWED",
+                "WARNED",
+                "SUSPENDED",
+                "DISMISSED",
+                "ESCALATED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own user safety reports",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/user-reports/{id}": {
+      "get": {
+        "operationId": "UserSafetyController_reportDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own user safety report detail",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/blocked-users": {
+      "get": {
+        "operationId": "UserSafetyController_blocked",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List blocked users",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/blocked-users/{userId}": {
+      "post": {
+        "operationId": "UserSafetyController_block",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Block another user",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      },
+      "delete": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. No request body. Removes only the current customer block row.",
+        "operationId": "UserSafetyController_unblock",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unblock user",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/admin/user-safety/reports": {
+      "get": {
+        "operationId": "UserSafetyAdminController_reports",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVIEWED",
+                "WARNED",
+                "SUSPENDED",
+                "DISMISSED",
+                "ESCALATED"
+              ]
+            }
+          },
+          {
+            "name": "reason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HARASSMENT",
+                "SPAM",
+                "INAPPROPRIATE_CONTENT",
+                "FRAUD_OR_SCAM",
+                "OFF_PLATFORM_PAYMENT",
+                "IMPERSONATION",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List user safety reports",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/user-safety/reports/export": {
+      "get": {
+        "operationId": "UserSafetyAdminController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVIEWED",
+                "WARNED",
+                "SUSPENDED",
+                "DISMISSED",
+                "ESCALATED"
+              ]
+            }
+          },
+          {
+            "name": "reason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HARASSMENT",
+                "SPAM",
+                "INAPPROPRIATE_CONTENT",
+                "FRAUD_OR_SCAM",
+                "OFF_PLATFORM_PAYMENT",
+                "IMPERSONATION",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export user safety reports",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/user-safety/reports/{id}": {
+      "get": {
+        "operationId": "UserSafetyAdminController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch user safety report detail",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/user-safety/reports/{id}/action": {
+      "post": {
+        "operationId": "UserSafetyAdminController_action",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSafetyAdminActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Moderate user safety report",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
     "/api/v1/provider/inventory": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.",
@@ -24145,7 +24639,8 @@
                 "dispute-evidence",
                 "provider-dispute-evidence",
                 "provider-support-attachments",
-                "support-chat-attachments"
+                "support-chat-attachments",
+                "user-report-evidence"
               ]
             }
           },
@@ -27545,6 +28040,88 @@
           "blockSvgUploads"
         ]
       },
+      "CreateUserReportDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "HARASSMENT",
+              "SPAM",
+              "INAPPROPRIATE_CONTENT",
+              "FRAUD_OR_SCAM",
+              "OFF_PLATFORM_PAYMENT",
+              "IMPERSONATION",
+              "OTHER"
+            ]
+          },
+          "details": {
+            "type": "string",
+            "example": "User sent inappropriate messages."
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "PROFILE",
+              "CHAT",
+              "FEED_ITEM",
+              "GROUP_GIFT",
+              "OTHER"
+            ]
+          },
+          "sourceId": {
+            "type": "string",
+            "example": "thread_id"
+          },
+          "evidenceUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "reason",
+          "details",
+          "sourceType"
+        ]
+      },
+      "UserSafetyAdminActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "MARK_REVIEWED",
+              "WARN_REPORTED_USER",
+              "SUSPEND_REPORTED_USER",
+              "DISMISS_REPORT",
+              "ESCALATE"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "example": "HARASSMENT_CONFIRMED"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "notifyReporter": {
+            "type": "boolean"
+          },
+          "notifyReportedUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action",
+          "reason"
+        ]
+      },
       "ProviderInventoryVariantDto": {
         "type": "object",
         "properties": {
@@ -30184,7 +30761,8 @@
               "dispute-evidence",
               "provider-dispute-evidence",
               "provider-support-attachments",
-              "support-chat-attachments"
+              "support-chat-attachments",
+              "user-report-evidence"
             ],
             "example": "gift-images",
             "description": "Upload folder. Normal users/providers should send only folder, fileName, contentType, and sizeBytes. Add giftId only for gift image uploads."

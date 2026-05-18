@@ -10,6 +10,7 @@ import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositor
 import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
 import { MessageContentFilterService } from '../../messaging-settings/services/message-content-filter.service';
 import { MessagingPolicyService } from '../../messaging-settings/services/messaging-policy.service';
+import { UserSafetyService } from '../../user-safety/services/user-safety.service';
 
 type ProviderView = { id: string; providerBusinessName: string | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
@@ -33,6 +34,7 @@ export class CustomerProviderInteractionsService {
     private readonly messageModerationService?: MessageModerationService,
     private readonly messagingPolicy?: MessagingPolicyService,
     private readonly messageContentFilter?: MessageContentFilterService,
+    private readonly userSafetyService?: UserSafetyService,
   ) {}
 
   async getOrderChat(user: AuthUserContext, orderId: string, query: GetOrderChatDto) {
@@ -77,6 +79,7 @@ export class CustomerProviderInteractionsService {
     const thread = await this.getOwnedThread(user.uid, threadId);
     this.assertMessagePayload(dto);
     await this.messagingPolicy?.assertCanSend({ channel: 'buyerProvider', body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
+    await this.userSafetyService?.assertUsersCanInteract(user.uid, thread.provider.id);
     const moderationHint = await this.messageContentFilter?.filter(dto.body);
     await this.assertAttachments(dto.attachmentUrls ?? []);
     const message = await this.customerChatsRepository.createCustomerMessage({ threadId, customerId: user.uid, providerId: thread.provider.id, orderId: thread.order.id, providerOrderId: thread.providerOrderId, clientMessageId: dto.clientMessageId, messageType: dto.messageType, body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
