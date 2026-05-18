@@ -52,6 +52,7 @@ import { SystemSettingsModule } from './modules/system-settings/system-settings.
 import { SupportChatModule } from './modules/support-chat/support-chat.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
 import { UserSafetyModule } from './modules/user-safety/user-safety.module';
+import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-metadata.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     PromotionalOffersModule,
     UserManagementModule,
     UserSafetyModule,
+    WorkflowMetadataModule,
     CustomerContactsModule,
     CustomerEventsModule,
     CustomerMarketplaceModule,

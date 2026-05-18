@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 10:40 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 
 ## Frontend Integration Flows
 
@@ -403,6 +403,14 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:40 PKT.
 | GET | `/api/v1/admin/user-safety/reports/export` | Export user safety reports | Authenticated |
 | GET | `/api/v1/admin/user-safety/reports/{id}` | Fetch user safety report detail | Authenticated |
 | POST | `/api/v1/admin/user-safety/reports/{id}/action` | Moderate user safety report | Authenticated |
+
+### Admin - Workflow Metadata (3 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/workflows/app-flow` | Fetch whole-system workflow app flow metadata | Authenticated |
+| GET | `/api/v1/admin/workflows/state-machines` | Fetch declared system state machines | Authenticated |
+| GET | `/api/v1/admin/workflows/transition-rules` | Fetch workflow transition guardrails and aliases | Authenticated |
 
 ### Auth (16 APIs)
 
