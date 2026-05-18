@@ -1852,6 +1852,10 @@ model Gift {
   status            GiftStatus           @default(INACTIVE)
   moderationStatus  GiftModerationStatus @default(PENDING) @map("moderation_status")
   isPublished       Boolean              @default(false) @map("is_published")
+  requiresManualReview Boolean            @default(false) @map("requires_manual_review")
+  manualReviewReason String?              @map("manual_review_reason")
+  hiddenByModeration Boolean              @default(false) @map("hidden_by_moderation")
+  moderationResolvedAt DateTime?          @map("moderation_resolved_at") @db.Timestamptz
   isFeatured        Boolean              @default(false) @map("is_featured")
   tags              Json                 @default("[]")
   ratingPlaceholder Decimal              @default(4.8) @map("rating_placeholder") @db.Decimal(3, 2)
@@ -1862,7 +1866,7 @@ model Gift {
   rejectionReason   String?              @map("rejection_reason")
   rejectionComment  String?              @map("rejection_comment")
   flaggedAt         DateTime?            @map("flagged_at") @db.Timestamptz
-  flaggedBy         String?              @map("flagged_by")
+  flaggedById       String?              @map("flagged_by")
   flagReason        String?              @map("flag_reason")
   flagComment       String?              @map("flag_comment")
   createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
@@ -1873,7 +1877,7 @@ model Gift {
   provider          User               @relation("GiftProvider", fields: [providerId], references: [id])
   approver          User?              @relation("GiftApprover", fields: [approvedBy], references: [id])
   rejecter          User?              @relation("GiftRejecter", fields: [rejectedBy], references: [id])
-  flagger           User?              @relation("GiftFlagger", fields: [flaggedBy], references: [id])
+  flagger           User?              @relation("GiftFlagger", fields: [flaggedById], references: [id])
   promotionalOffers PromotionalOffer[]
   variants          GiftVariant[]
   cartItems         CartItem[]

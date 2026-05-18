@@ -78,8 +78,10 @@ describe('Customer marketplace repository cleanup', () => {
   });
 
   it('gift list does not require provider inventory moderation approval', () => {
-    expect(availableGiftWhere).not.toContain('GiftModerationStatus.APPROVED');
-    expect(service).not.toContain('GiftModerationStatus,');
+    expect(availableGiftWhere).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
+    expect(availableGiftWhere).toContain('moderationStatus: { not: GiftModerationStatus.REJECTED }');
+    expect(availableGiftWhere).toContain('hiddenByModeration: false');
+    expect(availableGiftWhere).toContain('requiresManualReview: false');
     expect(controller).toContain('Provider inventory does not require separate gift moderation approval');
   });
 

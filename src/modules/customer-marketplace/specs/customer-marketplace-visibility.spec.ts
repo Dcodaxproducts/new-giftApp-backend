@@ -10,8 +10,10 @@ describe('Customer marketplace provider inventory visibility rules', () => {
     expect(availableGiftWhere).toContain('status: GiftStatus.ACTIVE');
     expect(availableGiftWhere).toContain('isPublished: true');
     expect(availableGiftWhere).toContain('deletedAt: null');
-    expect(availableGiftWhere).not.toContain('GiftModerationStatus.APPROVED');
-    expect(service).not.toContain('GiftModerationStatus,');
+    expect(availableGiftWhere).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
+    expect(availableGiftWhere).toContain('moderationStatus: { not: GiftModerationStatus.REJECTED }');
+    expect(availableGiftWhere).toContain('hiddenByModeration: false');
+    expect(availableGiftWhere).toContain('requiresManualReview: false');
   });
 
   it('requires approved active non-suspended providers', () => {

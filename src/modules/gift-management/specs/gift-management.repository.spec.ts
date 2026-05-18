@@ -68,7 +68,9 @@ describe('Gift management repository cleanup', () => {
   it('repository owns gift moderation DB access and service preserves workflow decisions', () => {
     expect(repository).toContain('findGiftModerationQueue');
     expect(repository).toContain('updateGiftModerationStatus');
-    expect(repository).toContain('moderationStatus: GiftModerationStatus.PENDING');
+    expect(repository).toContain('findGiftModerationQueue');
+    expect(service).toContain('moderationQueueWhere');
+    expect(service).toContain('GiftModerationStatus.NOT_REQUIRED');
     expect(service).toContain('GiftModerationStatus.APPROVED');
     expect(service).toContain('GiftModerationStatus.REJECTED');
     expect(service).toContain('GiftModerationStatus.FLAGGED');
@@ -78,7 +80,10 @@ describe('Gift management repository cleanup', () => {
   });
 
   it('provider inventory no-moderation marketplace rule is not affected', () => {
-    expect(customerMarketplaceService).not.toContain('GiftModerationStatus.APPROVED');
+    expect(customerMarketplaceService).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
+    expect(customerMarketplaceService).toContain('moderationStatus: { not: GiftModerationStatus.REJECTED }');
+    expect(customerMarketplaceService).toContain('hiddenByModeration: false');
+    expect(customerMarketplaceService).toContain('requiresManualReview: false');
     expect(customerMarketplaceService).toContain('isPublished: true');
     expect(customerMarketplaceService).toContain('providerApprovalStatus: ProviderApprovalStatus.APPROVED');
   });

@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 07:56 UTC
+Generated: 2026-05-18 08:11 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -7905,11 +7905,12 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List optional gift moderation queue
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift Moderation is optional/admin review workflow for flagged/reported/admin-curated content. Provider inventory does not require mandatory gift approval for marketplace visibility.
+- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift moderation is optional/exception-based; default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Provider-created inventory does not require separate Super Admin approval by default. Gift Moderation is optional/admin review workflow for flagged, reported, high-risk, or admin-forced review items. Provider-created inventory does not require separate Super Admin approval by default; provider approval is the primary marketplace trust gate. Default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Use status=APPROVED, status=NOT_REQUIRED, or includeResolved=true to view resolved/normal inventory.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `status` (query, optional, string)
+  - `includeResolved` (query, optional, boolean) When true, includes resolved/normal statuses such as APPROVED and NOT_REQUIRED. Default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true.
   - `search` (query, optional, string)
   - `providerId` (query, optional, string)
   - `view` (query, optional, string)
@@ -7928,7 +7929,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Approve gift in optional moderation workflow
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.approve
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. This is no longer required for provider-created inventory visibility; approved active providers can publish inventory directly.
+- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. Clears manual review/hidden-by-moderation flags. This is not required for normal provider-created inventory visibility; approved active providers can publish inventory directly.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7951,9 +7952,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/gift-moderation/{id}/reject`
 
-- Summary: Update Gift Moderation Reject
+- Summary: Reject gift in optional moderation workflow
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.reject
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission. Rejecting hides the gift from marketplace, clears manual review, sets moderationStatus=REJECTED, and writes an audit log.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7976,9 +7977,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/gift-moderation/{id}/flag`
 
-- Summary: Update Gift Moderation Flag
+- Summary: Flag gift for manual review
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.flag
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission. Flags optional moderation case. If hideFromMarketplace=true, sets moderationStatus=FLAGGED, requiresManualReview=true, hiddenByModeration=true, and isPublished=false. If false, the gift remains visible but appears in moderation queue. Always writes an audit log.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7986,7 +7987,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "reason": "NEEDS_MANUAL_REVIEW",
-  "comment": "<string>"
+  "comment": "<string>",
+  "hideFromMarketplace": true,
+  "notifyProvider": true
 }
 ```
 - Response body:

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { GiftModerationStatus, GiftStatus, Prisma, UserRole } from '@prisma/client';
+import { GiftModerationStatus, GiftStatus, NotificationRecipientType, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 export const GIFT_MANAGEMENT_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
-  category: { select: { id: true, name: true } },
-  provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } },
+  category: { select: { id: true, name: true, isActive: true, deletedAt: true } },
+  provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true, isActive: true, isApproved: true, providerApprovalStatus: true, suspendedAt: true, deletedAt: true } },
   variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
 });
 
@@ -99,4 +99,8 @@ export class GiftManagementRepository {
   }
 
   updateGiftModerationStatus(id: string, data: Prisma.GiftUncheckedUpdateInput) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
+
+  createProviderNotification(data: { providerId: string; title: string; message: string; type: string; giftId: string }) {
+    return this.prisma.notification.create({ data: { recipientId: data.providerId, recipientType: NotificationRecipientType.PROVIDER, title: data.title, message: data.message, type: data.type, metadataJson: { giftId: data.giftId } } });
+  }
 }

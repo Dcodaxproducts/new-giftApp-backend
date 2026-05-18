@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 07:57 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 08:11 PKT.
 
 ## Frontend Integration Flows
 
@@ -461,8 +461,8 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 07:57 PKT.
 |---|---|---|---|
 | GET | `/api/v1/gift-moderation` | List optional gift moderation queue | SUPER_ADMIN or ADMIN with giftModeration.read |
 | PATCH | `/api/v1/gift-moderation/{id}/approve` | Approve gift in optional moderation workflow | SUPER_ADMIN or ADMIN with giftModeration.approve |
-| PATCH | `/api/v1/gift-moderation/{id}/flag` | Update Gift Moderation Flag | SUPER_ADMIN or ADMIN with giftModeration.flag |
-| PATCH | `/api/v1/gift-moderation/{id}/reject` | Update Gift Moderation Reject | SUPER_ADMIN or ADMIN with giftModeration.reject |
+| PATCH | `/api/v1/gift-moderation/{id}/flag` | Flag gift for manual review | SUPER_ADMIN or ADMIN with giftModeration.flag |
+| PATCH | `/api/v1/gift-moderation/{id}/reject` | Reject gift in optional moderation workflow | SUPER_ADMIN or ADMIN with giftModeration.reject |
 
 ### Notifications (9 APIs)
 

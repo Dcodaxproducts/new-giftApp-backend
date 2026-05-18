@@ -21,7 +21,7 @@ export enum ExportFormat { CSV = 'CSV', XLSX = 'XLSX' }
 export enum GiftCategorySortBy { CREATED_AT = 'createdAt', NAME = 'name', SORT_ORDER = 'sortOrder', TOTAL_GIFTS = 'totalGifts' }
 export enum GiftSortBy { CREATED_AT = 'createdAt', NAME = 'name', PRICE = 'price', RATING = 'rating', STOCK_QUANTITY = 'stockQuantity' }
 export enum GiftListStatus { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', PENDING = 'PENDING', REJECTED = 'REJECTED', FLAGGED = 'FLAGGED', OUT_OF_STOCK = 'OUT_OF_STOCK' }
-export enum GiftModerationFilter { ALL = 'ALL', PENDING = 'PENDING', APPROVED = 'APPROVED', REJECTED = 'REJECTED', FLAGGED = 'FLAGGED' }
+export enum GiftModerationFilter { ALL = 'ALL', NOT_REQUIRED = 'NOT_REQUIRED', PENDING = 'PENDING', APPROVED = 'APPROVED', REJECTED = 'REJECTED', FLAGGED = 'FLAGGED' }
 export enum ModerationSortBy { SUBMITTED_AT = 'submittedAt', NAME = 'name', PROVIDER = 'provider' }
 export enum ModerationView { TABLE = 'TABLE', GRID = 'GRID' }
 export enum GiftRejectReason { INCOMPLETE_INFORMATION = 'INCOMPLETE_INFORMATION', INVALID_MEDIA = 'INVALID_MEDIA', POLICY_VIOLATION = 'POLICY_VIOLATION', DUPLICATE_LISTING = 'DUPLICATE_LISTING', INCORRECT_CATEGORY = 'INCORRECT_CATEGORY', PRICE_ISSUE = 'PRICE_ISSUE', OTHER = 'OTHER' }
@@ -125,6 +125,7 @@ export class ListGiftModerationDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ enum: GiftModerationStatus }) @IsOptional() @IsEnum(GiftModerationStatus) status?: GiftModerationStatus;
+  @ApiPropertyOptional({ description: 'When true, includes resolved/normal statuses such as APPROVED and NOT_REQUIRED. Default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true.' }) @IsOptional() @Type(() => Boolean) @IsBoolean() includeResolved?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() providerId?: string;
   @ApiPropertyOptional({ enum: ModerationView }) @IsOptional() @IsEnum(ModerationView) view?: ModerationView;
@@ -133,4 +134,4 @@ export class ListGiftModerationDto {
 }
 export class ApproveGiftDto { @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() publishNow?: boolean; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean; }
 export class RejectGiftDto { @ApiProperty({ enum: GiftRejectReason }) @IsEnum(GiftRejectReason) reason!: GiftRejectReason; @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean; }
-export class FlagGiftDto { @ApiProperty({ enum: GiftFlagReason }) @IsEnum(GiftFlagReason) reason!: GiftFlagReason; @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; }
+export class FlagGiftDto { @ApiProperty({ enum: GiftFlagReason }) @IsEnum(GiftFlagReason) reason!: GiftFlagReason; @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() hideFromMarketplace?: boolean; @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyProvider?: boolean; }

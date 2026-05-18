@@ -20321,6 +20321,7 @@
               "type": "string",
               "enum": [
                 "ALL",
+                "NOT_REQUIRED",
                 "PENDING",
                 "APPROVED",
                 "REJECTED",
@@ -20474,6 +20475,7 @@
               "type": "string",
               "enum": [
                 "ALL",
+                "NOT_REQUIRED",
                 "PENDING",
                 "APPROVED",
                 "REJECTED",
@@ -20753,7 +20755,7 @@
     },
     "/api/v1/gift-moderation": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift Moderation is optional/admin review workflow for flagged/reported/admin-curated content. Provider inventory does not require mandatory gift approval for marketplace visibility.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.read. SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift moderation is optional/exception-based; default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Provider-created inventory does not require separate Super Admin approval by default. Gift Moderation is optional/admin review workflow for flagged, reported, high-risk, or admin-forced review items. Provider-created inventory does not require separate Super Admin approval by default; provider approval is the primary marketplace trust gate. Default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Use status=APPROVED, status=NOT_REQUIRED, or includeResolved=true to view resolved/normal inventory.",
         "operationId": "GiftModerationController_list",
         "parameters": [
           {
@@ -20785,6 +20787,15 @@
                 "REJECTED",
                 "FLAGGED"
               ]
+            }
+          },
+          {
+            "name": "includeResolved",
+            "required": false,
+            "in": "query",
+            "description": "When true, includes resolved/normal statuses such as APPROVED and NOT_REQUIRED. Default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true.",
+            "schema": {
+              "type": "boolean"
             }
           },
           {
@@ -20861,7 +20872,7 @@
     },
     "/api/v1/gift-moderation/{id}/approve": {
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. This is no longer required for provider-created inventory visibility; approved active providers can publish inventory directly.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. Clears manual review/hidden-by-moderation flags. This is not required for normal provider-created inventory visibility; approved active providers can publish inventory directly.",
         "operationId": "GiftModerationController_approve",
         "parameters": [
           {
@@ -20903,6 +20914,7 @@
     },
     "/api/v1/gift-moderation/{id}/reject": {
       "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission. Rejecting hides the gift from marketplace, clears manual review, sets moderationStatus=REJECTED, and writes an audit log.",
         "operationId": "GiftModerationController_reject",
         "parameters": [
           {
@@ -20934,17 +20946,17 @@
             "bearer": []
           }
         ],
+        "summary": "Reject gift in optional moderation workflow",
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "Update Gift Moderation Reject",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.reject",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.reject",
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission."
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.reject"
       }
     },
     "/api/v1/gift-moderation/{id}/flag": {
       "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission. Flags optional moderation case. If hideFromMarketplace=true, sets moderationStatus=FLAGGED, requiresManualReview=true, hiddenByModeration=true, and isPublished=false. If false, the gift remains visible but appears in moderation queue. Always writes an audit log.",
         "operationId": "GiftModerationController_flag",
         "parameters": [
           {
@@ -20976,13 +20988,12 @@
             "bearer": []
           }
         ],
+        "summary": "Flag gift for manual review",
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "summary": "Update Gift Moderation Flag",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.flag",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.flag",
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission."
+        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.flag"
       }
     },
     "/api/v1/subscription-plans": {
@@ -29280,6 +29291,14 @@
           },
           "comment": {
             "type": "string"
+          },
+          "hideFromMarketplace": {
+            "type": "boolean",
+            "example": true
+          },
+          "notifyProvider": {
+            "type": "boolean",
+            "example": true
           }
         },
         "required": [

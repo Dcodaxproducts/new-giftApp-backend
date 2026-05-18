@@ -4,6 +4,7 @@ import {
   CustomerAddress,
   CustomerDeliveryOption,
   CustomerReminder,
+  GiftModerationStatus,
   GiftStatus,
   NotificationRecipientType,
   OrderStatus,
@@ -300,7 +301,7 @@ export class CustomerMarketplaceService {
     };
   }
 
-  private availableGiftWhere(): Prisma.GiftWhereInput { return { status: GiftStatus.ACTIVE, isPublished: true, deletedAt: null, OR: [{ variants: { some: { isActive: true, deletedAt: null, stockQuantity: { gt: 0 } } } }, { AND: [{ variants: { none: { deletedAt: null } } }, { stockQuantity: { gt: 0 } }] }], provider: this.approvedProviderWhere() }; }
+  private availableGiftWhere(): Prisma.GiftWhereInput { return { status: GiftStatus.ACTIVE, isPublished: true, moderationStatus: { not: GiftModerationStatus.REJECTED }, hiddenByModeration: false, requiresManualReview: false, deletedAt: null, OR: [{ variants: { some: { isActive: true, deletedAt: null, stockQuantity: { gt: 0 } } } }, { AND: [{ variants: { none: { deletedAt: null } } }, { stockQuantity: { gt: 0 } }] }], provider: this.approvedProviderWhere() }; }
   private approvedProviderWhere(): Prisma.UserWhereInput { return { role: UserRole.PROVIDER, isActive: true, providerApprovalStatus: ProviderApprovalStatus.APPROVED, suspendedAt: null, deletedAt: null }; }
   private activeOfferWhere(): Prisma.PromotionalOfferWhereInput { const now = new Date(); return { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: true, deletedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }], item: this.availableGiftWhere() }; }
   private giftInclude() { return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }, provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, providerFulfillmentMethods: true } }, variants: { where: { isActive: true, deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }], select: { id: true, name: true, price: true, originalPrice: true, stockQuantity: true, sku: true, isPopular: true, isDefault: true, sortOrder: true, isActive: true, deletedAt: true } }, promotionalOffers: { where: this.activeOfferWhere(), orderBy: { discountValue: 'desc' }, select: { id: true, title: true, discountType: true, discountValue: true, startDate: true, endDate: true } } }); }
