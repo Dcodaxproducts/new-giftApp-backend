@@ -100,8 +100,26 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "403": {
+            "description": "Email exists and password is valid, but email verification is still required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": false,
+                    "error": {
+                      "code": "EMAIL_NOT_VERIFIED",
+                      "message": "Please verify your email before login",
+                      "user_verified": 0
+                    },
+                    "meta": {
+                      "statusCode": 403,
+                      "timestamp": "2026-05-18T11:04:05.524Z"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -218,6 +236,45 @@
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated",
         "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/auth/resend-verification-email": {
+      "post": {
+        "description": "Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.",
+        "operationId": "AuthController_resendVerificationEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": null,
+                    "message": "If the email is registered and unverified, a verification email has been sent."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resend verification email for unverified login",
+        "tags": [
+          "01 Auth"
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/auth/forgot-password": {
@@ -25713,6 +25770,18 @@
         },
         "required": [
           "otp"
+        ]
+      },
+      "ResendVerificationEmailDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        "required": [
+          "email"
         ]
       },
       "ForgotPasswordDto": {

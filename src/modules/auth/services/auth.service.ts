@@ -8,6 +8,7 @@ import {
   RefreshDto,
   RegisterProviderDto,
   RegisterUserDto,
+  ResendVerificationEmailDto,
   ResetPasswordDto,
   UpdateOwnProfileDto,
   VerifyEmailDto,
@@ -39,6 +40,7 @@ export class AuthService {
   logout(user: AuthUserContext) { return this.loginFlow.logout(user); }
   verifyEmail(user: AuthUserContext, dto: VerifyEmailDto) { return this.password.verifyEmail(user, dto); }
   resendVerification(user: AuthUserContext) { return this.password.resendVerification(user); }
+  resendVerificationEmail(dto: ResendVerificationEmailDto, ipAddress?: string) { return this.password.resendVerificationEmail(dto, ipAddress); }
   forgotPassword(dto: ForgotPasswordDto) { return this.password.forgotPassword(dto); }
   verifyResetOtp(dto: VerifyResetOtpDto) { return this.password.verifyResetOtp(dto); }
   resetPassword(dto: ResetPasswordDto) { return this.password.resetPassword(dto); }

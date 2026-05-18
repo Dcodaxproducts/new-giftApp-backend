@@ -115,6 +115,12 @@ export class VerifyEmailDto {
   otp!: string;
 }
 
+export class ResendVerificationEmailDto {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  email!: string;
+}
+
 export class ForgotPasswordDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()

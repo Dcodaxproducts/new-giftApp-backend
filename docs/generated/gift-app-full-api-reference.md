@@ -1,11 +1,11 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 10:53 UTC
+Generated: 2026-05-18 11:23 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
 ## Contents
-- 01 Auth (19 APIs)
+- 01 Auth (20 APIs)
 - 01 Auth - Login Attempts (3 APIs)
 - 02 Admin - Staff Management (7 APIs)
 - 02 Admin - Roles & Permissions (7 APIs)
@@ -176,9 +176,16 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Response body:
 ```json
 {
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "success": false,
+  "error": {
+    "code": "EMAIL_NOT_VERIFIED",
+    "message": "Please verify your email before login",
+    "user_verified": 0
+  },
+  "meta": {
+    "statusCode": 403,
+    "timestamp": "2026-05-18T11:04:05.524Z"
+  }
 }
 ```
 
@@ -259,6 +266,27 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": "<response returned by endpoint>",
   "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/auth/resend-verification-email`
+
+- Summary: Resend verification email for unverified login
+- Allowed role/access: PUBLIC
+- Notes: Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.
+- Request payload(s):
+  - payload:
+```json
+{
+  "email": "user@example.com"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "If the email is registered and unverified, a verification email has been sent."
 }
 ```
 

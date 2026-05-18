@@ -8,6 +8,9 @@ import { AuthRepository } from '../repositories/auth.repository';
 import { ProviderFulfillmentMethodDto } from '../dto/auth.dto';
 import { AuthCoreService } from '../services/auth-core.service';
 import { AuthSessionsRepository } from '../repositories/auth-sessions.repository';
+import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exception';
+
+const resendVerificationRateLimiter = { assertAllowed: jest.fn() };
 
 const resetUser = {
   id: 'user_1',
@@ -49,6 +52,7 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
+    resendVerificationRateLimiter as never,
   );
   return { service, prisma, mailer };
 }
@@ -310,6 +314,7 @@ function createSensitiveAuthService(options?: {
     assertValidReferralCode: jest.fn().mockResolvedValue(undefined),
     captureSignupReferral: jest.fn().mockResolvedValue(undefined),
   };
+  const resendLimiter = { assertAllowed: jest.fn() };
 
   const authRepository = new AuthRepository(prisma as unknown as ConstructorParameters<typeof AuthRepository>[0]);
   const authSessionsRepository = new AuthSessionsRepository(prisma as unknown as ConstructorParameters<typeof AuthSessionsRepository>[0]);
@@ -322,10 +327,11 @@ function createSensitiveAuthService(options?: {
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
+    resendLimiter as never,
     referrals as never,
   );
 
-  return { service, prisma, jwtService, loginAttemptsService, mailerService, referrals };
+  return { service, prisma, jwtService, loginAttemptsService, mailerService, referrals, resendLimiter };
 }
 
 describe('AuthService sensitive auth behavior', () => {
@@ -350,7 +356,63 @@ describe('AuthService sensitive auth behavior', () => {
     const { service, loginAttemptsService } = createSensitiveAuthService({ user });
 
     await expect(service.login({ email: 'user@example.com', password: 'WrongPass@123' }, '127.0.0.1', 'jest')).rejects.toThrow(UnauthorizedException);
+    try {
+      await service.login({ email: 'user@example.com', password: 'WrongPass@123' }, '127.0.0.1', 'jest');
+    } catch (error) {
+      expect(error).toBeInstanceOf(UnauthorizedException);
+      expect((error as UnauthorizedException).getResponse()).not.toHaveProperty('user_verified');
+    }
     expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'INVALID_CREDENTIALS', userId: 'user_1' }));
+  });
+
+  it('login with correct password but unverified email returns EMAIL_NOT_VERIFIED with user_verified=0', async () => {
+    const user = authUser({ isVerified: false });
+    const { service, loginAttemptsService } = createSensitiveAuthService({ user });
+
+    try {
+      await service.login({ email: 'user@example.com', password: 'Password@123' }, '127.0.0.1', 'jest');
+      throw new Error('Expected unverified login to fail');
+    } catch (error) {
+      expect(error).toBeInstanceOf(EmailNotVerifiedException);
+      expect((error as EmailNotVerifiedException).getStatus()).toBe(403);
+      expect((error as EmailNotVerifiedException).getResponse()).toEqual({
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email before login',
+        user_verified: 0,
+      });
+    }
+    expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'EMAIL_NOT_VERIFIED', userId: 'user_1' }));
+  });
+
+  it('resend verification email sends only for existing unverified users and returns generic success', async () => {
+    const user = authUser({ isVerified: false });
+    const { service, prisma, mailerService, resendLimiter } = createSensitiveAuthService({ user });
+
+    await expect(service.resendVerificationEmail({ email: 'USER@example.com' }, '127.0.0.1')).resolves.toEqual({
+      data: null,
+      message: 'If the email is registered and unverified, a verification email has been sent.',
+    });
+
+    expect(resendLimiter.assertAllowed).toHaveBeenCalledWith('USER@example.com', '127.0.0.1');
+    const resendUpdateCalls = prisma.user.update.mock.calls as Array<[{ where: { id: string }; data: { verificationOtp?: string } }]>;
+    expect(resendUpdateCalls.some(([call]) => call.where.id === 'user_1' && typeof call.data.verificationOtp === 'string')).toBe(true);
+    expect(mailerService.sendVerificationEmail).toHaveBeenCalledWith('user@example.com', expect.any(String));
+  });
+
+  it('resend verification email does not reveal missing or already verified emails', async () => {
+    const { service: missingService, mailerService: missingMailer } = createSensitiveAuthService({ user: null });
+    await expect(missingService.resendVerificationEmail({ email: 'missing@example.com' })).resolves.toEqual({
+      data: null,
+      message: 'If the email is registered and unverified, a verification email has been sent.',
+    });
+    expect(missingMailer.sendVerificationEmail).not.toHaveBeenCalled();
+
+    const { service: verifiedService, mailerService: verifiedMailer } = createSensitiveAuthService({ user: authUser({ isVerified: true }) });
+    await expect(verifiedService.resendVerificationEmail({ email: 'user@example.com' })).resolves.toEqual({
+      data: null,
+      message: 'If the email is registered and unverified, a verification email has been sent.',
+    });
+    expect(verifiedMailer.sendVerificationEmail).not.toHaveBeenCalled();
   });
 
   it('refresh behavior unchanged', async () => {

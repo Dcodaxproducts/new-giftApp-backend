@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 11:23 PKT.
 
 ## Frontend Integration Flows
 
@@ -412,7 +412,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 | GET | `/api/v1/admin/workflows/state-machines` | Fetch declared system state machines | Authenticated |
 | GET | `/api/v1/admin/workflows/transition-rules` | Fetch workflow transition guardrails and aliases | Authenticated |
 
-### Auth (16 APIs)
+### Auth (17 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -426,6 +426,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
 | POST | `/api/v1/auth/resend-otp` | Create Auth Resend Otp | Authenticated |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for unverified login | PUBLIC |
 | POST | `/api/v1/auth/reset-password` | Create Auth Reset Password | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
@@ -541,7 +542,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 
 ## Registered User APIs
 
-### Auth (18 APIs)
+### Auth (19 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -556,6 +557,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
 | POST | `/api/v1/auth/resend-otp` | Create Auth Resend Otp | Authenticated |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for unverified login | PUBLIC |
 | POST | `/api/v1/auth/reset-password` | Create Auth Reset Password | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
@@ -786,7 +788,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 
 ## Provider APIs
 
-### Auth (17 APIs)
+### Auth (18 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -801,6 +803,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 10:54 PKT.
 | POST | `/api/v1/auth/providers/register` | Create Auth Providers Register | PUBLIC |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
 | POST | `/api/v1/auth/resend-otp` | Create Auth Resend Otp | Authenticated |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for unverified login | PUBLIC |
 | POST | `/api/v1/auth/reset-password` | Create Auth Reset Password | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |

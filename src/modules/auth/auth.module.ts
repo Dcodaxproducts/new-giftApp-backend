@@ -15,6 +15,7 @@ import { AuthCoreService } from './services/auth-core.service';
 import { AuthLoginService } from './services/auth-login.service';
 import { AuthPasswordService } from './services/auth-password.service';
 import { AuthProfileService } from './services/auth-profile.service';
+import { AuthResendVerificationRateLimiterService } from './services/auth-resend-verification-rate-limiter.service';
 import { AuthRegistrationService } from './services/auth-registration.service';
 import { AuthSessionService } from './services/auth-session.service';
 import { AuthSessionsRepository } from './repositories/auth-sessions.repository';
@@ -22,7 +23,7 @@ import { AuthSessionsRepository } from './repositories/auth-sessions.repository'
 @Module({
   imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule, CustomerReferralsModule, GuestAccessModule, DatabaseModule],
   controllers: [AuthController],
-  providers: [AuthService, AuthCoreService, AuthRegistrationService, AuthLoginService, AuthPasswordService, AuthSessionService, AuthProfileService, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, JwtAuthRepository, JwtAuthGuard],
+  providers: [AuthService, AuthCoreService, AuthRegistrationService, AuthLoginService, AuthPasswordService, AuthSessionService, AuthProfileService, AuthResendVerificationRateLimiterService, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, JwtAuthRepository, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

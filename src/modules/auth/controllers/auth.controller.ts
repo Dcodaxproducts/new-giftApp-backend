@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
@@ -12,6 +12,7 @@ import {
   RefreshDto,
   RegisterProviderDto,
   RegisterUserDto,
+  ResendVerificationEmailDto,
   ResetPasswordDto,
   UpdateOwnProfileDto,
   VerifyEmailDto,
@@ -39,6 +40,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiResponse({ status: 403, description: 'Email exists and password is valid, but email verification is still required.', schema: { example: { success: false, error: { code: 'EMAIL_NOT_VERIFIED', message: 'Please verify your email before login', user_verified: 0 }, meta: { statusCode: 403, timestamp: '2026-05-18T11:04:05.524Z' } } } })
   login(@Body() dto: LoginDto, @Req() request: Request) {
     return this.authService.login(dto, request.ip, request.headers['user-agent']);
   }
@@ -70,6 +72,13 @@ export class AuthController {
   @Post('resend-otp')
   resendRegistrationOtp(@CurrentUser() user: AuthUserContext) {
     return this.authService.resendVerification(user);
+  }
+
+  @Post('resend-verification-email')
+  @ApiOperation({ summary: 'Resend verification email for unverified login', description: 'Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: null, message: 'If the email is registered and unverified, a verification email has been sent.' } } })
+  resendVerificationEmail(@Body() dto: ResendVerificationEmailDto, @Req() request: Request) {
+    return this.authService.resendVerificationEmail(dto, request.ip);
   }
 
   @Post('forgot-password')

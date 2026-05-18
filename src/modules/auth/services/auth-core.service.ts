@@ -25,6 +25,8 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuthPasswordRepository } from '../repositories/auth-password.repository';
 import { AuthRepository } from '../repositories/auth.repository';
 import { AuthSessionsRepository } from '../repositories/auth-sessions.repository';
+import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exception';
+import { AuthResendVerificationRateLimiterService } from './auth-resend-verification-rate-limiter.service';
 import { LoginAttemptsService } from '../../login-attempts/services/login-attempts.service';
 import { MailerService } from '../../mailer/mailer.service';
 import { CustomerReferralsService } from '../../customer-referrals/services/customer-referrals.service';
@@ -36,6 +38,7 @@ import {
   RefreshDto,
   RegisterProviderDto,
   RegisterUserDto,
+  ResendVerificationEmailDto,
   ResetPasswordDto,
   UpdateOwnProfileDto,
   VerifyEmailDto,
@@ -60,6 +63,7 @@ export class AuthCoreService implements OnModuleInit {
     private readonly authRepository: AuthRepository,
     private readonly authSessionsRepository: AuthSessionsRepository,
     private readonly authPasswordRepository: AuthPasswordRepository,
+    private readonly resendVerificationRateLimiter: AuthResendVerificationRateLimiterService,
     @Optional() private readonly customerReferralsService?: CustomerReferralsService,
   ) {}
 
@@ -201,7 +205,7 @@ export class AuthCoreService implements OnModuleInit {
         userId: user.id,
         role: user.role,
       });
-      throw new ForbiddenException('Please verify your email before login');
+      throw new EmailNotVerifiedException(0);
     }
 
     if (user.role === UserRole.PROVIDER && !user.isApproved) {
@@ -357,6 +361,22 @@ export class AuthCoreService implements OnModuleInit {
     return {
       data: null,
       message: 'Verification OTP sent',
+    };
+  }
+
+  async resendVerificationEmail(dto: ResendVerificationEmailDto, ipAddress?: string) {
+    this.resendVerificationRateLimiter.assertAllowed(dto.email, ipAddress);
+    const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
+
+    if (user && !user.deletedAt && !user.isVerified) {
+      const otp = this.generateOtp();
+      await this.authPasswordRepository.storeVerificationOtp(user.id, otp, this.generateOtpExpiry());
+      await this.mailerService.sendVerificationEmail(user.email, otp);
+    }
+
+    return {
+      data: null,
+      message: 'If the email is registered and unverified, a verification email has been sent.',
     };
   }
 
