@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ChatMessageType, UserRole } from '@prisma/client';
+import { ChatMessageType, NotificationRecipientType, SupportChatParticipantType, UserRole } from '@prisma/client';
 import {
   ConnectedSocket,
   MessageBody,
@@ -16,16 +16,18 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { CustomerProviderInteractionsService } from '../customer-provider-interactions/services/customer-provider-interactions.service';
 import { ProviderInteractionsService } from '../provider-interactions/services/provider-interactions.service';
 import { SupportChatService } from '../support-chat/services/support-chat.service';
+import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
+import { ChatPresenceService } from './chat-presence.service';
 
 interface ThreadPayload { threadId?: string }
 interface SupportPayload { supportChatId?: string }
 interface TypingPayload extends ThreadPayload { orderId?: string; providerOrderId?: string }
 type SupportTypingPayload = SupportPayload;
-interface ChatMessagePayload extends ThreadPayload { messageType?: ChatMessageType; body?: string; attachmentUrls?: string[] }
-interface SupportMessagePayload extends SupportPayload { messageType?: ChatMessageType; body?: string; attachmentUrls?: string[] }
+interface ChatMessagePayload extends ThreadPayload { clientMessageId?: string; messageType?: ChatMessageType; body?: string; attachmentUrls?: string[] }
+interface SupportMessagePayload extends SupportPayload { clientMessageId?: string; messageType?: ChatMessageType; body?: string; attachmentUrls?: string[] }
 interface ResolvePayload extends SupportPayload { comment?: string; notifyParticipant?: boolean }
-interface ChatThreadContext { threadId: string; orderId: string; providerOrderId: string }
-interface SupportThreadContext { supportChatId: string }
+interface ChatThreadContext { threadId: string; orderId: string; providerOrderId: string; customerId?: string; providerId?: string }
+interface SupportThreadContext { supportChatId: string; participantId?: string; participantType?: SupportChatParticipantType; assignedAdminId?: string | null }
 
 @WebSocketGateway({ namespace: '/chat', cors: { origin: true, credentials: true } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -41,6 +43,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly customerProviderInteractions: CustomerProviderInteractionsService,
     private readonly providerInteractions: ProviderInteractionsService,
     private readonly supportChats: SupportChatService,
+    private readonly presence: ChatPresenceService,
+    private readonly notificationDispatch: NotificationDispatchService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -50,8 +54,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       });
       this.connectedUsers.set(client, payload);
+      const presence = this.presence.connect(client.id, payload);
       await client.join(`user:${payload.uid}`);
       await client.join(`role:${payload.role}`);
+      if (presence.becameOnline) this.server.emit('chat.participant.online', { userId: payload.uid, role: payload.role, lastSeenAt: presence.lastSeenAt });
     } catch {
       this.logger.warn('Rejected unauthenticated chat socket');
       client.disconnect(true);
@@ -59,7 +65,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: Socket): void {
+    const presence = this.presence.disconnect(client.id);
+    if (presence.becameOffline && presence.user) this.server.emit('chat.participant.offline', { userId: presence.user.uid, role: presence.user.role, lastSeenAt: presence.lastSeenAt });
     this.connectedUsers.delete(client);
+  }
+
+  @SubscribeMessage('presence.ping')
+  handlePresencePing(@ConnectedSocket() client: Socket): void {
+    const user = this.requireUser(client);
+    const lastSeenAt = this.presence.ping(client.id) ?? new Date();
+    client.emit('presence.pong', { userId: user.uid, lastSeenAt });
   }
 
   @SubscribeMessage('chat.join')
@@ -99,8 +114,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         : await this.providerInteractions.sendMessage(user, context.threadId, dto);
       const eventPayload = { threadId: context.threadId, message: result.data };
       this.room(`chat:${context.threadId}`).emit('chat.message.created', eventPayload);
+      this.room(`chat:${context.threadId}`).emit('chat.message.delivered', { threadId: context.threadId, messageId: result.data.id, clientMessageId: payload.clientMessageId ?? result.data.clientMessageId ?? null, deliveredAt: new Date() });
       this.room(`order:${context.orderId}`).emit('chat.thread.updated', { threadId: context.threadId, orderId: context.orderId });
       this.room(`provider-order:${context.providerOrderId}`).emit('chat.thread.updated', { threadId: context.threadId, providerOrderId: context.providerOrderId });
+      await this.notifyOfflineChatRecipient(user, context, result.data.body ?? 'New chat message');
     });
   }
 
@@ -147,7 +164,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.withSupportContext(client, payload, async (user, context) => {
       const result = await this.supportChats.reply(user, context.supportChatId, this.supportMessageDto(payload));
       this.room(`support-chat:${context.supportChatId}`).emit('support.message.created', { supportChatId: context.supportChatId, message: result.data });
+      this.room(`support-chat:${context.supportChatId}`).emit('support.message.delivered', { supportChatId: context.supportChatId, messageId: result.data.id, clientMessageId: payload.clientMessageId ?? result.data.clientMessageId ?? null, deliveredAt: new Date() });
       this.room(`support-chat:${context.supportChatId}`).emit('support.thread.updated', { supportChatId: context.supportChatId });
+      await this.notifyOfflineSupportParticipant(context, result.data.body ?? 'New support message');
     });
   }
 
@@ -163,7 +182,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async resolveSupport(@ConnectedSocket() client: Socket, @MessageBody() payload: ResolvePayload): Promise<void> {
     await this.withSupportContext(client, payload, async (user, context) => {
       const result = await this.supportChats.resolve(user, context.supportChatId, { comment: payload.comment, notifyParticipant: payload.notifyParticipant });
-      this.room(`support-chat:${context.supportChatId}`).emit('support.resolved', { supportChatId: context.supportChatId, data: result.data });
+      this.room(`support-chat:${context.supportChatId}`).emit('support.status.updated', { supportChatId: context.supportChatId, status: result.data.status, data: result.data });
       this.room(`support-chat:${context.supportChatId}`).emit('support.thread.updated', { supportChatId: context.supportChatId });
     });
   }
@@ -172,7 +191,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async reopenSupport(@ConnectedSocket() client: Socket, @MessageBody() payload: ResolvePayload): Promise<void> {
     await this.withSupportContext(client, payload, async (user, context) => {
       const result = await this.supportChats.reopen(user, context.supportChatId, { comment: payload.comment, notifyParticipant: payload.notifyParticipant });
-      this.room(`support-chat:${context.supportChatId}`).emit('support.reopened', { supportChatId: context.supportChatId, data: result.data });
+      this.room(`support-chat:${context.supportChatId}`).emit('support.status.updated', { supportChatId: context.supportChatId, status: result.data.status, data: result.data });
       this.room(`support-chat:${context.supportChatId}`).emit('support.thread.updated', { supportChatId: context.supportChatId });
     });
   }
@@ -211,14 +230,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await client.join(`provider-order:${context.providerOrderId}`);
   }
 
-  private chatMessageDto(payload: ChatMessagePayload): { messageType: ChatMessageType; body?: string; attachmentUrls?: string[] } {
+  private chatMessageDto(payload: ChatMessagePayload): { clientMessageId?: string; messageType: ChatMessageType; body?: string; attachmentUrls?: string[] } {
     if (!payload.messageType) throw new Error('messageType is required');
-    return { messageType: payload.messageType, body: payload.body, attachmentUrls: payload.attachmentUrls ?? [] };
+    return { clientMessageId: payload.clientMessageId, messageType: payload.messageType, body: payload.body, attachmentUrls: payload.attachmentUrls ?? [] };
   }
 
-  private supportMessageDto(payload: SupportMessagePayload): { messageType: ChatMessageType; body?: string; attachmentUrls: string[] } {
+  private supportMessageDto(payload: SupportMessagePayload): { clientMessageId?: string; messageType: ChatMessageType; body?: string; attachmentUrls: string[] } {
     if (!payload.messageType) throw new Error('messageType is required');
-    return { messageType: payload.messageType, body: payload.body, attachmentUrls: payload.attachmentUrls ?? [] };
+    return { clientMessageId: payload.clientMessageId, messageType: payload.messageType, body: payload.body, attachmentUrls: payload.attachmentUrls ?? [] };
+  }
+
+  private async notifyOfflineChatRecipient(sender: AuthUserContext, context: ChatThreadContext, message: string): Promise<void> {
+    const recipientId = sender.role === UserRole.REGISTERED_USER ? context.providerId : context.customerId;
+    const recipientType = sender.role === UserRole.REGISTERED_USER ? NotificationRecipientType.PROVIDER : NotificationRecipientType.REGISTERED_USER;
+    if (!recipientId || this.presence.isOnline(recipientId)) return;
+    await this.notificationDispatch.createAndEmit({ recipientId, recipientType, title: 'New chat message', message, type: 'CHAT_MESSAGE', metadataJson: { threadId: context.threadId, orderId: context.orderId, providerOrderId: context.providerOrderId } });
+  }
+
+  private async notifyOfflineSupportParticipant(context: SupportThreadContext, message: string): Promise<void> {
+    if (!context.participantId || !context.participantType || this.presence.isOnline(context.participantId)) return;
+    await this.notificationDispatch.createAndEmit({ recipientId: context.participantId, recipientType: context.participantType === SupportChatParticipantType.PROVIDER ? NotificationRecipientType.PROVIDER : NotificationRecipientType.REGISTERED_USER, title: 'New support message', message, type: 'SUPPORT_CHAT', metadataJson: { supportChatId: context.supportChatId } });
   }
 
   private requireUser(client: Socket): AuthUserContext {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ChatMessageType, UserRole } from '@prisma/client';
@@ -6,7 +7,9 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { CustomerProviderInteractionsService } from '../customer-provider-interactions/services/customer-provider-interactions.service';
 import { ProviderInteractionsService } from '../provider-interactions/services/provider-interactions.service';
 import { SupportChatService } from '../support-chat/services/support-chat.service';
+import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
 import { ChatGateway } from './chat.gateway';
+import { ChatPresenceService } from './chat-presence.service';
 
 type EmittedEvent = { event: string; payload: unknown };
 type RoomEvent = { room: string; event: string; payload: unknown };
@@ -28,7 +31,7 @@ const customerUser: AuthUserContext = { uid: 'customer_1', role: UserRole.REGIST
 const otherCustomer: AuthUserContext = { uid: 'customer_2', role: UserRole.REGISTERED_USER };
 const providerUser: AuthUserContext = { uid: 'provider_1', role: UserRole.PROVIDER };
 const adminUser: AuthUserContext = { uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['read', 'reply', 'resolve'] } };
-const context = { threadId: 'thread_1', orderId: 'order_1', providerOrderId: 'provider_order_1' };
+const context = { threadId: 'thread_1', orderId: 'order_1', providerOrderId: 'provider_order_1', customerId: 'customer_1', providerId: 'provider_1' };
 
 function createGateway(user?: AuthUserContext) {
   const verifyAsync = jest.fn();
@@ -46,28 +49,33 @@ function createGateway(user?: AuthUserContext) {
     markRead: jest.fn().mockResolvedValue({ data: { threadId: 'thread_1', isRead: true } }),
   };
   const support: SupportChatMock = {
-    getSocketThreadContext: jest.fn().mockResolvedValue({ supportChatId: 'support_1' }),
+    getSocketThreadContext: jest.fn().mockResolvedValue({ supportChatId: 'support_1', participantId: 'provider_1', participantType: 'PROVIDER', assignedAdminId: 'admin_1' }),
     reply: jest.fn().mockResolvedValue({ data: { id: 'support_message_1', body: 'Checking this now.' } }),
     markRead: jest.fn().mockResolvedValue({ data: { id: 'support_1', unreadCount: 0 } }),
     resolve: jest.fn().mockResolvedValue({ data: { id: 'support_1', status: 'RESOLVED' } }),
     reopen: jest.fn().mockResolvedValue({ data: { id: 'support_1', status: 'ACTIVE' } }),
   };
 
+  const presence = new ChatPresenceService();
+  const notificationDispatch = { createAndEmit: jest.fn().mockResolvedValue({ id: 'notification_1' }) };
   const gateway = new ChatGateway(
     { verifyAsync } as unknown as JwtService,
     { get: jest.fn().mockReturnValue('secret') } as unknown as ConfigService,
     customer as unknown as CustomerProviderInteractionsService,
     provider as unknown as ProviderInteractionsService,
     support as unknown as SupportChatService,
+    presence,
+    notificationDispatch as unknown as NotificationDispatchService,
   );
   const serverRoomEmit = jest.fn();
+  const serverEmit = jest.fn();
   const serverTo = jest.fn().mockImplementation((room: string) => ({
     emit: (event: string, payload: unknown): void => {
       serverRoomEmit({ room, event, payload });
     },
   }));
-  gateway.server = { to: serverTo } as unknown as Server;
-  return { gateway, verifyAsync, customer, provider, support, serverTo, serverRoomEmit };
+  gateway.server = { to: serverTo, emit: serverEmit } as unknown as Server;
+  return { gateway, verifyAsync, customer, provider, support, presence, notificationDispatch, serverTo, serverRoomEmit, serverEmit };
 }
 
 function createSocket(): MockSocketBundle {
@@ -84,6 +92,7 @@ function createSocket(): MockSocketBundle {
   }));
   const disconnect = jest.fn();
   const socket = {
+    id: 'socket_1',
     handshake: { auth: { token: 'Bearer access_token' }, headers: {} },
     join,
     leave,
@@ -171,8 +180,42 @@ describe('ChatGateway', () => {
 
     await gateway.sendChatMessage(client.socket, { threadId: 'thread_1', messageType: ChatMessageType.TEXT, body: 'Can you confirm delivery time?', attachmentUrls: [] });
 
-    expect(customer.sendMessage).toHaveBeenCalledWith(customerUser, 'thread_1', { messageType: ChatMessageType.TEXT, body: 'Can you confirm delivery time?', attachmentUrls: [] });
+    expect(customer.sendMessage).toHaveBeenCalledWith(customerUser, 'thread_1', expect.objectContaining({ messageType: ChatMessageType.TEXT, body: 'Can you confirm delivery time?', attachmentUrls: [] }));
     expect(serverRoomEmit).toHaveBeenCalledWith({ room: 'chat:thread_1', event: 'chat.message.created', payload: { threadId: 'thread_1', message: { id: 'message_1', body: 'Can you confirm delivery time?' } } });
+  });
+
+  it('passes clientMessageId for idempotent sends and emits delivery acknowledgements', async () => {
+    const { gateway, customer, serverRoomEmit } = createGateway(customerUser);
+    const client = createSocket();
+    await gateway.handleConnection(client.socket);
+
+    await gateway.sendChatMessage(client.socket, { clientMessageId: 'mobile-uuid-1', threadId: 'thread_1', messageType: ChatMessageType.TEXT, body: 'Can you confirm delivery time?', attachmentUrls: [] });
+
+    expect(customer.sendMessage).toHaveBeenCalledWith(customerUser, 'thread_1', expect.objectContaining({ clientMessageId: 'mobile-uuid-1' }));
+    expect(serverRoomEmit).toHaveBeenCalledWith(expect.objectContaining({ room: 'chat:thread_1', event: 'chat.message.delivered', payload: expect.objectContaining({ messageId: 'message_1', clientMessageId: 'mobile-uuid-1' }) }));
+  });
+
+  it('emits presence online/offline events and responds to presence ping', async () => {
+    const { gateway, serverEmit } = createGateway(customerUser);
+    const client = createSocket();
+    await gateway.handleConnection(client.socket);
+
+    gateway.handlePresencePing(client.socket);
+    gateway.handleDisconnect(client.socket);
+
+    expect(serverEmit).toHaveBeenCalledWith('chat.participant.online', expect.objectContaining({ userId: 'customer_1', role: UserRole.REGISTERED_USER }));
+    expect(client.emit).toHaveBeenCalledWith('presence.pong', expect.objectContaining({ userId: 'customer_1' }));
+    expect(serverEmit).toHaveBeenCalledWith('chat.participant.offline', expect.objectContaining({ userId: 'customer_1', role: UserRole.REGISTERED_USER }));
+  });
+
+  it('uses dispatcher fallback when chat recipient is offline', async () => {
+    const { gateway, notificationDispatch } = createGateway(customerUser);
+    const client = createSocket();
+    await gateway.handleConnection(client.socket);
+
+    await gateway.sendChatMessage(client.socket, { threadId: 'thread_1', messageType: ChatMessageType.TEXT, body: 'Offline fallback', attachmentUrls: [] });
+
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ recipientId: 'provider_1', type: 'CHAT_MESSAGE' }));
   });
 
   it('broadcasts typing events only after authorized room validation', async () => {
@@ -216,7 +259,18 @@ describe('ChatGateway', () => {
 
     await gateway.sendSupportMessage(client.socket, { supportChatId: 'support_1', messageType: ChatMessageType.TEXT, body: 'Checking this now.', attachmentUrls: [] });
 
-    expect(support.reply).toHaveBeenCalledWith(adminUser, 'support_1', { messageType: ChatMessageType.TEXT, body: 'Checking this now.', attachmentUrls: [] });
+    expect(support.reply).toHaveBeenCalledWith(adminUser, 'support_1', expect.objectContaining({ messageType: ChatMessageType.TEXT, body: 'Checking this now.', attachmentUrls: [] }));
     expect(serverRoomEmit).toHaveBeenCalledWith({ room: 'support-chat:support_1', event: 'support.message.created', payload: { supportChatId: 'support_1', message: { id: 'support_message_1', body: 'Checking this now.' } } });
+  });
+
+  it('emits support delivery acknowledgement and offline fallback notification', async () => {
+    const { gateway, notificationDispatch, serverRoomEmit } = createGateway(adminUser);
+    const client = createSocket();
+    await gateway.handleConnection(client.socket);
+
+    await gateway.sendSupportMessage(client.socket, { clientMessageId: 'support-mobile-1', supportChatId: 'support_1', messageType: ChatMessageType.TEXT, body: 'Checking this now.', attachmentUrls: [] });
+
+    expect(serverRoomEmit).toHaveBeenCalledWith(expect.objectContaining({ room: 'support-chat:support_1', event: 'support.message.delivered', payload: expect.objectContaining({ clientMessageId: 'support-mobile-1' }) }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ recipientId: 'provider_1', type: 'SUPPORT_CHAT' }));
   });
 });

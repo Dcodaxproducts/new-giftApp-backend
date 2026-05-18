@@ -27088,6 +27088,10 @@
       "SendProviderChatMessageDto": {
         "type": "object",
         "properties": {
+          "clientMessageId": {
+            "type": "string",
+            "example": "mobile-generated-uuid"
+          },
           "messageType": {
             "type": "string",
             "enum": [
@@ -28587,6 +28591,10 @@
       "SendChatMessageDto": {
         "type": "object",
         "properties": {
+          "clientMessageId": {
+            "type": "string",
+            "example": "mobile-generated-uuid"
+          },
           "messageType": {
             "type": "string",
             "enum": [
@@ -30161,6 +30169,10 @@
       "SendSupportChatMessageDto": {
         "type": "object",
         "properties": {
+          "clientMessageId": {
+            "type": "string",
+            "example": "mobile-generated-uuid"
+          },
           "messageType": {
             "type": "string",
             "enum": [

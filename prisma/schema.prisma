@@ -2180,6 +2180,7 @@ model ChatMessage {
   threadId           String          @map("thread_id")
   senderId           String          @map("sender_id")
   senderType         ChatSenderType  @map("sender_type")
+  clientMessageId    String?         @map("client_message_id")
   messageType        ChatMessageType @default(TEXT) @map("message_type")
   body               String?
   attachmentUrlsJson Json            @default("[]") @map("attachment_urls_json")
@@ -2193,6 +2194,7 @@ model ChatMessage {
 
   @@index([threadId, createdAt])
   @@index([senderId, createdAt])
+  @@unique([threadId, senderId, clientMessageId])
   @@map("chat_messages")
 }
 
@@ -2228,6 +2230,7 @@ model SupportChatMessage {
   supportChatId      String                @map("support_chat_id")
   senderId           String                @map("sender_id")
   senderType         SupportChatSenderType @map("sender_type")
+  clientMessageId    String?               @map("client_message_id")
   messageType        ChatMessageType       @default(TEXT) @map("message_type")
   body               String?
   attachmentUrlsJson Json                  @default("[]") @map("attachment_urls_json")
@@ -2241,6 +2244,7 @@ model SupportChatMessage {
 
   @@index([supportChatId, createdAt])
   @@index([senderId, createdAt])
+  @@unique([supportChatId, senderId, clientMessageId])
   @@map("support_chat_messages")
 }
 

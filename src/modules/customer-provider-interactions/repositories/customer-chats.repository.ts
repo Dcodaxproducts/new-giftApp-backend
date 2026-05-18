@@ -29,9 +29,13 @@ export class CustomerChatsRepository {
     return this.prisma.chatMessage.findMany({ where: { threadId: params.threadId, ...(params.before ? { createdAt: { lt: new Date(params.before) } } : {}) }, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });
   }
 
-  async createCustomerMessage(params: { threadId: string; customerId: string; providerId: string; orderId: string; providerOrderId: string; messageType: Prisma.ChatMessageUncheckedCreateInput['messageType']; body?: string; attachmentUrls: string[] }) {
+  async createCustomerMessage(params: { threadId: string; customerId: string; providerId: string; orderId: string; providerOrderId: string; clientMessageId?: string; messageType: Prisma.ChatMessageUncheckedCreateInput['messageType']; body?: string; attachmentUrls: string[] }) {
     return this.prisma.$transaction(async (tx) => {
-      const message = await tx.chatMessage.create({ data: { threadId: params.threadId, senderId: params.customerId, senderType: ChatSenderType.CUSTOMER, messageType: params.messageType, body: params.body, attachmentUrlsJson: params.attachmentUrls, isReadByCustomer: true, isReadByProvider: false } });
+      if (params.clientMessageId) {
+        const existing = await tx.chatMessage.findFirst({ where: { threadId: params.threadId, senderId: params.customerId, clientMessageId: params.clientMessageId } });
+        if (existing) return existing;
+      }
+      const message = await tx.chatMessage.create({ data: { threadId: params.threadId, senderId: params.customerId, senderType: ChatSenderType.CUSTOMER, clientMessageId: params.clientMessageId, messageType: params.messageType, body: params.body, attachmentUrlsJson: params.attachmentUrls, isReadByCustomer: true, isReadByProvider: false } });
       await tx.chatThread.update({ where: { id: params.threadId }, data: { lastMessageId: message.id } });
       await tx.notification.create({ data: { recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New customer message', message: params.body ?? 'Customer sent an attachment.', type: 'CHAT_MESSAGE', metadataJson: { threadId: params.threadId, orderId: params.orderId, providerOrderId: params.providerOrderId } } });
       return message;
@@ -44,5 +48,8 @@ export class CustomerChatsRepository {
 
   countUnreadForCustomer(threadId: string) {
     return this.prisma.chatMessage.count({ where: { threadId, senderType: ChatSenderType.PROVIDER, isReadByCustomer: false } });
+  }
+
+  findCompletedUploadsByUrls(urls: string[]) { return this.prisma.uploadedFile.findMany({ where: { fileUrl: { in: urls }, deletedAt: null, status: 'COMPLETED', folder: 'chat-attachments' }, select: { fileUrl: true } });
   }
 }

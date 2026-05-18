@@ -59,7 +59,8 @@ export class ProviderInteractionsService {
   async sendMessage(user: AuthUserContext, threadId: string, dto: SendProviderChatMessageDto) {
     const thread = await this.getOwnedThread(user.uid, threadId);
     this.assertMessagePayload(dto);
-    const message = await this.buyerChatRepository.createChatMessage({ data: { threadId, senderId: user.uid, senderType: ChatSenderType.PROVIDER, messageType: dto.messageType, body: dto.body, attachmentUrlsJson: dto.attachmentUrls ?? [], isReadByCustomer: false, isReadByProvider: true } } as unknown as Prisma.ChatMessageUncheckedCreateInput);
+    await this.assertAttachments(dto.attachmentUrls ?? []);
+    const message = await this.buyerChatRepository.createChatMessage({ threadId, senderId: user.uid, senderType: ChatSenderType.PROVIDER, clientMessageId: dto.clientMessageId, messageType: dto.messageType, body: dto.body, attachmentUrlsJson: dto.attachmentUrls ?? [], isReadByCustomer: false, isReadByProvider: true });
     await this.buyerChatRepository.updateThreadLastMessage(threadId, message.id);
     await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.PROVIDER_BUYER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'PROVIDER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.PROVIDER, body: dto.body, createdAt: message.createdAt });
     await this.buyerChatRepository.createCustomerNotification({ data: { recipientId: thread.customerId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'New provider message', message: dto.body ?? 'Provider sent an attachment.', type: 'CHAT_MESSAGE', metadataJson: { threadId, orderId: thread.orderId, providerOrderId: thread.providerOrderId } } } as unknown as Prisma.NotificationCreateInput);
@@ -74,7 +75,7 @@ export class ProviderInteractionsService {
 
   async getSocketThreadContext(user: AuthUserContext, threadId: string) {
     const thread = await this.getOwnedThread(user.uid, threadId);
-    return { threadId: thread.id, orderId: thread.orderId, providerOrderId: thread.providerOrderId };
+    return { threadId: thread.id, orderId: thread.orderId, providerOrderId: thread.providerOrderId, customerId: thread.customerId, providerId: user.uid };
   }
 
   async reviewSummary(user: AuthUserContext) {
@@ -129,8 +130,9 @@ export class ProviderInteractionsService {
   private async chatListItem(thread: ThreadView) { return { id: thread.id, orderNumber: thread.order.orderNumber, customer: this.customer(thread.customer), lastMessage: thread.lastMessage, unreadCount: await this.unreadCount(thread.id) }; }
   private async unreadCount(threadId: string): Promise<number> { return this.buyerChatRepository.countUnreadForProvider(threadId); }
   private customer(customer: CustomerView) { return { id: customer.id, name: `${customer.firstName} ${customer.lastName}`.trim(), avatarUrl: customer.avatarUrl, isOnline: customer.isActive }; }
-  private messageItem(message: { id: string; senderType: ChatSenderType; body: string | null; messageType: ChatMessageType; attachmentUrlsJson: Prisma.JsonValue; createdAt: Date; isReadByCustomer: boolean; isReadByProvider: boolean }) { return { id: message.id, senderType: message.senderType, body: message.body, attachmentUrls: this.stringArray(message.attachmentUrlsJson), messageType: message.messageType, createdAt: message.createdAt, isRead: message.senderType === ChatSenderType.PROVIDER ? message.isReadByCustomer : message.isReadByProvider }; }
+  private messageItem(message: { id: string; senderType: ChatSenderType; clientMessageId?: string | null; body: string | null; messageType: ChatMessageType; attachmentUrlsJson: Prisma.JsonValue; createdAt: Date; isReadByCustomer: boolean; isReadByProvider: boolean }) { return { id: message.id, clientMessageId: message.clientMessageId ?? null, senderType: message.senderType, body: message.body, attachmentUrls: this.stringArray(message.attachmentUrlsJson), messageType: message.messageType, createdAt: message.createdAt, isRead: message.senderType === ChatSenderType.PROVIDER ? message.isReadByCustomer : message.isReadByProvider, readState: { isReadByCustomer: message.isReadByCustomer, isReadByProvider: message.isReadByProvider } }; }
   private assertMessagePayload(dto: SendProviderChatMessageDto): void { const attachments = dto.attachmentUrls ?? []; if (dto.messageType === ChatMessageType.TEXT && !dto.body?.trim()) throw new BadRequestException('body is required for TEXT messages'); if (dto.messageType !== ChatMessageType.TEXT && attachments.length === 0) throw new BadRequestException('attachmentUrls are required for attachment messages'); }
+  private async assertAttachments(urls: string[]) { if (!urls.length) return; const rows = await this.buyerChatRepository.findCompletedUploadsByUrls(urls); const found = new Set(rows.map((row) => row.fileUrl)); if (urls.some((url) => !found.has(url))) throw new BadRequestException('Attachments must use completed chat-attachments uploads'); }
   private publicReviewWhere(providerId: string): Prisma.ReviewWhereInput { return { providerId, deletedAt: null, status: { notIn: [ReviewStatus.HIDDEN, ReviewStatus.REMOVED] } }; }
   private reviewInclude() { return { customer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } }, order: { select: { id: true, orderNumber: true, createdAt: true } }, response: { select: { id: true, body: true, createdAt: true, deletedAt: true } } } satisfies Prisma.ReviewInclude; }
   private async getOwnedReview(providerId: string, id: string): Promise<ReviewWithRelations> { const review = await this.reviewsRepository.findReviewForProvider({ where: { id, ...this.publicReviewWhere(providerId) }, include: this.reviewInclude() }); if (!review) throw new NotFoundException('Review not found'); return review; }

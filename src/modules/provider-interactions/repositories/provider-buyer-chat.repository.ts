@@ -30,8 +30,15 @@ export class ProviderBuyerChatRepository {
     return this.prisma.chatThread.upsert({ where: { providerOrderId: params.providerOrderId }, update: {}, create: { orderId: params.orderId, providerOrderId: params.providerOrderId, providerId: params.providerId, customerId: params.customerId }, include: params.include });
   }
 
-  createChatMessage(data: Prisma.ChatMessageUncheckedCreateInput) {
+  async createChatMessage(data: Prisma.ChatMessageUncheckedCreateInput) {
+    if (data.clientMessageId) {
+      const existing = await this.prisma.chatMessage.findFirst({ where: { threadId: data.threadId, senderId: data.senderId, clientMessageId: data.clientMessageId } });
+      if (existing) return existing;
+    }
     return this.prisma.chatMessage.create({ data });
+  }
+
+  findCompletedUploadsByUrls(urls: string[]) { return this.prisma.uploadedFile.findMany({ where: { fileUrl: { in: urls }, deletedAt: null, status: 'COMPLETED', folder: 'chat-attachments' }, select: { fileUrl: true } });
   }
 
   markThreadReadForProvider(threadId: string) {

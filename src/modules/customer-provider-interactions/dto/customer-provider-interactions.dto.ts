@@ -17,6 +17,7 @@ export class ListCustomerChatsDto extends PageDto { @ApiPropertyOptional({ examp
 export class ChatDetailsDto extends PageDto { @ApiPropertyOptional({ example: '2026-10-24T10:33:00.000Z' }) @IsOptional() @IsISO8601() before?: string; }
 
 export class SendChatMessageDto {
+  @ApiPropertyOptional({ example: 'mobile-generated-uuid' }) @IsOptional() @IsString() @MaxLength(120) clientMessageId?: string;
   @ApiProperty({ enum: ChatMessageType, example: ChatMessageType.TEXT }) @IsEnum(ChatMessageType) messageType!: ChatMessageType;
   @ApiPropertyOptional({ example: 'Can you confirm delivery time?' }) @IsOptional() @IsString() @MaxLength(1000) body?: string;
   @ApiPropertyOptional({ type: [String], example: [] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) attachmentUrls?: string[];
