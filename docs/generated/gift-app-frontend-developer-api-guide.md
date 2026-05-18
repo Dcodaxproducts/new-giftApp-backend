@@ -1,11 +1,11 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 07:50 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 07:57 PKT.
 
 ## Frontend Integration Flows
 
 - **Auth flows:** login/register, token refresh, sessions, profile, password reset, and guest session creation.
-- **Guest flows:** use guest session + guest marketplace APIs under `05 Guest - Marketplace`; guest users can browse configured marketplace surfaces only.
+- **Guest flows:** use guest session + guest marketplace APIs under `05 Customer / Guest - Marketplace`; guest users can browse configured marketplace surfaces only.
 - **Registered customer flows:** marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.
 - **Provider flows:** dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.
 - **Super Admin/Admin flows:** staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.
@@ -694,13 +694,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 07:50 PKT.
 | POST | `/api/v1/customer/wishlist/{giftId}` | Add gift to wishlist | REGISTERED_USER |
 | DELETE | `/api/v1/customer/wishlist/{giftId}` | Remove gift from wishlist | REGISTERED_USER |
 
-### Gifts - Categories (1 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/gift-categories/lookup` | Lookup active gift categories | PUBLIC |
-
-### Guest - Marketplace (6 APIs)
+### Customer / Guest - Marketplace (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -710,6 +704,12 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 07:50 PKT.
 | GET | `/api/v1/customer/gifts/filter-options` | Fetch marketplace gift filter options | REGISTERED_USER or GUEST_USER |
 | GET | `/api/v1/customer/gifts/{id}` | Fetch customer-safe gift details | REGISTERED_USER or GUEST_USER |
 | GET | `/api/v1/customer/home` | Fetch customer app home | REGISTERED_USER or GUEST_USER |
+
+### Gifts - Categories (1 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/gift-categories/lookup` | Lookup active gift categories | PUBLIC |
 
 ### Notifications (9 APIs)
 

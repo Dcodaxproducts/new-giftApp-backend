@@ -15,7 +15,9 @@ describe('Customer marketplace repository cleanup', () => {
     expect(controller).toContain("@Get('gifts/discounted')");
     expect(controller).toContain("@Get('gifts/filter-options')");
     expect(controller).toContain("@Get('gifts/:id')");
-    expect(controller).toContain("@ApiTags('05 Guest - Marketplace')");
+    expect(controller).toContain("@ApiTags('05 Customer / Guest - Marketplace')");
+    expect(controller).toContain('REGISTERED_USER or GUEST_USER');
+    expect(controller).toContain('Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals');
   });
 
   it('customer-marketplace.service.ts no longer imports PrismaService or uses this.prisma', () => {

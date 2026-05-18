@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 07:50 UTC
+Generated: 2026-05-18 07:56 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -53,7 +53,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 04 Gifts - Categories (7 APIs)
 - 04 Gifts - Management (8 APIs)
 - 04 Gifts - Moderation (4 APIs)
-- 05 Guest - Marketplace (6 APIs)
+- 05 Customer / Guest - Marketplace (6 APIs)
 - 05 Customer - Wishlist (3 APIs)
 - 05 Customer - Addresses (6 APIs)
 - 05 Customer - Contacts (5 APIs)
@@ -7998,13 +7998,13 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 05 Guest - Marketplace
+## 05 Customer / Guest - Marketplace
 
 ### GET `/api/v1/customer/home`
 
 - Summary: Fetch customer app home
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode="GUEST".
 - Response body:
 ```json
 {
@@ -8018,7 +8018,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List customer marketplace categories
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Active categories with visible gifts. REGISTERED_USER or GUEST_USER. Returns active categories that have active, available, in-stock gifts from approved active providers.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.
 - Response body:
 ```json
 {
@@ -8032,7 +8032,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List discounted customer gifts
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Discounted guest-visible marketplace gifts. REGISTERED_USER or GUEST_USER. Reuses marketplace gift filters with offerOnly=true.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -8060,7 +8060,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch marketplace gift filter options
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Filter options derived from guest-visible marketplace data. REGISTERED_USER or GUEST_USER. Brands are derived from guest-visible marketplace data.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.
 - Response body:
 ```json
 {
@@ -8074,7 +8074,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List customer marketplace gifts
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. Provider inventory does not require separate gift moderation approval.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -8102,6 +8102,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
       "rating": 4.8,
       "isWishlisted": false,
+      "requiresAuthForWishlist": true,
+      "requiresAuthForCart": true,
+      "requiresAuthForCheckout": true,
       "shortDescription": "Premium fragrance gift.",
       "reviewCount": 0,
       "stockQuantity": 50,
@@ -8136,7 +8139,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch customer-safe gift details
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings. REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -8157,8 +8160,10 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "rating": 4.8,
     "reviewCount": 0,
     "stockQuantity": 50,
-    "sku": "PERFUME-001",
     "isWishlisted": false,
+    "requiresAuthForWishlist": true,
+    "requiresAuthForCart": true,
+    "requiresAuthForCheckout": true,
     "badges": [
       "AUTHENTIC"
     ],

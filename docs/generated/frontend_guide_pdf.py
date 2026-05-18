@@ -119,7 +119,7 @@ html.append("""
 <div class='notice'><b>Required app flows covered by this guide:</b>
 <ul>
   <li><b>Auth flows:</b> login/register, token refresh, sessions, profile, password reset, and guest session creation.</li>
-  <li><b>Guest flows:</b> use guest session + guest marketplace APIs under <code>05 Guest - Marketplace</code>; guest users can browse configured marketplace surfaces only.</li>
+  <li><b>Guest flows:</b> use guest session + guest marketplace APIs under <code>05 Customer / Guest - Marketplace</code>; guest users can browse configured marketplace surfaces only.</li>
   <li><b>Registered customer flows:</b> marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.</li>
   <li><b>Provider flows:</b> dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.</li>
   <li><b>Super Admin/Admin flows:</b> staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.</li>
@@ -216,7 +216,7 @@ md = ["# Gift App Backend — Frontend Developer API Guide\n\n"]
 md.append(f"Generated from `docs/generated/openapi.json` on {datetime.now().strftime('%Y-%m-%d %H:%M PKT')}.\n\n")
 md.append("## Frontend Integration Flows\n\n")
 md.append("- **Auth flows:** login/register, token refresh, sessions, profile, password reset, and guest session creation.\n")
-md.append("- **Guest flows:** use guest session + guest marketplace APIs under `05 Guest - Marketplace`; guest users can browse configured marketplace surfaces only.\n")
+md.append("- **Guest flows:** use guest session + guest marketplace APIs under `05 Customer / Guest - Marketplace`; guest users can browse configured marketplace surfaces only.\n")
 md.append("- **Registered customer flows:** marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.\n")
 md.append("- **Provider flows:** dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.\n")
 md.append("- **Super Admin/Admin flows:** staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.\n")
