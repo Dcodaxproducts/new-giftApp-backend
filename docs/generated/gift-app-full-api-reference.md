@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 06:00 UTC
+Generated: 2026-05-18 06:37 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -54,7 +54,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 04 Gifts - Categories (7 APIs)
 - 04 Gifts - Management (8 APIs)
 - 04 Gifts - Moderation (4 APIs)
-- 05 Customer / Guest - Marketplace (6 APIs)
+- 05 Guest - Marketplace (6 APIs)
 - 05 Customer - Wishlist (3 APIs)
 - 05 Customer - Addresses (6 APIs)
 - 05 Customer - Contacts (5 APIs)
@@ -8341,7 +8341,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 05 Customer / Guest - Marketplace
+## 05 Guest - Marketplace
 
 ### GET `/api/v1/customer/home`
 

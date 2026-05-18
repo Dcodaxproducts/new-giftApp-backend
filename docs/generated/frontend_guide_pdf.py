@@ -24,8 +24,16 @@ def clean_module(tag):
     return re.sub(r"^\d+\s+", "", tag).strip()
 
 def access(op):
+    explicit = op.get("x-allowed-roles") or op.get("x-access")
+    if isinstance(explicit, list):
+        return ", ".join(str(item) for item in explicit)
+    if isinstance(explicit, str) and explicit.strip():
+        return explicit.strip()
     desc = op.get("description") or ""
     m = re.search(r"Access:\s*([^\.]+)\.", desc)
+    if m:
+        return m.group(1).strip()
+    m = re.search(r"(SUPER_ADMIN(?:\s+or\s+ADMIN\s+with\s+[A-Za-z0-9_.]+)?|PROVIDER|REGISTERED_USER|GUEST_USER)", desc)
     return m.group(1).strip() if m else ("PUBLIC" if not op.get("security") else "Authenticated")
 
 def route_role(tag, method, path, op):
@@ -34,9 +42,9 @@ def route_role(tag, method, path, op):
     path_u = path.upper()
     if tag.startswith("02 Admin") or tag.startswith("04 Gifts - Management") or tag.startswith("04 Gifts - Moderation") or tag == "07 Plans & Coupons" or tag == "01 Auth - Login Attempts" or tag == "06 Broadcast Notifications":
         return ["admin"]
-    if tag.startswith("03 Provider") or "/PROVIDER" in path_u:
+    if tag.startswith("03 Provider") or tag == "03 Provider - Inventory" or "/PROVIDER" in path_u:
         return ["provider"]
-    if tag.startswith("05 Customer") or tag == "06 Payments" or "/CUSTOMER/" in path_u:
+    if tag.startswith("05 Customer") or tag.startswith("05 Guest") or tag == "06 Payments" or "/CUSTOMER/" in path_u:
         return ["user"]
     if tag == "06 Notifications":
         return ["admin", "provider", "user"]
@@ -104,6 +112,24 @@ html = ["<!doctype html><html><head><meta charset='utf-8'><title>Gift App Fronte
 html.append("<h1>Gift App Backend — Frontend Developer API Guide</h1>")
 html.append(f"<p class='meta'>Generated from <code>docs/generated/openapi.json</code> ({len(paths)} paths / {sum(len(v) for v in paths.values())} operations) on {datetime.now().strftime('%Y-%m-%d %H:%M PKT')}.</p>")
 html.append("<div class='notice'><b>How to use this guide:</b> Each section is grouped module-by-module. Purposes are intentionally one line for fast frontend planning. Use Swagger/OpenAPI for request/response schemas and examples.</div>")
+
+
+html.append("<h2>Frontend Integration Flows</h2>")
+html.append("""
+<div class='notice'><b>Required app flows covered by this guide:</b>
+<ul>
+  <li><b>Auth flows:</b> login/register, token refresh, sessions, profile, password reset, and guest session creation.</li>
+  <li><b>Guest flows:</b> use guest session + guest marketplace APIs under <code>05 Guest - Marketplace</code>; guest users can browse configured marketplace surfaces only.</li>
+  <li><b>Registered customer flows:</b> marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.</li>
+  <li><b>Provider flows:</b> dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.</li>
+  <li><b>Super Admin/Admin flows:</b> staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.</li>
+  <li><b>Storage upload flow:</b> create/complete uploads using the storage endpoints before attaching media URLs to profile, chat, support, gift, review, or dispute payloads.</li>
+  <li><b>Payment/order flow:</b> cart/order checkout, payment methods, payment records, transactions, recurring payments/subscriptions, and order history.</li>
+  <li><b>Payout flow:</b> provider payout methods, earnings, payout requests, and admin payout approvals/settings.</li>
+  <li><b>Dispute/refund flow:</b> customer disputes, provider disputes, evidence, decisions, financial adjustments, tracking logs, provider refund requests, and refund policy settings.</li>
+</ul>
+</div>
+""")
 
 for key in ["admin", "user", "provider"]:
     sec = sections[key]
@@ -188,6 +214,16 @@ html_path.write_text(html_text)
 # Markdown companion for quick text review.
 md = ["# Gift App Backend — Frontend Developer API Guide\n\n"]
 md.append(f"Generated from `docs/generated/openapi.json` on {datetime.now().strftime('%Y-%m-%d %H:%M PKT')}.\n\n")
+md.append("## Frontend Integration Flows\n\n")
+md.append("- **Auth flows:** login/register, token refresh, sessions, profile, password reset, and guest session creation.\n")
+md.append("- **Guest flows:** use guest session + guest marketplace APIs under `05 Guest - Marketplace`; guest users can browse configured marketplace surfaces only.\n")
+md.append("- **Registered customer flows:** marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.\n")
+md.append("- **Provider flows:** dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.\n")
+md.append("- **Super Admin/Admin flows:** staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.\n")
+md.append("- **Storage upload flow:** create/complete uploads using storage endpoints before attaching media URLs to profile, chat, support, gift, review, or dispute payloads.\n")
+md.append("- **Payment/order flow:** cart/order checkout, payment methods, payment records, transactions, recurring payments/subscriptions, and order history.\n")
+md.append("- **Payout flow:** provider payout methods, earnings, payout requests, and admin payout approvals/settings.\n")
+md.append("- **Dispute/refund flow:** customer/provider disputes, evidence, decisions, financial adjustments, tracking logs, provider refund requests, and refund policy settings.\n\n")
 for key in ["admin", "user", "provider"]:
     sec = sections[key]
     md.append(f"## {sec['title']}\n\n")

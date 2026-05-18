@@ -18,21 +18,21 @@ export class CustomerMarketplaceController {
   constructor(private readonly marketplace: CustomerMarketplaceService) {}
 
   @Get('home')
-  @ApiTags('05 Customer / Guest - Marketplace')
+  @ApiTags('05 Guest - Marketplace')
   @GuestCapabilities('BROWSE_MARKETPLACE')
   @ApiOperation({ summary: 'Fetch customer app home', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null.' })
   @ApiResponse({ status: 200, description: 'Customer home fetched successfully' })
   home(@CurrentUser() user: AuthUserContext) { return this.marketplace.home(user); }
 
   @Get('categories')
-  @ApiTags('05 Customer / Guest - Marketplace')
+  @ApiTags('05 Guest - Marketplace')
   @GuestCapabilities('BROWSE_MARKETPLACE')
   @ApiOperation({ summary: 'List customer marketplace categories', description: 'REGISTERED_USER or GUEST_USER. Returns active categories that have active, available, in-stock gifts from approved active providers.' })
   @ApiResponse({ status: 200, description: 'Customer categories fetched successfully' })
   categories(@CurrentUser() user: AuthUserContext) { return this.marketplace.categories(user); }
 
   @Get('gifts/discounted')
-  @ApiTags('05 Customer / Guest - Marketplace')
+  @ApiTags('05 Guest - Marketplace')
   @GuestCapabilities('VIEW_DISCOUNTED_GIFTS')
   @ApiOperation({ summary: 'List discounted customer gifts', description: 'REGISTERED_USER or GUEST_USER. Reuses marketplace gift filters with offerOnly=true.' })
   @ApiQuery({ name: 'page', required: false })
@@ -41,14 +41,14 @@ export class CustomerMarketplaceController {
   discountedGifts(@CurrentUser() user: AuthUserContext, @Query() query: CustomerGiftListDto) { return this.marketplace.discountedGifts(user, query); }
 
   @Get('gifts/filter-options')
-  @ApiTags('05 Customer / Guest - Marketplace')
+  @ApiTags('05 Guest - Marketplace')
   @GuestCapabilities('VIEW_MARKETPLACE_FILTERS')
   @ApiOperation({ summary: 'Fetch marketplace gift filter options', description: 'REGISTERED_USER or GUEST_USER. Brands are derived from guest-visible marketplace data.' })
   @ApiResponse({ status: 200, description: 'Gift filter options fetched successfully' })
   filterOptions(@CurrentUser() user: AuthUserContext) { return this.marketplace.filterOptions(user); }
 
   @Get('gifts')
-  @ApiTags('05 Customer / Guest - Marketplace')
+  @ApiTags('05 Guest - Marketplace')
   @GuestCapabilities('BROWSE_MARKETPLACE')
   @ApiOperation({ summary: 'List customer marketplace gifts', description: 'REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. Provider inventory does not require separate gift moderation approval.' })
   @ApiQuery({ name: 'search', required: false })
@@ -66,7 +66,7 @@ export class CustomerMarketplaceController {
   gifts(@CurrentUser() user: AuthUserContext, @Query() query: CustomerGiftListDto) { return this.marketplace.gifts(user, query); }
 
   @Get('gifts/:id')
-  @ApiTags('05 Customer / Guest - Marketplace')
+  @ApiTags('05 Guest - Marketplace')
   @GuestCapabilities('VIEW_GIFT_DETAILS')
   @ApiOperation({ summary: 'Fetch customer-safe gift details', description: 'REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings.' })
   @ApiResponse({ status: 200, description: 'Gift details fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', shortDescription: 'Premium fragrance gift.', price: 99.99, originalPrice: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], rating: 4.8, reviewCount: 0, stockQuantity: 50, sku: 'PERFUME-001', isWishlisted: false, badges: ['AUTHENTIC'], category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts', rating: 4.8, reviewCount: 0, fulfillmentMethods: ['DELIVERY'] }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, stockQuantity: 20, sku: 'PERFUME-50ML', isPopular: true, isDefault: true }], deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }, message: 'Gift details fetched successfully' } } })

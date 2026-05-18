@@ -7916,7 +7916,7 @@
     },
     "/api/v1/admin/reviews/dashboard": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.",
         "operationId": "AdminReviewsController_dashboard",
         "parameters": [],
         "responses": {
@@ -7961,8 +7961,8 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.read"
       }
     },
     "/api/v1/admin/reviews/stats": {
@@ -8017,14 +8017,14 @@
           "02 Admin - Reviews Management"
         ],
         "summary": "List Admin Reviews Stats",
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission."
       }
     },
     "/api/v1/admin/reviews/export": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.export. Applies the same filters as GET /admin/reviews, supports CSV/PDF, and exports dashboard-safe fields only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.export. SUPER_ADMIN or ADMIN with reviews.export permission. SUPER_ADMIN or ADMIN with reviews.export. Applies the same filters as GET /admin/reviews, supports CSV/PDF, and exports dashboard-safe fields only.",
         "operationId": "AdminReviewsController_export",
         "parameters": [
           {
@@ -8238,8 +8238,8 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.export",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.export"
       }
     },
     "/api/v1/admin/reviews/flagged-summary": {
@@ -8275,9 +8275,9 @@
           "02 Admin - Review Moderation"
         ],
         "summary": "List Admin Reviews Flagged Summary",
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission."
       }
     },
     "/api/v1/admin/reviews/moderation-queue": {
@@ -8390,9 +8390,9 @@
           "02 Admin - Review Moderation"
         ],
         "summary": "List Admin Reviews Moderation Queue",
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.moderate",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.moderate. SUPER_ADMIN or ADMIN with reviews.moderate permission."
       }
     },
     "/api/v1/admin/reviews/moderation-logs": {
@@ -8486,14 +8486,14 @@
           "02 Admin - Review Moderation"
         ],
         "summary": "List Admin Reviews Moderation Logs",
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviewModerationLogs.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviewModerationLogs.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviewModerationLogs.read. SUPER_ADMIN or ADMIN with reviewModerationLogs.read permission."
       }
     },
     "/api/v1/admin/reviews": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Supports search, rating/source/status, reportedOnly, date range, and sort filters for the Reviews Moderation table.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. SUPER_ADMIN or ADMIN with reviews.read. Supports search, rating/source/status, reportedOnly, date range, and sort filters for the Reviews Moderation table.",
         "operationId": "AdminReviewsController_list",
         "parameters": [
           {
@@ -8732,13 +8732,13 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.read"
       }
     },
     "/api/v1/admin/reviews/{id}": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.read. Returns review details, flags, linked transaction, and moderation history for the details drawer/modal.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. SUPER_ADMIN or ADMIN with reviews.read. Returns review details, flags, linked transaction, and moderation history for the details drawer/modal.",
         "operationId": "AdminReviewsController_details",
         "parameters": [
           {
@@ -8802,13 +8802,13 @@
         "tags": [
           "02 Admin - Reviews Management"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.read"
       }
     },
     "/api/v1/admin/reviews/{id}/moderate": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviews.moderate/specific moderation permissions. Creates ReviewModerationLog and admin audit log. Does not physically delete reviews.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.moderate. SUPER_ADMIN or ADMIN with reviews.moderate permission. SUPER_ADMIN or ADMIN with reviews.moderate/specific moderation permissions. Creates ReviewModerationLog and admin audit log. Does not physically delete reviews.",
         "operationId": "AdminReviewsController_moderate",
         "parameters": [
           {
@@ -8873,13 +8873,13 @@
         "tags": [
           "02 Admin - Review Moderation"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviews.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with reviews.moderate"
       }
     },
     "/api/v1/admin/review-policies": {
       "get": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with reviewPolicies.read. AI moderation fields are config-only until external AI is configured.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.read. SUPER_ADMIN or ADMIN with reviewPolicies.read permission. SUPER_ADMIN or ADMIN with reviewPolicies.read. AI moderation fields are config-only until external AI is configured.",
         "operationId": "ReviewPoliciesController_policies",
         "parameters": [],
         "responses": {
@@ -8932,11 +8932,11 @@
         "tags": [
           "02 Admin - Review Policies"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviewPolicies.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviewPolicies.read"
       },
       "patch": {
-        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or delegated ADMIN with reviewPolicies.update. Creates an audit log and never exposes AI provider secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.update. SUPER_ADMIN or ADMIN with reviewPolicies.update permission. SUPER_ADMIN or delegated ADMIN with reviewPolicies.update. Creates an audit log and never exposes AI provider secrets.",
         "operationId": "ReviewPoliciesController_update",
         "parameters": [],
         "requestBody": {
@@ -8963,13 +8963,13 @@
         "tags": [
           "02 Admin - Review Policies"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviewPolicies.update",
+        "x-access": "SUPER_ADMIN or ADMIN with reviewPolicies.update"
       }
     },
     "/api/v1/admin/review-policies/test": {
       "post": {
-        "description": "Access: Authenticated. Authenticated JWT required. Deterministic rule-based placeholder. No external AI call is made unless future configuration enables it.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.read. SUPER_ADMIN or ADMIN with reviewPolicies.read permission. Deterministic rule-based placeholder. No external AI call is made unless future configuration enables it.",
         "operationId": "ReviewPoliciesController_test",
         "parameters": [],
         "requestBody": {
@@ -8996,8 +8996,8 @@
         "tags": [
           "02 Admin - Review Policies"
         ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with reviewPolicies.read",
+        "x-access": "SUPER_ADMIN or ADMIN with reviewPolicies.read"
       }
     },
     "/api/v1/admin-roles": {
@@ -16414,7 +16414,7 @@
         ],
         "summary": "Fetch customer app home",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Guest - Marketplace"
         ],
         "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
         "x-access": "REGISTERED_USER or GUEST_USER"
@@ -16437,7 +16437,7 @@
         ],
         "summary": "List customer marketplace categories",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Guest - Marketplace"
         ],
         "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
         "x-access": "REGISTERED_USER or GUEST_USER"
@@ -16591,7 +16591,7 @@
         ],
         "summary": "List discounted customer gifts",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Guest - Marketplace"
         ],
         "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
         "x-access": "REGISTERED_USER or GUEST_USER"
@@ -16614,7 +16614,7 @@
         ],
         "summary": "Fetch marketplace gift filter options",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Guest - Marketplace"
         ],
         "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
         "x-access": "REGISTERED_USER or GUEST_USER"
@@ -16813,7 +16813,7 @@
         ],
         "summary": "List customer marketplace gifts",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Guest - Marketplace"
         ],
         "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
         "x-access": "REGISTERED_USER or GUEST_USER"
@@ -16907,7 +16907,7 @@
         ],
         "summary": "Fetch customer-safe gift details",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Guest - Marketplace"
         ],
         "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
         "x-access": "REGISTERED_USER or GUEST_USER"
@@ -24854,7 +24854,7 @@
       "name": "04 Gifts - Moderation"
     },
     {
-      "name": "05 Customer / Guest - Marketplace"
+      "name": "05 Guest - Marketplace"
     },
     {
       "name": "05 Customer - Wishlist"

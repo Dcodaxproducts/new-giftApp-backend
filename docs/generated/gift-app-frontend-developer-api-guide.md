@@ -1,6 +1,18 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 06:37 PKT.
+
+## Frontend Integration Flows
+
+- **Auth flows:** login/register, token refresh, sessions, profile, password reset, and guest session creation.
+- **Guest flows:** use guest session + guest marketplace APIs under `05 Guest - Marketplace`; guest users can browse configured marketplace surfaces only.
+- **Registered customer flows:** marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.
+- **Provider flows:** dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.
+- **Super Admin/Admin flows:** staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.
+- **Storage upload flow:** create/complete uploads using storage endpoints before attaching media URLs to profile, chat, support, gift, review, or dispute payloads.
+- **Payment/order flow:** cart/order checkout, payment methods, payment records, transactions, recurring payments/subscriptions, and order history.
+- **Payout flow:** provider payout methods, earnings, payout requests, and admin payout approvals/settings.
+- **Dispute/refund flow:** customer/provider disputes, evidence, decisions, financial adjustments, tracking logs, provider refund requests, and refund policy settings.
 
 ## Superadmin / Admin APIs
 
@@ -8,81 +20,81 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/payout-settings` | Fetch commission and payout settings | SUPER_ADMIN or ADMIN with payoutSettings |
-| PATCH | `/api/v1/admin/payout-settings` | Update commission and payout settings | SUPER_ADMIN or ADMIN with payoutSettings |
-| GET | `/api/v1/admin/payout-settings/audit-logs` | List payout settings audit logs | SUPER_ADMIN or ADMIN with payoutSettings |
-| GET | `/api/v1/admin/payout-settings/commission-tiers` | List commission tiers | SUPER_ADMIN or ADMIN with payoutSettings |
-| POST | `/api/v1/admin/payout-settings/commission-tiers` | Create commission tier | SUPER_ADMIN or ADMIN with payoutSettings |
-| PATCH | `/api/v1/admin/payout-settings/commission-tiers/{id}` | Update commission tier | SUPER_ADMIN or ADMIN with payoutSettings |
-| DELETE | `/api/v1/admin/payout-settings/commission-tiers/{id}` | Delete commission tier | SUPER_ADMIN or ADMIN with payoutSettings |
+| GET | `/api/v1/admin/payout-settings` | Fetch commission and payout settings | SUPER_ADMIN or ADMIN with payoutSettings.read |
+| PATCH | `/api/v1/admin/payout-settings` | Update commission and payout settings | SUPER_ADMIN or ADMIN with payoutSettings.update |
+| GET | `/api/v1/admin/payout-settings/audit-logs` | List payout settings audit logs | SUPER_ADMIN or ADMIN with payoutSettings.read |
+| GET | `/api/v1/admin/payout-settings/commission-tiers` | List commission tiers | SUPER_ADMIN or ADMIN with payoutSettings.read |
+| POST | `/api/v1/admin/payout-settings/commission-tiers` | Create commission tier | SUPER_ADMIN or ADMIN with payoutSettings.update |
+| PATCH | `/api/v1/admin/payout-settings/commission-tiers/{id}` | Update commission tier | SUPER_ADMIN or ADMIN with payoutSettings.update |
+| DELETE | `/api/v1/admin/payout-settings/commission-tiers/{id}` | Delete commission tier | SUPER_ADMIN or ADMIN with payoutSettings.update |
 
 ### Admin - Dashboard Overview (5 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/dashboard/gift-vs-payment` | Fetch gift vs direct payment distribution | SUPER_ADMIN or ADMIN with dashboard |
-| GET | `/api/v1/admin/dashboard/overview` | Fetch Super Admin dashboard overview metrics | SUPER_ADMIN or ADMIN with dashboard |
-| GET | `/api/v1/admin/dashboard/provider-performance` | Fetch provider performance table | SUPER_ADMIN or ADMIN with dashboard |
-| GET | `/api/v1/admin/dashboard/recent-disputes` | Fetch recent disputes table | SUPER_ADMIN or ADMIN with dashboard |
-| GET | `/api/v1/admin/dashboard/revenue-trends` | Fetch monthly revenue trends | SUPER_ADMIN or ADMIN with dashboard |
+| GET | `/api/v1/admin/dashboard/gift-vs-payment` | Fetch gift vs direct payment distribution | SUPER_ADMIN or ADMIN with dashboard.read |
+| GET | `/api/v1/admin/dashboard/overview` | Fetch Super Admin dashboard overview metrics | SUPER_ADMIN or ADMIN with dashboard.read |
+| GET | `/api/v1/admin/dashboard/provider-performance` | Fetch provider performance table | SUPER_ADMIN or ADMIN with dashboard.read |
+| GET | `/api/v1/admin/dashboard/recent-disputes` | Fetch recent disputes table | SUPER_ADMIN or ADMIN with dashboard.read |
+| GET | `/api/v1/admin/dashboard/revenue-trends` | Fetch monthly revenue trends | SUPER_ADMIN or ADMIN with dashboard.read |
 
 ### Admin - Dispute Decisions (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/disputes/{id}/confirmation` | Fetch decision confirmation | SUPER_ADMIN or ADMIN with disputes |
-| POST | `/api/v1/admin/disputes/{id}/decision` | Submit final dispute decision | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/decision-summary` | Fetch dispute decision summary | SUPER_ADMIN or ADMIN with disputes |
+| GET | `/api/v1/admin/disputes/{id}/confirmation` | Fetch decision confirmation | SUPER_ADMIN or ADMIN with disputes.decide |
+| POST | `/api/v1/admin/disputes/{id}/decision` | Submit final dispute decision | SUPER_ADMIN or ADMIN with disputes.decide plus action-specific permission (approve/reject/escalate) |
+| GET | `/api/v1/admin/disputes/{id}/decision-summary` | Fetch dispute decision summary | SUPER_ADMIN or ADMIN with disputes.decide |
 
 ### Admin - Dispute Evidence (1 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/disputes/{id}/evidence` | Fetch dispute evidence | SUPER_ADMIN or ADMIN with disputes |
+| GET | `/api/v1/admin/disputes/{id}/evidence` | Fetch dispute evidence | SUPER_ADMIN or ADMIN with disputes.read |
 
 ### Admin - Dispute Linkage (4 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| POST | `/api/v1/admin/disputes/{id}/link-transaction` | Confirm dispute transaction linkage | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/linkage` | Fetch current dispute transaction linkage state | SUPER_ADMIN or ADMIN with disputes |
-| POST | `/api/v1/admin/disputes/{id}/refund-preview` | Preview dispute refund selection | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/transaction-search` | Search original transaction for a dispute | SUPER_ADMIN or ADMIN with disputes |
+| POST | `/api/v1/admin/disputes/{id}/link-transaction` | Confirm dispute transaction linkage | SUPER_ADMIN or ADMIN with disputes.linkTransaction |
+| GET | `/api/v1/admin/disputes/{id}/linkage` | Fetch current dispute transaction linkage state | SUPER_ADMIN or ADMIN with disputes.read |
+| POST | `/api/v1/admin/disputes/{id}/refund-preview` | Preview dispute refund selection | SUPER_ADMIN or ADMIN with disputes.refund.evaluate |
+| GET | `/api/v1/admin/disputes/{id}/transaction-search` | Search original transaction for a dispute | SUPER_ADMIN or ADMIN with disputes.read |
 
 ### Admin - Dispute Manager (8 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/disputes` | List dispute queue | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/export` | Export dispute cases | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/stats` | Fetch dispute dashboard stats | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}` | Fetch dispute details and evidence review summary | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/internal-data` | Fetch internal transaction data | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/notes` | Fetch internal dispute notes | SUPER_ADMIN or ADMIN with disputes |
-| POST | `/api/v1/admin/disputes/{id}/notes` | Add internal dispute note | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/timeline` | Fetch dispute timeline | SUPER_ADMIN or ADMIN with disputes |
+| GET | `/api/v1/admin/disputes` | List dispute queue | SUPER_ADMIN or ADMIN with disputes.read |
+| GET | `/api/v1/admin/disputes/export` | Export dispute cases | SUPER_ADMIN or ADMIN with disputes.export |
+| GET | `/api/v1/admin/disputes/stats` | Fetch dispute dashboard stats | SUPER_ADMIN or ADMIN with disputes.read |
+| GET | `/api/v1/admin/disputes/{id}` | Fetch dispute details and evidence review summary | SUPER_ADMIN or ADMIN with disputes.read |
+| GET | `/api/v1/admin/disputes/{id}/internal-data` | Fetch internal transaction data | SUPER_ADMIN or ADMIN with disputes.read |
+| GET | `/api/v1/admin/disputes/{id}/notes` | Fetch internal dispute notes | SUPER_ADMIN or ADMIN with disputes.read |
+| POST | `/api/v1/admin/disputes/{id}/notes` | Add internal dispute note | SUPER_ADMIN or ADMIN with disputes.notes.create |
+| GET | `/api/v1/admin/disputes/{id}/timeline` | Fetch dispute timeline | SUPER_ADMIN or ADMIN with disputes.read |
 
 ### Admin - Dispute Tracking (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| POST | `/api/v1/admin/disputes/{id}/follow-up-notes` | Add dispute follow-up note | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/tracking-log` | Fetch full dispute tracking log | SUPER_ADMIN or ADMIN with disputes |
-| GET | `/api/v1/admin/disputes/{id}/tracking-log/export` | Export full dispute tracking log | SUPER_ADMIN or ADMIN with disputes |
+| POST | `/api/v1/admin/disputes/{id}/follow-up-notes` | Add dispute follow-up note | SUPER_ADMIN or ADMIN with disputes.notes.create |
+| GET | `/api/v1/admin/disputes/{id}/tracking-log` | Fetch full dispute tracking log | SUPER_ADMIN or ADMIN with disputes.tracking.read |
+| GET | `/api/v1/admin/disputes/{id}/tracking-log/export` | Export full dispute tracking log | SUPER_ADMIN or ADMIN with disputes.tracking.export |
 
 ### Admin - Guest Access Settings (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/guest-access-settings` | Fetch guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings |
-| PATCH | `/api/v1/admin/guest-access-settings` | Update guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings |
-| GET | `/api/v1/admin/guest-access-settings/audit-logs` | List guest access settings audit logs | SUPER_ADMIN or ADMIN with guestAccessSettings |
+| GET | `/api/v1/admin/guest-access-settings` | Fetch guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings.read |
+| PATCH | `/api/v1/admin/guest-access-settings` | Update guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings.update |
+| GET | `/api/v1/admin/guest-access-settings/audit-logs` | List guest access settings audit logs | SUPER_ADMIN or ADMIN with guestAccessSettings.read |
 
 ### Admin - Media Upload Policy (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/media-upload-policy` | Fetch global media upload policy | SUPER_ADMIN or ADMIN with mediaPolicy |
+| GET | `/api/v1/media-upload-policy` | Fetch global media upload policy | SUPER_ADMIN or ADMIN with mediaPolicy.read |
 | PATCH | `/api/v1/media-upload-policy` | Update global media upload policy | SUPER_ADMIN |
 | GET | `/api/v1/media-upload-policy/audit-logs` | List media upload policy audit logs | SUPER_ADMIN |
 
@@ -90,18 +102,18 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/message-moderation/conversations` | List flagged message moderation conversations | SUPER_ADMIN or ADMIN with messageModeration |
-| GET | `/api/v1/admin/message-moderation/conversations/{id}` | Fetch message moderation conversation detail | SUPER_ADMIN or ADMIN with messageModeration |
-| GET | `/api/v1/admin/message-moderation/conversations/{id}/history` | Fetch message moderation conversation history | SUPER_ADMIN or ADMIN with messageModeration |
-| GET | `/api/v1/admin/message-moderation/export` | Export message moderation rows | SUPER_ADMIN or ADMIN with messageModeration |
-| GET | `/api/v1/admin/message-moderation/filter-options` | Fetch message moderation filter options | SUPER_ADMIN or ADMIN with messageModeration |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/block` | Block a flagged message | SUPER_ADMIN or ADMIN with messageModeration |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag` | Dismiss a moderation flag | SUPER_ADMIN or ADMIN with messageModeration |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/note` | Add internal private moderation note | SUPER_ADMIN or ADMIN with messageModeration |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/reprocess` | Reprocess a message through scanner | SUPER_ADMIN or ADMIN with messageModeration |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend the message sender account | SUPER_ADMIN or ADMIN with messageModeration |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn the message sender | SUPER_ADMIN or ADMIN with messageModeration |
-| GET | `/api/v1/admin/message-moderation/stats` | Fetch message moderation stats | SUPER_ADMIN or ADMIN with messageModeration |
+| GET | `/api/v1/admin/message-moderation/conversations` | List flagged message moderation conversations | SUPER_ADMIN or ADMIN with messageModeration.read |
+| GET | `/api/v1/admin/message-moderation/conversations/{id}` | Fetch message moderation conversation detail | SUPER_ADMIN or ADMIN with messageModeration.read |
+| GET | `/api/v1/admin/message-moderation/conversations/{id}/history` | Fetch message moderation conversation history | SUPER_ADMIN or ADMIN with messageModeration.read |
+| GET | `/api/v1/admin/message-moderation/export` | Export message moderation rows | SUPER_ADMIN or ADMIN with messageModeration.export |
+| GET | `/api/v1/admin/message-moderation/filter-options` | Fetch message moderation filter options | SUPER_ADMIN or ADMIN with messageModeration.read |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/block` | Block a flagged message | SUPER_ADMIN or ADMIN with messageModeration.block |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag` | Dismiss a moderation flag | SUPER_ADMIN or ADMIN with messageModeration.dismiss |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/note` | Add internal private moderation note | SUPER_ADMIN or ADMIN with messageModeration.notes.create |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/reprocess` | Reprocess a message through scanner | SUPER_ADMIN or ADMIN with messageModeration.moderate |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend the message sender account | SUPER_ADMIN or ADMIN with messageModeration.suspend |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn the message sender | SUPER_ADMIN or ADMIN with messageModeration.warn |
+| GET | `/api/v1/admin/message-moderation/stats` | Fetch message moderation stats | SUPER_ADMIN or ADMIN with messageModeration.read |
 
 **Message moderation frontend notes**
 
@@ -115,126 +127,126 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/promotional-offers` | List Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers |
-| POST | `/api/v1/promotional-offers` | Create Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers |
-| GET | `/api/v1/promotional-offers/export` | List Promotional Offers Export | SUPER_ADMIN or ADMIN with promotionalOffers |
-| GET | `/api/v1/promotional-offers/stats` | List Promotional Offers Stats | SUPER_ADMIN or ADMIN with promotionalOffers |
-| GET | `/api/v1/promotional-offers/{id}` | Fetch Promotional Offers details | SUPER_ADMIN or ADMIN with promotionalOffers |
-| PATCH | `/api/v1/promotional-offers/{id}` | Update Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers |
-| DELETE | `/api/v1/promotional-offers/{id}` | Delete Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers |
-| PATCH | `/api/v1/promotional-offers/{id}/approve` | Update Promotional Offers Approve | SUPER_ADMIN or ADMIN with promotionalOffers |
-| PATCH | `/api/v1/promotional-offers/{id}/reject` | Update Promotional Offers Reject | SUPER_ADMIN or ADMIN with promotionalOffers |
-| PATCH | `/api/v1/promotional-offers/{id}/status` | Update Promotional Offers Status | SUPER_ADMIN or ADMIN with promotionalOffers |
+| GET | `/api/v1/promotional-offers` | List Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.read |
+| POST | `/api/v1/promotional-offers` | Create Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.create |
+| GET | `/api/v1/promotional-offers/export` | List Promotional Offers Export | SUPER_ADMIN or ADMIN with promotionalOffers.export |
+| GET | `/api/v1/promotional-offers/stats` | List Promotional Offers Stats | SUPER_ADMIN or ADMIN with promotionalOffers.read |
+| GET | `/api/v1/promotional-offers/{id}` | Fetch Promotional Offers details | SUPER_ADMIN or ADMIN with promotionalOffers.read |
+| PATCH | `/api/v1/promotional-offers/{id}` | Update Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.update |
+| DELETE | `/api/v1/promotional-offers/{id}` | Delete Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.delete |
+| PATCH | `/api/v1/promotional-offers/{id}/approve` | Update Promotional Offers Approve | SUPER_ADMIN or ADMIN with promotionalOffers.approve |
+| PATCH | `/api/v1/promotional-offers/{id}/reject` | Update Promotional Offers Reject | SUPER_ADMIN or ADMIN with promotionalOffers.reject |
+| PATCH | `/api/v1/promotional-offers/{id}/status` | Update Promotional Offers Status | SUPER_ADMIN or ADMIN with promotionalOffers.status.update |
 
 ### Admin - Provider Business Categories (5 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/provider-business-categories` | List provider business categories | PUBLIC |
-| POST | `/api/v1/provider-business-categories` | Create provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories |
-| GET | `/api/v1/provider-business-categories/{id}` | Fetch provider business category details | SUPER_ADMIN or ADMIN with providerBusinessCategories |
-| PATCH | `/api/v1/provider-business-categories/{id}` | Update provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories |
-| DELETE | `/api/v1/provider-business-categories/{id}` | Soft-delete provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories |
+| POST | `/api/v1/provider-business-categories` | Create provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.create |
+| GET | `/api/v1/provider-business-categories/{id}` | Fetch provider business category details | SUPER_ADMIN or ADMIN with providerBusinessCategories.read |
+| PATCH | `/api/v1/provider-business-categories/{id}` | Update provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.update |
+| DELETE | `/api/v1/provider-business-categories/{id}` | Soft-delete provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.delete |
 
 ### Admin - Provider Dispute Evidence (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/provider-disputes/{id}/evidence` | Fetch provider dispute evidence exchange | SUPER_ADMIN or ADMIN with providerDisputes |
-| POST | `/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed` | Mark provider dispute evidence review complete | SUPER_ADMIN or ADMIN with providerDisputes |
-| POST | `/api/v1/admin/provider-disputes/{id}/evidence/request` | Request additional provider dispute evidence | SUPER_ADMIN or ADMIN with providerDisputes |
+| GET | `/api/v1/admin/provider-disputes/{id}/evidence` | Fetch provider dispute evidence exchange | SUPER_ADMIN or ADMIN with providerDisputes.read |
+| POST | `/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed` | Mark provider dispute evidence review complete | SUPER_ADMIN or ADMIN with providerDisputes.update |
+| POST | `/api/v1/admin/provider-disputes/{id}/evidence/request` | Request additional provider dispute evidence | SUPER_ADMIN or ADMIN with providerDisputes.evidence.request |
 
 ### Admin - Provider Dispute Logs (2 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/provider-disputes/{id}/resolution-log` | Fetch provider dispute resolution log | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}/resolution-log/export` | Export provider dispute resolution log | SUPER_ADMIN or ADMIN with providerDisputes |
+| GET | `/api/v1/admin/provider-disputes/{id}/resolution-log` | Fetch provider dispute resolution log | SUPER_ADMIN or ADMIN with providerDisputes.logs.read |
+| GET | `/api/v1/admin/provider-disputes/{id}/resolution-log/export` | Export provider dispute resolution log | SUPER_ADMIN or ADMIN with providerDisputes.logs.export |
 
 ### Admin - Provider Dispute Manager (7 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/provider-disputes` | List provider dispute queue | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/export` | Export provider dispute queue | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/stats` | Fetch provider dispute dashboard stats | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}` | Fetch provider dispute details | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}/notes` | Fetch provider dispute internal notes | SUPER_ADMIN or ADMIN with providerDisputes |
-| POST | `/api/v1/admin/provider-disputes/{id}/notes` | Add provider dispute internal note | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}/timeline` | Fetch provider dispute timeline | SUPER_ADMIN or ADMIN with providerDisputes |
+| GET | `/api/v1/admin/provider-disputes` | List provider dispute queue | SUPER_ADMIN or ADMIN with providerDisputes.read |
+| GET | `/api/v1/admin/provider-disputes/export` | Export provider dispute queue | SUPER_ADMIN or ADMIN with providerDisputes.export |
+| GET | `/api/v1/admin/provider-disputes/stats` | Fetch provider dispute dashboard stats | SUPER_ADMIN or ADMIN with providerDisputes.read |
+| GET | `/api/v1/admin/provider-disputes/{id}` | Fetch provider dispute details | SUPER_ADMIN or ADMIN with providerDisputes.read |
+| GET | `/api/v1/admin/provider-disputes/{id}/notes` | Fetch provider dispute internal notes | SUPER_ADMIN or ADMIN with providerDisputes.read |
+| POST | `/api/v1/admin/provider-disputes/{id}/notes` | Add provider dispute internal note | SUPER_ADMIN or ADMIN with providerDisputes.notes.create |
+| GET | `/api/v1/admin/provider-disputes/{id}/timeline` | Fetch provider dispute timeline | SUPER_ADMIN or ADMIN with providerDisputes.read |
 
 ### Admin - Provider Dispute Resolution (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| POST | `/api/v1/admin/provider-disputes/{id}/finalize` | Finalize provider dispute | SUPER_ADMIN or ADMIN with providerDisputes |
-| POST | `/api/v1/admin/provider-disputes/{id}/notify-again` | Resend provider dispute notifications | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}/resolution` | Fetch provider dispute resolution summary | SUPER_ADMIN or ADMIN with providerDisputes |
+| POST | `/api/v1/admin/provider-disputes/{id}/finalize` | Finalize provider dispute | SUPER_ADMIN or ADMIN with providerDisputes.resolve |
+| POST | `/api/v1/admin/provider-disputes/{id}/notify-again` | Resend provider dispute notifications | SUPER_ADMIN or ADMIN with providerDisputes.notify |
+| GET | `/api/v1/admin/provider-disputes/{id}/resolution` | Fetch provider dispute resolution summary | SUPER_ADMIN or ADMIN with providerDisputes.resolve |
 
 ### Admin - Provider Dispute Rulings (2 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| POST | `/api/v1/admin/provider-disputes/{id}/ruling` | Save provider dispute ruling | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}/ruling-summary` | Fetch provider dispute ruling summary | SUPER_ADMIN or ADMIN with providerDisputes |
+| POST | `/api/v1/admin/provider-disputes/{id}/ruling` | Save provider dispute ruling | SUPER_ADMIN or ADMIN with providerDisputes.ruling.create |
+| GET | `/api/v1/admin/provider-disputes/{id}/ruling-summary` | Fetch provider dispute ruling summary | SUPER_ADMIN or ADMIN with providerDisputes.ruling.read |
 
 ### Admin - Provider Financial Adjustments (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| POST | `/api/v1/admin/provider-disputes/{id}/final-attestation` | Complete final financial attestation | SUPER_ADMIN or ADMIN with providerDisputes |
-| GET | `/api/v1/admin/provider-disputes/{id}/financial-impact` | Fetch provider dispute financial impact | SUPER_ADMIN or ADMIN with providerDisputes |
-| POST | `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage` | Link payout and penalty adjustments | SUPER_ADMIN or ADMIN with providerDisputes |
+| POST | `/api/v1/admin/provider-disputes/{id}/final-attestation` | Complete final financial attestation | SUPER_ADMIN or ADMIN with providerDisputes.ruling.update |
+| GET | `/api/v1/admin/provider-disputes/{id}/financial-impact` | Fetch provider dispute financial impact | SUPER_ADMIN or ADMIN with providerDisputes.financial.read |
+| POST | `/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage` | Link payout and penalty adjustments | SUPER_ADMIN or ADMIN with providerDisputes.financial.link |
 
 ### Admin - Provider Management (12 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/providers` | List providers | SUPER_ADMIN or ADMIN with providers |
-| POST | `/api/v1/providers` | Create provider from admin dashboard | SUPER_ADMIN or ADMIN with providers |
-| GET | `/api/v1/providers/export` | List Providers Export | SUPER_ADMIN or ADMIN with providers |
-| GET | `/api/v1/providers/lookup` | List Providers Lookup | SUPER_ADMIN or ADMIN with providers |
-| GET | `/api/v1/providers/stats` | List Providers Stats | SUPER_ADMIN or ADMIN with providers |
-| GET | `/api/v1/providers/{id}` | Fetch Providers details | SUPER_ADMIN or ADMIN with providers |
-| PATCH | `/api/v1/providers/{id}` | Update Providers | SUPER_ADMIN or ADMIN with providers |
+| GET | `/api/v1/providers` | List providers | SUPER_ADMIN or ADMIN with providers.read |
+| POST | `/api/v1/providers` | Create provider from admin dashboard | SUPER_ADMIN or ADMIN with providers.create |
+| GET | `/api/v1/providers/export` | List Providers Export | SUPER_ADMIN or ADMIN with providers.export |
+| GET | `/api/v1/providers/lookup` | List Providers Lookup | SUPER_ADMIN or ADMIN with providers.read |
+| GET | `/api/v1/providers/stats` | List Providers Stats | SUPER_ADMIN or ADMIN with providers.read |
+| GET | `/api/v1/providers/{id}` | Fetch Providers details | SUPER_ADMIN or ADMIN with providers.read |
+| PATCH | `/api/v1/providers/{id}` | Update Providers | SUPER_ADMIN or ADMIN with providers.update |
 | DELETE | `/api/v1/providers/{id}` | Permanently delete provider | SUPER_ADMIN |
-| GET | `/api/v1/providers/{id}/activity` | Fetch Providers Activity details | SUPER_ADMIN or ADMIN with providers |
-| GET | `/api/v1/providers/{id}/items` | Fetch Providers Items details | SUPER_ADMIN or ADMIN with providers |
-| POST | `/api/v1/providers/{id}/message` | Create Providers Message | SUPER_ADMIN or ADMIN with providers |
-| PATCH | `/api/v1/providers/{id}/status` | Update provider lifecycle status | SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers |
+| GET | `/api/v1/providers/{id}/activity` | Fetch Providers Activity details | SUPER_ADMIN or ADMIN with providers.read |
+| GET | `/api/v1/providers/{id}/items` | Fetch Providers Items details | SUPER_ADMIN or ADMIN with providers.read |
+| POST | `/api/v1/providers/{id}/message` | Create Providers Message | SUPER_ADMIN or ADMIN with providers.message |
+| PATCH | `/api/v1/providers/{id}/status` | Update provider lifecycle status | SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers.approve, REJECT=>providers.reject, SUSPEND=>providers.suspend, UNSUSPEND=>providers.suspend, UPDATE_STATUS=>providers.updateStatus) |
 
 ### Admin - Provider Payouts (11 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/provider-payouts` | List provider payouts | SUPER_ADMIN or ADMIN with providerPayouts |
-| POST | `/api/v1/admin/provider-payouts/bulk-approve` | Bulk approve provider payouts | SUPER_ADMIN or ADMIN with providerPayouts |
-| GET | `/api/v1/admin/provider-payouts/earning-distribution` | Fetch earning distribution by provider tier | SUPER_ADMIN or ADMIN with providerPayouts |
-| GET | `/api/v1/admin/provider-payouts/export` | Export provider payouts | SUPER_ADMIN or ADMIN with providerPayouts |
-| GET | `/api/v1/admin/provider-payouts/stats` | Fetch provider payout dashboard stats | SUPER_ADMIN or ADMIN with providerPayouts |
-| GET | `/api/v1/admin/provider-payouts/trends` | Fetch monthly provider payout trend | SUPER_ADMIN or ADMIN with providerPayouts |
-| GET | `/api/v1/admin/provider-payouts/{id}` | Fetch provider payout details | SUPER_ADMIN or ADMIN with providerPayouts |
-| POST | `/api/v1/admin/provider-payouts/{id}/approve` | Approve provider payout | SUPER_ADMIN or ADMIN with providerPayouts |
-| GET | `/api/v1/admin/provider-payouts/{id}/breakdown` | Fetch pending payout transaction breakdown | SUPER_ADMIN or ADMIN with providerPayouts |
-| POST | `/api/v1/admin/provider-payouts/{id}/hold` | Hold provider payout | SUPER_ADMIN or ADMIN with providerPayouts |
-| POST | `/api/v1/admin/provider-payouts/{id}/reject` | Reject provider payout | SUPER_ADMIN or ADMIN with providerPayouts |
+| GET | `/api/v1/admin/provider-payouts` | List provider payouts | SUPER_ADMIN or ADMIN with providerPayouts.read |
+| POST | `/api/v1/admin/provider-payouts/bulk-approve` | Bulk approve provider payouts | SUPER_ADMIN or ADMIN with providerPayouts.approve |
+| GET | `/api/v1/admin/provider-payouts/earning-distribution` | Fetch earning distribution by provider tier | SUPER_ADMIN or ADMIN with providerPayouts.read |
+| GET | `/api/v1/admin/provider-payouts/export` | Export provider payouts | SUPER_ADMIN or ADMIN with providerPayouts.export |
+| GET | `/api/v1/admin/provider-payouts/stats` | Fetch provider payout dashboard stats | SUPER_ADMIN or ADMIN with providerPayouts.read |
+| GET | `/api/v1/admin/provider-payouts/trends` | Fetch monthly provider payout trend | SUPER_ADMIN or ADMIN with providerPayouts.read |
+| GET | `/api/v1/admin/provider-payouts/{id}` | Fetch provider payout details | SUPER_ADMIN or ADMIN with providerPayouts.read |
+| POST | `/api/v1/admin/provider-payouts/{id}/approve` | Approve provider payout | SUPER_ADMIN or ADMIN with providerPayouts.approve |
+| GET | `/api/v1/admin/provider-payouts/{id}/breakdown` | Fetch pending payout transaction breakdown | SUPER_ADMIN or ADMIN with providerPayouts.read |
+| POST | `/api/v1/admin/provider-payouts/{id}/hold` | Hold provider payout | SUPER_ADMIN or ADMIN with providerPayouts.hold |
+| POST | `/api/v1/admin/provider-payouts/{id}/reject` | Reject provider payout | SUPER_ADMIN or ADMIN with providerPayouts.reject |
 
 ### Admin - Referral Settings (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/referral-settings` | Fetch referral settings | SUPER_ADMIN or ADMIN with referralSettings |
+| GET | `/api/v1/referral-settings` | Fetch referral settings | SUPER_ADMIN or ADMIN with referralSettings.read |
 | PATCH | `/api/v1/referral-settings` | Update referral settings | SUPER_ADMIN |
 | POST | `/api/v1/referral-settings/activate` | Activate referral program | SUPER_ADMIN |
 | GET | `/api/v1/referral-settings/audit-logs` | List referral settings audit logs | SUPER_ADMIN |
 | POST | `/api/v1/referral-settings/deactivate` | Deactivate referral program | SUPER_ADMIN |
-| GET | `/api/v1/referral-settings/stats` | Fetch referral stats | SUPER_ADMIN or ADMIN with referralSettings |
+| GET | `/api/v1/referral-settings/stats` | Fetch referral stats | SUPER_ADMIN or ADMIN with referralSettings.read |
 
 ### Admin - Refund Policy Settings (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/refund-policy-settings` | Fetch refund policy settings | SUPER_ADMIN or ADMIN with refundPolicies |
+| GET | `/api/v1/admin/refund-policy-settings` | Fetch refund policy settings | SUPER_ADMIN or ADMIN with refundPolicies.read |
 | PATCH | `/api/v1/admin/refund-policy-settings` | Update refund policy settings | SUPER_ADMIN |
 | GET | `/api/v1/admin/refund-policy-settings/logs` | List refund policy audit logs | SUPER_ADMIN |
 
@@ -242,28 +254,28 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/reviews/flagged-summary` | List Admin Reviews Flagged Summary | Authenticated |
-| GET | `/api/v1/admin/reviews/moderation-logs` | List Admin Reviews Moderation Logs | Authenticated |
-| GET | `/api/v1/admin/reviews/moderation-queue` | List Admin Reviews Moderation Queue | Authenticated |
-| POST | `/api/v1/admin/reviews/{id}/moderate` | Moderate a review | Authenticated |
+| GET | `/api/v1/admin/reviews/flagged-summary` | List Admin Reviews Flagged Summary | SUPER_ADMIN or ADMIN with reviews.read |
+| GET | `/api/v1/admin/reviews/moderation-logs` | List Admin Reviews Moderation Logs | SUPER_ADMIN or ADMIN with reviewModerationLogs.read |
+| GET | `/api/v1/admin/reviews/moderation-queue` | List Admin Reviews Moderation Queue | SUPER_ADMIN or ADMIN with reviews.moderate |
+| POST | `/api/v1/admin/reviews/{id}/moderate` | Moderate a review | SUPER_ADMIN or ADMIN with reviews.moderate |
 
 ### Admin - Review Policies (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/review-policies` | Fetch review moderation policies | Authenticated |
-| PATCH | `/api/v1/admin/review-policies` | Update review moderation policies | Authenticated |
-| POST | `/api/v1/admin/review-policies/test` | Test review policy result | Authenticated |
+| GET | `/api/v1/admin/review-policies` | Fetch review moderation policies | SUPER_ADMIN or ADMIN with reviewPolicies.read |
+| PATCH | `/api/v1/admin/review-policies` | Update review moderation policies | SUPER_ADMIN or ADMIN with reviewPolicies.update |
+| POST | `/api/v1/admin/review-policies/test` | Test review policy result | SUPER_ADMIN or ADMIN with reviewPolicies.read |
 
 ### Admin - Reviews Management (5 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/reviews` | List reviews for moderation dashboard | Authenticated |
-| GET | `/api/v1/admin/reviews/dashboard` | Fetch platform review dashboard | Authenticated |
-| GET | `/api/v1/admin/reviews/export` | Export reviews with moderation filters | Authenticated |
-| GET | `/api/v1/admin/reviews/stats` | List Admin Reviews Stats | Authenticated |
-| GET | `/api/v1/admin/reviews/{id}` | Fetch review moderation details | Authenticated |
+| GET | `/api/v1/admin/reviews` | List reviews for moderation dashboard | SUPER_ADMIN or ADMIN with reviews.read |
+| GET | `/api/v1/admin/reviews/dashboard` | Fetch platform review dashboard | SUPER_ADMIN or ADMIN with reviews.read |
+| GET | `/api/v1/admin/reviews/export` | Export reviews with moderation filters | SUPER_ADMIN or ADMIN with reviews.export |
+| GET | `/api/v1/admin/reviews/stats` | List Admin Reviews Stats | SUPER_ADMIN or ADMIN with reviews.read |
+| GET | `/api/v1/admin/reviews/{id}` | Fetch review moderation details | SUPER_ADMIN or ADMIN with reviews.read |
 
 ### Admin - Roles & Permissions (7 APIs)
 
@@ -281,24 +293,24 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/social-moderation/export` | Export social moderation log | SUPER_ADMIN or ADMIN with socialModeration |
-| GET | `/api/v1/admin/social-moderation/reports` | List social moderation reports | SUPER_ADMIN or ADMIN with socialModeration |
-| GET | `/api/v1/admin/social-moderation/reports/{id}` | Fetch social report inspection details | SUPER_ADMIN or ADMIN with socialModeration |
-| POST | `/api/v1/admin/social-moderation/reports/{id}/action` | Run social moderation action | SUPER_ADMIN or ADMIN with socialModeration |
-| GET | `/api/v1/admin/social-moderation/stats` | Fetch social moderation stats | SUPER_ADMIN or ADMIN with socialModeration |
+| GET | `/api/v1/admin/social-moderation/export` | Export social moderation log | SUPER_ADMIN or ADMIN with socialModeration.export |
+| GET | `/api/v1/admin/social-moderation/reports` | List social moderation reports | SUPER_ADMIN or ADMIN with socialModeration.read |
+| GET | `/api/v1/admin/social-moderation/reports/{id}` | Fetch social report inspection details | SUPER_ADMIN or ADMIN with socialModeration.read |
+| POST | `/api/v1/admin/social-moderation/reports/{id}/action` | Run social moderation action | SUPER_ADMIN or ADMIN with socialModeration.moderate |
+| GET | `/api/v1/admin/social-moderation/stats` | Fetch social moderation stats | SUPER_ADMIN or ADMIN with socialModeration.read |
 
 ### Admin - Social Reporting Rules (8 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/social-reporting-rules` | List social reporting rules | SUPER_ADMIN or ADMIN with socialReportingRules |
-| POST | `/api/v1/admin/social-reporting-rules` | Create social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules |
-| GET | `/api/v1/admin/social-reporting-rules/export` | Export social reporting rules | SUPER_ADMIN or ADMIN with socialReportingRules |
-| GET | `/api/v1/admin/social-reporting-rules/stats` | Fetch social reporting rule stats | SUPER_ADMIN or ADMIN with socialReportingRules |
-| GET | `/api/v1/admin/social-reporting-rules/{id}` | Fetch social reporting rule details | SUPER_ADMIN or ADMIN with socialReportingRules |
-| PATCH | `/api/v1/admin/social-reporting-rules/{id}` | Update social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules |
-| DELETE | `/api/v1/admin/social-reporting-rules/{id}` | Soft-delete social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules |
-| PATCH | `/api/v1/admin/social-reporting-rules/{id}/status` | Update social reporting rule status | SUPER_ADMIN or ADMIN with socialReportingRules |
+| GET | `/api/v1/admin/social-reporting-rules` | List social reporting rules | SUPER_ADMIN or ADMIN with socialReportingRules.read |
+| POST | `/api/v1/admin/social-reporting-rules` | Create social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.create |
+| GET | `/api/v1/admin/social-reporting-rules/export` | Export social reporting rules | SUPER_ADMIN or ADMIN with socialReportingRules.export |
+| GET | `/api/v1/admin/social-reporting-rules/stats` | Fetch social reporting rule stats | SUPER_ADMIN or ADMIN with socialReportingRules.read |
+| GET | `/api/v1/admin/social-reporting-rules/{id}` | Fetch social reporting rule details | SUPER_ADMIN or ADMIN with socialReportingRules.read |
+| PATCH | `/api/v1/admin/social-reporting-rules/{id}` | Update social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.update |
+| DELETE | `/api/v1/admin/social-reporting-rules/{id}` | Soft-delete social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.delete |
+| PATCH | `/api/v1/admin/social-reporting-rules/{id}/status` | Update social reporting rule status | SUPER_ADMIN or ADMIN with socialReportingRules.update |
 
 ### Admin - Staff Management (7 APIs)
 
@@ -316,13 +328,13 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/support-chats` | List admin support chats | SUPER_ADMIN or ADMIN with supportChats |
-| GET | `/api/v1/admin/support-chats/stats` | Fetch support chat stats | SUPER_ADMIN or ADMIN with supportChats |
-| GET | `/api/v1/admin/support-chats/{id}` | Fetch support chat conversation details | SUPER_ADMIN or ADMIN with supportChats |
-| POST | `/api/v1/admin/support-chats/{id}/messages` | Reply to support chat | SUPER_ADMIN or ADMIN with supportChats |
-| PATCH | `/api/v1/admin/support-chats/{id}/read` | Mark support chat as read | SUPER_ADMIN or ADMIN with supportChats |
-| POST | `/api/v1/admin/support-chats/{id}/reopen` | Reopen support chat and notify participant | SUPER_ADMIN or ADMIN with supportChats |
-| POST | `/api/v1/admin/support-chats/{id}/resolve` | Resolve support chat and notify participant | SUPER_ADMIN or ADMIN with supportChats |
+| GET | `/api/v1/admin/support-chats` | List admin support chats | SUPER_ADMIN or ADMIN with supportChats.read |
+| GET | `/api/v1/admin/support-chats/stats` | Fetch support chat stats | SUPER_ADMIN or ADMIN with supportChats.read |
+| GET | `/api/v1/admin/support-chats/{id}` | Fetch support chat conversation details | SUPER_ADMIN or ADMIN with supportChats.read |
+| POST | `/api/v1/admin/support-chats/{id}/messages` | Reply to support chat | SUPER_ADMIN or ADMIN with supportChats.reply |
+| PATCH | `/api/v1/admin/support-chats/{id}/read` | Mark support chat as read | SUPER_ADMIN or ADMIN with supportChats.read |
+| POST | `/api/v1/admin/support-chats/{id}/reopen` | Reopen support chat and notify participant | SUPER_ADMIN or ADMIN with supportChats.resolve |
+| POST | `/api/v1/admin/support-chats/{id}/resolve` | Resolve support chat and notify participant | SUPER_ADMIN or ADMIN with supportChats.resolve |
 
 ### Admin - System Logs & Audit Trail (6 APIs)
 
@@ -339,41 +351,41 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/system-settings` | Fetch system settings | SUPER_ADMIN or ADMIN with systemSettings |
-| PATCH | `/api/v1/admin/system-settings` | Update system settings | SUPER_ADMIN or ADMIN with systemSettings |
-| GET | `/api/v1/admin/system-settings/audit-logs` | List system settings audit logs | SUPER_ADMIN or ADMIN with systemSettings |
-| POST | `/api/v1/admin/system-settings/logo` | Update system logo URL/reference | SUPER_ADMIN or ADMIN with systemSettings |
-| POST | `/api/v1/admin/system-settings/smtp/test` | Send SMTP test email | SUPER_ADMIN or ADMIN with systemSettings |
+| GET | `/api/v1/admin/system-settings` | Fetch system settings | SUPER_ADMIN or ADMIN with systemSettings.read |
+| PATCH | `/api/v1/admin/system-settings` | Update system settings | SUPER_ADMIN or ADMIN with systemSettings.update |
+| GET | `/api/v1/admin/system-settings/audit-logs` | List system settings audit logs | SUPER_ADMIN or ADMIN with systemSettings.read |
+| POST | `/api/v1/admin/system-settings/logo` | Update system logo URL/reference | SUPER_ADMIN or ADMIN with systemSettings.update |
+| POST | `/api/v1/admin/system-settings/smtp/test` | Send SMTP test email | SUPER_ADMIN or ADMIN with systemSettings.update |
 
 ### Admin - Transaction Monitoring (9 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/transactions` | List admin transactions | SUPER_ADMIN or ADMIN with transactions |
-| GET | `/api/v1/admin/transactions/export` | Export admin transactions | SUPER_ADMIN or ADMIN with transactions |
-| GET | `/api/v1/admin/transactions/stats` | Fetch transaction monitoring stats | SUPER_ADMIN or ADMIN with transactions |
-| GET | `/api/v1/admin/transactions/{id}` | Fetch transaction details | SUPER_ADMIN or ADMIN with transactions |
-| POST | `/api/v1/admin/transactions/{id}/notify-user` | Send transaction notification to user | SUPER_ADMIN or ADMIN with transactions |
-| POST | `/api/v1/admin/transactions/{id}/open-dispute` | Open dispute from transaction | SUPER_ADMIN or ADMIN with transactions |
-| GET | `/api/v1/admin/transactions/{id}/receipt` | Download transaction receipt | SUPER_ADMIN or ADMIN with transactions |
-| POST | `/api/v1/admin/transactions/{id}/refund` | Refund transaction | SUPER_ADMIN or ADMIN with transactions |
-| GET | `/api/v1/admin/transactions/{id}/timeline` | Fetch transaction timeline | SUPER_ADMIN or ADMIN with transactions |
+| GET | `/api/v1/admin/transactions` | List admin transactions | SUPER_ADMIN or ADMIN with transactions.read |
+| GET | `/api/v1/admin/transactions/export` | Export admin transactions | SUPER_ADMIN or ADMIN with transactions.export |
+| GET | `/api/v1/admin/transactions/stats` | Fetch transaction monitoring stats | SUPER_ADMIN or ADMIN with transactions.read |
+| GET | `/api/v1/admin/transactions/{id}` | Fetch transaction details | SUPER_ADMIN or ADMIN with transactions.read |
+| POST | `/api/v1/admin/transactions/{id}/notify-user` | Send transaction notification to user | SUPER_ADMIN or ADMIN with transactions.notifyUser |
+| POST | `/api/v1/admin/transactions/{id}/open-dispute` | Open dispute from transaction | SUPER_ADMIN or ADMIN with transactions.openDispute |
+| GET | `/api/v1/admin/transactions/{id}/receipt` | Download transaction receipt | SUPER_ADMIN or ADMIN with transactions.receipt.download |
+| POST | `/api/v1/admin/transactions/{id}/refund` | Refund transaction | SUPER_ADMIN or ADMIN with transactions.refund |
+| GET | `/api/v1/admin/transactions/{id}/timeline` | Fetch transaction timeline | SUPER_ADMIN or ADMIN with transactions.read |
 
 ### Admin - User Management (11 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/users` | List registered users | SUPER_ADMIN or ADMIN with users |
-| GET | `/api/v1/users/export` | List Users Export | SUPER_ADMIN or ADMIN with users |
-| GET | `/api/v1/users/{id}` | Fetch Users details | SUPER_ADMIN or ADMIN with users |
-| PATCH | `/api/v1/users/{id}` | Update Users | SUPER_ADMIN or ADMIN with users |
+| GET | `/api/v1/users` | List registered users | SUPER_ADMIN or ADMIN with users.read |
+| GET | `/api/v1/users/export` | List Users Export | SUPER_ADMIN or ADMIN with users.export |
+| GET | `/api/v1/users/{id}` | Fetch Users details | SUPER_ADMIN or ADMIN with users.read |
+| PATCH | `/api/v1/users/{id}` | Update Users | SUPER_ADMIN or ADMIN with users.update |
 | DELETE | `/api/v1/users/{id}` | Permanently delete registered user | SUPER_ADMIN |
-| GET | `/api/v1/users/{id}/activity` | Fetch Users Activity details | SUPER_ADMIN or ADMIN with users |
-| POST | `/api/v1/users/{id}/reset-password` | Change registered user password | SUPER_ADMIN or ADMIN with users |
-| GET | `/api/v1/users/{id}/stats` | Fetch Users Stats details | SUPER_ADMIN or ADMIN with users |
-| PATCH | `/api/v1/users/{id}/status` | Update Users Status | SUPER_ADMIN or ADMIN with users |
-| POST | `/api/v1/users/{id}/suspend` | Create Users Suspend | SUPER_ADMIN or ADMIN with users |
-| POST | `/api/v1/users/{id}/unsuspend` | Create Users Unsuspend | SUPER_ADMIN or ADMIN with users |
+| GET | `/api/v1/users/{id}/activity` | Fetch Users Activity details | SUPER_ADMIN or ADMIN with users.read |
+| POST | `/api/v1/users/{id}/reset-password` | Change registered user password | SUPER_ADMIN or ADMIN with users.resetPassword |
+| GET | `/api/v1/users/{id}/stats` | Fetch Users Stats details | SUPER_ADMIN or ADMIN with users.read |
+| PATCH | `/api/v1/users/{id}/status` | Update Users Status | SUPER_ADMIN or ADMIN with users.status.update |
+| POST | `/api/v1/users/{id}/suspend` | Create Users Suspend | SUPER_ADMIN or ADMIN with users.suspend |
+| POST | `/api/v1/users/{id}/unsuspend` | Create Users Unsuspend | SUPER_ADMIN or ADMIN with users.unsuspend |
 
 ### Auth (16 APIs)
 
@@ -400,57 +412,57 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/login-attempts` | List Login Attempts | SUPER_ADMIN or ADMIN with loginAttempts |
-| GET | `/api/v1/login-attempts/export` | List Login Attempts Export | SUPER_ADMIN or ADMIN with loginAttempts |
-| GET | `/api/v1/login-attempts/stats` | List Login Attempts Stats | SUPER_ADMIN or ADMIN with loginAttempts |
+| GET | `/api/v1/login-attempts` | List Login Attempts | SUPER_ADMIN or ADMIN with loginAttempts.read |
+| GET | `/api/v1/login-attempts/export` | List Login Attempts Export | SUPER_ADMIN or ADMIN with loginAttempts.export |
+| GET | `/api/v1/login-attempts/stats` | List Login Attempts Stats | SUPER_ADMIN or ADMIN with loginAttempts.read |
 
 ### Broadcast Notifications (10 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/broadcasts` | List Broadcasts | SUPER_ADMIN or ADMIN with broadcasts |
-| POST | `/api/v1/broadcasts` | Create Broadcasts | SUPER_ADMIN or ADMIN with broadcasts |
-| POST | `/api/v1/broadcasts/estimate-reach` | Create Broadcasts Estimate Reach | SUPER_ADMIN or ADMIN with broadcasts |
-| GET | `/api/v1/broadcasts/{id}` | Fetch Broadcasts details | SUPER_ADMIN or ADMIN with broadcasts |
-| PATCH | `/api/v1/broadcasts/{id}` | Update Broadcasts | SUPER_ADMIN or ADMIN with broadcasts |
-| POST | `/api/v1/broadcasts/{id}/cancel` | Create Broadcasts Cancel | SUPER_ADMIN or ADMIN with broadcasts |
-| GET | `/api/v1/broadcasts/{id}/recipients` | Fetch Broadcasts Recipients details | SUPER_ADMIN or ADMIN with broadcasts |
-| GET | `/api/v1/broadcasts/{id}/report` | Fetch Broadcasts Report details | SUPER_ADMIN or ADMIN with broadcasts |
-| PATCH | `/api/v1/broadcasts/{id}/schedule` | Update Broadcasts Schedule | SUPER_ADMIN or ADMIN with broadcasts |
-| PATCH | `/api/v1/broadcasts/{id}/targeting` | Update Broadcasts Targeting | SUPER_ADMIN or ADMIN with broadcasts |
+| GET | `/api/v1/broadcasts` | List Broadcasts | SUPER_ADMIN or ADMIN with broadcasts.read |
+| POST | `/api/v1/broadcasts` | Create Broadcasts | SUPER_ADMIN or ADMIN with broadcasts.create |
+| POST | `/api/v1/broadcasts/estimate-reach` | Create Broadcasts Estimate Reach | SUPER_ADMIN or ADMIN with broadcasts.read |
+| GET | `/api/v1/broadcasts/{id}` | Fetch Broadcasts details | SUPER_ADMIN or ADMIN with broadcasts.read |
+| PATCH | `/api/v1/broadcasts/{id}` | Update Broadcasts | SUPER_ADMIN or ADMIN with broadcasts.update |
+| POST | `/api/v1/broadcasts/{id}/cancel` | Create Broadcasts Cancel | SUPER_ADMIN or ADMIN with broadcasts.cancel |
+| GET | `/api/v1/broadcasts/{id}/recipients` | Fetch Broadcasts Recipients details | SUPER_ADMIN or ADMIN with broadcasts.report.read |
+| GET | `/api/v1/broadcasts/{id}/report` | Fetch Broadcasts Report details | SUPER_ADMIN or ADMIN with broadcasts.report.read |
+| PATCH | `/api/v1/broadcasts/{id}/schedule` | Update Broadcasts Schedule | SUPER_ADMIN or ADMIN with broadcasts.schedule |
+| PATCH | `/api/v1/broadcasts/{id}/targeting` | Update Broadcasts Targeting | SUPER_ADMIN or ADMIN with broadcasts.update |
 
 ### Gifts - Categories (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/gift-categories` | List gift categories | SUPER_ADMIN or ADMIN with giftCategories |
-| POST | `/api/v1/gift-categories` | Create gift category | SUPER_ADMIN or ADMIN with giftCategories |
-| GET | `/api/v1/gift-categories/stats` | Fetch gift category stats | SUPER_ADMIN or ADMIN with giftCategories |
-| GET | `/api/v1/gift-categories/{id}` | Fetch gift category details | SUPER_ADMIN or ADMIN with giftCategories |
-| PATCH | `/api/v1/gift-categories/{id}` | Update gift category | SUPER_ADMIN or ADMIN with giftCategories |
-| DELETE | `/api/v1/gift-categories/{id}` | Soft-delete gift category | SUPER_ADMIN or ADMIN with giftCategories |
+| GET | `/api/v1/gift-categories` | List gift categories | SUPER_ADMIN or ADMIN with giftCategories.read |
+| POST | `/api/v1/gift-categories` | Create gift category | SUPER_ADMIN or ADMIN with giftCategories.create |
+| GET | `/api/v1/gift-categories/stats` | Fetch gift category stats | SUPER_ADMIN or ADMIN with giftCategories.read |
+| GET | `/api/v1/gift-categories/{id}` | Fetch gift category details | SUPER_ADMIN or ADMIN with giftCategories.read |
+| PATCH | `/api/v1/gift-categories/{id}` | Update gift category | SUPER_ADMIN or ADMIN with giftCategories.update |
+| DELETE | `/api/v1/gift-categories/{id}` | Soft-delete gift category | SUPER_ADMIN or ADMIN with giftCategories.delete |
 
 ### Gifts - Management (8 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/gifts` | List admin gifts | SUPER_ADMIN or ADMIN with gifts |
-| POST | `/api/v1/gifts` | Create admin gift with optional nested variants | SUPER_ADMIN or ADMIN with gifts |
-| GET | `/api/v1/gifts/export` | Export gift inventory | SUPER_ADMIN or ADMIN with gifts |
-| GET | `/api/v1/gifts/stats` | Fetch gift inventory stats | SUPER_ADMIN or ADMIN with gifts |
-| GET | `/api/v1/gifts/{id}` | Fetch admin gift details with variants | SUPER_ADMIN or ADMIN with gifts |
-| PATCH | `/api/v1/gifts/{id}` | Update admin gift and upsert nested variants | SUPER_ADMIN or ADMIN with gifts |
-| DELETE | `/api/v1/gifts/{id}` | Soft-delete gift | SUPER_ADMIN or ADMIN with gifts |
-| PATCH | `/api/v1/gifts/{id}/status` | Update gift status | SUPER_ADMIN or ADMIN with gifts |
+| GET | `/api/v1/gifts` | List admin gifts | SUPER_ADMIN or ADMIN with gifts.read |
+| POST | `/api/v1/gifts` | Create admin gift with optional nested variants | SUPER_ADMIN or ADMIN with gifts.create |
+| GET | `/api/v1/gifts/export` | Export gift inventory | SUPER_ADMIN or ADMIN with gifts.export |
+| GET | `/api/v1/gifts/stats` | Fetch gift inventory stats | SUPER_ADMIN or ADMIN with gifts.read |
+| GET | `/api/v1/gifts/{id}` | Fetch admin gift details with variants | SUPER_ADMIN or ADMIN with gifts.read |
+| PATCH | `/api/v1/gifts/{id}` | Update admin gift and upsert nested variants | SUPER_ADMIN or ADMIN with gifts.update |
+| DELETE | `/api/v1/gifts/{id}` | Soft-delete gift | SUPER_ADMIN or ADMIN with gifts.delete |
+| PATCH | `/api/v1/gifts/{id}/status` | Update gift status | SUPER_ADMIN or ADMIN with gifts.status.update |
 
 ### Gifts - Moderation (4 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/gift-moderation` | List optional gift moderation queue | SUPER_ADMIN or ADMIN with giftModeration |
-| PATCH | `/api/v1/gift-moderation/{id}/approve` | Approve gift in optional moderation workflow | SUPER_ADMIN or ADMIN with giftModeration |
-| PATCH | `/api/v1/gift-moderation/{id}/flag` | Update Gift Moderation Flag | SUPER_ADMIN or ADMIN with giftModeration |
-| PATCH | `/api/v1/gift-moderation/{id}/reject` | Update Gift Moderation Reject | SUPER_ADMIN or ADMIN with giftModeration |
+| GET | `/api/v1/gift-moderation` | List optional gift moderation queue | SUPER_ADMIN or ADMIN with giftModeration.read |
+| PATCH | `/api/v1/gift-moderation/{id}/approve` | Approve gift in optional moderation workflow | SUPER_ADMIN or ADMIN with giftModeration.approve |
+| PATCH | `/api/v1/gift-moderation/{id}/flag` | Update Gift Moderation Flag | SUPER_ADMIN or ADMIN with giftModeration.flag |
+| PATCH | `/api/v1/gift-moderation/{id}/reject` | Update Gift Moderation Reject | SUPER_ADMIN or ADMIN with giftModeration.reject |
 
 ### Notifications (9 APIs)
 
@@ -470,27 +482,27 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/coupons` | List Coupons | SUPER_ADMIN or ADMIN with coupons |
-| POST | `/api/v1/coupons` | Create Coupons | SUPER_ADMIN or ADMIN with coupons |
-| GET | `/api/v1/coupons/{id}` | Fetch Coupons details | SUPER_ADMIN or ADMIN with coupons |
-| PATCH | `/api/v1/coupons/{id}` | Update Coupons | SUPER_ADMIN or ADMIN with coupons |
-| DELETE | `/api/v1/coupons/{id}` | Delete Coupons | SUPER_ADMIN or ADMIN with coupons |
-| PATCH | `/api/v1/coupons/{id}/status` | Update Coupons Status | SUPER_ADMIN or ADMIN with coupons |
-| GET | `/api/v1/plan-features` | List Plan Features | SUPER_ADMIN or ADMIN with planFeatures |
-| POST | `/api/v1/plan-features` | Create Plan Features | SUPER_ADMIN or ADMIN with planFeatures |
-| GET | `/api/v1/plan-features/catalog` | List Plan Features Catalog | SUPER_ADMIN or ADMIN with planFeatures |
-| GET | `/api/v1/plan-features/{id}` | Fetch Plan Features details | SUPER_ADMIN or ADMIN with planFeatures |
-| PATCH | `/api/v1/plan-features/{id}` | Update Plan Features | SUPER_ADMIN or ADMIN with planFeatures |
-| DELETE | `/api/v1/plan-features/{id}` | Delete Plan Features | SUPER_ADMIN or ADMIN with planFeatures |
-| GET | `/api/v1/subscription-plans` | List Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| POST | `/api/v1/subscription-plans` | Create Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| GET | `/api/v1/subscription-plans/stats` | List Subscription Plans Stats | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| GET | `/api/v1/subscription-plans/{id}` | Fetch Subscription Plans details | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| PATCH | `/api/v1/subscription-plans/{id}` | Update Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| DELETE | `/api/v1/subscription-plans/{id}` | Delete Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| GET | `/api/v1/subscription-plans/{id}/analytics` | Fetch Subscription Plans Analytics details | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| PATCH | `/api/v1/subscription-plans/{id}/status` | Update Subscription Plans Status | SUPER_ADMIN or ADMIN with subscriptionPlans |
-| PATCH | `/api/v1/subscription-plans/{id}/visibility` | Update Subscription Plans Visibility | SUPER_ADMIN or ADMIN with subscriptionPlans |
+| GET | `/api/v1/coupons` | List Coupons | SUPER_ADMIN or ADMIN with coupons.read |
+| POST | `/api/v1/coupons` | Create Coupons | SUPER_ADMIN or ADMIN with coupons.create |
+| GET | `/api/v1/coupons/{id}` | Fetch Coupons details | SUPER_ADMIN or ADMIN with coupons.read |
+| PATCH | `/api/v1/coupons/{id}` | Update Coupons | SUPER_ADMIN or ADMIN with coupons.update |
+| DELETE | `/api/v1/coupons/{id}` | Delete Coupons | SUPER_ADMIN or ADMIN with coupons.delete |
+| PATCH | `/api/v1/coupons/{id}/status` | Update Coupons Status | SUPER_ADMIN or ADMIN with coupons.status.update |
+| GET | `/api/v1/plan-features` | List Plan Features | SUPER_ADMIN or ADMIN with planFeatures.read |
+| POST | `/api/v1/plan-features` | Create Plan Features | SUPER_ADMIN or ADMIN with planFeatures.create |
+| GET | `/api/v1/plan-features/catalog` | List Plan Features Catalog | SUPER_ADMIN or ADMIN with planFeatures.read |
+| GET | `/api/v1/plan-features/{id}` | Fetch Plan Features details | SUPER_ADMIN or ADMIN with planFeatures.read |
+| PATCH | `/api/v1/plan-features/{id}` | Update Plan Features | SUPER_ADMIN or ADMIN with planFeatures.update |
+| DELETE | `/api/v1/plan-features/{id}` | Delete Plan Features | SUPER_ADMIN or ADMIN with planFeatures.delete |
+| GET | `/api/v1/subscription-plans` | List Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.read |
+| POST | `/api/v1/subscription-plans` | Create Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.create |
+| GET | `/api/v1/subscription-plans/stats` | List Subscription Plans Stats | SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read |
+| GET | `/api/v1/subscription-plans/{id}` | Fetch Subscription Plans details | SUPER_ADMIN or ADMIN with subscriptionPlans.read |
+| PATCH | `/api/v1/subscription-plans/{id}` | Update Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.update |
+| DELETE | `/api/v1/subscription-plans/{id}` | Delete Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.delete |
+| GET | `/api/v1/subscription-plans/{id}/analytics` | Fetch Subscription Plans Analytics details | SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read |
+| PATCH | `/api/v1/subscription-plans/{id}/status` | Update Subscription Plans Status | SUPER_ADMIN or ADMIN with subscriptionPlans.status.update |
+| PATCH | `/api/v1/subscription-plans/{id}/visibility` | Update Subscription Plans Visibility | SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update |
 
 ### Storage (5 APIs)
 
@@ -682,7 +694,13 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 | POST | `/api/v1/customer/wishlist/{giftId}` | Add gift to wishlist | REGISTERED_USER |
 | DELETE | `/api/v1/customer/wishlist/{giftId}` | Remove gift from wishlist | REGISTERED_USER |
 
-### Customer / Guest - Marketplace (6 APIs)
+### Gifts - Categories (1 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/gift-categories/lookup` | Lookup active gift categories | PUBLIC |
+
+### Guest - Marketplace (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -692,12 +710,6 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 06:01 PKT.
 | GET | `/api/v1/customer/gifts/filter-options` | Fetch marketplace gift filter options | REGISTERED_USER or GUEST_USER |
 | GET | `/api/v1/customer/gifts/{id}` | Fetch customer-safe gift details | REGISTERED_USER or GUEST_USER |
 | GET | `/api/v1/customer/home` | Fetch customer app home | REGISTERED_USER or GUEST_USER |
-
-### Gifts - Categories (1 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/gift-categories/lookup` | Lookup active gift categories | PUBLIC |
 
 ### Notifications (9 APIs)
 
