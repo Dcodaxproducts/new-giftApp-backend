@@ -11454,6 +11454,738 @@
         "x-access": "PROVIDER"
       }
     },
+    "/api/v1/admin/message-moderation/conversations": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Returns redacted previews only.",
+        "operationId": "MessageModerationController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CUSTOMER_PROVIDER_CHAT",
+                "PROVIDER_BUYER_CHAT",
+                "ADMIN_SUPPORT_CHAT",
+                "WHATSAPP_BUSINESS",
+                "ZENDESK",
+                "SMS_GATEWAY",
+                "IN_APP_CHAT",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "flagType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFANITY",
+                "HOSTILITY",
+                "SUSPICIOUS_LINK",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "SPAM",
+                "SCAM",
+                "OTHER",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FLAGGED",
+                "UNDER_REVIEW",
+                "DISMISSED",
+                "BLOCKED",
+                "WARNED",
+                "SUSPENDED",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "assignedToId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "flaggedAt",
+                "severity",
+                "lastMessageAt"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "case_1",
+                        "participant": {
+                          "id": "user_1",
+                          "name": "Alex Rivera",
+                          "avatarUrl": "https://cdn.example.com/avatar.png",
+                          "externalReference": "USR-99021"
+                        },
+                        "source": "WHATSAPP_BUSINESS",
+                        "flag": {
+                          "type": "PROFANITY",
+                          "label": "Profanity Detected",
+                          "severity": "HIGH",
+                          "confidence": 0.94
+                        },
+                        "preview": "Hey, you are a total [REDACTED] if you think I'm...",
+                        "status": "FLAGGED",
+                        "lastMessageAt": "2026-05-18T14:02:00.000Z",
+                        "timeAgo": "2m ago"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 12,
+                      "totalPages": 1
+                    },
+                    "message": "Message moderation conversations fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List flagged message moderation conversations",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.",
+        "operationId": "MessageModerationController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation stats",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/filter-options": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Sources include chat channels and external integration placeholders.",
+        "operationId": "MessageModerationController_filterOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation filter options",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/export": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export remains moderation-safe and redacted.",
+        "operationId": "MessageModerationController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CUSTOMER_PROVIDER_CHAT",
+                "PROVIDER_BUYER_CHAT",
+                "ADMIN_SUPPORT_CHAT",
+                "WHATSAPP_BUSINESS",
+                "ZENDESK",
+                "SMS_GATEWAY",
+                "IN_APP_CHAT",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "flagType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFANITY",
+                "HOSTILITY",
+                "SUSPICIOUS_LINK",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "SPAM",
+                "SCAM",
+                "OTHER",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FLAGGED",
+                "UNDER_REVIEW",
+                "DISMISSED",
+                "BLOCKED",
+                "WARNED",
+                "SUSPENDED",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "assignedToId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "flaggedAt",
+                "severity",
+                "lastMessageAt"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export message moderation rows",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.export",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.export"
+      }
+    },
+    "/api/v1/admin/message-moderation/conversations/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. Flagged harmful message body is null by default; redactedBody is always returned.",
+        "operationId": "MessageModerationController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation conversation detail",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/conversations/{id}/history": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Returns moderation case history for the same conversation.",
+        "operationId": "MessageModerationController_history",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation conversation history",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/block": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.block. SUPER_ADMIN or ADMIN with messageModeration.block permission. Creates moderation and audit logs. Creates moderation log and audit log; message is not physically deleted.",
+        "operationId": "MessageModerationController_block",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Block a flagged message",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.block",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.block"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/warn-user": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. Creates warning notification, moderation log, and audit log when notifyUser=true.",
+        "operationId": "MessageModerationController_warn",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WarnUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Warn the message sender",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.warn",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.warn"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/suspend-account": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. Uses existing user suspension fields and refuses ADMIN/SUPER_ADMIN accounts.",
+        "operationId": "MessageModerationController_suspend",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspendAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Suspend the message sender account",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.suspend",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.suspend"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.dismiss. SUPER_ADMIN or ADMIN with messageModeration.dismiss permission. Marks case dismissed, keeps message visible, and writes moderation/audit logs.",
+        "operationId": "MessageModerationController_dismiss",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DismissFlagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Dismiss a moderation flag",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.dismiss",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.dismiss"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/note": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. Internal-only note visible to admin moderation users; creates audit log.",
+        "operationId": "MessageModerationController_note",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InternalNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add internal private moderation note",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.notes.create",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.notes.create"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/reprocess": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Runs deterministic scanner again and updates the moderation case.",
+        "operationId": "MessageModerationController_reprocess",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReprocessMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reprocess a message through scanner",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
+      }
+    },
     "/api/v1/provider/inventory": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.",
@@ -23969,7 +24701,7 @@
   },
   "info": {
     "title": "Gift App Backend",
-    "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
+    "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, moderation, and audit workflows.",
     "version": "0.1.0",
     "contact": {}
   },
@@ -24012,6 +24744,9 @@
     },
     {
       "name": "02 Admin - Transaction Monitoring"
+    },
+    {
+      "name": "02 Admin - Message Moderation"
     },
     {
       "name": "02 Admin - Social Moderation"
@@ -26389,6 +27124,101 @@
         "required": [
           "body"
         ]
+      },
+      "BlockMessageDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "WarnUserDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "warningMessage": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason",
+          "warningMessage"
+        ]
+      },
+      "SuspendAccountDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string",
+            "example": "TEMPORARY"
+          },
+          "suspendUntil": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "DismissFlagDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "InternalNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "ReprocessMessageDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
       },
       "ProviderInventoryVariantDto": {
         "type": "object",

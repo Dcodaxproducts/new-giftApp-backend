@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ChatMessageType, ChatSenderType, NotificationRecipientType, Prisma, ProviderOrder, ReviewStatus } from '@prisma/client';
+import { ChatMessageType, ChatSenderType, MessageModerationSource, NotificationRecipientType, Prisma, ProviderOrder, ReviewStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { ProviderBuyerChatRepository } from '../repositories/provider-buyer-chat.repository';
 import { ProviderInteractionsRepository } from '../repositories/provider-interactions.repository';
 import { ProviderReviewResponsesRepository } from '../repositories/provider-review-responses.repository';
 import { ProviderReviewsRepository } from '../repositories/provider-reviews.repository';
 import { GetProviderOrderChatDto, ListProviderChatsDto, ListProviderReviewsDto, ProviderChatDetailsDto, ProviderReviewSortBy, SendProviderChatMessageDto, SortOrder, ReviewResponseDto } from '../dto/provider-interactions.dto';
+import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
 
 type CustomerView = { id: string; firstName: string; lastName: string; avatarUrl: string | null; isActive?: boolean };
 type ThreadView = { id: string; orderId: string; providerOrderId: string; customerId: string; order: { id: string; orderNumber: string; userId: string }; customer: CustomerView; lastMessage: { body: string | null; createdAt: Date } | null };
@@ -18,6 +19,7 @@ export class ProviderInteractionsService {
     private readonly interactionsRepository: ProviderInteractionsRepository,
     private readonly reviewsRepository: ProviderReviewsRepository,
     private readonly reviewResponsesRepository: ProviderReviewResponsesRepository,
+    private readonly messageModerationService?: MessageModerationService,
   ) {}
 
   async getOrderChat(user: AuthUserContext, providerOrderId: string, query: GetProviderOrderChatDto) {
@@ -59,6 +61,7 @@ export class ProviderInteractionsService {
     this.assertMessagePayload(dto);
     const message = await this.buyerChatRepository.createChatMessage({ data: { threadId, senderId: user.uid, senderType: ChatSenderType.PROVIDER, messageType: dto.messageType, body: dto.body, attachmentUrlsJson: dto.attachmentUrls ?? [], isReadByCustomer: false, isReadByProvider: true } } as unknown as Prisma.ChatMessageUncheckedCreateInput);
     await this.buyerChatRepository.updateThreadLastMessage(threadId, message.id);
+    await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.PROVIDER_BUYER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'PROVIDER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.PROVIDER, body: dto.body, createdAt: message.createdAt });
     await this.buyerChatRepository.createCustomerNotification({ data: { recipientId: thread.customerId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'New provider message', message: dto.body ?? 'Provider sent an attachment.', type: 'CHAT_MESSAGE', metadataJson: { threadId, orderId: thread.orderId, providerOrderId: thread.providerOrderId } } } as unknown as Prisma.NotificationCreateInput);
     return { data: this.messageItem(message), message: 'Message sent successfully.' };
   }

@@ -306,6 +306,20 @@ export const PERMISSION_CATALOG = [
   },
 
   {
+    module: 'messageModeration',
+    label: 'Message Moderation',
+    permissions: [
+      { key: 'read', label: 'View Message Moderation', description: 'View flagged message conversations, detail, history, stats, and filter options.' },
+      { key: 'moderate', label: 'Reprocess Messages', description: 'Reprocess flagged messages through the moderation scanner.' },
+      { key: 'export', label: 'Export Message Moderation', description: 'Export redacted message moderation queues.' },
+      { key: 'warn', label: 'Warn Message Senders', description: 'Warn users for harmful or suspicious messages.' },
+      { key: 'block', label: 'Block Messages', description: 'Block harmful messages without physically deleting them.' },
+      { key: 'suspend', label: 'Suspend Message Senders', description: 'Suspend non-admin message sender accounts.' },
+      { key: 'dismiss', label: 'Dismiss Message Flags', description: 'Dismiss false-positive message moderation flags.' },
+      { key: 'notes.create', label: 'Create Message Moderation Notes', description: 'Create internal private moderation notes.' },
+    ],
+  },
+  {
     module: 'socialModeration',
     label: 'Social Moderation',
     permissions: [

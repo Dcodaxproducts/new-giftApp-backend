@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 05:30 UTC
+Generated: 2026-05-18 05:56 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -18,6 +18,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Payouts (11 APIs)
 - 02 Admin - Provider Payout Approvals (11 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
+- 02 Admin - Message Moderation (12 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
 - 02 Admin - Referral Settings (6 APIs)
@@ -3236,6 +3237,297 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "createdAt": "2026-10-24T14:20:00.000Z"
   },
   "message": "Transaction details fetched successfully."
+}
+```
+
+## 02 Admin - Message Moderation
+
+### GET `/api/v1/admin/message-moderation/conversations`
+
+- Summary: List flagged message moderation conversations
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Returns redacted previews only.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `source` (query, optional, string)
+  - `flagType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `severity` (query, optional, string)
+  - `assignedToId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "case_1",
+      "participant": {
+        "id": "user_1",
+        "name": "Alex Rivera",
+        "avatarUrl": "https://cdn.example.com/avatar.png",
+        "externalReference": "USR-99021"
+      },
+      "source": "WHATSAPP_BUSINESS",
+      "flag": {
+        "type": "PROFANITY",
+        "label": "Profanity Detected",
+        "severity": "HIGH",
+        "confidence": 0.94
+      },
+      "preview": "Hey, you are a total [REDACTED] if you think I'm...",
+      "status": "FLAGGED",
+      "lastMessageAt": "2026-05-18T14:02:00.000Z",
+      "timeAgo": "2m ago"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 12,
+    "totalPages": 1
+  },
+  "message": "Message moderation conversations fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/message-moderation/stats`
+
+- Summary: Fetch message moderation stats
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/message-moderation/filter-options`
+
+- Summary: Fetch message moderation filter options
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Sources include chat channels and external integration placeholders.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/message-moderation/export`
+
+- Summary: Export message moderation rows
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.export
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export remains moderation-safe and redacted.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `source` (query, optional, string)
+  - `flagType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `severity` (query, optional, string)
+  - `assignedToId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/message-moderation/conversations/{id}`
+
+- Summary: Fetch message moderation conversation detail
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. Flagged harmful message body is null by default; redactedBody is always returned.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/message-moderation/conversations/{id}/history`
+
+- Summary: Fetch message moderation conversation history
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Returns moderation case history for the same conversation.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/block`
+
+- Summary: Block a flagged message
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.block
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.block. SUPER_ADMIN or ADMIN with messageModeration.block permission. Creates moderation and audit logs. Creates moderation log and audit log; message is not physically deleted.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "<string>",
+  "internalNote": "<string>",
+  "notifyUser": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/warn-user`
+
+- Summary: Warn the message sender
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.warn
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. Creates warning notification, moderation log, and audit log when notifyUser=true.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "<string>",
+  "warningMessage": "<string>",
+  "internalNote": "<string>",
+  "notifyUser": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account`
+
+- Summary: Suspend the message sender account
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.suspend
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. Uses existing user suspension fields and refuses ADMIN/SUPER_ADMIN accounts.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "<string>",
+  "duration": "TEMPORARY",
+  "suspendUntil": "<string>",
+  "internalNote": "<string>",
+  "notifyUser": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag`
+
+- Summary: Dismiss a moderation flag
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.dismiss
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.dismiss. SUPER_ADMIN or ADMIN with messageModeration.dismiss permission. Marks case dismissed, keeps message visible, and writes moderation/audit logs.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "<string>",
+  "internalNote": "<string>"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/note`
+
+- Summary: Add internal private moderation note
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.notes.create
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. Internal-only note visible to admin moderation users; creates audit log.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "note": "<string>"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/reprocess`
+
+- Summary: Reprocess a message through scanner
+- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Runs deterministic scanner again and updates the moderation case.
+- Parameters:
+  - `messageId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "reason": "<string>"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
 }
 ```
 

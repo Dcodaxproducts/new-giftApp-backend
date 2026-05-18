@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ChatMessageType, ChatSenderType, NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewModerationAction, ReviewModerationActorType, ReviewSeverity, ReviewStatus } from '@prisma/client';
+import { ChatMessageType, ChatSenderType, MessageModerationSource, NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewModerationAction, ReviewModerationActorType, ReviewSeverity, ReviewStatus } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { ChatDetailsDto, CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, GetOrderChatDto, ListCustomerChatsDto, ListCustomerReviewsDto, ListProviderReportsDto, ProviderReportStatusFilter, SendChatMessageDto, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
@@ -7,6 +7,7 @@ import { CustomerChatsRepository } from '../repositories/customer-chats.reposito
 import { CustomerProviderReportsRepository } from '../repositories/customer-provider-reports.repository';
 import { CustomerProviderInteractionsRepository } from '../repositories/customer-provider-interactions.repository';
 import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositories/customer-reviews.repository';
+import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
 
 type ProviderView = { id: string; providerBusinessName: string | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
@@ -27,6 +28,7 @@ export class CustomerProviderInteractionsService {
     private readonly customerProviderReportsRepository: CustomerProviderReportsRepository,
     private readonly customerProviderInteractionsRepository: CustomerProviderInteractionsRepository,
     private readonly customerReviewsRepository: CustomerReviewsRepository,
+    private readonly messageModerationService?: MessageModerationService,
   ) {}
 
   async getOrderChat(user: AuthUserContext, orderId: string, query: GetOrderChatDto) {
@@ -71,6 +73,7 @@ export class CustomerProviderInteractionsService {
     const thread = await this.getOwnedThread(user.uid, threadId);
     this.assertMessagePayload(dto);
     const message = await this.customerChatsRepository.createCustomerMessage({ threadId, customerId: user.uid, providerId: thread.provider.id, orderId: thread.order.id, providerOrderId: thread.providerOrderId, messageType: dto.messageType, body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
+    await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.CUSTOMER_PROVIDER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'REGISTERED_USER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.CUSTOMER, body: dto.body, createdAt: message.createdAt });
     return { data: this.messageItem(message), message: 'Message sent successfully.' };
   }
 

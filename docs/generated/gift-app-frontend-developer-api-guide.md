@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 05:30 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 05:56 PKT.
 
 ## Superadmin / Admin APIs
 
@@ -85,6 +85,23 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 05:30 PKT.
 | GET | `/api/v1/media-upload-policy` | Fetch global media upload policy | SUPER_ADMIN or ADMIN with mediaPolicy |
 | PATCH | `/api/v1/media-upload-policy` | Update global media upload policy | SUPER_ADMIN |
 | GET | `/api/v1/media-upload-policy/audit-logs` | List media upload policy audit logs | SUPER_ADMIN |
+
+### Admin - Message Moderation (12 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/message-moderation/conversations` | List flagged message moderation conversations | SUPER_ADMIN or ADMIN with messageModeration |
+| GET | `/api/v1/admin/message-moderation/conversations/{id}` | Fetch message moderation conversation detail | SUPER_ADMIN or ADMIN with messageModeration |
+| GET | `/api/v1/admin/message-moderation/conversations/{id}/history` | Fetch message moderation conversation history | SUPER_ADMIN or ADMIN with messageModeration |
+| GET | `/api/v1/admin/message-moderation/export` | Export message moderation rows | SUPER_ADMIN or ADMIN with messageModeration |
+| GET | `/api/v1/admin/message-moderation/filter-options` | Fetch message moderation filter options | SUPER_ADMIN or ADMIN with messageModeration |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/block` | Block a flagged message | SUPER_ADMIN or ADMIN with messageModeration |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag` | Dismiss a moderation flag | SUPER_ADMIN or ADMIN with messageModeration |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/note` | Add internal private moderation note | SUPER_ADMIN or ADMIN with messageModeration |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/reprocess` | Reprocess a message through scanner | SUPER_ADMIN or ADMIN with messageModeration |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend the message sender account | SUPER_ADMIN or ADMIN with messageModeration |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn the message sender | SUPER_ADMIN or ADMIN with messageModeration |
+| GET | `/api/v1/admin/message-moderation/stats` | Fetch message moderation stats | SUPER_ADMIN or ADMIN with messageModeration |
 
 ### Admin - Promotional Offers Management (10 APIs)
 

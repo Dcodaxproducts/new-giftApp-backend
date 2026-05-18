@@ -568,6 +568,53 @@ enum ChatMessageType {
   FILE
 }
 
+enum MessageModerationSource {
+  CUSTOMER_PROVIDER_CHAT
+  PROVIDER_BUYER_CHAT
+  ADMIN_SUPPORT_CHAT
+  WHATSAPP_BUSINESS
+  ZENDESK
+  SMS_GATEWAY
+  IN_APP_CHAT
+}
+
+enum MessageModerationFlagType {
+  PROFANITY
+  HOSTILITY
+  SUSPICIOUS_LINK
+  HARASSMENT
+  HATE_SPEECH
+  SPAM
+  SCAM
+  OTHER
+}
+
+enum MessageModerationStatus {
+  FLAGGED
+  UNDER_REVIEW
+  DISMISSED
+  BLOCKED
+  WARNED
+  SUSPENDED
+}
+
+enum MessageModerationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MessageModerationAction {
+  FLAGGED
+  BLOCK_MESSAGE
+  WARN_USER
+  SUSPEND_ACCOUNT
+  DISMISS_FLAG
+  ADD_NOTE
+  REPROCESS
+}
+
 enum ProviderReportReason {
   FRAUDULENT_ACTIVITY
   INAPPROPRIATE_CONTENT
@@ -2191,6 +2238,57 @@ model SupportChatMessage {
   @@index([supportChatId, createdAt])
   @@index([senderId, createdAt])
   @@map("support_chat_messages")
+}
+
+model MessageModerationCase {
+  id                 String                      @id @default(cuid())
+  conversationId     String                      @map("conversation_id")
+  messageId          String                      @unique @map("message_id")
+  source             MessageModerationSource
+  participantId      String                      @map("participant_id")
+  participantRole    String                      @map("participant_role")
+  participantName    String?                     @map("participant_name")
+  participantAvatarUrl String?                   @map("participant_avatar_url")
+  externalReference  String?                     @map("external_reference")
+  senderId           String                      @map("sender_id")
+  senderRole         String                      @map("sender_role")
+  rawBody            String?                     @map("raw_body")
+  redactedBody       String                      @map("redacted_body")
+  flagTypesJson      Json                        @default("[]") @map("flag_types_json")
+  keywordsJson       Json                        @default("[]") @map("keywords_json")
+  severity           MessageModerationSeverity
+  confidence         Decimal                     @db.Decimal(5, 2)
+  status             MessageModerationStatus     @default(FLAGGED)
+  assignedToId       String?                     @map("assigned_to_id")
+  lastMessageAt      DateTime                    @map("last_message_at") @db.Timestamptz
+  resolvedAt         DateTime?                   @map("resolved_at") @db.Timestamptz
+  createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                    @updatedAt @map("updated_at") @db.Timestamptz
+
+  logs MessageModerationLog[]
+
+  @@index([source, status, severity, createdAt])
+  @@index([participantId, createdAt])
+  @@index([assignedToId, status])
+  @@map("message_moderation_cases")
+}
+
+model MessageModerationLog {
+  id               String                    @id @default(cuid())
+  caseId           String                    @map("case_id")
+  messageId        String                    @map("message_id")
+  action           MessageModerationAction
+  reason           String?
+  internalNote     String?                   @map("internal_note")
+  actorId          String?                   @map("actor_id")
+  metadataJson     Json?                     @map("metadata_json")
+  createdAt        DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+
+  case MessageModerationCase @relation(fields: [caseId], references: [id])
+
+  @@index([caseId, createdAt])
+  @@index([messageId, createdAt])
+  @@map("message_moderation_logs")
 }
 
 model ProviderReport {
