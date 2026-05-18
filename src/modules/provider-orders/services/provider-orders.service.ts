@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus, UserRole } from '@prisma/client';
+import { Notification, NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from '../dto/provider-orders.dto';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from '../repositories/provider-orders.repository';
 
 type ProviderOrderView = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true; refundRequests: true } }>;
@@ -11,6 +12,7 @@ type ProviderOrderDetail = ProviderOrderView;
 export class ProviderOrdersService {
   constructor(
     private readonly providerOrdersRepository: ProviderOrdersRepository,
+    private readonly notificationDispatch?: NotificationDispatchService,
   ) {}
 
   async list(user: AuthUserContext, query: ListProviderOrdersDto) {
@@ -90,13 +92,15 @@ export class ProviderOrdersService {
   async accept(user: AuthUserContext, id: string, dto: AcceptProviderOrderDto) {
     const order = await this.getOwnedProviderOrder(user.uid, id);
     if (order.status !== ProviderOrderStatus.PENDING) throw new BadRequestException('Only pending provider orders can be accepted');
+    const notifications: Notification[] = [];
     const updated = await this.providerOrdersRepository.runActionTransaction(async (tx) => {
       const item = await this.providerOrdersRepository.markProviderOrderAccepted(tx, order.id);
       await this.providerOrdersRepository.createProviderOrderTimelineEntry(tx, { providerOrderId: order.id, createdById: user.uid, status: ProviderOrderStatus.ACCEPTED, title: 'Accepted', description: dto.note?.trim() ?? 'Provider accepted the order.' });
       await this.providerOrdersRepository.updateParentOrderStatus(tx, order.orderId, { status: OrderStatus.PROCESSING });
-      await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Order accepted', message: 'Your gift order was accepted by the provider.', type: 'CUSTOMER_ORDER_ACCEPTED', metadataJson: { orderId: order.orderId, providerOrderId: order.id } });
+      notifications.push(await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Order accepted', message: 'Your gift order was accepted by the provider.', type: 'CUSTOMER_ORDER_ACCEPTED', metadataJson: { orderId: order.orderId, providerOrderId: order.id } }));
       return item;
     });
+    await this.emitNotifications(notifications);
     return { data: { id: updated.id, orderNumber: updated.orderNumber ?? order.order.orderNumber, status: updated.status }, message: 'Order accepted successfully.' };
   }
 
@@ -229,6 +233,7 @@ export class ProviderOrdersService {
 
   private orderBy(sortBy?: ProviderOrderSortBy, sortOrder?: ProviderOrderSortOrder): Prisma.ProviderOrderOrderByWithRelationInput { const direction = sortOrder === ProviderOrderSortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ProviderOrderSortBy.AMOUNT) return { total: direction }; if (sortBy === ProviderOrderSortBy.STATUS) return { status: direction }; return { createdAt: direction }; }
   private listInclude() { return PROVIDER_ORDER_LIST_INCLUDE; }
+  private async emitNotifications(notifications: Notification[]): Promise<void> { if (!this.notificationDispatch) return; for (const notification of notifications) await this.notificationDispatch.emitExisting(notification); }
   private async getOwnedProviderOrderForRead(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.providerOrdersRepository.findProviderOrderById(providerId, id, this.listInclude()); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private async getOwnedProviderOrder(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.providerOrdersRepository.findProviderOrderForAction(providerId, id, this.listInclude()); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private latestRefund(item: ProviderOrderView) { return item.refundRequests[0] ?? null; }

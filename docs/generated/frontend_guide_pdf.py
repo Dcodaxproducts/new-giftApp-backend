@@ -130,8 +130,10 @@ html.append("""
   <li><b>Auth:</b> pass access token as <code>auth: { token: 'Bearer &lt;accessToken&gt;' }</code> or <code>Authorization: Bearer &lt;accessToken&gt;</code> header.</li>
   <li><b>Server rooms:</b> backend joins the socket to <code>user:&lt;userId&gt;</code> and <code>role:&lt;role&gt;</code> after JWT verification; frontend does not manually join rooms.</li>
   <li><b>Listen:</b> <code>notification.received</code>, <code>notification.read</code>, and admin broadcast events: <code>broadcast.created</code>, <code>broadcast.updated</code>, <code>broadcast.scheduled</code>, <code>broadcast.cancelled</code>, <code>broadcast.processing</code>, <code>broadcast.delivery.progress</code>, <code>broadcast.delivery.completed</code>, <code>broadcast.delivery.failed</code>.</li>
-  <li><b>Emit:</b> <code>notification.read</code> with <code>{ notificationId: string }</code> after marking a notification as read or when syncing UI read state.</li>
-  <li><b>Reconnect:</b> on token refresh, disconnect and reconnect with the new access token.</li>
+  <li><b><code>notification.received</code> payload:</b> <code>{ id, title, message, type, isRead, metadata, createdAt }</code>. Metadata is sanitized before emission; do not expect Stripe secrets, raw bank data, card numbers, or auth tokens.</li>
+  <li><b>Emit:</b> <code>notification.read</code> with <code>{ notificationId: string }</code> after marking a notification as read, or receive <code>{ all: true }</code> when all notifications are marked read.</li>
+  <li><b>Frontend handling:</b> append/upsert the notification into local notification state, increment unread count when <code>isRead=false</code>, and refresh REST list on reconnect to backfill missed messages.</li>
+  <li><b>Reconnect:</b> on token refresh, disconnect and reconnect with the new access token; after reconnect call REST <code>GET /api/v1/notifications</code> for sync.</li>
 </ul>
 <h3>Dedicated chat namespace</h3>
 <ul>
@@ -190,7 +192,10 @@ md.append("- Socket URL: `{API_BASE_URL}/notifications`.\n")
 md.append("- Auth: `auth: { token: 'Bearer <accessToken>' }` or `Authorization: Bearer <accessToken>`.\n")
 md.append("- Backend joins `user:<userId>` and `role:<role>` after JWT verification.\n")
 md.append("- Listen for `notification.received`, `notification.read`, and broadcast delivery events.\n")
-md.append("- Emit `notification.read` with `{ notificationId: string }`.\n\n")
+md.append("- `notification.received` payload: `{ id, title, message, type, isRead, metadata, createdAt }`. Metadata is sanitized; Stripe secrets, raw bank data, card numbers, and auth tokens are not emitted.\n")
+md.append("- Emit `notification.read` with `{ notificationId: string }`; listen for `{ all: true }` after mark-all-read.\n")
+md.append("- Frontend handling: append/upsert received notifications, increment unread count when `isRead=false`, and call REST `GET /api/v1/notifications` after reconnect to backfill missed events.\n")
+md.append("- Reconnect with a fresh token after access-token refresh.\n\n")
 md.append("### Dedicated chat namespace\n\n")
 md.append("- Socket URL: `{API_BASE_URL}/chat`.\n")
 md.append("- Auth: JWT required via `auth: { token: 'Bearer <accessToken>' }` or `Authorization: Bearer <accessToken>`.\n")

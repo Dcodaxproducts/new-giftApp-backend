@@ -48,6 +48,10 @@ export class NotificationsRepository {
     return this.prisma.notification.update({ where: { id }, data: { metadataJson } });
   }
 
+  createNotification(data: Prisma.NotificationUncheckedCreateInput) {
+    return this.prisma.notification.create({ data });
+  }
+
   createInAppBroadcastNotification(input: {
     recipientId: string;
     recipientType: NotificationRecipientType;

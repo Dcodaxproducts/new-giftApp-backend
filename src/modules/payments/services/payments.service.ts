@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
-import { MoneyGiftStatus, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
+import { MoneyGiftStatus, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { MoneyGiftsRepository } from '../repositories/money-gifts.repository';
@@ -8,6 +8,7 @@ import { CustomerReferralsService } from '../../customer-referrals/services/cust
 import { CustomerWalletService } from '../../customer-wallet/services/customer-wallet.service';
 import { CustomerSubscriptionsService } from '../../customer-subscriptions/services/customer-subscriptions.service';
 import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from '../dto/payments.dto';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { PaymentsRepository } from '../repositories/payments.repository';
 
 type CartWithItems = Prisma.CartGetPayload<{ include: { items: true } }>;
@@ -45,6 +46,7 @@ export class PaymentsService {
     private readonly repository: PaymentsRepository,
     private readonly moneyGiftsRepository: MoneyGiftsRepository,
     private readonly stripeWebhookEventsRepository: StripeWebhookEventsRepository,
+    private readonly notificationDispatch?: NotificationDispatchService,
   ) {}
 
   paymentMethods() {
@@ -259,5 +261,5 @@ export class PaymentsService {
   private toSavedPaymentMethod(item: { stripePaymentMethodId: string; type: string; brand: string | null; last4: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean }) { return { id: item.stripePaymentMethodId, type: item.type, brand: item.brand, last4: item.last4, expiryMonth: item.expiryMonth, expiryYear: item.expiryYear, isDefault: item.isDefault }; }
   private toPaymentResponse(payment: Payment) { return { paymentId: payment.id, provider: payment.provider, stripePaymentIntentId: payment.providerPaymentIntentId, amount: Number(payment.amount), currency: payment.currency, status: payment.status, paymentMethod: payment.paymentMethod, failureReason: payment.failureReason, createdAt: payment.createdAt, updatedAt: payment.updatedAt }; }
   private toMoneyGift(item: { id: string; amount: Prisma.Decimal; currency: string; recipientContactId: string; message: string | null; messageMediaUrlsJson: Prisma.JsonValue; deliveryDate: Date; repeatAnnually: boolean; status: MoneyGiftStatus; createdAt: Date; updatedAt: Date; recipientContact?: { name: string; phone: string | null; email: string | null; avatarUrl: string | null } }) { return { id: item.id, amount: Number(item.amount), currency: item.currency, recipientContactId: item.recipientContactId, recipient: item.recipientContact ? { name: item.recipientContact.name, phone: item.recipientContact.phone, email: item.recipientContact.email, avatarUrl: item.recipientContact.avatarUrl } : undefined, message: item.message, messageMediaUrls: Array.isArray(item.messageMediaUrlsJson) ? item.messageMediaUrlsJson.filter((value): value is string => typeof value === 'string') : [], deliveryDate: item.deliveryDate, repeatAnnually: item.repeatAnnually, status: item.status, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
-  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.repository.createNotification(recipientId, title, message, type, metadata); }
+  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { if (this.notificationDispatch) await this.notificationDispatch.createAndEmit({ recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: metadata }); else await this.repository.createNotification(recipientId, title, message, type, metadata); }
 }

@@ -6,7 +6,7 @@ import { DeviceTokensRepository } from '../repositories/device-tokens.repository
 import { NotificationPreferencesRepository } from '../repositories/notification-preferences.repository';
 import { NotificationsRepository } from '../repositories/notifications.repository';
 import { DeviceTokenDto, ListNotificationsDto, NotificationActionDto, NotificationActionRequestDto, NotificationFilterDto, NotificationTypeDto, SortOrder, UpdateNotificationPreferencesDto } from '../dto/broadcast-notifications.dto';
-import { NotificationsGateway } from '../notifications.gateway';
+import { NotificationDispatchService } from './notification-dispatch.service';
 
 type NotificationMetadata = { eventId?: string; contactId?: string; giftId?: string; orderId?: string; snoozedUntil?: string };
 type NotificationAction = { key: NotificationActionDto; label: string; style: 'PRIMARY' | 'SECONDARY' };
@@ -18,7 +18,7 @@ export class NotificationsService {
     private readonly notificationPreferencesRepository: NotificationPreferencesRepository,
     private readonly deviceTokensRepository: DeviceTokensRepository,
     private readonly auditLog: AuditLogWriterService,
-    private readonly gateway: NotificationsGateway,
+    private readonly notificationDispatch: NotificationDispatchService,
   ) {}
 
   async list(user: AuthUserContext, query: ListNotificationsDto) {
@@ -45,14 +45,14 @@ export class NotificationsService {
     const notification = await this.getOwnedNotification(user.uid, id);
     const updated = await this.notificationsRepository.markRead(id);
     await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'NOTIFICATION', action: 'NOTIFICATION_MARKED_READ', beforeJson: { isRead: notification.isRead }, afterJson: { isRead: updated.isRead } });
-    this.gateway.emitToUser(user.uid, 'notification.read', { notificationId: id });
+    this.notificationDispatch.emitRead(user.uid, { notificationId: id });
     return { data: { id, isRead: true, readAt: updated.readAt }, message: 'Notification marked as read' };
   }
 
   async markAllRead(user: AuthUserContext) {
     await this.notificationsRepository.markAllRead(user.uid);
     await this.auditLog.write({ actorId: user.uid, targetId: user.uid, targetType: 'NOTIFICATION', action: 'NOTIFICATIONS_MARKED_READ', afterJson: { all: true } });
-    this.gateway.emitToUser(user.uid, 'notification.read', { all: true });
+    this.notificationDispatch.emitRead(user.uid, { all: true });
     return { data: null, message: 'All notifications marked as read' };
   }
 

@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 04:48 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 05:00 PKT.
 
 ## Superadmin / Admin APIs
 
@@ -898,7 +898,10 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 04:48 PKT.
 - Auth: `auth: { token: 'Bearer <accessToken>' }` or `Authorization: Bearer <accessToken>`.
 - Backend joins `user:<userId>` and `role:<role>` after JWT verification.
 - Listen for `notification.received`, `notification.read`, and broadcast delivery events.
-- Emit `notification.read` with `{ notificationId: string }`.
+- `notification.received` payload: `{ id, title, message, type, isRead, metadata, createdAt }`. Metadata is sanitized; Stripe secrets, raw bank data, card numbers, and auth tokens are not emitted.
+- Emit `notification.read` with `{ notificationId: string }`; listen for `{ all: true }` after mark-all-read.
+- Frontend handling: append/upsert received notifications, increment unread count when `isRead=false`, and call REST `GET /api/v1/notifications` after reconnect to backfill missed events.
+- Reconnect with a fresh token after access-token refresh.
 
 ### Dedicated chat namespace
 

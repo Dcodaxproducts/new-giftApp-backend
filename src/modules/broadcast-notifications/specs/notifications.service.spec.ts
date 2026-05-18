@@ -15,7 +15,7 @@ function createService() {
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
-  const gateway = { emitToUser: jest.fn() };
+  const gateway = { emitRead: jest.fn() };
   const notificationsRepository = new NotificationsRepository(prisma as unknown as ConstructorParameters<typeof NotificationsRepository>[0]);
   const notificationPreferencesRepository = new NotificationPreferencesRepository(prisma as unknown as ConstructorParameters<typeof NotificationPreferencesRepository>[0]);
   const deviceTokensRepository = new DeviceTokensRepository(prisma as unknown as ConstructorParameters<typeof DeviceTokensRepository>[0]);
@@ -73,7 +73,7 @@ describe('NotificationsService', () => {
     const { service, audit, gateway } = createService();
     await service.markRead(user, 'notif_1');
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'NOTIFICATION_MARKED_READ' }));
-    expect(gateway.emitToUser).toHaveBeenCalledWith('user_1', 'notification.read', { notificationId: 'notif_1' });
+    expect(gateway.emitRead).toHaveBeenCalledWith('user_1', { notificationId: 'notif_1' });
   });
 
   it('read-all marks only own notifications', async () => {

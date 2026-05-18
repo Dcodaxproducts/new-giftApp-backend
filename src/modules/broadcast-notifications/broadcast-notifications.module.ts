@@ -19,6 +19,7 @@ import { EmailNotificationAdapter, InAppNotificationAdapter, NotificationAdapter
 import { NotificationsController } from './controllers/notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
 import { NotificationsRepository } from './repositories/notifications.repository';
+import { NotificationDispatchService } from './services/notification-dispatch.service';
 import { NotificationsService } from './services/notifications.service';
 
 @Module({
@@ -38,11 +39,13 @@ import { NotificationsService } from './services/notifications.service';
     BroadcastQueueService,
     BroadcastDeliveryService,
     NotificationsGateway,
+    NotificationDispatchService,
     MailerService,
     EmailNotificationAdapter,
     PushNotificationAdapter,
     InAppNotificationAdapter,
     NotificationAdapterRegistry,
   ],
+  exports: [NotificationDispatchService, NotificationsGateway],
 })
 export class BroadcastNotificationsModule {}
