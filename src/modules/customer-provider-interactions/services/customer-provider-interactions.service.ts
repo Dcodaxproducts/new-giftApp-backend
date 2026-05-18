@@ -80,6 +80,11 @@ export class CustomerProviderInteractionsService {
     return { data: { threadId, isRead: true }, message: 'Chat marked as read.' };
   }
 
+  async getSocketThreadContext(user: AuthUserContext, threadId: string) {
+    const thread = await this.getOwnedThread(user.uid, threadId);
+    return { threadId: thread.id, orderId: thread.order.id, providerOrderId: thread.providerOrderId };
+  }
+
   async submitReview(user: AuthUserContext, orderId: string, dto: CreateReviewDto) {
     const order = await this.getOrderForReview(user.uid, orderId);
     const providerOrder = order.providerOrders.find((item) => item.providerId === dto.providerId);

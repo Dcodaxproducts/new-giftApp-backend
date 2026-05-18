@@ -7,5 +7,5 @@ import { CustomerProviderInteractionsService } from './services/customer-provide
 import { CustomerProviderReportsRepository } from './repositories/customer-provider-reports.repository';
 import { CustomerReviewsRepository } from './repositories/customer-reviews.repository';
 
-@Module({ imports: [DatabaseModule], controllers: [CustomerProviderInteractionsController], providers: [CustomerProviderInteractionsService, CustomerChatsRepository, CustomerProviderInteractionsRepository, CustomerProviderReportsRepository, CustomerReviewsRepository] })
+@Module({ imports: [DatabaseModule], controllers: [CustomerProviderInteractionsController], providers: [CustomerProviderInteractionsService, CustomerChatsRepository, CustomerProviderInteractionsRepository, CustomerProviderReportsRepository, CustomerReviewsRepository], exports: [CustomerProviderInteractionsService] })
 export class CustomerProviderInteractionsModule {}

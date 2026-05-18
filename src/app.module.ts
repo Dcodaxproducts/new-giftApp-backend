@@ -25,6 +25,7 @@ import { CustomerReferralsModule } from './modules/customer-referrals/customer-r
 import { CustomerRecurringPaymentsModule } from './modules/customer-recurring-payments/customer-recurring-payments.module';
 import { CustomerTransactionsModule } from './modules/customer-transactions/customer-transactions.module';
 import { CustomerWalletModule } from './modules/customer-wallet/customer-wallet.module';
+import { ChatRealtimeModule } from './modules/chat-realtime/chat-realtime.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
 import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upload-policy.module';
@@ -95,6 +96,7 @@ import { UserManagementModule } from './modules/user-management/user-management.
     StorageModule,
     SystemSettingsModule,
     SupportChatModule,
+    ChatRealtimeModule,
   ],
   controllers: [PublicController],
   providers: [MediaUrlSignerService, ResponseInterceptor],

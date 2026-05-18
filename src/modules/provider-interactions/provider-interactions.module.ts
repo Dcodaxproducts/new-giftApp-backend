@@ -7,5 +7,5 @@ import { ProviderInteractionsService } from './services/provider-interactions.se
 import { ProviderReviewResponsesRepository } from './repositories/provider-review-responses.repository';
 import { ProviderReviewsRepository } from './repositories/provider-reviews.repository';
 
-@Module({ imports: [DatabaseModule], controllers: [ProviderInteractionsController], providers: [ProviderInteractionsService, ProviderBuyerChatRepository, ProviderInteractionsRepository, ProviderReviewsRepository, ProviderReviewResponsesRepository] })
+@Module({ imports: [DatabaseModule], controllers: [ProviderInteractionsController], providers: [ProviderInteractionsService, ProviderBuyerChatRepository, ProviderInteractionsRepository, ProviderReviewsRepository, ProviderReviewResponsesRepository], exports: [ProviderInteractionsService] })
 export class ProviderInteractionsModule {}

@@ -69,6 +69,11 @@ export class ProviderInteractionsService {
     return { data: { threadId, isRead: true }, message: 'Chat marked as read.' };
   }
 
+  async getSocketThreadContext(user: AuthUserContext, threadId: string) {
+    const thread = await this.getOwnedThread(user.uid, threadId);
+    return { threadId: thread.id, orderId: thread.orderId, providerOrderId: thread.providerOrderId };
+  }
+
   async reviewSummary(user: AuthUserContext) {
     const where = this.publicReviewWhere(user.uid);
     const [agg, count, rows] = await this.reviewsRepository.findReviewSummaryForProvider(where);
