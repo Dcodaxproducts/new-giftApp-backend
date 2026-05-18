@@ -17,7 +17,7 @@ function createService() {
     userWarning: { count: jest.fn().mockResolvedValue(4), create: jest.fn().mockResolvedValue({}) },
     socialModerationLog: { findMany: jest.fn().mockResolvedValue([{ createdAt: now, report: { createdAt: now } }]), create: jest.fn().mockResolvedValue({}) },
     notification: { create: jest.fn().mockResolvedValue({}) },
-    socialReportingRule: { count: jest.fn().mockResolvedValue(1), findMany: jest.fn().mockResolvedValue([rule]), findFirst: jest.fn().mockResolvedValue(rule), create: jest.fn().mockResolvedValue(rule), update: jest.fn().mockResolvedValue({ ...rule, label: 'Updated', isActive: false, deletedAt: now }) },
+    socialReportingRule: { count: jest.fn().mockResolvedValue(1), findMany: jest.fn().mockResolvedValue([rule]), findFirst: jest.fn().mockResolvedValue(rule), create: jest.fn().mockResolvedValue(rule), update: jest.fn().mockResolvedValue({ ...rule, label: 'Updated', isActive: false, deletedAt: now }), delete: jest.fn().mockResolvedValue(rule) },
     $transaction: jest.fn(async (input: unknown): Promise<unknown> => typeof input === 'function' ? (input as (tx: typeof prisma) => Promise<unknown>)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };

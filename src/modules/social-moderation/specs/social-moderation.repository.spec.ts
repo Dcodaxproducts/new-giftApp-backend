@@ -16,10 +16,10 @@ describe('Social moderation repository cleanup', () => {
 
   it('repositories own social moderation and reporting rule DB access', () => {
     for (const method of ['findStatsRows', 'findReportsAndCount', 'findReport', 'findReportHistory', 'runModerationAction', 'updateSocialPost', 'updateSocialReportStatus', 'createSocialModerationLog', 'createUserWarning', 'createNotification', 'findReportsForExport']) expect(moderationRepository).toContain(method);
-    for (const method of ['findRuleStatsRows', 'findRulesAndCount', 'createRule', 'findRuleById', 'updateRule', 'softDeleteRule', 'updateRuleStatus', 'findRulesForExport']) expect(rulesRepository).toContain(method);
+    for (const method of ['findRuleStatsRows', 'findRulesAndCount', 'createRule', 'findRuleById', 'updateRule', 'deleteRule', 'updateRuleStatus', 'findRulesForExport']) expect(rulesRepository).toContain(method);
     expect(moderationRepository).toContain('tx.socialModerationLog.create');
     expect(moderationRepository).toContain('tx.userWarning.create');
-    expect(rulesRepository).toContain('deletedAt: new Date()');
+    expect(rulesRepository).toContain('socialReportingRule.delete');
   });
 
   it('service preserves social moderation decisions, audit, notifications, and export formatting', () => {

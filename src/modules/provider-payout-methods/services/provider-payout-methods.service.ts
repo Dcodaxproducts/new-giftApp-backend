@@ -65,7 +65,7 @@ export class ProviderPayoutMethodsService {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
     await this.assertNoPendingPayoutUsage(user.uid);
-    await this.repository.softDeleteAndPromoteNextDefault(user.uid, method.id, method.isDefault);
+    await this.repository.deleteAndPromoteNextDefault(user.uid, method.id, method.isDefault);
     return { data: null, message: 'Provider payout method deleted successfully.' };
   }
 

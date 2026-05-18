@@ -119,7 +119,7 @@ export class ProviderInventoryService {
 
   async delete(user: AuthUserContext, id: string) {
     const item = await this.getOwnGift(user.uid, id);
-    await this.repository.softDeleteItem(id);
+    await this.repository.deleteItem(id);
     await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_DELETED', this.toDetailItem(item), null);
     return { data: null, message: 'Inventory item deleted successfully' };
   }

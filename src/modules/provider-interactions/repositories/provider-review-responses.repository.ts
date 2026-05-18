@@ -22,7 +22,7 @@ export class ProviderReviewResponsesRepository {
     return this.prisma.reviewResponse.update({ where: { id }, data });
   }
 
-  softDeleteReviewResponse(id: string) {
+  deleteReviewResponse(id: string) {
     return this.prisma.reviewResponse.delete({ where: { id } });
   }
 

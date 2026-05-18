@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 10:11 PKT.
 
 ## Frontend Integration Flows
 
@@ -154,7 +154,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | POST | `/api/v1/provider-business-categories` | Create provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.create |
 | GET | `/api/v1/provider-business-categories/{id}` | Fetch provider business category details | SUPER_ADMIN or ADMIN with providerBusinessCategories.read |
 | PATCH | `/api/v1/provider-business-categories/{id}` | Update provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.update |
-| DELETE | `/api/v1/provider-business-categories/{id}` | Soft-delete provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.delete |
+| DELETE | `/api/v1/provider-business-categories/{id}` | Delete provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.delete |
 
 ### Admin - Provider Dispute Evidence (3 APIs)
 
@@ -317,7 +317,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | GET | `/api/v1/admin/social-reporting-rules/stats` | Fetch social reporting rule stats | SUPER_ADMIN or ADMIN with socialReportingRules.read |
 | GET | `/api/v1/admin/social-reporting-rules/{id}` | Fetch social reporting rule details | SUPER_ADMIN or ADMIN with socialReportingRules.read |
 | PATCH | `/api/v1/admin/social-reporting-rules/{id}` | Update social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.update |
-| DELETE | `/api/v1/admin/social-reporting-rules/{id}` | Soft-delete social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.delete |
+| DELETE | `/api/v1/admin/social-reporting-rules/{id}` | Delete social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.delete |
 | PATCH | `/api/v1/admin/social-reporting-rules/{id}/status` | Update social reporting rule status | SUPER_ADMIN or ADMIN with socialReportingRules.update |
 
 ### Admin - Staff Management (7 APIs)
@@ -448,7 +448,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | GET | `/api/v1/gift-categories/stats` | Fetch gift category stats | SUPER_ADMIN or ADMIN with giftCategories.read |
 | GET | `/api/v1/gift-categories/{id}` | Fetch gift category details | SUPER_ADMIN or ADMIN with giftCategories.read |
 | PATCH | `/api/v1/gift-categories/{id}` | Update gift category | SUPER_ADMIN or ADMIN with giftCategories.update |
-| DELETE | `/api/v1/gift-categories/{id}` | Soft-delete gift category | SUPER_ADMIN or ADMIN with giftCategories.delete |
+| DELETE | `/api/v1/gift-categories/{id}` | Delete gift category | SUPER_ADMIN or ADMIN with giftCategories.delete |
 
 ### Gifts - Management (8 APIs)
 
@@ -460,7 +460,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | GET | `/api/v1/gifts/stats` | Fetch gift inventory stats | SUPER_ADMIN or ADMIN with gifts.read |
 | GET | `/api/v1/gifts/{id}` | Fetch admin gift details with variants | SUPER_ADMIN or ADMIN with gifts.read |
 | PATCH | `/api/v1/gifts/{id}` | Update admin gift and upsert nested variants | SUPER_ADMIN or ADMIN with gifts.update |
-| DELETE | `/api/v1/gifts/{id}` | Soft-delete gift | SUPER_ADMIN or ADMIN with gifts.delete |
+| DELETE | `/api/v1/gifts/{id}` | Delete gift | SUPER_ADMIN or ADMIN with gifts.delete |
 | PATCH | `/api/v1/gifts/{id}/status` | Update gift status | SUPER_ADMIN or ADMIN with gifts.status.update |
 
 ### Gifts - Moderation (4 APIs)
@@ -576,7 +576,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | POST | `/api/v1/customer/contacts` | Create customer contact | REGISTERED_USER |
 | GET | `/api/v1/customer/contacts/{id}` | Fetch customer contact | REGISTERED_USER |
 | PATCH | `/api/v1/customer/contacts/{id}` | Update customer contact | REGISTERED_USER |
-| DELETE | `/api/v1/customer/contacts/{id}` | Soft-delete customer contact | REGISTERED_USER |
+| DELETE | `/api/v1/customer/contacts/{id}` | Delete customer contact | REGISTERED_USER |
 
 ### Customer - Events (9 APIs)
 
@@ -588,7 +588,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | GET | `/api/v1/customer/events/upcoming` | Fetch upcoming customer events | REGISTERED_USER |
 | GET | `/api/v1/customer/events/{id}` | Fetch customer event details | REGISTERED_USER |
 | PATCH | `/api/v1/customer/events/{id}` | Update customer event | REGISTERED_USER |
-| DELETE | `/api/v1/customer/events/{id}` | Soft-delete customer event | REGISTERED_USER |
+| DELETE | `/api/v1/customer/events/{id}` | Delete customer event | REGISTERED_USER |
 | GET | `/api/v1/customer/events/{id}/reminder-settings` | Fetch event reminder settings | REGISTERED_USER |
 | PATCH | `/api/v1/customer/events/{id}/reminder-settings` | Update event reminder settings | REGISTERED_USER |
 
@@ -660,7 +660,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | GET | `/api/v1/customer/reviews` | List own provider reviews | REGISTERED_USER |
 | GET | `/api/v1/customer/reviews/{id}` | Fetch Customer Reviews details | REGISTERED_USER |
 | PATCH | `/api/v1/customer/reviews/{id}` | Update own review | REGISTERED_USER |
-| DELETE | `/api/v1/customer/reviews/{id}` | Soft-delete own review | REGISTERED_USER |
+| DELETE | `/api/v1/customer/reviews/{id}` | Delete own review | REGISTERED_USER |
 
 ### Customer - Subscriptions (9 APIs)
 
@@ -845,7 +845,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | GET | `/api/v1/provider/inventory/stats` | Fetch provider inventory stats | PROVIDER |
 | GET | `/api/v1/provider/inventory/{id}` | Fetch own provider inventory item details | PROVIDER |
 | PATCH | `/api/v1/provider/inventory/{id}` | Update own provider inventory item and upsert variants | PROVIDER |
-| DELETE | `/api/v1/provider/inventory/{id}` | Soft-delete own inventory item | PROVIDER |
+| DELETE | `/api/v1/provider/inventory/{id}` | Delete own inventory item | PROVIDER |
 | PATCH | `/api/v1/provider/inventory/{id}/availability` | Update own inventory availability | PROVIDER |
 
 ### Provider - Order Analytics (5 APIs)
@@ -884,7 +884,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 | POST | `/api/v1/provider/payout-methods/bank-accounts` | Add provider bank payout method | PROVIDER |
 | GET | `/api/v1/provider/payout-methods/{id}` | Fetch own provider payout method details | PROVIDER |
 | PATCH | `/api/v1/provider/payout-methods/{id}` | Update provider payout method display metadata | PROVIDER |
-| DELETE | `/api/v1/provider/payout-methods/{id}` | Soft delete own provider payout method | PROVIDER |
+| DELETE | `/api/v1/provider/payout-methods/{id}` | Delete own provider payout method | PROVIDER |
 | PATCH | `/api/v1/provider/payout-methods/{id}/default` | Set default provider payout method | PROVIDER |
 | POST | `/api/v1/provider/payout-methods/{id}/verify` | Start provider payout method verification | PROVIDER |
 

@@ -62,6 +62,6 @@ export class GiftsController {
 
   @Delete(':id')
   @Permissions('gifts.delete')
-  @ApiOperation({ summary: 'Soft-delete gift' })
+  @ApiOperation({ summary: 'Delete gift', description: 'Permanently deletes the gift record.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.gifts.deleteGift(user, id); }
 }

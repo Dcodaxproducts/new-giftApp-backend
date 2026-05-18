@@ -89,7 +89,7 @@ export class ProviderInventoryRepository {
     return this.prisma.gift.update({ where: { id }, data: { status }, include: PROVIDER_INVENTORY_INCLUDE });
   }
 
-  softDeleteItem(id: string) {
+  deleteItem(id: string) {
     return this.prisma.gift.delete({ where: { id } });
   }
 }

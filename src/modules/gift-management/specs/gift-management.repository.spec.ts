@@ -27,7 +27,7 @@ describe('Gift management repository cleanup', () => {
   });
 
   it('repository owns gift category DB access', () => {
-    for (const method of ['findGiftCategories', 'countGiftCategories', 'findGiftCategoryById', 'createGiftCategory', 'updateGiftCategory', 'softDeleteGiftCategory', 'countGiftsByCategory', 'findGiftCategoryLookup', 'findGiftCategoryStats']) expect(repository).toContain(method);
+    for (const method of ['findGiftCategories', 'countGiftCategories', 'findGiftCategoryById', 'createGiftCategory', 'updateGiftCategory', 'deleteGiftCategory', 'countGiftsByCategory', 'findGiftCategoryLookup', 'findGiftCategoryStats']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.giftCategory.findMany');
     expect(repository).toContain('this.prisma.giftCategory.create');
     expect(repository).toContain('this.prisma.giftCategory.update');
@@ -36,7 +36,7 @@ describe('Gift management repository cleanup', () => {
   });
 
   it('repository owns admin gift and variant DB access', () => {
-    for (const method of ['findGiftsForAdmin', 'countGiftsForAdmin', 'findGiftByIdWithVariants', 'createGiftWithVariants', 'updateGiftBase', 'softDeleteGift', 'updateGiftStatus', 'findGiftStats', 'findGiftsForExport']) expect(repository).toContain(method);
+    for (const method of ['findGiftsForAdmin', 'countGiftsForAdmin', 'findGiftByIdWithVariants', 'createGiftWithVariants', 'updateGiftBase', 'deleteGift', 'updateGiftStatus', 'findGiftStats', 'findGiftsForExport']) expect(repository).toContain(method);
     for (const method of ['softDeleteVariantsForGift', 'clearDefaultVariantsForGift', 'findGiftVariantForGift', 'updateGiftVariant', 'createGiftVariant']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.gift.create');
     expect(repository).toContain('tx.gift.update');

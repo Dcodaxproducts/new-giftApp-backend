@@ -22,7 +22,7 @@ describe('Customer reviews repository cleanup', () => {
   });
 
   it('repository owns review DB access', () => {
-    for (const method of ['findOrderForReviewByUser', 'findExistingReviewForProviderOrder', 'createReview', 'findReviewsForUser', 'countReviewsForUser', 'findReviewsAndCountForUser', 'findReviewForUser', 'updateReview', 'softDeleteReview', 'createReviewNotification', 'createReviewModerationLog']) expect(repository).toContain(method);
+    for (const method of ['findOrderForReviewByUser', 'findExistingReviewForProviderOrder', 'createReview', 'findReviewsForUser', 'countReviewsForUser', 'findReviewsAndCountForUser', 'findReviewForUser', 'updateReview', 'deleteReview', 'createReviewNotification', 'createReviewModerationLog']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.order.findFirst');
     expect(repository).toContain('this.prisma.review.findFirst');
     expect(repository).toContain('this.prisma.review.create');
@@ -83,12 +83,11 @@ describe('Customer reviews repository cleanup', () => {
     expect(updateSource).toContain('detectedCategoriesJson: moderation.categories');
   });
 
-  it('customer can soft-delete own review and provider response remains intact', () => {
+  it('customer can hard-delete own review', () => {
     expect(deleteSource).toContain('findReviewForUser(user.uid, id)');
-    expect(deleteSource).toContain('softDeleteReview(id)');
-    expect(repository).toContain('data: { deletedAt: new Date() }');
-    expect(repository).not.toContain('reviewResponse.delete');
-    expect(repository).not.toContain('response.delete');
+    expect(deleteSource).toContain('deleteReview(id)');
+    expect(repository).toContain('review.delete');
+    expect(repository).not.toContain('data: { deletedAt: new Date() }');
   });
 
   it('moderation status decision, notification, and moderation log orchestration stay in service', () => {

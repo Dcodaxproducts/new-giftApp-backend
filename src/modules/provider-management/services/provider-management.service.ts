@@ -19,7 +19,6 @@ import {
   ListProviderItemsDto,
   ListProvidersDto,
   MessageProviderDto,
-  PermanentlyDeleteProviderDto,
   ProviderActivityType,
   ProviderLifecycleAction,
   ProviderLifecycleReason,
@@ -290,11 +289,7 @@ export class ProviderManagementService {
   }
 
 
-  async permanentlyDelete(user: AuthUserContext, id: string, dto: PermanentlyDeleteProviderDto) {
-    if (dto.confirmation !== 'PERMANENTLY_DELETE_PROVIDER') {
-      throw new BadRequestException('Invalid permanent delete confirmation text');
-    }
-
+  async permanentlyDelete(user: AuthUserContext, id: string) {
     const provider = await this.getProvider(id);
     const activeOrders = await this.repository.countActiveProcessingOrders(provider.id);
     if (activeOrders > 0) {
@@ -306,12 +301,12 @@ export class ProviderManagementService {
       providerId: provider.id,
       providerEmail: provider.email,
       providerRole: provider.role,
-      reason: dto.reason,
-      deleteRelatedRecords: dto.deleteRelatedRecords ?? true,
+      reason: 'Deleted by Super Admin',
+      deleteRelatedRecords: true,
     });
 
     return {
-      data: { deletedProviderId: provider.id, deletedRelatedRecords: dto.deleteRelatedRecords ?? true },
+      data: { deletedProviderId: provider.id, deletedRelatedRecords: true },
       message: 'Provider permanently deleted successfully.',
     };
   }

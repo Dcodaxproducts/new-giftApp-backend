@@ -37,11 +37,11 @@ export class ProviderPayoutMethodsRepository {
     return this.prisma.providerFinancialAdjustment.findFirst({ where: { providerId, direction: 'CREDIT', status: 'PENDING' } });
   }
 
-  softDeleteAndPromoteNextDefault(providerId: string, id: string, promoteNext: boolean) {
+  deleteAndPromoteNextDefault(providerId: string, id: string, promoteNext: boolean) {
     return this.prisma.$transaction(async (tx) => {
-      await tx.providerPayoutMethod.update({ where: { id }, data: { deletedAt: new Date(), isActive: false, isDefault: false } });
+      await tx.providerPayoutMethod.delete({ where: { id } });
       if (!promoteNext) return;
-      const next = await tx.providerPayoutMethod.findFirst({ where: { providerId, id: { not: id }, deletedAt: null, isActive: true, verificationStatus: ProviderPayoutVerificationStatus.VERIFIED }, orderBy: { createdAt: 'desc' } });
+      const next = await tx.providerPayoutMethod.findFirst({ where: { providerId, deletedAt: null, isActive: true, verificationStatus: ProviderPayoutVerificationStatus.VERIFIED }, orderBy: { createdAt: 'desc' } });
       if (next) await tx.providerPayoutMethod.update({ where: { id: next.id }, data: { isDefault: true } });
     });
   }

@@ -93,7 +93,7 @@ describe('AdminManagementService', () => {
     await expect(service.details(superAdmin, 'admin_1')).resolves.toEqual(expect.objectContaining({ message: 'Admin details fetched successfully' }));
     await expect(service.update(superAdmin, 'admin_1', { firstName: 'Updated' })).resolves.toEqual(expect.objectContaining({ message: 'Admin updated successfully' }));
     await expect(service.resetPassword(superAdmin, 'admin_1', {})).resolves.toEqual({ data: null, message: 'Temporary password generated successfully' });
-    await expect(service.permanentlyDelete(superAdmin, 'admin_1', { confirmation: 'PERMANENTLY_DELETE_ADMIN', reason: 'Cleanup' })).resolves.toEqual({ data: { deletedAdminId: 'admin_1' }, message: 'Admin staff user permanently deleted successfully.' });
+    await expect(service.permanentlyDelete(superAdmin, 'admin_1')).resolves.toEqual({ data: { deletedAdminId: 'admin_1' }, message: 'Admin staff user permanently deleted successfully.' });
     expect(repository.deleteAdminPermanently).toHaveBeenCalledWith('admin_1');
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'ADMIN_STAFF_PERMANENTLY_DELETED' }));
   });
@@ -110,7 +110,7 @@ describe('AdminManagementService', () => {
       roleId: 'role_1',
     })).rejects.toThrow(ConflictException);
 
-    await expect(service.permanentlyDelete({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'admin_1', { confirmation: 'PERMANENTLY_DELETE_ADMIN', reason: 'Cleanup' })).rejects.toThrow(ForbiddenException);
+    await expect(service.permanentlyDelete({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'admin_1')).rejects.toThrow(ForbiddenException);
   });
 
   it('preserves super admin downgrade and last-active safety checks', async () => {

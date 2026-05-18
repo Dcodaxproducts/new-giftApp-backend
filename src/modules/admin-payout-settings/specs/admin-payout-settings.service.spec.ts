@@ -26,7 +26,7 @@ const tier = { id: 'tier_standard', name: 'Standard Tier', commissionRatePercent
 function createService(overrides: Partial<{ settings: typeof settings | null; tiers: typeof tier[]; duplicateTier: unknown; tierById: typeof tier | null }> = {}) {
   const prisma = {
     adminPayoutSettings: { findFirst: jest.fn().mockResolvedValue(overrides.settings === undefined ? settings : overrides.settings), create: jest.fn().mockResolvedValue(settings), update: jest.fn().mockResolvedValue({ ...settings, platformRatePercent: new Prisma.Decimal(6) }) },
-    commissionTier: { findMany: jest.fn().mockResolvedValue(overrides.tiers ?? [tier]), findFirst: jest.fn().mockImplementation((args: { where?: { orderVolumeThreshold?: Prisma.Decimal } }) => args.where?.orderVolumeThreshold ? Promise.resolve(overrides.duplicateTier ?? null) : Promise.resolve(overrides.tierById === undefined ? tier : overrides.tierById)), create: jest.fn().mockResolvedValue({ ...tier, id: 'tier_gold', name: 'Gold Elite', commissionRatePercent: new Prisma.Decimal(10), orderVolumeThreshold: new Prisma.Decimal(15000), sortOrder: 3 }), update: jest.fn().mockResolvedValue({ ...tier, name: 'Gold Elite', commissionRatePercent: new Prisma.Decimal(10), orderVolumeThreshold: new Prisma.Decimal(15000), sortOrder: 3 }) },
+    commissionTier: { findMany: jest.fn().mockResolvedValue(overrides.tiers ?? [tier]), findFirst: jest.fn().mockImplementation((args: { where?: { orderVolumeThreshold?: Prisma.Decimal } }) => args.where?.orderVolumeThreshold ? Promise.resolve(overrides.duplicateTier ?? null) : Promise.resolve(overrides.tierById === undefined ? tier : overrides.tierById)), create: jest.fn().mockResolvedValue({ ...tier, id: 'tier_gold', name: 'Gold Elite', commissionRatePercent: new Prisma.Decimal(10), orderVolumeThreshold: new Prisma.Decimal(15000), sortOrder: 3 }), update: jest.fn().mockResolvedValue({ ...tier, name: 'Gold Elite', commissionRatePercent: new Prisma.Decimal(10), orderVolumeThreshold: new Prisma.Decimal(15000), sortOrder: 3 }), delete: jest.fn().mockResolvedValue(tier) },
     adminAuditLog: { findMany: jest.fn().mockResolvedValue([{ id: 'audit_1', action: 'PAYOUT_SETTINGS_UPDATED', targetType: 'PAYOUT_SETTINGS', beforeJson: { platformRatePercent: 5 }, afterJson: { platformRatePercent: 6 }, createdAt: now, actor: { id: 'admin_1', firstName: 'Alex', lastName: 'Rivera' } }]), count: jest.fn().mockResolvedValue(1) },
     $transaction: jest.fn((operations: Promise<unknown>[]) => Promise.all(operations)),
   };
@@ -78,7 +78,8 @@ describe('AdminPayoutSettingsService', () => {
     await expect(service.updateTier(user, 'tier_standard', tierDto)).resolves.toMatchObject({ message: 'Commission tier updated successfully.' });
     await expect(service.deleteTier(user, 'tier_standard')).resolves.toEqual({ data: { id: 'tier_standard', deleted: true }, message: 'Commission tier deleted successfully.' });
     expect(prisma.commissionTier.create).toHaveBeenCalledTimes(1);
-    expect(prisma.commissionTier.update).toHaveBeenCalledTimes(2);
+    expect(prisma.commissionTier.update).toHaveBeenCalledTimes(1);
+    expect(prisma.commissionTier.delete).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'tier_standard' } }));
     const actions = (auditLog.write.mock.calls as unknown[][]).map((call) => (call[0] as { action: string }).action);
     expect(actions).toEqual(expect.arrayContaining(['COMMISSION_TIER_CREATED', 'COMMISSION_TIER_UPDATED', 'COMMISSION_TIER_DELETED']));
   });

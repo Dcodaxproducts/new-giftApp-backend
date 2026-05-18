@@ -35,7 +35,7 @@ export class ProviderPayoutMethodsController {
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderPayoutMethodDto) { return this.payoutMethods.update(user, id, dto); }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft delete own provider payout method', description: 'PROVIDER only. Blocks deletion when pending provider payout adjustments exist.' })
+  @ApiOperation({ summary: 'Delete own provider payout method', description: 'PROVIDER only. Permanently deletes the payout method and blocks deletion when pending provider payout adjustments exist.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payoutMethods.delete(user, id); }
 
   @Patch(':id/default')

@@ -193,7 +193,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/payout-settings/commission-tiers': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.read', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read permission.' },
   'POST /api/v1/admin/payout-settings/commission-tiers': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission.' },
   'PATCH /api/v1/admin/payout-settings/commission-tiers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle.' },
-  'DELETE /api/v1/admin/payout-settings/commission-tiers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged.' },
+  'DELETE /api/v1/admin/payout-settings/commission-tiers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.update', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record.' },
   'GET /api/v1/admin/payout-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with payoutSettings.read', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read permission.' },
 
   'GET /api/v1/admin/transactions/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },

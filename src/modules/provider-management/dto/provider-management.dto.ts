@@ -460,17 +460,3 @@ export class ProviderLookupDto {
   limit?: number;
 }
 
-export class PermanentlyDeleteProviderDto {
-  @ApiProperty({ example: 'PERMANENTLY_DELETE_PROVIDER' })
-  @IsString()
-  confirmation!: string;
-
-  @ApiProperty({ example: 'Provider account removed by Super Admin.' })
-  @IsString()
-  reason!: string;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  deleteRelatedRecords?: boolean;
-}

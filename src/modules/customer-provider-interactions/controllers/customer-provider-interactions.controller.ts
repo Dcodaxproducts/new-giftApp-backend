@@ -73,7 +73,7 @@ export class CustomerProviderInteractionsController {
 
   @Delete('reviews/:id')
   @ApiTags('05 Customer - Reviews')
-  @ApiOperation({ summary: 'Soft-delete own review', description: 'REGISTERED_USER only. Does not physically delete provider response.' })
+  @ApiOperation({ summary: 'Delete own review', description: 'REGISTERED_USER only. Permanently deletes the customer review record.' })
   deleteReview(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.interactions.deleteReview(user, id); }
 
   @Get('provider-report-reasons')

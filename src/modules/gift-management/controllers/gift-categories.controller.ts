@@ -51,6 +51,6 @@ export class GiftCategoriesController {
 
   @Delete(':id')
   @Permissions('giftCategories.delete')
-  @ApiOperation({ summary: 'Soft-delete gift category', description: 'RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.' })
+  @ApiOperation({ summary: 'Delete gift category', description: 'RBAC permission: giftCategories.delete. Permanently deletes the category. Categories with attached gifts cannot be deleted; delete writes an audit log.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.gifts.deleteCategory(user, id); }
 }

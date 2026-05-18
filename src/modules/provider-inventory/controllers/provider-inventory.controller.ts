@@ -51,6 +51,6 @@ export class ProviderInventoryController {
   updateAvailability(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderAvailabilityDto) { return this.service.updateAvailability(user, id, dto); }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete own inventory item' })
+  @ApiOperation({ summary: 'Delete own inventory item', description: 'Permanently deletes the provider inventory item.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.delete(user, id); }
 }

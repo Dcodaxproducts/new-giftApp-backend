@@ -30,7 +30,7 @@ export class CommissionTiersRepository {
     return this.prisma.commissionTier.update({ where: { id }, data, include: COMMISSION_TIER_INCLUDE });
   }
 
-  deleteTier(id: string, updatedById: string) {
-    return this.prisma.commissionTier.update({ where: { id }, data: { isActive: false, deletedAt: new Date(), updatedById }, include: COMMISSION_TIER_INCLUDE });
+  deleteTier(id: string) {
+    return this.prisma.commissionTier.delete({ where: { id }, include: COMMISSION_TIER_INCLUDE });
   }
 }

@@ -48,7 +48,7 @@ export class CustomerContactsController {
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateCustomerContactDto) { return this.contacts.update(user, id, dto); }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete customer contact', description: 'REGISTERED_USER only. Soft deletes only contacts owned by the authenticated customer.' })
+  @ApiOperation({ summary: 'Delete customer contact', description: 'REGISTERED_USER only. Permanently deletes only contacts owned by the authenticated customer.' })
   @ApiResponse({ status: 200, description: 'Contact deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Contact not found.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.contacts.delete(user, id); }

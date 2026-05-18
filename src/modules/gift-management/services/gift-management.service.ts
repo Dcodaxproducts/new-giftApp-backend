@@ -117,7 +117,7 @@ export class GiftManagementService {
     const category = await this.getCategory(id);
     const gifts = await this.giftManagementRepository.countGiftsByCategory(id);
     if (gifts > 0) throw new BadRequestException('Category has attached gifts and cannot be deleted');
-    await this.giftManagementRepository.softDeleteGiftCategory(id);
+    await this.giftManagementRepository.deleteGiftCategory(id);
     await this.audit(user.uid, id, 'GIFT_CATEGORY_DELETED', this.toCategory(category, 0), null);
     return { data: null, message: 'Gift category deleted successfully' };
   }
@@ -234,7 +234,7 @@ export class GiftManagementService {
   async deleteGift(user: AuthUserContext, id: string) {
     const gift = await this.getGift(id);
     this.assertCanManageGift(user, gift);
-    await this.giftManagementRepository.softDeleteGift(id);
+    await this.giftManagementRepository.deleteGift(id);
     await this.audit(user.uid, id, 'GIFT_DELETED', this.toGiftDetail(gift), null);
     return { data: null, message: 'Gift deleted successfully' };
   }

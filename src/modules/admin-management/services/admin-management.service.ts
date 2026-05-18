@@ -10,7 +10,6 @@ import {
   AdminStatusFilter,
   CreateAdminDto,
   ListAdminsDto,
-  PermanentlyDeleteAdminDto,
   ResetAdminPasswordDto,
   SortOrderDto,
   UpdateAdminActiveStatusDto,
@@ -201,11 +200,7 @@ export class AdminManagementService {
     return { data: null, message: 'Temporary password generated successfully' };
   }
 
-  async permanentlyDelete(user: AuthUserContext, id: string, dto: PermanentlyDeleteAdminDto) {
-    if (dto.confirmation !== 'PERMANENTLY_DELETE_ADMIN') {
-      throw new BadRequestException('Invalid permanent delete confirmation text');
-    }
-
+  async permanentlyDelete(user: AuthUserContext, id: string) {
     if (user.uid === id) {
       throw new ForbiddenException('Super Admin cannot permanently delete self');
     }
@@ -221,7 +216,7 @@ export class AdminManagementService {
       targetType: 'ADMIN',
       action: 'ADMIN_STAFF_PERMANENTLY_DELETED',
       beforeJson: { id: admin.id, email: admin.email, role: admin.role },
-      afterJson: { reason: dto.reason },
+      afterJson: null,
     });
     await this.repository.deleteAdminPermanently(admin.id);
 

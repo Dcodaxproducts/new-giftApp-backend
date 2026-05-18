@@ -137,7 +137,7 @@ export class CustomerProviderInteractionsService {
   async deleteReview(user: AuthUserContext, id: string) {
     const review = await this.customerReviewsRepository.findReviewForUser(user.uid, id);
     if (!review) throw new NotFoundException('Review not found');
-    await this.customerReviewsRepository.softDeleteReview(id);
+    await this.customerReviewsRepository.deleteReview(id);
     return { data: null, message: 'Review deleted successfully.' };
   }
 

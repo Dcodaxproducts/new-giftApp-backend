@@ -54,6 +54,7 @@ function createService(overrides: Partial<{ method: PayoutMethodFixture | null; 
       create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'payout_method_new', createdAt: new Date('2026-05-14T10:00:00.000Z'), updatedAt: new Date('2026-05-14T10:00:00.000Z'), deletedAt: null, isActive: true, externalAccountId: null, ...data })),
       update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payoutMethod, ...data })),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      delete: jest.fn().mockResolvedValue(payoutMethod),
     },
     providerFinancialAdjustment: { findFirst: jest.fn().mockResolvedValue(overrides.pendingPayout ?? null) },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
@@ -162,12 +163,12 @@ describe('ProviderPayoutMethodsService', () => {
     expect(prisma.providerPayoutMethod.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_method_1' }, data: { isDefault: true } }));
   });
 
-  it('delete soft-deletes own method and promotes next verified default only when needed', async () => {
+  it('delete hard-deletes own method and promotes next verified default only when needed', async () => {
     const backupMethod = { ...payoutMethod, id: 'payout_method_2', isDefault: false, createdAt: new Date('2026-05-13T10:00:00.000Z') };
     const { service, prisma } = createService({ methods: [payoutMethod, backupMethod] });
     prisma.providerPayoutMethod.findFirst.mockResolvedValueOnce(payoutMethod).mockResolvedValueOnce(backupMethod);
     await service.delete({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_method_1');
-    expect(prisma.providerPayoutMethod.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_method_1' }, data: expect.objectContaining({ deletedAt: expect.any(Date) as Date, isActive: false, isDefault: false }) }));
+    expect(prisma.providerPayoutMethod.delete).toHaveBeenCalledWith({ where: { id: 'payout_method_1' } });
     expect(prisma.providerPayoutMethod.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_method_2' }, data: { isDefault: true } }));
   });
 

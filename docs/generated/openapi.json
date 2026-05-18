@@ -7344,16 +7344,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PermanentlyDeleteAdminDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Admin staff user permanently deleted successfully",
@@ -7765,7 +7755,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged. SUPER_ADMIN or ADMIN with payoutSettings.update. Soft-deletes a tier for future calculations only; historical payouts remain unchanged.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record. SUPER_ADMIN or ADMIN with payoutSettings.update. Permanently deletes the tier record.",
         "operationId": "AdminPayoutSettingsController_deleteTier",
         "parameters": [
           {
@@ -9664,16 +9654,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PermanentlyDeleteProviderDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Provider permanently deleted successfully",
@@ -10171,7 +10151,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.update"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.delete. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.delete. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Permanently deletes the category; refuses deletion when active providers are attached.",
         "operationId": "ProviderBusinessCategoriesController_delete",
         "parameters": [
           {
@@ -10193,7 +10173,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete provider business category",
+        "summary": "Delete provider business category",
         "tags": [
           "02 Admin - Provider Business Categories"
         ],
@@ -12877,6 +12857,7 @@
         "x-access": "PROVIDER"
       },
       "delete": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Permanently deletes the provider inventory item.",
         "operationId": "ProviderInventoryController_delete",
         "parameters": [
           {
@@ -12898,13 +12879,12 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete own inventory item",
+        "summary": "Delete own inventory item",
         "tags": [
           "03 Provider - Inventory"
         ],
         "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER",
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/inventory/{id}/availability": {
@@ -14043,7 +14023,7 @@
         "x-access": "PROVIDER"
       },
       "delete": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Blocks deletion when pending provider payout adjustments exist.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Permanently deletes the payout method and blocks deletion when pending provider payout adjustments exist.",
         "operationId": "ProviderPayoutMethodsController_delete",
         "parameters": [
           {
@@ -14065,7 +14045,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft delete own provider payout method",
+        "summary": "Delete own provider payout method",
         "tags": [
           "03 Provider - Payout Methods"
         ],
@@ -16158,7 +16138,7 @@
         "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Soft deletes only contacts owned by the authenticated customer.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes only contacts owned by the authenticated customer.",
         "operationId": "CustomerContactsController_delete",
         "parameters": [
           {
@@ -16183,7 +16163,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete customer contact",
+        "summary": "Delete customer contact",
         "tags": [
           "05 Customer - Contacts"
         ],
@@ -16606,7 +16586,7 @@
         "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Soft deletes only own event and cancels pending reminder jobs.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes only own event and cancels pending reminder jobs.",
         "operationId": "CustomerEventsController_delete",
         "parameters": [
           {
@@ -16628,7 +16608,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete customer event",
+        "summary": "Delete customer event",
         "tags": [
           "05 Customer - Events"
         ],
@@ -18406,7 +18386,7 @@
         "x-access": "REGISTERED_USER"
       },
       "delete": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Does not physically delete provider response.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes the customer review record.",
         "operationId": "CustomerProviderInteractionsController_deleteReview",
         "parameters": [
           {
@@ -18428,7 +18408,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete own review",
+        "summary": "Delete own review",
         "tags": [
           "05 Customer - Reviews"
         ],
@@ -20359,7 +20339,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with giftCategories.update"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.delete. SUPER_ADMIN or ADMIN with giftCategories.delete permission. RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.delete. SUPER_ADMIN or ADMIN with giftCategories.delete permission. RBAC permission: giftCategories.delete. Permanently deletes the category. Categories with attached gifts cannot be deleted; delete writes an audit log.",
         "operationId": "GiftCategoriesController_delete",
         "parameters": [
           {
@@ -20381,7 +20361,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete gift category",
+        "summary": "Delete gift category",
         "tags": [
           "04 Gifts - Categories"
         ],
@@ -20931,6 +20911,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with gifts.update"
       },
       "delete": {
+        "description": "Access: SUPER_ADMIN or ADMIN with gifts.delete. SUPER_ADMIN or ADMIN with gifts.delete permission. Permanently deletes the gift record.",
         "operationId": "GiftsController_delete",
         "parameters": [
           {
@@ -20952,13 +20933,12 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete gift",
+        "summary": "Delete gift",
         "tags": [
           "04 Gifts - Management"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.delete",
-        "x-access": "SUPER_ADMIN or ADMIN with gifts.delete",
-        "description": "Access: SUPER_ADMIN or ADMIN with gifts.delete. SUPER_ADMIN or ADMIN with gifts.delete permission."
+        "x-access": "SUPER_ADMIN or ADMIN with gifts.delete"
       }
     },
     "/api/v1/gifts/{id}/status": {
@@ -23952,7 +23932,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.update"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Historical moderation logs remain intact.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Permanently deletes the rule record.",
         "operationId": "SocialReportingRulesController_remove",
         "parameters": [
           {
@@ -23974,7 +23954,7 @@
             "bearer": []
           }
         ],
-        "summary": "Soft-delete social reporting rule",
+        "summary": "Delete social reporting rule",
         "tags": [
           "02 Admin - Social Reporting Rules"
         ],
@@ -26384,23 +26364,6 @@
           "isActive"
         ]
       },
-      "PermanentlyDeleteAdminDto": {
-        "type": "object",
-        "properties": {
-          "confirmation": {
-            "type": "string",
-            "example": "PERMANENTLY_DELETE_ADMIN"
-          },
-          "reason": {
-            "type": "string",
-            "example": "Staff account removed."
-          }
-        },
-        "required": [
-          "confirmation",
-          "reason"
-        ]
-      },
       "ResetAdminPasswordDto": {
         "type": "object",
         "properties": {
@@ -26932,28 +26895,6 @@
         },
         "required": [
           "action"
-        ]
-      },
-      "PermanentlyDeleteProviderDto": {
-        "type": "object",
-        "properties": {
-          "confirmation": {
-            "type": "string",
-            "example": "PERMANENTLY_DELETE_PROVIDER"
-          },
-          "reason": {
-            "type": "string",
-            "example": "Provider account removed by Super Admin."
-          },
-          "deleteRelatedRecords": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          }
-        },
-        "required": [
-          "confirmation",
-          "reason"
         ]
       },
       "MessageProviderDto": {

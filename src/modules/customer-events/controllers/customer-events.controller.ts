@@ -77,6 +77,6 @@ export class CustomerEventsController {
 
   @Delete(':id')
   @ApiTags('05 Customer - Events')
-  @ApiOperation({ summary: 'Soft-delete customer event', description: 'REGISTERED_USER only. Soft deletes only own event and cancels pending reminder jobs.' })
+  @ApiOperation({ summary: 'Delete customer event', description: 'REGISTERED_USER only. Permanently deletes only own event and cancels pending reminder jobs.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.events.delete(user, id); }
 }

@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 09:51 UTC
+Generated: 2026-05-18 10:10 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -705,10 +705,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Request payload(s):
   - payload:
 ```json
-{
-  "confirmation": "PERMANENTLY_DELETE_ADMIN",
-  "reason": "Staff account removed."
-}
+"<standard success envelope>"
 ```
 - Response body:
 ```json
@@ -1387,11 +1384,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Request payload(s):
   - payload:
 ```json
-{
-  "confirmation": "PERMANENTLY_DELETE_PROVIDER",
-  "reason": "Provider account removed by Super Admin.",
-  "deleteRelatedRecords": true
-}
+"<standard success envelope>"
 ```
 - Response body:
 ```json
@@ -1628,9 +1621,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/provider-business-categories/{id}`
 
-- Summary: Soft-delete provider business category
+- Summary: Delete provider business category
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerBusinessCategories.delete
-- Notes: Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.delete. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerBusinessCategories.delete. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Permanently deletes the category; refuses deletion when active providers are attached.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -2171,7 +2164,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Delete commission tier
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Soft-delete only; historical payouts remain unchanged. SUPER_ADMIN or ADMIN with payoutSettings.update. Soft-deletes a tier for future calculations only; historical payouts remain unchanged.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record. SUPER_ADMIN or ADMIN with payoutSettings.update. Permanently deletes the tier record.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -3462,9 +3455,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/admin/social-reporting-rules/{id}`
 
-- Summary: Soft-delete social reporting rule
+- Summary: Delete social reporting rule
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.delete
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Historical moderation logs remain intact.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Permanently deletes the rule record.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -6471,9 +6464,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/provider/inventory/{id}`
 
-- Summary: Soft-delete own inventory item
+- Summary: Delete own inventory item
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Permanently deletes the provider inventory item.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7079,9 +7072,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/provider/payout-methods/{id}`
 
-- Summary: Soft delete own provider payout method
+- Summary: Delete own provider payout method
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Blocks deletion when pending provider payout adjustments exist.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Permanently deletes the payout method and blocks deletion when pending provider payout adjustments exist.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7604,9 +7597,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/gift-categories/{id}`
 
-- Summary: Soft-delete gift category
+- Summary: Delete gift category
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftCategories.delete
-- Notes: Access: SUPER_ADMIN or ADMIN with giftCategories.delete. SUPER_ADMIN or ADMIN with giftCategories.delete permission. RBAC permission: giftCategories.delete. Categories with attached gifts cannot be deleted; delete writes an audit log.
+- Notes: Access: SUPER_ADMIN or ADMIN with giftCategories.delete. SUPER_ADMIN or ADMIN with giftCategories.delete permission. RBAC permission: giftCategories.delete. Permanently deletes the category. Categories with attached gifts cannot be deleted; delete writes an audit log.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7856,9 +7849,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/gifts/{id}`
 
-- Summary: Soft-delete gift
+- Summary: Delete gift
 - Allowed role/access: SUPER_ADMIN or ADMIN with gifts.delete
-- Notes: Access: SUPER_ADMIN or ADMIN with gifts.delete. SUPER_ADMIN or ADMIN with gifts.delete permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with gifts.delete. SUPER_ADMIN or ADMIN with gifts.delete permission. Permanently deletes the gift record.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -8508,9 +8501,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/customer/contacts/{id}`
 
-- Summary: Soft-delete customer contact
+- Summary: Delete customer contact
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Soft deletes only contacts owned by the authenticated customer.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes only contacts owned by the authenticated customer.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -8721,9 +8714,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/customer/events/{id}`
 
-- Summary: Soft-delete customer event
+- Summary: Delete customer event
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Soft deletes only own event and cancels pending reminder jobs.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes only own event and cancels pending reminder jobs.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -9251,9 +9244,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### DELETE `/api/v1/customer/reviews/{id}`
 
-- Summary: Soft-delete own review
+- Summary: Delete own review
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Does not physically delete provider response.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Permanently deletes the customer review record.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):

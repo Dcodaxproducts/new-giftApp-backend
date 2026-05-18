@@ -8,7 +8,6 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import {
   CreateAdminDto,
   ListAdminsDto,
-  PermanentlyDeleteAdminDto,
   ResetAdminPasswordDto,
   UpdateAdminActiveStatusDto,
   UpdateAdminDto,
@@ -90,9 +89,8 @@ export class AdminManagementController {
   permanentlyDelete(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,
-    @Body() dto: PermanentlyDeleteAdminDto,
   ) {
-    return this.adminManagementService.permanentlyDelete(user, id, dto);
+    return this.adminManagementService.permanentlyDelete(user, id);
   }
 
   @Patch(':id/password')

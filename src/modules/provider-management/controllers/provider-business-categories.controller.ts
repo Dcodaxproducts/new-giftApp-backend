@@ -56,7 +56,7 @@ export class ProviderBusinessCategoriesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('providerBusinessCategories.delete')
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Soft delete only; refuses deletion when active providers are attached.' })
+  @ApiOperation({ summary: 'Delete provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Permanently deletes the category; refuses deletion when active providers are attached.' })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
     return this.service.delete(user, id);
   }

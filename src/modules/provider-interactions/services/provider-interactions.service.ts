@@ -125,7 +125,7 @@ export class ProviderInteractionsService {
     await this.getOwnedReview(user.uid, reviewId);
     const response = await this.reviewResponsesRepository.findReviewResponseForProvider({ where: { reviewId, providerId: user.uid, deletedAt: null } });
     if (!response) throw new NotFoundException('Review response not found');
-    await this.reviewResponsesRepository.softDeleteReviewResponse(response.id);
+    await this.reviewResponsesRepository.deleteReviewResponse(response.id);
     return { data: null, message: 'Review response deleted successfully.' };
   }
 

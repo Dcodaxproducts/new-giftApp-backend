@@ -68,9 +68,8 @@ export class AdminPayoutSettingsService {
   async deleteTier(user: AuthUserContext, id: string, ipAddress?: string, userAgent?: string | string[]) {
     const current = await this.getTier(id);
     const before = this.toTierAuditView(current);
-    const deleted = await this.commissionTiersRepository.deleteTier(id, user.uid);
-    const after = this.toTierAuditView(deleted);
-    await this.writeAudit(user, id, 'COMMISSION_TIER_DELETED', 'COMMISSION_TIER', before, after, ipAddress, userAgent);
+    const deleted = await this.commissionTiersRepository.deleteTier(id);
+    await this.writeAudit(user, id, 'COMMISSION_TIER_DELETED', 'COMMISSION_TIER', before, null, ipAddress, userAgent);
     return { data: { id: deleted.id, deleted: true }, message: 'Commission tier deleted successfully.' };
   }
 

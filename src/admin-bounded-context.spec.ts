@@ -6,7 +6,7 @@ describe('admin bounded-context source ownership', () => {
 
     expect(source).toContain('export class CreateAdminDto');
     expect(source).toContain('export class ListAdminsDto');
-    expect(source).toContain('export class PermanentlyDeleteAdminDto');
+    expect(source).not.toContain('export class PermanentlyDeleteAdminDto');
     expect(source).not.toContain('CreateAdminRoleDto');
     expect(source).not.toContain("from '../../auth/dto/admin-management.dto'");
   });

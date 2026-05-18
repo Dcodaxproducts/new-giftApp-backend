@@ -25,7 +25,6 @@ import {
   ListProviderItemsDto,
   ListProvidersDto,
   MessageProviderDto,
-  PermanentlyDeleteProviderDto,
   ProviderLookupDto,
   UpdateProviderDto,
   UpdateProviderStatusDto,
@@ -184,9 +183,8 @@ export class ProviderManagementController {
   permanentlyDelete(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,
-    @Body() dto: PermanentlyDeleteProviderDto,
   ): Promise<unknown> {
-    return this.providerManagementService.permanentlyDelete(user, id, dto);
+    return this.providerManagementService.permanentlyDelete(user, id);
   }
 
   @Get(':id/items')

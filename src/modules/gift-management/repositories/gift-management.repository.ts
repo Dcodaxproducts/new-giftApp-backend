@@ -38,7 +38,7 @@ export class GiftManagementRepository {
 
   updateGiftCategory(id: string, data: GiftCategoryUpdateData) { return this.prisma.giftCategory.update({ where: { id }, data }); }
 
-  softDeleteGiftCategory(id: string) { return this.prisma.giftCategory.delete({ where: { id } }); }
+  deleteGiftCategory(id: string) { return this.prisma.giftCategory.delete({ where: { id } }); }
 
   countGiftsByCategory(categoryId: string) { return this.prisma.gift.count({ where: { categoryId, deletedAt: null } }); }
 
@@ -86,7 +86,7 @@ export class GiftManagementRepository {
 
   updateGiftWithVariants(id: string, data: GiftUpdateData) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
 
-  softDeleteGift(id: string) { return this.prisma.gift.delete({ where: { id } }); }
+  deleteGift(id: string) { return this.prisma.gift.delete({ where: { id } }); }
 
   updateGiftStatus(id: string, data: Prisma.GiftUncheckedUpdateInput) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
 

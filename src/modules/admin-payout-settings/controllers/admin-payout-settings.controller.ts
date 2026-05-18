@@ -54,7 +54,7 @@ export class AdminPayoutSettingsController {
 
   @Delete('commission-tiers/:id')
   @Permissions('payoutSettings.update')
-  @ApiOperation({ summary: 'Delete commission tier', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update. Soft-deletes a tier for future calculations only; historical payouts remain unchanged.' })
+  @ApiOperation({ summary: 'Delete commission tier', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update. Permanently deletes the tier record.' })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'tier_gold', deleted: true }, message: 'Commission tier deleted successfully.' } } })
   deleteTier(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Req() request: Request) { return this.payoutSettings.deleteTier(user, id, request.ip, request.headers['user-agent']); }
 

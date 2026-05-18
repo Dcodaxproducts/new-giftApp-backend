@@ -51,7 +51,7 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(repository).toContain('createItemWithVariants');
     expect(repository).toContain('updateItemWithVariants');
     expect(repository).toContain('updateAvailability');
-    expect(repository).toContain('softDeleteItem');
+    expect(repository).toContain('deleteItem');
     expect(repository).toContain('this.prisma.gift.create');
     expect(repository).toContain('this.prisma.gift.update');
     expect(repository).toContain('this.prisma.gift.delete');

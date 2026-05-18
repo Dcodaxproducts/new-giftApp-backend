@@ -406,17 +406,12 @@ describe('ProviderManagementService', () => {
     expect(controller).toContain('Permanently delete provider');
     expect(controller).toContain('DANGER:');
 
-    await expect(service.permanentlyDelete(
-      { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
-      'provider_1',
-      { confirmation: 'WRONG', reason: 'Provider account removed by Super Admin.' },
-    )).rejects.toThrow(BadRequestException);
+    expect(controller).not.toContain('@Body() dto: PermanentlyDeleteProviderDto');
 
     prisma.providerOrder.count.mockResolvedValueOnce(1);
     await expect(service.permanentlyDelete(
       { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
       'provider_1',
-      { confirmation: 'PERMANENTLY_DELETE_PROVIDER', reason: 'Provider account removed by Super Admin.' },
     )).rejects.toThrow('Provider has active processing orders and cannot be permanently deleted');
   });
 
@@ -426,7 +421,6 @@ describe('ProviderManagementService', () => {
     await service.permanentlyDelete(
       { uid: 'super_admin_1', role: UserRole.SUPER_ADMIN },
       'provider_1',
-      { confirmation: 'PERMANENTLY_DELETE_PROVIDER', reason: 'Provider account removed by Super Admin.', deleteRelatedRecords: true },
     );
 
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_PERMANENTLY_DELETED' }) }));

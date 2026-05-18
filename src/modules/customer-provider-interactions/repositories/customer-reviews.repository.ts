@@ -67,8 +67,8 @@ export class CustomerReviewsRepository {
     return this.prisma.review.update({ where: { id }, data });
   }
 
-  softDeleteReview(id: string) {
-    return this.prisma.review.update({ where: { id }, data: { deletedAt: new Date() } });
+  deleteReview(id: string) {
+    return this.prisma.review.delete({ where: { id } });
   }
 
   createReviewNotification(data: CreateReviewNotificationData) {

@@ -9,6 +9,7 @@ describe('AdminManagementController danger delete', () => {
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(controller).toContain('Permanently delete admin staff user');
     expect(controller).toContain('DANGER:');
-    expect(controller).toContain('permanentlyDelete(user, id, dto)');
+    expect(controller).toContain('permanentlyDelete(user, id)');
+    expect(controller).not.toContain('@Body() dto: PermanentlyDeleteAdminDto');
   });
 });
