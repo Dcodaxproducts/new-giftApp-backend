@@ -7,6 +7,7 @@ import { CustomerProviderInteractionsService } from './services/customer-provide
 import { CustomerProviderReportsRepository } from './repositories/customer-provider-reports.repository';
 import { CustomerReviewsRepository } from './repositories/customer-reviews.repository';
 import { MessageModerationModule } from '../message-moderation/message-moderation.module';
+import { MessagingSettingsModule } from '../messaging-settings/messaging-settings.module';
 
-@Module({ imports: [DatabaseModule, MessageModerationModule], controllers: [CustomerProviderInteractionsController], providers: [CustomerProviderInteractionsService, CustomerChatsRepository, CustomerProviderInteractionsRepository, CustomerProviderReportsRepository, CustomerReviewsRepository], exports: [CustomerProviderInteractionsService] })
+@Module({ imports: [DatabaseModule, MessageModerationModule, MessagingSettingsModule], controllers: [CustomerProviderInteractionsController], providers: [CustomerProviderInteractionsService, CustomerChatsRepository, CustomerProviderInteractionsRepository, CustomerProviderReportsRepository, CustomerReviewsRepository], exports: [CustomerProviderInteractionsService] })
 export class CustomerProviderInteractionsModule {}

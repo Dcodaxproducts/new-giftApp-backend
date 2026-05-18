@@ -5,7 +5,7 @@ import { BlockMessageDto, DismissFlagDto, InternalNoteDto, ListMessageModeration
 import { MessageModerationRepository } from '../repositories/message-moderation.repository';
 import { MessageModerationScanner } from './message-moderation-scanner.service';
 
-type SourceMessageInput = { source: MessageModerationSource; conversationId: string; messageId: string; participantId: string; participantRole: string; participantName?: string | null; participantAvatarUrl?: string | null; externalReference?: string | null; senderId: string; senderRole: string; body?: string | null; createdAt?: Date };
+type SourceMessageInput = { source: MessageModerationSource; conversationId: string; messageId: string; participantId: string; participantRole: string; participantName?: string | null; participantAvatarUrl?: string | null; externalReference?: string | null; senderId: string; senderRole: string; body?: string | null; createdAt?: Date; moderationHint?: { isFlagged: boolean; flagTypes: MessageModerationFlagType[]; severity: MessageModerationSeverity; confidence: number; redactedBody: string; keywords: string[] } };
 type CaseWithLogs = MessageModerationCase & { logs?: MessageModerationLog[] };
 type ActionMetadata = { notifyUser?: boolean; warningMessage?: string; duration?: string; suspendUntil?: string };
 
@@ -14,7 +14,8 @@ export class MessageModerationService {
   constructor(private readonly repository: MessageModerationRepository, private readonly scanner: MessageModerationScanner) {}
 
   async scanCreatedMessage(input: SourceMessageInput) {
-    const scan = this.scanner.scanMessage({ body: input.body });
+    const baseScan = this.scanner.scanMessage({ body: input.body });
+    const scan = input.moderationHint?.isFlagged ? this.mergeScan(baseScan, input.moderationHint) : baseScan;
     if (!scan.isFlagged) return { flagged: false };
     const createdAt = input.createdAt ?? new Date();
     const moderationCase = await this.repository.upsertFlaggedCase({
@@ -90,6 +91,7 @@ export class MessageModerationService {
   private isSeverity(value?: MessageModerationSeverity | ModerationAll): value is MessageModerationSeverity { return !!value && value !== ModerationAll.ALL; }
   private isFlagType(value?: MessageModerationFlagType | ModerationAll): value is MessageModerationFlagType { return !!value && value !== ModerationAll.ALL; }
   private scanMetadata(scan: { isFlagged: boolean; flagTypes: MessageModerationFlagType[]; severity: MessageModerationSeverity; confidence: number; redactedBody: string; keywords: string[] }): Prisma.InputJsonObject { return { isFlagged: scan.isFlagged, flagTypes: scan.flagTypes, severity: scan.severity, confidence: scan.confidence, redactedBody: scan.redactedBody, keywords: scan.keywords }; }
+  private mergeScan(base: { isFlagged: boolean; flagTypes: MessageModerationFlagType[]; severity: MessageModerationSeverity; confidence: number; redactedBody: string; keywords: string[] }, hint: { isFlagged: boolean; flagTypes: MessageModerationFlagType[]; severity: MessageModerationSeverity; confidence: number; redactedBody: string; keywords: string[] }) { const flagTypes = [...new Set([...base.flagTypes, ...hint.flagTypes])]; const keywords = [...new Set([...base.keywords, ...hint.keywords])]; return { isFlagged: base.isFlagged || hint.isFlagged, flagTypes, severity: hint.severity, confidence: Math.max(base.confidence, hint.confidence), redactedBody: hint.redactedBody || base.redactedBody, keywords }; }
   private actionMetadata(metadata: ActionMetadata): Prisma.InputJsonObject { return { notifyUser: metadata.notifyUser ?? false, warningMessage: metadata.warningMessage ?? null, duration: metadata.duration ?? null, suspendUntil: metadata.suspendUntil ?? null }; }
   private timeAgo(date: Date) { const minutes = Math.max(0, Math.round((Date.now() - new Date(date).getTime()) / 60000)); if (minutes < 1) return 'now'; if (minutes < 60) return `${minutes}m ago`; const hours = Math.round(minutes / 60); return hours < 24 ? `${hours}h ago` : `${Math.round(hours / 24)}d ago`; }
 

@@ -10,6 +10,7 @@ import { SupportChatService } from '../support-chat/services/support-chat.servic
 import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
 import { ChatGateway } from './chat.gateway';
 import { ChatPresenceService } from './chat-presence.service';
+import { MessagingPolicyService } from '../messaging-settings/services/messaging-policy.service';
 
 type EmittedEvent = { event: string; payload: unknown };
 type RoomEvent = { room: string; event: string; payload: unknown };
@@ -58,6 +59,7 @@ function createGateway(user?: AuthUserContext) {
 
   const presence = new ChatPresenceService();
   const notificationDispatch = { createAndEmit: jest.fn().mockResolvedValue({ id: 'notification_1' }) };
+  const messagingPolicy = { offlineNotificationDelaySeconds: jest.fn().mockResolvedValue(10) };
   const gateway = new ChatGateway(
     { verifyAsync } as unknown as JwtService,
     { get: jest.fn().mockReturnValue('secret') } as unknown as ConfigService,
@@ -66,6 +68,7 @@ function createGateway(user?: AuthUserContext) {
     support as unknown as SupportChatService,
     presence,
     notificationDispatch as unknown as NotificationDispatchService,
+    messagingPolicy as unknown as MessagingPolicyService,
   );
   const serverRoomEmit = jest.fn();
   const serverEmit = jest.fn();
@@ -75,7 +78,7 @@ function createGateway(user?: AuthUserContext) {
     },
   }));
   gateway.server = { to: serverTo, emit: serverEmit } as unknown as Server;
-  return { gateway, verifyAsync, customer, provider, support, presence, notificationDispatch, serverTo, serverRoomEmit, serverEmit };
+  return { gateway, verifyAsync, customer, provider, support, presence, notificationDispatch, messagingPolicy, serverTo, serverRoomEmit, serverEmit };
 }
 
 function createSocket(): MockSocketBundle {

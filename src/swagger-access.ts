@@ -172,6 +172,9 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/guest-access-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.' },
   'PATCH /api/v1/admin/guest-access-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.update', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.update permission.' },
   'GET /api/v1/admin/guest-access-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.' },
+  'GET /api/v1/admin/messaging-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with messagingSettings.read', description: 'SUPER_ADMIN or ADMIN with messagingSettings.read permission.' },
+  'PATCH /api/v1/admin/messaging-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with messagingSettings.update', description: 'SUPER_ADMIN or ADMIN with messagingSettings.update permission. Settings apply to future messages only.' },
+  'GET /api/v1/admin/messaging-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with messagingSettings.read', description: 'SUPER_ADMIN or ADMIN with messagingSettings.read permission.' },
 
   'GET /api/v1/admin/provider-payouts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },
   'GET /api/v1/admin/provider-payouts/trends': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },

@@ -18,6 +18,7 @@ import { ProviderInteractionsService } from '../provider-interactions/services/p
 import { SupportChatService } from '../support-chat/services/support-chat.service';
 import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
 import { ChatPresenceService } from './chat-presence.service';
+import { MessagingPolicyService } from '../messaging-settings/services/messaging-policy.service';
 
 interface ThreadPayload { threadId?: string }
 interface SupportPayload { supportChatId?: string }
@@ -45,6 +46,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly supportChats: SupportChatService,
     private readonly presence: ChatPresenceService,
     private readonly notificationDispatch: NotificationDispatchService,
+    private readonly messagingPolicy: MessagingPolicyService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -244,12 +246,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const recipientId = sender.role === UserRole.REGISTERED_USER ? context.providerId : context.customerId;
     const recipientType = sender.role === UserRole.REGISTERED_USER ? NotificationRecipientType.PROVIDER : NotificationRecipientType.REGISTERED_USER;
     if (!recipientId || this.presence.isOnline(recipientId)) return;
-    await this.notificationDispatch.createAndEmit({ recipientId, recipientType, title: 'New chat message', message, type: 'CHAT_MESSAGE', metadataJson: { threadId: context.threadId, orderId: context.orderId, providerOrderId: context.providerOrderId } });
+    const delaySeconds = await this.messagingPolicy.offlineNotificationDelaySeconds();
+    await this.notificationDispatch.createAndEmit({ recipientId, recipientType, title: 'New chat message', message, type: 'CHAT_MESSAGE', metadataJson: { threadId: context.threadId, orderId: context.orderId, providerOrderId: context.providerOrderId, offlineNotificationDelaySeconds: delaySeconds } });
   }
 
   private async notifyOfflineSupportParticipant(context: SupportThreadContext, message: string): Promise<void> {
     if (!context.participantId || !context.participantType || this.presence.isOnline(context.participantId)) return;
-    await this.notificationDispatch.createAndEmit({ recipientId: context.participantId, recipientType: context.participantType === SupportChatParticipantType.PROVIDER ? NotificationRecipientType.PROVIDER : NotificationRecipientType.REGISTERED_USER, title: 'New support message', message, type: 'SUPPORT_CHAT', metadataJson: { supportChatId: context.supportChatId } });
+    const delaySeconds = await this.messagingPolicy.offlineNotificationDelaySeconds();
+    await this.notificationDispatch.createAndEmit({ recipientId: context.participantId, recipientType: context.participantType === SupportChatParticipantType.PROVIDER ? NotificationRecipientType.PROVIDER : NotificationRecipientType.REGISTERED_USER, title: 'New support message', message, type: 'SUPPORT_CHAT', metadataJson: { supportChatId: context.supportChatId, offlineNotificationDelaySeconds: delaySeconds } });
   }
 
   private requireUser(client: Socket): AuthUserContext {

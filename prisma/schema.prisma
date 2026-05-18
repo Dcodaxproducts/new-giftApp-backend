@@ -1006,6 +1006,7 @@ model User {
   updatedPayoutSettings              AdminPayoutSettings[]              @relation("AdminPayoutSettingsUpdater")
   updatedSystemSettings              SystemSettings[]                   @relation("SystemSettingsUpdater")
   updatedGuestAccessSettings         GuestAccessSettings[]              @relation("GuestAccessSettingsUpdater")
+  updatedMessagingSettings           MessagingSettings[]                @relation("MessagingSettingsUpdater")
   updatedCommissionTiers             CommissionTier[]                    @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
@@ -2713,6 +2714,30 @@ model GuestAccessSettings {
   updatedBy User? @relation("GuestAccessSettingsUpdater", fields: [updatedById], references: [id])
 
   @@map("guest_access_settings")
+}
+
+model MessagingSettings {
+  id                              String   @id @default(cuid())
+  buyerProviderChatEnabled        Boolean  @default(true) @map("buyer_provider_chat_enabled")
+  supportChatEnabled              Boolean  @default(true) @map("support_chat_enabled")
+  messageRetentionDays            Int      @default(365) @map("message_retention_days")
+  maxMessageLength                Int      @default(2000) @map("max_message_length")
+  maxAttachmentsPerMessage        Int      @default(5) @map("max_attachments_per_message")
+  allowedAttachmentTypesJson      Json     @default("[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"mp4\"]") @map("allowed_attachment_types_json")
+  profanityFilterEnabled          Boolean  @default(true) @map("profanity_filter_enabled")
+  piiFilterEnabled                Boolean  @default(true) @map("pii_filter_enabled")
+  autoFlagEnabled                 Boolean  @default(true) @map("auto_flag_enabled")
+  autoFlagKeywordsJson            Json     @default("[\"refund outside platform\",\"bank account\",\"whatsapp me\"]") @map("auto_flag_keywords_json")
+  offlineNotificationDelaySeconds Int      @default(10) @map("offline_notification_delay_seconds")
+  messageEditWindowMinutes        Int      @default(0) @map("message_edit_window_minutes")
+  updatedById                     String?  @map("updated_by_id")
+  createdAt                       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("MessagingSettingsUpdater", fields: [updatedById], references: [id])
+
+  @@index([updatedById])
+  @@map("messaging_settings")
 }
 
 model GuestSession {

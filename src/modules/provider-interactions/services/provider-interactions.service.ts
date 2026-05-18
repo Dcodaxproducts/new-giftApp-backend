@@ -7,6 +7,8 @@ import { ProviderReviewResponsesRepository } from '../repositories/provider-revi
 import { ProviderReviewsRepository } from '../repositories/provider-reviews.repository';
 import { GetProviderOrderChatDto, ListProviderChatsDto, ListProviderReviewsDto, ProviderChatDetailsDto, ProviderReviewSortBy, SendProviderChatMessageDto, SortOrder, ReviewResponseDto } from '../dto/provider-interactions.dto';
 import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
+import { MessageContentFilterService } from '../../messaging-settings/services/message-content-filter.service';
+import { MessagingPolicyService } from '../../messaging-settings/services/messaging-policy.service';
 
 type CustomerView = { id: string; firstName: string; lastName: string; avatarUrl: string | null; isActive?: boolean };
 type ThreadView = { id: string; orderId: string; providerOrderId: string; customerId: string; order: { id: string; orderNumber: string; userId: string }; customer: CustomerView; lastMessage: { body: string | null; createdAt: Date } | null };
@@ -20,6 +22,8 @@ export class ProviderInteractionsService {
     private readonly reviewsRepository: ProviderReviewsRepository,
     private readonly reviewResponsesRepository: ProviderReviewResponsesRepository,
     private readonly messageModerationService?: MessageModerationService,
+    private readonly messagingPolicy?: MessagingPolicyService,
+    private readonly messageContentFilter?: MessageContentFilterService,
   ) {}
 
   async getOrderChat(user: AuthUserContext, providerOrderId: string, query: GetProviderOrderChatDto) {
@@ -59,10 +63,12 @@ export class ProviderInteractionsService {
   async sendMessage(user: AuthUserContext, threadId: string, dto: SendProviderChatMessageDto) {
     const thread = await this.getOwnedThread(user.uid, threadId);
     this.assertMessagePayload(dto);
+    await this.messagingPolicy?.assertCanSend({ channel: 'buyerProvider', body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
+    const moderationHint = await this.messageContentFilter?.filter(dto.body);
     await this.assertAttachments(dto.attachmentUrls ?? []);
     const message = await this.buyerChatRepository.createChatMessage({ threadId, senderId: user.uid, senderType: ChatSenderType.PROVIDER, clientMessageId: dto.clientMessageId, messageType: dto.messageType, body: dto.body, attachmentUrlsJson: dto.attachmentUrls ?? [], isReadByCustomer: false, isReadByProvider: true });
     await this.buyerChatRepository.updateThreadLastMessage(threadId, message.id);
-    await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.PROVIDER_BUYER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'PROVIDER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.PROVIDER, body: dto.body, createdAt: message.createdAt });
+    await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.PROVIDER_BUYER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'PROVIDER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.PROVIDER, body: dto.body, createdAt: message.createdAt, moderationHint });
     await this.buyerChatRepository.createCustomerNotification({ data: { recipientId: thread.customerId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'New provider message', message: dto.body ?? 'Provider sent an attachment.', type: 'CHAT_MESSAGE', metadataJson: { threadId, orderId: thread.orderId, providerOrderId: thread.providerOrderId } } } as unknown as Prisma.NotificationCreateInput);
     return { data: this.messageItem(message), message: 'Message sent successfully.' };
   }

@@ -306,8 +306,17 @@ export const PERMISSION_CATALOG = [
   },
 
   {
+    module: 'messagingSettings',
+    label: 'In-App Messaging Settings',
+    permissions: [
+      { key: 'read', label: 'View In-App Messaging Settings', description: 'View message retention, content filter, attachment, and offline notification settings.' },
+      { key: 'update', label: 'Update In-App Messaging Settings', description: 'Update message retention, content filter, attachment, and offline notification settings.' },
+    ],
+  },
+  {
     module: 'messageModeration',
     label: 'Message Moderation',
+
     permissions: [
       { key: 'read', label: 'View Message Moderation', description: 'View flagged message conversations, detail, history, stats, and filter options.' },
       { key: 'moderate', label: 'Reprocess Messages', description: 'Reprocess flagged messages through the moderation scanner.' },

@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 09:14 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 09:51 PKT.
 
 ## Frontend Integration Flows
 
@@ -89,6 +89,14 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 09:14 PKT.
 | GET | `/api/v1/admin/guest-access-settings` | Fetch guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings.read |
 | PATCH | `/api/v1/admin/guest-access-settings` | Update guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings.update |
 | GET | `/api/v1/admin/guest-access-settings/audit-logs` | List guest access settings audit logs | SUPER_ADMIN or ADMIN with guestAccessSettings.read |
+
+### Admin - In-App Messaging Settings (3 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/messaging-settings` | Fetch in-app messaging settings | SUPER_ADMIN or ADMIN with messagingSettings.read |
+| PATCH | `/api/v1/admin/messaging-settings` | Update in-app messaging settings | SUPER_ADMIN or ADMIN with messagingSettings.update |
+| GET | `/api/v1/admin/messaging-settings/audit-logs` | List in-app messaging settings audit logs | SUPER_ADMIN or ADMIN with messagingSettings.read |
 
 ### Admin - Media Upload Policy (3 APIs)
 

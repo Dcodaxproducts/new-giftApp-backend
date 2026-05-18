@@ -51,6 +51,11 @@ export class MediaUploadPolicyService {
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: `${item.actor.firstName} ${item.actor.lastName}`.trim() } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Media upload policy audit logs fetched successfully.' };
   }
 
+  async allowedExtensions(): Promise<Set<string>> {
+    const policy = this.toView(await this.getOrCreate());
+    return new Set(Object.entries(policy.allowedFileTypes).filter(([, allowed]) => allowed).map(([extension]) => extension));
+  }
+
   async assertUploadAllowed(dto: CreatePresignedUploadDto): Promise<void> {
     const policy = this.toView(await this.getOrCreate());
     const extension = this.extension(dto.fileName);

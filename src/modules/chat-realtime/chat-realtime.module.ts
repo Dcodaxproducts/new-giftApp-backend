@@ -4,11 +4,12 @@ import { CustomerProviderInteractionsModule } from '../customer-provider-interac
 import { ProviderInteractionsModule } from '../provider-interactions/provider-interactions.module';
 import { SupportChatModule } from '../support-chat/support-chat.module';
 import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
+import { MessagingSettingsModule } from '../messaging-settings/messaging-settings.module';
 import { ChatGateway } from './chat.gateway';
 import { ChatPresenceService } from './chat-presence.service';
 
 @Module({
-  imports: [JwtAuthModule, CustomerProviderInteractionsModule, ProviderInteractionsModule, SupportChatModule, BroadcastNotificationsModule],
+  imports: [JwtAuthModule, CustomerProviderInteractionsModule, ProviderInteractionsModule, SupportChatModule, BroadcastNotificationsModule, MessagingSettingsModule],
   providers: [ChatGateway, ChatPresenceService],
 })
 export class ChatRealtimeModule {}
