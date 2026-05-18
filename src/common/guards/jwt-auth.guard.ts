@@ -9,6 +9,8 @@ import { JwtAuthRepository } from '../repositories/jwt-auth.repository';
 interface JwtPayload extends AuthUserContext {
   type?: string;
   permissions?: Prisma.JsonValue;
+  guestSessionId?: string;
+  capabilities?: string[];
 }
 
 @Injectable()
@@ -31,6 +33,13 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       });
+      if (payload.role === UserRole.GUEST_USER) {
+        const guestSession = await this.repository.findActiveGuestSessionForJwtGuard(payload.guestSessionId ?? payload.uid);
+        if (!guestSession) throw new UnauthorizedException('Guest session has expired');
+        request.user = { uid: guestSession.id, role: UserRole.GUEST_USER, guestSessionId: guestSession.id, capabilities: this.stringArray(guestSession.capabilitiesJson) };
+        return true;
+      }
+
       const user = await this.repository.findUserForJwtGuard(payload.uid);
 
       if (!user || user.deletedAt || !user.isActive) {
@@ -72,6 +81,10 @@ export class JwtAuthGuard implements CanActivate {
     if (!path.startsWith('/api/v1/provider/')) return false;
     if (path.startsWith('/api/v1/provider/business-info')) return false;
     return true;
+  }
+
+  private stringArray(value: Prisma.JsonValue): string[] {
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
   }
 
   private extractBearerToken(request: Request): string | null {

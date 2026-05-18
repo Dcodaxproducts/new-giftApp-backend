@@ -6,6 +6,8 @@ export interface AuthUserContext {
   role: UserRole;
   permissions?: Prisma.JsonValue;
   sessionId?: string;
+  guestSessionId?: string;
+  capabilities?: string[];
 }
 
 export const CurrentUser = createParamDecorator(

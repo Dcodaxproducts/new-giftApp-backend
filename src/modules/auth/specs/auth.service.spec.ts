@@ -413,9 +413,9 @@ describe('AuthService sensitive auth behavior', () => {
     expect(registerProviderCall[0].data.providerBusinessCategoryId).toBe('cat_1');
   });
 
-  it('guest session unchanged', () => {
+  it('guest session fallback remains server-issued', () => {
     const { service } = createSensitiveAuthService();
-    expect(service.createGuestSession({})).toEqual({ data: { role: 'GUEST_USER', capabilities: ['VIEW_ONBOARDING', 'EXPLORE_FEATURES'] }, message: 'Guest session initialized' });
+    expect(service.createGuestSession()).toEqual({ data: { role: 'GUEST_USER', capabilities: ['VIEW_ONBOARDING', 'EXPLORE_FEATURES'] }, message: 'Guest session initialized' });
   });
 
   it('auth core service no longer imports PrismaService or uses this.prisma', () => {

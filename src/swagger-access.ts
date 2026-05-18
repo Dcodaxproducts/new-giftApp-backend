@@ -62,6 +62,13 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'DELETE /api/v1/gift-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.delete', description: 'SUPER_ADMIN or ADMIN with giftCategories.delete permission.' },
   'GET /api/v1/gift-categories/lookup': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Active gift category lookup.' },
 
+  'GET /api/v1/customer/home': { allowedRoles: 'REGISTERED_USER or GUEST_USER', description: 'Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null.' },
+  'GET /api/v1/customer/categories': { allowedRoles: 'REGISTERED_USER or GUEST_USER', description: 'Active categories with visible gifts.' },
+  'GET /api/v1/customer/gifts': { allowedRoles: 'REGISTERED_USER or GUEST_USER', description: 'Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags.' },
+  'GET /api/v1/customer/gifts/discounted': { allowedRoles: 'REGISTERED_USER or GUEST_USER', description: 'Discounted guest-visible marketplace gifts.' },
+  'GET /api/v1/customer/gifts/filter-options': { allowedRoles: 'REGISTERED_USER or GUEST_USER', description: 'Filter options derived from guest-visible marketplace data.' },
+  'GET /api/v1/customer/gifts/{id}': { allowedRoles: 'REGISTERED_USER or GUEST_USER', description: 'Guest users do not receive SKU or exact stock unless enabled in guest settings.' },
+
   'POST /api/v1/gifts': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.create', description: 'SUPER_ADMIN or ADMIN with gifts.create permission.' },
   'GET /api/v1/gifts': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
   'GET /api/v1/gifts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
@@ -136,6 +143,9 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'POST /api/v1/admin/system-settings/logo': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only.' },
   'POST /api/v1/admin/system-settings/smtp/test': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets.' },
   'GET /api/v1/admin/system-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission.' },
+  'GET /api/v1/admin/guest-access-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.' },
+  'PATCH /api/v1/admin/guest-access-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.update', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.update permission.' },
+  'GET /api/v1/admin/guest-access-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.' },
 
   'GET /api/v1/admin/provider-payouts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },
   'GET /api/v1/admin/provider-payouts/trends': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerPayouts.read', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read permission.' },
@@ -305,6 +315,7 @@ export function getSwaggerAccessRule(method: string, path: string): SwaggerAcces
 
   return undefined;
 }
+
 
 export function applySwaggerAccessMetadata(document: OpenAPIObject): void {
   for (const [path, pathItem] of Object.entries(document.paths)) {

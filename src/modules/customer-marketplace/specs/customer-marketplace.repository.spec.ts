@@ -15,7 +15,7 @@ describe('Customer marketplace repository cleanup', () => {
     expect(controller).toContain("@Get('gifts/discounted')");
     expect(controller).toContain("@Get('gifts/filter-options')");
     expect(controller).toContain("@Get('gifts/:id')");
-    expect(controller).toContain("@ApiTags('05 Customer - Marketplace')");
+    expect(controller).toContain("@ApiTags('05 Customer / Guest - Marketplace')");
   });
 
   it('customer-marketplace.service.ts no longer imports PrismaService or uses this.prisma', () => {

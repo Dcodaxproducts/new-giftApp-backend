@@ -273,6 +273,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'guestAccessSettings',
+    label: 'Guest Access Settings',
+    permissions: [
+      { key: 'read', label: 'View Guest Access Settings', description: 'View guest marketplace access settings and audit logs.' },
+      { key: 'update', label: 'Update Guest Access Settings', description: 'Update guest marketplace access settings.' },
+    ],
+  },
+  {
     module: 'settings',
     label: 'Settings',
     permissions: [

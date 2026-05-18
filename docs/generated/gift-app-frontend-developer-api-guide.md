@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 05:00 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 05:30 PKT.
 
 ## Superadmin / Admin APIs
 
@@ -69,6 +69,14 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 05:00 PKT.
 | POST | `/api/v1/admin/disputes/{id}/follow-up-notes` | Add dispute follow-up note | SUPER_ADMIN or ADMIN with disputes |
 | GET | `/api/v1/admin/disputes/{id}/tracking-log` | Fetch full dispute tracking log | SUPER_ADMIN or ADMIN with disputes |
 | GET | `/api/v1/admin/disputes/{id}/tracking-log/export` | Export full dispute tracking log | SUPER_ADMIN or ADMIN with disputes |
+
+### Admin - Guest Access Settings (3 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/guest-access-settings` | Fetch guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings |
+| PATCH | `/api/v1/admin/guest-access-settings` | Update guest access settings | SUPER_ADMIN or ADMIN with guestAccessSettings |
+| GET | `/api/v1/admin/guest-access-settings/audit-logs` | List guest access settings audit logs | SUPER_ADMIN or ADMIN with guestAccessSettings |
 
 ### Admin - Media Upload Policy (3 APIs)
 
@@ -539,17 +547,6 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 05:00 PKT.
 | GET | `/api/v1/customer/events/{id}/reminder-settings` | Fetch event reminder settings | REGISTERED_USER |
 | PATCH | `/api/v1/customer/events/{id}/reminder-settings` | Update event reminder settings | REGISTERED_USER |
 
-### Customer - Marketplace (6 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/customer/categories` | List customer marketplace categories | REGISTERED_USER |
-| GET | `/api/v1/customer/gifts` | List customer marketplace gifts | REGISTERED_USER |
-| GET | `/api/v1/customer/gifts/discounted` | List discounted customer gifts | REGISTERED_USER |
-| GET | `/api/v1/customer/gifts/filter-options` | Fetch marketplace gift filter options | REGISTERED_USER |
-| GET | `/api/v1/customer/gifts/{id}` | Fetch customer-safe gift details | REGISTERED_USER |
-| GET | `/api/v1/customer/home` | Fetch customer app home | REGISTERED_USER |
-
 ### Customer - Orders (3 APIs)
 
 | Method | Endpoint | Purpose | Access |
@@ -659,6 +656,17 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 05:00 PKT.
 | GET | `/api/v1/customer/wishlist` | List wishlist gifts | REGISTERED_USER |
 | POST | `/api/v1/customer/wishlist/{giftId}` | Add gift to wishlist | REGISTERED_USER |
 | DELETE | `/api/v1/customer/wishlist/{giftId}` | Remove gift from wishlist | REGISTERED_USER |
+
+### Customer / Guest - Marketplace (6 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/customer/categories` | List customer marketplace categories | REGISTERED_USER or GUEST_USER |
+| GET | `/api/v1/customer/gifts` | List customer marketplace gifts | REGISTERED_USER or GUEST_USER |
+| GET | `/api/v1/customer/gifts/discounted` | List discounted customer gifts | REGISTERED_USER or GUEST_USER |
+| GET | `/api/v1/customer/gifts/filter-options` | Fetch marketplace gift filter options | REGISTERED_USER or GUEST_USER |
+| GET | `/api/v1/customer/gifts/{id}` | Fetch customer-safe gift details | REGISTERED_USER or GUEST_USER |
+| GET | `/api/v1/customer/home` | Fetch customer app home | REGISTERED_USER or GUEST_USER |
 
 ### Gifts - Categories (1 APIs)
 

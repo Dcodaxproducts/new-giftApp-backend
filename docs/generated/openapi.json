@@ -550,7 +550,8 @@
                 "SUPER_ADMIN",
                 "ADMIN",
                 "REGISTERED_USER",
-                "PROVIDER"
+                "PROVIDER",
+                "GUEST_USER"
               ]
             }
           },
@@ -652,7 +653,8 @@
                 "SUPER_ADMIN",
                 "ADMIN",
                 "REGISTERED_USER",
-                "PROVIDER"
+                "PROVIDER",
+                "GUEST_USER"
               ]
             }
           },
@@ -754,7 +756,8 @@
                 "SUPER_ADMIN",
                 "ADMIN",
                 "REGISTERED_USER",
-                "PROVIDER"
+                "PROVIDER",
+                "GUEST_USER"
               ]
             }
           },
@@ -1469,6 +1472,937 @@
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
+    "/api/v1/broadcasts": {
+      "post": {
+        "operationId": "BroadcastsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBroadcastDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Create Broadcasts",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.create",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.create",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission."
+      },
+      "get": {
+        "operationId": "BroadcastsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "DRAFT",
+                "SCHEDULED",
+                "PROCESSING",
+                "SENT",
+                "CANCELLED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "channel",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PUSH",
+                "IN_APP"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "NORMAL",
+                "HIGH",
+                "URGENT"
+              ]
+            }
+          },
+          {
+            "name": "createdFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scheduledFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scheduledTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "scheduledAt",
+                "title",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "List Broadcasts",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
+      }
+    },
+    "/api/v1/broadcasts/{id}": {
+      "get": {
+        "operationId": "BroadcastsController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Fetch Broadcasts details",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
+      },
+      "patch": {
+        "operationId": "BroadcastsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBroadcastDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Update Broadcasts",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
+      }
+    },
+    "/api/v1/broadcasts/{id}/targeting": {
+      "patch": {
+        "operationId": "BroadcastsController_targeting",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastTargetingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Update Broadcasts Targeting",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
+      }
+    },
+    "/api/v1/broadcasts/estimate-reach": {
+      "post": {
+        "operationId": "BroadcastsController_estimate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstimateReachDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Create Broadcasts Estimate Reach",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
+      }
+    },
+    "/api/v1/broadcasts/{id}/schedule": {
+      "patch": {
+        "operationId": "BroadcastsController_schedule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleBroadcastDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Update Broadcasts Schedule",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission."
+      }
+    },
+    "/api/v1/broadcasts/{id}/cancel": {
+      "post": {
+        "operationId": "BroadcastsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBroadcastDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Create Broadcasts Cancel",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission."
+      }
+    },
+    "/api/v1/broadcasts/{id}/report": {
+      "get": {
+        "operationId": "BroadcastsController_report",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Fetch Broadcasts Report details",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
+      }
+    },
+    "/api/v1/broadcasts/{id}/recipients": {
+      "get": {
+        "operationId": "BroadcastsController_recipients",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "channel",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PUSH",
+                "IN_APP"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "QUEUED",
+                "SENT",
+                "DELIVERED",
+                "FAILED",
+                "OPENED",
+                "CLICKED"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "06 Broadcast Notifications"
+        ],
+        "summary": "Fetch Broadcasts Recipients details",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.",
+        "operationId": "NotificationsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "UNREAD",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "UNREAD",
+                "BIRTHDAYS",
+                "DELIVERIES",
+                "NEW_CONTACTS"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ORDER",
+              "type": "string",
+              "enum": [
+                "BIRTHDAY_REMINDER",
+                "GIFT_DELIVERED",
+                "NEW_CONTACT_AVAILABLE",
+                "PROMOTIONAL",
+                "BROADCAST",
+                "SYSTEM",
+                "SECURITY",
+                "ORDER"
+              ]
+            }
+          },
+          {
+            "name": "isRead",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "groupByDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "notification_id",
+                        "title": "Payment successful",
+                        "message": "Your payment was completed successfully.",
+                        "type": "PAYMENT_SUCCEEDED",
+                        "isRead": false,
+                        "metadata": {
+                          "paymentId": "payment_id"
+                        },
+                        "createdAt": "2026-05-09T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Notifications fetched successfully"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List notifications",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/summary": {
+      "get": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.",
+        "operationId": "NotificationsController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Notification summary fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "total": 12,
+                      "unread": 3,
+                      "byType": {
+                        "PAYMENT_SUCCEEDED": 2,
+                        "RECURRING_PAYMENT_CHARGE_FAILED": 1,
+                        "BROADCAST": 9
+                      }
+                    },
+                    "message": "Notification summary fetched successfully"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch notification summary",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/preferences": {
+      "get": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.",
+        "operationId": "NotificationsController_preferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch notification preferences",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.",
+        "operationId": "NotificationsController_updatePreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update notification preferences",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "patch": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.",
+        "operationId": "NotificationsController_markAllRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark all own notifications as read",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "patch": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.",
+        "operationId": "NotificationsController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark notification as read",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/{id}/action": {
+      "post": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.",
+        "operationId": "NotificationsController_action",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationActionRequestDto"
+              },
+              "examples": {
+                "sendGift": {
+                  "value": {
+                    "action": "SEND_GIFT"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Process notification action",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/device-tokens": {
+      "post": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.",
+        "operationId": "NotificationsController_saveDeviceToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save device token",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/notifications/device-tokens/{id}": {
+      "delete": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.",
+        "operationId": "NotificationsController_deleteDeviceToken",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Disable device token",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
     "/api/v1/referral-settings": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.",
@@ -1682,6 +2616,83 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/admin/guest-access-settings": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.",
+        "operationId": "GuestAccessSettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch guest access settings",
+        "tags": [
+          "02 Admin - Guest Access Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with guestAccessSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. SUPER_ADMIN or ADMIN with guestAccessSettings.update. Creates audit logs.",
+        "operationId": "GuestAccessSettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGuestAccessSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update guest access settings",
+        "tags": [
+          "02 Admin - Guest Access Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with guestAccessSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.update"
+      }
+    },
+    "/api/v1/admin/guest-access-settings/audit-logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.",
+        "operationId": "GuestAccessSettingsController_auditLogs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List guest access settings audit logs",
+        "tags": [
+          "02 Admin - Guest Access Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with guestAccessSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.read"
       }
     },
     "/api/v1/admin/dashboard/overview": {
@@ -14656,7 +15667,7 @@
     },
     "/api/v1/customer/home": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns safe marketplace categories, discounted gifts, default address, and upcoming reminder.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null.",
         "operationId": "CustomerMarketplaceController_home",
         "parameters": [],
         "responses": {
@@ -14671,15 +15682,15 @@
         ],
         "summary": "Fetch customer app home",
         "tags": [
-          "05 Customer - Marketplace"
+          "05 Customer / Guest - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
+        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
+        "x-access": "REGISTERED_USER or GUEST_USER"
       }
     },
     "/api/v1/customer/categories": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have active, available, in-stock gifts from approved active providers.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Active categories with visible gifts. REGISTERED_USER or GUEST_USER. Returns active categories that have active, available, in-stock gifts from approved active providers.",
         "operationId": "CustomerMarketplaceController_categories",
         "parameters": [],
         "responses": {
@@ -14694,15 +15705,15 @@
         ],
         "summary": "List customer marketplace categories",
         "tags": [
-          "05 Customer - Marketplace"
+          "05 Customer / Guest - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
+        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
+        "x-access": "REGISTERED_USER or GUEST_USER"
       }
     },
     "/api/v1/customer/gifts/discounted": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Reuses marketplace gift filters with offerOnly=true.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Discounted guest-visible marketplace gifts. REGISTERED_USER or GUEST_USER. Reuses marketplace gift filters with offerOnly=true.",
         "operationId": "CustomerMarketplaceController_discountedGifts",
         "parameters": [
           {
@@ -14848,15 +15859,15 @@
         ],
         "summary": "List discounted customer gifts",
         "tags": [
-          "05 Customer - Marketplace"
+          "05 Customer / Guest - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
+        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
+        "x-access": "REGISTERED_USER or GUEST_USER"
       }
     },
     "/api/v1/customer/gifts/filter-options": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Brands are derived from approved active provider business names.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Filter options derived from guest-visible marketplace data. REGISTERED_USER or GUEST_USER. Brands are derived from guest-visible marketplace data.",
         "operationId": "CustomerMarketplaceController_filterOptions",
         "parameters": [],
         "responses": {
@@ -14871,15 +15882,15 @@
         ],
         "summary": "Fetch marketplace gift filter options",
         "tags": [
-          "05 Customer - Marketplace"
+          "05 Customer / Guest - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
+        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
+        "x-access": "REGISTERED_USER or GUEST_USER"
       }
     },
     "/api/v1/customer/gifts": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active, available, in-stock gifts from approved active providers. Provider inventory does not require separate gift moderation approval. Active offers are calculated by the backend.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. Provider inventory does not require separate gift moderation approval.",
         "operationId": "CustomerMarketplaceController_gifts",
         "parameters": [
           {
@@ -15070,15 +16081,15 @@
         ],
         "summary": "List customer marketplace gifts",
         "tags": [
-          "05 Customer - Marketplace"
+          "05 Customer / Guest - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
+        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
+        "x-access": "REGISTERED_USER or GUEST_USER"
       }
     },
     "/api/v1/customer/gifts/{id}": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned. Provider inventory does not require separate gift moderation approval.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings. REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings.",
         "operationId": "CustomerMarketplaceController_giftDetails",
         "parameters": [
           {
@@ -15164,10 +16175,10 @@
         ],
         "summary": "Fetch customer-safe gift details",
         "tags": [
-          "05 Customer - Marketplace"
+          "05 Customer / Guest - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
+        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
+        "x-access": "REGISTERED_USER or GUEST_USER"
       }
     },
     "/api/v1/customer/wishlist": {
@@ -19362,937 +20373,6 @@
         "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission."
       }
     },
-    "/api/v1/broadcasts": {
-      "post": {
-        "operationId": "BroadcastsController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBroadcastDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Create Broadcasts",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.create",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.create",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission."
-      },
-      "get": {
-        "operationId": "BroadcastsController_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ALL",
-                "DRAFT",
-                "SCHEDULED",
-                "PROCESSING",
-                "SENT",
-                "CANCELLED",
-                "FAILED"
-              ]
-            }
-          },
-          {
-            "name": "channel",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          {
-            "name": "priority",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOW",
-                "NORMAL",
-                "HIGH",
-                "URGENT"
-              ]
-            }
-          },
-          {
-            "name": "createdFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "createdTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scheduledFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scheduledTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "scheduledAt",
-                "title",
-                "status"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "List Broadcasts",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}": {
-      "get": {
-        "operationId": "BroadcastsController_details",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Fetch Broadcasts details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
-      },
-      "patch": {
-        "operationId": "BroadcastsController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateBroadcastDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Update Broadcasts",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/targeting": {
-      "patch": {
-        "operationId": "BroadcastsController_targeting",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BroadcastTargetingDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Update Broadcasts Targeting",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
-      }
-    },
-    "/api/v1/broadcasts/estimate-reach": {
-      "post": {
-        "operationId": "BroadcastsController_estimate",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EstimateReachDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Create Broadcasts Estimate Reach",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/schedule": {
-      "patch": {
-        "operationId": "BroadcastsController_schedule",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScheduleBroadcastDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Update Broadcasts Schedule",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/cancel": {
-      "post": {
-        "operationId": "BroadcastsController_cancel",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelBroadcastDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Create Broadcasts Cancel",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/report": {
-      "get": {
-        "operationId": "BroadcastsController_report",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Fetch Broadcasts Report details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/recipients": {
-      "get": {
-        "operationId": "BroadcastsController_recipients",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "channel",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "QUEUED",
-                "SENT",
-                "DELIVERED",
-                "FAILED",
-                "OPENED",
-                "CLICKED"
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Fetch Broadcasts Recipients details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
-      }
-    },
-    "/api/v1/notifications": {
-      "get": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.",
-        "operationId": "NotificationsController_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "filter",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "UNREAD",
-              "type": "string",
-              "enum": [
-                "ALL",
-                "UNREAD",
-                "BIRTHDAYS",
-                "DELIVERIES",
-                "NEW_CONTACTS"
-              ]
-            }
-          },
-          {
-            "name": "type",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "ORDER",
-              "type": "string",
-              "enum": [
-                "BIRTHDAY_REMINDER",
-                "GIFT_DELIVERED",
-                "NEW_CONTACT_AVAILABLE",
-                "PROMOTIONAL",
-                "BROADCAST",
-                "SYSTEM",
-                "SECURITY",
-                "ORDER"
-              ]
-            }
-          },
-          {
-            "name": "isRead",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": false,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "groupByDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "DESC",
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Notifications fetched successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "notification_id",
-                        "title": "Payment successful",
-                        "message": "Your payment was completed successfully.",
-                        "type": "PAYMENT_SUCCEEDED",
-                        "isRead": false,
-                        "metadata": {
-                          "paymentId": "payment_id"
-                        },
-                        "createdAt": "2026-05-09T10:00:00.000Z"
-                      }
-                    ],
-                    "meta": {
-                      "page": 1,
-                      "limit": 20,
-                      "total": 1,
-                      "totalPages": 1
-                    },
-                    "message": "Notifications fetched successfully"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List notifications",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/summary": {
-      "get": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.",
-        "operationId": "NotificationsController_summary",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Notification summary fetched successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "total": 12,
-                      "unread": 3,
-                      "byType": {
-                        "PAYMENT_SUCCEEDED": 2,
-                        "RECURRING_PAYMENT_CHARGE_FAILED": 1,
-                        "BROADCAST": 9
-                      }
-                    },
-                    "message": "Notification summary fetched successfully"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch notification summary",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/preferences": {
-      "get": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.",
-        "operationId": "NotificationsController_preferences",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch notification preferences",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.",
-        "operationId": "NotificationsController_updatePreferences",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateNotificationPreferencesDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update notification preferences",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/read-all": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.",
-        "operationId": "NotificationsController_markAllRead",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark all own notifications as read",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/{id}/read": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.",
-        "operationId": "NotificationsController_markRead",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark notification as read",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/{id}/action": {
-      "post": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.",
-        "operationId": "NotificationsController_action",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NotificationActionRequestDto"
-              },
-              "examples": {
-                "sendGift": {
-                  "value": {
-                    "action": "SEND_GIFT"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Process notification action",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/device-tokens": {
-      "post": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.",
-        "operationId": "NotificationsController_saveDeviceToken",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeviceTokenDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Save device token",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
-    "/api/v1/notifications/device-tokens/{id}": {
-      "delete": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.",
-        "operationId": "NotificationsController_deleteDeviceToken",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Disable device token",
-        "tags": [
-          "06 Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
-        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
-      }
-    },
     "/api/v1/subscription-plans": {
       "get": {
         "operationId": "SubscriptionPlansController_list",
@@ -23952,6 +24032,9 @@
       "name": "02 Admin - System Settings"
     },
     {
+      "name": "02 Admin - Guest Access Settings"
+    },
+    {
       "name": "02 Admin - Support Chat"
     },
     {
@@ -24036,7 +24119,7 @@
       "name": "04 Gifts - Moderation"
     },
     {
-      "name": "05 Customer - Marketplace"
+      "name": "05 Customer / Guest - Marketplace"
     },
     {
       "name": "05 Customer - Wishlist"
@@ -24417,6 +24500,297 @@
           "ibanOrAccountNumber"
         ]
       },
+      "CreateBroadcastDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "ctaLabel": {
+            "type": "string"
+          },
+          "ctaUrl": {
+            "type": "string"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PUSH",
+                "IN_APP"
+              ]
+            }
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "URGENT"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "message",
+          "channels"
+        ]
+      },
+      "UpdateBroadcastDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "ctaLabel": {
+            "type": "string"
+          },
+          "ctaUrl": {
+            "type": "string"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PUSH",
+                "IN_APP"
+              ]
+            }
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "URGENT"
+            ]
+          }
+        }
+      },
+      "TargetingFiltersDto": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          },
+          "onlyVerifiedEmails": {
+            "type": "boolean"
+          },
+          "excludeUnsubscribed": {
+            "type": "boolean"
+          },
+          "excludeSuspended": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BroadcastTargetingDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ALL_USERS",
+              "SPECIFIC_ROLES",
+              "CUSTOM_SEGMENT"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "PROVIDER",
+                "REGISTERED_USER"
+              ]
+            }
+          },
+          "filters": {
+            "$ref": "#/components/schemas/TargetingFiltersDto"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "EstimateReachDto": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PUSH",
+                "IN_APP"
+              ]
+            }
+          },
+          "targeting": {
+            "$ref": "#/components/schemas/BroadcastTargetingDto"
+          }
+        },
+        "required": [
+          "channels",
+          "targeting"
+        ]
+      },
+      "ScheduleBroadcastDto": {
+        "type": "object",
+        "properties": {
+          "sendMode": {
+            "type": "string",
+            "enum": [
+              "NOW",
+              "SCHEDULED"
+            ]
+          },
+          "scheduledAt": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "isRecurring": {
+            "type": "boolean"
+          },
+          "recurrence": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "sendMode"
+        ]
+      },
+      "CancelBroadcastDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateNotificationPreferencesDto": {
+        "type": "object",
+        "properties": {
+          "pushEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "emailEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "smsEnabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "dealUpdatesEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "birthdayRemindersEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "deliveryUpdatesEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "newContactAlertsEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "providerOrderAlerts": {
+            "type": "object",
+            "example": {
+              "newOrders": true,
+              "orderCancellations": true,
+              "orderDelays": false
+            }
+          },
+          "providerAccountActivity": {
+            "type": "object",
+            "example": {
+              "securityAlerts": true,
+              "loginFromNewDevice": true
+            }
+          },
+          "providerMarketingUpdates": {
+            "type": "object",
+            "example": {
+              "weeklyPerformanceSummary": true,
+              "newFeatureAnnouncements": false,
+              "promotionalOffers": false
+            }
+          }
+        }
+      },
+      "NotificationActionRequestDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "SEND_GIFT",
+              "REMIND_ME_LATER",
+              "VIEW_ORDER",
+              "VIEW_CONTACT"
+            ],
+            "example": "SEND_GIFT"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "DeviceTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "IOS",
+              "ANDROID",
+              "WEB"
+            ],
+            "example": "IOS"
+          },
+          "deviceId": {
+            "type": "string",
+            "example": "ios-iphone-15-pro-device-id"
+          }
+        },
+        "required": [
+          "token",
+          "platform",
+          "deviceId"
+        ]
+      },
       "UpdateReferralSettingsDto": {
         "type": "object",
         "properties": {
@@ -24478,6 +24852,57 @@
           "reason": {
             "type": "string",
             "example": "Temporarily paused by Super Admin."
+          }
+        }
+      },
+      "UpdateGuestAccessSettingsDto": {
+        "type": "object",
+        "properties": {
+          "guestAccessEnabled": {
+            "type": "boolean"
+          },
+          "allowMarketplaceBrowsing": {
+            "type": "boolean"
+          },
+          "allowMarketplaceHome": {
+            "type": "boolean"
+          },
+          "allowGiftDetails": {
+            "type": "boolean"
+          },
+          "allowDiscountedGifts": {
+            "type": "boolean"
+          },
+          "allowFilterOptions": {
+            "type": "boolean"
+          },
+          "allowProviderPreview": {
+            "type": "boolean"
+          },
+          "allowWishlist": {
+            "type": "boolean"
+          },
+          "allowCart": {
+            "type": "boolean"
+          },
+          "allowCheckout": {
+            "type": "boolean"
+          },
+          "sessionTtlMinutes": {
+            "type": "number",
+            "minimum": 15,
+            "maximum": 1440
+          },
+          "maxRequestsPerMinute": {
+            "type": "number",
+            "minimum": 10,
+            "maximum": 300
+          },
+          "showExactStockToGuests": {
+            "type": "boolean"
+          },
+          "showSkuToGuests": {
+            "type": "boolean"
           }
         }
       },
@@ -28038,297 +28463,6 @@
         },
         "required": [
           "reason"
-        ]
-      },
-      "CreateBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "ctaLabel": {
-            "type": "string"
-          },
-          "ctaUrl": {
-            "type": "string"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "NORMAL",
-              "HIGH",
-              "URGENT"
-            ]
-          }
-        },
-        "required": [
-          "title",
-          "message",
-          "channels"
-        ]
-      },
-      "UpdateBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "ctaLabel": {
-            "type": "string"
-          },
-          "ctaUrl": {
-            "type": "string"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "NORMAL",
-              "HIGH",
-              "URGENT"
-            ]
-          }
-        }
-      },
-      "TargetingFiltersDto": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string"
-          },
-          "onlyVerifiedEmails": {
-            "type": "boolean"
-          },
-          "excludeUnsubscribed": {
-            "type": "boolean"
-          },
-          "excludeSuspended": {
-            "type": "boolean"
-          }
-        }
-      },
-      "BroadcastTargetingDto": {
-        "type": "object",
-        "properties": {
-          "mode": {
-            "type": "string",
-            "enum": [
-              "ALL_USERS",
-              "SPECIFIC_ROLES",
-              "CUSTOM_SEGMENT"
-            ]
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "PROVIDER",
-                "REGISTERED_USER"
-              ]
-            }
-          },
-          "filters": {
-            "$ref": "#/components/schemas/TargetingFiltersDto"
-          }
-        },
-        "required": [
-          "mode"
-        ]
-      },
-      "EstimateReachDto": {
-        "type": "object",
-        "properties": {
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "targeting": {
-            "$ref": "#/components/schemas/BroadcastTargetingDto"
-          }
-        },
-        "required": [
-          "channels",
-          "targeting"
-        ]
-      },
-      "ScheduleBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "sendMode": {
-            "type": "string",
-            "enum": [
-              "NOW",
-              "SCHEDULED"
-            ]
-          },
-          "scheduledAt": {
-            "type": "string"
-          },
-          "timezone": {
-            "type": "string"
-          },
-          "isRecurring": {
-            "type": "boolean"
-          },
-          "recurrence": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "sendMode"
-        ]
-      },
-      "CancelBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          }
-        }
-      },
-      "UpdateNotificationPreferencesDto": {
-        "type": "object",
-        "properties": {
-          "pushEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "emailEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "smsEnabled": {
-            "type": "boolean",
-            "example": false
-          },
-          "dealUpdatesEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "birthdayRemindersEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "deliveryUpdatesEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "newContactAlertsEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "providerOrderAlerts": {
-            "type": "object",
-            "example": {
-              "newOrders": true,
-              "orderCancellations": true,
-              "orderDelays": false
-            }
-          },
-          "providerAccountActivity": {
-            "type": "object",
-            "example": {
-              "securityAlerts": true,
-              "loginFromNewDevice": true
-            }
-          },
-          "providerMarketingUpdates": {
-            "type": "object",
-            "example": {
-              "weeklyPerformanceSummary": true,
-              "newFeatureAnnouncements": false,
-              "promotionalOffers": false
-            }
-          }
-        }
-      },
-      "NotificationActionRequestDto": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "SEND_GIFT",
-              "REMIND_ME_LATER",
-              "VIEW_ORDER",
-              "VIEW_CONTACT"
-            ],
-            "example": "SEND_GIFT"
-          }
-        },
-        "required": [
-          "action"
-        ]
-      },
-      "DeviceTokenDto": {
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string",
-            "example": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
-          },
-          "platform": {
-            "type": "string",
-            "enum": [
-              "IOS",
-              "ANDROID",
-              "WEB"
-            ],
-            "example": "IOS"
-          },
-          "deviceId": {
-            "type": "string",
-            "example": "ios-iphone-15-pro-device-id"
-          }
-        },
-        "required": [
-          "token",
-          "platform",
-          "deviceId"
         ]
       },
       "PlanLimitsDto": {

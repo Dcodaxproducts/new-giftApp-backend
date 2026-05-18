@@ -18,4 +18,11 @@ export class JwtAuthRepository {
       select: { id: true },
     });
   }
+
+  findActiveGuestSessionForJwtGuard(guestSessionId: string) {
+    return this.prisma.guestSession.findFirst({
+      where: { id: guestSessionId, revokedAt: null, expiresAt: { gt: new Date() } },
+      select: { id: true, capabilitiesJson: true },
+    });
+  }
 }

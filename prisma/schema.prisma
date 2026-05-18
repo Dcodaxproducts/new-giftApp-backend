@@ -11,6 +11,15 @@ enum UserRole {
   ADMIN
   REGISTERED_USER
   PROVIDER
+  GUEST_USER
+}
+
+enum GuestCapability {
+  VIEW_ONBOARDING
+  BROWSE_MARKETPLACE
+  VIEW_GIFT_DETAILS
+  VIEW_MARKETPLACE_FILTERS
+  VIEW_DISCOUNTED_GIFTS
 }
 
 enum ProviderApprovalStatus {
@@ -949,6 +958,7 @@ model User {
   providerPayouts                     ProviderPayout[]
   updatedPayoutSettings              AdminPayoutSettings[]              @relation("AdminPayoutSettingsUpdater")
   updatedSystemSettings              SystemSettings[]                   @relation("SystemSettingsUpdater")
+  updatedGuestAccessSettings         GuestAccessSettings[]              @relation("GuestAccessSettingsUpdater")
   updatedCommissionTiers             CommissionTier[]                    @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
@@ -2572,6 +2582,45 @@ model SystemSettings {
   updatedBy User? @relation("SystemSettingsUpdater", fields: [updatedById], references: [id])
 
   @@map("system_settings")
+}
+
+model GuestAccessSettings {
+  id                       String   @id @default(cuid())
+  guestAccessEnabled       Boolean  @default(true) @map("guest_access_enabled")
+  allowMarketplaceBrowsing Boolean  @default(true) @map("allow_marketplace_browsing")
+  allowMarketplaceHome     Boolean  @default(true) @map("allow_marketplace_home")
+  allowGiftDetails         Boolean  @default(true) @map("allow_gift_details")
+  allowDiscountedGifts     Boolean  @default(true) @map("allow_discounted_gifts")
+  allowFilterOptions       Boolean  @default(true) @map("allow_filter_options")
+  allowProviderPreview     Boolean  @default(true) @map("allow_provider_preview")
+  allowWishlist            Boolean  @default(false) @map("allow_wishlist")
+  allowCart                Boolean  @default(false) @map("allow_cart")
+  allowCheckout            Boolean  @default(false) @map("allow_checkout")
+  sessionTtlMinutes        Int      @default(120) @map("session_ttl_minutes")
+  maxRequestsPerMinute     Int      @default(60) @map("max_requests_per_minute")
+  showExactStockToGuests   Boolean  @default(false) @map("show_exact_stock_to_guests")
+  showSkuToGuests          Boolean  @default(false) @map("show_sku_to_guests")
+  updatedById              String?  @map("updated_by_id")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedBy User? @relation("GuestAccessSettingsUpdater", fields: [updatedById], references: [id])
+
+  @@map("guest_access_settings")
+}
+
+model GuestSession {
+  id               String   @id @default(cuid())
+  capabilitiesJson Json     @default("[]") @map("capabilities_json")
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  expiresAt        DateTime @map("expires_at") @db.Timestamptz
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([expiresAt])
+  @@map("guest_sessions")
 }
 
 model AdminPayoutSettings {

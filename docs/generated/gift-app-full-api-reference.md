@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 05:00 UTC
+Generated: 2026-05-18 05:30 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -24,6 +24,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Settings (5 APIs)
+- 02 Admin - Guest Access Settings (3 APIs)
 - 02 Admin - Support Chat (7 APIs)
 - 02 Admin - System Logs & Audit Trail (6 APIs)
 - 02 Admin - Dispute Manager (8 APIs)
@@ -52,7 +53,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 04 Gifts - Categories (7 APIs)
 - 04 Gifts - Management (8 APIs)
 - 04 Gifts - Moderation (4 APIs)
-- 05 Customer - Marketplace (6 APIs)
+- 05 Customer / Guest - Marketplace (6 APIs)
 - 05 Customer - Wishlist (3 APIs)
 - 05 Customer - Addresses (6 APIs)
 - 05 Customer - Contacts (5 APIs)
@@ -4050,6 +4051,70 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
+## 02 Admin - Guest Access Settings
+
+### GET `/api/v1/admin/guest-access-settings`
+
+- Summary: Fetch guest access settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with guestAccessSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/admin/guest-access-settings`
+
+- Summary: Update guest access settings
+- Allowed role/access: SUPER_ADMIN or ADMIN with guestAccessSettings.update
+- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. SUPER_ADMIN or ADMIN with guestAccessSettings.update. Creates audit logs.
+- Request payload(s):
+  - payload:
+```json
+{
+  "guestAccessEnabled": true,
+  "allowMarketplaceBrowsing": true,
+  "allowMarketplaceHome": true,
+  "allowGiftDetails": true,
+  "allowDiscountedGifts": true,
+  "allowFilterOptions": true,
+  "allowProviderPreview": true,
+  "allowWishlist": true,
+  "allowCart": true,
+  "allowCheckout": true,
+  "sessionTtlMinutes": 1.0,
+  "maxRequestsPerMinute": 1.0,
+  "showExactStockToGuests": true,
+  "showSkuToGuests": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/guest-access-settings/audit-logs`
+
+- Summary: List guest access settings audit logs
+- Allowed role/access: SUPER_ADMIN or ADMIN with guestAccessSettings.read
+- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
 ## 02 Admin - Support Chat
 
 ### GET `/api/v1/admin/support-chats`
@@ -7984,13 +8049,13 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 05 Customer - Marketplace
+## 05 Customer / Guest - Marketplace
 
 ### GET `/api/v1/customer/home`
 
 - Summary: Fetch customer app home
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns safe marketplace categories, discounted gifts, default address, and upcoming reminder.
+- Allowed role/access: REGISTERED_USER or GUEST_USER
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields. Guest users receive marketplace blocks only with defaultAddress/upcomingReminder null.
 - Response body:
 ```json
 {
@@ -8003,8 +8068,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### GET `/api/v1/customer/categories`
 
 - Summary: List customer marketplace categories
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active categories that have active, available, in-stock gifts from approved active providers.
+- Allowed role/access: REGISTERED_USER or GUEST_USER
+- Notes: Access: REGISTERED_USER or GUEST_USER. Active categories with visible gifts. REGISTERED_USER or GUEST_USER. Returns active categories that have active, available, in-stock gifts from approved active providers.
 - Response body:
 ```json
 {
@@ -8017,8 +8082,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### GET `/api/v1/customer/gifts/discounted`
 
 - Summary: List discounted customer gifts
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Reuses marketplace gift filters with offerOnly=true.
+- Allowed role/access: REGISTERED_USER or GUEST_USER
+- Notes: Access: REGISTERED_USER or GUEST_USER. Discounted guest-visible marketplace gifts. REGISTERED_USER or GUEST_USER. Reuses marketplace gift filters with offerOnly=true.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -8045,8 +8110,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### GET `/api/v1/customer/gifts/filter-options`
 
 - Summary: Fetch marketplace gift filter options
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Brands are derived from approved active provider business names.
+- Allowed role/access: REGISTERED_USER or GUEST_USER
+- Notes: Access: REGISTERED_USER or GUEST_USER. Filter options derived from guest-visible marketplace data. REGISTERED_USER or GUEST_USER. Brands are derived from guest-visible marketplace data.
 - Response body:
 ```json
 {
@@ -8059,8 +8124,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### GET `/api/v1/customer/gifts`
 
 - Summary: List customer marketplace gifts
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns active, available, in-stock gifts from approved active providers. Provider inventory does not require separate gift moderation approval. Active offers are calculated by the backend.
+- Allowed role/access: REGISTERED_USER or GUEST_USER
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. REGISTERED_USER or GUEST_USER. Registered users receive wishlist overlay. Guest users receive guest-safe fields and auth-required flags. Provider inventory does not require separate gift moderation approval.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -8121,8 +8186,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### GET `/api/v1/customer/gifts/{id}`
 
 - Summary: Fetch customer-safe gift details
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Hidden/admin-only gift records are never returned. Provider inventory does not require separate gift moderation approval.
+- Allowed role/access: REGISTERED_USER or GUEST_USER
+- Notes: Access: REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings. REGISTERED_USER or GUEST_USER. Guest users do not receive SKU or exact stock unless enabled in guest settings.
 - Parameters:
   - `id` (path, required, string)
 - Response body:

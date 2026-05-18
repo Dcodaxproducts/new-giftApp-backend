@@ -13,7 +13,7 @@ describe('Swagger and static route hardening', () => {
   it('Swagger tag order starts with Auth and is not alphabetically sorted', () => {
     const main = readFileSync(join(root, 'src/main.ts'), 'utf8');
     expect(main).toContain('export const SWAGGER_TAG_ORDER');
-    expectBefore(main, "'01 Auth'", "'05 Customer - Marketplace'");
+    expectBefore(main, "'01 Auth'", "'05 Customer / Guest - Marketplace'");
     expectBefore(main, "'01 Auth'", "'01 Auth - Login Attempts'");
     expect(main).toContain('tagsSorter');
     expect(main).toContain('document.tags = SWAGGER_TAG_ORDER.map');

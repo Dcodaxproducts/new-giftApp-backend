@@ -32,7 +32,6 @@ import { SUPER_ADMIN_PERMISSIONS } from '../../admin-roles/constants/permission-
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
-  GuestSessionDto,
   LoginDto,
   RefreshDto,
   RegisterProviderDto,
@@ -129,11 +128,11 @@ export class AuthCoreService implements OnModuleInit {
     };
   }
 
-  createGuestSession(dto: GuestSessionDto) {
+  createGuestSession() {
     return {
       data: {
         role: 'GUEST_USER',
-        capabilities: dto.capabilities ?? [
+        capabilities: [
           'VIEW_ONBOARDING',
           'EXPLORE_FEATURES',
         ],

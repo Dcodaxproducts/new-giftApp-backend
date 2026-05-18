@@ -34,8 +34,8 @@ export class AuthController {
   }
 
   @Post('guest/session')
-  guestSession(@Body() dto: GuestSessionDto) {
-    return this.authService.createGuestSession(dto);
+  guestSession(@Body() dto: GuestSessionDto, @Req() request: Request) {
+    return this.authService.createGuestSession(dto, request.ip, request.headers['user-agent']);
   }
 
   @Post('login')
