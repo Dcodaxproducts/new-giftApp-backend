@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 10:10 UTC
+Generated: 2026-05-18 10:21 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -677,6 +677,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 {
+  "email": "staff.updated@example.com",
   "firstName": "<string>",
   "lastName": "<string>",
   "phone": "<string>",

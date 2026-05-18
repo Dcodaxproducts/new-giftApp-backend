@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 10:11 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-18 10:21 PKT.
 
 ## Frontend Integration Flows
 

@@ -131,6 +131,11 @@ export class CreateAdminDto {
 }
 
 export class UpdateAdminDto {
+  @ApiPropertyOptional({ example: 'staff.updated@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

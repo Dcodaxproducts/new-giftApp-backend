@@ -91,7 +91,8 @@ describe('AdminManagementService', () => {
     const { service, repository, auditLog } = createService();
     await expect(service.list(superAdmin, {})).resolves.toEqual(expect.objectContaining({ message: 'Admins fetched successfully' }));
     await expect(service.details(superAdmin, 'admin_1')).resolves.toEqual(expect.objectContaining({ message: 'Admin details fetched successfully' }));
-    await expect(service.update(superAdmin, 'admin_1', { firstName: 'Updated' })).resolves.toEqual(expect.objectContaining({ message: 'Admin updated successfully' }));
+    await expect(service.update(superAdmin, 'admin_1', { email: 'Staff.Updated@Example.com', firstName: 'Updated' })).resolves.toEqual(expect.objectContaining({ message: 'Admin updated successfully' }));
+    expect(repository.updateAdminUser).toHaveBeenCalledWith('admin_1', expect.objectContaining({ email: 'staff.updated@example.com', firstName: 'Updated' }));
     await expect(service.resetPassword(superAdmin, 'admin_1', {})).resolves.toEqual({ data: null, message: 'Temporary password generated successfully' });
     await expect(service.permanentlyDelete(superAdmin, 'admin_1')).resolves.toEqual({ data: { deletedAdminId: 'admin_1' }, message: 'Admin staff user permanently deleted successfully.' });
     expect(repository.deleteAdminPermanently).toHaveBeenCalledWith('admin_1');
@@ -109,6 +110,9 @@ describe('AdminManagementService', () => {
       lastName: 'User',
       roleId: 'role_1',
     })).rejects.toThrow(ConflictException);
+
+    repository.findAdminByEmail.mockResolvedValueOnce({ ...adminUser, id: 'admin_2', email: 'taken@example.com' });
+    await expect(service.update(superAdmin, 'admin_1', { email: 'taken@example.com' })).rejects.toThrow(ConflictException);
 
     await expect(service.permanentlyDelete({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'admin_1')).rejects.toThrow(ForbiddenException);
   });

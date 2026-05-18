@@ -150,8 +150,10 @@ export class AdminManagementService {
       await this.assertAnotherActiveSuperAdminExists(admin.id);
     }
     const adminRole = dto.roleId ? await this.getAdminRole(dto.roleId) : admin.adminRole;
+    const email = dto.email ? await this.assertEmailAvailable(dto.email, admin.id) : undefined;
     const before = this.toAdminDetail(admin, admin.adminRole);
     const updated = await this.repository.updateAdminUser(admin.id, {
+      email,
       firstName: dto.firstName?.trim(),
       lastName: dto.lastName?.trim(),
       phone: dto.phone?.trim(),
@@ -221,6 +223,15 @@ export class AdminManagementService {
     await this.repository.deleteAdminPermanently(admin.id);
 
     return { data: { deletedAdminId: admin.id }, message: 'Admin staff user permanently deleted successfully.' };
+  }
+
+  private async assertEmailAvailable(email: string, currentAdminId: string): Promise<string> {
+    const normalizedEmail = this.normalizeEmail(email);
+    const existing = await this.repository.findAdminByEmail(normalizedEmail);
+    if (existing && existing.id !== currentAdminId) {
+      throw new ConflictException('User already exists');
+    }
+    return normalizedEmail;
   }
 
   private async createAdminUser(input: {

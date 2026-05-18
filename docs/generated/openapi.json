@@ -26330,6 +26330,10 @@
       "UpdateAdminDto": {
         "type": "object",
         "properties": {
+          "email": {
+            "type": "string",
+            "example": "staff.updated@example.com"
+          },
           "firstName": {
             "type": "string"
           },
