@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
@@ -64,25 +64,3 @@ export class CustomerRecurringPaymentsController {
   history(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Query() query: RecurringPaymentHistoryDto) { return this.service.history(user, id, query); }
 }
 
-@ApiTags('05 Customer - Recurring Payments')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.REGISTERED_USER)
-@Controller('customer/payment-methods')
-export class CustomerRecurringPaymentMethodsController {
-  constructor(private readonly service: CustomerRecurringPaymentsService) {}
-
-  @Post('setup-intent')
-  @ApiOperation({ summary: 'Create Stripe setup intent for saving card', description: 'REGISTERED_USER only. Uses Stripe SetupIntent; secret keys are never exposed.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { setupIntentId: 'seti_xxx', clientSecret: 'seti_xxx_secret_xxx', publishableKey: 'pk_test_xxx' }, message: 'Setup intent created successfully.' } } })
-  setupIntent(@CurrentUser() user: AuthUserContext) { return this.service.createSetupIntent(user); }
-
-  @Get('saved')
-  @ApiOperation({ summary: 'List saved payment methods', description: 'REGISTERED_USER only. Returns saved Stripe cards owned by the logged-in customer.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'pm_xxx', type: 'CARD', brand: 'visa', last4: '4242', expiryMonth: 12, expiryYear: 2026, isDefault: true }], message: 'Saved payment methods fetched successfully.' } } })
-  saved(@CurrentUser() user: AuthUserContext) { return this.service.savedPaymentMethods(user); }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete own saved payment method', description: 'Cannot delete a payment method used by an active/paused recurring payment unless recurring payments are changed first.' })
-  delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.deletePaymentMethod(user, id); }
-}

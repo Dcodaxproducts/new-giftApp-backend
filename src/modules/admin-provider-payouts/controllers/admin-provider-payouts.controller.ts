@@ -10,7 +10,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, ExportAdminProviderPayoutsDto, HoldProviderPayoutDto, ListAdminProviderPayoutsDto, RejectProviderPayoutDto } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
-@ApiTags('02 Admin - Provider Payouts', '02 Admin - Provider Payout Approvals')
+@ApiTags('02 Admin - Provider Payouts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

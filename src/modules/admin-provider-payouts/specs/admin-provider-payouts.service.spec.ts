@@ -136,7 +136,8 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 
   it('adds required routes, Swagger examples, and access metadata', () => {
-    expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts', '02 Admin - Provider Payout Approvals')");
+    expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts')");
+    expect(controller).not.toContain('02 Admin - Provider Payout Approvals');
     for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", '@Get()', "@Get(':id')"]) expect(controller).toContain(route);
     expect(controller).toContain('totalPayoutsThisMonth');
     expect(controller).toContain('TechSolutions Inc.');

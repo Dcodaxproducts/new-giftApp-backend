@@ -5133,8 +5133,7 @@
         ],
         "summary": "Fetch provider payout dashboard stats",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -5181,8 +5180,7 @@
         ],
         "summary": "Fetch monthly provider payout trend",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -5224,8 +5222,7 @@
         ],
         "summary": "Fetch earning distribution by provider tier",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -5357,8 +5354,7 @@
         ],
         "summary": "Export provider payouts",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.export",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.export"
@@ -5427,8 +5423,7 @@
         ],
         "summary": "Bulk approve provider payouts",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.approve",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.approve"
@@ -5581,8 +5576,7 @@
         ],
         "summary": "List provider payouts",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -5645,8 +5639,7 @@
         ],
         "summary": "Fetch pending payout transaction breakdown",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -5710,8 +5703,7 @@
         ],
         "summary": "Approve provider payout",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.approve",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.approve"
@@ -5776,8 +5768,7 @@
         ],
         "summary": "Hold provider payout",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.hold",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.hold"
@@ -5843,8 +5834,7 @@
         ],
         "summary": "Reject provider payout",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.reject",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.reject"
@@ -5909,8 +5899,7 @@
         ],
         "summary": "Fetch provider payout details",
         "tags": [
-          "02 Admin - Provider Payouts",
-          "02 Admin - Provider Payout Approvals"
+          "02 Admin - Provider Payouts"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.read",
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
@@ -19336,120 +19325,6 @@
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
-    "/api/v1/customer/payment-methods/setup-intent": {
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.",
-        "operationId": "CustomerPaymentMethodsController_setupIntent",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "setupIntentId": "seti_xxx",
-                      "clientSecret": "seti_xxx_secret_xxx",
-                      "publishableKey": "pk_test_xxx"
-                    },
-                    "message": "Setup intent created successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create Stripe SetupIntent for saving card",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/payment-methods/saved": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Returns masked Stripe card metadata only.",
-        "operationId": "CustomerPaymentMethodsController_saved",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "pm_xxx",
-                        "type": "CARD",
-                        "brand": "visa",
-                        "last4": "4242",
-                        "expiryMonth": 9,
-                        "expiryYear": 2025,
-                        "isDefault": true
-                      }
-                    ],
-                    "message": "Saved payment methods fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List own saved payment methods",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/payment-methods/{id}": {
-      "delete": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Rejects deletion when the method is used by an active recurring payment.",
-        "operationId": "CustomerPaymentMethodsController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete own saved payment method",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
     "/api/v1/customer/transactions": {
       "get": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Normalizes backend Payment, Order, MoneyGift, and RecurringPayment occurrence records owned by the logged-in customer.",
@@ -22296,6 +22171,88 @@
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
+    "/api/v1/customer/payment-methods/setup-intent": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.",
+        "operationId": "CustomerPaymentMethodsController_setupIntent",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "setupIntentId": "seti_xxx",
+                      "clientSecret": "seti_xxx_secret_xxx",
+                      "publishableKey": "pk_test_xxx"
+                    },
+                    "message": "Setup intent created successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create Stripe SetupIntent for saving card",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/payment-methods/saved": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Returns masked Stripe card metadata only.",
+        "operationId": "CustomerPaymentMethodsController_saved",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "pm_xxx",
+                        "type": "CARD",
+                        "brand": "visa",
+                        "last4": "4242",
+                        "expiryMonth": 9,
+                        "expiryYear": 2025,
+                        "isDefault": true
+                      }
+                    ],
+                    "message": "Saved payment methods fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own saved payment methods",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
     "/api/v1/customer/payment-methods/{id}/default": {
       "patch": {
         "operationId": "CustomerPaymentMethodsController_setDefault",
@@ -22326,6 +22283,38 @@
         "x-allowed-roles": "REGISTERED_USER",
         "x-access": "REGISTERED_USER",
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/payment-methods/{id}": {
+      "delete": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Rejects deletion when the method is used by an active recurring payment.",
+        "operationId": "CustomerPaymentMethodsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own saved payment method",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/payments/stripe/webhook": {
@@ -24738,9 +24727,6 @@
     },
     {
       "name": "02 Admin - Provider Payouts"
-    },
-    {
-      "name": "02 Admin - Provider Payout Approvals"
     },
     {
       "name": "02 Admin - Transaction Monitoring"

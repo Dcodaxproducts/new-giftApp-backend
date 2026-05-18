@@ -16,7 +16,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:validate": "prisma validate"
+    "prisma:validate": "prisma validate",
+    "docs:generate": "DATABASE_URL='postgresql://user:pass@127.0.0.1:5432/giftapp' JWT_ACCESS_SECRET='dev-docs-secret' JWT_SECRET='dev-docs-secret' node docs/generated/generate_openapi.js && python3 docs/generated/generate_full_api_pdf.py && python3 docs/generated/frontend_guide_pdf.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1042.0",
