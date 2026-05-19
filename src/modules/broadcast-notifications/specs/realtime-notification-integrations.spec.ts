@@ -1,8 +1,8 @@
-import { ChatMessageType, CustomerWalletLedgerStatus, NotificationRecipientType, PaymentStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { ChatThreadType, CustomerWalletLedgerStatus, NotificationRecipientType, PaymentStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { ChatNotificationService } from '../../chats/services/chat-notification.service';
 import { CustomerWalletService } from '../../customer-wallet/services/customer-wallet.service';
 import { PaymentsService } from '../../payments/services/payments.service';
 import { ProviderOrdersService } from '../../provider-orders/services/provider-orders.service';
-import { SupportChatService } from '../../support-chat/services/support-chat.service';
 
 describe('real-time notification integration paths', () => {
   it('payment success notification emits in real time', async () => {
@@ -51,14 +51,19 @@ describe('real-time notification integration paths', () => {
   });
 
   it('support chat notification emits in real time', async () => {
-    const provider = { id: 'provider_1', role: UserRole.PROVIDER, firstName: 'Pro', lastName: 'User', providerBusinessName: 'Shop', avatarUrl: null };
-    const chat = { id: 'support_1', participantId: 'provider_1', participantType: 'PROVIDER', participant: provider, assignedAdmin: null, assignedAdminId: null, subject: 'Help', lastMessage: null, lastMessageAt: null, adminUnreadCount: 0, status: 'OPEN' };
-    const repo = { findChatById: jest.fn().mockResolvedValue(chat), createAdminMessage: jest.fn().mockResolvedValue({ id: 'msg_1', messageType: ChatMessageType.TEXT, body: 'Checking.' }), findCompletedUploadsByUrls: jest.fn().mockResolvedValue([]) };
     const dispatch = { createAndEmit: jest.fn().mockResolvedValue({ id: 'notif_1' }) };
-    const service = new SupportChatService(repo as never, dispatch as never);
+    const service = new ChatNotificationService(dispatch as never);
 
-    await service.reply({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['read', 'read.all', 'reply'] } }, 'support_1', { messageType: ChatMessageType.TEXT, body: 'Checking.', attachmentUrls: [] });
+    await service.notifyMessage({
+      threadId: 'support_1',
+      threadType: ChatThreadType.SUPPORT_CHAT,
+      senderId: 'admin_1',
+      senderRole: UserRole.ADMIN,
+      participantId: 'provider_1',
+      participantRole: UserRole.PROVIDER,
+      body: 'Checking.',
+    });
 
-    expect(dispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ recipientId: 'provider_1', recipientType: NotificationRecipientType.PROVIDER, type: 'SUPPORT_CHAT_REPLY', metadataJson: { supportChatId: 'support_1' } }));
+    expect(dispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ recipientId: 'provider_1', recipientType: NotificationRecipientType.PROVIDER, type: 'SUPPORT_CHAT', metadataJson: { threadId: 'support_1', orderId: undefined, providerOrderId: undefined } }));
   });
 });

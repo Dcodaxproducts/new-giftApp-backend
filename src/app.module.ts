@@ -25,7 +25,6 @@ import { CustomerReferralsModule } from './modules/customer-referrals/customer-r
 import { CustomerRecurringPaymentsModule } from './modules/customer-recurring-payments/customer-recurring-payments.module';
 import { CustomerTransactionsModule } from './modules/customer-transactions/customer-transactions.module';
 import { CustomerWalletModule } from './modules/customer-wallet/customer-wallet.module';
-import { ChatRealtimeModule } from './modules/chat-realtime/chat-realtime.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { GuestAccessModule } from './modules/guest-access/guest-access.module';
@@ -106,7 +105,6 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     StorageModule,
     SystemSettingsModule,
     ChatsModule,
-    ChatRealtimeModule,
   ],
   controllers: [PublicController],
   providers: [MediaUrlSignerService, ResponseInterceptor],

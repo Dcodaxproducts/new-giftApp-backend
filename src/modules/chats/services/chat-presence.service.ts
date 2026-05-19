@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 
 type PresenceRecord = { user: AuthUserContext; socketIds: Set<string>; lastSeenAt: Date };
 

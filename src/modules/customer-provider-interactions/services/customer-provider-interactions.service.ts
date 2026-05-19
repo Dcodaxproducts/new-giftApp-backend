@@ -1,102 +1,22 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ChatMessageType, ChatSenderType, MessageModerationSource, NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewModerationAction, ReviewModerationActorType, ReviewSeverity, ReviewStatus } from '@prisma/client';
+import { NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewModerationAction, ReviewModerationActorType, ReviewSeverity, ReviewStatus } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { ChatDetailsDto, CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, GetOrderChatDto, ListCustomerChatsDto, ListCustomerReviewsDto, ListProviderReportsDto, ProviderReportStatusFilter, SendChatMessageDto, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
-import { CustomerChatsRepository } from '../repositories/customer-chats.repository';
+import { CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, ListCustomerReviewsDto, ListProviderReportsDto, ProviderReportStatusFilter, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
 import { CustomerProviderReportsRepository } from '../repositories/customer-provider-reports.repository';
 import { CustomerProviderInteractionsRepository } from '../repositories/customer-provider-interactions.repository';
 import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositories/customer-reviews.repository';
-import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
-import { MessageContentFilterService } from '../../messaging-settings/services/message-content-filter.service';
-import { MessagingPolicyService } from '../../messaging-settings/services/messaging-policy.service';
-import { UserSafetyService } from '../../user-safety/services/user-safety.service';
 
 type ProviderView = { id: string; providerBusinessName: string | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
 
-type ChatThreadView = {
-  id: string;
-  order: { id: string; orderNumber: string };
-  providerOrderId: string;
-  provider: ProviderView;
-  lastMessage: { body: string | null; createdAt: Date } | null;
-  messages?: { id: string; body: string | null; messageType: ChatMessageType; attachmentUrlsJson: Prisma.JsonValue; createdAt: Date; isReadByCustomer: boolean; isReadByProvider: boolean; senderType: ChatSenderType }[];
-};
-
 @Injectable()
 export class CustomerProviderInteractionsService {
   constructor(
-    private readonly customerChatsRepository: CustomerChatsRepository,
     private readonly customerProviderReportsRepository: CustomerProviderReportsRepository,
     private readonly customerProviderInteractionsRepository: CustomerProviderInteractionsRepository,
     private readonly customerReviewsRepository: CustomerReviewsRepository,
-    private readonly messageModerationService?: MessageModerationService,
-    private readonly messagingPolicy?: MessagingPolicyService,
-    private readonly messageContentFilter?: MessageContentFilterService,
-    private readonly userSafetyService?: UserSafetyService,
   ) {}
-
-  async getOrderChat(user: AuthUserContext, orderId: string, query: GetOrderChatDto) {
-    const order = await this.getOwnedOrder(user.uid, orderId);
-    const providerOrder = this.firstProviderOrder(order);
-    const thread = await this.customerChatsRepository.findThreadByProviderOrder(providerOrder.id, this.threadInclude());
-    if (thread) return { data: await this.chatSummary(thread), message: 'Order chat fetched successfully.' };
-    if (!query.createIfMissing) return { data: null, message: 'Order chat fetched successfully.' };
-    return this.createOrderChat(user, orderId);
-  }
-
-  async createOrderChat(user: AuthUserContext, orderId: string) {
-    const order = await this.getOwnedOrder(user.uid, orderId);
-    const providerOrder = this.firstProviderOrder(order);
-    const thread = await this.customerChatsRepository.upsertOrderThread({ orderId: order.id, providerOrderId: providerOrder.id, providerId: providerOrder.providerId, customerId: user.uid, include: this.threadInclude() });
-    return { data: await this.chatSummary(thread), message: 'Order chat fetched successfully.' };
-  }
-
-  async chats(user: AuthUserContext, query: ListCustomerChatsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const where: Prisma.ChatThreadWhereInput = { customerId: user.uid, ...(query.search ? { OR: [{ order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } }] } : {}) };
-    const [items, total] = await this.customerChatsRepository.findThreadsAndCount({ where, include: this.threadInclude(), skip: (page - 1) * limit, take: limit });
-    const data = await Promise.all(items.map((item) => this.chatListItem(item)));
-    const filtered = query.unreadOnly ? data.filter((item) => item.unreadCount > 0) : data;
-    return { data: filtered, meta: { page, limit, total: query.unreadOnly ? filtered.length : total, totalPages: Math.ceil((query.unreadOnly ? filtered.length : total) / limit) }, message: 'Chats fetched successfully.' };
-  }
-
-  quickReplies() {
-    return { data: [{ key: 'TRACKING_INFO', label: 'Tracking info?', message: 'Can you please share the tracking information?' }, { key: 'ESTIMATED_ARRIVAL', label: 'Estimated arrival?', message: 'When is my order expected to arrive?' }, { key: 'CONFIRM_DELIVERY', label: 'Confirm delivery', message: 'Can you confirm if the order has been delivered?' }], message: 'Quick replies fetched successfully.' };
-  }
-
-  async chatDetails(user: AuthUserContext, threadId: string, query: ChatDetailsDto) {
-    const thread = await this.getOwnedThread(user.uid, threadId);
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 30;
-    const messages = await this.customerChatsRepository.findThreadMessages({ threadId, before: query.before, skip: (page - 1) * limit, take: limit });
-    return { data: { thread: { id: thread.id, orderNumber: thread.order.orderNumber, provider: this.provider(thread.provider) }, messages: messages.reverse().map((message) => this.messageItem(message)) }, message: 'Chat fetched successfully.' };
-  }
-
-  async sendMessage(user: AuthUserContext, threadId: string, dto: SendChatMessageDto) {
-    const thread = await this.getOwnedThread(user.uid, threadId);
-    this.assertMessagePayload(dto);
-    await this.messagingPolicy?.assertCanSend({ channel: 'buyerProvider', body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
-    await this.userSafetyService?.assertUsersCanInteract(user.uid, thread.provider.id);
-    const moderationHint = await this.messageContentFilter?.filter(dto.body);
-    await this.assertAttachments(dto.attachmentUrls ?? []);
-    const message = await this.customerChatsRepository.createCustomerMessage({ threadId, customerId: user.uid, providerId: thread.provider.id, orderId: thread.order.id, providerOrderId: thread.providerOrderId, clientMessageId: dto.clientMessageId, messageType: dto.messageType, body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
-    await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.CUSTOMER_PROVIDER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'REGISTERED_USER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.CUSTOMER, body: dto.body, createdAt: message.createdAt, moderationHint });
-    return { data: this.messageItem(message), message: 'Message sent successfully.' };
-  }
-
-  async markRead(user: AuthUserContext, threadId: string) {
-    await this.getOwnedThread(user.uid, threadId);
-    await this.customerChatsRepository.markThreadReadByCustomer(threadId);
-    return { data: { threadId, isRead: true }, message: 'Chat marked as read.' };
-  }
-
-  async getSocketThreadContext(user: AuthUserContext, threadId: string) {
-    const thread = await this.getOwnedThread(user.uid, threadId);
-    return { threadId: thread.id, orderId: thread.order.id, providerOrderId: thread.providerOrderId, customerId: user.uid, providerId: thread.provider.id };
-  }
 
   async submitReview(user: AuthUserContext, orderId: string, dto: CreateReviewDto) {
     const order = await this.getOrderForReview(user.uid, orderId);
@@ -174,22 +94,7 @@ export class CustomerProviderInteractionsService {
     return { data: this.reportItem(report), message: 'Provider report fetched successfully.' };
   }
 
-  private async getOwnedOrder(customerId: string, orderId: string): Promise<OrderWithProviderOrders> {
-    const order = await this.customerProviderInteractionsRepository.findOwnedOrder(customerId, orderId);
-    if (!order) throw new NotFoundException('Order not found');
-    return order;
-  }
   private async getOrderForReview(customerId: string, orderId: string): Promise<OrderWithProviderOrders> { const order = await this.customerReviewsRepository.findOrderForReviewByUser(customerId, orderId); if (!order) throw new NotFoundException('Order not found'); return order; }
-  private firstProviderOrder(order: OrderWithProviderOrders) { const providerOrder = order.providerOrders[0]; if (!providerOrder) throw new BadRequestException('Provider order not found for this order'); return providerOrder; }
-  private async getOwnedThread(customerId: string, threadId: string) { const thread = await this.customerChatsRepository.findOwnedThread(customerId, threadId, this.threadInclude()); if (!thread) throw new NotFoundException('Chat thread not found'); return thread; }
-  private threadInclude() { return { order: { select: { id: true, orderNumber: true } }, provider: { select: { id: true, providerBusinessName: true, avatarUrl: true, firstName: true, lastName: true, isActive: true } }, lastMessage: { select: { body: true, createdAt: true } } } satisfies Prisma.ChatThreadInclude; }
-  private async chatSummary(thread: ChatThreadView) { return { threadId: thread.id, orderId: thread.order.id, providerOrderId: thread.providerOrderId, orderNumber: thread.order.orderNumber, provider: this.provider(thread.provider), lastMessage: thread.lastMessage, unreadCount: await this.unreadCount(thread.id) }; }
-  private async chatListItem(thread: ChatThreadView) { return { id: thread.id, orderNumber: thread.order.orderNumber, provider: this.provider(thread.provider), lastMessage: thread.lastMessage, unreadCount: await this.unreadCount(thread.id) }; }
-  private async unreadCount(threadId: string): Promise<number> { return this.customerChatsRepository.countUnreadForCustomer(threadId); }
-  private provider(provider: ProviderView) { return { id: provider.id, businessName: provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(), avatarUrl: provider.avatarUrl, isOnline: provider.isActive }; }
-  private messageItem(message: { id: string; senderType: ChatSenderType; clientMessageId?: string | null; body: string | null; messageType: ChatMessageType; attachmentUrlsJson: Prisma.JsonValue; createdAt: Date; isReadByCustomer: boolean; isReadByProvider: boolean; hiddenByModeration?: boolean | null }) { const hidden = message.hiddenByModeration === true; return { id: message.id, clientMessageId: message.clientMessageId ?? null, senderType: message.senderType, body: hidden ? 'This message was removed by moderation.' : message.body, messageType: message.messageType, attachmentUrls: hidden ? [] : this.stringArray(message.attachmentUrlsJson), createdAt: message.createdAt, isRead: message.senderType === ChatSenderType.CUSTOMER ? message.isReadByProvider : message.isReadByCustomer, readState: { isReadByCustomer: message.isReadByCustomer, isReadByProvider: message.isReadByProvider } }; }
-  private assertMessagePayload(dto: SendChatMessageDto): void { const attachments = dto.attachmentUrls ?? []; if (dto.messageType === ChatMessageType.TEXT && !dto.body?.trim()) throw new BadRequestException('body is required for TEXT messages'); if (dto.messageType !== ChatMessageType.TEXT && attachments.length === 0) throw new BadRequestException('attachmentUrls are required for attachment messages'); }
-  private async assertAttachments(urls: string[]) { if (!urls.length) return; const rows = await this.customerChatsRepository.findCompletedUploadsByUrls(urls); const found = new Set(rows.map((row) => row.fileUrl)); if (urls.some((url) => !found.has(url))) throw new BadRequestException('Attachments must use completed chat-attachments uploads'); }
   private isReviewable(orderStatus: OrderStatus, providerStatus: ProviderOrderStatus): boolean { return orderStatus === OrderStatus.DELIVERED || orderStatus === OrderStatus.COMPLETED || providerStatus === ProviderOrderStatus.DELIVERED || providerStatus === ProviderOrderStatus.COMPLETED; }
   private moderateText(comment: string, rating: number) { const text = comment.toLowerCase(); const categories = [/spam|scam|click/.test(text) ? 'SPAM' : null, /fake|fraud/.test(text) ? 'FAKE_REVIEW' : null, /abuse|hate|threat/.test(text) ? 'ABUSE' : null].filter((value): value is string => Boolean(value)); const confidence = Math.min(95, 55 + categories.length * 20 + (rating <= 2 ? 8 : 0)); const flagged = categories.length > 0; return { status: flagged ? ReviewStatus.FLAGGED : ReviewStatus.PUBLISHED, severity: categories.includes('ABUSE') ? ReviewSeverity.HIGH : flagged ? ReviewSeverity.MEDIUM : ReviewSeverity.LOW, flagReason: categories.includes('SPAM') ? ReviewFlagReason.SPAM : categories.includes('FAKE_REVIEW') ? ReviewFlagReason.FAKE_REVIEW : categories.includes('ABUSE') ? ReviewFlagReason.ABUSE : null, autoModerated: true, confidence, categories }; }
   private async reviewCode(): Promise<string> { for (let attempt = 0; attempt < 5; attempt += 1) { const code = `RV-${randomInt(10000, 99999)}`; const exists = await this.customerReviewsRepository.findReviewCode(code); if (!exists) return code; } return `RV-${Date.now()}`; }

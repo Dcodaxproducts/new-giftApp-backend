@@ -1,91 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ChatMessageType, ChatSenderType, MessageModerationSource, NotificationRecipientType, Prisma, ProviderOrder, ReviewStatus } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ReviewStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { ProviderBuyerChatRepository } from '../repositories/provider-buyer-chat.repository';
-import { ProviderInteractionsRepository } from '../repositories/provider-interactions.repository';
 import { ProviderReviewResponsesRepository } from '../repositories/provider-review-responses.repository';
 import { ProviderReviewsRepository } from '../repositories/provider-reviews.repository';
-import { GetProviderOrderChatDto, ListProviderChatsDto, ListProviderReviewsDto, ProviderChatDetailsDto, ProviderReviewSortBy, SendProviderChatMessageDto, SortOrder, ReviewResponseDto } from '../dto/provider-interactions.dto';
-import { MessageModerationService } from '../../message-moderation/services/message-moderation.service';
-import { MessageContentFilterService } from '../../messaging-settings/services/message-content-filter.service';
-import { MessagingPolicyService } from '../../messaging-settings/services/messaging-policy.service';
-import { UserSafetyService } from '../../user-safety/services/user-safety.service';
+import { ListProviderReviewsDto, ProviderReviewSortBy, SortOrder, ReviewResponseDto } from '../dto/provider-interactions.dto';
 
 type CustomerView = { id: string; firstName: string; lastName: string; avatarUrl: string | null; isActive?: boolean };
-type ThreadView = { id: string; orderId: string; providerOrderId: string; customerId: string; order: { id: string; orderNumber: string; userId: string }; customer: CustomerView; lastMessage: { body: string | null; createdAt: Date } | null };
 type ReviewWithRelations = { id: string; orderId: string; rating: number; comment: string; createdAt: Date; likesCount: number; userId: string; response: { id: string; body: string; createdAt: Date; deletedAt: Date | null } | null; customer: { id: string; firstName: string; lastName: string; avatarUrl: string | null }; order: { id: string; orderNumber: string; createdAt: Date } };
 
 @Injectable()
 export class ProviderInteractionsService {
   constructor(
-    private readonly buyerChatRepository: ProviderBuyerChatRepository,
-    private readonly interactionsRepository: ProviderInteractionsRepository,
     private readonly reviewsRepository: ProviderReviewsRepository,
     private readonly reviewResponsesRepository: ProviderReviewResponsesRepository,
-    private readonly messageModerationService?: MessageModerationService,
-    private readonly messagingPolicy?: MessagingPolicyService,
-    private readonly messageContentFilter?: MessageContentFilterService,
-    private readonly userSafetyService?: UserSafetyService,
   ) {}
-
-  async getOrderChat(user: AuthUserContext, providerOrderId: string, query: GetProviderOrderChatDto) {
-    const providerOrder = await this.getOwnedProviderOrder(user.uid, providerOrderId);
-    const thread = await this.buyerChatRepository.findThreadByProviderOrderId({ where: { providerOrderId }, include: this.threadInclude() });
-    if (thread) return { data: await this.chatSummary(thread), message: 'Order chat fetched successfully.' };
-    if (!query.createIfMissing) return { data: null, message: 'Order chat fetched successfully.' };
-    return this.createOrderChat(user, providerOrder.id);
-  }
-
-  async createOrderChat(user: AuthUserContext, providerOrderId: string) {
-    const providerOrder = await this.getOwnedProviderOrder(user.uid, providerOrderId);
-    const thread = await this.buyerChatRepository.findOrCreateThreadForProviderOrder({ providerOrderId: providerOrder.id, orderId: providerOrder.orderId, providerId: user.uid, customerId: providerOrder.order.userId, include: this.threadInclude() });
-    return { data: await this.chatSummary(thread), message: 'Order chat fetched successfully.' };
-  }
-
-  async chats(user: AuthUserContext, query: ListProviderChatsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const where: Prisma.ChatThreadWhereInput = { providerId: user.uid, ...(query.search ? { OR: [{ order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { customer: { firstName: { contains: query.search, mode: 'insensitive' } } }, { customer: { lastName: { contains: query.search, mode: 'insensitive' } } }] } : {}) };
-    const [items, total] = await Promise.all([this.buyerChatRepository.findChatsForProvider({ where, include: this.threadInclude(), orderBy: { updatedAt: 'desc' }, skip: (page - 1) * limit, take: limit }), this.buyerChatRepository.countChatsForProvider(where)]);
-    const data = await Promise.all(items.map((item) => this.chatListItem(item)));
-    const filtered = query.unreadOnly ? data.filter((item) => item.unreadCount > 0) : data;
-    return { data: filtered, meta: { page, limit, total: query.unreadOnly ? filtered.length : total, totalPages: Math.ceil((query.unreadOnly ? filtered.length : total) / limit) }, message: 'Chats fetched successfully.' };
-  }
-
-  quickReplies() { return { data: [{ key: 'TRACKING_INFO', label: 'Tracking info?', message: 'Your tracking information will be shared shortly.' }, { key: 'ESTIMATED_ARRIVAL', label: 'Estimated arrival?', message: 'Your order is expected to arrive soon. We will keep you updated.' }, { key: 'CONFIRM_DELIVERY', label: 'Confirm delivery', message: 'Please confirm once your order has been delivered.' }], message: 'Quick replies fetched successfully.' }; }
-
-  async chatDetails(user: AuthUserContext, threadId: string, query: ProviderChatDetailsDto) {
-    const thread = await this.getOwnedThread(user.uid, threadId);
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 30;
-    const messages = await this.buyerChatRepository.findMessagesForThread({ where: { threadId, ...(query.before ? { createdAt: { lt: new Date(query.before) } } : {}) }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit });
-    return { data: { thread: { id: thread.id, orderNumber: thread.order.orderNumber, customer: this.customer(thread.customer) }, messages: messages.reverse().map((message) => this.messageItem(message)) }, message: 'Chat fetched successfully.' };
-  }
-
-  async sendMessage(user: AuthUserContext, threadId: string, dto: SendProviderChatMessageDto) {
-    const thread = await this.getOwnedThread(user.uid, threadId);
-    this.assertMessagePayload(dto);
-    await this.messagingPolicy?.assertCanSend({ channel: 'buyerProvider', body: dto.body, attachmentUrls: dto.attachmentUrls ?? [] });
-    await this.userSafetyService?.assertUsersCanInteract(user.uid, thread.customerId);
-    const moderationHint = await this.messageContentFilter?.filter(dto.body);
-    await this.assertAttachments(dto.attachmentUrls ?? []);
-    const message = await this.buyerChatRepository.createChatMessage({ threadId, senderId: user.uid, senderType: ChatSenderType.PROVIDER, clientMessageId: dto.clientMessageId, messageType: dto.messageType, body: dto.body, attachmentUrlsJson: dto.attachmentUrls ?? [], isReadByCustomer: false, isReadByProvider: true });
-    await this.buyerChatRepository.updateThreadLastMessage(threadId, message.id);
-    await this.messageModerationService?.scanCreatedMessage({ source: MessageModerationSource.PROVIDER_BUYER_CHAT, conversationId: threadId, messageId: message.id, participantId: user.uid, participantRole: 'PROVIDER', externalReference: user.uid, senderId: user.uid, senderRole: ChatSenderType.PROVIDER, body: dto.body, createdAt: message.createdAt, moderationHint });
-    await this.buyerChatRepository.createCustomerNotification({ data: { recipientId: thread.customerId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'New provider message', message: dto.body ?? 'Provider sent an attachment.', type: 'CHAT_MESSAGE', metadataJson: { threadId, orderId: thread.orderId, providerOrderId: thread.providerOrderId } } } as unknown as Prisma.NotificationCreateInput);
-    return { data: this.messageItem(message), message: 'Message sent successfully.' };
-  }
-
-  async markRead(user: AuthUserContext, threadId: string) {
-    await this.getOwnedThread(user.uid, threadId);
-    await this.buyerChatRepository.markThreadReadForProvider(threadId);
-    return { data: { threadId, isRead: true }, message: 'Chat marked as read.' };
-  }
-
-  async getSocketThreadContext(user: AuthUserContext, threadId: string) {
-    const thread = await this.getOwnedThread(user.uid, threadId);
-    return { threadId: thread.id, orderId: thread.orderId, providerOrderId: thread.providerOrderId, customerId: thread.customerId, providerId: user.uid };
-  }
 
   async reviewSummary(user: AuthUserContext) {
     const where = this.publicReviewWhere(user.uid);
@@ -132,16 +60,7 @@ export class ProviderInteractionsService {
     return { data: null, message: 'Review response deleted successfully.' };
   }
 
-  private async getOwnedProviderOrder(providerId: string, id: string): Promise<ProviderOrder & { order: { id: string; orderNumber: string; userId: string } }> { const order = await this.interactionsRepository.findProviderOrderForChat({ where: { id, providerId }, include: { order: { select: { id: true, orderNumber: true, userId: true } } } }); if (!order) throw new NotFoundException('Provider order not found'); return order; }
-  private async getOwnedThread(providerId: string, threadId: string) { const thread = await this.buyerChatRepository.findThreadForProvider({ where: { id: threadId, providerId }, include: this.threadInclude() }); if (!thread) throw new NotFoundException('Chat thread not found'); return thread; }
-  private threadInclude() { return { order: { select: { id: true, orderNumber: true, userId: true } }, customer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, isActive: true } }, lastMessage: { select: { body: true, createdAt: true } } } satisfies Prisma.ChatThreadInclude; }
-  private async chatSummary(thread: ThreadView) { return { threadId: thread.id, providerOrderId: thread.providerOrderId, orderNumber: thread.order.orderNumber, customer: this.customer(thread.customer), lastMessage: thread.lastMessage, unreadCount: await this.unreadCount(thread.id) }; }
-  private async chatListItem(thread: ThreadView) { return { id: thread.id, orderNumber: thread.order.orderNumber, customer: this.customer(thread.customer), lastMessage: thread.lastMessage, unreadCount: await this.unreadCount(thread.id) }; }
-  private async unreadCount(threadId: string): Promise<number> { return this.buyerChatRepository.countUnreadForProvider(threadId); }
-  private customer(customer: CustomerView) { return { id: customer.id, name: `${customer.firstName} ${customer.lastName}`.trim(), avatarUrl: customer.avatarUrl, isOnline: customer.isActive }; }
-  private messageItem(message: { id: string; senderType: ChatSenderType; clientMessageId?: string | null; body: string | null; messageType: ChatMessageType; attachmentUrlsJson: Prisma.JsonValue; createdAt: Date; isReadByCustomer: boolean; isReadByProvider: boolean; hiddenByModeration?: boolean | null }) { const hidden = message.hiddenByModeration === true; return { id: message.id, clientMessageId: message.clientMessageId ?? null, senderType: message.senderType, body: hidden ? 'This message was removed by moderation.' : message.body, attachmentUrls: hidden ? [] : this.stringArray(message.attachmentUrlsJson), messageType: message.messageType, createdAt: message.createdAt, isRead: message.senderType === ChatSenderType.PROVIDER ? message.isReadByCustomer : message.isReadByProvider, readState: { isReadByCustomer: message.isReadByCustomer, isReadByProvider: message.isReadByProvider } }; }
-  private assertMessagePayload(dto: SendProviderChatMessageDto): void { const attachments = dto.attachmentUrls ?? []; if (dto.messageType === ChatMessageType.TEXT && !dto.body?.trim()) throw new BadRequestException('body is required for TEXT messages'); if (dto.messageType !== ChatMessageType.TEXT && attachments.length === 0) throw new BadRequestException('attachmentUrls are required for attachment messages'); }
-  private async assertAttachments(urls: string[]) { if (!urls.length) return; const rows = await this.buyerChatRepository.findCompletedUploadsByUrls(urls); const found = new Set(rows.map((row) => row.fileUrl)); if (urls.some((url) => !found.has(url))) throw new BadRequestException('Attachments must use completed chat-attachments uploads'); }
+  private customer(customer: CustomerView) { return { id: customer.id, name: [customer.firstName, customer.lastName].filter(Boolean).join(' '), avatarUrl: customer.avatarUrl, isOnline: customer.isActive }; }
   private publicReviewWhere(providerId: string): Prisma.ReviewWhereInput { return { providerId, deletedAt: null, status: { notIn: [ReviewStatus.HIDDEN, ReviewStatus.REMOVED] } }; }
   private reviewInclude() { return { customer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } }, order: { select: { id: true, orderNumber: true, createdAt: true } }, response: { select: { id: true, body: true, createdAt: true, deletedAt: true } } } satisfies Prisma.ReviewInclude; }
   private async getOwnedReview(providerId: string, id: string): Promise<ReviewWithRelations> { const review = await this.reviewsRepository.findReviewForProvider({ where: { id, ...this.publicReviewWhere(providerId) }, include: this.reviewInclude() }); if (!review) throw new NotFoundException('Review not found'); return review; }

@@ -549,22 +549,7 @@ enum ChatSenderType {
   CUSTOMER
   PROVIDER
   ADMIN
-}
-
-enum SupportChatParticipantType {
-  PROVIDER
-  REGISTERED_USER
-}
-
-enum SupportChatStatus {
-  OPEN
-  ACTIVE
-  RESOLVED
-}
-
-enum SupportChatSenderType {
   PARTICIPANT
-  ADMIN
   SYSTEM
 }
 
@@ -579,6 +564,36 @@ enum ChatMessageType {
 enum MessageVisibilityStatus {
   VISIBLE
   HIDDEN_BY_MODERATION
+}
+
+enum ChatThreadType {
+  ORDER_CHAT
+  SUPPORT_CHAT
+  MODERATION_REVIEW
+}
+
+enum ChatSourceType {
+  CUSTOMER_ORDER
+  PROVIDER_ORDER
+  SUPPORT
+  MESSAGE_MODERATION
+}
+
+enum ChatThreadStatus {
+  OPEN
+  ACTIVE
+  RESOLVED
+  REOPENED
+  ARCHIVED
+  BLOCKED_BY_MODERATION
+}
+
+enum ChatParticipantRole {
+  REGISTERED_USER
+  PROVIDER
+  ADMIN
+  SUPER_ADMIN
+  SYSTEM
 }
 
 enum MessageModerationSource {
@@ -1033,10 +1048,12 @@ model User {
   updatedReviewPolicies               ReviewPolicy[]                       @relation("ReviewPolicyUpdater")
   customerChatThreads                 ChatThread[]                         @relation("CustomerChatThread")
   providerChatThreads                 ChatThread[]                         @relation("ProviderChatThread")
+  assignedChatThreads                 ChatThread[]                         @relation("AssignedChatAdmin")
+  resolvedChatThreads                 ChatThread[]                         @relation("ResolvedChatAdmin")
   sentChatMessages                    ChatMessage[]                        @relation("ChatMessageSender")
-  supportChatsAsParticipant           SupportChat[]                        @relation("SupportChatParticipant")
-  assignedSupportChats                 SupportChat[]                        @relation("SupportChatAssignee")
-  supportChatMessages                  SupportChatMessage[]                 @relation("SupportChatMessageSender")
+  chatParticipants                    ChatParticipant[]                    @relation("ChatParticipantUser")
+  chatReadReceipts                    ChatMessageReadReceipt[]             @relation("ChatReadReceiptUser")
+  chatAuditLogs                       ChatAuditLog[]                       @relation("ChatAuditActor")
   submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
   receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
   reviewedProviderReports             ProviderReport[]                     @relation("ProviderReportReviewer")
@@ -2216,24 +2233,42 @@ model ReviewPolicy {
 }
 
 model ChatThread {
-  id              String   @id @default(cuid())
-  orderId         String   @map("order_id")
-  providerOrderId String   @unique @map("provider_order_id")
-  providerId      String   @map("provider_id")
-  customerId      String   @map("customer_id")
-  lastMessageId   String?  @unique @map("last_message_id")
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id              String           @id @default(cuid())
+  threadType      ChatThreadType   @default(ORDER_CHAT) @map("thread_type")
+  sourceType      ChatSourceType   @default(PROVIDER_ORDER) @map("source_type")
+  sourceId        String?          @map("source_id")
+  subject         String?
+  status          ChatThreadStatus @default(ACTIVE)
+  orderId         String?          @map("order_id")
+  providerOrderId String?          @unique @map("provider_order_id")
+  providerId      String?          @map("provider_id")
+  customerId      String?          @map("customer_id")
+  assignedAdminId String?          @map("assigned_admin_id")
+  resolvedById    String?          @map("resolved_by_id")
+  resolvedAt      DateTime?        @map("resolved_at") @db.Timestamptz
+  lastMessageId   String?          @unique @map("last_message_id")
+  lastMessageAt   DateTime?        @map("last_message_at") @db.Timestamptz
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  order         Order         @relation(fields: [orderId], references: [id])
-  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-  provider      User          @relation("ProviderChatThread", fields: [providerId], references: [id])
-  customer      User          @relation("CustomerChatThread", fields: [customerId], references: [id])
+  order         Order?        @relation(fields: [orderId], references: [id])
+  providerOrder ProviderOrder? @relation(fields: [providerOrderId], references: [id])
+  provider      User?         @relation("ProviderChatThread", fields: [providerId], references: [id])
+  customer      User?         @relation("CustomerChatThread", fields: [customerId], references: [id])
+  assignedAdmin User?         @relation("AssignedChatAdmin", fields: [assignedAdminId], references: [id])
+  resolvedBy    User?         @relation("ResolvedChatAdmin", fields: [resolvedById], references: [id])
   lastMessage   ChatMessage?  @relation("ThreadLastMessage", fields: [lastMessageId], references: [id])
   messages      ChatMessage[] @relation("ThreadMessages")
+  participants  ChatParticipant[]
+  readReceipts  ChatMessageReadReceipt[]
+  attachments   ChatAttachment[]
+  auditLogs     ChatAuditLog[]
 
+  @@index([threadType, status, updatedAt])
+  @@index([sourceType, sourceId])
   @@index([customerId, updatedAt])
   @@index([providerId, updatedAt])
+  @@index([assignedAdminId, updatedAt])
   @@index([orderId])
   @@map("chat_threads")
 }
@@ -2258,6 +2293,9 @@ model ChatMessage {
   thread        ChatThread  @relation("ThreadMessages", fields: [threadId], references: [id])
   sender        User        @relation("ChatMessageSender", fields: [senderId], references: [id])
   lastForThread ChatThread? @relation("ThreadLastMessage")
+  readReceipts  ChatMessageReadReceipt[]
+  attachments   ChatAttachment[]
+  auditLogs     ChatAuditLog[]
 
   @@index([threadId, createdAt])
   @@index([senderId, createdAt])
@@ -2265,59 +2303,74 @@ model ChatMessage {
   @@map("chat_messages")
 }
 
-model SupportChat {
-  id                   String                     @id @default(cuid())
-  participantId        String                     @map("participant_id")
-  participantType      SupportChatParticipantType @map("participant_type")
-  subject              String                     @default("Support Ticket")
-  status               SupportChatStatus          @default(OPEN)
-  assignedAdminId      String?                    @map("assigned_admin_id")
-  lastMessageId        String?                    @unique @map("last_message_id")
-  lastMessageAt        DateTime?                  @map("last_message_at") @db.Timestamptz
-  participantUnreadCount Int                      @default(0) @map("participant_unread_count")
-  adminUnreadCount     Int                        @default(0) @map("admin_unread_count")
-  resolvedAt           DateTime?                  @map("resolved_at") @db.Timestamptz
-  resolvedById         String?                    @map("resolved_by_id")
-  createdAt            DateTime                   @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+model ChatParticipant {
+  id        String              @id @default(cuid())
+  threadId  String              @map("thread_id")
+  userId    String              @map("user_id")
+  role      ChatParticipantRole
+  joinedAt  DateTime            @default(now()) @map("joined_at") @db.Timestamptz
+  leftAt    DateTime?           @map("left_at") @db.Timestamptz
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
-  participant User                 @relation("SupportChatParticipant", fields: [participantId], references: [id])
-  assignedAdmin User?              @relation("SupportChatAssignee", fields: [assignedAdminId], references: [id])
-  lastMessage SupportChatMessage?  @relation("SupportChatLastMessage", fields: [lastMessageId], references: [id])
-  messages SupportChatMessage[]    @relation("SupportChatMessages")
+  thread ChatThread @relation(fields: [threadId], references: [id])
+  user   User       @relation("ChatParticipantUser", fields: [userId], references: [id])
 
-  @@index([participantId, updatedAt])
-  @@index([assignedAdminId, status, updatedAt])
-  @@index([status, updatedAt])
-  @@map("support_chats")
+  @@unique([threadId, userId])
+  @@index([userId, updatedAt])
+  @@map("chat_participants")
 }
 
-model SupportChatMessage {
-  id                 String                @id @default(cuid())
-  supportChatId      String                @map("support_chat_id")
-  senderId           String                @map("sender_id")
-  senderType         SupportChatSenderType @map("sender_type")
-  clientMessageId    String?               @map("client_message_id")
-  messageType        ChatMessageType       @default(TEXT) @map("message_type")
-  body               String?
-  attachmentUrlsJson Json                  @default("[]") @map("attachment_urls_json")
-  readByAdminAt      DateTime?             @map("read_by_admin_at") @db.Timestamptz
-  readByParticipantAt DateTime?            @map("read_by_participant_at") @db.Timestamptz
-  visibilityStatus   MessageVisibilityStatus @default(VISIBLE) @map("visibility_status")
-  hiddenByModeration Boolean               @default(false) @map("hidden_by_moderation")
-  hiddenAt           DateTime?             @map("hidden_at") @db.Timestamptz
-  hiddenByAdminId    String?               @map("hidden_by_admin_id")
-  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz
+model ChatMessageReadReceipt {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  readAt    DateTime @default(now()) @map("read_at") @db.Timestamptz
 
-  supportChat SupportChat @relation("SupportChatMessages", fields: [supportChatId], references: [id])
-  sender User @relation("SupportChatMessageSender", fields: [senderId], references: [id])
-  lastForSupportChat SupportChat? @relation("SupportChatLastMessage")
+  thread  ChatThread  @relation(fields: [threadId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+  user    User        @relation("ChatReadReceiptUser", fields: [userId], references: [id])
 
-  @@index([supportChatId, createdAt])
-  @@index([senderId, createdAt])
-  @@unique([supportChatId, senderId, clientMessageId])
-  @@map("support_chat_messages")
+  @@unique([messageId, userId])
+  @@index([threadId, userId, readAt])
+  @@map("chat_message_read_receipts")
 }
+
+model ChatAttachment {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  messageId String?  @map("message_id")
+  fileUrl   String   @map("file_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  thread  ChatThread   @relation(fields: [threadId], references: [id])
+  message ChatMessage? @relation(fields: [messageId], references: [id])
+
+  @@index([threadId, createdAt])
+  @@index([messageId])
+  @@map("chat_attachments")
+}
+
+model ChatAuditLog {
+  id           String   @id @default(cuid())
+  threadId     String   @map("thread_id")
+  messageId    String?  @map("message_id")
+  actorId      String?  @map("actor_id")
+  action       String
+  metadataJson Json     @default("{}") @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  thread  ChatThread   @relation(fields: [threadId], references: [id])
+  message ChatMessage? @relation(fields: [messageId], references: [id])
+  actor   User?        @relation("ChatAuditActor", fields: [actorId], references: [id])
+
+  @@index([threadId, createdAt])
+  @@index([messageId])
+  @@index([actorId, createdAt])
+  @@map("chat_audit_logs")
+}
+
 
 model MessageModerationCase {
   id                 String                      @id @default(cuid())

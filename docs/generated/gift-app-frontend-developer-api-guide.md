@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-19 10:28 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-19 12:26 PKT.
 
 ## Frontend Integration Flows
 
@@ -561,17 +561,17 @@ Generated from `docs/generated/openapi.json` on 2026-05-19 10:28 PKT.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/chats` | List unified chat threads | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
+| GET | `/api/v1/chats` | List chat threads | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
 | GET | `/api/v1/chats/quick-replies` | Fetch role-aware chat quick replies | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN |
-| POST | `/api/v1/chats/threads` | Create or get a unified chat thread | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission |
-| GET | `/api/v1/chats/threads/{threadId}` | Fetch unified chat thread details | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
-| GET | `/api/v1/chats/threads/{threadId}/audit-log` | Fetch unified chat thread audit log | SUPER_ADMIN or ADMIN with supportChats.read |
-| GET | `/api/v1/chats/threads/{threadId}/messages` | Fetch unified chat thread messages | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
-| POST | `/api/v1/chats/threads/{threadId}/messages` | Send a unified chat message | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply |
-| PATCH | `/api/v1/chats/threads/{threadId}/read` | Mark a unified chat thread as read | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read |
+| POST | `/api/v1/chats/threads` | Create or get a chat thread | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission |
+| GET | `/api/v1/chats/threads/{threadId}` | Fetch chat thread details | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
+| GET | `/api/v1/chats/threads/{threadId}/audit-log` | Fetch chat thread audit log | SUPER_ADMIN or ADMIN with supportChats.read |
+| GET | `/api/v1/chats/threads/{threadId}/messages` | Fetch chat thread messages | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
+| POST | `/api/v1/chats/threads/{threadId}/messages` | Send a chat message | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply |
+| PATCH | `/api/v1/chats/threads/{threadId}/read` | Mark a chat thread as read | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read |
 | POST | `/api/v1/chats/threads/{threadId}/reopen` | Reopen a support chat thread | SUPER_ADMIN or ADMIN with supportChats.resolve |
 | POST | `/api/v1/chats/threads/{threadId}/resolve` | Resolve a support chat thread | SUPER_ADMIN or ADMIN with supportChats.resolve |
-| PATCH | `/api/v1/chats/threads/{threadId}/status` | Update unified chat thread status | SUPER_ADMIN or ADMIN with supportChats.resolve |
+| PATCH | `/api/v1/chats/threads/{threadId}/status` | Update chat thread status | SUPER_ADMIN or ADMIN with supportChats.resolve |
 
 ### Customer - Addresses (6 APIs)
 

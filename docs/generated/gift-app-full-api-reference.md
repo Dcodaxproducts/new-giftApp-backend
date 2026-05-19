@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-19 10:28 UTC
+Generated: 2026-05-19 12:26 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -11461,9 +11461,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/chats`
 
-- Summary: List unified chat threads
+- Summary: List chat threads
 - Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission
-- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Unified role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -11505,7 +11505,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/chats/threads`
 
-- Summary: Create or get a unified chat thread
+- Summary: Create or get a chat thread
 - Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission
 - Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission. Create or get an order/support/moderation chat thread based on role and sourceType.
 - Request payload(s):
@@ -11534,7 +11534,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/chats/threads/{threadId}`
 
-- Summary: Fetch unified chat thread details
+- Summary: Fetch chat thread details
 - Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission
 - Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch a thread only when the authenticated role can access it.
 - Parameters:
@@ -11550,7 +11550,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/chats/threads/{threadId}/messages`
 
-- Summary: Fetch unified chat thread messages
+- Summary: Fetch chat thread messages
 - Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission
 - Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch messages only for accessible threads.
 - Parameters:
@@ -11569,7 +11569,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/chats/threads/{threadId}/messages`
 
-- Summary: Send a unified chat message
+- Summary: Send a chat message
 - Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply
 - Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply. Send a message in an accessible order/support thread.
 - Parameters:
@@ -11595,7 +11595,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/chats/threads/{threadId}/read`
 
-- Summary: Mark a unified chat thread as read
+- Summary: Mark a chat thread as read
 - Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read
 - Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read. Mark an accessible thread as read for the authenticated participant/admin.
 - Parameters:
@@ -11616,7 +11616,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/chats/threads/{threadId}/status`
 
-- Summary: Update unified chat thread status
+- Summary: Update chat thread status
 - Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
 - Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Update support thread status.
 - Parameters:
@@ -11691,7 +11691,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/chats/threads/{threadId}/audit-log`
 
-- Summary: Fetch unified chat thread audit log
+- Summary: Fetch chat thread audit log
 - Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
 - Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Fetch audit trail for an accessible support/moderation thread.
 - Parameters:

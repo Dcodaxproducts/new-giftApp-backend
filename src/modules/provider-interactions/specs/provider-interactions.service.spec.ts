@@ -1,37 +1,31 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
-describe('Provider Chat and Reviews module', () => {
+describe('Provider Reviews module', () => {
   const service = readFileSync(join(__dirname, '../services/provider-interactions.service.ts'), 'utf8');
-  const chatRepository = readFileSync(join(__dirname, '../repositories/provider-buyer-chat.repository.ts'), 'utf8');
-  const interactionsRepository = readFileSync(join(__dirname, '../repositories/provider-interactions.repository.ts'), 'utf8');
   const reviewsRepository = readFileSync(join(__dirname, '../repositories/provider-reviews.repository.ts'), 'utf8');
   const reviewResponsesRepository = readFileSync(join(__dirname, '../repositories/provider-review-responses.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, '../controllers/provider-interactions.controller.ts'), 'utf8');
-  const chatsController = readFileSync(join(__dirname, '../../chats/chats.controller.ts'), 'utf8');
-  const chatsModule = readFileSync(join(__dirname, '../../chats/chats.module.ts'), 'utf8');
+  const chatsController = readFileSync(join(__dirname, '../../chats/controllers/chats.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, '../provider-interactions.module.ts'), 'utf8');
-  const dto = readFileSync(join(__dirname, '../dto/provider-interactions.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
   const appModule = readFileSync(join(__dirname, '../../../app.module.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
-  const storageService = readFileSync(join(__dirname, '../../storage/storage.service.ts'), 'utf8');
 
-  it('registers provider interaction module and Swagger groups', () => {
+  it('registers provider review module without buyer chat internals', () => {
     expect(appModule).toContain('ProviderInteractionsModule');
     expect(moduleFile).toContain('DatabaseModule');
-    expect(moduleFile).not.toContain('JwtModule.register({})');
+    expect(moduleFile).not.toContain('ProviderBuyerChatRepository');
+    expect(moduleFile).not.toContain('ProviderInteractionsRepository');
+    expect(existsSync(join(__dirname, '../repositories/provider-buyer-chat.repository.ts'))).toBe(false);
     expect(controller).not.toContain("@ApiTags('03 Provider - Buyer Chat')");
     expect(chatsController).toContain("@ApiTags('08 Chat - Unified Threads')");
-    expect(chatsModule).toContain('ProviderInteractionsModule');
     expect(controller).toContain("@ApiTags('03 Provider - Reviews')");
     expect(main).not.toContain("'03 Provider - Buyer Chat'");
-    expect(main).toContain("'08 Chat - Unified Threads'");
-    expect(main).toContain("'03 Provider - Reviews'");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
   });
 
-  it('provider review APIs and unified chat APIs are documented in swagger access metadata', () => {
+  it('provider review APIs and chat APIs are documented in swagger access metadata', () => {
     const access = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
     expect(access).toContain("'GET /api/v1/chats': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission'");
     expect(access).not.toContain("'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER'");
@@ -41,54 +35,17 @@ describe('Provider Chat and Reviews module', () => {
   it('reuses shared chat and review models without duplicate provider-specific tables', () => {
     expect(schema).toContain('model ChatThread');
     expect(schema).toContain('model ChatMessage');
+    expect(schema).toContain('model ChatParticipant');
     expect(schema).toContain('model Review');
     expect(schema).toContain('model ReviewResponse');
     expect(schema).not.toContain('model ProviderReview');
     expect(schema).not.toContain('model ProviderChatThread');
   });
 
-  it('moves provider chat routes to the unified chat controller', () => {
+  it('provider chat routes live only in the chat controller', () => {
     for (const route of ["@Get()", "@Get('quick-replies')", "@Post('threads')", "@Get('threads/:threadId')", "@Post('threads/:threadId/messages')", "@Patch('threads/:threadId/read')"]) expect(chatsController).toContain(route);
     for (const oldRoute of ["@Get('chats')", "@Get('chats/quick-replies')", "@Get('chats/:threadId')", "@Post('chats/:threadId/messages')", "@Patch('chats/:threadId/read')", "@Get('orders/:id/chat')", "@Post('orders/:id/chat')"]) expect(controller).not.toContain(oldRoute);
   });
-
-  it('enforces provider order/thread ownership for chats and creates buyer notifications', () => {
-    expect(service).toContain('getOwnedProviderOrder(user.uid, providerOrderId)');
-    expect(service).toContain('getOwnedThread(user.uid, threadId)');
-    expect(interactionsRepository).toContain('findProviderOrderForChat');
-    expect(chatRepository).toContain('findThreadForProvider');
-    expect(chatRepository).toContain('createChatMessage');
-    expect(service).toContain('isReadByCustomer: false');
-    expect(service).toContain('isReadByProvider: true');
-    expect(service).toContain('New provider message');
-  });
-
-  it('validates provider chat text and attachment payloads and marks reads', () => {
-    expect(dto).toContain('ChatMessageType');
-    expect(service).toContain('body is required for TEXT messages');
-    expect(service).toContain('attachmentUrls are required for attachment messages');
-    expect(chatRepository).toContain('senderType: ChatSenderType.CUSTOMER');
-    expect(chatRepository).toContain('isReadByProvider: true');
-    expect(storageService).toContain('UploadFolder.CHAT_ATTACHMENTS');
-  });
-
-
-  it('repository owns Prisma access for provider buyer chat flows', () => {
-    expect(service).toContain('buyerChatRepository.findChatsForProvider');
-    expect(service).toContain('buyerChatRepository.findThreadForProvider');
-    expect(service).toContain('buyerChatRepository.findOrCreateThreadForProviderOrder');
-    expect(service).toContain('buyerChatRepository.markThreadReadForProvider');
-    expect(chatRepository).toContain('prisma.chatThread.findMany');
-    expect(chatRepository).toContain('prisma.chatMessage.create');
-  });
-
-  it('provider can only access own order chat and cannot message unrelated customers', () => {
-    expect(service).toContain('getOwnedProviderOrder(user.uid, providerOrderId)');
-    expect(service).toContain('getOwnedThread(user.uid, threadId)');
-    expect(service).toContain('Provider order not found');
-    expect(service).toContain('Chat thread not found');
-  });
-
 
   it('repository owns Prisma access for provider review flows', () => {
     expect(service).toContain('reviewsRepository.findReviewSummaryForProvider');

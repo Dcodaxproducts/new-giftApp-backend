@@ -9,9 +9,8 @@ describe('Admin message moderation implementation guards', () => {
   const scanner = readFileSync(join(root, 'services/message-moderation-scanner.service.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
-  const customerChat = readFileSync(join(__dirname, '../../customer-provider-interactions/services/customer-provider-interactions.service.ts'), 'utf8');
-  const providerChat = readFileSync(join(__dirname, '../../provider-interactions/services/provider-interactions.service.ts'), 'utf8');
-  const supportChat = readFileSync(join(__dirname, '../../support-chat/services/support-chat.service.ts'), 'utf8');
+  const chatMessages = readFileSync(join(__dirname, '../../chats/services/chat-message.service.ts'), 'utf8');
+  const chatModerationBridge = readFileSync(join(__dirname, '../../chats/services/chat-moderation-bridge.service.ts'), 'utf8');
 
   it('SUPER_ADMIN and ADMIN route guards protect message moderation routes with final permissions', () => {
     expect(controller).toContain("@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)");
@@ -44,8 +43,7 @@ describe('Admin message moderation implementation guards', () => {
     expect(repository).toContain('updateMessageVisibility');
     expect(service).toContain('HIDE_MESSAGE');
     expect(service).toContain('RESTORE_MESSAGE');
-    expect(customerChat).toContain('This message was removed by moderation.');
-    expect(providerChat).toContain('This message was removed by moderation.');
+    expect(chatMessages).toContain('This message was removed by moderation.');
   });
 
   it('moderation actions create moderation logs and audit logs', () => {
@@ -65,12 +63,10 @@ describe('Admin message moderation implementation guards', () => {
   });
 
   it('chat message creation creates moderation case when flagged', () => {
-    expect(customerChat).toContain('scanCreatedMessage');
-    expect(customerChat).toContain('CUSTOMER_PROVIDER_CHAT');
-    expect(providerChat).toContain('scanCreatedMessage');
-    expect(providerChat).toContain('PROVIDER_BUYER_CHAT');
-    expect(supportChat).toContain('scanCreatedMessage');
-    expect(supportChat).toContain('ADMIN_SUPPORT_CHAT');
+    expect(chatMessages).toContain('scanCreatedMessage');
+    expect(chatModerationBridge).toContain('CUSTOMER_PROVIDER_CHAT');
+    expect(chatModerationBridge).toContain('PROVIDER_BUYER_CHAT');
+    expect(chatModerationBridge).toContain('ADMIN_SUPPORT_CHAT');
   });
 
   it('scanner covers required deterministic categories', () => {

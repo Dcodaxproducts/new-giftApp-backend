@@ -11225,2438 +11225,6 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/admin/message-moderation/conversations": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.",
-        "operationId": "MessageModerationController_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "chatType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BUYER_PROVIDER",
-                "SUPPORT_CHAT",
-                "SYSTEM_REVIEW"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING_REVIEW",
-                "ACTION_TAKEN",
-                "DISMISSED",
-                "ESCALATED",
-                "RESOLVED"
-              ]
-            }
-          },
-          {
-            "name": "severity",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOW",
-                "MEDIUM",
-                "HIGH",
-                "CRITICAL"
-              ]
-            }
-          },
-          {
-            "name": "flagReason",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER"
-              ]
-            }
-          },
-          {
-            "name": "senderRole",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "participantType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "assignedToAdminId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CUSTOMER_PROVIDER_CHAT",
-                "PROVIDER_BUYER_CHAT",
-                "ADMIN_SUPPORT_CHAT",
-                "WHATSAPP_BUSINESS",
-                "ZENDESK",
-                "SMS_GATEWAY",
-                "IN_APP_CHAT",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "flagType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "assignedToId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "flaggedAt",
-                "severity",
-                "lastMessageAt",
-                "createdAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "conversation_id",
-                        "chatType": "BUYER_PROVIDER",
-                        "status": "PENDING_REVIEW",
-                        "severity": "HIGH",
-                        "flaggedMessageCount": 2,
-                        "lastFlaggedAt": "2026-05-18T10:00:00.000Z",
-                        "participants": [
-                          {
-                            "id": "customer_id",
-                            "type": "REGISTERED_USER",
-                            "name": "Sarah Johnson",
-                            "avatarUrl": null
-                          },
-                          {
-                            "id": "provider_id",
-                            "type": "PROVIDER",
-                            "name": "Dcodax Gifts",
-                            "avatarUrl": null
-                          }
-                        ],
-                        "lastMessagePreview": "Please pay outside the platform...",
-                        "flagReasons": [
-                          "OFF_PLATFORM_PAYMENT",
-                          "AUTO_FLAG_KEYWORD"
-                        ],
-                        "assignedTo": null
-                      }
-                    ],
-                    "meta": {
-                      "page": 1,
-                      "limit": 20,
-                      "total": 1,
-                      "totalPages": 1
-                    },
-                    "message": "Flagged message conversations fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List flagged message moderation conversations",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/stats": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Calculated from real moderation records.",
-        "operationId": "MessageModerationController_stats",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation stats",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/filter-options": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.",
-        "operationId": "MessageModerationController_filterOptions",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation filter options",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/export": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export contains moderation-safe redacted fields only, not full private conversation history.",
-        "operationId": "MessageModerationController_export",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "chatType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BUYER_PROVIDER",
-                "SUPPORT_CHAT",
-                "SYSTEM_REVIEW"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING_REVIEW",
-                "ACTION_TAKEN",
-                "DISMISSED",
-                "ESCALATED",
-                "RESOLVED"
-              ]
-            }
-          },
-          {
-            "name": "severity",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOW",
-                "MEDIUM",
-                "HIGH",
-                "CRITICAL"
-              ]
-            }
-          },
-          {
-            "name": "flagReason",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER"
-              ]
-            }
-          },
-          {
-            "name": "senderRole",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "participantType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "assignedToAdminId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CUSTOMER_PROVIDER_CHAT",
-                "PROVIDER_BUYER_CHAT",
-                "ADMIN_SUPPORT_CHAT",
-                "WHATSAPP_BUSINESS",
-                "ZENDESK",
-                "SMS_GATEWAY",
-                "IN_APP_CHAT",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "flagType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "assignedToId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "flaggedAt",
-                "severity",
-                "lastMessageAt",
-                "createdAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Export message moderation rows",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.export",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.export"
-      }
-    },
-    "/api/v1/admin/message-moderation/audit-logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read.",
-        "operationId": "MessageModerationController_auditLogs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "conversationId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "messageId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "actorAdminId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "action",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "flaggedAt",
-                "severity",
-                "lastMessageAt",
-                "createdAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation audit logs",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/conversations/{id}": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. SUPER_ADMIN or ADMIN with messageModeration.read. Returns participants, flagged messages, internal notes, and action history.",
-        "operationId": "MessageModerationController_detail",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation conversation detail",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/conversations/{id}/history": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.",
-        "operationId": "MessageModerationController_history",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "beforeMessageId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "afterMessageId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch paginated message moderation conversation history",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/block": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Hide a flagged message from chat participants. Does not block the sender account. SUPER_ADMIN or ADMIN with messageModeration.moderate. Hide a flagged message from chat participants. Does not block the sender account. Internally records HIDE_MESSAGE and never physically deletes chat messages.",
-        "operationId": "MessageModerationController_block",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BlockMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Hide a flagged message from chat participants",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/restore": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Restores a message hidden by moderation. SUPER_ADMIN or ADMIN with messageModeration.moderate. Restores a message previously hidden by moderation and writes moderation/audit logs.",
-        "operationId": "MessageModerationController_restore",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RestoreMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Restore a hidden moderated message",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/warn-user": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. SUPER_ADMIN or ADMIN with messageModeration.warn. Warn the message sender. Sender may be registered user or provider. Does not expose internal notes to sender.",
-        "operationId": "MessageModerationController_warn",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WarnUserDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Warn message sender",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.warn",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.warn"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/suspend-account": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. SUPER_ADMIN or ADMIN with messageModeration.suspend. Suspends the message sender account using the correct registered-user/provider lifecycle service. Admin and Super Admin accounts cannot be suspended here.",
-        "operationId": "MessageModerationController_suspend",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SuspendAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Suspend message sender account",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.suspend",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.suspend"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. SUPER_ADMIN or ADMIN with messageModeration.moderate. Marks flag as false-positive/no-action and keeps the message visible.",
-        "operationId": "MessageModerationController_dismiss",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DismissFlagDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Dismiss a moderation flag",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/note": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. SUPER_ADMIN or ADMIN with messageModeration.notes.create. Internal-only note is never visible to customer/provider participants.",
-        "operationId": "MessageModerationController_note",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InternalNoteDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Add internal private moderation note",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.notes.create",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.notes.create"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/reprocess": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.reprocess. SUPER_ADMIN or ADMIN with messageModeration.reprocess permission. SUPER_ADMIN or ADMIN with messageModeration.reprocess. Re-runs the content scanner using current policy and stores scanner result snapshot without duplicating active flags for the same reason.",
-        "operationId": "MessageModerationController_reprocess",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReprocessMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reprocess a message through scanner",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.reprocess",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.reprocess"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/escalate": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.escalate. SUPER_ADMIN or ADMIN with messageModeration.escalate permission. SUPER_ADMIN or ADMIN with messageModeration.escalate. Escalates a flagged message to support, security, or dispute review.",
-        "operationId": "MessageModerationController_escalate",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EscalateMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Escalate a flagged message",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.escalate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.escalate"
-      }
-    },
-    "/api/v1/users/export": {
-      "get": {
-        "operationId": "UserManagementController_export",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "sarah",
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ALL",
-                "ACTIVE",
-                "PENDING",
-                "SUSPENDED",
-                "DISABLED"
-              ]
-            }
-          },
-          {
-            "name": "registrationFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "registrationTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "format",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CSV",
-                "XLSX"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "List Users Export",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.export",
-        "x-access": "SUPER_ADMIN or ADMIN with users.export",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.export. SUPER_ADMIN or ADMIN with users.export permission."
-      }
-    },
-    "/api/v1/users": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission. SUPER_ADMIN/ADMIN with users.read permission.",
-        "operationId": "UserManagementController_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "sarah",
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ALL",
-                "ACTIVE",
-                "PENDING",
-                "SUSPENDED",
-                "DISABLED"
-              ]
-            }
-          },
-          {
-            "name": "registrationFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "registrationTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "firstName",
-                "email",
-                "totalSpent",
-                "ordersCount"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Users fetched successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "user_id",
-                        "email": "customer@example.com",
-                        "firstName": "Sarah",
-                        "lastName": "Johnson",
-                        "phone": "+923001234567",
-                        "role": "REGISTERED_USER",
-                        "isVerified": true,
-                        "isActive": true,
-                        "createdAt": "2026-05-09T10:00:00.000Z"
-                      }
-                    ],
-                    "meta": {
-                      "page": 1,
-                      "limit": 20,
-                      "total": 1,
-                      "totalPages": 1
-                    },
-                    "message": "Users fetched successfully"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List registered users",
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
-        "x-access": "SUPER_ADMIN or ADMIN with users.read"
-      }
-    },
-    "/api/v1/users/{id}": {
-      "get": {
-        "operationId": "UserManagementController_details",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Fetch Users details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
-        "x-access": "SUPER_ADMIN or ADMIN with users.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
-      },
-      "patch": {
-        "operationId": "UserManagementController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateRegisteredUserDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Update Users",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.update",
-        "x-access": "SUPER_ADMIN or ADMIN with users.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.update. SUPER_ADMIN or ADMIN with users.update permission."
-      },
-      "delete": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanent delete danger-zone endpoint. DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.",
-        "operationId": "UserManagementController_permanentlyDelete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User permanently deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "deletedUserId": "user_id",
-                      "deletedRelatedRecords": true
-                    },
-                    "message": "User permanently deleted successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Permanently delete registered user",
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/users/{id}/status": {
-      "patch": {
-        "operationId": "UserManagementController_updateStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateRegisteredUserStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Update Users Status",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.status.update",
-        "x-access": "SUPER_ADMIN or ADMIN with users.status.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission."
-      }
-    },
-    "/api/v1/users/{id}/suspend": {
-      "post": {
-        "operationId": "UserManagementController_suspend",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SuspendRegisteredUserDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Create Users Suspend",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.suspend",
-        "x-access": "SUPER_ADMIN or ADMIN with users.suspend",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission."
-      }
-    },
-    "/api/v1/users/{id}/unsuspend": {
-      "post": {
-        "operationId": "UserManagementController_unsuspend",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UnsuspendRegisteredUserDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Create Users Unsuspend",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.unsuspend",
-        "x-access": "SUPER_ADMIN or ADMIN with users.unsuspend",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission."
-      }
-    },
-    "/api/v1/users/{id}/reset-password": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with users.resetPassword. SUPER_ADMIN or ADMIN with users.resetPassword permission. SUPER_ADMIN or ADMIN with users.resetPassword permission can change a REGISTERED_USER password from the dashboard. Optionally sends email and in-app notification to the user.",
-        "operationId": "UserManagementController_resetPassword",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResetRegisteredUserPasswordDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User password changed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "userId": "user_id",
-                      "email": "user@example.com",
-                      "emailSent": true,
-                      "notificationSent": true
-                    },
-                    "message": "User password changed successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Change registered user password",
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.resetPassword",
-        "x-access": "SUPER_ADMIN or ADMIN with users.resetPassword"
-      }
-    },
-    "/api/v1/users/{id}/activity": {
-      "get": {
-        "operationId": "UserManagementController_activity",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "type",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOGIN",
-                "PAYMENT",
-                "PROFILE_UPDATE",
-                "ORDER",
-                "SECURITY",
-                "ALL"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Fetch Users Activity details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
-        "x-access": "SUPER_ADMIN or ADMIN with users.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
-      }
-    },
-    "/api/v1/users/{id}/stats": {
-      "get": {
-        "operationId": "UserManagementController_stats",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Fetch Users Stats details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
-        "x-access": "SUPER_ADMIN or ADMIN with users.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
-      }
-    },
-    "/api/v1/admin/messaging-settings": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. SUPER_ADMIN or ADMIN with messagingSettings.read. Settings apply to future messages only; retention jobs must preserve compliance-sensitive order, dispute, and support records.",
-        "operationId": "MessagingSettingsController_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessagingSettingsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch in-app messaging settings",
-        "tags": [
-          "02 Admin - In-App Messaging Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.update. SUPER_ADMIN or ADMIN with messagingSettings.update permission. Settings apply to future messages only. SUPER_ADMIN or ADMIN with messagingSettings.update. Creates an admin audit log for every update.",
-        "operationId": "MessagingSettingsController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMessagingSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update in-app messaging settings",
-        "tags": [
-          "02 Admin - In-App Messaging Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.update",
-        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.update"
-      }
-    },
-    "/api/v1/admin/messaging-settings/audit-logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. SUPER_ADMIN or ADMIN with messagingSettings.read.",
-        "operationId": "MessagingSettingsController_auditLogs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List in-app messaging settings audit logs",
-        "tags": [
-          "02 Admin - In-App Messaging Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
-      }
-    },
-    "/api/v1/media-upload-policy": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.",
-        "operationId": "MediaUploadPolicyController_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "allowedFileTypes": {
-                        "jpeg": true,
-                        "jpg": true,
-                        "png": true,
-                        "gif": false,
-                        "mp4": true,
-                        "mov": true,
-                        "mp3": true,
-                        "wav": false,
-                        "svg": false
-                      },
-                      "maxImageSizeMb": 10,
-                      "maxVideoSizeMb": 500,
-                      "maxAudioSizeMb": 50,
-                      "scanUploads": true,
-                      "blockSvgUploads": true,
-                      "updatedAt": "2026-05-09T10:00:00.000Z",
-                      "updatedBy": {
-                        "id": "admin_id",
-                        "name": "Alex Rivera"
-                      }
-                    },
-                    "message": "Media upload policy fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch global media upload policy",
-        "tags": [
-          "02 Admin - Media Upload Policy"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with mediaPolicy.read",
-        "x-access": "SUPER_ADMIN or ADMIN with mediaPolicy.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global media upload policy. SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.",
-        "operationId": "MediaUploadPolicyController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMediaUploadPolicyDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update global media upload policy",
-        "tags": [
-          "02 Admin - Media Upload Policy"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/media-upload-policy/audit-logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Media upload policy audit logs. SUPER_ADMIN only.",
-        "operationId": "MediaUploadPolicyController_auditLogs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-01T00:00:00.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-31T23:59:59.999Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List media upload policy audit logs",
-        "tags": [
-          "02 Admin - Media Upload Policy"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/customer/user-report-reasons": {
-      "get": {
-        "operationId": "UserSafetyController_reasons",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch generic user report reasons",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/users/{userId}/reports": {
-      "post": {
-        "operationId": "UserSafetyController_report",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateUserReportDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Report another user",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/user-reports": {
-      "get": {
-        "operationId": "UserSafetyController_reports",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "SUBMITTED",
-                "UNDER_REVIEW",
-                "REVIEWED",
-                "WARNED",
-                "SUSPENDED",
-                "DISMISSED",
-                "ESCALATED"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List own user safety reports",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/user-reports/{id}": {
-      "get": {
-        "operationId": "UserSafetyController_reportDetail",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch own user safety report detail",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/blocked-users": {
-      "get": {
-        "operationId": "UserSafetyController_blocked",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List blocked users",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/blocked-users/{userId}": {
-      "post": {
-        "operationId": "UserSafetyController_block",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Block another user",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      },
-      "delete": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. No request body. Removes only the current customer block row.",
-        "operationId": "UserSafetyController_unblock",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Unblock user",
-        "tags": [
-          "05 Customer - User Safety"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/admin/user-safety/reports": {
-      "get": {
-        "operationId": "UserSafetyAdminController_reports",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "SUBMITTED",
-                "UNDER_REVIEW",
-                "REVIEWED",
-                "WARNED",
-                "SUSPENDED",
-                "DISMISSED",
-                "ESCALATED"
-              ]
-            }
-          },
-          {
-            "name": "reason",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "HARASSMENT",
-                "SPAM",
-                "INAPPROPRIATE_CONTENT",
-                "FRAUD_OR_SCAM",
-                "OFF_PLATFORM_PAYMENT",
-                "IMPERSONATION",
-                "OTHER"
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List user safety reports",
-        "tags": [
-          "02 Admin - User Safety Moderation"
-        ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
-      }
-    },
-    "/api/v1/admin/user-safety/reports/export": {
-      "get": {
-        "operationId": "UserSafetyAdminController_export",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "SUBMITTED",
-                "UNDER_REVIEW",
-                "REVIEWED",
-                "WARNED",
-                "SUSPENDED",
-                "DISMISSED",
-                "ESCALATED"
-              ]
-            }
-          },
-          {
-            "name": "reason",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "HARASSMENT",
-                "SPAM",
-                "INAPPROPRIATE_CONTENT",
-                "FRAUD_OR_SCAM",
-                "OFF_PLATFORM_PAYMENT",
-                "IMPERSONATION",
-                "OTHER"
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Export user safety reports",
-        "tags": [
-          "02 Admin - User Safety Moderation"
-        ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
-      }
-    },
-    "/api/v1/admin/user-safety/reports/{id}": {
-      "get": {
-        "operationId": "UserSafetyAdminController_detail",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch user safety report detail",
-        "tags": [
-          "02 Admin - User Safety Moderation"
-        ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
-      }
-    },
-    "/api/v1/admin/user-safety/reports/{id}/action": {
-      "post": {
-        "operationId": "UserSafetyAdminController_action",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserSafetyAdminActionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Moderate user safety report",
-        "tags": [
-          "02 Admin - User Safety Moderation"
-        ],
-        "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
-      }
-    },
     "/api/v1/provider/inventory": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.",
@@ -16548,6 +14116,1112 @@
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
         "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission."
+      }
+    },
+    "/api/v1/users/export": {
+      "get": {
+        "operationId": "UserManagementController_export",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "sarah",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "ACTIVE",
+                "PENDING",
+                "SUSPENDED",
+                "DISABLED"
+              ]
+            }
+          },
+          {
+            "name": "registrationFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "registrationTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CSV",
+                "XLSX"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "List Users Export",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.export",
+        "x-access": "SUPER_ADMIN or ADMIN with users.export",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.export. SUPER_ADMIN or ADMIN with users.export permission."
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission. SUPER_ADMIN/ADMIN with users.read permission.",
+        "operationId": "UserManagementController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "sarah",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "ACTIVE",
+                "PENDING",
+                "SUSPENDED",
+                "DISABLED"
+              ]
+            }
+          },
+          {
+            "name": "registrationFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "registrationTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "firstName",
+                "email",
+                "totalSpent",
+                "ordersCount"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "user_id",
+                        "email": "customer@example.com",
+                        "firstName": "Sarah",
+                        "lastName": "Johnson",
+                        "phone": "+923001234567",
+                        "role": "REGISTERED_USER",
+                        "isVerified": true,
+                        "isActive": true,
+                        "createdAt": "2026-05-09T10:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Users fetched successfully"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List registered users",
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read"
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "operationId": "UserManagementController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Fetch Users details",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
+      },
+      "patch": {
+        "operationId": "UserManagementController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRegisteredUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Update Users",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.update",
+        "x-access": "SUPER_ADMIN or ADMIN with users.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.update. SUPER_ADMIN or ADMIN with users.update permission."
+      },
+      "delete": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanent delete danger-zone endpoint. DANGER: This endpoint permanently deletes/anonymizes the registered user and removes related non-financial data from the database. This is not a soft delete. Use only from Super Admin danger zone screens.",
+        "operationId": "UserManagementController_permanentlyDelete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User permanently deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "deletedUserId": "user_id",
+                      "deletedRelatedRecords": true
+                    },
+                    "message": "User permanently deleted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Permanently delete registered user",
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/users/{id}/status": {
+      "patch": {
+        "operationId": "UserManagementController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRegisteredUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Update Users Status",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.status.update",
+        "x-access": "SUPER_ADMIN or ADMIN with users.status.update",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission."
+      }
+    },
+    "/api/v1/users/{id}/suspend": {
+      "post": {
+        "operationId": "UserManagementController_suspend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspendRegisteredUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Create Users Suspend",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.suspend",
+        "x-access": "SUPER_ADMIN or ADMIN with users.suspend",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission."
+      }
+    },
+    "/api/v1/users/{id}/unsuspend": {
+      "post": {
+        "operationId": "UserManagementController_unsuspend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnsuspendRegisteredUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Create Users Unsuspend",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.unsuspend",
+        "x-access": "SUPER_ADMIN or ADMIN with users.unsuspend",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission."
+      }
+    },
+    "/api/v1/users/{id}/reset-password": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with users.resetPassword. SUPER_ADMIN or ADMIN with users.resetPassword permission. SUPER_ADMIN or ADMIN with users.resetPassword permission can change a REGISTERED_USER password from the dashboard. Optionally sends email and in-app notification to the user.",
+        "operationId": "UserManagementController_resetPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetRegisteredUserPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "userId": "user_id",
+                      "email": "user@example.com",
+                      "emailSent": true,
+                      "notificationSent": true
+                    },
+                    "message": "User password changed successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change registered user password",
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.resetPassword",
+        "x-access": "SUPER_ADMIN or ADMIN with users.resetPassword"
+      }
+    },
+    "/api/v1/users/{id}/activity": {
+      "get": {
+        "operationId": "UserManagementController_activity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOGIN",
+                "PAYMENT",
+                "PROFILE_UPDATE",
+                "ORDER",
+                "SECURITY",
+                "ALL"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Fetch Users Activity details",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
+      }
+    },
+    "/api/v1/users/{id}/stats": {
+      "get": {
+        "operationId": "UserManagementController_stats",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "02 Admin - User Management"
+        ],
+        "summary": "Fetch Users Stats details",
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.read",
+        "x-access": "SUPER_ADMIN or ADMIN with users.read",
+        "description": "Access: SUPER_ADMIN or ADMIN with users.read. SUPER_ADMIN or ADMIN with users.read permission."
+      }
+    },
+    "/api/v1/customer/user-report-reasons": {
+      "get": {
+        "operationId": "UserSafetyController_reasons",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch generic user report reasons",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/users/{userId}/reports": {
+      "post": {
+        "operationId": "UserSafetyController_report",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Report another user",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/user-reports": {
+      "get": {
+        "operationId": "UserSafetyController_reports",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVIEWED",
+                "WARNED",
+                "SUSPENDED",
+                "DISMISSED",
+                "ESCALATED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own user safety reports",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/user-reports/{id}": {
+      "get": {
+        "operationId": "UserSafetyController_reportDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own user safety report detail",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/blocked-users": {
+      "get": {
+        "operationId": "UserSafetyController_blocked",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List blocked users",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/blocked-users/{userId}": {
+      "post": {
+        "operationId": "UserSafetyController_block",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Block another user",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      },
+      "delete": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. No request body. Removes only the current customer block row.",
+        "operationId": "UserSafetyController_unblock",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unblock user",
+        "tags": [
+          "05 Customer - User Safety"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/admin/user-safety/reports": {
+      "get": {
+        "operationId": "UserSafetyAdminController_reports",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVIEWED",
+                "WARNED",
+                "SUSPENDED",
+                "DISMISSED",
+                "ESCALATED"
+              ]
+            }
+          },
+          {
+            "name": "reason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HARASSMENT",
+                "SPAM",
+                "INAPPROPRIATE_CONTENT",
+                "FRAUD_OR_SCAM",
+                "OFF_PLATFORM_PAYMENT",
+                "IMPERSONATION",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List user safety reports",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/user-safety/reports/export": {
+      "get": {
+        "operationId": "UserSafetyAdminController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVIEWED",
+                "WARNED",
+                "SUSPENDED",
+                "DISMISSED",
+                "ESCALATED"
+              ]
+            }
+          },
+          {
+            "name": "reason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HARASSMENT",
+                "SPAM",
+                "INAPPROPRIATE_CONTENT",
+                "FRAUD_OR_SCAM",
+                "OFF_PLATFORM_PAYMENT",
+                "IMPERSONATION",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export user safety reports",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/user-safety/reports/{id}": {
+      "get": {
+        "operationId": "UserSafetyAdminController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch user safety report detail",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
+      }
+    },
+    "/api/v1/admin/user-safety/reports/{id}/action": {
+      "post": {
+        "operationId": "UserSafetyAdminController_action",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSafetyAdminActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Moderate user safety report",
+        "tags": [
+          "02 Admin - User Safety Moderation"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated",
+        "description": "Access: Authenticated. Authenticated JWT required."
       }
     },
     "/api/v1/admin/workflows/app-flow": {
@@ -22475,6 +21149,1332 @@
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission."
       }
     },
+    "/api/v1/media-upload-policy": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.",
+        "operationId": "MediaUploadPolicyController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "allowedFileTypes": {
+                        "jpeg": true,
+                        "jpg": true,
+                        "png": true,
+                        "gif": false,
+                        "mp4": true,
+                        "mov": true,
+                        "mp3": true,
+                        "wav": false,
+                        "svg": false
+                      },
+                      "maxImageSizeMb": 10,
+                      "maxVideoSizeMb": 500,
+                      "maxAudioSizeMb": 50,
+                      "scanUploads": true,
+                      "blockSvgUploads": true,
+                      "updatedAt": "2026-05-09T10:00:00.000Z",
+                      "updatedBy": {
+                        "id": "admin_id",
+                        "name": "Alex Rivera"
+                      }
+                    },
+                    "message": "Media upload policy fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch global media upload policy",
+        "tags": [
+          "02 Admin - Media Upload Policy"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with mediaPolicy.read",
+        "x-access": "SUPER_ADMIN or ADMIN with mediaPolicy.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global media upload policy. SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.",
+        "operationId": "MediaUploadPolicyController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMediaUploadPolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update global media upload policy",
+        "tags": [
+          "02 Admin - Media Upload Policy"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/media-upload-policy/audit-logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Media upload policy audit logs. SUPER_ADMIN only.",
+        "operationId": "MediaUploadPolicyController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List media upload policy audit logs",
+        "tags": [
+          "02 Admin - Media Upload Policy"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN",
+        "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/admin/message-moderation/conversations": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.",
+        "operationId": "MessageModerationController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chatType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BUYER_PROVIDER",
+                "SUPPORT_CHAT",
+                "SYSTEM_REVIEW"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_REVIEW",
+                "ACTION_TAKEN",
+                "DISMISSED",
+                "ESCALATED",
+                "RESOLVED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "flagReason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFANITY",
+                "HOSTILITY",
+                "SUSPICIOUS_LINK",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "SPAM",
+                "SCAM",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "senderRole",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignedToAdminId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CUSTOMER_PROVIDER_CHAT",
+                "PROVIDER_BUYER_CHAT",
+                "ADMIN_SUPPORT_CHAT",
+                "WHATSAPP_BUSINESS",
+                "ZENDESK",
+                "SMS_GATEWAY",
+                "IN_APP_CHAT",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "flagType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFANITY",
+                "HOSTILITY",
+                "SUSPICIOUS_LINK",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "SPAM",
+                "SCAM",
+                "OTHER",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "assignedToId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "flaggedAt",
+                "severity",
+                "lastMessageAt",
+                "createdAt"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "conversation_id",
+                        "chatType": "BUYER_PROVIDER",
+                        "status": "PENDING_REVIEW",
+                        "severity": "HIGH",
+                        "flaggedMessageCount": 2,
+                        "lastFlaggedAt": "2026-05-18T10:00:00.000Z",
+                        "participants": [
+                          {
+                            "id": "customer_id",
+                            "type": "REGISTERED_USER",
+                            "name": "Sarah Johnson",
+                            "avatarUrl": null
+                          },
+                          {
+                            "id": "provider_id",
+                            "type": "PROVIDER",
+                            "name": "Dcodax Gifts",
+                            "avatarUrl": null
+                          }
+                        ],
+                        "lastMessagePreview": "Please pay outside the platform...",
+                        "flagReasons": [
+                          "OFF_PLATFORM_PAYMENT",
+                          "AUTO_FLAG_KEYWORD"
+                        ],
+                        "assignedTo": null
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Flagged message conversations fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List flagged message moderation conversations",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Calculated from real moderation records.",
+        "operationId": "MessageModerationController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation stats",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/filter-options": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.",
+        "operationId": "MessageModerationController_filterOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation filter options",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/export": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export contains moderation-safe redacted fields only, not full private conversation history.",
+        "operationId": "MessageModerationController_export",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chatType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BUYER_PROVIDER",
+                "SUPPORT_CHAT",
+                "SYSTEM_REVIEW"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_REVIEW",
+                "ACTION_TAKEN",
+                "DISMISSED",
+                "ESCALATED",
+                "RESOLVED"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            }
+          },
+          {
+            "name": "flagReason",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFANITY",
+                "HOSTILITY",
+                "SUSPICIOUS_LINK",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "SPAM",
+                "SCAM",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "senderRole",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignedToAdminId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CUSTOMER_PROVIDER_CHAT",
+                "PROVIDER_BUYER_CHAT",
+                "ADMIN_SUPPORT_CHAT",
+                "WHATSAPP_BUSINESS",
+                "ZENDESK",
+                "SMS_GATEWAY",
+                "IN_APP_CHAT",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "flagType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFANITY",
+                "HOSTILITY",
+                "SUSPICIOUS_LINK",
+                "HARASSMENT",
+                "HATE_SPEECH",
+                "SPAM",
+                "SCAM",
+                "OTHER",
+                "ALL"
+              ]
+            }
+          },
+          {
+            "name": "assignedToId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "flaggedAt",
+                "severity",
+                "lastMessageAt",
+                "createdAt"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export message moderation rows",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.export",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.export"
+      }
+    },
+    "/api/v1/admin/message-moderation/audit-logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read.",
+        "operationId": "MessageModerationController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "conversationId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actorAdminId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "flaggedAt",
+                "severity",
+                "lastMessageAt",
+                "createdAt"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation audit logs",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/conversations/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. SUPER_ADMIN or ADMIN with messageModeration.read. Returns participants, flagged messages, internal notes, and action history.",
+        "operationId": "MessageModerationController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch message moderation conversation detail",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/conversations/{id}/history": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.",
+        "operationId": "MessageModerationController_history",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeMessageId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterMessageId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch paginated message moderation conversation history",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/block": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Hide a flagged message from chat participants. Does not block the sender account. SUPER_ADMIN or ADMIN with messageModeration.moderate. Hide a flagged message from chat participants. Does not block the sender account. Internally records HIDE_MESSAGE and never physically deletes chat messages.",
+        "operationId": "MessageModerationController_block",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Hide a flagged message from chat participants",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/restore": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Restores a message hidden by moderation. SUPER_ADMIN or ADMIN with messageModeration.moderate. Restores a message previously hidden by moderation and writes moderation/audit logs.",
+        "operationId": "MessageModerationController_restore",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore a hidden moderated message",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/warn-user": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. SUPER_ADMIN or ADMIN with messageModeration.warn. Warn the message sender. Sender may be registered user or provider. Does not expose internal notes to sender.",
+        "operationId": "MessageModerationController_warn",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WarnUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Warn message sender",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.warn",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.warn"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/suspend-account": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. SUPER_ADMIN or ADMIN with messageModeration.suspend. Suspends the message sender account using the correct registered-user/provider lifecycle service. Admin and Super Admin accounts cannot be suspended here.",
+        "operationId": "MessageModerationController_suspend",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspendAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Suspend message sender account",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.suspend",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.suspend"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. SUPER_ADMIN or ADMIN with messageModeration.moderate. Marks flag as false-positive/no-action and keeps the message visible.",
+        "operationId": "MessageModerationController_dismiss",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DismissFlagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Dismiss a moderation flag",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/note": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. SUPER_ADMIN or ADMIN with messageModeration.notes.create. Internal-only note is never visible to customer/provider participants.",
+        "operationId": "MessageModerationController_note",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InternalNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add internal private moderation note",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.notes.create",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.notes.create"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/reprocess": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.reprocess. SUPER_ADMIN or ADMIN with messageModeration.reprocess permission. SUPER_ADMIN or ADMIN with messageModeration.reprocess. Re-runs the content scanner using current policy and stores scanner result snapshot without duplicating active flags for the same reason.",
+        "operationId": "MessageModerationController_reprocess",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReprocessMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reprocess a message through scanner",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.reprocess",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.reprocess"
+      }
+    },
+    "/api/v1/admin/message-moderation/messages/{messageId}/escalate": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.escalate. SUPER_ADMIN or ADMIN with messageModeration.escalate permission. SUPER_ADMIN or ADMIN with messageModeration.escalate. Escalates a flagged message to support, security, or dispute review.",
+        "operationId": "MessageModerationController_escalate",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalateMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Escalate a flagged message",
+        "tags": [
+          "02 Admin - Message Moderation"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.escalate",
+        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.escalate"
+      }
+    },
+    "/api/v1/admin/messaging-settings": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. SUPER_ADMIN or ADMIN with messagingSettings.read. Settings apply to future messages only; retention jobs must preserve compliance-sensitive order, dispute, and support records.",
+        "operationId": "MessagingSettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagingSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch in-app messaging settings",
+        "tags": [
+          "02 Admin - In-App Messaging Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.update. SUPER_ADMIN or ADMIN with messagingSettings.update permission. Settings apply to future messages only. SUPER_ADMIN or ADMIN with messagingSettings.update. Creates an admin audit log for every update.",
+        "operationId": "MessagingSettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMessagingSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update in-app messaging settings",
+        "tags": [
+          "02 Admin - In-App Messaging Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.update",
+        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.update"
+      }
+    },
+    "/api/v1/admin/messaging-settings/audit-logs": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. SUPER_ADMIN or ADMIN with messagingSettings.read.",
+        "operationId": "MessagingSettingsController_auditLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List in-app messaging settings audit logs",
+        "tags": [
+          "02 Admin - In-App Messaging Settings"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.read",
+        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
+      }
+    },
     "/api/v1/customer/payments/create-intent": {
       "post": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
@@ -24861,7 +24861,7 @@
     },
     "/api/v1/chats": {
       "get": {
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Unified role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.",
         "operationId": "ChatsController_list",
         "parameters": [
           {
@@ -25038,7 +25038,7 @@
             "bearer": []
           }
         ],
-        "summary": "List unified chat threads",
+        "summary": "List chat threads",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25093,7 +25093,7 @@
             "bearer": []
           }
         ],
-        "summary": "Create or get a unified chat thread",
+        "summary": "Create or get a chat thread",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25125,7 +25125,7 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch unified chat thread details",
+        "summary": "Fetch chat thread details",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25184,7 +25184,7 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch unified chat thread messages",
+        "summary": "Fetch chat thread messages",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25209,7 +25209,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SendUnifiedChatMessageDto"
+                "$ref": "#/components/schemas/SendChatThreadMessageDto"
               }
             }
           }
@@ -25224,7 +25224,7 @@
             "bearer": []
           }
         ],
-        "summary": "Send a unified chat message",
+        "summary": "Send a chat message",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25256,7 +25256,7 @@
             "bearer": []
           }
         ],
-        "summary": "Mark a unified chat thread as read",
+        "summary": "Mark a chat thread as read",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25298,7 +25298,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update unified chat thread status",
+        "summary": "Update chat thread status",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -25414,7 +25414,7 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch unified chat thread audit log",
+        "summary": "Fetch chat thread audit log",
         "tags": [
           "08 Chat - Unified Threads"
         ],
@@ -27826,696 +27826,6 @@
           "body"
         ]
       },
-      "BlockMessageDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          },
-          "notifyParticipants": {
-            "type": "boolean"
-          },
-          "notifyUser": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "RestoreMessageDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "FALSE_POSITIVE",
-              "APPEAL_APPROVED",
-              "POLICY_UPDATED",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string"
-          },
-          "notifyParticipants": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "WarnUserDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "warningMessage": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          },
-          "notifySender": {
-            "type": "boolean"
-          },
-          "notifyUser": {
-            "type": "boolean"
-          },
-          "warningSeverity": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "MEDIUM",
-              "HIGH"
-            ],
-            "default": "MEDIUM"
-          }
-        },
-        "required": [
-          "reason",
-          "warningSeverity"
-        ]
-      },
-      "SuspendAccountDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "suspensionScope": {
-            "type": "string",
-            "enum": [
-              "ACCOUNT",
-              "CHAT_ONLY"
-            ],
-            "default": "ACCOUNT"
-          },
-          "durationDays": {
-            "type": "number"
-          },
-          "notifySender": {
-            "type": "boolean"
-          },
-          "duration": {
-            "type": "string"
-          },
-          "suspendUntil": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          },
-          "notifyUser": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason",
-          "suspensionScope"
-        ]
-      },
-      "DismissFlagDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "InternalNoteDto": {
-        "type": "object",
-        "properties": {
-          "note": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "note"
-        ]
-      },
-      "ReprocessMessageDto": {
-        "type": "object",
-        "properties": {
-          "scannerMode": {
-            "type": "string",
-            "enum": [
-              "CURRENT_POLICY",
-              "STRICT_POLICY",
-              "DEBUG_POLICY"
-            ],
-            "default": "CURRENT_POLICY"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "scannerMode"
-        ]
-      },
-      "EscalateMessageDto": {
-        "type": "object",
-        "properties": {
-          "escalationType": {
-            "type": "string",
-            "enum": [
-              "SUPPORT_REVIEW",
-              "SECURITY_REVIEW",
-              "DISPUTE_REVIEW"
-            ]
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "MEDIUM",
-              "HIGH",
-              "CRITICAL"
-            ],
-            "example": "HIGH"
-          },
-          "reason": {
-            "type": "string"
-          },
-          "assignToAdminId": {
-            "type": "string"
-          },
-          "notifyAssignedAdmin": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "escalationType",
-          "priority",
-          "reason"
-        ]
-      },
-      "UpdateRegisteredUserDto": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string",
-            "example": "Alex"
-          },
-          "lastName": {
-            "type": "string",
-            "example": "Johnson"
-          },
-          "phone": {
-            "type": "string",
-            "example": "+15552345678"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "example": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg"
-          },
-          "location": {
-            "type": "string",
-            "example": "New York, USA"
-          }
-        }
-      },
-      "UpdateRegisteredUserStatusDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "SUSPENDED",
-              "DISABLED"
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "POLICY_VIOLATION",
-              "PAYMENT_ISSUE",
-              "FRAUD_SUSPECTED",
-              "USER_REQUEST",
-              "ABUSE_REPORT",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string",
-            "example": "Suspicious activity detected on this account."
-          },
-          "notifyUser": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "SuspendRegisteredUserDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "POLICY_VIOLATION",
-              "PAYMENT_ISSUE",
-              "FRAUD_SUSPECTED",
-              "USER_REQUEST",
-              "ABUSE_REPORT",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string",
-            "example": "Suspicious account activity."
-          },
-          "notifyUser": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "UnsuspendRegisteredUserDto": {
-        "type": "object",
-        "properties": {
-          "comment": {
-            "type": "string",
-            "example": "Account reviewed and restored."
-          },
-          "notifyUser": {
-            "type": "boolean",
-            "example": true
-          }
-        }
-      },
-      "ResetRegisteredUserPasswordDto": {
-        "type": "object",
-        "properties": {
-          "newPassword": {
-            "type": "string",
-            "example": "NewUser@123456"
-          },
-          "sendEmail": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          },
-          "sendNotification": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          },
-          "reason": {
-            "type": "string",
-            "example": "Password changed by support request."
-          }
-        },
-        "required": [
-          "newPassword"
-        ]
-      },
-      "MessagingSettingsResponseDto": {
-        "type": "object",
-        "properties": {
-          "buyerProviderChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "supportChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "messageRetentionDays": {
-            "type": "number",
-            "example": 365
-          },
-          "maxMessageLength": {
-            "type": "number",
-            "example": 2000
-          },
-          "maxAttachmentsPerMessage": {
-            "type": "number",
-            "example": 5
-          },
-          "allowedAttachmentTypes": {
-            "example": [
-              "jpg",
-              "jpeg",
-              "png",
-              "pdf",
-              "mp4"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "profanityFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "piiFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagKeywords": {
-            "example": [
-              "refund outside platform",
-              "bank account",
-              "whatsapp me"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "offlineNotificationDelaySeconds": {
-            "type": "number",
-            "example": 10
-          },
-          "messageEditWindowMinutes": {
-            "type": "number",
-            "example": 0
-          },
-          "lastUpdatedAt": {
-            "format": "date-time",
-            "type": "string",
-            "example": "2026-05-18T10:00:00.000Z"
-          },
-          "lastUpdatedBy": {
-            "type": "object",
-            "example": {
-              "id": "admin_id",
-              "name": "Alex Rivera"
-            },
-            "nullable": true
-          }
-        },
-        "required": [
-          "buyerProviderChatEnabled",
-          "supportChatEnabled",
-          "messageRetentionDays",
-          "maxMessageLength",
-          "maxAttachmentsPerMessage",
-          "allowedAttachmentTypes",
-          "profanityFilterEnabled",
-          "piiFilterEnabled",
-          "autoFlagEnabled",
-          "autoFlagKeywords",
-          "offlineNotificationDelaySeconds",
-          "messageEditWindowMinutes",
-          "lastUpdatedAt",
-          "lastUpdatedBy"
-        ]
-      },
-      "UpdateMessagingSettingsDto": {
-        "type": "object",
-        "properties": {
-          "buyerProviderChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "supportChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "messageRetentionDays": {
-            "type": "number",
-            "example": 365,
-            "minimum": 30,
-            "maximum": 2555
-          },
-          "maxMessageLength": {
-            "type": "number",
-            "example": 2000,
-            "minimum": 1,
-            "maximum": 5000
-          },
-          "maxAttachmentsPerMessage": {
-            "type": "number",
-            "example": 5,
-            "minimum": 0,
-            "maximum": 10
-          },
-          "allowedAttachmentTypes": {
-            "example": [
-              "jpg",
-              "jpeg",
-              "png",
-              "pdf",
-              "mp4"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "profanityFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "piiFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagKeywords": {
-            "example": [
-              "refund outside platform",
-              "bank account",
-              "whatsapp me"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "offlineNotificationDelaySeconds": {
-            "type": "number",
-            "example": 10,
-            "minimum": 0,
-            "maximum": 300
-          },
-          "messageEditWindowMinutes": {
-            "type": "number",
-            "example": 0,
-            "minimum": 0,
-            "maximum": 60
-          }
-        }
-      },
-      "AllowedFileTypesDto": {
-        "type": "object",
-        "properties": {
-          "jpeg": {
-            "type": "boolean",
-            "example": true
-          },
-          "jpg": {
-            "type": "boolean",
-            "example": true
-          },
-          "png": {
-            "type": "boolean",
-            "example": true
-          },
-          "gif": {
-            "type": "boolean",
-            "example": false
-          },
-          "mp4": {
-            "type": "boolean",
-            "example": true
-          },
-          "mov": {
-            "type": "boolean",
-            "example": true
-          },
-          "mp3": {
-            "type": "boolean",
-            "example": true
-          },
-          "wav": {
-            "type": "boolean",
-            "example": false
-          },
-          "svg": {
-            "type": "boolean",
-            "example": false
-          }
-        },
-        "required": [
-          "jpeg",
-          "jpg",
-          "png",
-          "gif",
-          "mp4",
-          "mov",
-          "mp3",
-          "wav",
-          "svg"
-        ]
-      },
-      "UpdateMediaUploadPolicyDto": {
-        "type": "object",
-        "properties": {
-          "allowedFileTypes": {
-            "$ref": "#/components/schemas/AllowedFileTypesDto"
-          },
-          "maxImageSizeMb": {
-            "type": "number",
-            "example": 10,
-            "minimum": 1,
-            "maximum": 50
-          },
-          "maxVideoSizeMb": {
-            "type": "number",
-            "example": 500,
-            "minimum": 1,
-            "maximum": 1024
-          },
-          "maxAudioSizeMb": {
-            "type": "number",
-            "example": 50,
-            "minimum": 1,
-            "maximum": 200
-          },
-          "scanUploads": {
-            "type": "boolean",
-            "example": true
-          },
-          "blockSvgUploads": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "allowedFileTypes",
-          "maxImageSizeMb",
-          "maxVideoSizeMb",
-          "maxAudioSizeMb",
-          "scanUploads",
-          "blockSvgUploads"
-        ]
-      },
-      "CreateUserReportDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "HARASSMENT",
-              "SPAM",
-              "INAPPROPRIATE_CONTENT",
-              "FRAUD_OR_SCAM",
-              "OFF_PLATFORM_PAYMENT",
-              "IMPERSONATION",
-              "OTHER"
-            ]
-          },
-          "details": {
-            "type": "string",
-            "example": "User sent inappropriate messages."
-          },
-          "sourceType": {
-            "type": "string",
-            "enum": [
-              "PROFILE",
-              "CHAT",
-              "FEED_ITEM",
-              "GROUP_GIFT",
-              "OTHER"
-            ]
-          },
-          "sourceId": {
-            "type": "string",
-            "example": "thread_id"
-          },
-          "evidenceUrls": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "blockUser": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "reason",
-          "details",
-          "sourceType"
-        ]
-      },
-      "UserSafetyAdminActionDto": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "MARK_REVIEWED",
-              "WARN_REPORTED_USER",
-              "SUSPEND_REPORTED_USER",
-              "DISMISS_REPORT",
-              "ESCALATE"
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "example": "HARASSMENT_CONFIRMED"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "notifyReporter": {
-            "type": "boolean"
-          },
-          "notifyReportedUser": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "action",
-          "reason"
-        ]
-      },
       "ProviderInventoryVariantDto": {
         "type": "object",
         "properties": {
@@ -29165,6 +28475,214 @@
           }
         },
         "required": [
+          "reason"
+        ]
+      },
+      "UpdateRegisteredUserDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Alex"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Johnson"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+15552345678"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg"
+          },
+          "location": {
+            "type": "string",
+            "example": "New York, USA"
+          }
+        }
+      },
+      "UpdateRegisteredUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED",
+              "DISABLED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "POLICY_VIOLATION",
+              "PAYMENT_ISSUE",
+              "FRAUD_SUSPECTED",
+              "USER_REQUEST",
+              "ABUSE_REPORT",
+              "OTHER"
+            ]
+          },
+          "comment": {
+            "type": "string",
+            "example": "Suspicious activity detected on this account."
+          },
+          "notifyUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "SuspendRegisteredUserDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "POLICY_VIOLATION",
+              "PAYMENT_ISSUE",
+              "FRAUD_SUSPECTED",
+              "USER_REQUEST",
+              "ABUSE_REPORT",
+              "OTHER"
+            ]
+          },
+          "comment": {
+            "type": "string",
+            "example": "Suspicious account activity."
+          },
+          "notifyUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "UnsuspendRegisteredUserDto": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "example": "Account reviewed and restored."
+          },
+          "notifyUser": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "ResetRegisteredUserPasswordDto": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "example": "NewUser@123456"
+          },
+          "sendEmail": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "sendNotification": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "reason": {
+            "type": "string",
+            "example": "Password changed by support request."
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
+      },
+      "CreateUserReportDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "HARASSMENT",
+              "SPAM",
+              "INAPPROPRIATE_CONTENT",
+              "FRAUD_OR_SCAM",
+              "OFF_PLATFORM_PAYMENT",
+              "IMPERSONATION",
+              "OTHER"
+            ]
+          },
+          "details": {
+            "type": "string",
+            "example": "User sent inappropriate messages."
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "PROFILE",
+              "CHAT",
+              "FEED_ITEM",
+              "GROUP_GIFT",
+              "OTHER"
+            ]
+          },
+          "sourceId": {
+            "type": "string",
+            "example": "thread_id"
+          },
+          "evidenceUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockUser": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "reason",
+          "details",
+          "sourceType"
+        ]
+      },
+      "UserSafetyAdminActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "MARK_REVIEWED",
+              "WARN_REPORTED_USER",
+              "SUSPEND_REPORTED_USER",
+              "DISMISS_REPORT",
+              "ESCALATE"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "example": "HARASSMENT_CONFIRMED"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "notifyReporter": {
+            "type": "boolean"
+          },
+          "notifyReportedUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action",
           "reason"
         ]
       },
@@ -30753,6 +30271,488 @@
           "status"
         ]
       },
+      "AllowedFileTypesDto": {
+        "type": "object",
+        "properties": {
+          "jpeg": {
+            "type": "boolean",
+            "example": true
+          },
+          "jpg": {
+            "type": "boolean",
+            "example": true
+          },
+          "png": {
+            "type": "boolean",
+            "example": true
+          },
+          "gif": {
+            "type": "boolean",
+            "example": false
+          },
+          "mp4": {
+            "type": "boolean",
+            "example": true
+          },
+          "mov": {
+            "type": "boolean",
+            "example": true
+          },
+          "mp3": {
+            "type": "boolean",
+            "example": true
+          },
+          "wav": {
+            "type": "boolean",
+            "example": false
+          },
+          "svg": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "jpeg",
+          "jpg",
+          "png",
+          "gif",
+          "mp4",
+          "mov",
+          "mp3",
+          "wav",
+          "svg"
+        ]
+      },
+      "UpdateMediaUploadPolicyDto": {
+        "type": "object",
+        "properties": {
+          "allowedFileTypes": {
+            "$ref": "#/components/schemas/AllowedFileTypesDto"
+          },
+          "maxImageSizeMb": {
+            "type": "number",
+            "example": 10,
+            "minimum": 1,
+            "maximum": 50
+          },
+          "maxVideoSizeMb": {
+            "type": "number",
+            "example": 500,
+            "minimum": 1,
+            "maximum": 1024
+          },
+          "maxAudioSizeMb": {
+            "type": "number",
+            "example": 50,
+            "minimum": 1,
+            "maximum": 200
+          },
+          "scanUploads": {
+            "type": "boolean",
+            "example": true
+          },
+          "blockSvgUploads": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "allowedFileTypes",
+          "maxImageSizeMb",
+          "maxVideoSizeMb",
+          "maxAudioSizeMb",
+          "scanUploads",
+          "blockSvgUploads"
+        ]
+      },
+      "BlockMessageDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          },
+          "notifyParticipants": {
+            "type": "boolean"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RestoreMessageDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "FALSE_POSITIVE",
+              "APPEAL_APPROVED",
+              "POLICY_UPDATED",
+              "OTHER"
+            ]
+          },
+          "comment": {
+            "type": "string"
+          },
+          "notifyParticipants": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "WarnUserDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "warningMessage": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          },
+          "notifySender": {
+            "type": "boolean"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          },
+          "warningSeverity": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "default": "MEDIUM"
+          }
+        },
+        "required": [
+          "reason",
+          "warningSeverity"
+        ]
+      },
+      "SuspendAccountDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "suspensionScope": {
+            "type": "string",
+            "enum": [
+              "ACCOUNT",
+              "CHAT_ONLY"
+            ],
+            "default": "ACCOUNT"
+          },
+          "durationDays": {
+            "type": "number"
+          },
+          "notifySender": {
+            "type": "boolean"
+          },
+          "duration": {
+            "type": "string"
+          },
+          "suspendUntil": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          },
+          "notifyUser": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason",
+          "suspensionScope"
+        ]
+      },
+      "DismissFlagDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "internalNote": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "InternalNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "ReprocessMessageDto": {
+        "type": "object",
+        "properties": {
+          "scannerMode": {
+            "type": "string",
+            "enum": [
+              "CURRENT_POLICY",
+              "STRICT_POLICY",
+              "DEBUG_POLICY"
+            ],
+            "default": "CURRENT_POLICY"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "scannerMode"
+        ]
+      },
+      "EscalateMessageDto": {
+        "type": "object",
+        "properties": {
+          "escalationType": {
+            "type": "string",
+            "enum": [
+              "SUPPORT_REVIEW",
+              "SECURITY_REVIEW",
+              "DISPUTE_REVIEW"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "example": "HIGH"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "assignToAdminId": {
+            "type": "string"
+          },
+          "notifyAssignedAdmin": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "escalationType",
+          "priority",
+          "reason"
+        ]
+      },
+      "MessagingSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "buyerProviderChatEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "supportChatEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "messageRetentionDays": {
+            "type": "number",
+            "example": 365
+          },
+          "maxMessageLength": {
+            "type": "number",
+            "example": 2000
+          },
+          "maxAttachmentsPerMessage": {
+            "type": "number",
+            "example": 5
+          },
+          "allowedAttachmentTypes": {
+            "example": [
+              "jpg",
+              "jpeg",
+              "png",
+              "pdf",
+              "mp4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "profanityFilterEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "piiFilterEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "autoFlagEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "autoFlagKeywords": {
+            "example": [
+              "refund outside platform",
+              "bank account",
+              "whatsapp me"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "offlineNotificationDelaySeconds": {
+            "type": "number",
+            "example": 10
+          },
+          "messageEditWindowMinutes": {
+            "type": "number",
+            "example": 0
+          },
+          "lastUpdatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-05-18T10:00:00.000Z"
+          },
+          "lastUpdatedBy": {
+            "type": "object",
+            "example": {
+              "id": "admin_id",
+              "name": "Alex Rivera"
+            },
+            "nullable": true
+          }
+        },
+        "required": [
+          "buyerProviderChatEnabled",
+          "supportChatEnabled",
+          "messageRetentionDays",
+          "maxMessageLength",
+          "maxAttachmentsPerMessage",
+          "allowedAttachmentTypes",
+          "profanityFilterEnabled",
+          "piiFilterEnabled",
+          "autoFlagEnabled",
+          "autoFlagKeywords",
+          "offlineNotificationDelaySeconds",
+          "messageEditWindowMinutes",
+          "lastUpdatedAt",
+          "lastUpdatedBy"
+        ]
+      },
+      "UpdateMessagingSettingsDto": {
+        "type": "object",
+        "properties": {
+          "buyerProviderChatEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "supportChatEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "messageRetentionDays": {
+            "type": "number",
+            "example": 365,
+            "minimum": 30,
+            "maximum": 2555
+          },
+          "maxMessageLength": {
+            "type": "number",
+            "example": 2000,
+            "minimum": 1,
+            "maximum": 5000
+          },
+          "maxAttachmentsPerMessage": {
+            "type": "number",
+            "example": 5,
+            "minimum": 0,
+            "maximum": 10
+          },
+          "allowedAttachmentTypes": {
+            "example": [
+              "jpg",
+              "jpeg",
+              "png",
+              "pdf",
+              "mp4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "profanityFilterEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "piiFilterEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "autoFlagEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "autoFlagKeywords": {
+            "example": [
+              "refund outside platform",
+              "bank account",
+              "whatsapp me"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "offlineNotificationDelaySeconds": {
+            "type": "number",
+            "example": 10,
+            "minimum": 0,
+            "maximum": 300
+          },
+          "messageEditWindowMinutes": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0,
+            "maximum": 60
+          }
+        }
+      },
       "CreatePaymentIntentDto": {
         "type": "object",
         "properties": {
@@ -31267,7 +31267,7 @@
           "sourceType"
         ]
       },
-      "SendUnifiedChatMessageDto": {
+      "SendChatThreadMessageDto": {
         "type": "object",
         "properties": {
           "clientMessageId": {

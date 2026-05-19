@@ -38,8 +38,7 @@ export class MessageModerationRepository {
       ? { visibilityStatus: MessageVisibilityStatus.HIDDEN_BY_MODERATION, hiddenByModeration: true, hiddenAt: new Date(), hiddenByAdminId: adminId }
       : { visibilityStatus: MessageVisibilityStatus.VISIBLE, hiddenByModeration: false, hiddenAt: null, hiddenByAdminId: null };
     const chat = await tx.chatMessage.updateMany({ where: { id: messageId }, data });
-    const support = await tx.supportChatMessage.updateMany({ where: { id: messageId }, data });
-    return chat.count + support.count;
+    return chat.count;
   }
 
   createLog(tx: MessageModerationTx, data: { caseId: string; messageId: string; action: MessageModerationAction; reason?: string; internalNote?: string; actorId?: string; metadata?: Prisma.InputJsonValue }) {
