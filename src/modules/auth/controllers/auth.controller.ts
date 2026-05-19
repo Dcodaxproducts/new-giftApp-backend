@@ -1,13 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { AuthService } from '../services/auth.service';
 import {
   ChangePasswordDto,
+  CreateGuestSessionDto,
   ForgotPasswordDto,
-  GuestSessionDto,
   LoginDto,
   RefreshDto,
   RegisterProviderDto,
@@ -35,7 +35,46 @@ export class AuthController {
   }
 
   @Post('guest/session')
-  guestSession(@Body() dto: GuestSessionDto, @Req() request: Request) {
+  @ApiOperation({
+    summary: 'Create guest browsing session',
+    description: 'PUBLIC. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.',
+  })
+  @ApiBody({
+    required: false,
+    type: CreateGuestSessionDto,
+    examples: {
+      metadata: { value: { deviceId: 'optional-device-id', platform: 'WEB', appVersion: '1.0.0', locale: 'en', timezone: 'Asia/Karachi', referrer: 'landing-page' } },
+      empty: { value: {} },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    schema: {
+      example: {
+        success: true,
+        data: {
+          guestSessionId: 'guest_session_id',
+          accessToken: 'guest_jwt',
+          tokenType: 'Bearer',
+          role: 'GUEST_USER',
+          capabilities: ['VIEW_ONBOARDING', 'BROWSE_MARKETPLACE', 'VIEW_GIFT_DETAILS', 'VIEW_MARKETPLACE_FILTERS', 'VIEW_DISCOUNTED_GIFTS'],
+          expiresAt: '2026-05-18T12:00:00.000Z',
+          guestAccess: {
+            allowMarketplaceBrowsing: true,
+            allowMarketplaceHome: true,
+            allowGiftDetails: true,
+            allowDiscountedGifts: true,
+            allowFilterOptions: true,
+            allowWishlist: false,
+            allowCart: false,
+            allowCheckout: false,
+          },
+        },
+        message: 'Guest session created successfully.',
+      },
+    },
+  })
+  guestSession(@Body() dto: CreateGuestSessionDto | undefined, @Req() request: Request) {
     return this.authService.createGuestSession(dto, request.ip, request.headers['user-agent']);
   }
 

@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-19 10:03 UTC
+Generated: 2026-05-19 10:28 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -137,24 +137,54 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/guest/session`
 
-- Summary: Create Auth Guest Session
+- Summary: Create guest browsing session
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC. PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only. PUBLIC. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.
 - Request payload(s):
-  - payload:
+  - metadata:
 ```json
 {
-  "capabilities": [
-    "<string>"
-  ]
+  "deviceId": "optional-device-id",
+  "platform": "WEB",
+  "appVersion": "1.0.0",
+  "locale": "en",
+  "timezone": "Asia/Karachi",
+  "referrer": "landing-page"
 }
+```
+  - empty:
+```json
+{}
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "guestSessionId": "guest_session_id",
+    "accessToken": "guest_jwt",
+    "tokenType": "Bearer",
+    "role": "GUEST_USER",
+    "capabilities": [
+      "VIEW_ONBOARDING",
+      "BROWSE_MARKETPLACE",
+      "VIEW_GIFT_DETAILS",
+      "VIEW_MARKETPLACE_FILTERS",
+      "VIEW_DISCOUNTED_GIFTS"
+    ],
+    "expiresAt": "2026-05-18T12:00:00.000Z",
+    "guestAccess": {
+      "allowMarketplaceBrowsing": true,
+      "allowMarketplaceHome": true,
+      "allowGiftDetails": true,
+      "allowDiscountedGifts": true,
+      "allowFilterOptions": true,
+      "allowWishlist": false,
+      "allowCart": false,
+      "allowCheckout": false
+    }
+  },
+  "message": "Guest session created successfully."
 }
 ```
 

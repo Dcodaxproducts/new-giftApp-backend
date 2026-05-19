@@ -20,6 +20,7 @@ describe('Guest-aware marketplace access wiring', () => {
   });
 
   it('uses guest capabilities and guest-safe response behavior', () => {
+    expect(controller).toContain("@GuestCapabilities('VIEW_MARKETPLACE_HOME')");
     expect(controller).toContain("@GuestCapabilities('BROWSE_MARKETPLACE')");
     expect(controller).toContain("@GuestCapabilities('VIEW_GIFT_DETAILS')");
     expect(controller).toContain("@GuestCapabilities('VIEW_MARKETPLACE_FILTERS')");

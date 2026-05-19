@@ -19,7 +19,7 @@ export class CustomerMarketplaceController {
 
   @Get('home')
   @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('BROWSE_MARKETPLACE')
+  @GuestCapabilities('VIEW_MARKETPLACE_HOME')
   @ApiOperation({ summary: 'Fetch customer app home', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode="GUEST".' })
   @ApiResponse({ status: 200, description: 'Customer home fetched successfully' })
   home(@CurrentUser() user: AuthUserContext) { return this.marketplace.home(user); }

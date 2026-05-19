@@ -1,8 +1,9 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-type Operation = { tags?: string[]; 'x-allowed-roles'?: string; description?: string };
-type OpenApi = { paths: Record<string, Record<string, Operation>>; tags?: { name?: string }[] };
+type Operation = { tags?: string[]; 'x-allowed-roles'?: string; description?: string; requestBody?: { required?: boolean; content?: Record<string, { schema?: { $ref?: string } }> } };
+type Schema = { properties?: Record<string, { deprecated?: boolean; description?: string; enum?: string[] }> };
+type OpenApi = { paths: Record<string, Record<string, Operation>>; tags?: { name?: string }[]; components?: { schemas?: Record<string, Schema> } };
 
 const marketplacePaths = [
   '/api/v1/customer/home',
@@ -55,5 +56,21 @@ describe('Guest marketplace Swagger docs', () => {
       }
     }
     expect(badRoutes).toEqual([]);
+  });
+
+  it('documents guest session as public metadata-only session creation', () => {
+    const operation = spec.paths['/api/v1/auth/guest/session']?.post;
+    expect(operation).toBeDefined();
+    expect(operation?.['x-allowed-roles']).toBe('PUBLIC');
+    expect(operation?.description).toContain('Optional metadata-only request body');
+    expect(operation?.description).toContain('Guest capabilities are server-issued from Admin Guest Access Settings');
+    expect(operation?.requestBody?.required).toBe(false);
+    const ref = operation?.requestBody?.content?.['application/json']?.schema?.$ref;
+    expect(ref).toBe('#/components/schemas/CreateGuestSessionDto');
+    const schema = spec.components?.schemas?.CreateGuestSessionDto;
+    expect(schema?.properties?.deviceId).toBeDefined();
+    expect(schema?.properties?.platform?.enum).toEqual(expect.arrayContaining(['IOS', 'ANDROID', 'WEB', 'UNKNOWN']));
+    expect(schema?.properties?.capabilities?.deprecated).toBe(true);
+    expect(schema?.properties?.capabilities?.description).toContain('Deprecated and ignored');
   });
 });

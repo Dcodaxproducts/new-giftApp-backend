@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import {
   ChangePasswordDto,
+  CreateGuestSessionDto,
   ForgotPasswordDto,
-  GuestSessionDto,
   LoginDto,
   RefreshDto,
   RegisterProviderDto,
@@ -34,7 +34,7 @@ export class AuthService {
 
   registerUser(dto: RegisterUserDto) { return this.registration.registerUser(dto); }
   registerProvider(dto: RegisterProviderDto) { return this.registration.registerProvider(dto); }
-  createGuestSession(_dto: GuestSessionDto, ipAddress?: string, userAgent?: string | string[]) { return this.guestSession ? this.guestSession.create(ipAddress, userAgent) : this.registration.createGuestSession(); }
+  createGuestSession(dto?: CreateGuestSessionDto, ipAddress?: string, userAgent?: string | string[]) { return this.guestSession ? this.guestSession.create(dto, ipAddress, userAgent) : this.registration.createGuestSession(); }
   login(dto: LoginDto, ipAddress?: string, userAgent?: string | string[]) { return this.loginFlow.login(dto, ipAddress, userAgent); }
   refresh(dto: RefreshDto) { return this.loginFlow.refresh(dto); }
   logout(user: AuthUserContext) { return this.loginFlow.logout(user); }

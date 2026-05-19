@@ -17,9 +17,17 @@ enum UserRole {
 enum GuestCapability {
   VIEW_ONBOARDING
   BROWSE_MARKETPLACE
+  VIEW_MARKETPLACE_HOME
   VIEW_GIFT_DETAILS
   VIEW_MARKETPLACE_FILTERS
   VIEW_DISCOUNTED_GIFTS
+}
+
+enum GuestSessionPlatform {
+  IOS
+  ANDROID
+  WEB
+  UNKNOWN
 }
 
 enum ProviderApprovalStatus {
@@ -2886,16 +2894,26 @@ model MessagingSettings {
 }
 
 model GuestSession {
-  id               String   @id @default(cuid())
-  capabilitiesJson Json     @default("[]") @map("capabilities_json")
-  ipAddress        String?  @map("ip_address")
-  userAgent        String?  @map("user_agent")
-  expiresAt        DateTime @map("expires_at") @db.Timestamptz
-  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id               String               @id @default(cuid())
+  guestSessionId   String               @unique @default(cuid()) @map("guest_session_id")
+  deviceId         String?              @map("device_id")
+  platform         GuestSessionPlatform @default(UNKNOWN)
+  appVersion       String?              @map("app_version")
+  ipAddress        String?              @map("ip_address")
+  userAgent        String?              @map("user_agent")
+  locale           String?
+  timezone         String?
+  referrer         String?
+  capabilitiesJson Json                 @default("[]") @map("capabilities_json")
+  expiresAt        DateTime             @map("expires_at") @db.Timestamptz
+  lastSeenAt       DateTime?            @map("last_seen_at") @db.Timestamptz
+  revokedAt        DateTime?            @map("revoked_at") @db.Timestamptz
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
   @@index([expiresAt])
+  @@index([guestSessionId])
+  @@index([ipAddress, lastSeenAt])
   @@map("guest_sessions")
 }
 

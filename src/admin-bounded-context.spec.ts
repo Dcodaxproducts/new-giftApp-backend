@@ -49,7 +49,7 @@ describe('admin bounded-context source ownership', () => {
     const userController = readFileSync('src/modules/user-management/controllers/user-management.controller.ts', 'utf8');
 
     expect(existsSync('src/modules/auth/dto/admin-auth.dto.ts')).toBe(false);
-    expect(authDto).toContain('export class GuestSessionDto');
+    expect(authDto).toContain('export class CreateGuestSessionDto');
     expect(authDto).not.toContain('RejectProviderDto');
     expect(authDto).not.toContain('UpdateUserActiveStatusDto');
     expect(providerDto).toContain('export class RejectProviderDto');

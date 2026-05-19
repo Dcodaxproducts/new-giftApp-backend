@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-19 10:04 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-19 10:28 PKT.
 
 ## Frontend Integration Flows
 
@@ -541,7 +541,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-19 10:04 PKT.
 | POST | `/api/v1/auth/cancel-deletion` | Create Auth Cancel Deletion | Authenticated |
 | PATCH | `/api/v1/auth/change-password` | Update Auth Change Password | Authenticated |
 | POST | `/api/v1/auth/forgot-password` | Create Auth Forgot Password | PUBLIC |
-| POST | `/api/v1/auth/guest/session` | Create Auth Guest Session | PUBLIC |
+| POST | `/api/v1/auth/guest/session` | Create guest browsing session | PUBLIC |
 | POST | `/api/v1/auth/login` | Create Auth Login | PUBLIC |
 | POST | `/api/v1/auth/logout` | Create Auth Logout | Authenticated |
 | GET | `/api/v1/auth/me` | List Auth Me | Authenticated |

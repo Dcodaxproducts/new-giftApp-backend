@@ -172,7 +172,7 @@ describe('AuthService bounded-context boundary', () => {
   it('auth DTO folder contains only auth-owned DTOs', () => {
     const authDto = readFileSync('src/modules/auth/dto/auth.dto.ts', 'utf8');
 
-    expect(authDto).toContain('export class GuestSessionDto');
+    expect(authDto).toContain('export class CreateGuestSessionDto');
     expect(authDto).not.toContain('export class CreateAdminDto');
     expect(authDto).not.toContain('export class RejectProviderDto');
     expect(authDto).not.toContain('export class UpdateUserActiveStatusDto');

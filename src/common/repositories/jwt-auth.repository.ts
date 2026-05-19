@@ -21,8 +21,8 @@ export class JwtAuthRepository {
 
   findActiveGuestSessionForJwtGuard(guestSessionId: string) {
     return this.prisma.guestSession.findFirst({
-      where: { id: guestSessionId, revokedAt: null, expiresAt: { gt: new Date() } },
-      select: { id: true, capabilitiesJson: true },
+      where: { OR: [{ guestSessionId }, { id: guestSessionId }], revokedAt: null, expiresAt: { gt: new Date() } },
+      select: { id: true, guestSessionId: true, capabilitiesJson: true },
     });
   }
 }

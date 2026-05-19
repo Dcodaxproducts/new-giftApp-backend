@@ -6,6 +6,8 @@ export interface SwaggerAccessRule {
 }
 
 export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
+  'POST /api/v1/auth/guest/session': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.' },
+
   'GET /api/v1/admin-roles': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions.' },
   'POST /api/v1/admin-roles': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. ADMIN staff cannot create roles.' },
   'GET /api/v1/admin-roles/{id}': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. ADMIN staff cannot view role details.' },

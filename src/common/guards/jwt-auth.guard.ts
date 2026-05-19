@@ -7,6 +7,7 @@ import { AuthUserContext } from '../decorators/current-user.decorator';
 import { JwtAuthRepository } from '../repositories/jwt-auth.repository';
 
 interface JwtPayload extends AuthUserContext {
+  sub?: string;
   type?: string;
   permissions?: Prisma.JsonValue;
   guestSessionId?: string;
@@ -34,9 +35,9 @@ export class JwtAuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       });
       if (payload.role === UserRole.GUEST_USER) {
-        const guestSession = await this.repository.findActiveGuestSessionForJwtGuard(payload.guestSessionId ?? payload.uid);
+        const guestSession = await this.repository.findActiveGuestSessionForJwtGuard(payload.guestSessionId ?? payload.sub ?? payload.uid);
         if (!guestSession) throw new UnauthorizedException('Guest session has expired');
-        request.user = { uid: guestSession.id, role: UserRole.GUEST_USER, guestSessionId: guestSession.id, capabilities: this.stringArray(guestSession.capabilitiesJson) };
+        request.user = { uid: guestSession.guestSessionId, role: UserRole.GUEST_USER, guestSessionId: guestSession.guestSessionId, capabilities: this.stringArray(guestSession.capabilitiesJson) };
         return true;
       }
 

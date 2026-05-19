@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { GuestSessionPlatform } from '@prisma/client';
 import {
   ArrayMinSize,
   IsArray,
@@ -9,6 +10,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
@@ -82,13 +84,54 @@ export class RegisterProviderDto extends RegisterUserDto {
 }
 
 
-export class GuestSessionDto {
-  @ApiPropertyOptional({ type: [String] })
+export class CreateGuestSessionDto {
+  @ApiPropertyOptional({ example: 'optional-device-id', maxLength: 128 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  deviceId?: string;
+
+  @ApiPropertyOptional({ enum: GuestSessionPlatform, example: GuestSessionPlatform.WEB, default: GuestSessionPlatform.UNKNOWN })
+  @IsOptional()
+  @IsEnum(GuestSessionPlatform)
+  platform?: GuestSessionPlatform;
+
+  @ApiPropertyOptional({ example: '1.0.0', maxLength: 32 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  appVersion?: string;
+
+  @ApiPropertyOptional({ example: 'en', maxLength: 20 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  locale?: string;
+
+  @ApiPropertyOptional({ example: 'Asia/Karachi', maxLength: 64 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  timezone?: string;
+
+  @ApiPropertyOptional({ example: 'landing-page', maxLength: 128 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  referrer?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    deprecated: true,
+    description: 'Deprecated and ignored. Guest capabilities are server-issued from Admin Guest Access Settings.',
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   capabilities?: string[];
 }
+
+export class GuestSessionDto extends CreateGuestSessionDto {}
 
 export class LoginDto {
   @ApiProperty()
