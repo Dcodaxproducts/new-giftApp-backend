@@ -32,7 +32,7 @@ describe('Swagger access metadata', () => {
     ['post', '/api/v1/admin/disputes/{id}/link-transaction', 'SUPER_ADMIN or ADMIN with disputes.linkTransaction'],
     ['get', '/api/v1/admin/provider-disputes/{id}/financial-impact', 'SUPER_ADMIN or ADMIN with providerDisputes.financial.read'],
     ['post', '/api/v1/admin/provider-disputes/{id}/finalize', 'SUPER_ADMIN or ADMIN with providerDisputes.resolve'],
-    ['get', '/api/v1/provider/chats', 'PROVIDER'],
+    ['get', '/api/v1/chats', 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission'],
     ['get', '/api/v1/provider/reviews', 'PROVIDER'],
   ] as const)('documents %s %s as %s', (method, path, expected) => {
     const document = documentWith({ [path]: { [method]: { security: [{ bearer: [] }] } } });

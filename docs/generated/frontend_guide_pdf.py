@@ -200,7 +200,7 @@ html.append("""
 <ul>
   <li>On reconnect, re-emit <code>chat.join</code> or <code>support.join</code> for each visible thread after the socket connects.</li>
   <li>Use REST list/detail endpoints to hydrate initial state and backfill missed messages after reconnect.</li>
-  <li>Fallback REST endpoints: customer chat <code>GET/POST /api/v1/customer/chats...</code>, provider chat <code>GET/POST /api/v1/provider/chats...</code>, support chat <code>GET/POST/PATCH /api/v1/admin/support-chats...</code>.</li>
+  <li>Fallback REST endpoints: unified chat <code>GET/POST/PATCH /api/v1/chats...</code>.</li>
 </ul>
 """)
 html.append("</body></html>")
@@ -271,7 +271,7 @@ md.append("- Permissions: SUPER_ADMIN can join/reply. ADMIN needs `supportChats.
 md.append("#### Reconnect and REST fallback\n\n")
 md.append("- On reconnect, re-emit `chat.join` or `support.join` for visible threads.\n")
 md.append("- Use REST list/detail endpoints to hydrate initial state and backfill missed messages.\n")
-md.append("- Fallback REST endpoints: customer `/api/v1/customer/chats...`, provider `/api/v1/provider/chats...`, support `/api/v1/admin/support-chats...`.\n")
+md.append("- Fallback REST endpoints: unified `/api/v1/chats...`.\n")
 md_path.write_text("".join(md))
 
 from weasyprint import HTML

@@ -1,6 +1,6 @@
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-19 10:04 PKT.
 
 ## Frontend Integration Flows
 
@@ -335,18 +335,6 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
 | PATCH | `/api/v1/admins/{id}/active-status` | Update Admins Active Status | SUPER_ADMIN |
 | PATCH | `/api/v1/admins/{id}/password` | Update Admins Password | SUPER_ADMIN |
 
-### Admin - Support Chat (7 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/admin/support-chats` | List admin support chats | SUPER_ADMIN or ADMIN with supportChats.read |
-| GET | `/api/v1/admin/support-chats/stats` | Fetch support chat stats | SUPER_ADMIN or ADMIN with supportChats.read |
-| GET | `/api/v1/admin/support-chats/{id}` | Fetch support chat conversation details | SUPER_ADMIN or ADMIN with supportChats.read |
-| POST | `/api/v1/admin/support-chats/{id}/messages` | Reply to support chat | SUPER_ADMIN or ADMIN with supportChats.reply |
-| PATCH | `/api/v1/admin/support-chats/{id}/read` | Mark support chat as read | SUPER_ADMIN or ADMIN with supportChats.read |
-| POST | `/api/v1/admin/support-chats/{id}/reopen` | Reopen support chat and notify participant | SUPER_ADMIN or ADMIN with supportChats.resolve |
-| POST | `/api/v1/admin/support-chats/{id}/resolve` | Resolve support chat and notify participant | SUPER_ADMIN or ADMIN with supportChats.resolve |
-
 ### Admin - System Logs & Audit Trail (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
@@ -569,6 +557,22 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
 | POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
 | POST | `/api/v1/auth/verify-reset-otp` | Create Auth Verify Reset Otp | PUBLIC |
 
+### Chat - Unified Threads (11 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/chats` | List unified chat threads | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
+| GET | `/api/v1/chats/quick-replies` | Fetch role-aware chat quick replies | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN |
+| POST | `/api/v1/chats/threads` | Create or get a unified chat thread | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission |
+| GET | `/api/v1/chats/threads/{threadId}` | Fetch unified chat thread details | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
+| GET | `/api/v1/chats/threads/{threadId}/audit-log` | Fetch unified chat thread audit log | SUPER_ADMIN or ADMIN with supportChats.read |
+| GET | `/api/v1/chats/threads/{threadId}/messages` | Fetch unified chat thread messages | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
+| POST | `/api/v1/chats/threads/{threadId}/messages` | Send a unified chat message | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply |
+| PATCH | `/api/v1/chats/threads/{threadId}/read` | Mark a unified chat thread as read | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read |
+| POST | `/api/v1/chats/threads/{threadId}/reopen` | Reopen a support chat thread | SUPER_ADMIN or ADMIN with supportChats.resolve |
+| POST | `/api/v1/chats/threads/{threadId}/resolve` | Resolve a support chat thread | SUPER_ADMIN or ADMIN with supportChats.resolve |
+| PATCH | `/api/v1/chats/threads/{threadId}/status` | Update unified chat thread status | SUPER_ADMIN or ADMIN with supportChats.resolve |
+
 ### Customer - Addresses (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
@@ -635,18 +639,6 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
 | POST | `/api/v1/customer/payment-methods/setup-intent` | Create Stripe SetupIntent for saving card | REGISTERED_USER |
 | DELETE | `/api/v1/customer/payment-methods/{id}` | Delete own saved payment method | REGISTERED_USER |
 | PATCH | `/api/v1/customer/payment-methods/{id}/default` | Set own default payment method | REGISTERED_USER |
-
-### Customer - Provider Chat (7 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/customer/chats` | List customer provider chats | REGISTERED_USER |
-| GET | `/api/v1/customer/chats/quick-replies` | Fetch provider chat quick replies | REGISTERED_USER |
-| GET | `/api/v1/customer/chats/{threadId}` | Fetch customer chat messages | REGISTERED_USER |
-| POST | `/api/v1/customer/chats/{threadId}/messages` | Send message to provider | REGISTERED_USER |
-| PATCH | `/api/v1/customer/chats/{threadId}/read` | Mark provider messages read | REGISTERED_USER |
-| GET | `/api/v1/customer/orders/{id}/chat` | Get or optionally create order chat | REGISTERED_USER |
-| POST | `/api/v1/customer/orders/{id}/chat` | Create order chat | REGISTERED_USER |
 
 ### Customer - Recurring Payments (9 APIs)
 
@@ -844,18 +836,6 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
 | GET | `/api/v1/provider/business-info` | Fetch own provider business information | PROVIDER |
 | PATCH | `/api/v1/provider/business-info` | Update own provider business information | PROVIDER |
 
-### Provider - Buyer Chat (7 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/provider/chats` | List provider buyer chats | PROVIDER |
-| GET | `/api/v1/provider/chats/quick-replies` | Fetch provider buyer chat quick replies | PROVIDER |
-| GET | `/api/v1/provider/chats/{threadId}` | Fetch provider buyer chat messages | PROVIDER |
-| POST | `/api/v1/provider/chats/{threadId}/messages` | Send chat message to buyer | PROVIDER |
-| PATCH | `/api/v1/provider/chats/{threadId}/read` | Mark buyer messages read | PROVIDER |
-| GET | `/api/v1/provider/orders/{id}/chat` | Get or optionally create provider order chat | PROVIDER |
-| POST | `/api/v1/provider/orders/{id}/chat` | Create provider order chat | PROVIDER |
-
 ### Provider - Dashboard (1 APIs)
 
 | Method | Endpoint | Purpose | Access |
@@ -1018,4 +998,4 @@ Generated from `docs/generated/openapi.json` on 2026-05-18 12:01 PKT.
 
 - On reconnect, re-emit `chat.join` or `support.join` for visible threads.
 - Use REST list/detail endpoints to hydrate initial state and backfill missed messages.
-- Fallback REST endpoints: customer `/api/v1/customer/chats...`, provider `/api/v1/provider/chats...`, support `/api/v1/admin/support-chats...`.
+- Fallback REST endpoints: unified `/api/v1/chats...`.

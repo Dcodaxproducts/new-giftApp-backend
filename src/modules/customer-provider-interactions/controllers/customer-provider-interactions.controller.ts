@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { CustomerProviderInteractionsService } from '../services/customer-provider-interactions.service';
-import { ChatDetailsDto, CreateProviderReportDto, CreateReviewDto, GetOrderChatDto, ListCustomerChatsDto, ListCustomerReviewsDto, ListProviderReportsDto, SendChatMessageDto, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
+import { CreateProviderReportDto, CreateReviewDto, ListCustomerReviewsDto, ListProviderReportsDto, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -14,42 +14,6 @@ import { ChatDetailsDto, CreateProviderReportDto, CreateReviewDto, GetOrderChatD
 @Controller('customer')
 export class CustomerProviderInteractionsController {
   constructor(private readonly interactions: CustomerProviderInteractionsService) {}
-
-  @Get('chats')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'List customer provider chats', description: 'REGISTERED_USER only. Uses shared ChatThread/ChatMessage records with provider buyer chat. Customer sees only own order threads.' })
-  chats(@CurrentUser() user: AuthUserContext, @Query() query: ListCustomerChatsDto) { return this.interactions.chats(user, query); }
-
-  @Get('chats/quick-replies')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'Fetch provider chat quick replies', description: 'REGISTERED_USER only. Declared before /customer/chats/:threadId.' })
-  quickReplies() { return this.interactions.quickReplies(); }
-
-  @Get('chats/:threadId')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'Fetch customer chat messages', description: 'REGISTERED_USER only. Thread must belong to the current customer.' })
-  chatDetails(@CurrentUser() user: AuthUserContext, @Param('threadId') threadId: string, @Query() query: ChatDetailsDto) { return this.interactions.chatDetails(user, threadId, query); }
-
-  @Post('chats/:threadId/messages')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'Send message to provider', description: 'REGISTERED_USER only. Customer can send only in own order thread. Creates provider notification and updates read receipts.' })
-  @ApiBody({ type: SendChatMessageDto, examples: { text: { value: { messageType: 'TEXT', body: 'Can you confirm delivery time?', attachmentUrls: [] } }, image: { value: { messageType: 'IMAGE', attachmentUrls: ['https://cdn.yourdomain.com/chat-attachments/package.png'] } } } })
-  sendMessage(@CurrentUser() user: AuthUserContext, @Param('threadId') threadId: string, @Body() dto: SendChatMessageDto) { return this.interactions.sendMessage(user, threadId, dto); }
-
-  @Patch('chats/:threadId/read')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'Mark provider messages read', description: 'REGISTERED_USER only. Marks provider messages as read for the customer in the owned thread.' })
-  markRead(@CurrentUser() user: AuthUserContext, @Param('threadId') threadId: string) { return this.interactions.markRead(user, threadId); }
-
-  @Get('orders/:id/chat')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'Get or optionally create order chat', description: 'REGISTERED_USER only. Order must belong to the logged-in customer and have an attached provider order.' })
-  getOrderChat(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Query() query: GetOrderChatDto) { return this.interactions.getOrderChat(user, id, query); }
-
-  @Post('orders/:id/chat')
-  @ApiTags('05 Customer - Provider Chat')
-  @ApiOperation({ summary: 'Create order chat', description: 'REGISTERED_USER only. Reuses existing ChatThread if already created for the provider order.' })
-  createOrderChat(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.interactions.createOrderChat(user, id); }
 
   @Post('orders/:id/reviews')
   @ApiTags('05 Customer - Reviews')

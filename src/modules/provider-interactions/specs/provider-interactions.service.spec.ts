@@ -8,6 +8,8 @@ describe('Provider Chat and Reviews module', () => {
   const reviewsRepository = readFileSync(join(__dirname, '../repositories/provider-reviews.repository.ts'), 'utf8');
   const reviewResponsesRepository = readFileSync(join(__dirname, '../repositories/provider-review-responses.repository.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, '../controllers/provider-interactions.controller.ts'), 'utf8');
+  const chatsController = readFileSync(join(__dirname, '../../chats/chats.controller.ts'), 'utf8');
+  const chatsModule = readFileSync(join(__dirname, '../../chats/chats.module.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, '../provider-interactions.module.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/provider-interactions.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
@@ -19,16 +21,20 @@ describe('Provider Chat and Reviews module', () => {
     expect(appModule).toContain('ProviderInteractionsModule');
     expect(moduleFile).toContain('DatabaseModule');
     expect(moduleFile).not.toContain('JwtModule.register({})');
-    expect(controller).toContain("@ApiTags('03 Provider - Buyer Chat')");
+    expect(controller).not.toContain("@ApiTags('03 Provider - Buyer Chat')");
+    expect(chatsController).toContain("@ApiTags('08 Chat - Unified Threads')");
+    expect(chatsModule).toContain('ProviderInteractionsModule');
     expect(controller).toContain("@ApiTags('03 Provider - Reviews')");
-    expect(main).toContain("'03 Provider - Buyer Chat'");
+    expect(main).not.toContain("'03 Provider - Buyer Chat'");
+    expect(main).toContain("'08 Chat - Unified Threads'");
     expect(main).toContain("'03 Provider - Reviews'");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
   });
 
-  it('provider chat/review APIs are provider-only in swagger access metadata', () => {
+  it('provider review APIs and unified chat APIs are documented in swagger access metadata', () => {
     const access = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
-    expect(access).toContain("'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER'");
+    expect(access).toContain("'GET /api/v1/chats': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission'");
+    expect(access).not.toContain("'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER'");
     expect(access).toContain("'GET /api/v1/provider/reviews': { allowedRoles: 'PROVIDER'");
   });
 
@@ -41,9 +47,9 @@ describe('Provider Chat and Reviews module', () => {
     expect(schema).not.toContain('model ProviderChatThread');
   });
 
-  it('exposes provider chat routes with quick replies before thread details', () => {
-    for (const route of ["@Get('chats')", "@Get('chats/quick-replies')", "@Get('chats/:threadId')", "@Post('chats/:threadId/messages')", "@Patch('chats/:threadId/read')", "@Get('orders/:id/chat')", "@Post('orders/:id/chat')"]) expect(controller).toContain(route);
-    expect(controller.indexOf("@Get('chats/quick-replies')")).toBeLessThan(controller.indexOf("@Get('chats/:threadId')"));
+  it('moves provider chat routes to the unified chat controller', () => {
+    for (const route of ["@Get()", "@Get('quick-replies')", "@Post('threads')", "@Get('threads/:threadId')", "@Post('threads/:threadId/messages')", "@Patch('threads/:threadId/read')"]) expect(chatsController).toContain(route);
+    for (const oldRoute of ["@Get('chats')", "@Get('chats/quick-replies')", "@Get('chats/:threadId')", "@Post('chats/:threadId/messages')", "@Patch('chats/:threadId/read')", "@Get('orders/:id/chat')", "@Post('orders/:id/chat')"]) expect(controller).not.toContain(oldRoute);
   });
 
   it('enforces provider order/thread ownership for chats and creates buyer notifications', () => {

@@ -78,6 +78,7 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   private isBlockedProviderModule(path: string): boolean {
+    if (path.startsWith('/api/v1/chats')) return true;
     if (!path.startsWith('/api/v1/provider/')) return false;
     if (path.startsWith('/api/v1/provider/business-info')) return false;
     return true;

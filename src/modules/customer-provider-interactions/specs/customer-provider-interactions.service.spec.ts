@@ -5,6 +5,8 @@ describe('Customer Provider Interaction module', () => {
   const service = readFileSync(join(__dirname, '../services/customer-provider-interactions.service.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, '../controllers/customer-provider-interactions.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, '../customer-provider-interactions.module.ts'), 'utf8');
+  const chatsController = readFileSync(join(__dirname, '../../chats/chats.controller.ts'), 'utf8');
+  const chatsModule = readFileSync(join(__dirname, '../../chats/chats.module.ts'), 'utf8');
   const customerReviewsRepository = readFileSync(join(__dirname, '../repositories/customer-reviews.repository.ts'), 'utf8');
   const customerChatsRepository = readFileSync(join(__dirname, '../repositories/customer-chats.repository.ts'), 'utf8');
   const customerProviderReportsRepository = readFileSync(join(__dirname, '../repositories/customer-provider-reports.repository.ts'), 'utf8');
@@ -18,14 +20,18 @@ describe('Customer Provider Interaction module', () => {
 
   it('registers customer provider interaction module and Swagger groups', () => {
     expect(appModule).toContain('CustomerProviderInteractionsModule');
+    expect(appModule).toContain('ChatsModule');
     expect(moduleFile).toContain('CustomerProviderInteractionsController');
     expect(moduleFile).toContain('CustomerChatsRepository');
     expect(moduleFile).toContain('CustomerProviderReportsRepository');
     expect(moduleFile).toContain('CustomerProviderInteractionsRepository');
-    expect(controller).toContain("@ApiTags('05 Customer - Provider Chat')");
+    expect(controller).not.toContain("@ApiTags('05 Customer - Provider Chat')");
+    expect(chatsController).toContain("@ApiTags('08 Chat - Unified Threads')");
+    expect(chatsModule).toContain('CustomerProviderInteractionsModule');
     expect(controller).toContain("@ApiTags('05 Customer - Reviews')");
     expect(controller).toContain("@ApiTags('05 Customer - Provider Reports')");
-    expect(main).toContain("'05 Customer - Provider Chat'");
+    expect(main).not.toContain("'05 Customer - Provider Chat'");
+    expect(main).toContain("'08 Chat - Unified Threads'");
     expect(main).toContain("'05 Customer - Reviews'");
     expect(main).toContain("'05 Customer - Provider Reports'");
   });
@@ -40,10 +46,10 @@ describe('Customer Provider Interaction module', () => {
     expect(schema).toContain('ProviderReportStatus');
   });
 
-  it('exposes required customer chat routes with quick replies before :threadId', () => {
-    for (const route of ["@Get('chats')", "@Get('chats/quick-replies')", "@Get('chats/:threadId')", "@Post('chats/:threadId/messages')", "@Patch('chats/:threadId/read')", "@Get('orders/:id/chat')", "@Post('orders/:id/chat')"]) expect(controller).toContain(route);
-    expect(controller.indexOf("@Get('chats/quick-replies')")).toBeLessThan(controller.indexOf("@Get('chats/:threadId')"));
-    expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
+  it('moves required customer chat routes to the unified chat controller', () => {
+    for (const route of ["@Get()", "@Get('quick-replies')", "@Post('threads')", "@Get('threads/:threadId')", "@Get('threads/:threadId/messages')", "@Post('threads/:threadId/messages')", "@Patch('threads/:threadId/read')"]) expect(chatsController).toContain(route);
+    for (const oldRoute of ["@Get('chats')", "@Get('chats/quick-replies')", "@Get('chats/:threadId')", "@Post('chats/:threadId/messages')", "@Patch('chats/:threadId/read')", "@Get('orders/:id/chat')", "@Post('orders/:id/chat')"]) expect(controller).not.toContain(oldRoute);
+    expect(chatsController).toContain('UserRole.REGISTERED_USER');
   });
 
   it('enforces order ownership and provider order ownership for chat creation and messaging', () => {

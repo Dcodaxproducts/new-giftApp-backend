@@ -14,7 +14,7 @@ describe('Guest-aware marketplace access wiring', () => {
       const index = controller.indexOf(route);
       expect(controller.slice(Math.max(0, index - 90), index)).toContain('@Roles(UserRole.REGISTERED_USER)');
     }
-    for (const privatePath of ['/customer/cart', '/customer/wishlist', '/customer/orders', '/customer/addresses', '/customer/contacts', '/customer/events', '/customer/wallet', '/customer/payment-methods', '/customer/transactions', '/customer/recurring-payments', '/customer/referrals', '/customer/reviews', '/customer/chats']) {
+    for (const privatePath of ['/customer/cart', '/customer/wishlist', '/customer/orders', '/customer/addresses', '/customer/contacts', '/customer/events', '/customer/wallet', '/customer/payment-methods', '/customer/transactions', '/customer/recurring-payments', '/customer/referrals', '/customer/reviews', '/chats']) {
       expect(swagger).not.toContain(`${privatePath}': { allowedRoles: 'REGISTERED_USER or GUEST_USER`);
     }
   });

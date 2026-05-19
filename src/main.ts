@@ -29,7 +29,6 @@ export const SWAGGER_TAG_ORDER = [
   '02 Admin - Media Upload Policy',
   '02 Admin - System Settings',
   '02 Admin - Guest Access Settings',
-  '02 Admin - Support Chat',
   '02 Admin - System Logs & Audit Trail',
   '02 Admin - Dispute Manager',
   '02 Admin - Dispute Evidence',
@@ -45,7 +44,6 @@ export const SWAGGER_TAG_ORDER = [
   '03 Provider - Dashboard',
   '03 Provider - Earnings',
   '03 Provider - Business Info',
-  '03 Provider - Buyer Chat',
   '03 Provider - Reviews',
   '03 Provider - Inventory',
   '03 Provider - Promotional Offers',
@@ -64,7 +62,6 @@ export const SWAGGER_TAG_ORDER = [
   '05 Customer - Events',
   '05 Customer - Cart',
   '05 Customer - Orders',
-  '05 Customer - Provider Chat',
   '05 Customer - Reviews',
   '05 Customer - Provider Reports',
   '05 Customer - Recurring Payments',
@@ -78,6 +75,7 @@ export const SWAGGER_TAG_ORDER = [
   '06 Broadcast Notifications',
   '07 Plans & Coupons',
   '07 Storage',
+  '08 Chat - Unified Threads',
 ] as const;
 
 function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
@@ -172,8 +170,6 @@ async function bootstrap(): Promise<void> {
           '02 Admin - Media Upload Policy',
           '02 Admin - System Settings',
           '02 Admin - Guest Access Settings',
-          '02 Admin - Support Chat',
-  '02 Admin - Support Chat',
   '02 Admin - System Logs & Audit Trail',
           '02 Admin - Dispute Manager',
           '02 Admin - Dispute Evidence',
@@ -189,7 +185,6 @@ async function bootstrap(): Promise<void> {
           '03 Provider - Dashboard',
           '03 Provider - Earnings',
           '03 Provider - Business Info',
-          '03 Provider - Buyer Chat',
           '03 Provider - Reviews',
           '03 Provider - Inventory',
           '03 Provider - Promotional Offers',
@@ -208,7 +203,6 @@ async function bootstrap(): Promise<void> {
           '05 Customer - Events',
           '05 Customer - Cart',
           '05 Customer - Orders',
-          '05 Customer - Provider Chat',
           '05 Customer - Reviews',
           '05 Customer - Provider Reports',
           '05 Customer - Recurring Payments',
@@ -222,6 +216,7 @@ async function bootstrap(): Promise<void> {
           '06 Broadcast Notifications',
           '07 Plans & Coupons',
           '07 Storage',
+          '08 Chat - Unified Threads',
         ];
         const left = tagOrder.indexOf(a);
         const right = tagOrder.indexOf(b);

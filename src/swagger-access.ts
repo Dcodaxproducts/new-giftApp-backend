@@ -159,13 +159,17 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/dashboard/provider-performance': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table.' },
   'GET /api/v1/admin/dashboard/recent-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data.' },
 
-  'GET /api/v1/admin/support-chats': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'SUPER_ADMIN all chats; ADMIN assigned chats unless supportChats.read.all.' },
-  'GET /api/v1/admin/support-chats/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Support chat counters.' },
-  'GET /api/v1/admin/support-chats/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Conversation details scoped to support chat.' },
-  'POST /api/v1/admin/support-chats/{id}/messages': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.reply', description: 'Reply with optional support-chat-attachments URLs.' },
-  'PATCH /api/v1/admin/support-chats/{id}/read': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Mark admin unread count read.' },
-  'POST /api/v1/admin/support-chats/{id}/resolve': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Resolve support chat and notify participant.' },
-  'POST /api/v1/admin/support-chats/{id}/reopen': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Reopen support chat and notify participant.' },
+  'GET /api/v1/chats': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission', description: 'Unified role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions.' },
+  'GET /api/v1/chats/quick-replies': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN', description: 'Role-aware quick replies.' },
+  'POST /api/v1/chats/threads': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission', description: 'Create or get an order/support/moderation chat thread based on role and sourceType.' },
+  'GET /api/v1/chats/threads/{threadId}': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission', description: 'Fetch a thread only when the authenticated role can access it.' },
+  'GET /api/v1/chats/threads/{threadId}/messages': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission', description: 'Fetch messages only for accessible threads.' },
+  'POST /api/v1/chats/threads/{threadId}/messages': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply', description: 'Send a message in an accessible order/support thread.' },
+  'PATCH /api/v1/chats/threads/{threadId}/read': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read', description: 'Mark an accessible thread as read for the authenticated participant/admin.' },
+  'PATCH /api/v1/chats/threads/{threadId}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Update support thread status.' },
+  'POST /api/v1/chats/threads/{threadId}/resolve': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Resolve support chat and notify participant when requested.' },
+  'POST /api/v1/chats/threads/{threadId}/reopen': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Reopen support chat and notify participant when requested.' },
+  'GET /api/v1/chats/threads/{threadId}/audit-log': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Fetch audit trail for an accessible support/moderation thread.' },
 
   'GET /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned.' },
   'PATCH /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission.' },
@@ -275,11 +279,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/provider-disputes/{id}/resolution-log/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.export', description: 'SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission.' },
   'POST /api/v1/admin/provider-disputes/{id}/notify-again': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerDisputes.notify', description: 'SUPER_ADMIN or ADMIN with providerDisputes.notify permission.' },
 
-  'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own chat threads.' },
-  'GET /api/v1/provider/chats/quick-replies': { allowedRoles: 'PROVIDER', description: 'PROVIDER only.' },
-  'GET /api/v1/provider/chats/{threadId}': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own chat threads.' },
-  'POST /api/v1/provider/chats/{threadId}/messages': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can send only in own thread.' },
-  'PATCH /api/v1/provider/chats/{threadId}/read': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can mark only own thread messages read.' },
   'GET /api/v1/provider/reviews/summary': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own reviews.' },
   'GET /api/v1/provider/reviews/filter-options': { allowedRoles: 'PROVIDER', description: 'PROVIDER only.' },
   'GET /api/v1/provider/reviews': { allowedRoles: 'PROVIDER', description: 'PROVIDER only. Provider can access only own reviews.' },
@@ -315,7 +314,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/media-upload-policy/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Media upload policy audit logs.' },
 };
 
-const providerPrefixes = ['/api/v1/provider/business-info', '/api/v1/provider/earnings', '/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders', '/api/v1/provider/payout-methods', '/api/v1/provider/payouts', '/api/v1/provider/refund-requests', '/api/v1/provider/chats', '/api/v1/provider/reviews', '/api/v1/provider/support'];
+const providerPrefixes = ['/api/v1/provider/business-info', '/api/v1/provider/earnings', '/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders', '/api/v1/provider/payout-methods', '/api/v1/provider/payouts', '/api/v1/provider/refund-requests', '/api/v1/provider/reviews', '/api/v1/provider/support'];
 const customerPrefixes = ['/api/v1/customer/'];
 const allAccountPrefixes = ['/api/v1/notifications', '/api/v1/uploads'];
 

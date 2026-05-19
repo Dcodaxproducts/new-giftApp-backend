@@ -1,6 +1,6 @@
 # Gift App Backend — Full API Reference
 
-Generated: 2026-05-18 12:01 UTC
+Generated: 2026-05-19 10:03 UTC
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -25,7 +25,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Settings (5 APIs)
 - 02 Admin - Guest Access Settings (3 APIs)
-- 02 Admin - Support Chat (7 APIs)
 - 02 Admin - System Logs & Audit Trail (6 APIs)
 - 02 Admin - Dispute Manager (8 APIs)
 - 02 Admin - Dispute Evidence (1 APIs)
@@ -41,7 +40,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Dashboard (1 APIs)
 - 03 Provider - Earnings (3 APIs)
 - 03 Provider - Business Info (2 APIs)
-- 03 Provider - Buyer Chat (7 APIs)
 - 03 Provider - Reviews (7 APIs)
 - 03 Provider - Inventory (8 APIs)
 - 03 Provider - Promotional Offers (6 APIs)
@@ -60,7 +58,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 05 Customer - Events (9 APIs)
 - 05 Customer - Cart (5 APIs)
 - 05 Customer - Orders (3 APIs)
-- 05 Customer - Provider Chat (7 APIs)
 - 05 Customer - Reviews (5 APIs)
 - 05 Customer - Provider Reports (4 APIs)
 - 05 Customer - Recurring Payments (9 APIs)
@@ -74,6 +71,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 06 Broadcast Notifications (10 APIs)
 - 07 Plans & Coupons (21 APIs)
 - 07 Storage (5 APIs)
+- 08 Chat - Unified Threads (11 APIs)
 
 ## 01 Auth
 
@@ -4197,168 +4195,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 02 Admin - Support Chat
-
-### GET `/api/v1/admin/support-chats`
-
-- Summary: List admin support chats
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. SUPER_ADMIN all chats; ADMIN assigned chats unless supportChats.read.all. SUPER_ADMIN sees all. ADMIN sees assigned chats unless granted supportChats.read.all.
-- Parameters:
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `search` (query, optional, string)
-  - `participantType` (query, optional, string)
-  - `status` (query, optional, string)
-  - `unreadOnly` (query, optional, boolean)
-- Response body:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "support_chat_id",
-      "participant": {
-        "id": "provider_id",
-        "type": "PROVIDER",
-        "name": "Luxe Unboxed",
-        "avatarUrl": "https://cdn.example.com/avatar.png"
-      },
-      "subject": "Support Ticket",
-      "lastMessage": "I've attached the new listing...",
-      "lastMessageAt": "2026-05-16T10:00:00.000Z",
-      "unreadCount": 2,
-      "status": "ACTIVE"
-    }
-  ],
-  "message": "Support chats fetched successfully."
-}
-```
-
-### GET `/api/v1/admin/support-chats/stats`
-
-- Summary: Fetch support chat stats
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Support chat counters.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/admin/support-chats/{id}`
-
-- Summary: Fetch support chat conversation details
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Conversation details scoped to support chat.
-- Parameters:
-  - `id` (path, required, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/support-chats/{id}/messages`
-
-- Summary: Reply to support chat
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.reply
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.reply. Reply with optional support-chat-attachments URLs. Attachments must be completed uploads in support-chat-attachments folder.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - text:
-```json
-{
-  "messageType": "TEXT",
-  "body": "I am checking this issue now.",
-  "attachmentUrls": []
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/admin/support-chats/{id}/read`
-
-- Summary: Mark support chat as read
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Mark admin unread count read.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/support-chats/{id}/resolve`
-
-- Summary: Resolve support chat and notify participant
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "comment": "Issue resolved.",
-  "notifyParticipant": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/support-chats/{id}/reopen`
-
-- Summary: Reopen support chat and notify participant
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "comment": "Issue resolved.",
-  "notifyParticipant": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
 ## 02 Admin - System Logs & Audit Trail
 
 ### GET `/api/v1/audit-logs/stats`
@@ -5973,175 +5809,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "autoAcceptOrders": false
 }
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-## 03 Provider - Buyer Chat
-
-### GET `/api/v1/provider/chats`
-
-- Summary: List provider buyer chats
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.
-- Parameters:
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `search` (query, optional, string)
-  - `unreadOnly` (query, optional, boolean)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/chats/quick-replies`
-
-- Summary: Fetch provider buyer chat quick replies
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. PROVIDER only. Declared before /provider/chats/:threadId.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/chats/{threadId}`
-
-- Summary: Fetch provider buyer chat messages
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Thread must belong to the authenticated provider.
-- Parameters:
-  - `threadId` (path, required, string)
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `before` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "thread": {
-      "id": "thread_id",
-      "orderNumber": "ORD-45678",
-      "customer": {
-        "id": "customer_id",
-        "name": "Michael Chen",
-        "avatarUrl": null
-      }
-    },
-    "messages": [
-      {
-        "id": "msg_1",
-        "messageType": "TEXT",
-        "body": "Please share delivery ETA.",
-        "attachmentUrls": [],
-        "createdAt": "2026-04-08T10:00:00.000Z",
-        "isReadByCustomer": true,
-        "isReadByProvider": true,
-        "senderType": "CUSTOMER"
-      }
-    ]
-  },
-  "message": "Chat fetched successfully."
-}
-```
-
-### POST `/api/v1/provider/chats/{threadId}/messages`
-
-- Summary: Send chat message to buyer
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. Provider can send only in own thread. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.
-- Parameters:
-  - `threadId` (path, required, string)
-- Request payload(s):
-  - text:
-```json
-{
-  "messageType": "TEXT",
-  "body": "Your order is ready for shipping.",
-  "attachmentUrls": []
-}
-```
-  - image:
-```json
-{
-  "messageType": "IMAGE",
-  "attachmentUrls": [
-    "https://cdn.yourdomain.com/chat-attachments/package.png"
-  ]
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/provider/chats/{threadId}/read`
-
-- Summary: Mark buyer messages read
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. Provider can mark only own thread messages read. PROVIDER only. Marks customer messages as read for provider in an owned thread.
-- Parameters:
-  - `threadId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/provider/orders/{id}/chat`
-
-- Summary: Get or optionally create provider order chat
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Provider order must belong to logged-in provider. Reuses existing thread if present.
-- Parameters:
-  - `id` (path, required, string)
-  - `createIfMissing` (query, optional, boolean)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/provider/orders/{id}/chat`
-
-- Summary: Create provider order chat
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates or returns shared ChatThread for an owned provider order.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
 ```
 - Response body:
 ```json
@@ -9140,153 +8807,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 05 Customer - Provider Chat
-
-### GET `/api/v1/customer/chats`
-
-- Summary: List customer provider chats
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses shared ChatThread/ChatMessage records with provider buyer chat. Customer sees only own order threads.
-- Parameters:
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `search` (query, optional, string)
-  - `unreadOnly` (query, optional, boolean)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/customer/chats/quick-replies`
-
-- Summary: Fetch provider chat quick replies
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Declared before /customer/chats/:threadId.
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/customer/chats/{threadId}`
-
-- Summary: Fetch customer chat messages
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Thread must belong to the current customer.
-- Parameters:
-  - `threadId` (path, required, string)
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `before` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/customer/chats/{threadId}/messages`
-
-- Summary: Send message to provider
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customer can send only in own order thread. Creates provider notification and updates read receipts.
-- Parameters:
-  - `threadId` (path, required, string)
-- Request payload(s):
-  - text:
-```json
-{
-  "messageType": "TEXT",
-  "body": "Can you confirm delivery time?",
-  "attachmentUrls": []
-}
-```
-  - image:
-```json
-{
-  "messageType": "IMAGE",
-  "attachmentUrls": [
-    "https://cdn.yourdomain.com/chat-attachments/package.png"
-  ]
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/customer/chats/{threadId}/read`
-
-- Summary: Mark provider messages read
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Marks provider messages as read for the customer in the owned thread.
-- Parameters:
-  - `threadId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### GET `/api/v1/customer/orders/{id}/chat`
-
-- Summary: Get or optionally create order chat
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Order must belong to the logged-in customer and have an attached provider order.
-- Parameters:
-  - `id` (path, required, string)
-  - `createIfMissing` (query, optional, boolean)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/customer/orders/{id}/chat`
-
-- Summary: Create order chat
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Reuses existing ChatThread if already created for the provider order.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
 ## 05 Customer - Reviews
 
 ### POST `/api/v1/customer/orders/{id}/reviews`
@@ -11898,6 +11418,254 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 "<standard success envelope>"
 ```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 08 Chat - Unified Threads
+
+### GET `/api/v1/chats`
+
+- Summary: List unified chat threads
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Unified role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `threadType` (query, optional, string)
+  - `status` (query, optional, string)
+  - `unreadOnly` (query, optional, boolean)
+  - `sourceType` (query, optional, string)
+  - `sourceId` (query, optional, string)
+  - `participantRole` (query, optional, string)
+  - `participantId` (query, optional, string)
+  - `assignedToAdminId` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/chats/quick-replies`
+
+- Summary: Fetch role-aware chat quick replies
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN. Role-aware quick replies.
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/chats/threads`
+
+- Summary: Create or get a unified chat thread
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission. Create or get an order/support/moderation chat thread based on role and sourceType.
+- Request payload(s):
+  - payload:
+```json
+{
+  "threadType": "ORDER_CHAT",
+  "sourceType": "CUSTOMER_ORDER",
+  "sourceId": "order_id",
+  "subject": "Order support",
+  "initialMessage": "Can you confirm delivery time?",
+  "attachmentUrls": [],
+  "createIfMissing": true,
+  "participantId": "participant_user_id",
+  "participantRole": "REGISTERED_USER"
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/chats/threads/{threadId}`
+
+- Summary: Fetch unified chat thread details
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch a thread only when the authenticated role can access it.
+- Parameters:
+  - `threadId` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/chats/threads/{threadId}/messages`
+
+- Summary: Fetch unified chat thread messages
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch messages only for accessible threads.
+- Parameters:
+  - `threadId` (path, required, string)
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `before` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/chats/threads/{threadId}/messages`
+
+- Summary: Send a unified chat message
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply. Send a message in an accessible order/support thread.
+- Parameters:
+  - `threadId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "clientMessageId": "mobile-generated-uuid",
+  "messageType": "TEXT",
+  "body": "Can you confirm delivery time?",
+  "attachmentUrls": []
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/chats/threads/{threadId}/read`
+
+- Summary: Mark a unified chat thread as read
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read. Mark an accessible thread as read for the authenticated participant/admin.
+- Parameters:
+  - `threadId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### PATCH `/api/v1/chats/threads/{threadId}/status`
+
+- Summary: Update unified chat thread status
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Update support thread status.
+- Parameters:
+  - `threadId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "status": "RESOLVED",
+  "comment": "Issue resolved.",
+  "notifyParticipant": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/chats/threads/{threadId}/resolve`
+
+- Summary: Resolve a support chat thread
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant when requested.
+- Parameters:
+  - `threadId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "status": "RESOLVED",
+  "comment": "Issue resolved.",
+  "notifyParticipant": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/chats/threads/{threadId}/reopen`
+
+- Summary: Reopen a support chat thread
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant when requested.
+- Parameters:
+  - `threadId` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+{
+  "status": "RESOLVED",
+  "comment": "Issue resolved.",
+  "notifyParticipant": true
+}
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/chats/threads/{threadId}/audit-log`
+
+- Summary: Fetch unified chat thread audit log
+- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.read
+- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.read. Fetch audit trail for an accessible support/moderation thread.
+- Parameters:
+  - `threadId` (path, required, string)
 - Response body:
 ```json
 {

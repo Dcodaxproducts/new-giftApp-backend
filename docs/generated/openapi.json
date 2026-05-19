@@ -10870,310 +10870,6 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/provider/chats": {
-      "get": {
-        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Uses shared ChatThread/ChatMessage records with customer provider chat. Provider sees only own provider-order threads.",
-        "operationId": "ProviderInteractionsController_chats",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "John",
-              "type": "string"
-            }
-          },
-          {
-            "name": "unreadOnly",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List provider buyer chats",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/chats/quick-replies": {
-      "get": {
-        "description": "Access: PROVIDER. PROVIDER only. PROVIDER only. Declared before /provider/chats/:threadId.",
-        "operationId": "ProviderInteractionsController_quickReplies",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch provider buyer chat quick replies",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/chats/{threadId}": {
-      "get": {
-        "description": "Access: PROVIDER. PROVIDER only. Provider can access only own chat threads. PROVIDER only. Thread must belong to the authenticated provider.",
-        "operationId": "ProviderInteractionsController_chatDetails",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "before",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-10-24T10:33:00.000Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch provider buyer chat messages",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/chats/{threadId}/messages": {
-      "post": {
-        "description": "Access: PROVIDER. PROVIDER only. Provider can send only in own thread. PROVIDER only. Provider can send only in own provider order thread. Creates customer notification and updates read receipts.",
-        "operationId": "ProviderInteractionsController_sendMessage",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SendProviderChatMessageDto"
-              },
-              "examples": {
-                "text": {
-                  "value": {
-                    "messageType": "TEXT",
-                    "body": "Your order is ready for shipping.",
-                    "attachmentUrls": []
-                  }
-                },
-                "image": {
-                  "value": {
-                    "messageType": "IMAGE",
-                    "attachmentUrls": [
-                      "https://cdn.yourdomain.com/chat-attachments/package.png"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Send chat message to buyer",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/chats/{threadId}/read": {
-      "patch": {
-        "description": "Access: PROVIDER. PROVIDER only. Provider can mark only own thread messages read. PROVIDER only. Marks customer messages as read for provider in an owned thread.",
-        "operationId": "ProviderInteractionsController_markRead",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark buyer messages read",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/orders/{id}/chat": {
-      "get": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Provider order must belong to logged-in provider. Reuses existing thread if present.",
-        "operationId": "ProviderInteractionsController_getOrderChat",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "createIfMissing",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get or optionally create provider order chat",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      },
-      "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates or returns shared ChatThread for an owned provider order.",
-        "operationId": "ProviderInteractionsController_createOrderChat",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create provider order chat",
-        "tags": [
-          "03 Provider - Buyer Chat"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
     "/api/v1/provider/reviews/summary": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. Provider can access only own reviews. PROVIDER only. Uses shared Review records visible to provider/customer/admin modules.",
@@ -18836,310 +18532,6 @@
         "x-access": "REGISTERED_USER"
       }
     },
-    "/api/v1/customer/chats": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses shared ChatThread/ChatMessage records with provider buyer chat. Customer sees only own order threads.",
-        "operationId": "CustomerProviderInteractionsController_chats",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "Global Logistics",
-              "type": "string"
-            }
-          },
-          {
-            "name": "unreadOnly",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List customer provider chats",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/chats/quick-replies": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Declared before /customer/chats/:threadId.",
-        "operationId": "CustomerProviderInteractionsController_quickReplies",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch provider chat quick replies",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/chats/{threadId}": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Thread must belong to the current customer.",
-        "operationId": "CustomerProviderInteractionsController_chatDetails",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "before",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-10-24T10:33:00.000Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch customer chat messages",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/chats/{threadId}/messages": {
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Customer can send only in own order thread. Creates provider notification and updates read receipts.",
-        "operationId": "CustomerProviderInteractionsController_sendMessage",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SendChatMessageDto"
-              },
-              "examples": {
-                "text": {
-                  "value": {
-                    "messageType": "TEXT",
-                    "body": "Can you confirm delivery time?",
-                    "attachmentUrls": []
-                  }
-                },
-                "image": {
-                  "value": {
-                    "messageType": "IMAGE",
-                    "attachmentUrls": [
-                      "https://cdn.yourdomain.com/chat-attachments/package.png"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Send message to provider",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/chats/{threadId}/read": {
-      "patch": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Marks provider messages as read for the customer in the owned thread.",
-        "operationId": "CustomerProviderInteractionsController_markRead",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark provider messages read",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/orders/{id}/chat": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Order must belong to the logged-in customer and have an attached provider order.",
-        "operationId": "CustomerProviderInteractionsController_getOrderChat",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "createIfMissing",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get or optionally create order chat",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      },
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Reuses existing ChatThread if already created for the provider order.",
-        "operationId": "CustomerProviderInteractionsController_createOrderChat",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create order chat",
-        "tags": [
-          "05 Customer - Provider Chat"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
     "/api/v1/customer/orders/{id}/reviews": {
       "post": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Uses shared Review records consumed by provider reviews and admin review management.",
@@ -25418,10 +24810,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
       }
     },
-    "/api/v1/admin/support-chats": {
+    "/api/v1/chats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. SUPER_ADMIN all chats; ADMIN assigned chats unless supportChats.read.all. SUPER_ADMIN sees all. ADMIN sees assigned chats unless granted supportChats.read.all.",
-        "operationId": "SupportChatController_list",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Unified role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.",
+        "operationId": "ChatsController_list",
         "parameters": [
           {
             "name": "page",
@@ -25446,20 +24838,21 @@
             "required": false,
             "in": "query",
             "schema": {
+              "example": "order support",
               "type": "string"
             }
           },
           {
-            "name": "participantType",
+            "name": "threadType",
             "required": false,
             "in": "query",
             "schema": {
+              "type": "string",
               "enum": [
-                "ALL",
-                "PROVIDER",
-                "REGISTERED_USER"
-              ],
-              "type": "string"
+                "ORDER_CHAT",
+                "SUPPORT_CHAT",
+                "MODERATION_REVIEW"
+              ]
             }
           },
           {
@@ -25467,13 +24860,14 @@
             "required": false,
             "in": "query",
             "schema": {
+              "type": "string",
               "enum": [
-                "ALL",
-                "OPEN",
                 "ACTIVE",
-                "RESOLVED"
-              ],
-              "type": "string"
+                "RESOLVED",
+                "REOPENED",
+                "ARCHIVED",
+                "BLOCKED_BY_MODERATION"
+              ]
             }
           },
           {
@@ -25481,39 +24875,113 @@
             "required": false,
             "in": "query",
             "schema": {
+              "example": true,
               "type": "boolean"
+            }
+          },
+          {
+            "name": "sourceType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CUSTOMER_ORDER",
+                "PROVIDER_ORDER",
+                "SUPPORT",
+                "MESSAGE_MODERATION"
+              ]
+            }
+          },
+          {
+            "name": "sourceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "order_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantRole",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUPER_ADMIN",
+                "ADMIN",
+                "REGISTERED_USER",
+                "PROVIDER",
+                "GUEST_USER"
+              ]
+            }
+          },
+          {
+            "name": "participantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "user_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignedToAdminId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "admin_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-19T23:59:59.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "lastMessageAt"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "support_chat_id",
-                        "participant": {
-                          "id": "provider_id",
-                          "type": "PROVIDER",
-                          "name": "Luxe Unboxed",
-                          "avatarUrl": "https://cdn.example.com/avatar.png"
-                        },
-                        "subject": "Support Ticket",
-                        "lastMessage": "I've attached the new listing...",
-                        "lastMessageAt": "2026-05-16T10:00:00.000Z",
-                        "unreadCount": 2,
-                        "status": "ACTIVE"
-                      }
-                    ],
-                    "message": "Support chats fetched successfully."
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -25521,17 +24989,17 @@
             "bearer": []
           }
         ],
-        "summary": "List admin support chats",
+        "summary": "List unified chat threads",
         "tags": [
-          "02 Admin - Support Chat"
+          "08 Chat - Unified Threads"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read"
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission"
       }
     },
-    "/api/v1/admin/support-chats/stats": {
+    "/api/v1/chats/quick-replies": {
       "get": {
-        "operationId": "SupportChatController_stats",
+        "operationId": "ChatsController_quickReplies",
         "parameters": [],
         "responses": {
           "200": {
@@ -25543,21 +25011,54 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch support chat stats",
+        "summary": "Fetch role-aware chat quick replies",
         "tags": [
-          "02 Admin - Support Chat"
+          "08 Chat - Unified Threads"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Support chat counters."
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN. Role-aware quick replies."
       }
     },
-    "/api/v1/admin/support-chats/{id}": {
+    "/api/v1/chats/threads": {
+      "post": {
+        "operationId": "ChatsController_createOrGetThread",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChatThreadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create or get a unified chat thread",
+        "tags": [
+          "08 Chat - Unified Threads"
+        ],
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission. Create or get an order/support/moderation chat thread based on role and sourceType."
+      }
+    },
+    "/api/v1/chats/threads/{threadId}": {
       "get": {
-        "operationId": "SupportChatController_details",
+        "operationId": "ChatsController_threadDetails",
         "parameters": [
           {
-            "name": "id",
+            "name": "threadId",
             "required": true,
             "in": "path",
             "schema": {
@@ -25575,22 +25076,78 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch support chat conversation details",
+        "summary": "Fetch unified chat thread details",
         "tags": [
-          "02 Admin - Support Chat"
+          "08 Chat - Unified Threads"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Conversation details scoped to support chat."
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch a thread only when the authenticated role can access it."
       }
     },
-    "/api/v1/admin/support-chats/{id}/messages": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.reply. Reply with optional support-chat-attachments URLs. Attachments must be completed uploads in support-chat-attachments folder.",
-        "operationId": "SupportChatController_reply",
+    "/api/v1/chats/threads/{threadId}/messages": {
+      "get": {
+        "operationId": "ChatsController_messages",
         "parameters": [
           {
-            "name": "id",
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 30,
+              "type": "number"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-18T10:00:00.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch unified chat thread messages",
+        "tags": [
+          "08 Chat - Unified Threads"
+        ],
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch messages only for accessible threads."
+      },
+      "post": {
+        "operationId": "ChatsController_sendMessage",
+        "parameters": [
+          {
+            "name": "threadId",
             "required": true,
             "in": "path",
             "schema": {
@@ -25603,16 +25160,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SendSupportChatMessageDto"
-              },
-              "examples": {
-                "text": {
-                  "value": {
-                    "messageType": "TEXT",
-                    "body": "I am checking this issue now.",
-                    "attachmentUrls": []
-                  }
-                }
+                "$ref": "#/components/schemas/SendUnifiedChatMessageDto"
               }
             }
           }
@@ -25627,20 +25175,21 @@
             "bearer": []
           }
         ],
-        "summary": "Reply to support chat",
+        "summary": "Send a unified chat message",
         "tags": [
-          "02 Admin - Support Chat"
+          "08 Chat - Unified Threads"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.reply",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.reply"
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply. Send a message in an accessible order/support thread."
       }
     },
-    "/api/v1/admin/support-chats/{id}/read": {
+    "/api/v1/chats/threads/{threadId}/read": {
       "patch": {
-        "operationId": "SupportChatController_read",
+        "operationId": "ChatsController_markRead",
         "parameters": [
           {
-            "name": "id",
+            "name": "threadId",
             "required": true,
             "in": "path",
             "schema": {
@@ -25658,97 +25207,171 @@
             "bearer": []
           }
         ],
-        "summary": "Mark support chat as read",
+        "summary": "Mark a unified chat thread as read",
         "tags": [
-          "02 Admin - Support Chat"
+          "08 Chat - Unified Threads"
+        ],
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read",
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read. Mark an accessible thread as read for the authenticated participant/admin."
+      }
+    },
+    "/api/v1/chats/threads/{threadId}/status": {
+      "patch": {
+        "operationId": "ChatsController_updateStatus",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update unified chat thread status",
+        "tags": [
+          "08 Chat - Unified Threads"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Update support thread status."
+      }
+    },
+    "/api/v1/chats/threads/{threadId}/resolve": {
+      "post": {
+        "operationId": "ChatsController_resolve",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resolve a support chat thread",
+        "tags": [
+          "08 Chat - Unified Threads"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant when requested."
+      }
+    },
+    "/api/v1/chats/threads/{threadId}/reopen": {
+      "post": {
+        "operationId": "ChatsController_reopen",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reopen a support chat thread",
+        "tags": [
+          "08 Chat - Unified Threads"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant when requested."
+      }
+    },
+    "/api/v1/chats/threads/{threadId}/audit-log": {
+      "get": {
+        "operationId": "ChatsController_auditLog",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch unified chat thread audit log",
+        "tags": [
+          "08 Chat - Unified Threads"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
         "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Mark admin unread count read."
-      }
-    },
-    "/api/v1/admin/support-chats/{id}/resolve": {
-      "post": {
-        "operationId": "SupportChatController_resolve",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResolveSupportChatDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Resolve support chat and notify participant",
-        "tags": [
-          "02 Admin - Support Chat"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant."
-      }
-    },
-    "/api/v1/admin/support-chats/{id}/reopen": {
-      "post": {
-        "operationId": "SupportChatController_reopen",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResolveSupportChatDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reopen support chat and notify participant",
-        "tags": [
-          "02 Admin - Support Chat"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant."
+        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Fetch audit trail for an accessible support/moderation thread."
       }
     }
   },
@@ -25820,9 +25443,6 @@
       "name": "02 Admin - Guest Access Settings"
     },
     {
-      "name": "02 Admin - Support Chat"
-    },
-    {
       "name": "02 Admin - System Logs & Audit Trail"
     },
     {
@@ -25866,9 +25486,6 @@
     },
     {
       "name": "03 Provider - Business Info"
-    },
-    {
-      "name": "03 Provider - Buyer Chat"
     },
     {
       "name": "03 Provider - Reviews"
@@ -25925,9 +25542,6 @@
       "name": "05 Customer - Orders"
     },
     {
-      "name": "05 Customer - Provider Chat"
-    },
-    {
       "name": "05 Customer - Reviews"
     },
     {
@@ -25965,6 +25579,9 @@
     },
     {
       "name": "07 Storage"
+    },
+    {
+      "name": "08 Chat - Unified Threads"
     }
   ],
   "servers": [],
@@ -28110,40 +27727,6 @@
           }
         }
       },
-      "SendProviderChatMessageDto": {
-        "type": "object",
-        "properties": {
-          "clientMessageId": {
-            "type": "string",
-            "example": "mobile-generated-uuid"
-          },
-          "messageType": {
-            "type": "string",
-            "enum": [
-              "TEXT",
-              "IMAGE",
-              "AUDIO",
-              "VIDEO",
-              "FILE"
-            ],
-            "example": "TEXT"
-          },
-          "body": {
-            "type": "string",
-            "example": "Your order is ready for shipping."
-          },
-          "attachmentUrls": {
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "messageType"
-        ]
-      },
       "ReviewResponseDto": {
         "type": "object",
         "properties": {
@@ -30082,40 +29665,6 @@
           "deliveryAddressId"
         ]
       },
-      "SendChatMessageDto": {
-        "type": "object",
-        "properties": {
-          "clientMessageId": {
-            "type": "string",
-            "example": "mobile-generated-uuid"
-          },
-          "messageType": {
-            "type": "string",
-            "enum": [
-              "TEXT",
-              "IMAGE",
-              "AUDIO",
-              "VIDEO",
-              "FILE"
-            ],
-            "example": "TEXT"
-          },
-          "body": {
-            "type": "string",
-            "example": "Can you confirm delivery time?"
-          },
-          "attachmentUrls": {
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "messageType"
-        ]
-      },
       "CreateReviewDto": {
         "type": "object",
         "properties": {
@@ -31567,7 +31116,71 @@
           "to"
         ]
       },
-      "SendSupportChatMessageDto": {
+      "CreateChatThreadDto": {
+        "type": "object",
+        "properties": {
+          "threadType": {
+            "type": "string",
+            "enum": [
+              "ORDER_CHAT",
+              "SUPPORT_CHAT",
+              "MODERATION_REVIEW"
+            ],
+            "example": "ORDER_CHAT"
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER_ORDER",
+              "PROVIDER_ORDER",
+              "SUPPORT",
+              "MESSAGE_MODERATION"
+            ],
+            "example": "CUSTOMER_ORDER"
+          },
+          "sourceId": {
+            "type": "string",
+            "example": "order_id"
+          },
+          "subject": {
+            "type": "string",
+            "example": "Order support"
+          },
+          "initialMessage": {
+            "type": "string",
+            "example": "Can you confirm delivery time?"
+          },
+          "attachmentUrls": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createIfMissing": {
+            "type": "boolean",
+            "example": true
+          },
+          "participantId": {
+            "type": "string",
+            "example": "participant_user_id",
+            "description": "Admin-created support chats only."
+          },
+          "participantRole": {
+            "type": "string",
+            "enum": [
+              "REGISTERED_USER",
+              "PROVIDER"
+            ],
+            "description": "Admin-created support chats only."
+          }
+        },
+        "required": [
+          "threadType",
+          "sourceType"
+        ]
+      },
+      "SendUnifiedChatMessageDto": {
         "type": "object",
         "properties": {
           "clientMessageId": {
@@ -31587,7 +31200,7 @@
           },
           "body": {
             "type": "string",
-            "example": "I am checking this issue now."
+            "example": "Can you confirm delivery time?"
           },
           "attachmentUrls": {
             "example": [],
@@ -31598,14 +31211,23 @@
           }
         },
         "required": [
-          "messageType",
-          "body",
-          "attachmentUrls"
+          "messageType"
         ]
       },
-      "ResolveSupportChatDto": {
+      "UpdateChatThreadStatusDto": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "RESOLVED",
+              "REOPENED",
+              "ARCHIVED",
+              "BLOCKED_BY_MODERATION"
+            ],
+            "example": "RESOLVED"
+          },
           "comment": {
             "type": "string",
             "example": "Issue resolved."
@@ -31614,7 +31236,10 @@
             "type": "boolean",
             "example": true
           }
-        }
+        },
+        "required": [
+          "status"
+        ]
       }
     }
   }

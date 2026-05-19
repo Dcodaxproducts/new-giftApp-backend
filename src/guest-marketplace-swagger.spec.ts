@@ -26,7 +26,7 @@ const privateCustomerPrefixes = [
   '/api/v1/customer/recurring-payments',
   '/api/v1/customer/referrals',
   '/api/v1/customer/reviews',
-  '/api/v1/customer/chats',
+  '/api/v1/chats',
 ];
 
 describe('Guest marketplace Swagger docs', () => {
