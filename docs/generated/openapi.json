@@ -31464,7 +31464,7 @@
           "participantId": {
             "type": "string",
             "example": "participant_user_id",
-            "description": "Admin-created support chats only."
+            "description": "Admin-created support chats only. For order chats, omit this; the customer/provider participants are derived from sourceId."
           },
           "participantRole": {
             "type": "string",
@@ -31472,7 +31472,7 @@
               "REGISTERED_USER",
               "PROVIDER"
             ],
-            "description": "Admin-created support chats only."
+            "description": "Optional legacy field for admin-created support chats. Backend derives the role from participantId and rejects mismatches."
           }
         },
         "required": [

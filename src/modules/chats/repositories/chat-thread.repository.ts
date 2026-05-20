@@ -38,6 +38,13 @@ export class ChatThreadRepository {
     return this.prisma.chatThread.findFirst({ where: { id, participants: { some: { userId, leftAt: null } } }, include: CHAT_THREAD_INCLUDE });
   }
 
+  findSupportParticipantById(id: string) {
+    return this.prisma.user.findFirst({
+      where: { id, role: { in: ['REGISTERED_USER', 'PROVIDER'] }, deletedAt: null },
+      select: { id: true, role: true },
+    });
+  }
+
   async upsertOrderThread(params: { orderId: string; providerOrderId: string; providerId: string; customerId: string }) {
     return this.prisma.$transaction(async (tx) => {
       const thread = await tx.chatThread.upsert({

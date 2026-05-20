@@ -61,8 +61,8 @@ export class CreateChatThreadDto {
   @ApiPropertyOptional({ example: 'Can you confirm delivery time?' }) @IsOptional() @IsString() @MaxLength(4000) initialMessage?: string;
   @ApiPropertyOptional({ type: [String], example: [] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) attachmentUrls?: string[];
   @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() createIfMissing?: boolean;
-  @ApiPropertyOptional({ example: 'participant_user_id', description: 'Admin-created support chats only.' }) @IsOptional() @IsString() participantId?: string;
-  @ApiPropertyOptional({ enum: [UserRole.REGISTERED_USER, UserRole.PROVIDER], description: 'Admin-created support chats only.' }) @IsOptional() @IsEnum(UserRole) participantRole?: UserRole;
+  @ApiPropertyOptional({ example: 'participant_user_id', description: 'Admin-created support chats only. For order chats, omit this; the customer/provider participants are derived from sourceId.' }) @IsOptional() @IsString() participantId?: string;
+  @ApiPropertyOptional({ enum: [UserRole.REGISTERED_USER, UserRole.PROVIDER], description: 'Optional legacy field for admin-created support chats. Backend derives the role from participantId and rejects mismatches.' }) @IsOptional() @IsEnum(UserRole) participantRole?: UserRole;
 }
 
 export class ListThreadMessagesDto {

@@ -130,7 +130,7 @@ export class ChatThreadService {
   }
 
   private async createSupportThread(user: AuthUserContext, dto: CreateChatThreadDto): Promise<Envelope<unknown>> {
-    const participant = this.supportParticipantInput(user, dto);
+    const participant = await this.supportParticipantInput(user, dto);
     await this.attachments.assertCompleted(dto.attachmentUrls ?? [], 'support-chat-attachments');
     const thread = await this.threads.createSupportThread(participant);
     if (dto.initialMessage?.trim() || dto.attachmentUrls?.length) {
@@ -141,12 +141,15 @@ export class ChatThreadService {
     return { data: await this.threadItem(thread, user.uid), message: 'Support chat created successfully.' };
   }
 
-  private supportParticipantInput(user: AuthUserContext, dto: CreateChatThreadDto): { participantId: string; participantRole: 'REGISTERED_USER' | 'PROVIDER'; subject?: string; assignedAdminId?: string } {
+  private async supportParticipantInput(user: AuthUserContext, dto: CreateChatThreadDto): Promise<{ participantId: string; participantRole: 'REGISTERED_USER' | 'PROVIDER'; subject?: string; assignedAdminId?: string }> {
     if (this.access.isAdmin(user)) {
       if (!this.access.has(user, 'supportChats.reply')) throw new ForbiddenException('Your role does not have the required permission');
-      if (!dto.participantId || !dto.participantRole) throw new BadRequestException('participantId and participantRole are required for admin support chats');
-      if (dto.participantRole !== UserRole.REGISTERED_USER && dto.participantRole !== UserRole.PROVIDER) throw new BadRequestException('participantRole must be REGISTERED_USER or PROVIDER');
-      return { participantId: dto.participantId, participantRole: dto.participantRole, subject: dto.subject, assignedAdminId: user.uid };
+      if (!dto.participantId) throw new BadRequestException('participantId is required for admin support chats');
+      const participant = await this.threads.findSupportParticipantById(dto.participantId);
+      if (!participant) throw new BadRequestException('participantId must belong to an active registered user or provider');
+      const participantRole = participant.role === UserRole.PROVIDER ? UserRole.PROVIDER : UserRole.REGISTERED_USER;
+      if (dto.participantRole && dto.participantRole !== participantRole) throw new BadRequestException('participantRole does not match participantId');
+      return { participantId: participant.id, participantRole, subject: dto.subject, assignedAdminId: user.uid };
     }
     if (user.role === UserRole.REGISTERED_USER || user.role === UserRole.PROVIDER) return { participantId: user.uid, participantRole: user.role, subject: dto.subject };
     throw new ForbiddenException('Your role cannot create support chats');
