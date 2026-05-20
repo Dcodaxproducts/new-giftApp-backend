@@ -3,7 +3,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderFulfillmentMethodDto, ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from '../dto/provider-management.dto';
+import { AdminProviderFulfillmentMethodDto, ExportFormat, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from '../dto/provider-management.dto';
 import { ProviderManagementRepository } from '../repositories/provider-management.repository';
 import { ProviderManagementService } from '../services/provider-management.service';
 
@@ -36,6 +36,7 @@ const provider: Record<string, unknown> = {
   suspensionComment: null,
   suspendedBy: null,
   refreshTokenHash: 'refresh_hash',
+  createdAt: new Date('2026-05-01T00:00:00.000Z'),
 };
 
 function createService(overrides: Record<string, unknown> = {}) {
@@ -97,6 +98,66 @@ describe('ProviderManagementService', () => {
         ]),
       }),
     }));
+  });
+
+  it('provider list uses aggregate map once and avoids placeholder stats', async () => {
+    const { service, repository } = createService();
+    jest.spyOn(repository, 'findManyProviders').mockResolvedValue([{ ...provider }] as never);
+    jest.spyOn(repository, 'countProviders').mockResolvedValue(1);
+    const aggregateSpy = jest.spyOn(repository, 'findProviderAggregateMap').mockResolvedValue(new Map([['provider_1', { revenue: 1200, performanceStats: 88.5, performanceChangePercent: 10, listedItems: 6, listedItemsChange: 2, orderFulfillment: 91.25, orderFulfillmentChangePercent: 5, disputeCount: 1, disputeChangePercent: -50, averageRating: 4.7, reviewCount: 14 }]]));
+
+    const result = await service.list({ page: 1, limit: 10 });
+
+    expect(aggregateSpy).toHaveBeenCalledTimes(1);
+    expect(result.data[0]).toEqual(expect.objectContaining({ revenue: 1200, listedItems: 6, performanceStats: 88.5 }));
+  });
+
+  it('provider details returns real aggregate stats', async () => {
+    const { service, repository } = createService();
+    jest.spyOn(repository, 'findSingleProviderAggregate').mockResolvedValue({ revenue: 4200, performanceStats: 92.15, performanceChangePercent: 12.5, listedItems: 8, listedItemsChange: 1, orderFulfillment: 95.2, orderFulfillmentChangePercent: 4.2, disputeCount: 2, disputeChangePercent: -33.33, averageRating: 4.9, reviewCount: 22 });
+
+    const result = await service.details('provider_1');
+
+    expect(result.data.stats).toEqual(expect.objectContaining({ listedItems: 8, disputeCount: 2, averageRating: 4.9, reviewCount: 22, performanceStats: 92.15 }));
+    expect(result.data).toEqual(expect.objectContaining({ revenue: 4200 }));
+  });
+
+  it('provider stats returns real active revenue and 30-day change values', async () => {
+    const { service, repository } = createService();
+    jest.spyOn(repository, 'findProviderPlatformStats').mockResolvedValue({ totalProviders: 1284, totalProvidersCurrentPeriod: 112, totalProvidersPreviousPeriod: 100, pendingApproval: 42, inactiveProviders: 31, inactiveProvidersCurrentPeriod: 3, inactiveProvidersPreviousPeriod: 5, activeRevenue: 4200000, activeRevenueCurrentPeriod: 1250000, activeRevenuePreviousPeriod: 1000000 });
+
+    const result = await service.stats();
+
+    expect(result.data).toEqual(expect.objectContaining({ totalProviders: 1284, pendingApproval: 42, activeRevenue: 4200000, totalProvidersChangePercent: 12, activeRevenueChangePercent: 25 }));
+  });
+
+  it('provider items returns real listed item rows from repository aggregates', async () => {
+    const { service, repository } = createService();
+    jest.spyOn(repository, 'findProviderListedItems').mockResolvedValue({ total: 2, items: [
+      { id: 'gift_1', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', salesCount: 15, salesPercentage: 75, status: ProviderItemStatus.ACTIVE, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png' },
+      { id: 'gift_2', name: 'Gift Basket', price: 49.99, currency: 'PKR', salesCount: 5, salesPercentage: 25, status: ProviderItemStatus.OUT_OF_STOCK, imageUrl: null },
+    ] });
+
+    const result = await service.items('provider_1', { page: 1, limit: 10 });
+
+    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'gift_1', salesCount: 15, salesPercentage: 75, status: ProviderItemStatus.ACTIVE }));
+    expect(result.meta.total).toBe(2);
+  });
+
+  it('provider export includes real aggregate fields', async () => {
+    const { service, repository } = createService();
+    jest.spyOn(repository, 'findManyProviders').mockResolvedValue([{ ...provider }] as never);
+    jest.spyOn(repository, 'findProviderAggregateMap').mockResolvedValue(new Map([['provider_1', { revenue: 4200, performanceStats: 0, performanceChangePercent: 0, listedItems: 8, listedItemsChange: 0, orderFulfillment: 95.2, orderFulfillmentChangePercent: 0, disputeCount: 2, disputeChangePercent: 0, averageRating: 4.9, reviewCount: 22 }]]));
+
+    const result = await service.export({ format: ExportFormat.CSV });
+    const csv = result.content.toString();
+
+    expect(csv).toContain('Revenue');
+    expect(csv).toContain('Listed Items');
+    expect(csv).toContain('Order Fulfillment');
+    expect(csv).toContain('Average Rating');
+    expect(csv).toContain('4200');
+    expect(csv).toContain('4.9');
   });
 
 
@@ -207,6 +268,8 @@ describe('ProviderManagementService', () => {
     expect(repositorySource).toContain('constructor(prisma: PrismaService)');
     expect(repositorySource).toContain('findManyProviders');
     expect(repositorySource).toContain('deleteProviderPermanently');
+    expect(serviceSource).not.toContain('emptyProviderStats');
+    expect(serviceSource).not.toContain('Premium Gift Box');
   });
 
   it('Swagger shows consistent admin provider create payload and self-registration remains unchanged', () => {

@@ -22,26 +22,13 @@ import {
   ProviderActivityType,
   ProviderLifecycleAction,
   ProviderLifecycleReason,
-  ProviderItemStatus,
   ProviderLookupDto,
   ProviderStatusFilter,
   ProviderStatusUpdate,
   UpdateProviderDto,
   UpdateProviderStatusDto,
 } from '../dto/provider-management.dto';
-import { ProviderManagementRepository } from '../repositories/provider-management.repository';
-
-interface ProviderStats {
-  revenue: number;
-  performanceStats: number;
-  performanceChangePercent: number;
-  listedItems: number;
-  listedItemsChange: number;
-  orderFulfillment: number;
-  orderFulfillmentChangePercent: number;
-  disputeCount: number;
-  disputeChangePercent: number;
-}
+import { ProviderAggregateStats, ProviderManagementRepository } from '../repositories/provider-management.repository';
 
 interface ProviderActivityItem {
   id: string;
@@ -67,27 +54,31 @@ export class ProviderManagementService {
       this.repository.findManyProviders(query, { skip: (page - 1) * limit, take: limit }),
       this.repository.countProviders(query),
     ]);
+    const aggregateMap = await this.repository.findProviderAggregateMap(items.map((provider) => provider.id));
 
     return {
-      data: items.map((provider) => this.toListItem(provider, this.emptyProviderStats())),
+      data: items.map((provider) => this.toListItem(provider, aggregateMap.get(provider.id) ?? this.zeroStats())),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       message: 'Providers fetched successfully',
     };
   }
 
   async stats() {
-    const { totalProviders, pendingApproval, inactiveProviders } = await this.repository.findProviderStats();
-    const inactiveRate = totalProviders === 0 ? 0 : Number(((inactiveProviders / totalProviders) * 100).toFixed(2));
+    const stats = await this.repository.findProviderPlatformStats();
+    const inactiveRate = stats.totalProviders === 0 ? 0 : this.round((stats.inactiveProviders / stats.totalProviders) * 100);
+    const previousInactiveRate = stats.totalProvidersPreviousPeriod === 0
+      ? 0
+      : this.round((stats.inactiveProvidersPreviousPeriod / stats.totalProvidersPreviousPeriod) * 100);
 
     return {
       data: {
-        totalProviders,
-        totalProvidersChangePercent: 0,
-        pendingApproval,
-        activeRevenue: 0,
-        activeRevenueChangePercent: 0,
+        totalProviders: stats.totalProviders,
+        totalProvidersChangePercent: this.changePercent(stats.totalProvidersCurrentPeriod, stats.totalProvidersPreviousPeriod),
+        pendingApproval: stats.pendingApproval,
+        activeRevenue: stats.activeRevenue,
+        activeRevenueChangePercent: this.changePercent(stats.activeRevenueCurrentPeriod, stats.activeRevenuePreviousPeriod),
         inactiveRate,
-        inactiveRateChangePercent: 0,
+        inactiveRateChangePercent: this.changePercent(inactiveRate, previousInactiveRate),
       },
       message: 'Provider stats fetched successfully',
     };
@@ -95,8 +86,9 @@ export class ProviderManagementService {
 
   async details(id: string) {
     const provider = await this.getProvider(id);
+    const stats = await this.repository.findSingleProviderAggregate(id);
     return {
-      data: this.toDetail(provider, this.emptyProviderStats()),
+      data: this.toDetail(provider, stats),
       message: 'Provider details fetched successfully',
     };
   }
@@ -186,7 +178,8 @@ export class ProviderManagementService {
 
   async update(user: AuthUserContext, id: string, dto: UpdateProviderDto) {
     const provider = await this.getProvider(id);
-    const before = this.toDetail(provider, this.emptyProviderStats());
+    const stats = await this.repository.findSingleProviderAggregate(id);
+    const before = this.toDetail(provider, stats);
     const updated = await this.repository.updateProvider(provider.id, {
         firstName: dto.businessName?.trim(),
         lastName: dto.businessName ? 'Provider' : undefined,
@@ -197,10 +190,10 @@ export class ProviderManagementService {
         providerServiceArea: dto.serviceArea?.trim(),
         providerDocuments: dto.documentUrls,
     });
-    await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, this.emptyProviderStats()));
+    await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, stats));
 
     return {
-      data: this.toDetail(updated, this.emptyProviderStats()),
+      data: this.toDetail(updated, stats),
       message: 'Provider updated successfully',
     };
   }
@@ -315,25 +308,12 @@ export class ProviderManagementService {
     await this.getProvider(id);
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    // TODO(PROD): replace placeholder items with Product/Inventory module data.
-    const sampleItems = [
-      {
-        id: 'demo-item-1',
-        name: 'Premium Gift Box',
-        price: 45,
-        currency: 'USD',
-        salesCount: 850,
-        salesPercentage: 70,
-        status: ProviderItemStatus.ACTIVE,
-        imageUrl: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-images/gift-box.png',
-      },
-    ].filter((item) => query.status && query.status !== ProviderItemStatus.ALL ? item.status === query.status : true)
-      .filter((item) => query.search ? item.name.toLowerCase().includes(query.search.toLowerCase()) : true);
+    const { items, total } = await this.repository.findProviderListedItems(id, query);
     const start = (page - 1) * limit;
 
     return {
-      data: sampleItems.slice(start, start + limit),
-      meta: { page, limit, total: sampleItems.length, totalPages: Math.ceil(sampleItems.length / limit) },
+      data: items.slice(start, start + limit),
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       message: 'Provider items fetched successfully',
     };
   }
@@ -358,7 +338,8 @@ export class ProviderManagementService {
 
   async export(query: ExportProvidersDto) {
     const providers = await this.repository.findManyProviders(query, { skip: 0, take: 10000 });
-    const rows = this.toExportRows(providers);
+    const aggregateMap = await this.repository.findProviderAggregateMap(providers.map((provider) => provider.id));
+    const rows = this.toExportRows(providers, aggregateMap);
     const isXlsx = query.format === ExportFormat.XLSX;
 
     return {
@@ -388,7 +369,7 @@ export class ProviderManagementService {
     return provider;
   }
 
-  private toListItem(provider: User, stats: ProviderStats) {
+  private toListItem(provider: User, stats: ProviderAggregateStats) {
     return {
       id: provider.id,
       providerCode: this.providerCode(provider.id),
@@ -400,12 +381,14 @@ export class ProviderManagementService {
       isActive: provider.isActive,
       approvalStatus: provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
       revenue: stats.revenue,
+      listedItems: stats.listedItems,
+      performanceStats: stats.performanceStats,
       registeredSince: provider.createdAt,
       createdAt: provider.createdAt,
     };
   }
 
-  private toDetail(provider: User, stats: ProviderStats) {
+  private toDetail(provider: User, stats: ProviderAggregateStats) {
     return {
       ...this.toListItem(provider, stats),
       headquarters: provider.location,
@@ -423,6 +406,8 @@ export class ProviderManagementService {
         orderFulfillmentChangePercent: stats.orderFulfillmentChangePercent,
         disputeCount: stats.disputeCount,
         disputeChangePercent: stats.disputeChangePercent,
+        averageRating: stats.averageRating,
+        reviewCount: stats.reviewCount,
       },
       suspension: this.toSuspension(provider),
     };
@@ -479,10 +464,12 @@ export class ProviderManagementService {
     return ProviderActivityType.PROFILE_UPDATE;
   }
 
-  private toExportRows(providers: User[]): string[][] {
+  private toExportRows(providers: User[], aggregateMap: Map<string, ProviderAggregateStats>): string[][] {
     return [
-      ['ID', 'Provider Code', 'Business Name', 'Email', 'Phone', 'Status', 'Approval Status', 'Revenue', 'Registered Since'],
-      ...providers.map((provider) => [
+      ['ID', 'Provider Code', 'Business Name', 'Email', 'Phone', 'Status', 'Approval Status', 'Revenue', 'Listed Items', 'Order Fulfillment', 'Dispute Count', 'Average Rating', 'Review Count', 'Registered Since'],
+      ...providers.map((provider) => {
+        const stats = aggregateMap.get(provider.id) ?? this.zeroStats();
+        return [
         provider.id,
         this.providerCode(provider.id),
         this.businessName(provider),
@@ -490,9 +477,15 @@ export class ProviderManagementService {
         provider.phone ?? '',
         this.toStatus(provider),
         provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
-        '0',
+        String(stats.revenue),
+        String(stats.listedItems),
+        String(stats.orderFulfillment),
+        String(stats.disputeCount),
+        String(stats.averageRating),
+        String(stats.reviewCount),
         provider.createdAt.toISOString(),
-      ]),
+      ];
+      }),
     ];
   }
 
@@ -865,11 +858,10 @@ export class ProviderManagementService {
     return `PROV-${id.slice(-6).toUpperCase()}`;
   }
 
-  // TODO(PROD): replace placeholder stats with Product/Order/Payment/Dispute module aggregates.
-  private emptyProviderStats(): ProviderStats {
+  private zeroStats(): ProviderAggregateStats {
     return {
       revenue: 0,
-      performanceStats: 94.8,
+      performanceStats: 0,
       performanceChangePercent: 0,
       listedItems: 0,
       listedItemsChange: 0,
@@ -877,7 +869,20 @@ export class ProviderManagementService {
       orderFulfillmentChangePercent: 0,
       disputeCount: 0,
       disputeChangePercent: 0,
+      averageRating: 0,
+      reviewCount: 0,
     };
+  }
+
+  private changePercent(current: number, previous: number): number {
+    if (previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return this.round(((current - previous) / previous) * 100);
+  }
+
+  private round(value: number): number {
+    return Number(value.toFixed(2));
   }
 
   private generateTemporaryPassword(): string {
