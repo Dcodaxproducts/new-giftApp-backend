@@ -77,13 +77,15 @@ export class GiftManagementService {
   }
 
   async categoryStats() {
-    const [totalCategories, activeGiftItems] = await this.giftManagementRepository.findGiftCategoryStats();
+    const [[totalCategories, activeGiftItems], mostPopularCategory] = await Promise.all([
+      this.giftManagementRepository.findGiftCategoryStats(),
+      this.giftManagementRepository.findMostPopularGiftCategory(),
+    ]);
     return {
       data: {
         totalCategories,
         activeGiftItems,
-        // TODO(PROD): replace placeholder mostPopularCategory with Order/Sales aggregates.
-        mostPopularCategory: 'Digital',
+        mostPopularCategory,
       },
       message: 'Gift category stats fetched successfully',
     };

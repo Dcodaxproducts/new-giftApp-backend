@@ -12,6 +12,7 @@ const gift = {
 function createService() {
   const prisma = {
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
+    $queryRaw: jest.fn().mockResolvedValue([{ name: 'Flowers', totalQuantity: BigInt(4), totalSales: { toString: () => '120' } }]),
     giftCategory: {
       findFirst: jest.fn().mockResolvedValue({ id: 'cat_1', name: 'Digital', slug: 'digital', description: null, iconKey: null, color: null, sortOrder: 0, isActive: true, createdAt: now, updatedAt: now, deletedAt: null }),
       count: jest.fn().mockResolvedValue(0),
@@ -54,6 +55,24 @@ describe('GiftManagementService', () => {
     const { service, audit } = createService();
     await service.createGift({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10 });
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_CREATED', targetType: 'GIFT' }));
+  });
+
+  it('uses order sales aggregates for the most popular category stat', async () => {
+    const { service, prisma } = createService();
+
+    const result = await service.categoryStats();
+
+    expect(prisma.$queryRaw).toHaveBeenCalled();
+    expect(result.data.mostPopularCategory).toBe('Flowers');
+  });
+
+  it('returns null for the most popular category when there are no completed sales', async () => {
+    const { service, prisma } = createService();
+    prisma.$queryRaw.mockResolvedValueOnce([]);
+
+    const result = await service.categoryStats();
+
+    expect(result.data.mostPopularCategory).toBeNull();
   });
 
   it('default moderation queue excludes normal NOT_REQUIRED inventory', async () => {
