@@ -7,8 +7,10 @@ import { MessagingSettingsModule } from '../messaging-settings/messaging-setting
 import { UserSafetyModule } from '../user-safety/user-safety.module';
 import { ChatsController } from './controllers/chats.controller';
 import { ChatGateway } from './gateways/chat.gateway';
+import { ChatAttachmentRepository } from './repositories/chat-attachment.repository';
 import { ChatAuditLogRepository } from './repositories/chat-audit-log.repository';
 import { ChatMessageRepository } from './repositories/chat-message.repository';
+import { ChatOrderSourceRepository } from './repositories/chat-order-source.repository';
 import { ChatParticipantRepository } from './repositories/chat-participant.repository';
 import { ChatThreadRepository } from './repositories/chat-thread.repository';
 import { ChatAccessPolicyService } from './services/chat-access-policy.service';
@@ -43,6 +45,8 @@ import { ChatThreadService } from './services/chat-thread.service';
     ChatMessageRepository,
     ChatParticipantRepository,
     ChatAuditLogRepository,
+    ChatOrderSourceRepository,
+    ChatAttachmentRepository,
   ],
 })
 export class ChatsModule {}

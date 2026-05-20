@@ -41,6 +41,13 @@ describe('Chat internal cleanup static guards', () => {
     }
   });
 
+  it('keeps chat services behind repositories for database access', () => {
+    const serviceFiles = filesUnder(join(srcRoot, 'modules/chats/services')).map((file) => readFileSync(file, 'utf8')).join('\n');
+
+    expect(serviceFiles).not.toContain('PrismaService');
+    expect(serviceFiles).not.toContain('this.prisma');
+  });
+
   it('keeps only the chat Swagger group', () => {
     for (const forbidden of [
       `'${legacyCustomerSwaggerGroup}'`,

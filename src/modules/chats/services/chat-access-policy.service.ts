@@ -1,14 +1,14 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ChatThreadStatus, ChatThreadType, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { PrismaService } from '../../../database/prisma.service';
+import { ChatOrderSourceRepository } from '../repositories/chat-order-source.repository';
 import { CHAT_THREAD_INCLUDE, ChatThreadRepository } from '../repositories/chat-thread.repository';
 
 type Thread = Prisma.ChatThreadGetPayload<{ include: typeof CHAT_THREAD_INCLUDE }>;
 
 @Injectable()
 export class ChatAccessPolicyService {
-  constructor(private readonly prisma: PrismaService, private readonly threads: ChatThreadRepository) {}
+  constructor(private readonly threads: ChatThreadRepository, private readonly orderSources: ChatOrderSourceRepository) {}
 
   async getAllowedThread(user: AuthUserContext, threadId: string): Promise<Thread> {
     const thread = await this.threads.findById(threadId);
@@ -52,17 +52,14 @@ export class ChatAccessPolicyService {
 
   async assertOrderSource(user: AuthUserContext, sourceId: string, sourceType: 'CUSTOMER_ORDER' | 'PROVIDER_ORDER') {
     if (user.role === UserRole.REGISTERED_USER && sourceType === 'CUSTOMER_ORDER') {
-      const order = await this.prisma.order.findFirst({
-        where: { id: sourceId, userId: user.uid },
-        include: { providerOrders: { include: { provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, avatarUrl: true, isActive: true } } }, take: 1 } },
-      });
+      const order = await this.orderSources.findCustomerOrderSource(user.uid, sourceId);
       if (!order) throw new NotFoundException('Order not found');
       const providerOrder = order.providerOrders[0];
       if (!providerOrder) throw new NotFoundException('Provider order not found');
       return { orderId: order.id, providerOrderId: providerOrder.id, providerId: providerOrder.providerId, customerId: user.uid };
     }
     if (user.role === UserRole.PROVIDER && sourceType === 'PROVIDER_ORDER') {
-      const providerOrder = await this.prisma.providerOrder.findFirst({ where: { id: sourceId, providerId: user.uid }, include: { order: { select: { id: true, userId: true } } } });
+      const providerOrder = await this.orderSources.findProviderOrderSource(user.uid, sourceId);
       if (!providerOrder) throw new NotFoundException('Provider order not found');
       return { orderId: providerOrder.orderId, providerOrderId: providerOrder.id, providerId: user.uid, customerId: providerOrder.order.userId };
     }

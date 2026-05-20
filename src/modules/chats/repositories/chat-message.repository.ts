@@ -86,4 +86,11 @@ export class ChatMessageRepository {
       select: { id: true },
     });
   }
+
+  createReadReceipts(params: { threadId: string; userId: string; messageIds: string[] }) {
+    return this.prisma.chatMessageReadReceipt.createMany({
+      data: params.messageIds.map((messageId) => ({ threadId: params.threadId, messageId, userId: params.userId })),
+      skipDuplicates: true,
+    });
+  }
 }
