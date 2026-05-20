@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ProviderEarningsLedgerStatus, ProviderPayoutStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const PROVIDER_EARNINGS_LEDGER_INCLUDE = Prisma.validator<Prisma.ProviderEarningsLedgerInclude>()({
   providerOrder: { select: { orderNumber: true } },
@@ -12,7 +13,10 @@ export const PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInc
 
 @Injectable()
 export class ProviderEarningsPayoutsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findProviderUserById(id: string) {
     return this.prisma.user.findFirst({ where: { id, role: 'PROVIDER', deletedAt: null } });
@@ -138,6 +142,6 @@ export class ProviderEarningsPayoutsRepository {
   }
 
   private createPayoutNotification(tx: Prisma.TransactionClient, data: Prisma.NotificationUncheckedCreateInput) {
-    return tx.notification.create({ data });
+    return this.notificationDispatch.createAndEmit(data);
   }
 }

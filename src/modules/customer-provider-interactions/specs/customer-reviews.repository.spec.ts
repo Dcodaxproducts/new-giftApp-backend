@@ -29,7 +29,7 @@ describe('Customer reviews repository cleanup', () => {
     expect(repository).toContain('this.prisma.review.findMany');
     expect(repository).toContain('this.prisma.review.count');
     expect(repository).toContain('this.prisma.review.update');
-    expect(repository).toContain('this.prisma.notification.create');
+    expect(repository).toContain('this.notificationDispatch.createAndEmit');
     expect(repository).toContain('this.prisma.reviewModerationLog.create');
   });
 

@@ -52,7 +52,7 @@ describe('Customer orders repository cleanup', () => {
     expect(repository).toContain('linkPaymentToOrder');
     expect(repository).toContain('tx.payment.update');
     expect(repository).toContain('createOrderNotification');
-    expect(repository).toContain('tx.notification.create');
+    expect(repository).toContain('this.notificationDispatch.createAndEmit');
   });
 
   it('service scopes list, details, and checkout to JWT customer id', () => {

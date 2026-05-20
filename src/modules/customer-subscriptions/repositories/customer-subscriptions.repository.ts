@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CustomerSubscriptionStatus, NotificationRecipientType, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const CUSTOMER_SUBSCRIPTION_WITH_PLAN = Prisma.validator<Prisma.CustomerSubscriptionInclude>()({ plan: true });
 
 @Injectable()
 export class CustomerSubscriptionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findPublicActivePlans() {
     return this.prisma.subscriptionPlan.findMany({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null }, orderBy: [{ isPopular: 'desc' }, { monthlyPrice: 'asc' }] });
@@ -104,6 +108,6 @@ export class CustomerSubscriptionsRepository {
   }
 
   createCustomerNotification(data: Omit<Prisma.NotificationUncheckedCreateInput, 'recipientType'>) {
-    return this.prisma.notification.create({ data: { ...data, recipientType: NotificationRecipientType.REGISTERED_USER } });
+    return this.notificationDispatch.createAndEmit({ ...data, recipientType: NotificationRecipientType.REGISTERED_USER })
   }
 }

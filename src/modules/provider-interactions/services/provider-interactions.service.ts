@@ -40,7 +40,7 @@ export class ProviderInteractionsService {
     const review = await this.getOwnedReview(user.uid, reviewId);
     if (review.response && !review.response.deletedAt) throw new BadRequestException('Active response already exists for this review');
     const response = review.response ? await this.reviewResponsesRepository.updateReviewResponseByReviewId(reviewId, { body: dto.body, providerId: user.uid, deletedAt: null }) : await this.reviewResponsesRepository.createReviewResponse({ reviewId, providerId: user.uid, body: dto.body });
-    await this.reviewResponsesRepository.createCustomerNotification({ data: { recipientId: review.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider responded to your review', message: dto.body, type: 'REVIEW_RESPONSE', metadataJson: { reviewId, responseId: response.id } } } as unknown as Prisma.NotificationCreateInput);
+    await this.reviewResponsesRepository.createCustomerNotification({ recipientId: review.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider responded to your review', message: dto.body, type: 'REVIEW_RESPONSE', metadataJson: { reviewId, responseId: response.id } });
     return { data: { id: response.id, body: response.body, createdAt: response.createdAt }, message: 'Review response posted successfully.' };
   }
 

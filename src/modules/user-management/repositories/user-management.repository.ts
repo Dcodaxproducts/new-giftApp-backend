@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AccountType, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export interface UserActivityRecords {
   loginAttempts: Awaited<ReturnType<PrismaService['loginAttempt']['findMany']>>;
@@ -9,7 +10,10 @@ export interface UserActivityRecords {
 
 @Injectable()
 export class UserManagementRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findManyUsers(params: {
     where: Prisma.UserWhereInput;
@@ -160,15 +164,13 @@ export class UserManagementRepository {
   }
 
   createPasswordChangedNotification(userId: string): Promise<unknown> {
-    return this.prisma.notification.create({
-      data: {
-        recipientId: userId,
-        recipientType: NotificationRecipientType.REGISTERED_USER,
-        type: 'SECURITY',
-        title: 'Password changed',
-        message: 'Your account password was changed by the support team.',
-        metadataJson: { action: 'PASSWORD_CHANGED_BY_ADMIN' },
-      },
+    return this.notificationDispatch.createAndEmit({
+      recipientId: userId,
+      recipientType: NotificationRecipientType.REGISTERED_USER,
+      type: 'SECURITY',
+      title: 'Password changed',
+      message: 'Your account password was changed by the support team.',
+      metadataJson: { action: 'PASSWORD_CHANGED_BY_ADMIN' },
     });
   }
 

@@ -91,7 +91,7 @@ describe('Admin Provider Dispute Management Core module', () => {
     expect(controller).toContain("@Permissions('providerDisputes.evidence.request')");
     expect(evidenceRepository).toContain('ADDITIONAL_EVIDENCE_REQUESTED');
     expect(service).toContain('notifyEvidenceTargets');
-    expect(evidenceRepository).toContain('notification.createMany');
+    expect(evidenceRepository).toContain('this.notificationDispatch.createAndEmit');
   });
 
   it('admin can mark evidence review complete and it moves case to RULING_PENDING', () => {

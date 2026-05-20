@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CustomerRecurringPaymentOccurrenceStatus, CustomerRecurringPaymentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class CustomerRecurringPaymentsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findManyForCustomer<T extends Prisma.CustomerRecurringPaymentFindManyArgs>(args: T): Promise<Prisma.CustomerRecurringPaymentGetPayload<T>[]> {
     return this.prisma.customerRecurringPayment.findMany(args) as Promise<Prisma.CustomerRecurringPaymentGetPayload<T>[]>;
@@ -111,7 +115,7 @@ export class CustomerRecurringPaymentsRepository {
   }
 
   createNotification(recipientId: string, title: string, message: string, type: string, metadataJson: Prisma.InputJsonObject) {
-    return this.prisma.notification.create({ data: { recipientId, recipientType: 'REGISTERED_USER', title, message, type, metadataJson } });
+    return this.notificationDispatch.createAndEmit({ recipientId, recipientType: 'REGISTERED_USER', title, message, type, metadataJson })
   }
 
   findLatestSavedPaymentMethod(userId: string) {

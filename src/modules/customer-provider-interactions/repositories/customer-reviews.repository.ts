@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ReviewStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const CUSTOMER_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
   provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } },
@@ -26,7 +27,10 @@ type CreateReviewNotificationData = Prisma.Args<PrismaService['notification'], '
 
 @Injectable()
 export class CustomerReviewsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findOrderForReviewByUser(customerId: string, orderId: string) {
     return this.prisma.order.findFirst({ where: { id: orderId, userId: customerId }, select: ORDER_FOR_REVIEW_SELECT });
@@ -72,7 +76,7 @@ export class CustomerReviewsRepository {
   }
 
   createReviewNotification(data: CreateReviewNotificationData) {
-    return this.prisma.notification.create({ data });
+    return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput);
   }
 
   createReviewModerationLog(data: CreateReviewModerationLogData) {

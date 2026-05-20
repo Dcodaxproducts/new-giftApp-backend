@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CartStatus, NotificationRecipientType, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const CUSTOMER_ORDER_INCLUDE = Prisma.validator<Prisma.OrderInclude>()({
   items: { include: { gift: { select: { id: true, name: true, imageUrls: true } }, variant: { select: { id: true, name: true } } } },
@@ -18,7 +19,10 @@ type CreateProviderOrderItemData = Prisma.Args<CheckoutTransaction['providerOrde
 
 @Injectable()
 export class CustomerOrdersRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findManyForCustomerOrders(params: { where: Prisma.OrderWhereInput; skip: number; take: number }) {
     return this.prisma.order.findMany({ where: params.where, include: CUSTOMER_ORDER_INCLUDE, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });
@@ -116,7 +120,7 @@ export class CustomerOrdersRepository {
   }
 
   createOrderNotification(tx: CheckoutTransaction, params: { recipientId: string; recipientType: NotificationRecipientType; title: string; message: string; orderId: string }) {
-    return tx.notification.create({ data: { recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } } });
+    return this.notificationDispatch.createAndEmit({ recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } })
   }
 
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ReviewStatus, ReviewSeverity } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const ADMIN_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
   customer: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
@@ -11,11 +12,14 @@ export const ADMIN_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
 
 type ReviewUpdateData = Prisma.Args<PrismaService['review'], 'update'>['data'];
 type ReviewModerationLogCreateData = Prisma.Args<PrismaService['reviewModerationLog'], 'create'>['data'];
-type NotificationCreateManyData = Prisma.Args<PrismaService['notification'], 'createMany'>['data'];
+type NotificationCreateManyData = Prisma.NotificationCreateManyInput[];
 
 @Injectable()
 export class AdminReviewsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   getDashboardRows(params: { weekAgo: Date; dayAgo: Date }) {
     return this.prisma.$transaction([
@@ -71,5 +75,5 @@ export class AdminReviewsRepository {
   }
 
   findResponseTimingLogs() { return this.prisma.reviewModerationLog.findMany({ select: { createdAt: true, review: { select: { createdAt: true } } }, take: 200 }); }
-  createModerationNotifications(data: NotificationCreateManyData) { return this.prisma.notification.createMany({ data }); }
+  createModerationNotifications(data: NotificationCreateManyData) { return Promise.all(data.map((notification: Prisma.NotificationCreateManyInput) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput))); }
 }

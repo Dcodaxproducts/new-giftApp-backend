@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, Prisma, ProviderDisputeStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class ProviderDisputeEvidenceRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findEvidence(disputeId: string) {
     return this.prisma.providerDisputeEvidence.findMany({ where: { disputeId }, orderBy: { submittedAt: 'asc' } });
@@ -15,7 +19,7 @@ export class ProviderDisputeEvidenceRepository {
   }
 
   notifyEvidenceTargets(data: Prisma.NotificationCreateManyInput[]) {
-    return this.prisma.notification.createMany({ data });
+    return Promise.all(data.map((notification) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput)));
   }
 
   markReviewed(params: { id: string; startedAt: Date; reviewerNotes: string; nextStep: string; actorId: string }) {

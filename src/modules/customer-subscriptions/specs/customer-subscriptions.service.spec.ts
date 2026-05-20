@@ -167,7 +167,7 @@ describe('CustomerSubscriptionsService read APIs', () => {
     const repositorySource = readFileSync(join(__dirname, '../repositories/customer-subscriptions.repository.ts'), 'utf8');
     expect(serviceSource).not.toContain('PrismaService');
     expect(serviceSource).not.toContain('this.prisma');
-    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repositorySource).toContain('constructor(prisma: PrismaService)');
     expect(repositorySource).toContain('createSubscriptionInvoice');
     expect(repositorySource).toContain('createSubscriptionTransaction');
   });

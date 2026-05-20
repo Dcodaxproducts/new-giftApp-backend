@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -16,15 +16,19 @@ import { BroadcastsService } from './services/broadcasts.service';
 import { DeviceTokensRepository } from './repositories/device-tokens.repository';
 import { NotificationPreferencesRepository } from './repositories/notification-preferences.repository';
 import { EmailNotificationAdapter, InAppNotificationAdapter, NotificationAdapterRegistry, PushNotificationAdapter } from './notification-adapters';
+import { NotificationDeliveryMonitoringController } from './controllers/notification-delivery-monitoring.controller';
 import { NotificationsController } from './controllers/notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
+import { NotificationDeliveryLogRepository } from './repositories/notification-delivery-log.repository';
 import { NotificationsRepository } from './repositories/notifications.repository';
+import { NotificationDeliveryMonitoringService } from './services/notification-delivery-monitoring.service';
 import { NotificationDispatchService } from './services/notification-dispatch.service';
 import { NotificationsService } from './services/notifications.service';
 
+@Global()
 @Module({
   imports: [ConfigModule, JwtModule.register({}), DatabaseModule],
-  controllers: [BroadcastsController, NotificationsController],
+  controllers: [BroadcastsController, NotificationsController, NotificationDeliveryMonitoringController],
   providers: [AuditLogWriterRepository,
     AuditLogWriterService,
     BroadcastsService,
@@ -33,7 +37,9 @@ import { NotificationsService } from './services/notifications.service';
     BroadcastDeliveryRepository,
     BroadcastQueueRepository,
     NotificationsService,
+    NotificationDeliveryMonitoringService,
     NotificationsRepository,
+    NotificationDeliveryLogRepository,
     NotificationPreferencesRepository,
     DeviceTokensRepository,
     BroadcastQueueService,

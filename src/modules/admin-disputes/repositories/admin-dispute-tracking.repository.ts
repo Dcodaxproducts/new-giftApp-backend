@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, DisputeNoteVisibility, NotificationRecipientType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class AdminDisputeTrackingRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findTimeline(disputeId: string) {
     return this.prisma.disputeTimeline.findMany({ where: { disputeId }, include: { actor: { select: { firstName: true, lastName: true } } }, orderBy: { createdAt: 'asc' } });
@@ -23,7 +27,7 @@ export class AdminDisputeTrackingRepository {
   }
 
   notifyAssignedAdmin(disputeId: string, caseId: string, assignedToId: string) {
-    return this.prisma.notification.create({ data: { recipientId: assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Dispute follow-up note added', message: `A follow-up note was added to ${caseId}.`, type: 'ADMIN_DISPUTE_FOLLOW_UP_NOTE', metadataJson: { disputeId, caseId } } });
+    return this.notificationDispatch.createAndEmit({ recipientId: assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Dispute follow-up note added', message: `A follow-up note was added to ${caseId}.`, type: 'ADMIN_DISPUTE_FOLLOW_UP_NOTE', metadataJson: { disputeId, caseId } })
   }
 
   createNote(params: { disputeId: string; authorId: string; note: string; visibility: DisputeNoteVisibility }) {

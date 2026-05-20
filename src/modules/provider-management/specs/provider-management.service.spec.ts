@@ -204,7 +204,7 @@ describe('ProviderManagementService', () => {
 
     expect(serviceSource).not.toContain('PrismaService');
     expect(serviceSource).not.toContain('this.prisma');
-    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repositorySource).toContain('constructor(prisma: PrismaService)');
     expect(repositorySource).toContain('findManyProviders');
     expect(repositorySource).toContain('deleteProviderPermanently');
   });

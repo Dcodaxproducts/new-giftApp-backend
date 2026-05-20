@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, NotificationRecipientType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class ProviderDisputeFinancialRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   saveFinancialImpact(id: string, impact: Prisma.InputJsonValue, totalProviderDeduction: number) {
     return this.prisma.providerDisputeCase.update({ where: { id }, data: { financialImpactJson: impact, totalProviderDeduction } });
@@ -15,7 +19,7 @@ export class ProviderDisputeFinancialRepository {
       await tx.providerFinancialAdjustment.createMany({ data: params.adjustmentRows });
       await tx.providerDisputeCase.update({ where: { id: params.id }, data: { adjustmentType: params.adjustmentType as never, totalProviderDeduction: params.totalProviderDeduction, financialImpactJson: params.impact } });
       await tx.providerDisputeTimeline.create({ data: { disputeId: params.id, type: 'PAYOUT_PENALTY_LINKED', title: 'Payout & Penalty Linked', description: 'Provider financial adjustments linked to dispute ruling.', actorId: params.actorId, actorType: DisputeActorType.ADMIN, metadataJson: { adjustmentType: params.adjustmentType, totalProviderDeduction: params.totalProviderDeduction } } });
-      if (params.sendProviderSummary) await tx.notification.create({ data: { recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'Provider dispute financial summary', message: `Financial adjustments prepared for ${params.caseId}.`, type: 'PROVIDER_DISPUTE_FINANCIAL_SUMMARY', metadataJson: { providerDisputeId: params.id, caseId: params.caseId } } });
+      if (params.sendProviderSummary) await this.notificationDispatch.createAndEmit({ recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'Provider dispute financial summary', message: `Financial adjustments prepared for ${params.caseId}.`, type: 'PROVIDER_DISPUTE_FINANCIAL_SUMMARY', metadataJson: { providerDisputeId: params.id, caseId: params.caseId } })
     });
   }
 

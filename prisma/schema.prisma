@@ -110,6 +110,14 @@ enum NotificationDevicePlatform {
   WEB
 }
 
+enum NotificationDeliveryStatus {
+  QUEUED
+  DELIVERED
+  FAILED
+  SKIPPED
+  RETRIED
+}
+
 enum AuditLogStatus {
   SUCCESS
   FAILED
@@ -2081,12 +2089,38 @@ model Notification {
 
   recipient User       @relation(fields: [recipientId], references: [id])
   broadcast Broadcast? @relation(fields: [broadcastId], references: [id])
+  deliveryLogs NotificationDeliveryLog[]
 
   @@index([recipientId, isRead, createdAt])
   @@index([recipientId, type, createdAt])
   @@index([deletedAt])
   @@index([broadcastId])
   @@map("notifications")
+}
+
+model NotificationDeliveryLog {
+  id               String                     @id @default(cuid())
+  notificationId   String?                    @map("notification_id")
+  recipientId      String                     @map("recipient_id")
+  recipientType    NotificationRecipientType  @map("recipient_type")
+  notificationType String                     @map("notification_type")
+  channelsJson     Json                       @default("[]") @map("channels_json")
+  idempotencyKey   String?                    @unique @map("idempotency_key")
+  inAppStatus      NotificationDeliveryStatus @default(QUEUED) @map("in_app_status")
+  socketStatus     NotificationDeliveryStatus @default(SKIPPED) @map("socket_status")
+  pushStatus       NotificationDeliveryStatus @default(SKIPPED) @map("push_status")
+  emailStatus      NotificationDeliveryStatus @default(SKIPPED) @map("email_status")
+  lastError        String?                    @map("last_error")
+  retryCount       Int                        @default(0) @map("retry_count")
+  createdAt        DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  notification Notification? @relation(fields: [notificationId], references: [id])
+
+  @@index([recipientId, recipientType, createdAt])
+  @@index([notificationType, createdAt])
+  @@index([inAppStatus, socketStatus, pushStatus, emailStatus])
+  @@map("notification_delivery_logs")
 }
 
 model NotificationDeviceToken {

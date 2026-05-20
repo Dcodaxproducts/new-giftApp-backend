@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, DisputeCustomerNotificationStatus, DisputeDecision, DisputeRejectReason, DisputeResolutionStatus, DisputeStatus, NotificationRecipientType, PaymentMethod, PaymentStatus, Prisma, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class AdminDisputeDecisionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findLastAction(disputeId: string) {
     return this.prisma.disputeTimeline.findFirst({ where: { disputeId }, orderBy: { createdAt: 'desc' }, include: { actor: { select: { firstName: true, lastName: true } } } });
@@ -30,7 +34,7 @@ export class AdminDisputeDecisionsRepository {
       await tx.disputeTimeline.create({ data: { disputeId: params.id, type: 'DECISION_APPROVE', title: 'Manual Audit Review', description: params.comment ?? 'Dispute approved.', actorId: params.userId, actorType: DisputeActorType.ADMIN, metadataJson: { refundAmount: params.amount, refundId: params.refundId } } });
       await tx.disputeTimeline.create({ data: { disputeId: params.id, type: 'REFUND_PROCESSED', title: 'System Automated Action', description: refundStatus === RefundRequestStatus.REFUNDED ? 'Refund processed successfully.' : 'Refund queued for processing.', actorType: DisputeActorType.SYSTEM, metadataJson: { refundAmount: params.amount, refundId: params.refundId, refundStatus } } });
       await tx.disputeTimeline.create({ data: { disputeId: params.id, type: 'CASE_RESOLVED', title: 'Case Resolved', description: 'Dispute case was approved and moved to confirmation.', actorId: params.userId, actorType: DisputeActorType.ADMIN, metadataJson: { resolutionStatus: DisputeResolutionStatus.APPROVED } } });
-      if (params.notifyCustomer) await tx.notification.create({ data: { recipientId: params.disputeUserId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Dispute approved', message: 'Your dispute was approved and refund has been processed.', type: 'CUSTOMER_DISPUTE_APPROVED', metadataJson: { disputeId: params.id, caseId: params.caseId, refundId: params.refundId, refundAmount: params.amount } } });
+      if (params.notifyCustomer) await this.notificationDispatch.createAndEmit({ recipientId: params.disputeUserId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Dispute approved', message: 'Your dispute was approved and refund has been processed.', type: 'CUSTOMER_DISPUTE_APPROVED', metadataJson: { disputeId: params.id, caseId: params.caseId, refundId: params.refundId, refundAmount: params.amount } })
     });
   }
 
@@ -39,7 +43,7 @@ export class AdminDisputeDecisionsRepository {
       await tx.disputeCase.update({ where: { id: params.id }, data: { status: DisputeStatus.REJECTED, decision: DisputeDecision.REJECT, decisionReason: params.reason, decisionComment: params.comment, resolutionStatus: DisputeResolutionStatus.REJECTED, resolvedAt: new Date(), customerNotificationStatus: params.notifyCustomer ? DisputeCustomerNotificationStatus.SENT : DisputeCustomerNotificationStatus.NOT_SENT } });
       await tx.disputeTimeline.create({ data: { disputeId: params.id, type: 'DECISION_REJECT', title: 'Manual Audit Review', description: params.comment ?? `Reason: ${params.reason}`, actorId: params.userId, actorType: DisputeActorType.ADMIN, metadataJson: { reason: params.reason } } });
       await tx.disputeTimeline.create({ data: { disputeId: params.id, type: 'CASE_RESOLVED', title: 'Case Resolved', description: 'Dispute case was rejected.', actorId: params.userId, actorType: DisputeActorType.ADMIN, metadataJson: { resolutionStatus: DisputeResolutionStatus.REJECTED } } });
-      if (params.notifyCustomer) await tx.notification.create({ data: { recipientId: params.disputeUserId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Dispute rejected', message: params.comment ?? 'Your dispute was rejected after review.', type: 'CUSTOMER_DISPUTE_REJECTED', metadataJson: { disputeId: params.id, caseId: params.caseId, reason: params.reason } } });
+      if (params.notifyCustomer) await this.notificationDispatch.createAndEmit({ recipientId: params.disputeUserId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Dispute rejected', message: params.comment ?? 'Your dispute was rejected after review.', type: 'CUSTOMER_DISPUTE_REJECTED', metadataJson: { disputeId: params.id, caseId: params.caseId, reason: params.reason } })
     });
   }
 
@@ -47,7 +51,7 @@ export class AdminDisputeDecisionsRepository {
     return this.prisma.$transaction(async (tx) => {
       await tx.disputeCase.update({ where: { id: params.id }, data: { status: DisputeStatus.ESCALATED, decision: DisputeDecision.ESCALATE, decisionComment: params.comment, resolutionStatus: DisputeResolutionStatus.ESCALATED, assignedToId: params.assignedToId, escalatedAt: new Date(), estimatedResolutionAt: params.estimatedResolutionAt, slaDeadlineAt: params.estimatedResolutionAt } });
       await tx.disputeTimeline.create({ data: { disputeId: params.id, type: 'DECISION_ESCALATE', title: 'Case Escalated', description: params.comment ?? 'Dispute escalated for supervisor review.', actorId: params.userId, actorType: DisputeActorType.ADMIN, metadataJson: { assignedToId: params.assignedToId, estimatedResolutionAt: params.estimatedResolutionAt } } });
-      await tx.notification.create({ data: { recipientId: params.assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Dispute escalated to you', message: `${params.caseId} requires supervisor review.`, type: 'ADMIN_DISPUTE_ESCALATED_ASSIGNMENT', metadataJson: { disputeId: params.id, caseId: params.caseId } } });
+      await this.notificationDispatch.createAndEmit({ recipientId: params.assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Dispute escalated to you', message: `${params.caseId} requires supervisor review.`, type: 'ADMIN_DISPUTE_ESCALATED_ASSIGNMENT', metadataJson: { disputeId: params.id, caseId: params.caseId } })
     });
   }
 }

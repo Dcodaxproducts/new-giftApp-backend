@@ -29,7 +29,7 @@ describe('Provider orders repository cleanup', () => {
   it('provider-orders.service.ts no longer imports PrismaService or uses this.prisma', () => {
     expect(service).not.toContain('PrismaService');
     expect(service).not.toContain('this.prisma');
-    expect(repository).toContain('constructor(private readonly prisma: PrismaService)');
+    expect(repository).toContain('constructor(prisma: PrismaService)');
     expect(repository).toContain('getOrCreateChecklistForRead');
   });
 
@@ -86,7 +86,7 @@ describe('Provider orders repository cleanup', () => {
     for (const method of ['runActionTransaction', 'findProviderOrderForAction', 'markProviderOrderAccepted', 'markProviderOrderRejected', 'updateProviderOrderStatus', 'fulfillProviderOrder', 'createProviderOrderTimelineEntry', 'createCustomerOrderNotification', 'createOrderBuyerMessage', 'updateProviderOrderChecklist', 'syncParentOrderStatus', 'upsertOrderEarningLedger']) expect(repository).toContain(method);
     expect(repository).toContain('tx.providerOrder.update');
     expect(repository).toContain('tx.providerOrderTimeline.create');
-    expect(repository).toContain('tx.notification.create');
+    expect(repository).toContain('this.notificationDispatch.createAndEmit');
     expect(repository).toContain('tx.orderMessage.create');
     expect(repository).toContain('this.prisma.providerOrderChecklist.update');
     expect(repository).toContain('tx.order.update');

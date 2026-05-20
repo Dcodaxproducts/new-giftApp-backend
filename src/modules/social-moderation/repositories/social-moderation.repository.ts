@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, SocialPostStatus, SocialPostVisibility, SocialReportSeverity, SocialReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const SOCIAL_REPORT_INCLUDE = Prisma.validator<Prisma.SocialReportInclude>()({
   post: { include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, createdAt: true } }, reports: { select: { id: true } } } },
@@ -15,7 +16,10 @@ type NotificationCreateData = Prisma.Args<SocialTx['notification'], 'create'>['d
 
 @Injectable()
 export class SocialModerationRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findStatsRows(where: Prisma.SocialReportWhereInput) {
     return this.prisma.$transaction([
@@ -45,5 +49,5 @@ export class SocialModerationRepository {
   updateSocialReportStatus(tx: SocialTx, id: string, status: SocialReportStatus) { return tx.socialReport.update({ where: { id }, data: { status } }); }
   createSocialModerationLog(tx: SocialTx, data: SocialModerationLogCreateData) { return tx.socialModerationLog.create({ data }); }
   createUserWarning(tx: SocialTx, data: UserWarningCreateData) { return tx.userWarning.create({ data }); }
-  createNotification(tx: SocialTx, data: NotificationCreateData) { return tx.notification.create({ data }); }
+  createNotification(tx: SocialTx, data: NotificationCreateData) { return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput); }
 }

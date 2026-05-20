@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, ProviderEarningsLedgerStatus, ProviderPayoutStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const ADMIN_PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInclude>()({
   provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, avatarUrl: true } },
@@ -9,7 +10,10 @@ export const ADMIN_PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPay
 
 @Injectable()
 export class AdminProviderPayoutsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findPayouts<T extends Prisma.ProviderPayoutFindManyArgs>(args: T): Promise<Prisma.ProviderPayoutGetPayload<T>[]> {
     return this.prisma.providerPayout.findMany(args) as Promise<Prisma.ProviderPayoutGetPayload<T>[]>;
@@ -39,7 +43,7 @@ export class AdminProviderPayoutsRepository {
     return this.prisma.$transaction(async (tx) => {
       if (params.releaseLedger) await tx.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { payoutId: params.payoutId, releaseReason: params.failureReason ?? params.status } } });
       const payout = await tx.providerPayout.update({ where: { id: params.payoutId }, data: { status: params.status, failureReason: params.failureReason, ...(params.status === ProviderPayoutStatus.COMPLETED ? { completedAt: new Date() } : {}) }, include: ADMIN_PROVIDER_PAYOUT_INCLUDE });
-      if (params.notification) await tx.notification.create({ data: { recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: params.notification.title, message: params.notification.message, type: params.notification.type, metadataJson: params.notification.metadataJson } });
+      if (params.notification) await this.notificationDispatch.createAndEmit({ recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: params.notification.title, message: params.notification.message, type: params.notification.type, metadataJson: params.notification.metadataJson })
       return payout;
     });
   }

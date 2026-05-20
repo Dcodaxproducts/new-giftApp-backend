@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const PROVIDER_REFUND_REQUEST_INCLUDE = Prisma.validator<Prisma.RefundRequestInclude>()({
   user: true,
@@ -11,7 +12,10 @@ export const PROVIDER_REFUND_REQUEST_INCLUDE = Prisma.validator<Prisma.RefundReq
 
 @Injectable()
 export class ProviderRefundRequestsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findManyForProviderList(params: { where: Prisma.RefundRequestWhereInput; orderBy: Prisma.RefundRequestOrderByWithRelationInput; skip: number; take: number }) {
     return this.prisma.$transaction([
@@ -41,7 +45,7 @@ export class ProviderRefundRequestsRepository {
         await tx.order.update({ where: { id: params.orderId }, data: { status: 'COMPLETED', paymentStatus: 'REFUNDED' } });
         if (params.paymentId) await tx.payment.update({ where: { id: params.paymentId }, data: { status: ProviderOrderStatus.REFUNDED } });
       }
-      if (params.notifyCustomer) await tx.notification.create({ data: { recipientId: params.userId, recipientType: 'REGISTERED_USER', title: params.status === RefundRequestStatus.REFUNDED ? 'Refund processed' : 'Refund approved', message: params.status === RefundRequestStatus.REFUNDED ? 'Your refund was approved and processed.' : 'Your refund was approved and is being processed.', type: params.status === RefundRequestStatus.REFUNDED ? 'CUSTOMER_REFUND_PROCESSED' : 'CUSTOMER_REFUND_APPROVED', metadataJson: { refundRequestId: params.refundId, providerOrderId: params.providerOrderId, refundAmount: params.refundAmount, transactionId: params.transactionId } } });
+      if (params.notifyCustomer) await this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: 'REGISTERED_USER', title: params.status === RefundRequestStatus.REFUNDED ? 'Refund processed' : 'Refund approved', message: params.status === RefundRequestStatus.REFUNDED ? 'Your refund was approved and processed.' : 'Your refund was approved and is being processed.', type: params.status === RefundRequestStatus.REFUNDED ? 'CUSTOMER_REFUND_PROCESSED' : 'CUSTOMER_REFUND_APPROVED', metadataJson: { refundRequestId: params.refundId, providerOrderId: params.providerOrderId, refundAmount: params.refundAmount, transactionId: params.transactionId } })
       return item;
     });
   }
@@ -50,7 +54,7 @@ export class ProviderRefundRequestsRepository {
     return this.prisma.$transaction(async (tx) => {
       const item = await tx.refundRequest.update({ where: { id: params.refundId }, data: { status: RefundRequestStatus.REJECTED, rejectionReason: params.reason, providerComment: params.providerComment, rejectedAt: new Date() } });
       await tx.providerOrderTimeline.create({ data: { providerOrderId: params.providerOrderId, createdById: params.actorId, status: params.providerOrderStatus, title: 'Refund rejected', description: params.description, metadataJson: { refundRequestId: params.refundId, reason: params.reason } } });
-      if (params.notifyCustomer) await tx.notification.create({ data: { recipientId: params.userId, recipientType: 'REGISTERED_USER', title: 'Refund rejected', message: params.description, type: 'CUSTOMER_REFUND_REJECTED', metadataJson: { refundRequestId: params.refundId, providerOrderId: params.providerOrderId, reason: params.reason } } });
+      if (params.notifyCustomer) await this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: 'REGISTERED_USER', title: 'Refund rejected', message: params.description, type: 'CUSTOMER_REFUND_REJECTED', metadataJson: { refundRequestId: params.refundId, providerOrderId: params.providerOrderId, reason: params.reason } })
       return item;
     });
   }

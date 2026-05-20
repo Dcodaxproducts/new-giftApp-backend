@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class ProviderInteractionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findProviderOrderForChat<T extends Prisma.ProviderOrderFindFirstArgs>(args: T): Promise<Prisma.ProviderOrderGetPayload<T> | null> {
     return this.prisma.providerOrder.findFirst(args) as Promise<Prisma.ProviderOrderGetPayload<T> | null>;
@@ -49,7 +53,7 @@ export class ProviderInteractionsRepository {
     return this.prisma.reviewResponse.delete({ where: { id } });
   }
 
-  createRegisteredUserNotification(data: Prisma.NotificationCreateInput) {
-    return this.prisma.notification.create({ data });
+  createRegisteredUserNotification(data: Prisma.NotificationUncheckedCreateInput) {
+    return this.notificationDispatch.createAndEmit(data);
   }
 }

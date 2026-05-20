@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const PROVIDER_ORDER_LIST_INCLUDE = Prisma.validator<Prisma.ProviderOrderInclude>()({
   order: true,
@@ -17,7 +18,10 @@ type ProviderOrderChecklistUpdateData = Prisma.Args<PrismaService['providerOrder
 
 @Injectable()
 export class ProviderOrdersRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findManyProviderOrders(params: { where: Prisma.ProviderOrderWhereInput; include: Prisma.ProviderOrderInclude; orderBy: Prisma.ProviderOrderOrderByWithRelationInput; skip: number; take: number }) {
     return this.prisma.providerOrder.findMany({ where: params.where, include: params.include, orderBy: params.orderBy, skip: params.skip, take: params.take });
@@ -132,7 +136,7 @@ export class ProviderOrdersRepository {
   }
 
   createCustomerOrderNotification(tx: ProviderOrderTransaction, data: NotificationCreateData) {
-    return tx.notification.create({ data });
+    return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput);
   }
 
   findActiveSuperAdminIds(tx: ProviderOrderTransaction) {

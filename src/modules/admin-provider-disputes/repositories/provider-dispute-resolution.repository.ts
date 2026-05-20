@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class ProviderDisputeResolutionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   finalize(params: {
     id: string;
@@ -34,7 +38,7 @@ export class ProviderDisputeResolutionRepository {
       await tx.providerDisputeCase.update({ where: { id: params.id }, data: { status: params.caseStatus as never, resolvedAt: new Date() } });
       await tx.providerDisputeTimeline.create({ data: { disputeId: params.id, type: 'PROVIDER_DISPUTE_FINALIZED', title: 'Provider Dispute Finalized', description: params.comment, actorId: params.actorId, actorType: 'ADMIN', metadataJson: { finalRuling: params.finalRuling, refundAmount: params.refundAmount, providerDeduction: params.providerDeduction, penaltyAmount: params.penaltyAmount } } });
       if (params.communicationLogs.length) await tx.providerDisputeCommunicationLog.createMany({ data: params.communicationLogs });
-      if (params.notifications.length) await tx.notification.createMany({ data: params.notifications });
+      if (params.notifications.length) await Promise.all(params.notifications.map((notification) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput)));
     });
   }
 

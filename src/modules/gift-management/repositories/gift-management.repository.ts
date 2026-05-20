@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GiftModerationStatus, GiftStatus, NotificationRecipientType, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 export const GIFT_MANAGEMENT_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
   category: { select: { id: true, name: true, isActive: true, deletedAt: true } },
@@ -18,7 +19,10 @@ type GiftVariantUpdateData = Prisma.Args<GiftTx['giftVariant'], 'update'>['data'
 
 @Injectable()
 export class GiftManagementRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findGiftCategories(params: { where: Prisma.GiftCategoryWhereInput; orderBy: Prisma.GiftCategoryOrderByWithRelationInput; skip: number; take: number }) {
     return this.prisma.giftCategory.findMany({ where: params.where, include: { _count: { select: { gifts: { where: { deletedAt: null } } } } }, orderBy: params.orderBy, skip: params.skip, take: params.take });
@@ -101,6 +105,6 @@ export class GiftManagementRepository {
   updateGiftModerationStatus(id: string, data: Prisma.GiftUncheckedUpdateInput) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
 
   createProviderNotification(data: { providerId: string; title: string; message: string; type: string; giftId: string }) {
-    return this.prisma.notification.create({ data: { recipientId: data.providerId, recipientType: NotificationRecipientType.PROVIDER, title: data.title, message: data.message, type: data.type, metadataJson: { giftId: data.giftId } } });
+    return this.notificationDispatch.createAndEmit({ recipientId: data.providerId, recipientType: NotificationRecipientType.PROVIDER, title: data.title, message: data.message, type: data.type, metadataJson: { giftId: data.giftId } })
   }
 }

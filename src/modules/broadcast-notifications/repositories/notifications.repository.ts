@@ -32,6 +32,10 @@ export class NotificationsRepository {
     return { total, unread, birthdays, deliveries, newContacts };
   }
 
+  findById(id: string) {
+    return this.prisma.notification.findUnique({ where: { id } });
+  }
+
   findOwnedNotification(userId: string, id: string) {
     return this.prisma.notification.findFirst({ where: { id, recipientId: userId, deletedAt: null } });
   }

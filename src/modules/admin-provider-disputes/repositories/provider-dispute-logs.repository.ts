@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, DisputeNoteVisibility, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class ProviderDisputeLogsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findResolutionLog(disputeId: string) {
     return Promise.all([
@@ -27,7 +31,7 @@ export class ProviderDisputeLogsRepository {
         : params.target === 'CUSTOMER'
           ? [{ recipientId: params.customerId, recipientType: 'REGISTERED_USER' }]
           : [{ recipientId: params.providerId, recipientType: 'PROVIDER' }]) as Prisma.NotificationCreateManyInput[];
-      if (notifications.length) await tx.notification.createMany({ data: notifications.map((target) => ({ ...target, title: 'Dispute resolution reminder', message: params.message, type: 'PROVIDER_DISPUTE_NOTIFICATION_RESENT', metadataJson: { providerDisputeId: params.id, caseId: params.caseId, channels: params.channels } })) });
+      if (notifications.length) await Promise.all((notifications.map((target) => ({ ...target, title: 'Dispute resolution reminder', message: params.message, type: 'PROVIDER_DISPUTE_NOTIFICATION_RESENT', metadataJson: { providerDisputeId: params.id, caseId: params.caseId, channels: params.channels } }))).map((notification) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput)))
       await tx.providerDisputeTimeline.create({ data: { disputeId: params.id, type: 'NOTIFICATION_RESENT', title: 'Notification Resent', description: params.message, actorId: params.actorId, actorType: DisputeActorType.ADMIN, metadataJson: { target: params.target, channels: params.channels } } });
     });
   }

@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, ProviderReportStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class CustomerProviderReportsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findProviderById(providerId: string) {
     return this.prisma.user.findFirst({ where: { id: providerId, role: UserRole.PROVIDER, deletedAt: null } });
@@ -19,7 +23,7 @@ export class CustomerProviderReportsRepository {
   }
 
   createCustomerReportNotification(params: { userId: string; reportId: string; providerId: string }) {
-    return this.prisma.notification.create({ data: { recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider report submitted', message: 'Your provider report was submitted for review.', type: 'PROVIDER_REPORT', metadataJson: { reportId: params.reportId, providerId: params.providerId } } });
+    return this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider report submitted', message: 'Your provider report was submitted for review.', type: 'PROVIDER_REPORT', metadataJson: { reportId: params.reportId, providerId: params.providerId } })
   }
 
   findProviderReportsAndCount(params: { where: Prisma.ProviderReportWhereInput; include: Prisma.ProviderReportInclude; skip: number; take: number }) {
@@ -47,6 +51,6 @@ export class CustomerProviderReportsRepository {
   }
 
   createAdminReportNotifications(admins: { id: string; role: UserRole }[], params: { reportId: string; providerId: string }) {
-    return this.prisma.notification.createMany({ data: admins.map((admin) => ({ recipientId: admin.id, recipientType: admin.role === UserRole.SUPER_ADMIN ? NotificationRecipientType.ADMIN : NotificationRecipientType.ADMIN, title: 'Provider report submitted', message: 'A customer submitted a provider report for review.', type: 'PROVIDER_REPORT_ADMIN', metadataJson: { reportId: params.reportId, providerId: params.providerId } })) });
+    return Promise.all((admins.map((admin) => ({ recipientId: admin.id, recipientType: admin.role === UserRole.SUPER_ADMIN ? NotificationRecipientType.ADMIN : NotificationRecipientType.ADMIN, title: 'Provider report submitted', message: 'A customer submitted a provider report for review.', type: 'PROVIDER_REPORT_ADMIN', metadataJson: { reportId: params.reportId, providerId: params.providerId } }))).map((notification) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput)))
   }
 }

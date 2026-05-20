@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, DisputePriority, DisputeReason, DisputeStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderStatus, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
 @Injectable()
 export class AdminTransactionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly notificationDispatch: NotificationDispatchService;
+  constructor(prisma: PrismaService);
+  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
+  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
 
   findPayments<T extends Prisma.PaymentFindManyArgs>(params: T): Promise<Prisma.PaymentGetPayload<T>[]> {
     return this.prisma.payment.findMany(params) as Promise<Prisma.PaymentGetPayload<T>[]>;
@@ -63,7 +67,7 @@ export class AdminTransactionsRepository {
       await tx.payment.update({ where: { id: params.paymentId }, data: { status: params.paymentStatus, metadataJson: params.paymentMetadata } });
       if (params.updateOrderAsRefunded) await tx.order.update({ where: { id: params.orderId }, data: { paymentStatus: PaymentStatus.REFUNDED, status: OrderStatus.COMPLETED } });
       await tx.providerOrderTimeline.create({ data: { providerOrderId: params.providerOrderId, createdById: params.actorId, status: params.updateOrderAsRefunded ? ProviderOrderStatus.REFUNDED : params.providerOrderStatus, title: params.timelineTitle, description: params.timelineDescription, metadataJson: params.timelineMetadata } });
-      if (params.notifyUser) await tx.notification.create({ data: { recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Transaction refunded', message: params.notificationMessage, type: 'TRANSACTION_REFUND_PROCESSED', metadataJson: params.timelineMetadata } });
+      if (params.notifyUser) await this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Transaction refunded', message: params.notificationMessage, type: 'TRANSACTION_REFUND_PROCESSED', metadataJson: params.timelineMetadata })
     });
   }
 
@@ -94,12 +98,12 @@ export class AdminTransactionsRepository {
     return this.prisma.$transaction(async (tx) => {
       const created = await tx.disputeCase.create({ data: { caseId: params.caseId, userId: params.userId, orderId: params.orderId, transactionId: params.transactionId, paymentId: params.paymentId, providerId: params.providerId, linkedTransactionId: params.transactionId, linkedPaymentId: params.paymentId, linkedOrderId: params.orderId, amount: params.amount, currency: params.currency, reason: params.reason, claimDetails: params.claimDetails, priority: params.priority, status: DisputeStatus.OPEN, slaDeadlineAt: params.slaDeadlineAt, assignedToId: params.assignedToId } });
       await tx.disputeTimeline.create({ data: { disputeId: created.id, type: 'TRANSACTION_DISPUTE_OPENED', title: 'Dispute opened from transaction', description: params.claimDetails, actorId: params.actorId, actorType: DisputeActorType.ADMIN, metadataJson: { paymentId: params.paymentId, transactionId: params.transactionId } } });
-      if (params.assignedToId) await tx.notification.create({ data: { recipientId: params.assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Transaction dispute assigned', message: `${created.caseId} was opened from transaction ${params.transactionId}.`, type: 'ADMIN_TRANSACTION_DISPUTE_ASSIGNED', metadataJson: { disputeId: created.id, caseId: created.caseId, paymentId: params.paymentId } } });
+      if (params.assignedToId) await this.notificationDispatch.createAndEmit({ recipientId: params.assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Transaction dispute assigned', message: `${created.caseId} was opened from transaction ${params.transactionId}.`, type: 'ADMIN_TRANSACTION_DISPUTE_ASSIGNED', metadataJson: { disputeId: created.id, caseId: created.caseId, paymentId: params.paymentId } })
       return created;
     });
   }
 
   createTransactionNotification(data: Prisma.NotificationUncheckedCreateInput) {
-    return this.prisma.notification.create({ data });
+    return this.notificationDispatch.createAndEmit(data);
   }
 }

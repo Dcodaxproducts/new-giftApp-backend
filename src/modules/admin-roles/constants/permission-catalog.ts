@@ -89,8 +89,9 @@ export const PERMISSION_CATALOG = [
     module: 'notifications',
     label: 'Notifications',
     permissions: [
-      { key: 'read', label: 'View Notifications', description: 'View notification center.' },
+      { key: 'read', label: 'View Notifications', description: 'View notification center and delivery logs.' },
       { key: 'markRead', label: 'Mark Notifications Read', description: 'Mark notifications as read.' },
+      { key: 'delivery.retry', label: 'Retry Notification Delivery', description: 'Retry failed notification socket, push, or email delivery.' },
     ],
   },
   {
