@@ -1,6 +1,9 @@
-# Gift App Backend — Full API Reference
+Generated from docs/generated/openapi.json
+Generated at: 2026-05-20 05:50 UTC
+Do not edit manually.
+Run: npm run docs:generate
 
-Generated: 2026-05-19 12:26 UTC
+# Gift App Backend — Full API Reference
 
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
@@ -20,6 +23,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Message Moderation (15 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
+- 02 Admin - Notification Delivery Monitoring (4 APIs)
 - 02 Admin - Referral Settings (6 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
@@ -301,7 +305,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Resend verification email for unverified login
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.
+- Notes: Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.
 - Request payload(s):
   - payload:
 ```json
@@ -313,8 +317,11 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": null,
-  "message": "If the email is registered and unverified, a verification email has been sent."
+  "data": {
+    "delivery": "OTP_SENT_IF_ELIGIBLE",
+    "nextStep": "Use the 6-digit verification OTP to complete email verification."
+  },
+  "message": "If the email is registered and unverified, a 6-digit verification OTP has been sent."
 }
 ```
 
@@ -341,9 +348,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/verify-reset-otp`
 
-- Summary: Create Auth Verify Reset Otp
+- Summary: Verify public OTP for password reset or unverified email flow
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC. PUBLIC. PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.
 - Request payload(s):
   - payload:
 ```json
@@ -356,8 +363,11 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "purpose": "EMAIL_VERIFICATION",
+    "emailVerified": true
+  },
+  "message": "Email verified successfully"
 }
 ```
 
@@ -3656,6 +3666,87 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "isActive": true,
   "reason": "<string>"
 }
+```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+## 02 Admin - Notification Delivery Monitoring
+
+### GET `/api/v1/admin/notification-delivery/stats`
+
+- Summary: Fetch notification delivery stats
+- Allowed role/access: Authenticated
+- Notes: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "total": 12,
+    "queued": 0,
+    "delivered": 10,
+    "failed": 1,
+    "skipped": 1,
+    "retried": 2
+  },
+  "message": "Notification delivery stats fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/notification-delivery/logs`
+
+- Summary: List notification delivery logs
+- Allowed role/access: Authenticated
+- Notes: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `status` (query, optional, string)
+  - `recipientType` (query, optional, string)
+  - `notificationType` (query, optional, string)
+  - `recipientId` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/admin/notification-delivery/logs/{id}`
+
+- Summary: Fetch notification delivery log detail
+- Allowed role/access: Authenticated
+- Notes: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.
+- Parameters:
+  - `id` (path, required, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### POST `/api/v1/admin/notification-delivery/logs/{id}/retry`
+
+- Summary: Retry notification delivery
+- Allowed role/access: Authenticated
+- Notes: Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.delivery.retry. Retries non-IN_APP delivery channels without duplicating the existing in-app notification.
+- Parameters:
+  - `id` (path, required, string)
+- Request payload(s):
+  - payload:
+```json
+"<standard success envelope>"
 ```
 - Response body:
 ```json

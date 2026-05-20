@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-19 12:26 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-20 05:50 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-20 05:50 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -96,25 +96,31 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/resend-verification-email</code></div><div><span class="label">Summary:</span> Resend verification email for unverified login</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/resend-verification-email</code></div><div><span class="label">Summary:</span> Resend verification email for unverified login</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;user@example.com&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
-  &quot;data&quot;: null,
-  &quot;message&quot;: &quot;If the email is registered and unverified, a verification email has been sent.&quot;
+  &quot;data&quot;: {
+    &quot;delivery&quot;: &quot;OTP_SENT_IF_ELIGIBLE&quot;,
+    &quot;nextStep&quot;: &quot;Use the 6-digit verification OTP to complete email verification.&quot;
+  },
+  &quot;message&quot;: &quot;If the email is registered and unverified, a 6-digit verification OTP has been sent.&quot;
 }</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/forgot-password</code></div><div><span class="label">Summary:</span> Create Auth Forgot Password</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;user@example.com&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/verify-reset-otp</code></div><div><span class="label">Summary:</span> Create Auth Verify Reset Otp</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/verify-reset-otp</code></div><div><span class="label">Summary:</span> Verify public OTP for password reset or unverified email flow</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC. PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;user@example.com&quot;,
   &quot;otp&quot;: &quot;334018&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
+  &quot;data&quot;: {
+    &quot;purpose&quot;: &quot;EMAIL_VERIFICATION&quot;,
+    &quot;emailVerified&quot;: true
+  },
+  &quot;message&quot;: &quot;Email verified successfully&quot;
 }</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/reset-password</code></div><div><span class="label">Summary:</span> Create Auth Reset Password</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;user@example.com&quot;,
   &quot;otp&quot;: &quot;334018&quot;,
@@ -1419,6 +1425,29 @@
   &quot;isActive&quot;: true,
   &quot;reason&quot;: &quot;&lt;string&gt;&quot;
 }</pre><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><h2>02 Admin - Notification Delivery Monitoring</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/notification-delivery/stats</code></div><div><span class="label">Summary:</span> Fetch notification delivery stats</div><div><span class="label">Allowed role/access:</span> Authenticated</div><div><span class="label">Notes:</span> Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.</div><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;total&quot;: 12,
+    &quot;queued&quot;: 0,
+    &quot;delivered&quot;: 10,
+    &quot;failed&quot;: 1,
+    &quot;skipped&quot;: 1,
+    &quot;retried&quot;: 2
+  },
+  &quot;message&quot;: &quot;Notification delivery stats fetched successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/notification-delivery/logs</code></div><div><span class="label">Summary:</span> List notification delivery logs</div><div><span class="label">Allowed role/access:</span> Authenticated</div><div><span class="label">Notes:</span> Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>status</code> (query, optional, string) </li><li><code>recipientType</code> (query, optional, string) </li><li><code>notificationType</code> (query, optional, string) </li><li><code>recipientId</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/notification-delivery/logs/{id}</code></div><div><span class="label">Summary:</span> Fetch notification delivery log detail</div><div><span class="label">Allowed role/access:</span> Authenticated</div><div><span class="label">Notes:</span> Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
+  &quot;message&quot;: &quot;Request completed successfully.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/notification-delivery/logs/{id}/retry</code></div><div><span class="label">Summary:</span> Retry notification delivery</div><div><span class="label">Allowed role/access:</span> Authenticated</div><div><span class="label">Notes:</span> Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.delivery.retry. Retries non-IN_APP delivery channels without duplicating the existing in-app notification.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>&quot;&lt;standard success envelope&gt;&quot;</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;

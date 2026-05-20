@@ -1,6 +1,11 @@
+Generated from docs/generated/openapi.json
+Generated at: 2026-05-20 05:50 UTC
+Do not edit manually.
+Run: npm run docs:generate
+
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-19 12:26 PKT.
+Generated from `docs/generated/openapi.json` on 2026-05-20 05:50 UTC.
 
 ## Frontend Integration Flows
 
@@ -133,6 +138,15 @@ Generated from `docs/generated/openapi.json` on 2026-05-19 12:26 PKT.
 - Permissions: SUPER_ADMIN can perform all actions. ADMIN needs `messageModeration.read` for queue/detail, `messageModeration.export` for export, `messageModeration.block`, `messageModeration.warn`, `messageModeration.suspend`, `messageModeration.dismiss`, `messageModeration.notes.create`, and `messageModeration.moderate` for reprocess.
 - Redaction: flagged harmful content returns `body: null` by default and always includes `redactedBody`. Do not render raw harmful content unless a future explicit unmask permission is implemented.
 - Internal notes are admin-only and must never be rendered in customer/provider chat screens.
+
+### Admin - Notification Delivery Monitoring (4 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/notification-delivery/logs` | List notification delivery logs | Authenticated |
+| GET | `/api/v1/admin/notification-delivery/logs/{id}` | Fetch notification delivery log detail | Authenticated |
+| POST | `/api/v1/admin/notification-delivery/logs/{id}/retry` | Retry notification delivery | Authenticated |
+| GET | `/api/v1/admin/notification-delivery/stats` | Fetch notification delivery stats | Authenticated |
 
 ### Admin - Promotional Offers Management (10 APIs)
 
@@ -423,7 +437,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-19 12:26 PKT.
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
 | DELETE | `/api/v1/auth/sessions/{id}` | Delete Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
-| POST | `/api/v1/auth/verify-reset-otp` | Create Auth Verify Reset Otp | PUBLIC |
+| POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
 
 ### Auth - Login Attempts (3 APIs)
 
@@ -555,7 +569,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-19 12:26 PKT.
 | DELETE | `/api/v1/auth/sessions/{id}` | Delete Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/users/register` | Create Auth Users Register | PUBLIC |
 | POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
-| POST | `/api/v1/auth/verify-reset-otp` | Create Auth Verify Reset Otp | PUBLIC |
+| POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
 
 ### Chat - Unified Threads (11 APIs)
 
@@ -804,7 +818,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-19 12:26 PKT.
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
 | DELETE | `/api/v1/auth/sessions/{id}` | Delete Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
-| POST | `/api/v1/auth/verify-reset-otp` | Create Auth Verify Reset Otp | PUBLIC |
+| POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
 
 ### Customer - Provider Reports (4 APIs)
 

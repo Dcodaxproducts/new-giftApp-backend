@@ -1,15 +1,16 @@
-import json
-import html
-from pathlib import Path
 from datetime import datetime
+import html
+import json
+from pathlib import Path
+
 from weasyprint import HTML
 
-ROOT = Path('/opt/projects/new-giftApp-backend-clean')
+ROOT = Path(__file__).resolve().parents[2]
 openapi_path = ROOT / 'docs/generated/openapi.json'
 out_dir = ROOT / 'docs/generated'
-md_path = out_dir / 'gift-app-full-api-reference.md'
-html_path = out_dir / 'gift-app-full-api-reference.html'
-pdf_path = out_dir / 'gift-app-full-api-reference.pdf'
+md_path = out_dir / 'api-reference.md'
+html_path = out_dir / 'api-reference.html'
+pdf_path = out_dir / 'api-reference.pdf'
 
 spec = json.loads(openapi_path.read_text())
 components = spec.get('components', {}).get('schemas', {})
@@ -173,11 +174,18 @@ for tag in spec.get('tags', []):
         sections.append((tag_name, ops))
 
 generated_at = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+generated_notice_md = [
+    'Generated from docs/generated/openapi.json',
+    f'Generated at: {generated_at}',
+    'Do not edit manually.',
+    'Run: npm run docs:generate',
+]
+generated_notice_html = '<div class="generated-notice">' + '<br>'.join(html.escape(line) for line in generated_notice_md) + '</div>'
 
 md = []
-md.append('# Gift App Backend — Full API Reference')
+md.extend(generated_notice_md)
 md.append('')
-md.append(f'Generated: {generated_at}')
+md.append('# Gift App Backend — Full API Reference')
 md.append('')
 md.append('This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.')
 md.append('')
@@ -188,8 +196,9 @@ md.append('')
 
 html_parts = []
 html_parts.append('<html><head><meta charset="utf-8"><style>')
-html_parts.append('body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }')
+html_parts.append('body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }')
 html_parts.append('</style></head><body>')
+html_parts.append(generated_notice_html)
 html_parts.append(f'<h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: {html.escape(generated_at)}</div>')
 html_parts.append('<p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p>')
 

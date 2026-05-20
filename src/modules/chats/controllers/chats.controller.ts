@@ -8,7 +8,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { ChatCoreService } from '../services/chat-core.service';
 import { CreateChatThreadDto, ListChatsDto, ListThreadMessagesDto, SendChatThreadMessageDto, UpdateChatThreadStatusDto } from '../dto/chats.dto';
 
-@ApiTags('08 Chat - Threads')
+@ApiTags('08 Chat - Unified Threads')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.REGISTERED_USER, UserRole.PROVIDER, UserRole.SUPER_ADMIN, UserRole.ADMIN)

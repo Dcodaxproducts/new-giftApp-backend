@@ -49,6 +49,6 @@ describe('Chat internal cleanup static guards', () => {
     ]) {
       expect(main).not.toContain(forbidden);
     }
-    expect(main).toContain("'08 Chat - Threads'");
+    expect(main).toContain("'08 Chat - Unified Threads'");
   });
 });

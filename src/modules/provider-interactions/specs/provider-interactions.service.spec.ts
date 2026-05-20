@@ -19,7 +19,7 @@ describe('Provider Reviews module', () => {
     expect(moduleFile).not.toContain('ProviderInteractionsRepository');
     expect(existsSync(join(__dirname, '../repositories/provider-buyer-chat.repository.ts'))).toBe(false);
     expect(controller).not.toContain("@ApiTags('03 Provider - Buyer Chat')");
-    expect(chatsController).toContain("@ApiTags('08 Chat - Threads')");
+    expect(chatsController).toContain("@ApiTags('08 Chat - Unified Threads')");
     expect(controller).toContain("@ApiTags('03 Provider - Reviews')");
     expect(main).not.toContain("'03 Provider - Buyer Chat'");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');

@@ -1,12 +1,13 @@
 import json
 import re
 from collections import defaultdict
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime
 from html import escape
+from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
-openapi = json.loads((ROOT / "openapi.json").read_text())
+ROOT = Path(__file__).resolve().parents[2]
+generated_dir = ROOT / "docs/generated"
+openapi = json.loads((generated_dir / "openapi.json").read_text())
 paths = openapi.get("paths", {})
 
 HTTP_ORDER = {"get": 0, "post": 1, "patch": 2, "put": 3, "delete": 4}
@@ -108,9 +109,19 @@ li { margin: 3px 0; }
 .small { color:#64748b; font-size:9px; }
 """
 
+generated_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+generated_notice = [
+    "Generated from docs/generated/openapi.json",
+    f"Generated at: {generated_at}",
+    "Do not edit manually.",
+    "Run: npm run docs:generate",
+]
+generated_notice_html = "<div class='notice'>" + "<br>".join(escape(line) for line in generated_notice) + "</div>"
+
 html = ["<!doctype html><html><head><meta charset='utf-8'><title>Gift App Frontend Developer API Guide</title><style>", css, "</style></head><body>"]
+html.append(generated_notice_html)
 html.append("<h1>Gift App Backend — Frontend Developer API Guide</h1>")
-html.append(f"<p class='meta'>Generated from <code>docs/generated/openapi.json</code> ({len(paths)} paths / {sum(len(v) for v in paths.values())} operations) on {datetime.now().strftime('%Y-%m-%d %H:%M PKT')}.</p>")
+html.append(f"<p class='meta'>Generated from <code>docs/generated/openapi.json</code> ({len(paths)} paths / {sum(len(v) for v in paths.values())} operations) on {generated_at}.</p>")
 html.append("<div class='notice'><b>How to use this guide:</b> Each section is grouped module-by-module. Purposes are intentionally one line for fast frontend planning. Use Swagger/OpenAPI for request/response schemas and examples.</div>")
 
 
@@ -205,15 +216,16 @@ html.append("""
 """)
 html.append("</body></html>")
 
-html_path = ROOT / "gift-app-frontend-developer-api-guide.html"
-pdf_path = ROOT / "gift-app-frontend-developer-api-guide.pdf"
-md_path = ROOT / "gift-app-frontend-developer-api-guide.md"
+html_path = generated_dir / "frontend-api-guide.html"
+pdf_path = generated_dir / "frontend-api-guide.pdf"
+md_path = generated_dir / "frontend-api-guide.md"
 html_text = "".join(html)
 html_path.write_text(html_text)
 
 # Markdown companion for quick text review.
-md = ["# Gift App Backend — Frontend Developer API Guide\n\n"]
-md.append(f"Generated from `docs/generated/openapi.json` on {datetime.now().strftime('%Y-%m-%d %H:%M PKT')}.\n\n")
+md = [f"{line}\n" for line in generated_notice]
+md.append("\n# Gift App Backend — Frontend Developer API Guide\n\n")
+md.append(f"Generated from `docs/generated/openapi.json` on {generated_at}.\n\n")
 md.append("## Frontend Integration Flows\n\n")
 md.append("- **Auth flows:** login/register, token refresh, sessions, profile, password reset, and guest session creation.\n")
 md.append("- **Guest flows:** use guest session + guest marketplace APIs under `05 Customer / Guest - Marketplace`; guest users can browse configured marketplace surfaces only.\n")

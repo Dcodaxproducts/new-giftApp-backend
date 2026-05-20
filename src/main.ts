@@ -24,6 +24,7 @@ export const SWAGGER_TAG_ORDER = [
   '02 Admin - Message Moderation',
   '02 Admin - Social Moderation',
   '02 Admin - Social Reporting Rules',
+  '02 Admin - Notification Delivery Monitoring',
   '02 Admin - Referral Settings',
   '02 Admin - Refund Policy Settings',
   '02 Admin - Media Upload Policy',
@@ -75,7 +76,7 @@ export const SWAGGER_TAG_ORDER = [
   '06 Broadcast Notifications',
   '07 Plans & Coupons',
   '07 Storage',
-  '08 Chat - Threads',
+  '08 Chat - Unified Threads',
 ] as const;
 
 function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
@@ -163,14 +164,13 @@ async function bootstrap(): Promise<void> {
           '02 Admin - Message Moderation',
           '02 Admin - Social Moderation',
           '02 Admin - Social Reporting Rules',
-  '02 Admin - Social Moderation',
-  '02 Admin - Social Reporting Rules',
+          '02 Admin - Notification Delivery Monitoring',
           '02 Admin - Referral Settings',
           '02 Admin - Refund Policy Settings',
           '02 Admin - Media Upload Policy',
           '02 Admin - System Settings',
           '02 Admin - Guest Access Settings',
-  '02 Admin - System Logs & Audit Trail',
+          '02 Admin - System Logs & Audit Trail',
           '02 Admin - Dispute Manager',
           '02 Admin - Dispute Evidence',
           '02 Admin - Dispute Linkage',
@@ -216,7 +216,7 @@ async function bootstrap(): Promise<void> {
           '06 Broadcast Notifications',
           '07 Plans & Coupons',
           '07 Storage',
-          '08 Chat - Threads',
+          '08 Chat - Unified Threads',
         ];
         const left = tagOrder.indexOf(a);
         const right = tagOrder.indexOf(b);

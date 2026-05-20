@@ -289,7 +289,7 @@
     },
     "/api/v1/auth/resend-verification-email": {
       "post": {
-        "description": "Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.",
+        "description": "Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.",
         "operationId": "AuthController_resendVerificationEmail",
         "parameters": [],
         "requestBody": {
@@ -310,8 +310,11 @@
                 "schema": {
                   "example": {
                     "success": true,
-                    "data": null,
-                    "message": "If the email is registered and unverified, a verification email has been sent."
+                    "data": {
+                      "delivery": "OTP_SENT_IF_ELIGIBLE",
+                      "nextStep": "Use the 6-digit verification OTP to complete email verification."
+                    },
+                    "message": "If the email is registered and unverified, a 6-digit verification OTP has been sent."
                   }
                 }
               }
@@ -356,6 +359,7 @@
     },
     "/api/v1/auth/verify-reset-otp": {
       "post": {
+        "description": "Access: PUBLIC. PUBLIC. PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.",
         "operationId": "AuthController_verifyResetOtp",
         "parameters": [],
         "requestBody": {
@@ -370,16 +374,29 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "purpose": "EMAIL_VERIFICATION",
+                      "emailVerified": true
+                    },
+                    "message": "Email verified successfully"
+                  }
+                }
+              }
+            }
           }
         },
+        "summary": "Verify public OTP for password reset or unverified email flow",
         "tags": [
           "01 Auth"
         ],
-        "summary": "Create Auth Verify Reset Otp",
         "x-allowed-roles": "PUBLIC",
-        "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/auth/reset-password": {
@@ -2507,6 +2524,199 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
         "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
+    "/api/v1/admin/notification-delivery/stats": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.",
+        "operationId": "NotificationDeliveryMonitoringController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "total": 12,
+                      "queued": 0,
+                      "delivered": 10,
+                      "failed": 1,
+                      "skipped": 1,
+                      "retried": 2
+                    },
+                    "message": "Notification delivery stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch notification delivery stats",
+        "tags": [
+          "02 Admin - Notification Delivery Monitoring"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/notification-delivery/logs": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.",
+        "operationId": "NotificationDeliveryMonitoringController_logs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "QUEUED",
+                "DELIVERED",
+                "FAILED",
+                "SKIPPED",
+                "RETRIED"
+              ]
+            }
+          },
+          {
+            "name": "recipientType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "PROVIDER",
+                "REGISTERED_USER"
+              ]
+            }
+          },
+          {
+            "name": "notificationType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "REGISTERED_USER_ORDER_PLACED",
+              "type": "string"
+            }
+          },
+          {
+            "name": "recipientId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "user_id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List notification delivery logs",
+        "tags": [
+          "02 Admin - Notification Delivery Monitoring"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/notification-delivery/logs/{id}": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.read.",
+        "operationId": "NotificationDeliveryMonitoringController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch notification delivery log detail",
+        "tags": [
+          "02 Admin - Notification Delivery Monitoring"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/notification-delivery/logs/{id}/retry": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with notifications.delivery.retry. Retries non-IN_APP delivery channels without duplicating the existing in-app notification.",
+        "operationId": "NotificationDeliveryMonitoringController_retry",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retry notification delivery",
+        "tags": [
+          "02 Admin - Notification Delivery Monitoring"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/referral-settings": {
@@ -25475,6 +25685,9 @@
     },
     {
       "name": "02 Admin - Social Reporting Rules"
+    },
+    {
+      "name": "02 Admin - Notification Delivery Monitoring"
     },
     {
       "name": "02 Admin - Referral Settings"

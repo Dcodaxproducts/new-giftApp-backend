@@ -17,7 +17,12 @@
     "postinstall": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:validate": "prisma validate",
-    "docs:generate": "DATABASE_URL='postgresql://user:pass@127.0.0.1:5432/giftapp' JWT_ACCESS_SECRET='dev-docs-secret' JWT_SECRET='dev-docs-secret' node docs/generated/generate_openapi.js && python3 docs/generated/generate_full_api_pdf.py && python3 docs/generated/frontend_guide_pdf.py"
+    "docs:generate": "npm run docs:clean && npm run docs:openapi && npm run docs:reference && npm run docs:frontend",
+    "docs:clean": "rm -rf docs/generated && mkdir -p docs/generated",
+    "docs:openapi": "DATABASE_URL='postgresql://user:pass@127.0.0.1:5432/giftapp' JWT_ACCESS_SECRET='dev-docs-secret' JWT_SECRET='dev-docs-secret' node scripts/docs/generate-openapi.js",
+    "docs:reference": "python3 scripts/docs/generate-api-reference.py",
+    "docs:frontend": "python3 scripts/docs/generate-frontend-guide.py",
+    "docs:assert": "node scripts/docs/assert-generated-docs-current.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1042.0",
