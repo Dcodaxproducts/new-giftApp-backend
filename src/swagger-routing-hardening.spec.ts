@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createSwaggerTagsSorter, SWAGGER_TAG_ORDER } from './main';
 
 function expectBefore(source: string, first: string, second: string): void {
   expect(source.indexOf(first)).toBeGreaterThanOrEqual(0);
@@ -17,6 +18,18 @@ describe('Swagger and static route hardening', () => {
     expectBefore(main, "'01 Auth'", "'01 Auth - Login Attempts'");
     expect(main).toContain('tagsSorter');
     expect(main).toContain('document.tags = SWAGGER_TAG_ORDER.map');
+  });
+
+  it('generates browser-safe Swagger tag sorter from the single tag order source', () => {
+    const main = readFileSync(join(root, 'src/main.ts'), 'utf8');
+    const sorter = createSwaggerTagsSorter(SWAGGER_TAG_ORDER);
+
+    expect((main.match(/'08 Chat - Unified Threads'/g) ?? [])).toHaveLength(1);
+    expect(sorter('01 Auth', '05 Customer / Guest - Marketplace')).toBeLessThan(0);
+    expect(sorter('ZZ Unknown', '01 Auth')).toBeGreaterThan(0);
+    expect(sorter('ZZ Beta', 'ZZ Alpha')).toBeGreaterThan(0);
+    expect(sorter.toString()).not.toContain('SWAGGER_TAG_ORDER');
+    expect(sorter.toString()).not.toContain('exports.');
   });
 
   it('root public routes are excluded from api prefix and Swagger docs still mount at /docs', () => {

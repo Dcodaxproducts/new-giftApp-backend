@@ -83,6 +83,32 @@ function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
   return SWAGGER_TAG_ORDER.reduce((current, tag) => current.addTag(tag), builder);
 }
 
+function compareSwaggerTags(tagOrder: readonly string[], a: string, b: string): number {
+  const left = tagOrder.indexOf(a);
+  const right = tagOrder.indexOf(b);
+  if (left === -1 && right === -1) return a.localeCompare(b);
+  if (left === -1) return 1;
+  if (right === -1) return -1;
+  return left - right;
+}
+
+export function createSwaggerTagsSorter(tagOrder: readonly string[]): (a: string, b: string) => number {
+  const tagOrderJson = JSON.stringify(tagOrder);
+  const sorter = (a: string, b: string): number => compareSwaggerTags(tagOrder, a, b);
+  Object.defineProperty(sorter, 'toString', {
+    value: () => `function tagsSorter(a, b) {
+      const tagOrder = ${tagOrderJson};
+      const left = tagOrder.indexOf(a);
+      const right = tagOrder.indexOf(b);
+      if (left === -1 && right === -1) return a.localeCompare(b);
+      if (left === -1) return 1;
+      if (right === -1) return -1;
+      return left - right;
+    }`,
+  });
+  return sorter;
+}
+
 function humanizePathSummary(method: string, path: string): string {
   const clean = path.replace(/^\/api\/v1\//, '');
   const segments = clean.split('/').filter(Boolean).filter((segment) => !segment.startsWith('{'));
@@ -144,87 +170,7 @@ async function bootstrap(): Promise<void> {
   document.tags = SWAGGER_TAG_ORDER.map((name) => ({ name }));
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
-      tagsSorter: (a: string, b: string) => {
-        // Keep this array local to the browser-executed function. Swagger UI serializes
-        // sorter functions into swagger-ui-init.js, so referencing exported server-side
-        // constants compiles to CommonJS `exports.*` and crashes in the browser.
-        const tagOrder = [
-          '01 Auth',
-          '01 Auth - Login Attempts',
-          '02 Admin - Staff Management',
-          '02 Admin - Roles & Permissions',
-          '02 Admin - User Management',
-          '02 Admin - Provider Management',
-          '02 Admin - Provider Business Categories',
-          '02 Admin - Promotional Offers Management',
-          '02 Admin - Dashboard Overview',
-          '02 Admin - Commission & Payout Settings',
-          '02 Admin - Provider Payouts',
-          '02 Admin - Transaction Monitoring',
-          '02 Admin - Message Moderation',
-          '02 Admin - Social Moderation',
-          '02 Admin - Social Reporting Rules',
-          '02 Admin - Notification Delivery Monitoring',
-          '02 Admin - Referral Settings',
-          '02 Admin - Refund Policy Settings',
-          '02 Admin - Media Upload Policy',
-          '02 Admin - System Settings',
-          '02 Admin - Guest Access Settings',
-          '02 Admin - System Logs & Audit Trail',
-          '02 Admin - Dispute Manager',
-          '02 Admin - Dispute Evidence',
-          '02 Admin - Dispute Linkage',
-          '02 Admin - Dispute Decisions',
-          '02 Admin - Dispute Tracking',
-          '02 Admin - Provider Dispute Manager',
-          '02 Admin - Provider Dispute Evidence',
-          '02 Admin - Provider Dispute Rulings',
-          '02 Admin - Provider Financial Adjustments',
-          '02 Admin - Provider Dispute Resolution',
-          '02 Admin - Provider Dispute Logs',
-          '03 Provider - Dashboard',
-          '03 Provider - Earnings',
-          '03 Provider - Business Info',
-          '03 Provider - Reviews',
-          '03 Provider - Inventory',
-          '03 Provider - Promotional Offers',
-          '03 Provider - Orders',
-          '03 Provider - Payout Methods',
-          '03 Provider - Payouts',
-          '03 Provider - Refund Requests',
-          '03 Provider - Order Analytics',
-          '04 Gifts - Categories',
-          '04 Gifts - Management',
-          '04 Gifts - Moderation',
-          '05 Customer / Guest - Marketplace',
-          '05 Customer - Wishlist',
-          '05 Customer - Addresses',
-          '05 Customer - Contacts',
-          '05 Customer - Events',
-          '05 Customer - Cart',
-          '05 Customer - Orders',
-          '05 Customer - Reviews',
-          '05 Customer - Provider Reports',
-          '05 Customer - Recurring Payments',
-          '05 Customer - Transactions',
-          '05 Customer - Referrals & Rewards',
-          '05 Customer - Subscriptions',
-          '05 Customer - Wallet',
-          '05 Customer - Payment Methods',
-          '06 Payments',
-          '06 Notifications',
-          '06 Broadcast Notifications',
-          '07 Plans & Coupons',
-          '07 Storage',
-          '08 Chat - Unified Threads',
-        ];
-        const left = tagOrder.indexOf(a);
-        const right = tagOrder.indexOf(b);
-        if (left === -1 && right === -1) return a.localeCompare(b);
-        if (left === -1) return 1;
-        if (right === -1) return -1;
-        return left - right;
-      },
+      tagsSorter: createSwaggerTagsSorter(SWAGGER_TAG_ORDER),
       operationsSorter: 'method',
     },
   });
