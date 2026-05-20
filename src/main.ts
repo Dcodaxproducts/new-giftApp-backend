@@ -75,7 +75,7 @@ export const SWAGGER_TAG_ORDER = [
   '06 Broadcast Notifications',
   '07 Plans & Coupons',
   '07 Storage',
-  '08 Chat - Unified Threads',
+  '08 Chat - Threads',
 ] as const;
 
 function applySwaggerTags(builder: DocumentBuilder): DocumentBuilder {
@@ -216,7 +216,7 @@ async function bootstrap(): Promise<void> {
           '06 Broadcast Notifications',
           '07 Plans & Coupons',
           '07 Storage',
-          '08 Chat - Unified Threads',
+          '08 Chat - Threads',
         ];
         const left = tagOrder.indexOf(a);
         const right = tagOrder.indexOf(b);

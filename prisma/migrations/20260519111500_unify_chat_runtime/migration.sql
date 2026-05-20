@@ -1,8 +1,19 @@
 -- Unify all chat runtime persistence behind ChatThread/ChatMessage.
-CREATE TYPE "ChatThreadType" AS ENUM ('ORDER_CHAT', 'SUPPORT_CHAT', 'MODERATION_REVIEW');
-CREATE TYPE "ChatSourceType" AS ENUM ('CUSTOMER_ORDER', 'PROVIDER_ORDER', 'SUPPORT', 'MESSAGE_MODERATION');
-CREATE TYPE "ChatThreadStatus" AS ENUM ('OPEN', 'ACTIVE', 'RESOLVED', 'REOPENED', 'ARCHIVED', 'BLOCKED_BY_MODERATION');
-CREATE TYPE "ChatParticipantRole" AS ENUM ('REGISTERED_USER', 'PROVIDER', 'ADMIN', 'SUPER_ADMIN', 'SYSTEM');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatThreadType') THEN
+    CREATE TYPE "ChatThreadType" AS ENUM ('ORDER_CHAT', 'SUPPORT_CHAT', 'MODERATION_REVIEW');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatSourceType') THEN
+    CREATE TYPE "ChatSourceType" AS ENUM ('CUSTOMER_ORDER', 'PROVIDER_ORDER', 'SUPPORT', 'MESSAGE_MODERATION');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatThreadStatus') THEN
+    CREATE TYPE "ChatThreadStatus" AS ENUM ('OPEN', 'ACTIVE', 'RESOLVED', 'REOPENED', 'ARCHIVED', 'BLOCKED_BY_MODERATION');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatParticipantRole') THEN
+    CREATE TYPE "ChatParticipantRole" AS ENUM ('REGISTERED_USER', 'PROVIDER', 'ADMIN', 'SUPER_ADMIN', 'SYSTEM');
+  END IF;
+END $$;
 
 ALTER TYPE "ChatSenderType" ADD VALUE IF NOT EXISTS 'PARTICIPANT';
 ALTER TYPE "ChatSenderType" ADD VALUE IF NOT EXISTS 'SYSTEM';
@@ -70,33 +81,51 @@ INSERT INTO "chat_participants" ("id", "thread_id", "user_id", "role", "updated_
 SELECT gen_random_uuid()::text, "id", "provider_id", 'PROVIDER', CURRENT_TIMESTAMP FROM "chat_threads" WHERE "provider_id" IS NOT NULL
 ON CONFLICT DO NOTHING;
 
-INSERT INTO "chat_threads" ("id", "thread_type", "source_type", "source_id", "subject", "status", "provider_id", "customer_id", "assigned_admin_id", "resolved_by_id", "resolved_at", "last_message_at", "created_at", "updated_at", "last_message_id")
-SELECT sc."id", 'SUPPORT_CHAT', 'SUPPORT', sc."id", sc."subject",
-  CASE WHEN sc."status" = 'RESOLVED' THEN 'RESOLVED'::"ChatThreadStatus" WHEN sc."status" = 'OPEN' THEN 'OPEN'::"ChatThreadStatus" ELSE 'ACTIVE'::"ChatThreadStatus" END,
-  CASE WHEN sc."participant_type" = 'PROVIDER' THEN sc."participant_id" ELSE NULL END,
-  CASE WHEN sc."participant_type" = 'REGISTERED_USER' THEN sc."participant_id" ELSE NULL END,
-  sc."assigned_admin_id", sc."resolved_by_id", sc."resolved_at", sc."last_message_at", sc."created_at", sc."updated_at", NULL
-FROM "support_chats" sc
-WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'support_chats')
-ON CONFLICT ("id") DO NOTHING;
+DO $$
+BEGIN
+  IF to_regclass('public.support_chats') IS NOT NULL THEN
+    EXECUTE $sql$
+      INSERT INTO "chat_threads" ("id", "thread_type", "source_type", "source_id", "subject", "status", "provider_id", "customer_id", "assigned_admin_id", "resolved_by_id", "resolved_at", "last_message_at", "created_at", "updated_at", "last_message_id")
+      SELECT sc."id", 'SUPPORT_CHAT', 'SUPPORT', sc."id", sc."subject",
+        CASE WHEN sc."status" = 'RESOLVED' THEN 'RESOLVED'::"ChatThreadStatus" WHEN sc."status" = 'OPEN' THEN 'OPEN'::"ChatThreadStatus" ELSE 'ACTIVE'::"ChatThreadStatus" END,
+        CASE WHEN sc."participant_type" = 'PROVIDER' THEN sc."participant_id" ELSE NULL END,
+        CASE WHEN sc."participant_type" = 'REGISTERED_USER' THEN sc."participant_id" ELSE NULL END,
+        sc."assigned_admin_id", sc."resolved_by_id", sc."resolved_at", sc."last_message_at", sc."created_at", sc."updated_at", NULL
+      FROM "support_chats" sc
+      ON CONFLICT ("id") DO NOTHING
+    $sql$;
 
-INSERT INTO "chat_messages" ("id", "thread_id", "sender_id", "sender_type", "client_message_id", "message_type", "body", "attachment_urls_json", "visibility_status", "hidden_by_moderation", "hidden_at", "hidden_by_admin_id", "created_at")
-SELECT scm."id", scm."support_chat_id", scm."sender_id",
-  CASE WHEN scm."sender_type" = 'ADMIN' THEN 'ADMIN'::"ChatSenderType" ELSE 'PARTICIPANT'::"ChatSenderType" END,
-  scm."client_message_id", scm."message_type", scm."body", scm."attachment_urls_json", scm."visibility_status", scm."hidden_by_moderation", scm."hidden_at", scm."hidden_by_admin_id", scm."created_at"
-FROM "support_chat_messages" scm
-WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'support_chat_messages')
-ON CONFLICT DO NOTHING;
+    EXECUTE $sql$
+      INSERT INTO "chat_participants" ("id", "thread_id", "user_id", "role", "updated_at")
+      SELECT gen_random_uuid()::text, sc."id", sc."participant_id", sc."participant_type"::text::"ChatParticipantRole", CURRENT_TIMESTAMP FROM "support_chats" sc
+      ON CONFLICT DO NOTHING
+    $sql$;
 
-INSERT INTO "chat_participants" ("id", "thread_id", "user_id", "role", "updated_at")
-SELECT gen_random_uuid()::text, sc."id", sc."participant_id", sc."participant_type"::text::"ChatParticipantRole", CURRENT_TIMESTAMP FROM "support_chats" sc
-WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'support_chats')
-ON CONFLICT DO NOTHING;
-INSERT INTO "chat_participants" ("id", "thread_id", "user_id", "role", "updated_at")
-SELECT gen_random_uuid()::text, sc."id", sc."assigned_admin_id", 'ADMIN', CURRENT_TIMESTAMP FROM "support_chats" sc WHERE sc."assigned_admin_id" IS NOT NULL
-ON CONFLICT DO NOTHING;
+    EXECUTE $sql$
+      INSERT INTO "chat_participants" ("id", "thread_id", "user_id", "role", "updated_at")
+      SELECT gen_random_uuid()::text, sc."id", sc."assigned_admin_id", 'ADMIN', CURRENT_TIMESTAMP FROM "support_chats" sc WHERE sc."assigned_admin_id" IS NOT NULL
+      ON CONFLICT DO NOTHING
+    $sql$;
 
-UPDATE "chat_threads" ct SET "last_message_id" = sc."last_message_id" FROM "support_chats" sc WHERE ct."id" = sc."id" AND sc."last_message_id" IS NOT NULL;
+    EXECUTE $sql$
+      UPDATE "chat_threads" ct SET "last_message_id" = sc."last_message_id" FROM "support_chats" sc WHERE ct."id" = sc."id" AND sc."last_message_id" IS NOT NULL
+    $sql$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.support_chat_messages') IS NOT NULL THEN
+    EXECUTE $sql$
+      INSERT INTO "chat_messages" ("id", "thread_id", "sender_id", "sender_type", "client_message_id", "message_type", "body", "attachment_urls_json", "visibility_status", "hidden_by_moderation", "hidden_at", "hidden_by_admin_id", "created_at")
+      SELECT scm."id", scm."support_chat_id", scm."sender_id",
+        CASE WHEN scm."sender_type" = 'ADMIN' THEN 'ADMIN'::"ChatSenderType" ELSE 'PARTICIPANT'::"ChatSenderType" END,
+        scm."client_message_id", scm."message_type"::text::"ChatMessageType", scm."body", scm."attachment_urls_json", scm."visibility_status"::text::"MessageVisibilityStatus", scm."hidden_by_moderation", scm."hidden_at", scm."hidden_by_admin_id", scm."created_at"
+      FROM "support_chat_messages" scm
+      ON CONFLICT DO NOTHING
+    $sql$;
+  END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "chat_participants_thread_id_user_id_key" ON "chat_participants"("thread_id", "user_id");
 CREATE INDEX IF NOT EXISTS "chat_participants_user_id_updated_at_idx" ON "chat_participants"("user_id", "updated_at");
@@ -111,18 +140,21 @@ CREATE INDEX IF NOT EXISTS "chat_threads_thread_type_status_updated_at_idx" ON "
 CREATE INDEX IF NOT EXISTS "chat_threads_source_type_source_id_idx" ON "chat_threads"("source_type", "source_id");
 CREATE INDEX IF NOT EXISTS "chat_threads_assigned_admin_id_updated_at_idx" ON "chat_threads"("assigned_admin_id", "updated_at");
 
-ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_assigned_admin_id_fkey" FOREIGN KEY ("assigned_admin_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_resolved_by_id_fkey" FOREIGN KEY ("resolved_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_attachments" ADD CONSTRAINT "chat_attachments_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_attachments" ADD CONSTRAINT "chat_attachments_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "chat_audit_logs" ADD CONSTRAINT "chat_audit_logs_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "chat_audit_logs" ADD CONSTRAINT "chat_audit_logs_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "chat_audit_logs" ADD CONSTRAINT "chat_audit_logs_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_assigned_admin_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_assigned_admin_id_fkey" FOREIGN KEY ("assigned_admin_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_resolved_by_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_resolved_by_id_fkey" FOREIGN KEY ("resolved_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_participants_thread_id_fkey') THEN ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_participants_user_id_fkey') THEN ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_message_read_receipts_thread_id_fkey') THEN ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_message_read_receipts_message_id_fkey') THEN ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_message_read_receipts_user_id_fkey') THEN ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_attachments_thread_id_fkey') THEN ALTER TABLE "chat_attachments" ADD CONSTRAINT "chat_attachments_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_attachments_message_id_fkey') THEN ALTER TABLE "chat_attachments" ADD CONSTRAINT "chat_attachments_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_audit_logs_thread_id_fkey') THEN ALTER TABLE "chat_audit_logs" ADD CONSTRAINT "chat_audit_logs_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_audit_logs_message_id_fkey') THEN ALTER TABLE "chat_audit_logs" ADD CONSTRAINT "chat_audit_logs_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_audit_logs_actor_id_fkey') THEN ALTER TABLE "chat_audit_logs" ADD CONSTRAINT "chat_audit_logs_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+END $$;
 
 DROP TABLE IF EXISTS "support_chat_messages";
 DROP TABLE IF EXISTS "support_chats";
