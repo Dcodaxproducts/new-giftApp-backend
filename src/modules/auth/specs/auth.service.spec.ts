@@ -20,6 +20,10 @@ const resetUser = {
   firstName: 'Test',
   lastName: 'User',
   deletedAt: null,
+  isVerified: true,
+  verificationOtp: null,
+  verificationOtpExpiresAt: null,
+  verificationOtpAttempts: 0,
   resetPasswordOtp: '334018',
   resetPasswordOtpExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
   resetPasswordOtpAttempts: 0,
@@ -28,7 +32,14 @@ const resetUser = {
 
 type UserUpdateCall = [{
   where?: { id?: string };
-  data?: { resetPasswordOtp?: string | null; refreshTokenHash?: string | null };
+  data?: {
+    resetPasswordOtp?: string | null;
+    refreshTokenHash?: string | null;
+    isVerified?: boolean;
+    verificationOtp?: string | null;
+    verificationOtpExpiresAt?: Date | null;
+    verificationOtpAttempts?: number | { increment: number };
+  };
 }];
 
 function createResetService(user: unknown = resetUser, mailerRejects = false) {
@@ -94,12 +105,34 @@ describe('AuthService forgot/reset password', () => {
     expect(calls.some(([call]) => call.where?.id === 'user_1' && call.data?.resetPasswordOtp === null && call.data.refreshTokenHash === null)).toBe(true);
   });
 
-  it('verify-reset-otp pre-validates OTP without returning resetToken', async () => {
-    const { service } = createResetService();
+  it('verify-reset-otp pre-validates password reset OTP without returning resetToken', async () => {
+    const { service } = createResetService({ ...resetUser, isVerified: true });
 
     await expect(service.verifyResetOtp({ email: 'user@example.com', otp: '334018' })).resolves.toEqual({
+      data: { purpose: 'PASSWORD_RESET', emailVerified: true },
       message: 'OTP verified successfully',
     });
+  });
+
+  it('verify-reset-otp accepts resend verification OTP for unverified users and marks email verified', async () => {
+    const unverifiedUser = {
+      ...resetUser,
+      isVerified: false,
+      verificationOtp: '334018',
+      verificationOtpExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      verificationOtpAttempts: 0,
+      resetPasswordOtp: null,
+      resetPasswordOtpExpiresAt: null,
+    };
+    const { service, prisma } = createResetService(unverifiedUser);
+
+    await expect(service.verifyResetOtp({ email: 'user@example.com', otp: '334018' })).resolves.toEqual({
+      data: { purpose: 'EMAIL_VERIFICATION', emailVerified: true },
+      message: 'Email verified successfully',
+    });
+    const calls = prisma.user.update.mock.calls as UserUpdateCall[];
+    expect(calls.some(([call]) => call.where?.id === 'user_1' && call.data?.resetPasswordOtp === null)).toBe(false);
+    expect(calls.some(([call]) => call.where?.id === 'user_1' && 'isVerified' in (call.data ?? {}))).toBe(true);
   });
 
   it('reset-password rejects invalid OTP', async () => {
@@ -384,13 +417,16 @@ describe('AuthService sensitive auth behavior', () => {
     expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'EMAIL_NOT_VERIFIED', userId: 'user_1' }));
   });
 
-  it('resend verification email sends only for existing unverified users and returns generic success', async () => {
+  it('resend verification email sends only for existing unverified users and returns clear public success guidance', async () => {
     const user = authUser({ isVerified: false });
     const { service, prisma, mailerService, resendLimiter } = createSensitiveAuthService({ user });
 
     await expect(service.resendVerificationEmail({ email: 'USER@example.com' }, '127.0.0.1')).resolves.toEqual({
-      data: null,
-      message: 'If the email is registered and unverified, a verification email has been sent.',
+      data: {
+        delivery: 'OTP_SENT_IF_ELIGIBLE',
+        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+      },
+      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
     });
 
     expect(resendLimiter.assertAllowed).toHaveBeenCalledWith('USER@example.com', '127.0.0.1');
@@ -402,15 +438,21 @@ describe('AuthService sensitive auth behavior', () => {
   it('resend verification email does not reveal missing or already verified emails', async () => {
     const { service: missingService, mailerService: missingMailer } = createSensitiveAuthService({ user: null });
     await expect(missingService.resendVerificationEmail({ email: 'missing@example.com' })).resolves.toEqual({
-      data: null,
-      message: 'If the email is registered and unverified, a verification email has been sent.',
+      data: {
+        delivery: 'OTP_SENT_IF_ELIGIBLE',
+        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+      },
+      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
     });
     expect(missingMailer.sendVerificationEmail).not.toHaveBeenCalled();
 
     const { service: verifiedService, mailerService: verifiedMailer } = createSensitiveAuthService({ user: authUser({ isVerified: true }) });
     await expect(verifiedService.resendVerificationEmail({ email: 'user@example.com' })).resolves.toEqual({
-      data: null,
-      message: 'If the email is registered and unverified, a verification email has been sent.',
+      data: {
+        delivery: 'OTP_SENT_IF_ELIGIBLE',
+        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+      },
+      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
     });
     expect(verifiedMailer.sendVerificationEmail).not.toHaveBeenCalled();
   });

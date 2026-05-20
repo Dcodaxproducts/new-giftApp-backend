@@ -114,8 +114,8 @@ export class AuthController {
   }
 
   @Post('resend-verification-email')
-  @ApiOperation({ summary: 'Resend verification email for unverified login', description: 'Public endpoint. Always returns the same success message to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: null, message: 'If the email is registered and unverified, a verification email has been sent.' } } })
+  @ApiOperation({ summary: 'Resend verification email for unverified login', description: 'Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'OTP_SENT_IF_ELIGIBLE', nextStep: 'Use the 6-digit verification OTP to complete email verification.' }, message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.' } } })
   resendVerificationEmail(@Body() dto: ResendVerificationEmailDto, @Req() request: Request) {
     return this.authService.resendVerificationEmail(dto, request.ip);
   }
@@ -126,6 +126,8 @@ export class AuthController {
   }
 
   @Post('verify-reset-otp')
+  @ApiOperation({ summary: 'Verify public OTP for password reset or unverified email flow', description: 'PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { purpose: 'EMAIL_VERIFICATION', emailVerified: true }, message: 'Email verified successfully' } } })
   verifyResetOtp(@Body() dto: VerifyResetOtpDto) {
     return this.authService.verifyResetOtp(dto);
   }

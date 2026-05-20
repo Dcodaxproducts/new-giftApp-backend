@@ -375,8 +375,11 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     return {
-      data: null,
-      message: 'If the email is registered and unverified, a verification email has been sent.',
+      data: {
+        delivery: 'OTP_SENT_IF_ELIGIBLE',
+        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+      },
+      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
     };
   }
 
@@ -409,6 +412,28 @@ export class AuthCoreService implements OnModuleInit {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
+    if (!user.isVerified) {
+      if (user.verificationOtpAttempts >= 5) {
+        throw new BadRequestException('Too many invalid attempts. Request a new OTP.');
+      }
+
+      const verificationOtpValid =
+        user.verificationOtp === dto.otp &&
+        !!user.verificationOtpExpiresAt &&
+        user.verificationOtpExpiresAt.getTime() >= Date.now();
+
+      if (verificationOtpValid) {
+        await this.authPasswordRepository.markEmailVerified(user.id);
+        return {
+          data: { purpose: 'EMAIL_VERIFICATION', emailVerified: true },
+          message: 'Email verified successfully',
+        };
+      }
+
+      await this.authPasswordRepository.incrementVerificationOtpAttempts(user.id);
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
     if (user.resetPasswordOtpAttempts >= 5) {
       throw new BadRequestException('Too many invalid attempts. Request a new OTP.');
     }
@@ -424,6 +449,7 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     return {
+      data: { purpose: 'PASSWORD_RESET', emailVerified: user.isVerified },
       message: 'OTP verified successfully',
     };
   }
