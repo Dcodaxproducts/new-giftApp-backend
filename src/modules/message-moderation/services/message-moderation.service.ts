@@ -9,6 +9,7 @@ import { UserManagementService } from '../../user-management/services/user-manag
 import { BlockMessageDto, DismissFlagDto, EscalateMessageDto, InternalNoteDto, ListMessageModerationAuditLogsDto, ListMessageModerationDto, MessageModerationChatType, MessageModerationHistoryDto, MessageModerationQueueStatus, ModerationAll, ModerationSortBy, ReprocessMessageDto, RestoreMessageDto, ScannerMode, SortOrder, SuspendAccountDto, SuspensionScope, WarnUserDto } from '../dto/message-moderation.dto';
 import { MessageModerationRepository } from '../repositories/message-moderation.repository';
 import { MessageModerationScanner } from './message-moderation-scanner.service';
+import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
 
 type SourceMessageInput = { source: MessageModerationSource; conversationId: string; messageId: string; participantId: string; participantRole: string; participantName?: string | null; participantAvatarUrl?: string | null; externalReference?: string | null; senderId: string; senderRole: string; body?: string | null; createdAt?: Date; moderationHint?: ScanResult };
 type ScanResult = { isFlagged: boolean; flagTypes: MessageModerationFlagType[]; severity: MessageModerationSeverity; confidence: number; redactedBody: string; keywords: string[] };
@@ -23,6 +24,7 @@ export class MessageModerationService {
     private readonly userManagementService: UserManagementService,
     private readonly providerManagementService: ProviderManagementService,
     private readonly notificationDispatch: NotificationDispatchService,
+    private readonly reportingCore?: ReportingCoreService,
   ) {}
 
   async scanCreatedMessage(input: SourceMessageInput) {
@@ -154,7 +156,8 @@ export class MessageModerationService {
       await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.ESCALATE_MESSAGE, reason: dto.reason, actorId: user.uid, metadata: { escalationId, escalationType: dto.escalationType, priority: dto.priority, assignedToAdminId: dto.assignToAdminId } });
       await this.audit(tx, user.uid, moderationCase.id, 'MESSAGE_ESCALATED', messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: 'ESCALATED', escalationId });
     });
-    if (dto.notifyAssignedAdmin && dto.assignToAdminId) await this.notificationDispatch.createAndEmit({ recipientId: dto.assignToAdminId, recipientType: NotificationRecipientType.ADMIN, title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadataJson: { messageId, escalationId } });
+    await this.reportingCore?.lifecycleEvent({ domain: 'messageModeration', reportId: moderationCase.id, action: 'MESSAGE_ESCALATED', metadata: { messageId, escalationId, priority: dto.priority } });
+    if (dto.notifyAssignedAdmin && dto.assignToAdminId) { if (this.reportingCore) await this.reportingCore.notify({ recipientId: dto.assignToAdminId, recipientType: 'ADMIN', title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadata: { messageId, escalationId } }); else await this.notificationDispatch.createAndEmit({ recipientId: dto.assignToAdminId, recipientType: NotificationRecipientType.ADMIN, title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadataJson: { messageId, escalationId } }); }
     return { data: { messageId, escalationId, status: 'ESCALATED', assignedToAdminId: dto.assignToAdminId ?? null }, message: 'Message escalated successfully.' };
   }
 

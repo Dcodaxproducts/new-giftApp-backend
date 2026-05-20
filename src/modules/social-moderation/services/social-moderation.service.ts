@@ -5,6 +5,7 @@ import { AuditLogWriterService } from '../../../common/services/audit-log.servic
 import { SOCIAL_REPORT_INCLUDE, SocialModerationRepository } from '../repositories/social-moderation.repository';
 import { SocialReportingRulesRepository } from '../repositories/social-reporting-rules.repository';
 import { AllSocialReportReason, AllSocialReportStatus, AllSocialSeverity, CreateSocialReportingRuleDto, ExportFormat, ExportSocialReportsDto, ExportSocialRulesDto, ListSocialReportingRulesDto, ListSocialReportsDto, RuleSortBy, SocialModerationActionDto, SocialModerationStatsDto, SocialRange, SocialSortBy, SortOrder, UpdateSocialReportingRuleDto, UpdateSocialReportingRuleStatusDto } from '../dto/social-moderation.dto';
+import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
 
 type ReportView = Prisma.SocialReportGetPayload<{ include: typeof SOCIAL_REPORT_INCLUDE }>;
 type RuleView = Prisma.SocialReportingRuleGetPayload<object>;
@@ -12,7 +13,7 @@ type FileResult = { content: string; filename: string; contentType: string };
 
 @Injectable()
 export class SocialModerationService {
-  constructor(private readonly socialModerationRepository: SocialModerationRepository, private readonly socialReportingRulesRepository: SocialReportingRulesRepository, private readonly auditLog: AuditLogWriterService) {}
+  constructor(private readonly socialModerationRepository: SocialModerationRepository, private readonly socialReportingRulesRepository: SocialReportingRulesRepository, private readonly auditLog: AuditLogWriterService, private readonly reportingCore?: ReportingCoreService) {}
 
   async stats(query: SocialModerationStatsDto) {
     const where = this.dateWhere(query);
@@ -35,17 +36,17 @@ export class SocialModerationService {
   async action(user: AuthUserContext, id: string, dto: SocialModerationActionDto) {
     const report = await this.findReport(id); this.assertActionPermission(user, dto.action);
     const before = this.snapshot(report);
-    const status = this.statusForAction(dto.action);
+    const status = this.statusForAction(dto.action); await this.reportingCore?.lifecycleEvent({ domain: 'socialModeration', reportId: report.id, action: dto.action, metadata: { status } });
     const postData = this.postUpdateForAction(dto.action);
     const updated = await this.socialModerationRepository.runModerationAction(async (tx) => {
       const updatedPost = postData ? await this.socialModerationRepository.updateSocialPost(tx, report.postId, postData) : report.post;
       const updatedReport = await this.socialModerationRepository.updateSocialReportStatus(tx, report.id, status);
       await this.socialModerationRepository.createSocialModerationLog(tx, { socialReportId: report.id, postId: report.postId, actorId: user.uid, action: dto.action, reason: dto.reason, comment: dto.comment?.trim(), beforeJson: before, afterJson: { reportStatus: status, postStatus: updatedPost.status, postVisibility: updatedPost.visibility } });
       if (dto.action === SocialModerationAction.WARN_USER) await this.socialModerationRepository.createUserWarning(tx, { userId: report.post.userId, postId: report.postId, socialReportId: report.id, reason: dto.reason ?? report.reason, message: dto.comment?.trim() ?? 'Warning issued for community guideline violation.', issuedById: user.uid });
-      if (dto.notifyUser ?? (dto.action === SocialModerationAction.HIDE || dto.action === SocialModerationAction.REMOVE || dto.action === SocialModerationAction.WARN_USER)) await this.socialModerationRepository.createNotification(tx, { recipientId: report.post.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: this.notificationTitle(dto.action), message: dto.comment?.trim() ?? this.notificationTitle(dto.action), type: 'SOCIAL_MODERATION_ACTION', metadataJson: { socialReportId: report.id, postId: report.postId, action: dto.action } });
+      if (dto.notifyUser ?? (dto.action === SocialModerationAction.HIDE || dto.action === SocialModerationAction.REMOVE || dto.action === SocialModerationAction.WARN_USER)) { if (this.reportingCore) await this.reportingCore.notify({ recipientId: report.post.userId, recipientType: 'REGISTERED_USER', title: this.notificationTitle(dto.action), message: dto.comment?.trim() ?? this.notificationTitle(dto.action), type: 'SOCIAL_MODERATION_ACTION', metadata: { socialReportId: report.id, postId: report.postId, action: dto.action } }); else await this.socialModerationRepository.createNotification(tx, { recipientId: report.post.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: this.notificationTitle(dto.action), message: dto.comment?.trim() ?? this.notificationTitle(dto.action), type: 'SOCIAL_MODERATION_ACTION', metadataJson: { socialReportId: report.id, postId: report.postId, action: dto.action } }); }
       return { reportStatus: updatedReport.status, postStatus: updatedPost.status, postVisibility: updatedPost.visibility };
     });
-    await this.auditLog.write({ actorId: user.uid, targetId: report.id, targetType: 'SOCIAL_REPORT', action: `SOCIAL_MODERATION_${dto.action}`, module: 'Social Moderation', beforeJson: before, afterJson: { reportStatus: updated.reportStatus, postStatus: updated.postStatus, postVisibility: updated.postVisibility, reason: dto.reason } });
+    if (this.reportingCore) await this.reportingCore.audit({ actorId: user.uid, targetId: report.id, targetType: 'SOCIAL_REPORT', action: `SOCIAL_MODERATION_${dto.action}`, module: 'Social Moderation', beforeJson: before, afterJson: { reportStatus: updated.reportStatus, postStatus: updated.postStatus, postVisibility: updated.postVisibility, reason: dto.reason } }); else await this.auditLog.write({ actorId: user.uid, targetId: report.id, targetType: 'SOCIAL_REPORT', action: `SOCIAL_MODERATION_${dto.action}`, module: 'Social Moderation', beforeJson: before, afterJson: { reportStatus: updated.reportStatus, postStatus: updated.postStatus, postVisibility: updated.postVisibility, reason: dto.reason } });
     return { data: { id: report.id, postId: report.postId, action: dto.action, status: updated.reportStatus }, message: 'Social moderation action completed successfully.' };
   }
 

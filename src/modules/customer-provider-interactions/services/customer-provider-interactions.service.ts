@@ -6,6 +6,7 @@ import { CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, L
 import { CustomerProviderReportsRepository } from '../repositories/customer-provider-reports.repository';
 import { CustomerProviderInteractionsRepository } from '../repositories/customer-provider-interactions.repository';
 import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositories/customer-reviews.repository';
+import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
 
 type ProviderView = { id: string; providerBusinessName: string | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
@@ -16,6 +17,7 @@ export class CustomerProviderInteractionsService {
     private readonly customerProviderReportsRepository: CustomerProviderReportsRepository,
     private readonly customerProviderInteractionsRepository: CustomerProviderInteractionsRepository,
     private readonly customerReviewsRepository: CustomerReviewsRepository,
+    private readonly reportingCore?: ReportingCoreService,
   ) {}
 
   async submitReview(user: AuthUserContext, orderId: string, dto: CreateReviewDto) {
@@ -72,10 +74,13 @@ export class CustomerProviderInteractionsService {
     const provider = await this.customerProviderReportsRepository.findProviderById(providerId);
     if (!provider) throw new NotFoundException('Provider not found');
     await this.assertProviderRelationship(user.uid, providerId, dto.orderId);
+    const evidenceUrls = dto.evidenceUrls ?? [];
+    await this.reportingCore?.validateEvidence({ urls: evidenceUrls, folder: 'provider-report-evidence', findCompleted: (urls) => this.customerProviderReportsRepository.findCompletedUploadsByUrls(urls) });
     const duplicate = await this.customerProviderReportsRepository.findDuplicateActiveReport({ reporterUserId: user.uid, providerId, orderId: dto.orderId, reason: dto.reason });
     if (duplicate) throw new BadRequestException('An active report for this provider/order/reason already exists');
-    const report = await this.customerProviderReportsRepository.createProviderReport({ reporterUserId: user.uid, providerId, orderId: dto.orderId, reason: dto.reason, details: dto.details, evidenceUrlsJson: dto.evidenceUrls ?? [] });
-    await this.customerProviderReportsRepository.createCustomerReportNotification({ userId: user.uid, reportId: report.id, providerId });
+    const report = await this.customerProviderReportsRepository.createProviderReport({ reporterUserId: user.uid, providerId, orderId: dto.orderId, reason: dto.reason, details: dto.details, evidenceUrlsJson: evidenceUrls });
+    await this.reportingCore?.lifecycleEvent({ domain: 'providerReports', reportId: report.id, action: 'PROVIDER_REPORT_SUBMITTED', metadata: { providerId, reporterUserId: user.uid } });
+    await this.notifyReporter(user.uid, report.id, providerId);
     await this.notifyAdmins(report.id, providerId);
     return { data: { id: report.id, providerId: report.providerId, reason: report.reason, status: report.status, createdAt: report.createdAt }, message: 'Provider report submitted successfully.' };
   }
@@ -102,7 +107,8 @@ export class CustomerProviderInteractionsService {
   private reviewItem(review: { id: string; provider: { id: string; providerBusinessName: string | null; firstName: string; lastName: string }; order: { id: string; orderNumber: string }; rating: number; comment: string; status: ReviewStatus; response: { id: string; body: string; createdAt: Date } | null; createdAt: Date }) { return { id: review.id, provider: { id: review.provider.id, businessName: review.provider.providerBusinessName ?? `${review.provider.firstName} ${review.provider.lastName}`.trim() }, order: review.order, rating: review.rating, comment: review.comment, status: review.status, providerResponse: review.response, createdAt: review.createdAt }; }
   private reviewSummary(review: { id: string; rating: number; comment: string; status: ReviewStatus; providerId: string; orderId: string; createdAt: Date }) { return { id: review.id, rating: review.rating, comment: review.comment, status: review.status, providerId: review.providerId, orderId: review.orderId, createdAt: review.createdAt }; }
   private async assertProviderRelationship(customerId: string, providerId: string, orderId?: string): Promise<void> { const hasRelationship = await this.customerProviderReportsRepository.hasProviderRelationship(customerId, providerId, orderId); if (hasRelationship) return; throw new ForbiddenException('You can report only providers you have interacted with'); }
-  private async notifyAdmins(reportId: string, providerId: string): Promise<void> { const admins = await this.customerProviderReportsRepository.findActiveAdminRecipients(); if (!admins.length) return; await this.customerProviderReportsRepository.createAdminReportNotifications(admins, { reportId, providerId }); }
+  private async notifyReporter(userId: string, reportId: string, providerId: string): Promise<void> { if (this.reportingCore) await this.reportingCore.notify({ recipientId: userId, recipientType: 'REGISTERED_USER', title: 'Provider report submitted', message: 'Your provider report was submitted for review.', type: 'PROVIDER_REPORT', metadata: { reportId, providerId } }); else await this.customerProviderReportsRepository.createCustomerReportNotification({ userId, reportId, providerId }); }
+  private async notifyAdmins(reportId: string, providerId: string): Promise<void> { const admins = await this.customerProviderReportsRepository.findActiveAdminRecipients(); if (!admins.length) return; if (this.reportingCore) await this.reportingCore.notifyMany(admins.map((admin) => ({ recipientId: admin.id, recipientType: 'ADMIN', title: 'Provider report submitted', message: 'A customer submitted a provider report for review.', type: 'PROVIDER_REPORT_ADMIN', metadata: { reportId, providerId } }))); else await this.customerProviderReportsRepository.createAdminReportNotifications(admins, { reportId, providerId }); }
   private reportInclude() { return { provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } }, order: { select: { id: true, orderNumber: true } } } satisfies Prisma.ProviderReportInclude; }
   private reportItem(report: { id: string; providerId: string; reason: ProviderReportReason; details: string; evidenceUrlsJson: Prisma.JsonValue; status: ProviderReportStatus; createdAt: Date; provider: { id: string; providerBusinessName: string | null; firstName: string; lastName: string }; order: { id: string; orderNumber: string } | null }) { return { id: report.id, provider: { id: report.provider.id, businessName: report.provider.providerBusinessName ?? `${report.provider.firstName} ${report.provider.lastName}`.trim() }, order: report.order, reason: report.reason, details: report.details, evidenceUrls: this.stringArray(report.evidenceUrlsJson), status: report.status, createdAt: report.createdAt }; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }

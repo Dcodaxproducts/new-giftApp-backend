@@ -44,6 +44,7 @@ import { ProviderPayoutMethodsModule } from './modules/provider-payout-methods/p
 import { ProviderRefundRequestsModule } from './modules/provider-refund-requests/provider-refund-requests.module';
 import { RefundPolicySettingsModule } from './modules/refund-policy-settings/refund-policy-settings.module';
 import { ReferralSettingsModule } from './modules/referral-settings/referral-settings.module';
+import { ReportingCoreModule } from './modules/reporting-core/reporting-core.module';
 import { PromotionalOffersModule } from './modules/promotional-offers/promotional-offers.module';
 import { SocialModerationModule } from './modules/social-moderation/social-moderation.module';
 import { StorageModule } from './modules/storage/storage.module';
@@ -95,6 +96,7 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     SubscriptionPlansModule,
     MediaUploadPolicyModule,
     ReferralSettingsModule,
+    ReportingCoreModule,
     RefundPolicySettingsModule,
     LoginAttemptsModule,
     MessageModerationModule,

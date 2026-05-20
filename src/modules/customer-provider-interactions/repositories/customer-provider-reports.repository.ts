@@ -26,6 +26,10 @@ export class CustomerProviderReportsRepository {
     return this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Provider report submitted', message: 'Your provider report was submitted for review.', type: 'PROVIDER_REPORT', metadataJson: { reportId: params.reportId, providerId: params.providerId } })
   }
 
+  findCompletedUploadsByUrls(urls: string[]) {
+    return this.prisma.uploadedFile.findMany({ where: { fileUrl: { in: urls }, deletedAt: null, status: 'COMPLETED', folder: 'provider-report-evidence' }, select: { fileUrl: true } });
+  }
+
   findProviderReportsAndCount(params: { where: Prisma.ProviderReportWhereInput; include: Prisma.ProviderReportInclude; skip: number; take: number }) {
     return this.prisma.$transaction([
       this.prisma.providerReport.findMany({ where: params.where, include: params.include, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
