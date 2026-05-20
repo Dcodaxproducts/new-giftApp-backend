@@ -19,10 +19,7 @@ type GiftVariantUpdateData = Prisma.Args<GiftTx['giftVariant'], 'update'>['data'
 
 @Injectable()
 export class GiftManagementRepository {
-  private readonly notificationDispatch: NotificationDispatchService;
-  constructor(prisma: PrismaService);
-  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
-  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
+  constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findGiftCategories(params: { where: Prisma.GiftCategoryWhereInput; orderBy: Prisma.GiftCategoryOrderByWithRelationInput; skip: number; take: number }) {
     return this.prisma.giftCategory.findMany({ where: params.where, include: { _count: { select: { gifts: { where: { deletedAt: null } } } } }, orderBy: params.orderBy, skip: params.skip, take: params.take });

@@ -21,7 +21,7 @@ function createService() {
     $transaction: jest.fn(async (input: unknown): Promise<unknown> => typeof input === 'function' ? (input as (tx: typeof prisma) => Promise<unknown>)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  const socialModerationRepository = new SocialModerationRepository(prisma as never);
+  const socialModerationRepository = new SocialModerationRepository(prisma as never, { createAndEmit: jest.fn(), emitExisting: jest.fn() } as never);
   const socialReportingRulesRepository = new SocialReportingRulesRepository(prisma as never);
   return { service: new SocialModerationService(socialModerationRepository, socialReportingRulesRepository, auditLog as never), prisma, auditLog, socialModerationRepository, socialReportingRulesRepository };
 }

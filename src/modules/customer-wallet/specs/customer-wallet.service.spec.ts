@@ -29,8 +29,9 @@ function createService(overrides: Partial<{ wallet: unknown; ledgerRows: unknown
     notification: { create: jest.fn() },
     $transaction: jest.fn().mockImplementation((input: unknown) => Array.isArray(input) ? Promise.all(input as Promise<unknown>[]) : (input as (tx: unknown) => unknown)(prisma)),
   };
-  const repository = new CustomerWalletRepository(prisma as unknown as ConstructorParameters<typeof CustomerWalletRepository>[0]);
-  return { service: new CustomerWalletService(repository), prisma, repository };
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  const repository = new CustomerWalletRepository(prisma as unknown as ConstructorParameters<typeof CustomerWalletRepository>[0], notificationDispatch as never);
+  return { service: new CustomerWalletService(repository, notificationDispatch as never), prisma, repository, notificationDispatch };
 }
 
 function mockStripe(service: CustomerWalletService) {
@@ -156,7 +157,7 @@ describe('CustomerWalletService read APIs', () => {
     const repositorySource = readFileSync(join(__dirname, '../repositories/customer-wallet.repository.ts'), 'utf8');
     expect(serviceSource).not.toContain('PrismaService');
     expect(serviceSource).not.toContain('this.prisma');
-    expect(repositorySource).toContain('constructor(prisma: PrismaService)');
+    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService');
     expect(repositorySource).toContain('createCustomerNotification');
   });
 
@@ -243,33 +244,33 @@ describe('CustomerWalletService read APIs', () => {
   });
 
   it('wallet top-up completion credits cash balance once and writes success ledger', async () => {
-    const { service, prisma } = createService();
+    const { service, prisma, notificationDispatch } = createService();
     prisma.customerWalletLedger.findFirst.mockResolvedValueOnce(pendingLedger);
 
     await service.creditWalletTopUp({ ...payment, status: PaymentStatus.SUCCEEDED, metadataJson: { walletTopUpId: 'ledger_pending' } } as never);
 
     expect(prisma.customerWalletLedger.update).toHaveBeenCalledWith({ where: { id: 'ledger_pending' }, data: { status: CustomerWalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: 'payment_1' } });
     expect(prisma.customerWallet.update).toHaveBeenCalledWith({ where: { id: 'wallet_1' }, data: { cashBalance: { increment: pendingLedger.amount } } });
-    expect(prisma.notification.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'WALLET_TOP_UP_SUCCEEDED' }) }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'WALLET_TOP_UP_SUCCEEDED' }));
   });
 
   it('wallet credit is not duplicated for successful top-up ledger', async () => {
-    const { service, prisma } = createService();
+    const { service, prisma, notificationDispatch } = createService();
     prisma.customerWalletLedger.findFirst.mockResolvedValueOnce({ ...pendingLedger, status: CustomerWalletLedgerStatus.SUCCESS });
 
     await service.creditWalletTopUp({ ...payment, status: PaymentStatus.SUCCEEDED, metadataJson: { walletTopUpId: 'ledger_pending' } } as never);
 
     expect(prisma.customerWallet.update).not.toHaveBeenCalled();
-    expect(prisma.notification.create).not.toHaveBeenCalled();
+    expect(notificationDispatch.createAndEmit).not.toHaveBeenCalled();
   });
 
   it('wallet top-up failure updates pending ledger only', async () => {
-    const { service, prisma } = createService();
+    const { service, prisma, notificationDispatch } = createService();
 
     await service.failWalletTopUp({ ...payment, status: PaymentStatus.FAILED, metadataJson: { walletTopUpId: 'ledger_pending' } } as never);
 
     expect(prisma.customerWalletLedger.updateMany).toHaveBeenCalledWith({ where: { id: 'ledger_pending', userId: 'customer_1', status: CustomerWalletLedgerStatus.PENDING }, data: { status: CustomerWalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' } });
-    expect(prisma.notification.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'WALLET_TOP_UP_FAILED' }) }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'WALLET_TOP_UP_FAILED' }));
   });
 
   it('reward wallet credit is not duplicated when reward ledger was already credited', async () => {

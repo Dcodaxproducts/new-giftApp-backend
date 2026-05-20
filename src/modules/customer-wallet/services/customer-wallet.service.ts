@@ -13,7 +13,7 @@ export class CustomerWalletService {
   private stripeClient?: InstanceType<typeof Stripe>;
   constructor(
     private readonly repository: CustomerWalletRepository,
-    private readonly notificationDispatch?: NotificationDispatchService,
+    private readonly notificationDispatch: NotificationDispatchService,
   ) {}
 
   async overview(user: AuthUserContext) {
@@ -97,5 +97,5 @@ export class CustomerWalletService {
   private zeroDecimalCurrencies(): Set<string> { return new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'XAF', 'XOF', 'XPF']); }
   private stripe(): InstanceType<typeof Stripe> { const key = process.env.STRIPE_SECRET_KEY; if (!key) throw new ServiceUnavailableException('Stripe is not configured'); this.stripeClient ??= new Stripe(key); return this.stripeClient; }
   private money(value: number): number { return Number(value.toFixed(2)); }
-  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { if (this.notificationDispatch) await this.notificationDispatch.createAndEmit({ recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: metadata }); else await this.repository.createCustomerNotification({ recipientId, title, message, type, metadataJson: metadata }); }
+  private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.notificationDispatch.createAndEmit({ recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: metadata }); }
 }

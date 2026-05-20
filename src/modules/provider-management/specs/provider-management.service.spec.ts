@@ -75,12 +75,13 @@ function createService(overrides: Record<string, unknown> = {}) {
     sendProviderMessageEmail: jest.fn(),
     sendProviderInviteEmail: jest.fn(),
   };
-  const repository = new ProviderManagementRepository(prisma as never);
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  const repository = new ProviderManagementRepository(prisma as never, notificationDispatch as never);
   const service = new ProviderManagementService(
     repository,
     mailer as unknown as ConstructorParameters<typeof ProviderManagementService>[1],
   );
-  return { service, repository, prisma, mailer };
+  return { service, repository, prisma, mailer, notificationDispatch };
 }
 
 describe('ProviderManagementService', () => {
@@ -265,7 +266,7 @@ describe('ProviderManagementService', () => {
 
     expect(serviceSource).not.toContain('PrismaService');
     expect(serviceSource).not.toContain('this.prisma');
-    expect(repositorySource).toContain('constructor(prisma: PrismaService)');
+    expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService');
     expect(repositorySource).toContain('findManyProviders');
     expect(repositorySource).toContain('deleteProviderPermanently');
     expect(serviceSource).not.toContain('emptyProviderStats');
@@ -288,7 +289,7 @@ describe('ProviderManagementService', () => {
   });
 
   it('PATCH /providers/:id/status with action APPROVE approves provider and clears rejection fields', async () => {
-    const { service, prisma, mailer } = createService({
+    const { service, prisma, mailer, notificationDispatch } = createService({
       providerApprovalStatus: ProviderApprovalStatus.REJECTED,
       providerRejectionReason: ProviderLifecycleReason.INCOMPLETE_DOCUMENTS,
       providerRejectionComment: 'Missing docs',
@@ -311,7 +312,7 @@ describe('ProviderManagementService', () => {
       }),
     }));
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_APPROVED' }) }));
-    expect(prisma.notification.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ recipientId: 'provider_1', type: 'PROVIDER_APPROVED' }) }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ recipientId: 'provider_1', type: 'PROVIDER_APPROVED' }));
     expect(mailer.sendProviderApprovedEmail).toHaveBeenCalledWith('provider@example.com', 'Premium Gifts Co');
     expect(result).toEqual(expect.objectContaining({ message: 'Provider approved successfully.' }));
     expect(result.data).toEqual(expect.objectContaining({ id: 'provider_1', approvalStatus: ProviderApprovalStatus.APPROVED, status: 'ACTIVE', isActive: true }));
@@ -402,7 +403,7 @@ describe('ProviderManagementService', () => {
   });
 
   it('does not fail provider suspension when lifecycle email is unavailable', async () => {
-    const { service, prisma, mailer } = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: true });
+    const { service, prisma, mailer, notificationDispatch } = createService({ providerApprovalStatus: ProviderApprovalStatus.APPROVED, isActive: true });
     mailer.sendAccountStatusEmail.mockRejectedValue(new Error('smtp down'));
 
     const result = await service.updateStatus(providerLifecycleAdmin, 'provider_1', {
@@ -413,7 +414,7 @@ describe('ProviderManagementService', () => {
     });
 
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false, suspendedBy: 'admin_1' }) }));
-    expect(prisma.notification.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'PROVIDER_SUSPENDED' }) }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'PROVIDER_SUSPENDED' }));
     expect(mailer.sendAccountStatusEmail).toHaveBeenCalled();
     expect(result).toEqual(expect.objectContaining({ message: 'Provider suspended successfully.' }));
   });

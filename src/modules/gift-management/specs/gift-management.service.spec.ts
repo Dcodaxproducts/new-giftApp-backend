@@ -31,9 +31,10 @@ function createService() {
     adminAuditLog: { create: jest.fn() },
   };
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
-  const repository = new GiftManagementRepository(prisma as unknown as ConstructorParameters<typeof GiftManagementRepository>[0]);
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  const repository = new GiftManagementRepository(prisma as unknown as ConstructorParameters<typeof GiftManagementRepository>[0], notificationDispatch as never);
   const service = new GiftManagementService(repository, audit as unknown as ConstructorParameters<typeof GiftManagementService>[1]);
-  return { service, prisma, audit, repository };
+  return { service, prisma, audit, repository, notificationDispatch };
 }
 
 describe('GiftManagementService', () => {
@@ -70,11 +71,11 @@ describe('GiftManagementService', () => {
   });
 
   it('flag with hideFromMarketplace hides gift from customer marketplace', async () => {
-    const { service, prisma } = createService();
+    const { service, prisma, notificationDispatch } = createService();
     prisma.gift.findFirst.mockResolvedValue(gift);
     await service.flagGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { reason: GiftFlagReason.NEEDS_MANUAL_REVIEW, comment: 'Suspicious image.', hideFromMarketplace: true, notifyProvider: true });
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, hiddenByModeration: true, isPublished: false }) }));
-    expect(prisma.notification.create).toHaveBeenCalled();
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
   });
 
   it('flag without hideFromMarketplace leaves visibility unchanged but appears in moderation queue', async () => {
@@ -92,10 +93,10 @@ describe('GiftManagementService', () => {
   });
 
   it('reject hides gift', async () => {
-    const { service, prisma } = createService();
+    const { service, prisma, notificationDispatch } = createService();
     prisma.gift.findFirst.mockResolvedValue(gift);
     await service.rejectGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { reason: GiftRejectReason.POLICY_VIOLATION, notifyProvider: true });
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ moderationStatus: GiftModerationStatus.REJECTED, requiresManualReview: false, hiddenByModeration: true, isPublished: false, status: GiftStatus.INACTIVE }) }));
-    expect(prisma.notification.create).toHaveBeenCalled();
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
   });
 });

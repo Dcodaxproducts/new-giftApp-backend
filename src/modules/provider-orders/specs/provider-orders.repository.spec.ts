@@ -29,7 +29,7 @@ describe('Provider orders repository cleanup', () => {
   it('provider-orders.service.ts no longer imports PrismaService or uses this.prisma', () => {
     expect(service).not.toContain('PrismaService');
     expect(service).not.toContain('this.prisma');
-    expect(repository).toContain('constructor(prisma: PrismaService)');
+    expect(repository).toContain('constructor(private readonly prisma: PrismaService');
     expect(repository).toContain('getOrCreateChecklistForRead');
   });
 

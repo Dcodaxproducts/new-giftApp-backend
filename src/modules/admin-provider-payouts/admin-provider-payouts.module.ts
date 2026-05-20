@@ -5,9 +5,10 @@ import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { AdminProviderPayoutsController } from './controllers/admin-provider-payouts.controller';
 import { AdminProviderPayoutsRepository } from './repositories/admin-provider-payouts.repository';
 import { AdminProviderPayoutsService } from './services/admin-provider-payouts.service';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [BroadcastNotificationsModule, DatabaseModule],
   controllers: [AdminProviderPayoutsController],
   providers: [AdminProviderPayoutsService, AdminProviderPayoutsRepository, AuditLogWriterRepository, AuditLogWriterService],
 })

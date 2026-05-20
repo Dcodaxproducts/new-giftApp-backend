@@ -10,9 +10,10 @@ import { UserManagementExportService } from './services/user-management-export.s
 import { UserManagementListService } from './services/user-management-list.service';
 import { UserManagementPasswordService } from './services/user-management-password.service';
 import { UserManagementStatusService } from './services/user-management-status.service';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [MailerModule, DatabaseModule],
+  imports: [BroadcastNotificationsModule, MailerModule, DatabaseModule],
   controllers: [UserManagementController],
   providers: [UserManagementService, UserManagementCoreService, UserManagementListService, UserManagementStatusService, UserManagementPasswordService, UserManagementDeleteService, UserManagementExportService, UserManagementRepository],
   exports: [UserManagementService],

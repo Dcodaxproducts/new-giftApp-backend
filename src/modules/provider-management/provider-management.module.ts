@@ -11,9 +11,10 @@ import { ProviderBusinessCategoriesService } from './services/provider-business-
 import { ProviderManagementController } from './controllers/provider-management.controller';
 import { ProviderManagementRepository } from './repositories/provider-management.repository';
 import { ProviderManagementService } from './services/provider-management.service';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [MailerModule, DatabaseModule],
+  imports: [BroadcastNotificationsModule, MailerModule, DatabaseModule],
   controllers: [ProviderManagementController, ProviderBusinessCategoriesController],
   providers: [ProviderManagementService, ProviderManagementRepository, ProviderBusinessCategoriesService, ProviderBusinessCategoriesRepository, AuditLogWriterRepository, AuditLogWriterService, AccountStatusService, AccountStatusRepository],
   exports: [ProviderManagementService],

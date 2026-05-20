@@ -4,5 +4,6 @@ import { ProviderEarningsPayoutsService } from './services/provider-earnings-pay
 import { ProviderEarningsPayoutsRepository } from './repositories/provider-earnings-payouts.repository';
 import { ProviderEarningsController } from './controllers/provider-earnings.controller';
 import { ProviderPayoutsController } from './controllers/provider-payouts.controller';
-@Module({ imports: [DatabaseModule], controllers: [ProviderEarningsController, ProviderPayoutsController], providers: [ProviderEarningsPayoutsService, ProviderEarningsPayoutsRepository] })
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
+@Module({ imports: [BroadcastNotificationsModule, DatabaseModule], controllers: [ProviderEarningsController, ProviderPayoutsController], providers: [ProviderEarningsPayoutsService, ProviderEarningsPayoutsRepository] })
 export class ProviderEarningsPayoutsModule {}

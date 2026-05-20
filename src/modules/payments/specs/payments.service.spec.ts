@@ -28,13 +28,14 @@ function createService(overrides: Partial<{ method: unknown; activeRecurring: nu
     notification: { create: jest.fn().mockResolvedValue({ id: 'n1' }) },
     $transaction: jest.fn().mockImplementation((items: Promise<unknown>[]) => Promise.all(items)),
   };
-  const repository = new PaymentsRepository(prisma as unknown as ConstructorParameters<typeof PaymentsRepository>[0]);
+  const repository = new PaymentsRepository(prisma as unknown as ConstructorParameters<typeof PaymentsRepository>[0], { createAndEmit: jest.fn(), emitExisting: jest.fn() } as never);
   const moneyGiftsRepository = new MoneyGiftsRepository(prisma as unknown as ConstructorParameters<typeof MoneyGiftsRepository>[0]);
   const stripeWebhookEventsRepository = new StripeWebhookEventsRepository(prisma as unknown as ConstructorParameters<typeof StripeWebhookEventsRepository>[0]);
   const referrals = { awardReferralForFirstEligiblePurchase: jest.fn() };
   const wallet = { creditWalletTopUp: jest.fn(), failWalletTopUp: jest.fn() };
   const subscriptions = { handleStripeSubscriptionEvent: jest.fn() };
-  return { service: new PaymentsService(referrals as never, wallet as never, subscriptions as never, repository, moneyGiftsRepository, stripeWebhookEventsRepository), prisma };
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  return { service: new PaymentsService(referrals as never, wallet as never, subscriptions as never, repository, moneyGiftsRepository, stripeWebhookEventsRepository, notificationDispatch as never), prisma, notificationDispatch };
 }
 
 describe('Payments source safety', () => {

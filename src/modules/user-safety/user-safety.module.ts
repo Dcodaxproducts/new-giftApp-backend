@@ -10,5 +10,6 @@ import { UserSafetyAdminRepository } from './repositories/user-safety-admin.repo
 import { UserSafetyRepository } from './repositories/user-safety.repository';
 import { UserSafetyAdminService } from './services/user-safety-admin.service';
 import { UserSafetyService } from './services/user-safety.service';
-@Module({ imports: [DatabaseModule, ReportingCoreModule], controllers: [UserSafetyController, UserSafetyAdminController], providers: [UserSafetyService, UserSafetyAdminService, UserSafetyRepository, UserSafetyAdminRepository, BlockedUsersRepository, AuditLogWriterRepository, AuditLogWriterService], exports: [UserSafetyService] })
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
+@Module({ imports: [BroadcastNotificationsModule, DatabaseModule, ReportingCoreModule], controllers: [UserSafetyController, UserSafetyAdminController], providers: [UserSafetyService, UserSafetyAdminService, UserSafetyRepository, UserSafetyAdminRepository, BlockedUsersRepository, AuditLogWriterRepository, AuditLogWriterService], exports: [UserSafetyService] })
 export class UserSafetyModule {}

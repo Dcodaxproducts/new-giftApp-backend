@@ -11,7 +11,7 @@ describe('User management repository cleanup', () => {
   it('keeps Prisma access inside UserManagementRepository', () => {
     expect(service).not.toContain('PrismaService');
     expect(service).not.toContain('this.prisma');
-    expect(repository).toContain('constructor(prisma: PrismaService)');
+    expect(repository).toContain('constructor(private readonly prisma: PrismaService');
     expect(moduleFile).toContain('UserManagementRepository');
   });
 

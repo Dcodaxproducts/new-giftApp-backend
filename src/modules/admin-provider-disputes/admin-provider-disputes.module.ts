@@ -10,9 +10,10 @@ import { ProviderDisputeFinancialRepository } from './repositories/provider-disp
 import { ProviderDisputeLogsRepository } from './repositories/provider-dispute-logs.repository';
 import { ProviderDisputeResolutionRepository } from './repositories/provider-dispute-resolution.repository';
 import { ProviderDisputeRulingsRepository } from './repositories/provider-dispute-rulings.repository';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [BroadcastNotificationsModule, DatabaseModule],
   controllers: [AdminProviderDisputesController],
   providers: [
     AdminProviderDisputesService,

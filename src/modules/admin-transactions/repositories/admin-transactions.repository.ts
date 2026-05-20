@@ -5,10 +5,7 @@ import { NotificationDispatchService } from '../../broadcast-notifications/servi
 
 @Injectable()
 export class AdminTransactionsRepository {
-  private readonly notificationDispatch: NotificationDispatchService;
-  constructor(prisma: PrismaService);
-  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
-  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
+  constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findPayments<T extends Prisma.PaymentFindManyArgs>(params: T): Promise<Prisma.PaymentGetPayload<T>[]> {
     return this.prisma.payment.findMany(params) as Promise<Prisma.PaymentGetPayload<T>[]>;

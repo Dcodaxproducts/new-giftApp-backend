@@ -48,12 +48,13 @@ function createService() {
     sendAdminChangedPasswordEmail: jest.fn(),
     sendAccountStatusEmail: jest.fn(),
   };
-  const repository = new UserManagementRepository(prisma as unknown as ConstructorParameters<typeof UserManagementRepository>[0]);
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  const repository = new UserManagementRepository(prisma as unknown as ConstructorParameters<typeof UserManagementRepository>[0], notificationDispatch as never);
   const service = new UserManagementCoreService(
     repository,
     mailer as unknown as ConstructorParameters<typeof UserManagementCoreService>[1],
   );
-  return { service, prisma, mailer, repository };
+  return { service, prisma, mailer, repository, notificationDispatch };
 }
 
 const registeredUser = {
@@ -190,7 +191,7 @@ describe('UserManagementService', () => {
   });
 
   it('SUPER_ADMIN can change registered user password, notify user, and audit without password', async () => {
-    const { service, prisma, mailer } = createService();
+    const { service, prisma, mailer, notificationDispatch } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
     prisma.user.update.mockResolvedValue({ ...registeredUser, password: 'hashed' });
 
@@ -219,13 +220,11 @@ describe('UserManagementService', () => {
       userName: 'Sarah Khan',
       newPassword: 'NewUser@123456',
     });
-    expect(prisma.notification.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({
         recipientId: 'user_1',
         recipientType: 'REGISTERED_USER',
         type: 'SECURITY',
         metadataJson: { action: 'PASSWORD_CHANGED_BY_ADMIN' },
-      }),
     }));
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
@@ -291,7 +290,7 @@ describe('UserManagementService', () => {
   });
 
   it('can skip email and notification when flags are false', async () => {
-    const { service, prisma, mailer } = createService();
+    const { service, prisma, mailer, notificationDispatch } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
     prisma.user.update.mockResolvedValue({ ...registeredUser, password: 'hashed' });
 
@@ -302,7 +301,7 @@ describe('UserManagementService', () => {
     );
 
     expect(mailer.sendAdminChangedPasswordEmail).not.toHaveBeenCalled();
-    expect(prisma.notification.create).not.toHaveBeenCalled();
+    expect(notificationDispatch.createAndEmit).not.toHaveBeenCalled();
     expect(result.data).toEqual({ userId: 'user_1', email: 'user@example.com', emailSent: false, notificationSent: false });
   });
 

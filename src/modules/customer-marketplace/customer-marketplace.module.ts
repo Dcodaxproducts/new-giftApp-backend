@@ -6,9 +6,10 @@ import { CustomerCartRepository } from './repositories/customer-cart.repository'
 import { CustomerOrdersRepository } from './repositories/customer-orders.repository';
 import { CustomerMarketplaceRepository } from './repositories/customer-marketplace.repository';
 import { CustomerMarketplaceService } from './services/customer-marketplace.service';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [GuestAccessModule, DatabaseModule],
+  imports: [BroadcastNotificationsModule, GuestAccessModule, DatabaseModule],
   controllers: [CustomerMarketplaceController],
   providers: [CustomerMarketplaceService, CustomerCartRepository, CustomerOrdersRepository, CustomerMarketplaceRepository],
 })

@@ -78,7 +78,7 @@ function createBusinessInfoService(overrides: Record<string, unknown> = {}) {
     adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit_1' }) },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
   };
-  const repository = new ProviderBusinessInfoRepository(prisma as unknown as ConstructorParameters<typeof ProviderBusinessInfoRepository>[0]);
+  const repository = new ProviderBusinessInfoRepository(prisma as unknown as ConstructorParameters<typeof ProviderBusinessInfoRepository>[0], { createAndEmit: jest.fn(), emitExisting: jest.fn() } as never);
   return { service: new ProviderBusinessInfoService(repository), prisma };
 }
 

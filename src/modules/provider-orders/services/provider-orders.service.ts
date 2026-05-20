@@ -12,7 +12,7 @@ type ProviderOrderDetail = ProviderOrderView;
 export class ProviderOrdersService {
   constructor(
     private readonly providerOrdersRepository: ProviderOrdersRepository,
-    private readonly notificationDispatch?: NotificationDispatchService,
+    private readonly notificationDispatch: NotificationDispatchService,
   ) {}
 
   async list(user: AuthUserContext, query: ListProviderOrdersDto) {
@@ -233,7 +233,7 @@ export class ProviderOrdersService {
 
   private orderBy(sortBy?: ProviderOrderSortBy, sortOrder?: ProviderOrderSortOrder): Prisma.ProviderOrderOrderByWithRelationInput { const direction = sortOrder === ProviderOrderSortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ProviderOrderSortBy.AMOUNT) return { total: direction }; if (sortBy === ProviderOrderSortBy.STATUS) return { status: direction }; return { createdAt: direction }; }
   private listInclude() { return PROVIDER_ORDER_LIST_INCLUDE; }
-  private async emitNotifications(notifications: Notification[]): Promise<void> { if (!this.notificationDispatch) return; for (const notification of notifications) await this.notificationDispatch.emitExisting(notification); }
+  private async emitNotifications(notifications: Notification[]): Promise<void> { for (const notification of notifications) await this.notificationDispatch.emitExisting(notification); }
   private async getOwnedProviderOrderForRead(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.providerOrdersRepository.findProviderOrderById(providerId, id, this.listInclude()); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private async getOwnedProviderOrder(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.providerOrdersRepository.findProviderOrderForAction(providerId, id, this.listInclude()); if (!order) throw new NotFoundException('Provider order not found'); return order; }
   private latestRefund(item: ProviderOrderView) { return item.refundRequests[0] ?? null; }

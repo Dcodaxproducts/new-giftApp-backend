@@ -19,10 +19,7 @@ type CreateProviderOrderItemData = Prisma.Args<CheckoutTransaction['providerOrde
 
 @Injectable()
 export class CustomerOrdersRepository {
-  private readonly notificationDispatch: NotificationDispatchService;
-  constructor(prisma: PrismaService);
-  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
-  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
+  constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findManyForCustomerOrders(params: { where: Prisma.OrderWhereInput; skip: number; take: number }) {
     return this.prisma.order.findMany({ where: params.where, include: CUSTOMER_ORDER_INCLUDE, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });

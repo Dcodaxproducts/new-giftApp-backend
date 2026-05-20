@@ -16,10 +16,7 @@ type NotificationCreateManyData = Prisma.NotificationCreateManyInput[];
 
 @Injectable()
 export class AdminReviewsRepository {
-  private readonly notificationDispatch: NotificationDispatchService;
-  constructor(prisma: PrismaService);
-  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
-  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
+  constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   getDashboardRows(params: { weekAgo: Date; dayAgo: Date }) {
     return this.prisma.$transaction([

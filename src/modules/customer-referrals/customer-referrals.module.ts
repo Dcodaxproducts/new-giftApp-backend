@@ -7,9 +7,10 @@ import { CustomerReferralsController } from './controllers/customer-referrals.co
 import { CustomerReferralsRepository } from './repositories/customer-referrals.repository';
 import { CustomerReferralsService } from './services/customer-referrals.service';
 import { CustomerRewardsRepository } from './repositories/customer-rewards.repository';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [ConfigModule, CustomerWalletModule, ReferralSettingsModule, DatabaseModule],
+  imports: [BroadcastNotificationsModule, ConfigModule, CustomerWalletModule, ReferralSettingsModule, DatabaseModule],
   controllers: [CustomerReferralsController],
   providers: [CustomerReferralsService, CustomerReferralsRepository, CustomerRewardsRepository],
   exports: [CustomerReferralsService],

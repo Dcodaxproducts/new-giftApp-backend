@@ -4,6 +4,7 @@ import { ProviderInteractionsController } from './controllers/provider-interacti
 import { ProviderInteractionsService } from './services/provider-interactions.service';
 import { ProviderReviewResponsesRepository } from './repositories/provider-review-responses.repository';
 import { ProviderReviewsRepository } from './repositories/provider-reviews.repository';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
-@Module({ imports: [DatabaseModule], controllers: [ProviderInteractionsController], providers: [ProviderInteractionsService, ProviderReviewsRepository, ProviderReviewResponsesRepository], exports: [ProviderInteractionsService] })
+@Module({ imports: [BroadcastNotificationsModule, DatabaseModule], controllers: [ProviderInteractionsController], providers: [ProviderInteractionsService, ProviderReviewsRepository, ProviderReviewResponsesRepository], exports: [ProviderInteractionsService] })
 export class ProviderInteractionsModule {}

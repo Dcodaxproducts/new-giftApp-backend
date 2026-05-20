@@ -42,9 +42,10 @@ function createService(overrides: Partial<{ refundRequests: unknown[]; disputes:
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const refundPolicy = { getActivePolicy: jest.fn().mockResolvedValue({ refundWindowDays: 30 }), evaluateRefundEligibility: jest.fn().mockResolvedValue({ eligible: true, manualReviewRequired: false, reasons: [], policy: { refundWindowDays: 30 } }) };
-  const adminTransactionsRepository = new AdminTransactionsRepository(prisma as never);
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  const adminTransactionsRepository = new AdminTransactionsRepository(prisma as never, notificationDispatch as never);
   const service = new AdminTransactionsService(adminTransactionsRepository, auditLog as never, refundPolicy as never);
-  return { service, prisma, auditLog, refundPolicy, adminTransactionsRepository };
+  return { service, prisma, auditLog, refundPolicy, adminTransactionsRepository, notificationDispatch };
 }
 
 describe('AdminTransactionsService', () => {
@@ -97,13 +98,13 @@ describe('AdminTransactionsService', () => {
   });
 
   it('receipt download, notification, and export create safe audit logs', async () => {
-    const { service, auditLog, prisma } = createService();
+    const { service, auditLog, notificationDispatch } = createService();
     const user = { uid: 'admin_1', role: UserRole.SUPER_ADMIN };
     const receipt = await service.receipt(user, 'payment_1');
     expect(receipt.content).toContain('Visa **** 4242');
     expect(receipt.content).not.toContain('clientSecret');
     await service.notifyUser(user, 'payment_1', { channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.', includeReceipt: true });
-    expect(prisma.notification.create).toHaveBeenCalled();
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
     const exported = await service.export(user, { status: AdminTransactionStatus.SUCCESS });
     expect(exported.content).toContain('TRX-982341');
     expect(exported.content).not.toContain('4242');

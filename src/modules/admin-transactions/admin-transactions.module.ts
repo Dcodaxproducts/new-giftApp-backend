@@ -6,9 +6,10 @@ import { RefundPolicySettingsModule } from '../refund-policy-settings/refund-pol
 import { AdminTransactionsController } from './controllers/admin-transactions.controller';
 import { AdminTransactionsRepository } from './repositories/admin-transactions.repository';
 import { AdminTransactionsService } from './services/admin-transactions.service';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [RefundPolicySettingsModule, DatabaseModule],
+  imports: [BroadcastNotificationsModule, RefundPolicySettingsModule, DatabaseModule],
   controllers: [AdminTransactionsController],
   providers: [AdminTransactionsService, AdminTransactionsRepository, AuditLogWriterRepository, AuditLogWriterService],
 })

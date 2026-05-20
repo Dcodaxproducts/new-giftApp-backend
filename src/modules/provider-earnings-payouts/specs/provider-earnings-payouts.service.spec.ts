@@ -24,7 +24,7 @@ function createService(overrides: Partial<{ ledgers: unknown[]; payoutMethod: un
     notification: { create: jest.fn().mockResolvedValue({ id: 'n1' }) },
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
-  const repository = new ProviderEarningsPayoutsRepository(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsRepository>[0]);
+  const repository = new ProviderEarningsPayoutsRepository(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsRepository>[0], { createAndEmit: jest.fn(), emitExisting: jest.fn() } as never);
   return { service: new ProviderEarningsPayoutsService(repository), prisma, repository };
 }
 

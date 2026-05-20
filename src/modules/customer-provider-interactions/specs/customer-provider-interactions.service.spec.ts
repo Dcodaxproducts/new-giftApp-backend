@@ -78,7 +78,7 @@ describe('Customer Provider Interaction module', () => {
   it('customer-provider-interactions.service.ts no longer imports PrismaService or uses this.prisma', () => {
     expect(service).not.toContain('PrismaService');
     expect(service).not.toContain('this.prisma');
-    expect(customerProviderReportsRepository).toContain('constructor(prisma: PrismaService)');
+    expect(customerProviderReportsRepository).toContain('constructor(private readonly prisma: PrismaService');
     expect(customerProviderInteractionsRepository).toContain('constructor(private readonly prisma: PrismaService)');
   });
 

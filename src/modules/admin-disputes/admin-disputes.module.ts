@@ -9,6 +9,7 @@ import { AdminDisputeTrackingRepository } from './repositories/admin-dispute-tra
 import { AdminDisputesController } from './controllers/admin-disputes.controller';
 import { AdminDisputesRepository } from './repositories/admin-disputes.repository';
 import { AdminDisputesService } from './services/admin-disputes.service';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
-@Module({ imports: [DatabaseModule], controllers: [AdminDisputesController], providers: [AdminDisputesService, AdminDisputesRepository, AdminDisputeEvidenceRepository, AdminDisputeLinkageRepository, AdminDisputeDecisionsRepository, AdminDisputeTrackingRepository, AuditLogWriterRepository, AuditLogWriterService], exports: [AdminDisputesService] })
+@Module({ imports: [BroadcastNotificationsModule, DatabaseModule], controllers: [AdminDisputesController], providers: [AdminDisputesService, AdminDisputesRepository, AdminDisputeEvidenceRepository, AdminDisputeLinkageRepository, AdminDisputeDecisionsRepository, AdminDisputeTrackingRepository, AuditLogWriterRepository, AuditLogWriterService], exports: [AdminDisputesService] })
 export class AdminDisputesModule {}

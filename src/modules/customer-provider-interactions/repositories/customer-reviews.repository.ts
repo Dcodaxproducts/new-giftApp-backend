@@ -27,10 +27,7 @@ type CreateReviewNotificationData = Prisma.Args<PrismaService['notification'], '
 
 @Injectable()
 export class CustomerReviewsRepository {
-  private readonly notificationDispatch: NotificationDispatchService;
-  constructor(prisma: PrismaService);
-  constructor(prisma: PrismaService, notificationDispatch: NotificationDispatchService);
-  constructor(private readonly prisma: PrismaService, notificationDispatch?: NotificationDispatchService) { this.notificationDispatch = notificationDispatch ?? { createAndEmit: async (data: Parameters<NotificationDispatchService['createAndEmit']>[0]) => ((this.prisma as unknown as { notification?: { create(input: { data: Parameters<NotificationDispatchService['createAndEmit']>[0] }): ReturnType<NotificationDispatchService['createAndEmit']> } }).notification?.create({ data }) ?? Promise.resolve(data as Awaited<ReturnType<NotificationDispatchService['createAndEmit']>>)) } as NotificationDispatchService; }
+  constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findOrderForReviewByUser(customerId: string, orderId: string) {
     return this.prisma.order.findFirst({ where: { id: orderId, userId: customerId }, select: ORDER_FOR_REVIEW_SELECT });

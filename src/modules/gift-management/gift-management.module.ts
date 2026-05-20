@@ -8,9 +8,10 @@ import { GiftModerationController } from './controllers/gift-moderation.controll
 import { GiftManagementRepository } from './repositories/gift-management.repository';
 import { GiftManagementService } from './services/gift-management.service';
 import { GiftsController } from './controllers/gifts.controller';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [BroadcastNotificationsModule, DatabaseModule],
   controllers: [GiftCategoriesLookupController, GiftCategoriesController, GiftsController, GiftModerationController],
   providers: [GiftManagementService, GiftManagementRepository, AuditLogWriterRepository, AuditLogWriterService],
 })

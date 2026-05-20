@@ -7,6 +7,7 @@ import { SocialModerationController, SocialReportingRulesController } from './co
 import { SocialModerationRepository } from './repositories/social-moderation.repository';
 import { SocialModerationService } from './services/social-moderation.service';
 import { SocialReportingRulesRepository } from './repositories/social-reporting-rules.repository';
+import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
-@Module({ imports: [DatabaseModule, ReportingCoreModule], controllers: [SocialModerationController, SocialReportingRulesController], providers: [SocialModerationService, SocialModerationRepository, SocialReportingRulesRepository, AuditLogWriterRepository, AuditLogWriterService] })
+@Module({ imports: [BroadcastNotificationsModule, DatabaseModule, ReportingCoreModule], controllers: [SocialModerationController, SocialReportingRulesController], providers: [SocialModerationService, SocialModerationRepository, SocialReportingRulesRepository, AuditLogWriterRepository, AuditLogWriterService] })
 export class SocialModerationModule {}

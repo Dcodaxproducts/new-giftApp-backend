@@ -60,7 +60,7 @@ function createService(overrides: Partial<{ method: PayoutMethodFixture | null; 
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
-  const repository = new ProviderPayoutMethodsRepository(prisma as unknown as ConstructorParameters<typeof ProviderPayoutMethodsRepository>[0]);
+  const repository = new ProviderPayoutMethodsRepository(prisma as unknown as ConstructorParameters<typeof ProviderPayoutMethodsRepository>[0], { createAndEmit: jest.fn(), emitExisting: jest.fn() } as never);
   return { service: new ProviderPayoutMethodsService(repository), prisma };
 }
 
