@@ -69,7 +69,7 @@ const tagNames = new Set((openapi.tags || []).map((tag) => tag.name));
 for (const removed of removedChatGroups) {
   if (tagNames.has(removed)) fail(`Removed old chat Swagger group still present: ${removed}`);
 }
-if (!tagNames.has('08 Chat - Unified Threads')) fail('Expected chat group missing: 08 Chat - Unified Threads');
+if (!tagNames.has('08 Chat - Threads')) fail('Expected chat group missing: 08 Chat - Threads');
 if (!tagNames.has('02 Admin - Notification Delivery Monitoring')) fail('Expected chat/notification group missing: 02 Admin - Notification Delivery Monitoring');
 
 const headerChecks = ['api-reference.md', 'frontend-api-guide.md', 'api-reference.html', 'frontend-api-guide.html'];

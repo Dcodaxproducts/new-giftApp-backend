@@ -1279,322 +1279,6 @@
         "x-access": "REGISTERED_USER"
       }
     },
-    "/api/v1/customer/wallet": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.",
-        "operationId": "CustomerWalletController_overview",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "totalBalance": 1240.5,
-                      "giftCredits": 350,
-                      "cashBalance": 890.5,
-                      "currency": "USD",
-                      "defaultPaymentMethod": {
-                        "id": "pm_xxx",
-                        "type": "CARD",
-                        "brand": "visa",
-                        "last4": "4242",
-                        "expiryMonth": 9,
-                        "expiryYear": 2025,
-                        "isDefault": true
-                      },
-                      "defaultBankAccount": {
-                        "id": "bank_account_id",
-                        "bankName": "Chase Bank",
-                        "last4": "8821",
-                        "isDefault": false
-                      }
-                    },
-                    "message": "Wallet fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch own wallet",
-        "tags": [
-          "05 Customer - Wallet"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/wallet/add-funds": {
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.",
-        "operationId": "CustomerWalletController_addFunds",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddWalletFundsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create wallet top-up payment",
-        "tags": [
-          "05 Customer - Wallet"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/wallet/history": {
-      "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Positive amounts are credits, negative amounts are debits. Results are scoped to the logged-in customer.",
-        "operationId": "CustomerWalletController_history",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "type",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "ALL",
-                "TOP_UP",
-                "GIFT_SENT",
-                "MONEY_GIFT_SENT",
-                "REWARD_CREDIT",
-                "REFUND",
-                "ADJUSTMENT"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "ALL",
-                "SUCCESS",
-                "PENDING",
-                "FAILED"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-03-01T00:00:00.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-03-31T23:59:59.999Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List own wallet history",
-        "tags": [
-          "05 Customer - Wallet"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/bank-accounts": {
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Stores only masked display data. Full IBAN/account number is never returned.",
-        "operationId": "CustomerBankAccountsController_link",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBankAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Link placeholder bank account",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      },
-      "get": {
-        "operationId": "CustomerBankAccountsController_list",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "bank_account_id",
-                        "accountHolderName": "John Smith",
-                        "bankName": "Chase Bank",
-                        "last4": "8821",
-                        "maskedAccount": "**** 8821",
-                        "isDefault": false
-                      }
-                    ],
-                    "message": "Bank accounts fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List own bank accounts",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/bank-accounts/{id}/default": {
-      "patch": {
-        "operationId": "CustomerBankAccountsController_setDefault",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Set own default bank account",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/bank-accounts/{id}": {
-      "delete": {
-        "operationId": "CustomerBankAccountsController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete own bank account",
-        "tags": [
-          "05 Customer - Payment Methods"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
     "/api/v1/broadcasts": {
       "post": {
         "operationId": "BroadcastsController_create",
@@ -2717,6 +2401,322 @@
         ],
         "x-allowed-roles": "Authenticated",
         "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/customer/wallet": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Wallet is lazily created and balances are backed by wallet ledger entries.",
+        "operationId": "CustomerWalletController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalBalance": 1240.5,
+                      "giftCredits": 350,
+                      "cashBalance": 890.5,
+                      "currency": "USD",
+                      "defaultPaymentMethod": {
+                        "id": "pm_xxx",
+                        "type": "CARD",
+                        "brand": "visa",
+                        "last4": "4242",
+                        "expiryMonth": 9,
+                        "expiryYear": 2025,
+                        "isDefault": true
+                      },
+                      "defaultBankAccount": {
+                        "id": "bank_account_id",
+                        "bankName": "Chase Bank",
+                        "last4": "8821",
+                        "isDefault": false
+                      }
+                    },
+                    "message": "Wallet fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch own wallet",
+        "tags": [
+          "05 Customer - Wallet"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/wallet/add-funds": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.",
+        "operationId": "CustomerWalletController_addFunds",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWalletFundsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create wallet top-up payment",
+        "tags": [
+          "05 Customer - Wallet"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/wallet/history": {
+      "get": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Positive amounts are credits, negative amounts are debits. Results are scoped to the logged-in customer.",
+        "operationId": "CustomerWalletController_history",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "TOP_UP",
+                "GIFT_SENT",
+                "MONEY_GIFT_SENT",
+                "REWARD_CREDIT",
+                "REFUND",
+                "ADJUSTMENT"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ALL",
+                "SUCCESS",
+                "PENDING",
+                "FAILED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-03-31T23:59:59.999Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own wallet history",
+        "tags": [
+          "05 Customer - Wallet"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/bank-accounts": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Stores only masked display data. Full IBAN/account number is never returned.",
+        "operationId": "CustomerBankAccountsController_link",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBankAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link placeholder bank account",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      },
+      "get": {
+        "operationId": "CustomerBankAccountsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "bank_account_id",
+                        "accountHolderName": "John Smith",
+                        "bankName": "Chase Bank",
+                        "last4": "8821",
+                        "maskedAccount": "**** 8821",
+                        "isDefault": false
+                      }
+                    ],
+                    "message": "Bank accounts fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List own bank accounts",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/bank-accounts/{id}/default": {
+      "patch": {
+        "operationId": "CustomerBankAccountsController_setDefault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set own default bank account",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
+      }
+    },
+    "/api/v1/customer/bank-accounts/{id}": {
+      "delete": {
+        "operationId": "CustomerBankAccountsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own bank account",
+        "tags": [
+          "05 Customer - Payment Methods"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
       }
     },
     "/api/v1/referral-settings": {
@@ -25250,7 +25250,7 @@
         ],
         "summary": "List chat threads",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission"
@@ -25272,7 +25272,7 @@
         ],
         "summary": "Fetch role-aware chat quick replies",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN",
@@ -25305,7 +25305,7 @@
         ],
         "summary": "Create or get a chat thread",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission",
@@ -25337,7 +25337,7 @@
         ],
         "summary": "Fetch chat thread details",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
@@ -25396,7 +25396,7 @@
         ],
         "summary": "Fetch chat thread messages",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
@@ -25436,7 +25436,7 @@
         ],
         "summary": "Send a chat message",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply",
@@ -25468,7 +25468,7 @@
         ],
         "summary": "Mark a chat thread as read",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read",
         "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read",
@@ -25510,7 +25510,7 @@
         ],
         "summary": "Update chat thread status",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
         "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
@@ -25552,7 +25552,7 @@
         ],
         "summary": "Resolve a support chat thread",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
         "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
@@ -25594,7 +25594,7 @@
         ],
         "summary": "Reopen a support chat thread",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
         "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
@@ -25626,7 +25626,7 @@
         ],
         "summary": "Fetch chat thread audit log",
         "tags": [
-          "08 Chat - Unified Threads"
+          "08 Chat - Threads"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
         "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
@@ -25843,7 +25843,7 @@
       "name": "07 Storage"
     },
     {
-      "name": "08 Chat - Unified Threads"
+      "name": "08 Chat - Threads"
     }
   ],
   "servers": [],
@@ -26155,65 +26155,6 @@
           "redeemTo"
         ]
       },
-      "AddWalletFundsDto": {
-        "type": "object",
-        "properties": {
-          "amount": {
-            "type": "number",
-            "example": 100
-          },
-          "currency": {
-            "type": "string",
-            "example": "USD"
-          },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "STRIPE_CARD",
-              "E_WALLET",
-              "BANK_TRANSFER",
-              "COD",
-              "PLACEHOLDER"
-            ],
-            "example": "STRIPE_CARD"
-          },
-          "stripePaymentMethodId": {
-            "type": "string",
-            "example": "pm_xxx"
-          }
-        },
-        "required": [
-          "amount",
-          "currency",
-          "paymentMethod"
-        ]
-      },
-      "CreateBankAccountDto": {
-        "type": "object",
-        "properties": {
-          "accountHolderName": {
-            "type": "string",
-            "example": "John Smith"
-          },
-          "bankName": {
-            "type": "string",
-            "example": "Chase Bank"
-          },
-          "ibanOrAccountNumber": {
-            "type": "string",
-            "example": "1234567890"
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": false
-          }
-        },
-        "required": [
-          "accountHolderName",
-          "bankName",
-          "ibanOrAccountNumber"
-        ]
-      },
       "CreateBroadcastDto": {
         "type": "object",
         "properties": {
@@ -26503,6 +26444,65 @@
           "token",
           "platform",
           "deviceId"
+        ]
+      },
+      "AddWalletFundsDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "STRIPE_CARD",
+              "E_WALLET",
+              "BANK_TRANSFER",
+              "COD",
+              "PLACEHOLDER"
+            ],
+            "example": "STRIPE_CARD"
+          },
+          "stripePaymentMethodId": {
+            "type": "string",
+            "example": "pm_xxx"
+          }
+        },
+        "required": [
+          "amount",
+          "currency",
+          "paymentMethod"
+        ]
+      },
+      "CreateBankAccountDto": {
+        "type": "object",
+        "properties": {
+          "accountHolderName": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "bankName": {
+            "type": "string",
+            "example": "Chase Bank"
+          },
+          "ibanOrAccountNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "accountHolderName",
+          "bankName",
+          "ibanOrAccountNumber"
         ]
       },
       "UpdateReferralSettingsDto": {

@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-20 06:36 UTC
+Generated at: 2026-05-20 11:09 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -75,7 +75,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 06 Broadcast Notifications (10 APIs)
 - 07 Plans & Coupons (21 APIs)
 - 07 Storage (5 APIs)
-- 08 Chat - Unified Threads (11 APIs)
+- 08 Chat - Threads (11 APIs)
 
 ## 01 Auth
 
@@ -11548,7 +11548,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-## 08 Chat - Unified Threads
+## 08 Chat - Threads
 
 ### GET `/api/v1/chats`
 
