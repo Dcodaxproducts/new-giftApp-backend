@@ -3,13 +3,16 @@ import { NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { SuspensionReason } from '../dto/user-management.dto';
+import { RegisteredUserSortBy, SortOrder, SuspensionReason } from '../dto/user-management.dto';
 import { UserManagementRepository } from '../repositories/user-management.repository';
 import { UserManagementCoreService } from '../services/user-management-core.service';
 
 function createService() {
   const prisma = {
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as unknown[])),
+    order: { groupBy: jest.fn().mockResolvedValue([]) },
+    payment: { groupBy: jest.fn().mockResolvedValue([]) },
+    customerSubscription: { findFirst: jest.fn().mockResolvedValue(null) },
     user: {
       delete: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
@@ -100,6 +103,60 @@ describe('UserManagementService', () => {
     expect(prisma.user.count).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ role: UserRole.REGISTERED_USER }),
     }));
+  });
+
+  it('user list returns real aggregate stats in batch', async () => {
+    const { service, repository, prisma } = createService();
+    const listUser = { ...registeredUser, id: 'user_1' };
+    prisma.user.findMany.mockResolvedValue([listUser]);
+    prisma.user.count.mockResolvedValue(1);
+    const aggregateSpy = jest.spyOn(repository, 'findUserAggregateMap').mockResolvedValue(new Map([['user_1', { ordersCount: 12, totalSpent: 1250, successfulPayments: 10, failedPayments: 2, lastOrderAt: new Date('2026-05-10T00:00:00.000Z') }]]));
+
+    const result = await service.list({ page: 1, limit: 10 });
+
+    expect(aggregateSpy).toHaveBeenCalledTimes(1);
+    expect(result.data[0]).toEqual(expect.objectContaining({ ordersCount: 12, totalSpent: 1250 }));
+  });
+
+  it('user detail returns real quickStats and subscription snapshot', async () => {
+    const { service, repository, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+    jest.spyOn(repository, 'findSingleUserStats').mockResolvedValue({ ordersCount: 8, totalSpent: 900, successfulPayments: 7, failedPayments: 1, lastOrderAt: new Date('2026-05-11T00:00:00.000Z') });
+    jest.spyOn(repository, 'findCurrentSubscriptionSnapshot').mockResolvedValue({ planName: 'Premium', planType: 'MONTHLY', status: 'ACTIVE', renewalDate: new Date('2026-06-20T00:00:00.000Z'), progressPercentage: 45 });
+
+    const result = await service.details('user_1');
+
+    expect(result.data.quickStats).toEqual({ ordersCount: 8, totalSpent: 900 });
+    expect(result.data.subscription).toEqual(expect.objectContaining({ planName: 'Premium', planType: 'MONTHLY', progressPercentage: 45 }));
+  });
+
+  it('user stats endpoint returns real successful and failed payments', async () => {
+    const { service, repository, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+    jest.spyOn(repository, 'findSingleUserStats').mockResolvedValue({ ordersCount: 8, totalSpent: 900, successfulPayments: 7, failedPayments: 3, lastOrderAt: new Date('2026-05-11T00:00:00.000Z') });
+
+    const result = await service.stats('user_1');
+
+    expect(result.data).toEqual(expect.objectContaining({ successfulPayments: 7, failedPayments: 3 }));
+  });
+
+  it('sort by totalSpent and ordersCount uses batch aggregates instead of per-user queries', async () => {
+    const { service, repository, prisma } = createService();
+    const userA = { ...registeredUser, id: 'user_1', createdAt: new Date('2026-05-01T00:00:00.000Z') };
+    const userB = { ...registeredUser, id: 'user_2', email: 'user2@example.com', createdAt: new Date('2026-05-02T00:00:00.000Z') };
+    prisma.user.findMany.mockResolvedValue([userA, userB]);
+    const aggregateSpy = jest.spyOn(repository, 'findUserAggregateMap').mockResolvedValue(new Map([
+      ['user_1', { ordersCount: 2, totalSpent: 50, successfulPayments: 2, failedPayments: 0, lastOrderAt: null }],
+      ['user_2', { ordersCount: 5, totalSpent: 200, successfulPayments: 3, failedPayments: 1, lastOrderAt: null }],
+    ]));
+
+    const spent = await service.list({ sortBy: RegisteredUserSortBy.TOTAL_SPENT, sortOrder: SortOrder.DESC, page: 1, limit: 10 });
+    const orders = await service.list({ sortBy: RegisteredUserSortBy.ORDERS_COUNT, sortOrder: SortOrder.DESC, page: 1, limit: 10 });
+
+    expect(aggregateSpy).toHaveBeenCalledTimes(2);
+    expect(spent.data[0].id).toBe('user_2');
+    expect(orders.data[0].id).toBe('user_2');
+    expect(prisma.user.count).not.toHaveBeenCalled();
   });
 
   it('suspends only registered users through repository-owned status persistence', async () => {
@@ -284,6 +341,12 @@ describe('UserManagementService', () => {
     expect(prisma.customerContact.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
     expect(prisma.customerWalletLedger.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user_1' } });
     expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user_1' } });
+  });
+
+  it('user-management-core.service.ts no longer uses emptyStats in runtime path', () => {
+    const source = readFileSync(join(__dirname, '../services/user-management-core.service.ts'), 'utf8');
+    expect(source).not.toContain('emptyStats');
+    expect(source).toContain('zeroStats');
   });
 
 });

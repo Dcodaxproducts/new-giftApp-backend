@@ -1,7 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { AccountType, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
+import { AccountType, CustomerSubscriptionStatus, NotificationRecipientType, PaymentStatus, Prisma, User, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+
+export interface UserStats {
+  ordersCount: number;
+  totalSpent: number;
+  successfulPayments: number;
+  failedPayments: number;
+  lastOrderAt: Date | null;
+}
+
+export interface UserSubscriptionSnapshot {
+  planName: string | null;
+  planType: string | null;
+  status: string | null;
+  renewalDate: Date | null;
+  progressPercentage: number;
+}
 
 export interface UserActivityRecords {
   loginAttempts: Awaited<ReturnType<PrismaService['loginAttempt']['findMany']>>;
@@ -44,6 +60,83 @@ export class UserManagementRepository {
     return this.prisma.user.findFirst({
       where: { id, role: UserRole.REGISTERED_USER, deletedAt: null },
     });
+  }
+
+  async findUserAggregateMap(userIds: string[]): Promise<Map<string, UserStats>> {
+    const result = new Map<string, UserStats>();
+    if (!userIds.length) {
+      return result;
+    }
+
+    const uniqueUserIds = [...new Set(userIds)];
+    const [orderRows, paymentSuccessRows, paymentFailedRows, fallbackOrderRows] = await Promise.all([
+      this.prisma.order.groupBy({
+        by: ['userId'],
+        where: { userId: { in: uniqueUserIds } },
+        _count: { _all: true },
+        _max: { createdAt: true },
+      }),
+      this.prisma.payment.groupBy({
+        by: ['userId'],
+        where: { userId: { in: uniqueUserIds }, status: PaymentStatus.SUCCEEDED },
+        _count: { _all: true },
+        _sum: { amount: true },
+      }),
+      this.prisma.payment.groupBy({
+        by: ['userId'],
+        where: { userId: { in: uniqueUserIds }, status: { in: [PaymentStatus.FAILED, PaymentStatus.CANCELLED] } },
+        _count: { _all: true },
+      }),
+      this.prisma.order.groupBy({
+        by: ['userId'],
+        where: { userId: { in: uniqueUserIds }, paymentStatus: PaymentStatus.SUCCEEDED },
+        _sum: { total: true },
+      }),
+    ]);
+
+    const orderMap = new Map(orderRows.map((row) => [row.userId, { ordersCount: row._count._all, lastOrderAt: row._max.createdAt ?? null }]));
+    const paymentSuccessMap = new Map(paymentSuccessRows.map((row) => [row.userId, { successfulPayments: row._count._all, totalSpent: Number(row._sum.amount ?? 0) }]));
+    const paymentFailedMap = new Map(paymentFailedRows.map((row) => [row.userId, row._count._all]));
+    const fallbackOrderMap = new Map(fallbackOrderRows.map((row) => [row.userId, Number(row._sum.total ?? 0)]));
+
+    for (const userId of uniqueUserIds) {
+      const orders = orderMap.get(userId);
+      const paymentSuccess = paymentSuccessMap.get(userId);
+      result.set(userId, {
+        ordersCount: orders?.ordersCount ?? 0,
+        totalSpent: this.round(paymentSuccess && paymentSuccess.successfulPayments > 0 ? paymentSuccess.totalSpent : (fallbackOrderMap.get(userId) ?? 0)),
+        successfulPayments: paymentSuccess?.successfulPayments ?? 0,
+        failedPayments: paymentFailedMap.get(userId) ?? 0,
+        lastOrderAt: orders?.lastOrderAt ?? null,
+      });
+    }
+
+    return result;
+  }
+
+  async findSingleUserStats(userId: string): Promise<UserStats> {
+    const map = await this.findUserAggregateMap([userId]);
+    return map.get(userId) ?? this.zeroStats();
+  }
+
+  async findCurrentSubscriptionSnapshot(userId: string): Promise<UserSubscriptionSnapshot | null> {
+    const subscription = await this.prisma.customerSubscription.findFirst({
+      where: { userId, status: { in: [CustomerSubscriptionStatus.ACTIVE, CustomerSubscriptionStatus.TRIALING, CustomerSubscriptionStatus.PAST_DUE] } },
+      include: { plan: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    if (!subscription) {
+      return null;
+    }
+
+    return {
+      planName: subscription.plan?.name ?? null,
+      planType: subscription.billingCycle ?? null,
+      status: subscription.status,
+      renewalDate: subscription.currentPeriodEnd ?? null,
+      progressPercentage: this.subscriptionProgress(subscription.currentPeriodStart, subscription.currentPeriodEnd),
+    };
   }
 
   updateUser(id: string, data: Prisma.UserUpdateInput): Promise<User> {
@@ -224,5 +317,26 @@ export class UserManagementRepository {
       await tx.customerContact.deleteMany({ where: { userId: params.target.id } });
       await tx.user.delete({ where: { id: params.target.id } });
     });
+  }
+
+  private subscriptionProgress(start: Date | null, end: Date | null): number {
+    if (!start || !end) {
+      return 0;
+    }
+    const total = end.getTime() - start.getTime();
+    if (total <= 0) {
+      return 0;
+    }
+    const elapsed = Date.now() - start.getTime();
+    const raw = (elapsed / total) * 100;
+    return this.round(Math.min(100, Math.max(0, raw)));
+  }
+
+  private round(value: number): number {
+    return Number(value.toFixed(2));
+  }
+
+  private zeroStats(): UserStats {
+    return { ordersCount: 0, totalSpent: 0, successfulPayments: 0, failedPayments: 0, lastOrderAt: null };
   }
 }

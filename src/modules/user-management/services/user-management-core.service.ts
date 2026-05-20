@@ -18,15 +18,7 @@ import {
   UpdateRegisteredUserDto,
   UpdateRegisteredUserStatusDto,
 } from '../dto/user-management.dto';
-import { UserManagementRepository } from '../repositories/user-management.repository';
-
-interface UserStats {
-  ordersCount: number;
-  totalSpent: number;
-  successfulPayments: number;
-  failedPayments: number;
-  lastOrderAt: Date | null;
-}
+import { UserManagementRepository, UserStats, UserSubscriptionSnapshot } from '../repositories/user-management.repository';
 
 interface UserActivityItem {
   id: string;
@@ -47,15 +39,30 @@ export class UserManagementCoreService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const where = this.buildRegisteredUserWhere(query);
+    const usesAggregateSort = query.sortBy === RegisteredUserSortBy.TOTAL_SPENT || query.sortBy === RegisteredUserSortBy.ORDERS_COUNT;
+
+    if (usesAggregateSort) {
+      const allUsers = await this.userManagementRepository.findManyUsers({ where, orderBy: { createdAt: 'desc' }, take: 10000 });
+      const aggregateMap = await this.userManagementRepository.findUserAggregateMap(allUsers.map((user) => user.id));
+      const sorted = [...allUsers].sort((left, right) => this.compareAggregateUsers(left, right, aggregateMap, query.sortBy, query.sortOrder));
+      const paged = sorted.slice((page - 1) * limit, page * limit);
+      return {
+        data: paged.map((user) => this.toListItem(user, aggregateMap.get(user.id) ?? this.zeroStats())),
+        meta: { page, limit, total: sorted.length, totalPages: Math.ceil(sorted.length / limit) },
+        message: 'Registered users fetched successfully',
+      };
+    }
+
     const [items, total] = await this.userManagementRepository.findUsersAndCount({
       where,
       orderBy: this.toOrderBy(query.sortBy, query.sortOrder),
       skip: (page - 1) * limit,
       take: limit,
     });
+    const aggregateMap = await this.userManagementRepository.findUserAggregateMap(items.map((user) => user.id));
 
     return {
-      data: items.map((user) => this.toListItem(user, this.emptyStats())),
+      data: items.map((user) => this.toListItem(user, aggregateMap.get(user.id) ?? this.zeroStats())),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       message: 'Registered users fetched successfully',
     };
@@ -63,15 +70,23 @@ export class UserManagementCoreService {
 
   async details(id: string) {
     const user = await this.getRegisteredUser(id);
+    const [stats, subscription] = await Promise.all([
+      this.userManagementRepository.findSingleUserStats(id),
+      this.userManagementRepository.findCurrentSubscriptionSnapshot(id),
+    ]);
     return {
-      data: this.toDetail(user, this.emptyStats()),
+      data: this.toDetail(user, stats, subscription),
       message: 'Registered user details fetched successfully',
     };
   }
 
   async update(user: AuthUserContext, id: string, dto: UpdateRegisteredUserDto) {
     const target = await this.getRegisteredUser(id);
-    const before = this.toDetail(target, this.emptyStats());
+    const [stats, subscription] = await Promise.all([
+      this.userManagementRepository.findSingleUserStats(id),
+      this.userManagementRepository.findCurrentSubscriptionSnapshot(id),
+    ]);
+    const before = this.toDetail(target, stats, subscription);
     const updated = await this.userManagementRepository.updateUser(target.id, {
       firstName: dto.firstName?.trim(),
       lastName: dto.lastName?.trim(),
@@ -79,10 +94,10 @@ export class UserManagementCoreService {
       avatarUrl: dto.avatarUrl?.trim(),
       location: dto.location?.trim(),
     });
-    await this.recordAudit(user.uid, target.id, 'REGISTERED_USER_UPDATED', before, this.toDetail(updated, this.emptyStats()));
+    await this.recordAudit(user.uid, target.id, 'REGISTERED_USER_UPDATED', before, this.toDetail(updated, stats, subscription));
 
     return {
-      data: this.toDetail(updated, this.emptyStats()),
+      data: this.toDetail(updated, stats, subscription),
       message: 'Registered user updated successfully',
     };
   }
@@ -245,7 +260,7 @@ export class UserManagementCoreService {
   async stats(id: string) {
     await this.getRegisteredUser(id);
     return {
-      data: this.emptyStats(),
+      data: await this.userManagementRepository.findSingleUserStats(id),
       message: 'User stats fetched successfully',
     };
   }
@@ -256,8 +271,9 @@ export class UserManagementCoreService {
       orderBy: { createdAt: 'desc' },
       take: 10000,
     });
+    const aggregateMap = await this.userManagementRepository.findUserAggregateMap(users.map((user) => user.id));
 
-    const rows = this.toExportRows(users);
+    const rows = this.toExportRows(users, aggregateMap);
     const isXlsx = query.format === ExportFormat.XLSX;
 
     return {
@@ -269,10 +285,12 @@ export class UserManagementCoreService {
     };
   }
 
-  private toExportRows(users: User[]): string[][] {
+  private toExportRows(users: User[], aggregateMap: Map<string, UserStats>): string[][] {
     return [
-      ['ID', 'First Name', 'Last Name', 'Full Name', 'Email', 'Phone', 'Status', 'Is Active', 'Is Verified', 'Registration Date'],
-      ...users.map((user) => [
+      ['ID', 'First Name', 'Last Name', 'Full Name', 'Email', 'Phone', 'Status', 'Is Active', 'Is Verified', 'Orders Count', 'Total Spent', 'Successful Payments', 'Failed Payments', 'Last Order At', 'Registration Date'],
+      ...users.map((user) => {
+        const stats = aggregateMap.get(user.id) ?? this.zeroStats();
+        return [
         user.id,
         user.firstName,
         user.lastName,
@@ -282,8 +300,14 @@ export class UserManagementCoreService {
         this.toStatus(user),
         String(user.isActive),
         String(user.isVerified),
+        String(stats.ordersCount),
+        String(stats.totalSpent),
+        String(stats.successfulPayments),
+        String(stats.failedPayments),
+        stats.lastOrderAt?.toISOString() ?? '',
         user.createdAt.toISOString(),
-      ]),
+      ];
+      }),
     ];
   }
 
@@ -459,6 +483,22 @@ export class UserManagementCoreService {
     return { createdAt: direction };
   }
 
+  private compareAggregateUsers(left: User, right: User, aggregateMap: Map<string, UserStats>, sortBy?: RegisteredUserSortBy, sortOrder?: SortOrder): number {
+    const leftStats = aggregateMap.get(left.id) ?? this.zeroStats();
+    const rightStats = aggregateMap.get(right.id) ?? this.zeroStats();
+    const direction = sortOrder === SortOrder.ASC ? 1 : -1;
+
+    if (sortBy === RegisteredUserSortBy.TOTAL_SPENT) {
+      return ((leftStats.totalSpent - rightStats.totalSpent) * direction) || (right.createdAt.getTime() - left.createdAt.getTime());
+    }
+
+    if (sortBy === RegisteredUserSortBy.ORDERS_COUNT) {
+      return ((leftStats.ordersCount - rightStats.ordersCount) * direction) || (right.createdAt.getTime() - left.createdAt.getTime());
+    }
+
+    return right.createdAt.getTime() - left.createdAt.getTime();
+  }
+
   private toListItem(user: User, stats: UserStats) {
     return {
       id: user.id,
@@ -480,16 +520,17 @@ export class UserManagementCoreService {
     };
   }
 
-  private toDetail(user: User, stats: UserStats) {
+  private toDetail(user: User, stats: UserStats, subscription: UserSubscriptionSnapshot | null) {
     return {
       ...this.toListItem(user, stats),
       lastLoginAt: user.lastLoginAt,
       location: user.location,
       subscription: {
-        planName: null,
-        planType: null,
-        renewalDate: null,
-        progressPercentage: 0,
+        planName: subscription?.planName ?? null,
+        planType: subscription?.planType ?? null,
+        status: subscription?.status ?? null,
+        renewalDate: subscription?.renewalDate ?? null,
+        progressPercentage: subscription?.progressPercentage ?? 0,
       },
       quickStats: {
         ordersCount: stats.ordersCount,
@@ -608,8 +649,7 @@ export class UserManagementCoreService {
     await this.mailerService.sendAccountStatusEmail(user.email, status, comment);
   }
 
-  // TODO(PROD): replace placeholder stats with Order/Payment/Subscription module aggregates.
-  private emptyStats(): UserStats {
+  private zeroStats(): UserStats {
     return {
       ordersCount: 0,
       totalSpent: 0,
