@@ -27914,8 +27914,7 @@
         },
         "required": [
           "name",
-          "price",
-          "stockQuantity"
+          "price"
         ]
       },
       "CreateProviderInventoryItemDto": {
@@ -29777,8 +29776,7 @@
         },
         "required": [
           "name",
-          "price",
-          "stockQuantity"
+          "price"
         ]
       },
       "CreateGiftDto": {

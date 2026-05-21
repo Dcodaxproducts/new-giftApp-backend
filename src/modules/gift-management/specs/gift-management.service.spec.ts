@@ -58,6 +58,12 @@ describe('GiftManagementService', () => {
     expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: GiftStatus.ACTIVE }) }));
   });
 
+  it('defaults omitted variant stock to zero when super admin creates a gift', async () => {
+    const { service, prisma } = createService();
+    await service.createGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10, isPublished: true, variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99, isDefault: true }] });
+    expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ variants: { create: [expect.objectContaining({ stockQuantity: 0 }), expect.objectContaining({ stockQuantity: 0 })] } }) }));
+  });
+
   it('returns all image urls and real provider review summary in admin gift list', async () => {
     const { service, prisma } = createService();
     prisma.gift.findMany.mockResolvedValue([{ ...gift, imageUrls: ['one.png', 'two.png'] }]);

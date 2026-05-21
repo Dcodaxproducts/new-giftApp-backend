@@ -21,7 +21,7 @@ export class ProviderInventoryVariantDto {
   @ApiProperty({ example: '50ml' }) @IsString() @MinLength(1) name!: string;
   @ApiProperty({ example: 129.99 }) @Type(() => Number) @IsNumber() @Min(0) price!: number;
   @ApiPropertyOptional({ example: 159.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) originalPrice?: number;
-  @ApiProperty({ example: 20 }) @Type(() => Number) @IsInt() @Min(0) stockQuantity!: number;
+  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
   @ApiPropertyOptional({ example: 'PERFUME-50ML' }) @IsOptional() @IsString() sku?: string;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isPopular?: boolean;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isDefault?: boolean;

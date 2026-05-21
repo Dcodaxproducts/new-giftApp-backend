@@ -16,6 +16,8 @@ describe('Provider inventory nested variants', () => {
 
   it('creates and updates item variants through the repository', () => {
     expect(sourceWithoutWhitespace(service)).toContain('variants:variants.length?{create:');
+    expect(sourceWithoutWhitespace(dto)).toContain('stockQuantity?:number');
+    expect(service).toContain('stockQuantity: variant.stockQuantity ?? 0');
     expect(repository).toContain('private async upsertVariants');
     expect(repository).toContain('tx.giftVariant.update');
     expect(repository).toContain('tx.giftVariant.create');
