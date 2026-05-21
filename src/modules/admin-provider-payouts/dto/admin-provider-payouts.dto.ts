@@ -6,6 +6,7 @@ export enum AdminProviderPayoutStatusFilter { ALL = 'ALL', PENDING = 'PENDING', 
 export enum AdminProviderPayoutSortBy { createdAt = 'createdAt', amount = 'amount', status = 'status', nextPayoutDate = 'nextPayoutDate' }
 export enum AdminProviderPayoutSortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum AdminProviderPayoutExportFormat { CSV = 'CSV' }
+export enum AdminProviderPayoutTrendRange { LAST_3_MONTHS = 'LAST_3_MONTHS', LAST_6_MONTHS = 'LAST_6_MONTHS', LAST_12_MONTHS = 'LAST_12_MONTHS' }
 export enum AdminProviderPayoutHoldReason { BANK_VERIFICATION_PENDING = 'BANK_VERIFICATION_PENDING', COMPLIANCE_REVIEW = 'COMPLIANCE_REVIEW', PROVIDER_DOCUMENTS_REQUIRED = 'PROVIDER_DOCUMENTS_REQUIRED', OTHER = 'OTHER' }
 export enum AdminProviderPayoutRejectReason { INVALID_BANK_ACCOUNT = 'INVALID_BANK_ACCOUNT', FRAUD_RISK = 'FRAUD_RISK', COMPLIANCE_REJECTED = 'COMPLIANCE_REJECTED', PROVIDER_INELIGIBLE = 'PROVIDER_INELIGIBLE', OTHER = 'OTHER' }
 
@@ -23,6 +24,10 @@ export class ListAdminProviderPayoutsDto {
 
 export class ExportAdminProviderPayoutsDto extends ListAdminProviderPayoutsDto {
   @ApiPropertyOptional({ enum: AdminProviderPayoutExportFormat }) @IsOptional() @IsEnum(AdminProviderPayoutExportFormat) format?: AdminProviderPayoutExportFormat;
+}
+
+export class AdminProviderPayoutTrendsDto {
+  @ApiPropertyOptional({ enum: AdminProviderPayoutTrendRange, example: AdminProviderPayoutTrendRange.LAST_12_MONTHS }) @IsOptional() @IsEnum(AdminProviderPayoutTrendRange) range?: AdminProviderPayoutTrendRange;
 }
 
 export class ApproveProviderPayoutDto {

@@ -2,7 +2,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderPayoutHoldReason, AdminProviderPayoutRejectReason, AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutHoldReason, AdminProviderPayoutRejectReason, AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter, AdminProviderPayoutTrendRange } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
@@ -69,10 +69,15 @@ describe('AdminProviderPayoutsService', () => {
     expect(JSON.stringify(response.data)).not.toContain('accountHolderName');
   });
 
-  it('returns payout trends and earning distribution by commission tier', async () => {
+  it('returns payout trends for the requested month range and earning distribution by commission tier', async () => {
     const { service, repository } = createService();
-    const trends = await service.trends();
+    const trends = await service.trends({ range: AdminProviderPayoutTrendRange.LAST_3_MONTHS });
+    expect(trends.data.range).toBe(AdminProviderPayoutTrendRange.LAST_3_MONTHS);
+    expect(trends.data.labels).toHaveLength(3);
+    expect(trends.data.values).toHaveLength(3);
     expect(trends.data.values.reduce((sum, value) => sum + value, 0)).toBeGreaterThan(0);
+    const trendCalls = repository.findPayouts.mock.calls as Array<[{ where?: { createdAt?: { gte?: Date } } }]>;
+    expect(trendCalls[0]?.[0]?.where?.createdAt?.gte).toBeInstanceOf(Date);
     const distribution = await service.earningDistribution();
     expect(distribution.data[0]).toMatchObject({ tierId: 'tier_silver', tierName: 'Silver Partner', providerCount: 1, totalEarnings: 6000, currency: 'USD' });
     expect(repository.findLedgerEntries).toHaveBeenCalledWith({ direction: ProviderEarningsLedgerDirection.CREDIT, type: ProviderEarningsLedgerType.ORDER_EARNING, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } });
@@ -139,6 +144,8 @@ describe('Admin provider payouts Swagger and permission safety', () => {
     expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts')");
     expect(controller).not.toContain('02 Admin - Provider Payout Approvals');
     for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", '@Get()', "@Get(':id')"]) expect(controller).toContain(route);
+    expect(controller).toContain('AdminProviderPayoutTrendRange');
+    expect(controller).toContain("trends(@Query() query: AdminProviderPayoutTrendsDto)");
     expect(controller).toContain('totalPayoutsThisMonth');
     expect(controller).toContain('TechSolutions Inc.');
     expect(main).toContain("'02 Admin - Provider Payouts'");

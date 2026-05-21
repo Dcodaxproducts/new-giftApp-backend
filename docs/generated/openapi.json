@@ -5457,9 +5457,23 @@
     },
     "/api/v1/admin/provider-payouts/trends": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.",
         "operationId": "AdminProviderPayoutsController_trends",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "LAST_3_MONTHS",
+                "LAST_6_MONTHS",
+                "LAST_12_MONTHS"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",

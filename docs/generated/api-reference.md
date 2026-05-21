@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 05:06 UTC
+Generated at: 2026-05-21 06:42 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -2323,7 +2323,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch monthly provider payout trend
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.
+- Parameters:
+  - `range` (query, optional, string)
 - Response body:
 ```json
 {

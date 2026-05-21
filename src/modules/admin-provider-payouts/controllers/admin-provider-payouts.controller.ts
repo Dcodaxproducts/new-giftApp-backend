@@ -7,7 +7,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, ExportAdminProviderPayoutsDto, HoldProviderPayoutDto, ListAdminProviderPayoutsDto, RejectProviderPayoutDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, ExportAdminProviderPayoutsDto, HoldProviderPayoutDto, ListAdminProviderPayoutsDto, RejectProviderPayoutDto } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
 @ApiTags('02 Admin - Provider Payouts')
@@ -26,9 +26,10 @@ export class AdminProviderPayoutsController {
 
   @Get('trends')
   @Permissions('providerPayouts.read')
-  @ApiOperation({ summary: 'Fetch monthly provider payout trend', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read. Returns last 12 months from provider payout records.' })
+  @ApiOperation({ summary: 'Fetch monthly provider payout trend', description: 'SUPER_ADMIN or ADMIN with providerPayouts.read. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.' })
+  @ApiQuery({ name: 'range', required: false, enum: AdminProviderPayoutTrendRange })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { range: 'LAST_12_MONTHS', labels: ['Jan', 'Feb', 'Mar'], values: [12000, 28000, 16000], currency: 'USD' }, message: 'Provider payout trends fetched successfully.' } } })
-  trends() { return this.payouts.trends(); }
+  trends(@Query() query: AdminProviderPayoutTrendsDto) { return this.payouts.trends(query); }
 
   @Get('earning-distribution')
   @Permissions('providerPayouts.read')

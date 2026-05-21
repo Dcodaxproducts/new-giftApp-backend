@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CommissionTier, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, HoldProviderPayoutDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, HoldProviderPayoutDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
 import { ADMIN_PROVIDER_PAYOUT_INCLUDE, AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 
 type PayoutWithRelations = Prisma.ProviderPayoutGetPayload<{ include: typeof ADMIN_PROVIDER_PAYOUT_INCLUDE }>;
@@ -29,10 +29,11 @@ export class AdminProviderPayoutsService {
     return { data: { totalPayoutsThisMonth, totalPayoutsDeltaPercent: this.delta(totalPayoutsThisMonth, previousTotalPayouts), pendingPayouts, pendingPayoutsDeltaPercent: this.delta(pendingPayouts, previousPendingPayouts), completedPayouts, completedPayoutsDeltaPercent: this.delta(completedPayouts, previousCompletedPayouts), platformRevenue, platformRevenueDeltaPercent: this.delta(platformRevenue, previousPlatformRevenue), currency: current[0]?.currency ?? payouts[0]?.currency ?? 'USD' }, message: 'Provider payout stats fetched successfully.' };
   }
 
-  async trends() {
-    const months = this.lastTwelveMonths();
+  async trends(query: AdminProviderPayoutTrendsDto = {}) {
+    const range = query.range ?? AdminProviderPayoutTrendRange.LAST_12_MONTHS;
+    const months = this.lastMonths(this.monthCount(range));
     const payouts = await this.repository.findPayouts({ where: { createdAt: { gte: months[0].start } } });
-    return { data: { range: 'LAST_12_MONTHS', labels: months.map((month) => month.label), values: months.map((month) => this.sumPayouts(payouts.filter((payout) => payout.createdAt >= month.start && payout.createdAt < month.end))), currency: payouts[0]?.currency ?? 'USD' }, message: 'Provider payout trends fetched successfully.' };
+    return { data: { range, labels: months.map((month) => month.label), values: months.map((month) => this.sumPayouts(payouts.filter((payout) => payout.createdAt >= month.start && payout.createdAt < month.end))), currency: payouts[0]?.currency ?? 'USD' }, message: 'Provider payout trends fetched successfully.' };
   }
 
   async earningDistribution() {
@@ -150,7 +151,8 @@ export class AdminProviderPayoutsService {
   private providerEarningTotals(ledger: LedgerWithProvider[]): Map<string, { totalEarnings: number; currency: string }> { const totals = new Map<string, { totalEarnings: number; currency: string }>(); for (const item of ledger) { const current = totals.get(item.providerId) ?? { totalEarnings: 0, currency: item.currency }; current.totalEarnings = this.money(current.totalEarnings + Number(item.amount)); totals.set(item.providerId, current); } return totals; }
   private tierFor(total: number, tiers: CommissionTier[]): CommissionTier | null { return [...tiers].filter((tier) => total >= Number(tier.orderVolumeThreshold)).sort((left, right) => Number(right.orderVolumeThreshold) - Number(left.orderVolumeThreshold))[0] ?? null; }
   private monthRanges(): { currentStart: Date; previousStart: Date; previousEnd: Date } { const now = new Date(); const currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)); return { currentStart, previousStart: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)), previousEnd: currentStart }; }
-  private lastTwelveMonths(): { label: string; start: Date; end: Date }[] { const now = new Date(); return Array.from({ length: 12 }, (_, index) => { const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (11 - index), 1)); return { label: start.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }), start, end: new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)) }; }); }
+  private monthCount(range: AdminProviderPayoutTrendRange): number { if (range === AdminProviderPayoutTrendRange.LAST_3_MONTHS) return 3; if (range === AdminProviderPayoutTrendRange.LAST_6_MONTHS) return 6; return 12; }
+  private lastMonths(count: number): { label: string; start: Date; end: Date }[] { const now = new Date(); return Array.from({ length: count }, (_, index) => { const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - ((count - 1) - index), 1)); return { label: start.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }), start, end: new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)) }; }); }
   private delta(current: number, previous: number): number { if (previous === 0) return current === 0 ? 0 : 100; return this.money(((current - previous) / previous) * 100); }
   private providerCode(id: string): string { return `PRV-${id.slice(-5).toUpperCase()}`; }
   private merchantId(id: string): string { return `MER-${id.slice(-5).toUpperCase()}-${new Date().getUTCFullYear()}`; }
