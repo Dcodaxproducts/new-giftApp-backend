@@ -5975,10 +5975,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
       }
     },
-    "/api/v1/admin/provider-payouts/{id}/approve": {
+    "/api/v1/admin/provider-payouts/{id}/action": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.",
-        "operationId": "AdminProviderPayoutsController_approve",
+        "description": "Access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve, HOLD requires providerPayouts.hold, REJECT requires providerPayouts.reject. SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.",
+        "operationId": "AdminProviderPayoutsController_action",
         "parameters": [
           {
             "name": "id",
@@ -5994,140 +5994,27 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApproveProviderPayoutDto"
+                "$ref": "#/components/schemas/ProviderPayoutActionDto"
               },
               "examples": {
                 "approve": {
                   "value": {
+                    "action": "APPROVE",
                     "comment": "Approved after verification.",
                     "notifyProvider": true
                   }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "id": "payout_id",
-                      "status": "PROCESSING"
-                    },
-                    "message": "Payout approved successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Approve provider payout",
-        "tags": [
-          "02 Admin - Provider Payouts"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.approve",
-        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.approve"
-      }
-    },
-    "/api/v1/admin/provider-payouts/{id}/hold": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.",
-        "operationId": "AdminProviderPayoutsController_hold",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/HoldProviderPayoutDto"
-              },
-              "examples": {
+                },
                 "hold": {
                   "value": {
+                    "action": "HOLD",
                     "reason": "BANK_VERIFICATION_PENDING",
                     "comment": "Bank verification required.",
                     "notifyProvider": true
                   }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "id": "payout_id",
-                      "status": "ON_HOLD"
-                    },
-                    "message": "Payout held successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Hold provider payout",
-        "tags": [
-          "02 Admin - Provider Payouts"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.hold",
-        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.hold"
-      }
-    },
-    "/api/v1/admin/provider-payouts/{id}/reject": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.",
-        "operationId": "AdminProviderPayoutsController_reject",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectProviderPayoutDto"
-              },
-              "examples": {
+                },
                 "reject": {
                   "value": {
+                    "action": "REJECT",
                     "reason": "INVALID_BANK_ACCOUNT",
                     "comment": "Bank details are invalid.",
                     "notifyProvider": true
@@ -6147,10 +6034,9 @@
                     "success": true,
                     "data": {
                       "id": "payout_id",
-                      "status": "REJECTED",
-                      "ledgerReleased": true
+                      "status": "PROCESSING"
                     },
-                    "message": "Payout rejected successfully."
+                    "message": "Payout action processed successfully."
                   }
                 }
               }
@@ -6162,12 +6048,12 @@
             "bearer": []
           }
         ],
-        "summary": "Reject provider payout",
+        "summary": "Run provider payout action",
         "tags": [
           "02 Admin - Provider Payouts"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerPayouts.reject",
-        "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.reject"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with action-specific providerPayouts permission",
+        "x-access": "SUPER_ADMIN or ADMIN with action-specific providerPayouts permission"
       }
     },
     "/api/v1/admin/provider-payouts/{id}": {
@@ -26959,9 +26845,33 @@
           "notifyProvider"
         ]
       },
-      "ApproveProviderPayoutDto": {
+      "ProviderPayoutActionDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "HOLD",
+              "REJECT"
+            ],
+            "example": "APPROVE"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "BANK_VERIFICATION_PENDING",
+              "COMPLIANCE_REVIEW",
+              "PROVIDER_DOCUMENTS_REQUIRED",
+              "INVALID_BANK_ACCOUNT",
+              "FRAUD_RISK",
+              "COMPLIANCE_REJECTED",
+              "PROVIDER_INELIGIBLE",
+              "OTHER"
+            ],
+            "example": "BANK_VERIFICATION_PENDING",
+            "description": "Required for HOLD and REJECT actions."
+          },
           "comment": {
             "type": "string",
             "example": "Approved after verification.",
@@ -26973,63 +26883,7 @@
           }
         },
         "required": [
-          "notifyProvider"
-        ]
-      },
-      "HoldProviderPayoutDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "BANK_VERIFICATION_PENDING",
-              "COMPLIANCE_REVIEW",
-              "PROVIDER_DOCUMENTS_REQUIRED",
-              "OTHER"
-            ],
-            "example": "BANK_VERIFICATION_PENDING"
-          },
-          "comment": {
-            "type": "string",
-            "example": "Bank verification required.",
-            "maxLength": 500
-          },
-          "notifyProvider": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "reason",
-          "notifyProvider"
-        ]
-      },
-      "RejectProviderPayoutDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "INVALID_BANK_ACCOUNT",
-              "FRAUD_RISK",
-              "COMPLIANCE_REJECTED",
-              "PROVIDER_INELIGIBLE",
-              "OTHER"
-            ],
-            "example": "INVALID_BANK_ACCOUNT"
-          },
-          "comment": {
-            "type": "string",
-            "example": "Bank details are invalid.",
-            "maxLength": 500
-          },
-          "notifyProvider": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "reason",
+          "action",
           "notifyProvider"
         ]
       },

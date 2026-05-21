@@ -7,7 +7,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, ExportAdminProviderPayoutsDto, HoldProviderPayoutDto, ListAdminProviderPayoutsDto, RejectProviderPayoutDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, BulkApproveProviderPayoutsDto, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto, ProviderPayoutActionDto } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
 @ApiTags('02 Admin - Provider Payouts')
@@ -70,26 +70,11 @@ export class AdminProviderPayoutsController {
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { payoutId: 'payout_id', provider: { id: 'provider_id', businessName: 'CloudTech Solutions', merchantId: 'MER-29401-2023' }, grossAmount: 4200, platformFee: 420, platformFeePercent: 10, processingFee: 12.5, netPayout: 3767.5, currency: 'USD', recentTransactions: [{ orderNumber: '88392', description: 'Subscription - Professional Plan', amount: 199 }] }, message: 'Payout breakdown fetched successfully.' } } })
   breakdown(@Param('id') id: string) { return this.payouts.breakdown(id); }
 
-  @Post(':id/approve')
-  @Permissions('providerPayouts.approve')
-  @ApiOperation({ summary: 'Approve provider payout', description: 'SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.' })
-  @ApiBody({ type: ApproveProviderPayoutDto, examples: { approve: { value: { comment: 'Approved after verification.', notifyProvider: true } } } })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'payout_id', status: 'PROCESSING' }, message: 'Payout approved successfully.' } } })
-  approve(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ApproveProviderPayoutDto) { return this.payouts.approve(user, id, dto); }
-
-  @Post(':id/hold')
-  @Permissions('providerPayouts.hold')
-  @ApiOperation({ summary: 'Hold provider payout', description: 'SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.' })
-  @ApiBody({ type: HoldProviderPayoutDto, examples: { hold: { value: { reason: 'BANK_VERIFICATION_PENDING', comment: 'Bank verification required.', notifyProvider: true } } } })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'payout_id', status: 'ON_HOLD' }, message: 'Payout held successfully.' } } })
-  hold(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: HoldProviderPayoutDto) { return this.payouts.hold(user, id, dto); }
-
-  @Post(':id/reject')
-  @Permissions('providerPayouts.reject')
-  @ApiOperation({ summary: 'Reject provider payout', description: 'SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.' })
-  @ApiBody({ type: RejectProviderPayoutDto, examples: { reject: { value: { reason: 'INVALID_BANK_ACCOUNT', comment: 'Bank details are invalid.', notifyProvider: true } } } })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'payout_id', status: 'REJECTED', ledgerReleased: true }, message: 'Payout rejected successfully.' } } })
-  reject(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: RejectProviderPayoutDto) { return this.payouts.reject(user, id, dto); }
+  @Post(':id/action')
+  @ApiOperation({ summary: 'Run provider payout action', description: 'SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.' })
+  @ApiBody({ type: ProviderPayoutActionDto, examples: { approve: { value: { action: 'APPROVE', comment: 'Approved after verification.', notifyProvider: true } }, hold: { value: { action: 'HOLD', reason: 'BANK_VERIFICATION_PENDING', comment: 'Bank verification required.', notifyProvider: true } }, reject: { value: { action: 'REJECT', reason: 'INVALID_BANK_ACCOUNT', comment: 'Bank details are invalid.', notifyProvider: true } } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'payout_id', status: 'PROCESSING' }, message: 'Payout action processed successfully.' } } })
+  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ProviderPayoutActionDto) { return this.payouts.action(user, id, dto); }
 
   @Get(':id')
   @Permissions('providerPayouts.read')

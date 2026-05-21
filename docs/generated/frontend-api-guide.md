@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 06:42 UTC
+Generated at: 2026-05-21 06:54 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-21 06:42 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-21 06:54 UTC.
 
 ## Frontend Integration Flows
 
@@ -240,7 +240,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-21 06:42 UTC.
 | POST | `/api/v1/providers/{id}/message` | Create Providers Message | SUPER_ADMIN or ADMIN with providers.message |
 | PATCH | `/api/v1/providers/{id}/status` | Update provider lifecycle status | SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers.approve, REJECT=>providers.reject, SUSPEND=>providers.suspend, UNSUSPEND=>providers.suspend, UPDATE_STATUS=>providers.updateStatus) |
 
-### Admin - Provider Payouts (11 APIs)
+### Admin - Provider Payouts (9 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -251,10 +251,8 @@ Generated from `docs/generated/openapi.json` on 2026-05-21 06:42 UTC.
 | GET | `/api/v1/admin/provider-payouts/stats` | Fetch provider payout dashboard stats | SUPER_ADMIN or ADMIN with providerPayouts.read |
 | GET | `/api/v1/admin/provider-payouts/trends` | Fetch monthly provider payout trend | SUPER_ADMIN or ADMIN with providerPayouts.read |
 | GET | `/api/v1/admin/provider-payouts/{id}` | Fetch provider payout details | SUPER_ADMIN or ADMIN with providerPayouts.read |
-| POST | `/api/v1/admin/provider-payouts/{id}/approve` | Approve provider payout | SUPER_ADMIN or ADMIN with providerPayouts.approve |
+| POST | `/api/v1/admin/provider-payouts/{id}/action` | Run provider payout action | SUPER_ADMIN or ADMIN with action-specific providerPayouts permission |
 | GET | `/api/v1/admin/provider-payouts/{id}/breakdown` | Fetch pending payout transaction breakdown | SUPER_ADMIN or ADMIN with providerPayouts.read |
-| POST | `/api/v1/admin/provider-payouts/{id}/hold` | Hold provider payout | SUPER_ADMIN or ADMIN with providerPayouts.hold |
-| POST | `/api/v1/admin/provider-payouts/{id}/reject` | Reject provider payout | SUPER_ADMIN or ADMIN with providerPayouts.reject |
 
 ### Admin - Referral Settings (6 APIs)
 

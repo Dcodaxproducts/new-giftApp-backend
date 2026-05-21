@@ -9,6 +9,8 @@ export enum AdminProviderPayoutExportFormat { CSV = 'CSV' }
 export enum AdminProviderPayoutTrendRange { LAST_3_MONTHS = 'LAST_3_MONTHS', LAST_6_MONTHS = 'LAST_6_MONTHS', LAST_12_MONTHS = 'LAST_12_MONTHS' }
 export enum AdminProviderPayoutHoldReason { BANK_VERIFICATION_PENDING = 'BANK_VERIFICATION_PENDING', COMPLIANCE_REVIEW = 'COMPLIANCE_REVIEW', PROVIDER_DOCUMENTS_REQUIRED = 'PROVIDER_DOCUMENTS_REQUIRED', OTHER = 'OTHER' }
 export enum AdminProviderPayoutRejectReason { INVALID_BANK_ACCOUNT = 'INVALID_BANK_ACCOUNT', FRAUD_RISK = 'FRAUD_RISK', COMPLIANCE_REJECTED = 'COMPLIANCE_REJECTED', PROVIDER_INELIGIBLE = 'PROVIDER_INELIGIBLE', OTHER = 'OTHER' }
+export enum AdminProviderPayoutAction { APPROVE = 'APPROVE', HOLD = 'HOLD', REJECT = 'REJECT' }
+export enum AdminProviderPayoutActionReason { BANK_VERIFICATION_PENDING = 'BANK_VERIFICATION_PENDING', COMPLIANCE_REVIEW = 'COMPLIANCE_REVIEW', PROVIDER_DOCUMENTS_REQUIRED = 'PROVIDER_DOCUMENTS_REQUIRED', INVALID_BANK_ACCOUNT = 'INVALID_BANK_ACCOUNT', FRAUD_RISK = 'FRAUD_RISK', COMPLIANCE_REJECTED = 'COMPLIANCE_REJECTED', PROVIDER_INELIGIBLE = 'PROVIDER_INELIGIBLE', OTHER = 'OTHER' }
 
 export class ListAdminProviderPayoutsDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
@@ -28,6 +30,13 @@ export class ExportAdminProviderPayoutsDto extends ListAdminProviderPayoutsDto {
 
 export class AdminProviderPayoutTrendsDto {
   @ApiPropertyOptional({ enum: AdminProviderPayoutTrendRange, example: AdminProviderPayoutTrendRange.LAST_12_MONTHS }) @IsOptional() @IsEnum(AdminProviderPayoutTrendRange) range?: AdminProviderPayoutTrendRange;
+}
+
+export class ProviderPayoutActionDto {
+  @ApiProperty({ enum: AdminProviderPayoutAction, example: AdminProviderPayoutAction.APPROVE }) @IsEnum(AdminProviderPayoutAction) action!: AdminProviderPayoutAction;
+  @ApiPropertyOptional({ enum: AdminProviderPayoutActionReason, example: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, description: 'Required for HOLD and REJECT actions.' }) @IsOptional() @IsEnum(AdminProviderPayoutActionReason) reason?: AdminProviderPayoutActionReason;
+  @ApiPropertyOptional({ example: 'Approved after verification.', maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) comment?: string;
+  @ApiProperty({ example: true }) @IsBoolean() notifyProvider!: boolean;
 }
 
 export class ApproveProviderPayoutDto {

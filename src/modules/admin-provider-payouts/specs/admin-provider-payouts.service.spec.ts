@@ -1,8 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderPayoutHoldReason, AdminProviderPayoutRejectReason, AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter, AdminProviderPayoutTrendRange } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutAction, AdminProviderPayoutActionReason, AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter, AdminProviderPayoutTrendRange } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
@@ -92,7 +92,7 @@ describe('AdminProviderPayoutsService', () => {
   it('approves pending and on-hold payouts with audit and provider notification', async () => {
     const { service, repository, auditLog } = createService();
     repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
-    const response = await service.approve({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_2', { comment: 'Approved after verification.', notifyProvider: true });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['approve'] } }, 'payout_2', { action: AdminProviderPayoutAction.APPROVE, comment: 'Approved after verification.', notifyProvider: true });
     expect(response.data.status).toBe(ProviderPayoutStatus.PROCESSING);
     const transitionCalls = repository.transitionPayout.mock.calls as unknown[][];
     expect(transitionCalls[0]?.[0]).toMatchObject({ status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, notification: { type: 'PROVIDER_PAYOUT_APPROVED' } });
@@ -103,14 +103,14 @@ describe('AdminProviderPayoutsService', () => {
   it('holds payout without releasing locked ledger balance', async () => {
     const { service, repository } = createService();
     repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
-    await service.hold({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_2', { reason: AdminProviderPayoutHoldReason.BANK_VERIFICATION_PENDING, comment: 'Bank verification required.', notifyProvider: true });
+    await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_2', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, comment: 'Bank verification required.', notifyProvider: true });
     expect(repository.transitionPayout).toHaveBeenCalledWith(expect.objectContaining({ status: ProviderPayoutStatus.ON_HOLD, releaseLedger: false }));
   });
 
   it('rejects payout and releases locked ledger balance', async () => {
     const { service, repository, auditLog } = createService();
     repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
-    const response = await service.reject({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_2', { reason: AdminProviderPayoutRejectReason.INVALID_BANK_ACCOUNT, comment: 'Bank details are invalid.', notifyProvider: true });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['reject'] } }, 'payout_2', { action: AdminProviderPayoutAction.REJECT, reason: AdminProviderPayoutActionReason.INVALID_BANK_ACCOUNT, comment: 'Bank details are invalid.', notifyProvider: true });
     expect(response.data).toMatchObject({ status: ProviderPayoutStatus.REJECTED, ledgerReleased: true });
     const transitionCalls = repository.transitionPayout.mock.calls as unknown[][];
     expect(transitionCalls[0]?.[0]).toMatchObject({ status: ProviderPayoutStatus.REJECTED, releaseLedger: true, notification: { type: 'PROVIDER_PAYOUT_REJECTED' } });
@@ -120,10 +120,16 @@ describe('AdminProviderPayoutsService', () => {
 
   it('rejects invalid status transitions and keeps bulk approve idempotent', async () => {
     const { service, repository } = createService();
-    await expect(service.hold({ uid: 'admin_1', role: UserRole.ADMIN }, 'payout_1', { reason: AdminProviderPayoutHoldReason.BANK_VERIFICATION_PENDING, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_1', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
     repository.findPayoutById.mockResolvedValueOnce(completedPayout).mockResolvedValueOnce(pendingPayout);
     const response = await service.bulkApprove({ uid: 'admin_1', role: UserRole.ADMIN }, { payoutIds: ['payout_1', 'payout_2'], comment: 'Bulk approval', notifyProvider: false });
     expect(response.data).toEqual(expect.arrayContaining([{ payoutId: 'payout_1', status: ProviderPayoutStatus.COMPLETED, success: true, idempotent: true }, { payoutId: 'payout_2', status: ProviderPayoutStatus.PROCESSING, success: true, idempotent: false }]));
+  });
+
+  it('enforces action-specific permissions and reason requirements', async () => {
+    const { service } = createService();
+    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['approve'] } }, 'payout_2', { action: AdminProviderPayoutAction.REJECT, reason: AdminProviderPayoutActionReason.INVALID_BANK_ACCOUNT, notifyProvider: false })).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_2', { action: AdminProviderPayoutAction.HOLD, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('throws for missing payout details', async () => {
@@ -143,7 +149,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   it('adds required routes, Swagger examples, and access metadata', () => {
     expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts')");
     expect(controller).not.toContain('02 Admin - Provider Payout Approvals');
-    for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", '@Get()', "@Get(':id')"]) expect(controller).toContain(route);
+    for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", '@Get()', "@Post(':id/action')", "@Get(':id')"]) expect(controller).toContain(route);
     expect(controller).toContain('AdminProviderPayoutTrendRange');
     expect(controller).toContain("trends(@Query() query: AdminProviderPayoutTrendsDto)");
     expect(controller).toContain('totalPayoutsThisMonth');
@@ -159,13 +165,22 @@ describe('Admin provider payouts Swagger and permission safety', () => {
     expect(permissions).toContain("key: 'initiate'");
     expect(controller.match(/@Permissions\('providerPayouts\.read'\)/g)).toHaveLength(6);
     expect(controller).toContain("@Permissions('providerPayouts.approve')");
-    expect(controller).toContain("@Permissions('providerPayouts.hold')");
-    expect(controller).toContain("@Permissions('providerPayouts.reject')");
+    expect(controller).not.toContain("@Post(':id/approve')");
+    expect(controller).not.toContain("@Post(':id/hold')");
+    expect(controller).not.toContain("@Post(':id/reject')");
     expect(controller).toContain("@Permissions('providerPayouts.export')");
     expect(repository).toContain('this.prisma.providerPayout.findMany');
     expect(repository).toContain('this.prisma.providerEarningsLedger.findMany');
     expect(repository).toContain('maskedAccount');
     expect(repository).not.toContain('accountHolderName: true');
     expect(repository).not.toContain('externalAccountId: true');
+  });
+
+  it('removes old action routes from Swagger metadata and keeps one unified action route', () => {
+    expect(swaggerAccess).toContain('POST /api/v1/admin/provider-payouts/{id}/action');
+    expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/{id}/approve');
+    expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/{id}/hold');
+    expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/{id}/reject');
+    expect(controller.match(/@Post\(':id\/action'\)/g)).toHaveLength(1);
   });
 });

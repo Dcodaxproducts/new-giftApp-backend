@@ -26,9 +26,7 @@
 - `GET /api/v1/admin/provider-payouts`
 - `GET /api/v1/admin/provider-payouts/:id`
 - `GET /api/v1/admin/provider-payouts/:id/breakdown`
-- `POST /api/v1/admin/provider-payouts/:id/approve`
-- `POST /api/v1/admin/provider-payouts/:id/hold`
-- `POST /api/v1/admin/provider-payouts/:id/reject`
+- `POST /api/v1/admin/provider-payouts/:id/action`
 
 ### Admin Commission / Payout Settings
 - `GET /api/v1/admin/payout-settings`

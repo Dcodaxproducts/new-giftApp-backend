@@ -1,8 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CommissionTier, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus } from '@prisma/client';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { CommissionTier, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, HoldProviderPayoutDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutAction, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, HoldProviderPayoutDto, ProviderPayoutActionDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
 import { ADMIN_PROVIDER_PAYOUT_INCLUDE, AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 
 type PayoutWithRelations = Prisma.ProviderPayoutGetPayload<{ include: typeof ADMIN_PROVIDER_PAYOUT_INCLUDE }>;
@@ -86,6 +86,14 @@ export class AdminProviderPayoutsService {
     return { data: { payoutId: payout.id, provider: { id: payout.provider.id, businessName: payout.provider.providerBusinessName ?? this.name(payout.provider), merchantId: this.merchantId(payout.provider.id) }, grossAmount, platformFee, platformFeePercent, processingFee: this.money(payout.processingFee), netPayout: this.money(payout.totalToReceive), currency: payout.currency, recentTransactions: ledger.map((item) => ({ orderNumber: item.providerOrder?.orderNumber ?? item.providerOrderId ?? item.id, description: item.description, amount: this.money(item.amount) })) }, message: 'Payout breakdown fetched successfully.' };
   }
 
+  async action(user: AuthUserContext, id: string, dto: ProviderPayoutActionDto) {
+    this.assertActionPermission(user, dto.action);
+    if (dto.action === AdminProviderPayoutAction.APPROVE) return this.approve(user, id, { comment: dto.comment, notifyProvider: dto.notifyProvider });
+    if (!dto.reason) throw new BadRequestException('Reason is required for HOLD and REJECT payout actions');
+    if (dto.action === AdminProviderPayoutAction.HOLD) return this.hold(user, id, { reason: dto.reason, comment: dto.comment, notifyProvider: dto.notifyProvider });
+    return this.reject(user, id, { reason: dto.reason, comment: dto.comment, notifyProvider: dto.notifyProvider });
+  }
+
   async approve(user: AuthUserContext, id: string, dto: ApproveProviderPayoutDto) {
     const payout = await this.getPayout(id);
     if (payout.status === ProviderPayoutStatus.PROCESSING || payout.status === ProviderPayoutStatus.COMPLETED) return { data: { id: payout.id, status: payout.status, idempotent: true }, message: 'Payout already approved.' };
@@ -95,7 +103,7 @@ export class AdminProviderPayoutsService {
     return { data: { id: updated.id, status: updated.status }, message: 'Payout approved successfully.' };
   }
 
-  async hold(user: AuthUserContext, id: string, dto: HoldProviderPayoutDto) {
+  async hold(user: AuthUserContext, id: string, dto: HoldProviderPayoutDto | { reason: string; comment?: string; notifyProvider: boolean }) {
     const payout = await this.getPayout(id);
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING], 'Only PENDING payout can be placed on hold');
     const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.ON_HOLD, failureReason: dto.reason, releaseLedger: false, notification: dto.notifyProvider ? this.notification('Provider payout on hold', dto.comment ?? 'Your payout is on hold pending review.', 'PROVIDER_PAYOUT_ON_HOLD', payout.id, dto.reason) : undefined });
@@ -103,7 +111,7 @@ export class AdminProviderPayoutsService {
     return { data: { id: updated.id, status: updated.status }, message: 'Payout held successfully.' };
   }
 
-  async reject(user: AuthUserContext, id: string, dto: RejectProviderPayoutDto) {
+  async reject(user: AuthUserContext, id: string, dto: RejectProviderPayoutDto | { reason: string; comment?: string; notifyProvider: boolean }) {
     const payout = await this.getPayout(id);
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.ON_HOLD], 'Only PENDING or ON_HOLD payout can be rejected');
     const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.REJECTED, failureReason: dto.reason, releaseLedger: true, notification: dto.notifyProvider ? this.notification('Provider payout rejected', dto.comment ?? 'Your payout was rejected.', 'PROVIDER_PAYOUT_REJECTED', payout.id, dto.reason) : undefined });
@@ -122,6 +130,28 @@ export class AdminProviderPayoutsService {
       }
     }
     return { data: results, message: 'Bulk payout approval processed.' };
+  }
+
+  private assertActionPermission(user: AuthUserContext, action: AdminProviderPayoutAction): void {
+    if (user.role === UserRole.SUPER_ADMIN) return;
+    const permission = this.actionPermission(action);
+    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
+  }
+
+  private actionPermission(action: AdminProviderPayoutAction): string {
+    if (action === AdminProviderPayoutAction.APPROVE) return 'providerPayouts.approve';
+    if (action === AdminProviderPayoutAction.HOLD) return 'providerPayouts.hold';
+    return 'providerPayouts.reject';
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return granted;
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) continue;
+      for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`);
+    }
+    return granted;
   }
 
   private async filteredPayouts(query: ListAdminProviderPayoutsDto): Promise<PayoutWithRelations[]> {

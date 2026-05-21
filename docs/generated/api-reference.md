@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 06:42 UTC
+Generated at: 2026-05-21 06:54 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -18,7 +18,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Promotional Offers Management (10 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
-- 02 Admin - Provider Payouts (11 APIs)
+- 02 Admin - Provider Payouts (9 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
 - 02 Admin - Message Moderation (15 APIs)
 - 02 Admin - Social Moderation (5 APIs)
@@ -2515,72 +2515,35 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/admin/provider-payouts/{id}/approve`
+### POST `/api/v1/admin/provider-payouts/{id}/action`
 
-- Summary: Approve provider payout
-- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.approve
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Idempotent for already approved payouts. SUPER_ADMIN or ADMIN with providerPayouts.approve. Only PENDING or ON_HOLD payouts can be approved. Approved payouts move to PROCESSING for payout processor completion.
+- Summary: Run provider payout action
+- Allowed role/access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission
+- Notes: Access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve, HOLD requires providerPayouts.hold, REJECT requires providerPayouts.reject. SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - approve:
 ```json
 {
+  "action": "APPROVE",
   "comment": "Approved after verification.",
   "notifyProvider": true
 }
 ```
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "id": "payout_id",
-    "status": "PROCESSING"
-  },
-  "message": "Payout approved successfully."
-}
-```
-
-### POST `/api/v1/admin/provider-payouts/{id}/hold`
-
-- Summary: Hold provider payout
-- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.hold
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.hold. SUPER_ADMIN or ADMIN with providerPayouts.hold permission. Keeps ledger balance locked. SUPER_ADMIN or ADMIN with providerPayouts.hold. Holds a PENDING payout without releasing locked PAYOUT_PENDING ledger balance.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
   - hold:
 ```json
 {
+  "action": "HOLD",
   "reason": "BANK_VERIFICATION_PENDING",
   "comment": "Bank verification required.",
   "notifyProvider": true
 }
 ```
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "id": "payout_id",
-    "status": "ON_HOLD"
-  },
-  "message": "Payout held successfully."
-}
-```
-
-### POST `/api/v1/admin/provider-payouts/{id}/reject`
-
-- Summary: Reject provider payout
-- Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.reject
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.reject. SUPER_ADMIN or ADMIN with providerPayouts.reject permission. Releases locked ledger balance. SUPER_ADMIN or ADMIN with providerPayouts.reject. Rejects PENDING or ON_HOLD payout and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
   - reject:
 ```json
 {
+  "action": "REJECT",
   "reason": "INVALID_BANK_ACCOUNT",
   "comment": "Bank details are invalid.",
   "notifyProvider": true
@@ -2592,10 +2555,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": {
     "id": "payout_id",
-    "status": "REJECTED",
-    "ledgerReleased": true
+    "status": "PROCESSING"
   },
-  "message": "Payout rejected successfully."
+  "message": "Payout action processed successfully."
 }
 ```
 
