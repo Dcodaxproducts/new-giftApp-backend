@@ -3,7 +3,7 @@ import { Gift, GiftModerationStatus, GiftStatus, GiftVariant, Prisma } from '@pr
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { PROVIDER_INVENTORY_INCLUDE, ProviderInventoryRepository } from '../repositories/provider-inventory.repository';
-import { CreateProviderInventoryItemDto, ListProviderInventoryDto, ProviderInventorySortBy, ProviderInventoryStatusFilter, ProviderInventoryVariantDto, SortOrder, UpdateProviderAvailabilityDto, UpdateProviderInventoryItemDto } from '../dto/provider-inventory.dto';
+import { CreateProviderInventoryItemDto, ListProviderInventoryDto, ProviderInventorySortBy, ProviderInventoryStatusFilter, ProviderInventoryVariantDto, SortOrder, UpdateProviderInventoryItemDto, UpdateProviderInventoryStatusDto } from '../dto/provider-inventory.dto';
 
 type ProviderGift = Prisma.GiftGetPayload<{ include: typeof PROVIDER_INVENTORY_INCLUDE }>;
 
@@ -38,7 +38,6 @@ export class ProviderInventoryService {
   async create(user: AuthUserContext, dto: CreateProviderInventoryItemDto) {
     await this.ensureCategory(dto.categoryId);
     const variants = this.normalizeVariants(dto.variants);
-    const status = this.toStatus(dto.isAvailable ?? true);
     const gift = await this.repository.createItemWithVariants({
       name: dto.name.trim(),
       slug: await this.uniqueSlug(dto.name),
@@ -49,7 +48,7 @@ export class ProviderInventoryService {
       price: new Prisma.Decimal(dto.price),
       currency: dto.currency ?? 'USD',
       imageUrls: dto.imageUrls ?? [],
-      status,
+      status: GiftStatus.ACTIVE,
       moderationStatus: GiftModerationStatus.NOT_REQUIRED,
       isPublished: true,
       variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
@@ -69,7 +68,6 @@ export class ProviderInventoryService {
     this.assertSingleDefaultVariant(dto.variants);
     const before = this.toDetailItem(item);
     const materialChange = this.isMaterialChange(item, dto) || this.hasMaterialVariantChange(dto.variants);
-    const availability = dto.isAvailable ?? (item.status !== GiftStatus.INACTIVE);
     const normalizedVariants = dto.variants ? this.normalizeVariants(dto.variants) : undefined;
     if (normalizedVariants) await this.assertVariantOwnership(id, normalizedVariants);
     const incomingIds = normalizedVariants?.map((variant) => variant.id).filter((variantId): variantId is string => Boolean(variantId)) ?? [];
@@ -84,7 +82,6 @@ export class ProviderInventoryService {
         currency: dto.currency,
         categoryId: dto.categoryId,
         imageUrls: dto.imageUrls,
-        status: dto.isAvailable === undefined ? undefined : this.toStatus(availability),
         moderationStatus: item.moderationStatus,
         isPublished: item.isPublished,
       },
@@ -100,12 +97,11 @@ export class ProviderInventoryService {
     return { data: this.toDetailItem(updated), message: 'Inventory item updated successfully' };
   }
 
-  async updateAvailability(user: AuthUserContext, id: string, dto: UpdateProviderAvailabilityDto) {
+  async updateStatus(user: AuthUserContext, id: string, dto: UpdateProviderInventoryStatusDto) {
     const item = await this.getOwnGift(user.uid, id);
-    const status = this.toStatus(dto.isAvailable);
-    const updated = await this.repository.updateAvailability(id, status);
-    await this.audit(user.uid, id, 'PROVIDER_INVENTORY_AVAILABILITY_CHANGED', { status: item.status }, { status: updated.status, isAvailable: dto.isAvailable });
-    return { data: { id, status: updated.status, isAvailable: dto.isAvailable }, message: 'Inventory availability updated successfully' };
+    const updated = await this.repository.updateStatus(id, dto.status);
+    await this.audit(user.uid, id, 'PROVIDER_INVENTORY_STATUS_CHANGED', { status: item.status }, { status: updated.status });
+    return { data: { id, status: updated.status }, message: 'Inventory status updated successfully' };
   }
 
   async delete(user: AuthUserContext, id: string) {
@@ -184,8 +180,6 @@ export class ProviderInventoryService {
       (dto.imageUrls !== undefined)
     );
   }
-
-  private toStatus(isAvailable: boolean) { return isAvailable ? GiftStatus.ACTIVE : GiftStatus.INACTIVE; }
 
   private firstImage(value: Prisma.JsonValue) {
     return Array.isArray(value) ? value.find((entry): entry is string => typeof entry === 'string') ?? null : null;

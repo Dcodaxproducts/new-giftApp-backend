@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { GiftStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUrl, Min, MinLength, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Min, MinLength, ValidateNested } from 'class-validator';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum ProviderInventoryStatusFilter { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', PENDING = 'PENDING', REJECTED = 'REJECTED' }
 export enum ProviderInventorySortBy { CREATED_AT = 'createdAt', NAME = 'name', PRICE = 'price' }
+export enum ProviderInventoryManualStatus { ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE' }
 
 export class ListProviderInventoryDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
@@ -35,7 +37,6 @@ export class CreateProviderInventoryItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiProperty() @IsString() categoryId!: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) imageUrls?: string[];
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional({ type: [ProviderInventoryVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProviderInventoryVariantDto) variants?: ProviderInventoryVariantDto[];
 }
 
@@ -47,11 +48,10 @@ export class UpdateProviderInventoryItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) imageUrls?: string[];
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() replaceVariants?: boolean;
   @ApiPropertyOptional({ type: [ProviderInventoryVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProviderInventoryVariantDto) variants?: ProviderInventoryVariantDto[];
 }
 
-export class UpdateProviderAvailabilityDto {
-  @ApiProperty() @IsBoolean() isAvailable!: boolean;
+export class UpdateProviderInventoryStatusDto {
+  @ApiProperty({ enum: ProviderInventoryManualStatus, example: GiftStatus.ACTIVE }) @IsEnum(ProviderInventoryManualStatus) status!: ProviderInventoryManualStatus;
 }

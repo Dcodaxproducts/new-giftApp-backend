@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 11:53 UTC
+Generated at: 2026-05-21 12:21 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-21 11:53 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-21 12:21 UTC.
 
 ## Frontend Integration Flows
 
@@ -873,7 +873,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-21 11:53 UTC.
 | GET | `/api/v1/provider/inventory/{id}` | Fetch own provider inventory item details | PROVIDER |
 | PATCH | `/api/v1/provider/inventory/{id}` | Update own provider inventory item and upsert variants | PROVIDER |
 | DELETE | `/api/v1/provider/inventory/{id}` | Delete own inventory item | PROVIDER |
-| PATCH | `/api/v1/provider/inventory/{id}/availability` | Update own inventory availability | PROVIDER |
+| PATCH | `/api/v1/provider/inventory/{id}/status` | Update own inventory status | PROVIDER |
 
 ### Provider - Order Analytics (5 APIs)
 

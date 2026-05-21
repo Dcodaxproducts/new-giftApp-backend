@@ -76,7 +76,7 @@ export class ProviderInventoryRepository {
     }
   }
 
-  updateAvailability(id: string, status: GiftStatus) {
+  updateStatus(id: string, status: GiftStatus) {
     return this.prisma.gift.update({ where: { id }, data: { status }, include: PROVIDER_INVENTORY_INCLUDE });
   }
 

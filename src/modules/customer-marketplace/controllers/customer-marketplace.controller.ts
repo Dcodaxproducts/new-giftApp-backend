@@ -75,13 +75,13 @@ export class CustomerMarketplaceController {
   @Roles(UserRole.REGISTERED_USER)
   @Get('wishlist')
   @ApiTags('05 Customer - Wishlist')
-  @ApiOperation({ summary: 'List wishlist gifts', description: 'REGISTERED_USER only. Returns customer-visible gifts: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true.' })
+  @ApiOperation({ summary: 'List wishlist gifts', description: 'REGISTERED_USER only. Returns customer-visible gifts: ACTIVE, published, not deleted, and owned by an approved active provider.' })
   wishlist(@CurrentUser() user: AuthUserContext) { return this.marketplace.wishlist(user); }
 
   @Roles(UserRole.REGISTERED_USER)
   @Post('wishlist/:giftId')
   @ApiTags('05 Customer - Wishlist')
-  @ApiOperation({ summary: 'Add gift to wishlist', description: 'REGISTERED_USER only. Gift must be customer-visible: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true. Duplicate wishlist entries are ignored.' })
+  @ApiOperation({ summary: 'Add gift to wishlist', description: 'REGISTERED_USER only. Gift must be customer-visible: ACTIVE, published, not deleted, and owned by an approved active provider. Duplicate wishlist entries are ignored.' })
   addWishlist(@CurrentUser() user: AuthUserContext, @Param('giftId') giftId: string) { return this.marketplace.addWishlist(user, giftId); }
 
   @Roles(UserRole.REGISTERED_USER)

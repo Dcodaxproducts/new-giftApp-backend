@@ -11337,7 +11337,7 @@
     },
     "/api/v1/provider/inventory": {
       "get": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus manually managed item status and not deleted.",
         "operationId": "ProviderInventoryController_list",
         "parameters": [
           {
@@ -11429,7 +11429,6 @@
                         "currency": "PKR",
                         "status": "ACTIVE",
                         "moderationStatus": "NOT_REQUIRED",
-                        "isAvailable": true,
                         "category": {
                           "id": "category_id",
                           "name": "Perfumes"
@@ -11470,7 +11469,7 @@
         "x-access": "PROVIDER"
       },
       "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access this module. Provider inventory items do not require separate admin approval; approved active providers can create active, available inventory directly.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access this module. Provider inventory items do not require separate admin approval; approved active providers create ACTIVE inventory directly and can manually change status later.",
         "operationId": "ProviderInventoryController_create",
         "parameters": [],
         "requestBody": {
@@ -11492,7 +11491,6 @@
                     "imageUrls": [
                       "https://cdn.yourdomain.com/gift-images/perfume.png"
                     ],
-                    "isAvailable": true,
                     "variants": [
                       {
                         "name": "30ml",
@@ -11796,9 +11794,10 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/provider/inventory/{id}/availability": {
+    "/api/v1/provider/inventory/{id}/status": {
       "patch": {
-        "operationId": "ProviderInventoryController_updateAvailability",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Manually switches own inventory item between ACTIVE and INACTIVE.",
+        "operationId": "ProviderInventoryController_updateStatus",
         "parameters": [
           {
             "name": "id",
@@ -11814,7 +11813,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProviderAvailabilityDto"
+                "$ref": "#/components/schemas/UpdateProviderInventoryStatusDto"
               }
             }
           }
@@ -11829,13 +11828,12 @@
             "bearer": []
           }
         ],
-        "summary": "Update own inventory availability",
+        "summary": "Update own inventory status",
         "tags": [
           "03 Provider - Inventory"
         ],
         "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER",
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
+        "x-access": "PROVIDER"
       }
     },
     "/api/v1/provider/orders": {
@@ -16607,7 +16605,7 @@
     },
     "/api/v1/customer/wishlist": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-visible gifts: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-visible gifts: ACTIVE, published, not deleted, and owned by an approved active provider.",
         "operationId": "CustomerMarketplaceController_wishlist",
         "parameters": [],
         "responses": {
@@ -16630,7 +16628,7 @@
     },
     "/api/v1/customer/wishlist/{giftId}": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be customer-visible: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true. Duplicate wishlist entries are ignored.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be customer-visible: ACTIVE, published, not deleted, and owned by an approved active provider. Duplicate wishlist entries are ignored.",
         "operationId": "CustomerMarketplaceController_addWishlist",
         "parameters": [
           {
@@ -27930,9 +27928,6 @@
               "type": "string"
             }
           },
-          "isAvailable": {
-            "type": "boolean"
-          },
           "variants": {
             "type": "array",
             "items": {
@@ -27973,9 +27968,6 @@
               "type": "string"
             }
           },
-          "isAvailable": {
-            "type": "boolean"
-          },
           "replaceVariants": {
             "type": "boolean",
             "example": false
@@ -27988,15 +27980,20 @@
           }
         }
       },
-      "UpdateProviderAvailabilityDto": {
+      "UpdateProviderInventoryStatusDto": {
         "type": "object",
         "properties": {
-          "isAvailable": {
-            "type": "boolean"
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "example": "ACTIVE"
           }
         },
         "required": [
-          "isAvailable"
+          "status"
         ]
       },
       "UpdateProviderOrderStatusDto": {

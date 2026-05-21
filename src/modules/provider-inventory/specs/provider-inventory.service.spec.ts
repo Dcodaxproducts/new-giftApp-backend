@@ -47,10 +47,10 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(repository).toContain('providerId, deletedAt: null');
   });
 
-  it('write repository owns create update availability and delete database operations', () => {
+  it('write repository owns create update status and delete database operations', () => {
     expect(repository).toContain('createItemWithVariants');
     expect(repository).toContain('updateItemWithVariants');
-    expect(repository).toContain('updateAvailability');
+    expect(repository).toContain('updateStatus');
     expect(repository).toContain('deleteItem');
     expect(repository).toContain('this.prisma.gift.create');
     expect(repository).toContain('this.prisma.gift.update');
@@ -59,10 +59,10 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(source).not.toContain('this.prisma.');
   });
 
-  it('service preserves ownership checks before update delete and availability writes', () => {
+  it('service preserves ownership checks before update delete and status writes', () => {
     expect(source).toContain('async update(user: AuthUserContext, id: string');
     expect(source).toContain('const item = await this.getOwnGift(user.uid, id);');
-    expect(source).toContain('async updateAvailability(user: AuthUserContext, id: string');
+    expect(source).toContain('async updateStatus(user: AuthUserContext, id: string');
     expect(source).toContain('async delete(user: AuthUserContext, id: string)');
     expect(source).toContain('findOwnedItemById(providerId, id)');
   });
@@ -75,6 +75,6 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(controller).toContain('@Post()');
     expect(controller).toContain("@Patch(':id')");
     expect(controller).toContain("@Delete(':id')");
-    expect(controller).toContain("@Patch(':id/availability')");
+    expect(controller).toContain("@Patch(':id/status')");
   });
 });

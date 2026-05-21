@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 11:53 UTC
+Generated at: 2026-05-21 12:20 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -6101,7 +6101,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List provider inventory items
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus item active, available, in stock, and not deleted.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus manually managed item status and not deleted.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -6122,7 +6122,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "currency": "PKR",
       "status": "ACTIVE",
       "moderationStatus": "NOT_REQUIRED",
-      "isAvailable": true,
       "category": {
         "id": "category_id",
         "name": "Perfumes"
@@ -6151,7 +6150,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create provider inventory item with optional nested variants
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access this module. Provider inventory items do not require separate admin approval; approved active providers can create active, available inventory directly.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access this module. Provider inventory items do not require separate admin approval; approved active providers create ACTIVE inventory directly and can manually change status later.
 - Request payload(s):
   - withVariants:
 ```json
@@ -6165,7 +6164,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "imageUrls": [
     "https://cdn.yourdomain.com/gift-images/perfume.png"
   ],
-  "isAvailable": true,
   "variants": [
     {
       "name": "30ml",
@@ -6356,18 +6354,18 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### PATCH `/api/v1/provider/inventory/{id}/availability`
+### PATCH `/api/v1/provider/inventory/{id}/status`
 
-- Summary: Update own inventory availability
+- Summary: Update own inventory status
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Manually switches own inventory item between ACTIVE and INACTIVE.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
-  "isAvailable": true
+  "status": "ACTIVE"
 }
 ```
 - Response body:
@@ -8059,7 +8057,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List wishlist gifts
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-visible gifts: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns customer-visible gifts: ACTIVE, published, not deleted, and owned by an approved active provider.
 - Response body:
 ```json
 {
@@ -8073,7 +8071,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Add gift to wishlist
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be customer-visible: active, available, in stock, not deleted, and owned by an approved active provider. Admin-created gifts may additionally require isPublished=true. Duplicate wishlist entries are ignored.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Gift must be customer-visible: ACTIVE, published, not deleted, and owned by an approved active provider. Duplicate wishlist entries are ignored.
 - Parameters:
   - `giftId` (path, required, string)
 - Request payload(s):
