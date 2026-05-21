@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-20 11:17 UTC
+Generated at: 2026-05-21 05:06 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -6156,7 +6156,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "Luxury Perfume",
       "price": 99.99,
       "currency": "PKR",
-      "stockQuantity": 50,
       "status": "ACTIVE",
       "moderationStatus": "NOT_REQUIRED",
       "isAvailable": true,
@@ -6169,7 +6168,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
           "id": "variant_id",
           "name": "50ml",
           "price": 129.99,
-          "stockQuantity": 20,
           "isDefault": true
         }
       ]
@@ -6200,8 +6198,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "categoryId": "gift_category_id",
   "price": 99.99,
   "currency": "PKR",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
   "imageUrls": [
     "https://cdn.yourdomain.com/gift-images/perfume.png"
   ],
@@ -6211,8 +6207,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "30ml",
       "price": 89.99,
       "originalPrice": 119.99,
-      "stockQuantity": 10,
-      "sku": "PERFUME-30ML",
       "isPopular": false,
       "isDefault": false,
       "sortOrder": 1,
@@ -6222,8 +6216,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "50ml",
       "price": 129.99,
       "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
       "isPopular": true,
       "isDefault": true,
       "sortOrder": 2,
@@ -6241,7 +6233,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "name": "Luxury Perfume",
     "price": 99.99,
     "currency": "PKR",
-    "stockQuantity": 50,
     "status": "ACTIVE",
     "moderationStatus": "NOT_REQUIRED",
     "variants": [
@@ -6250,8 +6241,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
         "name": "50ml",
         "price": 129.99,
         "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
         "isDefault": true,
         "isActive": true
       }
@@ -6306,7 +6295,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "description": "Long-lasting premium fragrance.",
     "price": 99.99,
     "currency": "PKR",
-    "stockQuantity": 50,
     "status": "ACTIVE",
     "moderationStatus": "NOT_REQUIRED",
     "imageUrls": [
@@ -6318,8 +6306,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
         "name": "50ml",
         "price": 129.99,
         "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
         "isDefault": true,
         "isActive": true
       }
@@ -6347,8 +6333,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "50ml",
       "price": 129.99,
       "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
       "isPopular": true,
       "isDefault": true,
       "sortOrder": 2,
@@ -6358,8 +6342,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "150ml",
       "price": 249.99,
       "originalPrice": 299.99,
-      "stockQuantity": 5,
-      "sku": "PERFUME-150ML",
       "isPopular": false,
       "isDefault": false,
       "sortOrder": 4,
@@ -6380,7 +6362,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
         "id": "variant_id",
         "name": "50ml",
         "price": 129.99,
-        "stockQuantity": 20,
         "isDefault": true,
         "isActive": true
       }
@@ -7587,8 +7568,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "providerId": "provider_id",
   "price": 99.99,
   "currency": "PKR",
-  "stockQuantity": 50,
-  "sku": "PERFUME-001",
   "imageUrls": [
     "https://cdn.yourdomain.com/gift-images/perfume.png"
   ],
@@ -7604,8 +7583,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "30ml",
       "price": 89.99,
       "originalPrice": 119.99,
-      "stockQuantity": 10,
-      "sku": "PERFUME-30ML",
       "isPopular": false,
       "isDefault": false,
       "sortOrder": 1,
@@ -7615,8 +7592,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "50ml",
       "price": 129.99,
       "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
       "isPopular": true,
       "isDefault": true,
       "sortOrder": 2,
@@ -7634,16 +7609,12 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "name": "Luxury Perfume",
     "price": 99.99,
     "currency": "PKR",
-    "stockQuantity": 50,
-    "sku": "PERFUME-001",
     "variants": [
       {
         "id": "variant_id",
         "name": "50ml",
         "price": 129.99,
         "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
         "isPopular": true,
         "isDefault": true,
         "sortOrder": 2,
@@ -7730,8 +7701,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "50ml",
       "price": 129.99,
       "originalPrice": 159.99,
-      "stockQuantity": 20,
-      "sku": "PERFUME-50ML",
       "isPopular": true,
       "isDefault": true,
       "sortOrder": 2,
@@ -7741,8 +7710,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "name": "150ml",
       "price": 249.99,
       "originalPrice": 299.99,
-      "stockQuantity": 5,
-      "sku": "PERFUME-150ML",
       "isPopular": false,
       "isDefault": false,
       "sortOrder": 4,
@@ -7764,8 +7731,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
         "name": "50ml",
         "price": 129.99,
         "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
         "isDefault": true,
         "isActive": true
       }
@@ -8031,7 +7996,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "requiresAuthForCheckout": true,
       "shortDescription": "Premium fragrance gift.",
       "reviewCount": 0,
-      "stockQuantity": 50,
       "category": {
         "id": "gift_category_id",
         "name": "Perfumes",
@@ -8083,7 +8047,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     ],
     "rating": 4.8,
     "reviewCount": 0,
-    "stockQuantity": 50,
     "isWishlisted": false,
     "requiresAuthForWishlist": true,
     "requiresAuthForCart": true,
@@ -8111,8 +8074,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
         "name": "50ml",
         "price": 129.99,
         "originalPrice": 159.99,
-        "stockQuantity": 20,
-        "sku": "PERFUME-50ML",
         "isPopular": true,
         "isDefault": true
       }

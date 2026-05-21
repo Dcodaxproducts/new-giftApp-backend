@@ -11529,7 +11529,6 @@
                         "name": "Luxury Perfume",
                         "price": 99.99,
                         "currency": "PKR",
-                        "stockQuantity": 50,
                         "status": "ACTIVE",
                         "moderationStatus": "NOT_REQUIRED",
                         "isAvailable": true,
@@ -11542,7 +11541,6 @@
                             "id": "variant_id",
                             "name": "50ml",
                             "price": 129.99,
-                            "stockQuantity": 20,
                             "isDefault": true
                           }
                         ]
@@ -11593,8 +11591,6 @@
                     "categoryId": "gift_category_id",
                     "price": 99.99,
                     "currency": "PKR",
-                    "stockQuantity": 50,
-                    "sku": "PERFUME-001",
                     "imageUrls": [
                       "https://cdn.yourdomain.com/gift-images/perfume.png"
                     ],
@@ -11604,8 +11600,6 @@
                         "name": "30ml",
                         "price": 89.99,
                         "originalPrice": 119.99,
-                        "stockQuantity": 10,
-                        "sku": "PERFUME-30ML",
                         "isPopular": false,
                         "isDefault": false,
                         "sortOrder": 1,
@@ -11615,8 +11609,6 @@
                         "name": "50ml",
                         "price": 129.99,
                         "originalPrice": 159.99,
-                        "stockQuantity": 20,
-                        "sku": "PERFUME-50ML",
                         "isPopular": true,
                         "isDefault": true,
                         "sortOrder": 2,
@@ -11642,7 +11634,6 @@
                       "name": "Luxury Perfume",
                       "price": 99.99,
                       "currency": "PKR",
-                      "stockQuantity": 50,
                       "status": "ACTIVE",
                       "moderationStatus": "NOT_REQUIRED",
                       "variants": [
@@ -11651,8 +11642,6 @@
                           "name": "50ml",
                           "price": 129.99,
                           "originalPrice": 159.99,
-                          "stockQuantity": 20,
-                          "sku": "PERFUME-50ML",
                           "isDefault": true,
                           "isActive": true
                         }
@@ -11751,7 +11740,6 @@
                       "description": "Long-lasting premium fragrance.",
                       "price": 99.99,
                       "currency": "PKR",
-                      "stockQuantity": 50,
                       "status": "ACTIVE",
                       "moderationStatus": "NOT_REQUIRED",
                       "imageUrls": [
@@ -11763,8 +11751,6 @@
                           "name": "50ml",
                           "price": 129.99,
                           "originalPrice": 159.99,
-                          "stockQuantity": 20,
-                          "sku": "PERFUME-50ML",
                           "isDefault": true,
                           "isActive": true
                         }
@@ -11820,8 +11806,6 @@
                         "name": "50ml",
                         "price": 129.99,
                         "originalPrice": 159.99,
-                        "stockQuantity": 20,
-                        "sku": "PERFUME-50ML",
                         "isPopular": true,
                         "isDefault": true,
                         "sortOrder": 2,
@@ -11831,8 +11815,6 @@
                         "name": "150ml",
                         "price": 249.99,
                         "originalPrice": 299.99,
-                        "stockQuantity": 5,
-                        "sku": "PERFUME-150ML",
                         "isPopular": false,
                         "isDefault": false,
                         "sortOrder": 4,
@@ -11861,7 +11843,6 @@
                           "id": "variant_id",
                           "name": "50ml",
                           "price": 129.99,
-                          "stockQuantity": 20,
                           "isDefault": true,
                           "isActive": true
                         }
@@ -16590,7 +16571,6 @@
                         "requiresAuthForCheckout": true,
                         "shortDescription": "Premium fragrance gift.",
                         "reviewCount": 0,
-                        "stockQuantity": 50,
                         "category": {
                           "id": "gift_category_id",
                           "name": "Perfumes",
@@ -16669,7 +16649,6 @@
                       ],
                       "rating": 4.8,
                       "reviewCount": 0,
-                      "stockQuantity": 50,
                       "isWishlisted": false,
                       "requiresAuthForWishlist": true,
                       "requiresAuthForCart": true,
@@ -16697,8 +16676,6 @@
                           "name": "50ml",
                           "price": 129.99,
                           "originalPrice": 159.99,
-                          "stockQuantity": 20,
-                          "sku": "PERFUME-50ML",
                           "isPopular": true,
                           "isDefault": true
                         }
@@ -19680,8 +19657,6 @@
                     "providerId": "provider_id",
                     "price": 99.99,
                     "currency": "PKR",
-                    "stockQuantity": 50,
-                    "sku": "PERFUME-001",
                     "imageUrls": [
                       "https://cdn.yourdomain.com/gift-images/perfume.png"
                     ],
@@ -19697,8 +19672,6 @@
                         "name": "30ml",
                         "price": 89.99,
                         "originalPrice": 119.99,
-                        "stockQuantity": 10,
-                        "sku": "PERFUME-30ML",
                         "isPopular": false,
                         "isDefault": false,
                         "sortOrder": 1,
@@ -19708,8 +19681,6 @@
                         "name": "50ml",
                         "price": 129.99,
                         "originalPrice": 159.99,
-                        "stockQuantity": 20,
-                        "sku": "PERFUME-50ML",
                         "isPopular": true,
                         "isDefault": true,
                         "sortOrder": 2,
@@ -19735,16 +19706,12 @@
                       "name": "Luxury Perfume",
                       "price": 99.99,
                       "currency": "PKR",
-                      "stockQuantity": 50,
-                      "sku": "PERFUME-001",
                       "variants": [
                         {
                           "id": "variant_id",
                           "name": "50ml",
                           "price": 129.99,
                           "originalPrice": 159.99,
-                          "stockQuantity": 20,
-                          "sku": "PERFUME-50ML",
                           "isPopular": true,
                           "isDefault": true,
                           "sortOrder": 2,
@@ -20131,8 +20098,6 @@
                         "name": "50ml",
                         "price": 129.99,
                         "originalPrice": 159.99,
-                        "stockQuantity": 20,
-                        "sku": "PERFUME-50ML",
                         "isPopular": true,
                         "isDefault": true,
                         "sortOrder": 2,
@@ -20142,8 +20107,6 @@
                         "name": "150ml",
                         "price": 249.99,
                         "originalPrice": 299.99,
-                        "stockQuantity": 5,
-                        "sku": "PERFUME-150ML",
                         "isPopular": false,
                         "isDefault": false,
                         "sortOrder": 4,
@@ -20173,8 +20136,6 @@
                           "name": "50ml",
                           "price": 129.99,
                           "originalPrice": 159.99,
-                          "stockQuantity": 20,
-                          "sku": "PERFUME-50ML",
                           "isDefault": true,
                           "isActive": true
                         }

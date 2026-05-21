@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-20 11:17 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-20 11:17 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-21 05:06 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-21 05:06 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -2646,7 +2646,6 @@
       &quot;name&quot;: &quot;Luxury Perfume&quot;,
       &quot;price&quot;: 99.99,
       &quot;currency&quot;: &quot;PKR&quot;,
-      &quot;stockQuantity&quot;: 50,
       &quot;status&quot;: &quot;ACTIVE&quot;,
       &quot;moderationStatus&quot;: &quot;NOT_REQUIRED&quot;,
       &quot;isAvailable&quot;: true,
@@ -2659,7 +2658,6 @@
           &quot;id&quot;: &quot;variant_id&quot;,
           &quot;name&quot;: &quot;50ml&quot;,
           &quot;price&quot;: 129.99,
-          &quot;stockQuantity&quot;: 20,
           &quot;isDefault&quot;: true
         }
       ]
@@ -2679,8 +2677,6 @@
   &quot;categoryId&quot;: &quot;gift_category_id&quot;,
   &quot;price&quot;: 99.99,
   &quot;currency&quot;: &quot;PKR&quot;,
-  &quot;stockQuantity&quot;: 50,
-  &quot;sku&quot;: &quot;PERFUME-001&quot;,
   &quot;imageUrls&quot;: [
     &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;
   ],
@@ -2690,8 +2686,6 @@
       &quot;name&quot;: &quot;30ml&quot;,
       &quot;price&quot;: 89.99,
       &quot;originalPrice&quot;: 119.99,
-      &quot;stockQuantity&quot;: 10,
-      &quot;sku&quot;: &quot;PERFUME-30ML&quot;,
       &quot;isPopular&quot;: false,
       &quot;isDefault&quot;: false,
       &quot;sortOrder&quot;: 1,
@@ -2701,8 +2695,6 @@
       &quot;name&quot;: &quot;50ml&quot;,
       &quot;price&quot;: 129.99,
       &quot;originalPrice&quot;: 159.99,
-      &quot;stockQuantity&quot;: 20,
-      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
       &quot;isPopular&quot;: true,
       &quot;isDefault&quot;: true,
       &quot;sortOrder&quot;: 2,
@@ -2716,7 +2708,6 @@
     &quot;name&quot;: &quot;Luxury Perfume&quot;,
     &quot;price&quot;: 99.99,
     &quot;currency&quot;: &quot;PKR&quot;,
-    &quot;stockQuantity&quot;: 50,
     &quot;status&quot;: &quot;ACTIVE&quot;,
     &quot;moderationStatus&quot;: &quot;NOT_REQUIRED&quot;,
     &quot;variants&quot;: [
@@ -2725,8 +2716,6 @@
         &quot;name&quot;: &quot;50ml&quot;,
         &quot;price&quot;: 129.99,
         &quot;originalPrice&quot;: 159.99,
-        &quot;stockQuantity&quot;: 20,
-        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
         &quot;isDefault&quot;: true,
         &quot;isActive&quot;: true
       }
@@ -2749,7 +2738,6 @@
     &quot;description&quot;: &quot;Long-lasting premium fragrance.&quot;,
     &quot;price&quot;: 99.99,
     &quot;currency&quot;: &quot;PKR&quot;,
-    &quot;stockQuantity&quot;: 50,
     &quot;status&quot;: &quot;ACTIVE&quot;,
     &quot;moderationStatus&quot;: &quot;NOT_REQUIRED&quot;,
     &quot;imageUrls&quot;: [
@@ -2761,8 +2749,6 @@
         &quot;name&quot;: &quot;50ml&quot;,
         &quot;price&quot;: 129.99,
         &quot;originalPrice&quot;: 159.99,
-        &quot;stockQuantity&quot;: 20,
-        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
         &quot;isDefault&quot;: true,
         &quot;isActive&quot;: true
       }
@@ -2777,8 +2763,6 @@
       &quot;name&quot;: &quot;50ml&quot;,
       &quot;price&quot;: 129.99,
       &quot;originalPrice&quot;: 159.99,
-      &quot;stockQuantity&quot;: 20,
-      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
       &quot;isPopular&quot;: true,
       &quot;isDefault&quot;: true,
       &quot;sortOrder&quot;: 2,
@@ -2788,8 +2772,6 @@
       &quot;name&quot;: &quot;150ml&quot;,
       &quot;price&quot;: 249.99,
       &quot;originalPrice&quot;: 299.99,
-      &quot;stockQuantity&quot;: 5,
-      &quot;sku&quot;: &quot;PERFUME-150ML&quot;,
       &quot;isPopular&quot;: false,
       &quot;isDefault&quot;: false,
       &quot;sortOrder&quot;: 4,
@@ -2806,7 +2788,6 @@
         &quot;id&quot;: &quot;variant_id&quot;,
         &quot;name&quot;: &quot;50ml&quot;,
         &quot;price&quot;: 129.99,
-        &quot;stockQuantity&quot;: 20,
         &quot;isDefault&quot;: true,
         &quot;isActive&quot;: true
       }
@@ -3197,8 +3178,6 @@
   &quot;providerId&quot;: &quot;provider_id&quot;,
   &quot;price&quot;: 99.99,
   &quot;currency&quot;: &quot;PKR&quot;,
-  &quot;stockQuantity&quot;: 50,
-  &quot;sku&quot;: &quot;PERFUME-001&quot;,
   &quot;imageUrls&quot;: [
     &quot;https://cdn.yourdomain.com/gift-images/perfume.png&quot;
   ],
@@ -3214,8 +3193,6 @@
       &quot;name&quot;: &quot;30ml&quot;,
       &quot;price&quot;: 89.99,
       &quot;originalPrice&quot;: 119.99,
-      &quot;stockQuantity&quot;: 10,
-      &quot;sku&quot;: &quot;PERFUME-30ML&quot;,
       &quot;isPopular&quot;: false,
       &quot;isDefault&quot;: false,
       &quot;sortOrder&quot;: 1,
@@ -3225,8 +3202,6 @@
       &quot;name&quot;: &quot;50ml&quot;,
       &quot;price&quot;: 129.99,
       &quot;originalPrice&quot;: 159.99,
-      &quot;stockQuantity&quot;: 20,
-      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
       &quot;isPopular&quot;: true,
       &quot;isDefault&quot;: true,
       &quot;sortOrder&quot;: 2,
@@ -3240,16 +3215,12 @@
     &quot;name&quot;: &quot;Luxury Perfume&quot;,
     &quot;price&quot;: 99.99,
     &quot;currency&quot;: &quot;PKR&quot;,
-    &quot;stockQuantity&quot;: 50,
-    &quot;sku&quot;: &quot;PERFUME-001&quot;,
     &quot;variants&quot;: [
       {
         &quot;id&quot;: &quot;variant_id&quot;,
         &quot;name&quot;: &quot;50ml&quot;,
         &quot;price&quot;: 129.99,
         &quot;originalPrice&quot;: 159.99,
-        &quot;stockQuantity&quot;: 20,
-        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
         &quot;isPopular&quot;: true,
         &quot;isDefault&quot;: true,
         &quot;sortOrder&quot;: 2,
@@ -3279,8 +3250,6 @@
       &quot;name&quot;: &quot;50ml&quot;,
       &quot;price&quot;: 129.99,
       &quot;originalPrice&quot;: 159.99,
-      &quot;stockQuantity&quot;: 20,
-      &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
       &quot;isPopular&quot;: true,
       &quot;isDefault&quot;: true,
       &quot;sortOrder&quot;: 2,
@@ -3290,8 +3259,6 @@
       &quot;name&quot;: &quot;150ml&quot;,
       &quot;price&quot;: 249.99,
       &quot;originalPrice&quot;: 299.99,
-      &quot;stockQuantity&quot;: 5,
-      &quot;sku&quot;: &quot;PERFUME-150ML&quot;,
       &quot;isPopular&quot;: false,
       &quot;isDefault&quot;: false,
       &quot;sortOrder&quot;: 4,
@@ -3309,8 +3276,6 @@
         &quot;name&quot;: &quot;50ml&quot;,
         &quot;price&quot;: 129.99,
         &quot;originalPrice&quot;: 159.99,
-        &quot;stockQuantity&quot;: 20,
-        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
         &quot;isDefault&quot;: true,
         &quot;isActive&quot;: true
       }
@@ -3389,7 +3354,6 @@
       &quot;requiresAuthForCheckout&quot;: true,
       &quot;shortDescription&quot;: &quot;Premium fragrance gift.&quot;,
       &quot;reviewCount&quot;: 0,
-      &quot;stockQuantity&quot;: 50,
       &quot;category&quot;: {
         &quot;id&quot;: &quot;gift_category_id&quot;,
         &quot;name&quot;: &quot;Perfumes&quot;,
@@ -3429,7 +3393,6 @@
     ],
     &quot;rating&quot;: 4.8,
     &quot;reviewCount&quot;: 0,
-    &quot;stockQuantity&quot;: 50,
     &quot;isWishlisted&quot;: false,
     &quot;requiresAuthForWishlist&quot;: true,
     &quot;requiresAuthForCart&quot;: true,
@@ -3457,8 +3420,6 @@
         &quot;name&quot;: &quot;50ml&quot;,
         &quot;price&quot;: 129.99,
         &quot;originalPrice&quot;: 159.99,
-        &quot;stockQuantity&quot;: 20,
-        &quot;sku&quot;: &quot;PERFUME-50ML&quot;,
         &quot;isPopular&quot;: true,
         &quot;isDefault&quot;: true
       }
