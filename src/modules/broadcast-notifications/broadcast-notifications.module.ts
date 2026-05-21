@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { MailerService } from '../mailer/mailer.service';
+import { MailerModule } from '../mailer/mailer.module';
 import { BroadcastDeliveryRepository } from './repositories/broadcast-delivery.repository';
 import { BroadcastDeliveryService } from './services/broadcast-delivery.service';
 import { BroadcastNotificationsRepository } from './repositories/broadcast-notifications.repository';
@@ -27,7 +27,7 @@ import { NotificationsService } from './services/notifications.service';
 
 @Global()
 @Module({
-  imports: [ConfigModule, JwtModule.register({}), DatabaseModule],
+  imports: [ConfigModule, JwtModule.register({}), DatabaseModule, MailerModule],
   controllers: [BroadcastsController, NotificationsController, NotificationDeliveryMonitoringController],
   providers: [AuditLogWriterRepository,
     AuditLogWriterService,
@@ -46,7 +46,6 @@ import { NotificationsService } from './services/notifications.service';
     BroadcastDeliveryService,
     NotificationsGateway,
     NotificationDispatchService,
-    MailerService,
     EmailNotificationAdapter,
     PushNotificationAdapter,
     InAppNotificationAdapter,
