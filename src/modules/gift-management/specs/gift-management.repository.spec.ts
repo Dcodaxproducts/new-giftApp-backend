@@ -44,11 +44,11 @@ describe('Gift management repository cleanup', () => {
     expect(repository).toContain('tx.giftVariant.create');
   });
 
-  it('service preserves slug, SKU, variant, and default variant business rules', () => {
+  it('service preserves slug, variant, and default variant business rules', () => {
     expect(service).toContain('uniqueCategorySlug');
     expect(service).toContain('uniqueGiftSlug');
-    expect(service).toContain('Gift SKU already exists');
-    expect(service).toContain('Variant SKU must be unique');
+    expect(service).not.toContain('Gift SKU already exists');
+    expect(service).not.toContain('Variant SKU must be unique');
     expect(service).toContain('Only one default variant is allowed');
     expect(service).toContain('if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true');
     expect(service).toContain('Variant does not belong to gift');
@@ -56,7 +56,7 @@ describe('Gift management repository cleanup', () => {
 
   it('service preserves admin gift create/update/delete/status behavior', () => {
     expect(service).toContain('const providerId = user.role === UserRole.PROVIDER ? user.uid : dto.providerId');
-    expect(service).toContain('statusFromStock');
+    expect(service).toContain('statusFromPublication');
     expect(service).toContain('dto.status === GiftStatus.ACTIVE ? true : gift.isPublished');
     expect(service).toContain('Provider cannot manage another provider gift');
     expect(service).toContain('GIFT_CREATED');

@@ -36,10 +36,6 @@ describe('Customer orders repository cleanup', () => {
     expect(repository).toContain('findGiftsForCheckout');
     expect(repository).toContain('createOrderWithItems');
     expect(repository).toContain('tx.order.create');
-    expect(repository).toContain('decrementGiftStock');
-    expect(repository).toContain('tx.gift.update');
-    expect(repository).toContain('decrementVariantStock');
-    expect(repository).toContain('tx.giftVariant.update');
     expect(repository).toContain('createOrderItem');
     expect(repository).toContain('tx.orderItem.create');
     expect(repository).toContain('createProviderSubOrder');
@@ -117,11 +113,11 @@ describe('Customer orders repository cleanup', () => {
     expect(service).toContain('tier?.commissionRatePercent ?? settings?.platformRatePercent ?? 0');
   });
 
-  it('stock behavior remains unchanged', () => {
-    expect(createOrderSource).toContain('this.assertStock(gift, variant, item.quantity)');
-    expect(createOrderSource).toContain('if (item.variantId) await this.customerOrdersRepository.decrementVariantStock');
-    expect(createOrderSource).toContain('else await this.customerOrdersRepository.decrementGiftStock');
-    expect(repository).toContain('stockQuantity: { decrement: quantity }');
+  it('checkout no longer decrements or validates stock quantities', () => {
+    expect(createOrderSource).not.toContain('assertStock');
+    expect(createOrderSource).not.toContain('decrementVariantStock');
+    expect(createOrderSource).not.toContain('decrementGiftStock');
+    expect(repository).not.toContain('stockQuantity: { decrement: quantity }');
   });
 
   it('cart is marked checked out as before', () => {

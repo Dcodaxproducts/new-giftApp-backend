@@ -69,12 +69,11 @@ describe('Customer marketplace repository cleanup', () => {
     expect(availableGiftWhere).toContain('provider: this.approvedProviderWhere()');
   });
 
-  it('gift list excludes unavailable, out-of-stock, and deleted gifts', () => {
+  it('gift list uses manually managed active status and deleted flags', () => {
     expect(availableGiftWhere).toContain('status: GiftStatus.ACTIVE');
     expect(availableGiftWhere).toContain('isPublished: true');
     expect(availableGiftWhere).toContain('deletedAt: null');
-    expect(availableGiftWhere).toContain('variants: { some: { isActive: true, deletedAt: null, stockQuantity: { gt: 0 } } }');
-    expect(availableGiftWhere).toContain('stockQuantity: { gt: 0 }');
+    expect(availableGiftWhere).not.toContain('stockQuantity');
   });
 
   it('gift list does not require provider inventory moderation approval', () => {

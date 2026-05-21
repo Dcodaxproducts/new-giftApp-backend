@@ -6,7 +6,7 @@ import { GiftManagementService } from '../services/gift-management.service';
 
 const now = new Date();
 const gift = {
-  id: 'gift_1', name: 'Gift', slug: 'gift', description: null, shortDescription: null, categoryId: 'cat_1', providerId: 'provider_1', price: { toString: () => '10' }, currency: 'USD', stockQuantity: 5, sku: null, imageUrls: [], tags: [], status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.NOT_REQUIRED, isPublished: true, requiresManualReview: false, manualReviewReason: null, hiddenByModeration: false, moderationResolvedAt: null, isFeatured: false, ratingPlaceholder: { toString: () => '0' }, approvedAt: null, approvedBy: null, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, flaggedAt: null, flaggedById: null, flagReason: null, flagComment: null, createdAt: now, updatedAt: now, deletedAt: null, category: { id: 'cat_1', name: 'Digital', isActive: true, deletedAt: null }, provider: { id: 'provider_1', email: 'p@example.com', providerBusinessName: 'Provider', firstName: 'P', lastName: 'One', isActive: true, isApproved: true, providerApprovalStatus: 'APPROVED', suspendedAt: null, deletedAt: null }, variants: [],
+  id: 'gift_1', name: 'Gift', slug: 'gift', description: null, shortDescription: null, categoryId: 'cat_1', providerId: 'provider_1', price: { toString: () => '10' }, currency: 'USD', imageUrls: [], tags: [], status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.NOT_REQUIRED, isPublished: true, requiresManualReview: false, manualReviewReason: null, hiddenByModeration: false, moderationResolvedAt: null, isFeatured: false, ratingPlaceholder: { toString: () => '0' }, approvedAt: null, approvedBy: null, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, flaggedAt: null, flaggedById: null, flagReason: null, flagComment: null, createdAt: now, updatedAt: now, deletedAt: null, category: { id: 'cat_1', name: 'Digital', isActive: true, deletedAt: null }, provider: { id: 'provider_1', email: 'p@example.com', providerBusinessName: 'Provider', firstName: 'P', lastName: 'One', isActive: true, isApproved: true, providerApprovalStatus: 'APPROVED', suspendedAt: null, deletedAt: null }, variants: [],
 };
 
 function createService() {
@@ -48,20 +48,20 @@ describe('GiftManagementService', () => {
 
   it('uses logged-in provider id and optional moderation defaults when provider creates a gift', async () => {
     const { service, prisma } = createService();
-    await service.createGift({ uid: 'provider_1', role: UserRole.PROVIDER }, { name: 'Gift', categoryId: 'cat_1', providerId: 'other_provider', price: 10, stockQuantity: 5 });
+    await service.createGift({ uid: 'provider_1', role: UserRole.PROVIDER }, { name: 'Gift', categoryId: 'cat_1', providerId: 'other_provider', price: 10 });
     expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ providerId: 'provider_1', moderationStatus: GiftModerationStatus.NOT_REQUIRED, requiresManualReview: false, hiddenByModeration: false, isPublished: true }) }));
   });
 
-  it('uses variant stock when creating gifts without top-level stock', async () => {
-    const { service, prisma } = createService();
-    await service.createGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10, isPublished: true, variants: [{ name: 'Small', price: 10, stockQuantity: 3 }] });
-    expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: GiftStatus.ACTIVE }) }));
-  });
-
-  it('defaults omitted variant stock to zero when super admin creates a gift', async () => {
+  it('does not require or write stock and SKU fields when super admin creates a gift', async () => {
     const { service, prisma } = createService();
     await service.createGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10, isPublished: true, variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99, isDefault: true }] });
-    expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ variants: { create: [expect.objectContaining({ stockQuantity: 0 }), expect.objectContaining({ stockQuantity: 0 })] } }) }));
+    const createMock = prisma.gift.create;
+    const firstCall = createMock.mock.calls.at(0) as [{ data: { variants?: { create: Record<string, unknown>[] } } }] | undefined;
+    const data = firstCall?.[0].data as { variants?: { create: Record<string, unknown>[] } };
+    expect(data).not.toHaveProperty('stockQuantity');
+    expect(data).not.toHaveProperty('sku');
+    expect(data.variants?.create[0]).not.toHaveProperty('stockQuantity');
+    expect(data.variants?.create[0]).not.toHaveProperty('sku');
   });
 
   it('returns all image urls and real provider review summary in admin gift list', async () => {
@@ -73,6 +73,8 @@ describe('GiftManagementService', () => {
     const result = await service.listGifts({});
 
     expect(result.data[0]).toMatchObject({ imageUrl: 'one.png', imageUrls: ['one.png', 'two.png'], rating: 4.3, reviewCount: 2 });
+    expect(result.data[0]).not.toHaveProperty('stockQuantity');
+    expect(result.data[0]).not.toHaveProperty('sku');
   });
 
   it('writes audit log when creating gift', async () => {

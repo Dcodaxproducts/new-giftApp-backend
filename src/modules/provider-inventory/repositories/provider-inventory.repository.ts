@@ -30,7 +30,6 @@ export class ProviderInventoryRepository {
       this.prisma.gift.count({ where }),
       this.prisma.gift.count({ where: { ...where, status: GiftStatus.ACTIVE } }),
       this.prisma.gift.count({ where: { ...where, status: GiftStatus.INACTIVE } }),
-      this.prisma.gift.count({ where: { ...where, OR: [{ status: GiftStatus.OUT_OF_STOCK }, { stockQuantity: 0 }] } }),
       this.prisma.gift.count({ where: { ...where, moderationStatus: GiftModerationStatus.PENDING } }),
       this.prisma.gift.count({ where: { ...where, moderationStatus: GiftModerationStatus.REJECTED } }),
     ]);
@@ -48,20 +47,12 @@ export class ProviderInventoryRepository {
     return this.prisma.giftCategory.findFirst({ where: { id: categoryId, isActive: true, deletedAt: null } });
   }
 
-  findBySku(sku: string, exceptId?: string) {
-    return this.prisma.gift.findFirst({ where: { sku, deletedAt: null, ...(exceptId ? { id: { not: exceptId } } : {}) } });
-  }
-
   findBySlug(slug: string, exceptId?: string) {
     return this.prisma.gift.findFirst({ where: { slug, ...(exceptId ? { id: { not: exceptId } } : {}) } });
   }
 
-  findVariantBySku(skus: string[], giftId?: string) {
-    return this.prisma.giftVariant.findFirst({ where: { sku: { in: skus }, deletedAt: null, giftId: giftId ? { not: giftId } : undefined } });
-  }
-
   findVariantsByIdsForItem(giftId: string, ids: string[]) {
-    return this.prisma.giftVariant.findMany({ where: { id: { in: ids }, giftId, deletedAt: null }, select: { id: true } });
+    return this.prisma.giftVariant.findMany({ where: { giftId, id: { in: ids }, deletedAt: null }, select: { id: true } });
   }
 
   createItemWithVariants(data: Prisma.GiftCreateArgs['data']) {

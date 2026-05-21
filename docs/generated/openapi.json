@@ -11374,7 +11374,6 @@
                 "ALL",
                 "ACTIVE",
                 "INACTIVE",
-                "OUT_OF_STOCK",
                 "PENDING",
                 "REJECTED"
               ]
@@ -11397,8 +11396,7 @@
               "enum": [
                 "createdAt",
                 "name",
-                "price",
-                "stockQuantity"
+                "price"
               ]
             }
           },
@@ -19694,8 +19692,7 @@
                 "INACTIVE",
                 "PENDING",
                 "REJECTED",
-                "FLAGGED",
-                "OUT_OF_STOCK"
+                "FLAGGED"
               ]
             }
           },
@@ -19733,8 +19730,7 @@
                 "createdAt",
                 "name",
                 "price",
-                "rating",
-                "stockQuantity"
+                "rating"
               ]
             }
           },
@@ -19848,8 +19844,7 @@
                 "INACTIVE",
                 "PENDING",
                 "REJECTED",
-                "FLAGGED",
-                "OUT_OF_STOCK"
+                "FLAGGED"
               ]
             }
           },
@@ -19887,8 +19882,7 @@
                 "createdAt",
                 "name",
                 "price",
-                "rating",
-                "stockQuantity"
+                "rating"
               ]
             }
           },
@@ -27887,14 +27881,6 @@
             "type": "number",
             "example": 159.99
           },
-          "stockQuantity": {
-            "type": "number",
-            "example": 20
-          },
-          "sku": {
-            "type": "string",
-            "example": "PERFUME-50ML"
-          },
           "isPopular": {
             "type": "boolean",
             "example": true
@@ -27933,12 +27919,6 @@
             "type": "number"
           },
           "currency": {
-            "type": "string"
-          },
-          "stockQuantity": {
-            "type": "number"
-          },
-          "sku": {
             "type": "string"
           },
           "categoryId": {
@@ -27982,12 +27962,6 @@
             "type": "number"
           },
           "currency": {
-            "type": "string"
-          },
-          "stockQuantity": {
-            "type": "number"
-          },
-          "sku": {
             "type": "string"
           },
           "categoryId": {
@@ -29749,14 +29723,6 @@
             "type": "number",
             "example": 159.99
           },
-          "stockQuantity": {
-            "type": "number",
-            "example": 20
-          },
-          "sku": {
-            "type": "string",
-            "example": "PERFUME-50ML"
-          },
           "isPopular": {
             "type": "boolean",
             "example": true
@@ -29803,12 +29769,6 @@
           "currency": {
             "type": "string",
             "example": "USD"
-          },
-          "stockQuantity": {
-            "type": "number"
-          },
-          "sku": {
-            "type": "string"
           },
           "imageUrls": {
             "type": "array",
@@ -29876,12 +29836,6 @@
           "currency": {
             "type": "string",
             "example": "USD"
-          },
-          "stockQuantity": {
-            "type": "number"
-          },
-          "sku": {
-            "type": "string"
           },
           "imageUrls": {
             "type": "array",

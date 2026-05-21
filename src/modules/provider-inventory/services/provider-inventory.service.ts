@@ -23,8 +23,8 @@ export class ProviderInventoryService {
   }
 
   async stats(user: AuthUserContext) {
-    const [totalItems, activeItems, inactiveItems, outOfStockItems, pendingApprovalItems, rejectedItems] = await this.repository.findStatsForProvider(user.uid);
-    return { data: { totalItems, activeItems, inactiveItems, outOfStockItems, pendingApprovalItems, rejectedItems }, message: 'Provider inventory stats fetched successfully' };
+    const [totalItems, activeItems, inactiveItems, pendingApprovalItems, rejectedItems] = await this.repository.findStatsForProvider(user.uid);
+    return { data: { totalItems, activeItems, inactiveItems, pendingApprovalItems, rejectedItems }, message: 'Provider inventory stats fetched successfully' };
   }
 
   async lookup(user: AuthUserContext) {
@@ -37,10 +37,8 @@ export class ProviderInventoryService {
 
   async create(user: AuthUserContext, dto: CreateProviderInventoryItemDto) {
     await this.ensureCategory(dto.categoryId);
-    await this.ensureUniqueSku(dto.sku);
-    await this.assertVariantSkus(dto.variants);
     const variants = this.normalizeVariants(dto.variants);
-    const status = this.toStatus(dto.isAvailable ?? true, this.stockForStatus(dto.stockQuantity, variants));
+    const status = this.toStatus(dto.isAvailable ?? true);
     const gift = await this.repository.createItemWithVariants({
       name: dto.name.trim(),
       slug: await this.uniqueSlug(dto.name),
@@ -50,8 +48,6 @@ export class ProviderInventoryService {
       providerId: user.uid,
       price: new Prisma.Decimal(dto.price),
       currency: dto.currency ?? 'USD',
-      stockQuantity: dto.stockQuantity ?? 0,
-      sku: dto.sku?.trim(),
       imageUrls: dto.imageUrls ?? [],
       status,
       moderationStatus: GiftModerationStatus.NOT_REQUIRED,
@@ -70,8 +66,6 @@ export class ProviderInventoryService {
   async update(user: AuthUserContext, id: string, dto: UpdateProviderInventoryItemDto) {
     const item = await this.getOwnGift(user.uid, id);
     if (dto.categoryId) await this.ensureCategory(dto.categoryId);
-    if (dto.sku) await this.ensureUniqueSku(dto.sku, id);
-    await this.assertVariantSkus(dto.variants, id);
     this.assertSingleDefaultVariant(dto.variants);
     const before = this.toDetailItem(item);
     const materialChange = this.isMaterialChange(item, dto) || this.hasMaterialVariantChange(dto.variants);
@@ -88,11 +82,9 @@ export class ProviderInventoryService {
         shortDescription: dto.shortDescription?.trim(),
         price: dto.price === undefined ? undefined : new Prisma.Decimal(dto.price),
         currency: dto.currency,
-        stockQuantity: dto.stockQuantity,
-        sku: dto.sku?.trim(),
         categoryId: dto.categoryId,
         imageUrls: dto.imageUrls,
-        status: this.toStatus(availability, this.nextStockForStatus(item, dto.stockQuantity, normalizedVariants, dto.replaceVariants ?? false)),
+        status: dto.isAvailable === undefined ? undefined : this.toStatus(availability),
         moderationStatus: item.moderationStatus,
         isPublished: item.isPublished,
       },
@@ -110,7 +102,7 @@ export class ProviderInventoryService {
 
   async updateAvailability(user: AuthUserContext, id: string, dto: UpdateProviderAvailabilityDto) {
     const item = await this.getOwnGift(user.uid, id);
-    const status = this.toStatus(dto.isAvailable, this.stockForStatus(item.stockQuantity, item.variants));
+    const status = this.toStatus(dto.isAvailable);
     const updated = await this.repository.updateAvailability(id, status);
     await this.audit(user.uid, id, 'PROVIDER_INVENTORY_AVAILABILITY_CHANGED', { status: item.status }, { status: updated.status, isAvailable: dto.isAvailable });
     return { data: { id, status: updated.status, isAvailable: dto.isAvailable }, message: 'Inventory availability updated successfully' };
@@ -130,7 +122,6 @@ export class ProviderInventoryService {
       categoryId: query.categoryId,
       ...(query.search ? { OR: [
         { name: { contains: query.search, mode: 'insensitive' } },
-        { sku: { contains: query.search, mode: 'insensitive' } },
         { category: { name: { contains: query.search, mode: 'insensitive' } } },
       ] } : {}),
       ...this.statusFilter(query.status),
@@ -143,8 +134,6 @@ export class ProviderInventoryService {
         return { status: GiftStatus.ACTIVE };
       case ProviderInventoryStatusFilter.INACTIVE:
         return { status: GiftStatus.INACTIVE };
-      case ProviderInventoryStatusFilter.OUT_OF_STOCK:
-        return { OR: [{ status: GiftStatus.OUT_OF_STOCK }, { stockQuantity: 0 }] };
       case ProviderInventoryStatusFilter.PENDING:
         return { moderationStatus: GiftModerationStatus.PENDING };
       case ProviderInventoryStatusFilter.REJECTED:
@@ -156,7 +145,7 @@ export class ProviderInventoryService {
 
   private orderBy(sortBy?: ProviderInventorySortBy, sortOrder?: SortOrder): Prisma.GiftOrderByWithRelationInput {
     const direction = sortOrder === SortOrder.ASC ? 'asc' : 'desc';
-    const field = sortBy === ProviderInventorySortBy.NAME || sortBy === ProviderInventorySortBy.PRICE || sortBy === ProviderInventorySortBy.STOCK_QUANTITY ? sortBy : 'createdAt';
+    const field = sortBy === ProviderInventorySortBy.NAME || sortBy === ProviderInventorySortBy.PRICE ? sortBy : 'createdAt';
     return { [field]: direction };
   }
 
@@ -175,12 +164,6 @@ export class ProviderInventoryService {
   private async ensureCategory(categoryId: string) {
     const category = await this.repository.findActiveCategory(categoryId);
     if (!category) throw new BadRequestException('Gift category not found');
-  }
-
-  private async ensureUniqueSku(sku?: string, exceptId?: string) {
-    if (!sku) return;
-    const existing = await this.repository.findBySku(sku.trim(), exceptId);
-    if (existing) throw new BadRequestException('Inventory SKU already exists');
   }
 
   private async uniqueSlug(name: string, exceptId?: string) {
@@ -202,21 +185,7 @@ export class ProviderInventoryService {
     );
   }
 
-  private toStatus(isAvailable: boolean, stockQuantity: number) {
-    if (!isAvailable) return GiftStatus.INACTIVE;
-    if (stockQuantity <= 0) return GiftStatus.OUT_OF_STOCK;
-    return GiftStatus.ACTIVE;
-  }
-
-  private stockForStatus(stockQuantity?: number, variants?: { stockQuantity?: number }[]) {
-    return (stockQuantity ?? 0) > 0 ? stockQuantity ?? 0 : variants?.reduce((total, variant) => total + (variant.stockQuantity ?? 0), 0) ?? 0;
-  }
-
-  private nextStockForStatus(item: ProviderGift, stockQuantity?: number, variants?: ProviderInventoryVariantDto[], replaceVariants?: boolean) {
-    if (stockQuantity !== undefined) return stockQuantity;
-    if (variants) return replaceVariants ? this.stockForStatus(undefined, variants) : this.stockForStatus(item.stockQuantity, variants);
-    return this.stockForStatus(item.stockQuantity, item.variants);
-  }
+  private toStatus(isAvailable: boolean) { return isAvailable ? GiftStatus.ACTIVE : GiftStatus.INACTIVE; }
 
   private firstImage(value: Prisma.JsonValue) {
     return Array.isArray(value) ? value.find((entry): entry is string => typeof entry === 'string') ?? null : null;
@@ -234,8 +203,6 @@ export class ProviderInventoryService {
       imageUrl: this.firstImage(item.imageUrls),
       price: Number(item.price),
       currency: item.currency,
-      stockQuantity: item.stockQuantity,
-      sku: item.sku,
       category: item.category,
       status: item.status,
       moderationStatus: item.moderationStatus,
@@ -252,8 +219,6 @@ export class ProviderInventoryService {
       shortDescription: item.shortDescription,
       price: Number(item.price),
       currency: item.currency,
-      stockQuantity: item.stockQuantity,
-      sku: item.sku,
       category: item.category,
       imageUrls: this.imageUrls(item.imageUrls),
       status: item.status,
@@ -267,12 +232,11 @@ export class ProviderInventoryService {
 
   private normalizeVariants(variants?: ProviderInventoryVariantDto[]): ProviderInventoryVariantDto[] { if (!variants?.length) return []; this.assertSingleDefaultVariant(variants); const normalized = variants.map((variant) => ({ ...variant })); if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true; return normalized; }
   private assertSingleDefaultVariant(variants?: ProviderInventoryVariantDto[]): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
-  private async assertVariantSkus(variants?: ProviderInventoryVariantDto[], giftId?: string): Promise<void> { const skus = (variants ?? []).map((variant) => variant.sku?.trim()).filter((sku): sku is string => Boolean(sku)); if (new Set(skus).size !== skus.length) throw new BadRequestException('Variant SKU must be unique'); if (!skus.length) return; const existing = await this.repository.findVariantBySku(skus, giftId); if (existing) throw new BadRequestException('Variant SKU already exists'); }
-  private variantCreateData(variant: ProviderInventoryVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity ?? 0, sku: variant.sku?.trim(), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
-  private variantUpdateData(variant: ProviderInventoryVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private variantCreateData(variant: ProviderInventoryVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
+  private variantUpdateData(variant: ProviderInventoryVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
   private async assertVariantOwnership(giftId: string, variants: ProviderInventoryVariantDto[]): Promise<void> { const ids = variants.map((variant) => variant.id).filter((variantId): variantId is string => Boolean(variantId)); if (!ids.length) return; const existing = await this.repository.findVariantsByIdsForItem(giftId, ids); if (existing.length !== ids.length) throw new BadRequestException('Variant does not belong to inventory item'); }
-  private hasMaterialVariantChange(variants?: ProviderInventoryVariantDto[]): boolean { return (variants ?? []).some((variant) => variant.name !== undefined || variant.price !== undefined || variant.originalPrice !== undefined || variant.sku !== undefined); }
-  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku, isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private hasMaterialVariantChange(variants?: ProviderInventoryVariantDto[]): boolean { return (variants ?? []).some((variant) => variant.name !== undefined || variant.price !== undefined || variant.originalPrice !== undefined); }
+  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
 
   private async audit(actorId: string, targetId: string, action: string, beforeJson: unknown, afterJson: unknown) {
     await this.auditLog.write({ actorId, targetId, targetType: 'GIFT', action, beforeJson, afterJson });

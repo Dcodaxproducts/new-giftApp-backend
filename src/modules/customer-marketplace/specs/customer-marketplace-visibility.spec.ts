@@ -24,11 +24,10 @@ describe('Customer marketplace provider inventory visibility rules', () => {
     expect(approvedProviderWhere).toContain('suspendedAt: null');
   });
 
-  it('requires item stock or at least one active in-stock variant', () => {
+  it('does not require stock for marketplace visibility', () => {
     const availableGiftWhere = service.slice(service.indexOf('private availableGiftWhere'), service.indexOf('private approvedProviderWhere'));
-    expect(availableGiftWhere).toContain('variants: { some: { isActive: true, deletedAt: null, stockQuantity: { gt: 0 } } }');
-    expect(availableGiftWhere).toContain('variants: { none: { deletedAt: null } }');
-    expect(availableGiftWhere).toContain('stockQuantity: { gt: 0 }');
+    expect(availableGiftWhere).not.toContain('stockQuantity');
+    expect(availableGiftWhere).not.toContain('variants: { some');
   });
 
   it('documents that provider inventory does not require gift moderation approval', () => {

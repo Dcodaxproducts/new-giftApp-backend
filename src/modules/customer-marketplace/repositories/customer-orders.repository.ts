@@ -68,14 +68,6 @@ export class CustomerOrdersRepository {
     return tx.order.create({ data });
   }
 
-  decrementGiftStock(tx: CheckoutTransaction, giftId: string, quantity: number) {
-    return tx.gift.update({ where: { id: giftId }, data: { stockQuantity: { decrement: quantity } } });
-  }
-
-  decrementVariantStock(tx: CheckoutTransaction, variantId: string, quantity: number) {
-    return tx.giftVariant.update({ where: { id: variantId }, data: { stockQuantity: { decrement: quantity } } });
-  }
-
   createOrderItem(tx: CheckoutTransaction, data: CreateOrderItemData) {
     return tx.orderItem.create({ data });
   }

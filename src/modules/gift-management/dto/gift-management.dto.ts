@@ -19,8 +19,8 @@ import {
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum ExportFormat { CSV = 'CSV', XLSX = 'XLSX' }
 export enum GiftCategorySortBy { CREATED_AT = 'createdAt', NAME = 'name', SORT_ORDER = 'sortOrder', TOTAL_GIFTS = 'totalGifts' }
-export enum GiftSortBy { CREATED_AT = 'createdAt', NAME = 'name', PRICE = 'price', RATING = 'rating', STOCK_QUANTITY = 'stockQuantity' }
-export enum GiftListStatus { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', PENDING = 'PENDING', REJECTED = 'REJECTED', FLAGGED = 'FLAGGED', OUT_OF_STOCK = 'OUT_OF_STOCK' }
+export enum GiftSortBy { CREATED_AT = 'createdAt', NAME = 'name', PRICE = 'price', RATING = 'rating' }
+export enum GiftListStatus { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', PENDING = 'PENDING', REJECTED = 'REJECTED', FLAGGED = 'FLAGGED' }
 export enum GiftModerationFilter { ALL = 'ALL', NOT_REQUIRED = 'NOT_REQUIRED', PENDING = 'PENDING', APPROVED = 'APPROVED', REJECTED = 'REJECTED', FLAGGED = 'FLAGGED' }
 export enum ModerationSortBy { SUBMITTED_AT = 'submittedAt', NAME = 'name', PROVIDER = 'provider' }
 export enum ModerationView { TABLE = 'TABLE', GRID = 'GRID' }
@@ -62,8 +62,6 @@ export class GiftVariantDto {
   @ApiProperty({ example: '50ml' }) @IsString() @MinLength(1) name!: string;
   @ApiProperty({ example: 129.99 }) @Type(() => Number) @IsNumber() @Min(0) price!: number;
   @ApiPropertyOptional({ example: 159.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) originalPrice?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
-  @ApiPropertyOptional({ example: 'PERFUME-50ML' }) @IsOptional() @IsString() sku?: string;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isPopular?: boolean;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isDefault?: boolean;
   @ApiPropertyOptional({ example: 2 }) @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
@@ -78,8 +76,6 @@ export class CreateGiftDto {
   @ApiProperty() @IsString() providerId!: string;
   @ApiProperty() @Type(() => Number) @IsNumber() @Min(0) price!: number;
   @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsString() currency?: string;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() sku?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) imageUrls?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPublished?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
@@ -95,8 +91,6 @@ export class UpdateGiftDto {
   @ApiPropertyOptional() @IsOptional() @IsString() providerId?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) price?: number;
   @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsString() currency?: string;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) stockQuantity?: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() sku?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) imageUrls?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPublished?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;

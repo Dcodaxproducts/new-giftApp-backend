@@ -10,7 +10,7 @@ describe('Customer cart variant behavior', () => {
     expect(service).toContain('candidate.isDefault');
     expect(service).toContain('Variant does not belong to gift');
     expect(service).toContain('variant?.price ?? gift.price');
-    expect(service).toContain('variant?.stockQuantity ?? gift.stockQuantity');
+    expect(service).not.toContain('assertStock');
   });
 
   it('wishlist visibility wording no longer requires gift moderation approval for provider inventory', () => {

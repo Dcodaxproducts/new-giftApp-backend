@@ -85,10 +85,6 @@ export class GiftManagementRepository {
 
   findGiftBySlug(slug: string, exceptId?: string) { return this.prisma.gift.findFirst({ where: { slug, id: exceptId ? { not: exceptId } : undefined } }); }
 
-  findGiftBySku(sku: string, exceptGiftId?: string) { return this.prisma.gift.findFirst({ where: { sku: sku.trim(), id: exceptGiftId ? { not: exceptGiftId } : undefined, deletedAt: null } }); }
-
-  findGiftVariantBySku(skus: string[], giftId?: string) { return this.prisma.giftVariant.findFirst({ where: { sku: { in: skus }, deletedAt: null, giftId: giftId ? { not: giftId } : undefined } }); }
-
   findProviderById(id: string) { return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } }); }
 
   createGiftWithVariants(data: GiftCreateData) { return this.prisma.gift.create({ data, include: GIFT_MANAGEMENT_INCLUDE }); }

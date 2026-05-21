@@ -129,8 +129,6 @@ export class GiftManagementService {
     const providerId = user.role === UserRole.PROVIDER ? user.uid : dto.providerId;
     await this.assertCategory(dto.categoryId);
     await this.assertProvider(providerId);
-    await this.assertUniqueSku(dto.sku);
-    await this.assertVariantSkus(dto.variants);
     const variants = this.normalizeVariants(dto.variants);
     const isProviderCreatedInventory = user.role === UserRole.PROVIDER;
     const moderationStatus = isProviderCreatedInventory
@@ -139,7 +137,7 @@ export class GiftManagementService {
       ? (dto.moderationStatus ?? GiftModerationStatus.APPROVED)
       : GiftModerationStatus.PENDING;
     const isPublished = isProviderCreatedInventory ? (dto.isPublished ?? true) : (dto.isPublished ?? false);
-    const status = this.statusFromStock(this.stockForStatus(dto.stockQuantity, variants), isPublished, moderationStatus);
+    const status = this.statusFromPublication(isPublished, moderationStatus);
     const gift = await this.giftManagementRepository.createGiftWithVariants({
       name: dto.name.trim(),
       slug: await this.uniqueGiftSlug(dto.name),
@@ -149,8 +147,6 @@ export class GiftManagementService {
       providerId,
       price: new Prisma.Decimal(dto.price),
       currency: dto.currency ?? 'USD',
-      stockQuantity: dto.stockQuantity ?? 0,
-      sku: dto.sku?.trim(),
       imageUrls: dto.imageUrls ?? [],
       isPublished,
       isFeatured: dto.isFeatured ?? false,
@@ -195,8 +191,6 @@ export class GiftManagementService {
     this.assertCanManageGift(user, gift);
     if (dto.categoryId) await this.assertCategory(dto.categoryId);
     if (dto.providerId) await this.assertProvider(dto.providerId);
-    if (dto.sku) await this.assertUniqueSku(dto.sku, id);
-    await this.assertVariantSkus(dto.variants, id);
     this.assertSingleDefaultVariant(dto.variants);
     const normalizedVariants = dto.variants ? this.normalizeVariants(dto.variants) : undefined;
     const providerId = user.role === UserRole.PROVIDER ? gift.providerId : dto.providerId;
@@ -213,14 +207,11 @@ export class GiftManagementService {
         providerId,
         price: dto.price === undefined ? undefined : new Prisma.Decimal(dto.price),
         currency: dto.currency,
-        stockQuantity: dto.stockQuantity,
-        sku: dto.sku?.trim(),
         imageUrls: dto.imageUrls,
         isPublished: dto.isPublished,
         isFeatured: dto.isFeatured,
         tags: dto.tags,
         moderationStatus: nextModeration,
-        status: this.nextStatusForUpdate(gift, dto, normalizedVariants),
       });
       if (normalizedVariants) await this.upsertVariants(tx, id, normalizedVariants, dto.replaceVariants ?? false);
       return this.giftManagementRepository.findGiftByIdWithVariantsTx(tx, base.id);
@@ -249,7 +240,7 @@ export class GiftManagementService {
 
   async exportGifts(query: ExportGiftsDto) {
     const gifts = await this.giftManagementRepository.findGiftsForExport(this.giftWhere(query));
-    const rows = [['ID', 'Name', 'SKU', 'Category', 'Provider', 'Price', 'Currency', 'Status', 'Moderation', 'Published'], ...gifts.map((gift) => [gift.id, gift.name, gift.sku ?? '', gift.category.name, this.providerName(gift.provider), gift.price.toString(), gift.currency, gift.status, gift.moderationStatus, String(gift.isPublished)])];
+    const rows = [['ID', 'Name', 'Category', 'Provider', 'Price', 'Currency', 'Status', 'Moderation', 'Published'], ...gifts.map((gift) => [gift.id, gift.name, gift.category.name, this.providerName(gift.provider), gift.price.toString(), gift.currency, gift.status, gift.moderationStatus, String(gift.isPublished)])];
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n');
     return { filename: `gifts.${query.format === ExportFormat.XLSX ? 'xlsx' : 'csv'}`, contentType: query.format === ExportFormat.XLSX ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv; charset=utf-8', content: csv };
   }
@@ -307,14 +298,9 @@ export class GiftManagementService {
     const provider = await this.giftManagementRepository.findProviderById(id);
     if (!provider) throw new BadRequestException('Provider must exist and have PROVIDER role');
   }
-  private async assertUniqueSku(sku?: string, exceptGiftId?: string) {
-    if (!sku) return;
-    const existing = await this.giftManagementRepository.findGiftBySku(sku, exceptGiftId);
-    if (existing) throw new BadRequestException('Gift SKU already exists');
-  }
 
   private giftWhere(query: ListGiftsDto | ExportGiftsDto): Prisma.GiftWhereInput {
-    return { deletedAt: null, categoryId: query.categoryId, providerId: query.providerId, isPublished: query.isPublished, ...(query.search ? { OR: [{ name: { contains: query.search, mode: 'insensitive' } }, { sku: { contains: query.search, mode: 'insensitive' } }, { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } }] } : {}), ...this.statusWhere(query.status), ...(query.moderationStatus && query.moderationStatus !== GiftModerationFilter.ALL ? { moderationStatus: query.moderationStatus } : {}) };
+    return { deletedAt: null, categoryId: query.categoryId, providerId: query.providerId, isPublished: query.isPublished, ...(query.search ? { OR: [{ name: { contains: query.search, mode: 'insensitive' } }, { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } }] } : {}), ...this.statusWhere(query.status), ...(query.moderationStatus && query.moderationStatus !== GiftModerationFilter.ALL ? { moderationStatus: query.moderationStatus } : {}) };
   }
   private moderationQueueWhere(query: ListGiftModerationDto): Prisma.GiftWhereInput {
     if (query.status) return { moderationStatus: query.status };
@@ -327,7 +313,7 @@ export class GiftManagementService {
     return { status };
   }
   private categoryOrderBy(sortBy?: GiftCategorySortBy, sortOrder?: SortOrder): Prisma.GiftCategoryOrderByWithRelationInput { return { [sortBy === GiftCategorySortBy.NAME || sortBy === GiftCategorySortBy.SORT_ORDER ? sortBy : 'createdAt']: this.dir(sortOrder) }; }
-  private giftOrderBy(sortBy?: GiftSortBy, sortOrder?: SortOrder): Prisma.GiftOrderByWithRelationInput { const field = sortBy === GiftSortBy.NAME || sortBy === GiftSortBy.PRICE || sortBy === GiftSortBy.STOCK_QUANTITY ? sortBy : sortBy === GiftSortBy.RATING ? 'ratingPlaceholder' : 'createdAt'; return { [field]: this.dir(sortOrder) }; }
+  private giftOrderBy(sortBy?: GiftSortBy, sortOrder?: SortOrder): Prisma.GiftOrderByWithRelationInput { const field = sortBy === GiftSortBy.NAME || sortBy === GiftSortBy.PRICE ? sortBy : sortBy === GiftSortBy.RATING ? 'ratingPlaceholder' : 'createdAt'; return { [field]: this.dir(sortOrder) }; }
   private dir(sortOrder?: SortOrder): Prisma.SortOrder { return sortOrder === SortOrder.ASC ? 'asc' : 'desc'; }
   private giftInclude() { return GIFT_MANAGEMENT_INCLUDE; }
 
@@ -339,11 +325,10 @@ export class GiftManagementService {
     return normalized;
   }
   private assertSingleDefaultVariant(variants?: GiftVariantDto[]): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
-  private async assertVariantSkus(variants?: GiftVariantDto[], giftId?: string): Promise<void> { const skus = (variants ?? []).map((variant) => variant.sku?.trim()).filter((sku): sku is string => Boolean(sku)); if (new Set(skus).size !== skus.length) throw new BadRequestException('Variant SKU must be unique'); if (!skus.length) return; const existing = await this.giftManagementRepository.findGiftVariantBySku(skus, giftId); if (existing) throw new BadRequestException('Variant SKU already exists'); }
-  private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity ?? 0, sku: variant.sku?.trim(), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
-  private canPublishAfterApproval(gift: GiftWithRelations): boolean { return gift.status === GiftStatus.ACTIVE && gift.deletedAt === null && this.giftHasStock(gift) && gift.category.isActive && gift.category.deletedAt === null && (gift.provider.isActive ?? true) && gift.provider.deletedAt === null && gift.provider.suspendedAt === null; }
+  private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
+  private canPublishAfterApproval(gift: GiftWithRelations): boolean { return gift.status === GiftStatus.ACTIVE && gift.deletedAt === null && gift.category.isActive && gift.category.deletedAt === null && (gift.provider.isActive ?? true) && gift.provider.deletedAt === null && gift.provider.suspendedAt === null; }
   private async notifyProvider(providerId: string, giftId: string, title: string, message: string, type: string): Promise<void> { await this.giftManagementRepository.createProviderNotification({ providerId, giftId, title, message, type }); }
-  private variantUpdateData(variant: GiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku?.trim(), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private variantUpdateData(variant: GiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
   private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: GiftVariantDto[], replaceVariants: boolean): Promise<void> {
     const normalized = this.normalizeVariants(variants);
     const incomingIds = normalized.map((variant) => variant.id).filter((id): id is string => Boolean(id));
@@ -361,21 +346,13 @@ export class GiftManagementService {
   }
 
   private toCategory(category: GiftCategory, totalGifts: number) { const backgroundColor = category.backgroundColor ?? category.color ?? '#F3E8FF'; return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, color: category.color ?? backgroundColor, backgroundColor, imageUrl: category.imageUrl, totalGifts, isActive: category.isActive, sortOrder: category.sortOrder, createdAt: category.createdAt, updatedAt: category.updatedAt }; }
-  private toGiftListItem(gift: GiftWithRelations, ratingSummary: RatingSummary) { const imageUrls = this.stringArray(gift.imageUrls); return { id: gift.id, name: gift.name, shortDescription: gift.shortDescription, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, status: gift.status, moderationStatus: gift.moderationStatus, isPublished: gift.isPublished, stockQuantity: gift.stockQuantity, sku: gift.sku, imageUrl: imageUrls[0] ?? null, imageUrls, createdAt: gift.createdAt }; }
+  private toGiftListItem(gift: GiftWithRelations, ratingSummary: RatingSummary) { const imageUrls = this.stringArray(gift.imageUrls); return { id: gift.id, name: gift.name, shortDescription: gift.shortDescription, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, status: gift.status, moderationStatus: gift.moderationStatus, isPublished: gift.isPublished, imageUrl: imageUrls[0] ?? null, imageUrls, createdAt: gift.createdAt }; }
   private toGiftDetail(gift: GiftWithRelations, ratingSummary: RatingSummary) { return { ...this.toGiftListItem(gift, ratingSummary), description: gift.description, isFeatured: gift.isFeatured, tags: this.stringArray(gift.tags), variants: (gift.variants ?? []).map((variant) => this.toVariant(variant)), updatedAt: gift.updatedAt }; }
-  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), stockQuantity: variant.stockQuantity, sku: variant.sku, isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
   private providerName(provider: GiftWithRelations['provider']): string { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
   private firstImage(gift: Gift): string | null { return this.stringArray(gift.imageUrls)[0] ?? null; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
-  private statusFromStock(stockQuantity: number, isPublished: boolean, moderationStatus: GiftModerationStatus): GiftStatus { if (stockQuantity === 0) return GiftStatus.OUT_OF_STOCK; return isPublished && moderationStatus === GiftModerationStatus.APPROVED ? GiftStatus.ACTIVE : GiftStatus.INACTIVE; }
-  private stockForStatus(stockQuantity?: number, variants?: { stockQuantity?: number }[]): number { return (stockQuantity ?? 0) > 0 ? stockQuantity ?? 0 : variants?.reduce((total, variant) => total + (variant.stockQuantity ?? 0), 0) ?? 0; }
-  private giftHasStock(gift: GiftWithRelations): boolean { return gift.stockQuantity > 0 || gift.variants.some((variant) => variant.stockQuantity > 0); }
-  private nextStatusForUpdate(gift: GiftWithRelations, dto: UpdateGiftDto, variants?: GiftVariantDto[]): GiftStatus | undefined {
-    if (dto.stockQuantity === undefined && variants === undefined) return undefined;
-    const stockQuantity = dto.stockQuantity ?? (dto.replaceVariants ? undefined : gift.stockQuantity);
-    const nextVariants = variants ?? gift.variants;
-    return this.statusFromStock(this.stockForStatus(stockQuantity, nextVariants), dto.isPublished ?? gift.isPublished, gift.moderationStatus);
-  }
+  private statusFromPublication(isPublished: boolean, moderationStatus: GiftModerationStatus): GiftStatus { return isPublished && moderationStatus === GiftModerationStatus.APPROVED ? GiftStatus.ACTIVE : GiftStatus.INACTIVE; }
   private emptyRatingSummary(): RatingSummary { return { rating: 0, reviewCount: 0 }; }
   private async ratingSummary(providerId: string): Promise<RatingSummary> { return (await this.ratingSummaries([{ providerId }])).get(providerId) ?? this.emptyRatingSummary(); }
   private async ratingSummaries(gifts: Pick<Gift, 'providerId'>[]): Promise<Map<string, RatingSummary>> {
