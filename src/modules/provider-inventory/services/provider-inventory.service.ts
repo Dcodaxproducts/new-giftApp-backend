@@ -40,7 +40,7 @@ export class ProviderInventoryService {
     await this.ensureUniqueSku(dto.sku);
     await this.assertVariantSkus(dto.variants);
     const variants = this.normalizeVariants(dto.variants);
-    const status = this.toStatus(dto.isAvailable ?? true, dto.stockQuantity ?? 0);
+    const status = this.toStatus(dto.isAvailable ?? true, this.stockForStatus(dto.stockQuantity, variants));
     const gift = await this.repository.createItemWithVariants({
       name: dto.name.trim(),
       slug: await this.uniqueSlug(dto.name),
@@ -75,7 +75,6 @@ export class ProviderInventoryService {
     this.assertSingleDefaultVariant(dto.variants);
     const before = this.toDetailItem(item);
     const materialChange = this.isMaterialChange(item, dto) || this.hasMaterialVariantChange(dto.variants);
-    const stockQuantity = dto.stockQuantity ?? item.stockQuantity;
     const availability = dto.isAvailable ?? (item.status !== GiftStatus.INACTIVE);
     const normalizedVariants = dto.variants ? this.normalizeVariants(dto.variants) : undefined;
     if (normalizedVariants) await this.assertVariantOwnership(id, normalizedVariants);
@@ -93,7 +92,7 @@ export class ProviderInventoryService {
         sku: dto.sku?.trim(),
         categoryId: dto.categoryId,
         imageUrls: dto.imageUrls,
-        status: this.toStatus(availability, stockQuantity),
+        status: this.toStatus(availability, this.nextStockForStatus(item, dto.stockQuantity, normalizedVariants, dto.replaceVariants ?? false)),
         moderationStatus: item.moderationStatus,
         isPublished: item.isPublished,
       },
@@ -111,7 +110,7 @@ export class ProviderInventoryService {
 
   async updateAvailability(user: AuthUserContext, id: string, dto: UpdateProviderAvailabilityDto) {
     const item = await this.getOwnGift(user.uid, id);
-    const status = this.toStatus(dto.isAvailable, item.stockQuantity);
+    const status = this.toStatus(dto.isAvailable, this.stockForStatus(item.stockQuantity, item.variants));
     const updated = await this.repository.updateAvailability(id, status);
     await this.audit(user.uid, id, 'PROVIDER_INVENTORY_AVAILABILITY_CHANGED', { status: item.status }, { status: updated.status, isAvailable: dto.isAvailable });
     return { data: { id, status: updated.status, isAvailable: dto.isAvailable }, message: 'Inventory availability updated successfully' };
@@ -207,6 +206,16 @@ export class ProviderInventoryService {
     if (!isAvailable) return GiftStatus.INACTIVE;
     if (stockQuantity <= 0) return GiftStatus.OUT_OF_STOCK;
     return GiftStatus.ACTIVE;
+  }
+
+  private stockForStatus(stockQuantity?: number, variants?: { stockQuantity: number }[]) {
+    return (stockQuantity ?? 0) > 0 ? stockQuantity ?? 0 : variants?.reduce((total, variant) => total + variant.stockQuantity, 0) ?? 0;
+  }
+
+  private nextStockForStatus(item: ProviderGift, stockQuantity?: number, variants?: ProviderInventoryVariantDto[], replaceVariants?: boolean) {
+    if (stockQuantity !== undefined) return stockQuantity;
+    if (variants) return replaceVariants ? this.stockForStatus(undefined, variants) : this.stockForStatus(item.stockQuantity, variants);
+    return this.stockForStatus(item.stockQuantity, item.variants);
   }
 
   private firstImage(value: Prisma.JsonValue) {

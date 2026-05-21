@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GiftModerationStatus, GiftStatus, NotificationRecipientType, OrderStatus, Prisma, UserRole } from '@prisma/client';
+import { GiftModerationStatus, GiftStatus, NotificationRecipientType, OrderStatus, Prisma, ReviewStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 
@@ -75,6 +75,10 @@ export class GiftManagementRepository {
 
   findGiftsAndCountForAdmin(params: { where: Prisma.GiftWhereInput; orderBy: Prisma.GiftOrderByWithRelationInput; skip: number; take: number }) {
     return this.prisma.$transaction([this.findGiftsForAdmin(params), this.countGiftsForAdmin(params.where)]);
+  }
+
+  findProviderReviewSummaries(providerIds: string[]) {
+    return this.prisma.review.groupBy({ by: ['providerId'], where: { providerId: { in: providerIds }, deletedAt: null, status: ReviewStatus.PUBLISHED }, _avg: { rating: true }, _count: { _all: true } });
   }
 
   findGiftByIdWithVariants(id: string) { return this.prisma.gift.findFirst({ where: { id, deletedAt: null }, include: GIFT_MANAGEMENT_INCLUDE }); }

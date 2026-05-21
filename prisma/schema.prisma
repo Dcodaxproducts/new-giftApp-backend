@@ -1946,7 +1946,7 @@ model Gift {
   moderationResolvedAt DateTime?          @map("moderation_resolved_at") @db.Timestamptz
   isFeatured        Boolean              @default(false) @map("is_featured")
   tags              Json                 @default("[]")
-  ratingPlaceholder Decimal              @default(4.8) @map("rating_placeholder") @db.Decimal(3, 2)
+  ratingPlaceholder Decimal              @default(0) @map("rating_placeholder") @db.Decimal(3, 2)
   approvedAt        DateTime?            @map("approved_at") @db.Timestamptz
   approvedBy        String?              @map("approved_by")
   rejectedAt        DateTime?            @map("rejected_at") @db.Timestamptz

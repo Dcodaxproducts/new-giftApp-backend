@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 06:54 UTC
+Generated at: 2026-05-21 11:13 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -7953,13 +7953,13 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "price": 99.99,
       "currency": "PKR",
       "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
-      "rating": 4.8,
+      "rating": 4.6,
       "isWishlisted": false,
       "requiresAuthForWishlist": true,
       "requiresAuthForCart": true,
       "requiresAuthForCheckout": true,
       "shortDescription": "Premium fragrance gift.",
-      "reviewCount": 0,
+      "reviewCount": 24,
       "category": {
         "id": "gift_category_id",
         "name": "Perfumes",
@@ -8009,8 +8009,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "imageUrls": [
       "https://cdn.yourdomain.com/gift-images/perfume.png"
     ],
-    "rating": 4.8,
-    "reviewCount": 0,
+    "rating": 4.6,
+    "reviewCount": 24,
     "isWishlisted": false,
     "requiresAuthForWishlist": true,
     "requiresAuthForCart": true,
@@ -8026,8 +8026,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "provider": {
       "id": "provider_id",
       "businessName": "Dcodax Gifts",
-      "rating": 4.8,
-      "reviewCount": 0,
+      "rating": 4.6,
+      "reviewCount": 24,
       "fulfillmentMethods": [
         "DELIVERY"
       ]

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, ReviewStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 @Injectable()
@@ -40,6 +40,10 @@ export class CustomerMarketplaceRepository {
       this.findMarketplaceGifts(params),
       this.countMarketplaceGifts(params.where),
     ]);
+  }
+
+  findProviderReviewSummaries(providerIds: string[]) {
+    return this.prisma.review.groupBy({ by: ['providerId'], where: { providerId: { in: providerIds }, deletedAt: null, status: ReviewStatus.PUBLISHED }, _avg: { rating: true }, _count: { _all: true } });
   }
 
   findDiscountedGifts(params: { where: Prisma.GiftWhereInput; activeOfferWhere: Prisma.PromotionalOfferWhereInput; include: Prisma.GiftInclude; take?: number }) {

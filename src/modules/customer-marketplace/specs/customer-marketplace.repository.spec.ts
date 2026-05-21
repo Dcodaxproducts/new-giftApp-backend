@@ -107,14 +107,15 @@ describe('Customer marketplace repository cleanup', () => {
     expect(service).toContain('isWishlisted: wishlist.has(gift.id)');
   });
 
-  it('service keeps filter normalization, active offer calculation, rating placeholders, and response mapping', () => {
+  it('service keeps filter normalization, active offer calculation, real ratings, and response mapping', () => {
     expect(service).toContain('private customerGiftWhere');
     expect(service).toContain('query.categoryId');
     expect(service).toContain('query.minPrice');
     expect(service).toContain('query.search');
     expect(service).toContain('private activeOffer(gift: GiftView)');
     expect(service).toContain('this.toOffer(offer, Number(gift.price))');
-    expect(service).toContain('rating: Number(gift.ratingPlaceholder)');
+    expect(service).toContain('rating: ratingSummary.rating');
+    expect(service).toContain('findProviderReviewSummaries(providerIds)');
     expect(service).toContain('ratingOptions: [4.5, 4.0, 3.5]');
   });
 

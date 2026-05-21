@@ -6,7 +6,7 @@ import { GiftManagementService } from '../services/gift-management.service';
 
 const now = new Date();
 const gift = {
-  id: 'gift_1', name: 'Gift', slug: 'gift', description: null, shortDescription: null, categoryId: 'cat_1', providerId: 'provider_1', price: { toString: () => '10' }, currency: 'USD', stockQuantity: 5, sku: null, imageUrls: [], tags: [], status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.NOT_REQUIRED, isPublished: true, requiresManualReview: false, manualReviewReason: null, hiddenByModeration: false, moderationResolvedAt: null, isFeatured: false, ratingPlaceholder: { toString: () => '4.8' }, approvedAt: null, approvedBy: null, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, flaggedAt: null, flaggedById: null, flagReason: null, flagComment: null, createdAt: now, updatedAt: now, deletedAt: null, category: { id: 'cat_1', name: 'Digital', isActive: true, deletedAt: null }, provider: { id: 'provider_1', email: 'p@example.com', providerBusinessName: 'Provider', firstName: 'P', lastName: 'One', isActive: true, isApproved: true, providerApprovalStatus: 'APPROVED', suspendedAt: null, deletedAt: null }, variants: [],
+  id: 'gift_1', name: 'Gift', slug: 'gift', description: null, shortDescription: null, categoryId: 'cat_1', providerId: 'provider_1', price: { toString: () => '10' }, currency: 'USD', stockQuantity: 5, sku: null, imageUrls: [], tags: [], status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.NOT_REQUIRED, isPublished: true, requiresManualReview: false, manualReviewReason: null, hiddenByModeration: false, moderationResolvedAt: null, isFeatured: false, ratingPlaceholder: { toString: () => '0' }, approvedAt: null, approvedBy: null, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, flaggedAt: null, flaggedById: null, flagReason: null, flagComment: null, createdAt: now, updatedAt: now, deletedAt: null, category: { id: 'cat_1', name: 'Digital', isActive: true, deletedAt: null }, provider: { id: 'provider_1', email: 'p@example.com', providerBusinessName: 'Provider', firstName: 'P', lastName: 'One', isActive: true, isApproved: true, providerApprovalStatus: 'APPROVED', suspendedAt: null, deletedAt: null }, variants: [],
 };
 
 function createService() {
@@ -27,6 +27,7 @@ function createService() {
       create: jest.fn().mockResolvedValue(gift),
       update: jest.fn().mockResolvedValue(gift),
     },
+    review: { groupBy: jest.fn().mockResolvedValue([]) },
     user: { findFirst: jest.fn().mockResolvedValue({ id: 'provider_1', role: UserRole.PROVIDER, deletedAt: null }) },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
     adminAuditLog: { create: jest.fn() },
@@ -49,6 +50,23 @@ describe('GiftManagementService', () => {
     const { service, prisma } = createService();
     await service.createGift({ uid: 'provider_1', role: UserRole.PROVIDER }, { name: 'Gift', categoryId: 'cat_1', providerId: 'other_provider', price: 10, stockQuantity: 5 });
     expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ providerId: 'provider_1', moderationStatus: GiftModerationStatus.NOT_REQUIRED, requiresManualReview: false, hiddenByModeration: false, isPublished: true }) }));
+  });
+
+  it('uses variant stock when creating gifts without top-level stock', async () => {
+    const { service, prisma } = createService();
+    await service.createGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10, isPublished: true, variants: [{ name: 'Small', price: 10, stockQuantity: 3 }] });
+    expect(prisma.gift.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: GiftStatus.ACTIVE }) }));
+  });
+
+  it('returns all image urls and real provider review summary in admin gift list', async () => {
+    const { service, prisma } = createService();
+    prisma.gift.findMany.mockResolvedValue([{ ...gift, imageUrls: ['one.png', 'two.png'] }]);
+    prisma.gift.count.mockResolvedValue(1);
+    prisma.review.groupBy.mockResolvedValue([{ providerId: 'provider_1', _avg: { rating: 4.25 }, _count: { _all: 2 } }]);
+
+    const result = await service.listGifts({});
+
+    expect(result.data[0]).toMatchObject({ imageUrl: 'one.png', imageUrls: ['one.png', 'two.png'], rating: 4.3, reviewCount: 2 });
   });
 
   it('writes audit log when creating gift', async () => {

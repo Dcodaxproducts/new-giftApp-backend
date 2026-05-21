@@ -45,6 +45,7 @@ type GiftView = {
   id: string; name: string; description: string | null; shortDescription: string | null; price: Prisma.Decimal; currency: string; imageUrls: Prisma.JsonValue;
   ratingPlaceholder: Prisma.Decimal; stockQuantity: number; sku: string | null; category: CategoryView; provider: ProviderView; promotionalOffers: OfferView[]; variants: GiftVariantView[]; createdAt: Date;
 };
+type RatingSummary = { rating: number; reviewCount: number };
 type CartItemView = {
   id: string; giftId: string; providerId: string; quantity: number; unitPriceSnapshot: Prisma.Decimal; discountAmountSnapshot: Prisma.Decimal; finalUnitPriceSnapshot: Prisma.Decimal;
   promotionalOfferId: string | null; deliveryOption: CustomerDeliveryOption; variantId: string | null; recipientContactId: string | null; recipientName: string; recipientPhone: string; recipientAddressId: string; eventId: string | null; giftMessage: string | null; messageMediaUrlsJson: Prisma.JsonValue; scheduledDeliveryAt: Date | null; createdAt: Date; updatedAt: Date;
@@ -72,11 +73,13 @@ export class CustomerMarketplaceService {
         this.customerMarketplaceRepository.findMarketplaceCategories(this.availableGiftWhere()),
         this.customerMarketplaceRepository.findMarketplaceGiftsAndCount({ where: this.customerGiftWhere({ offerOnly: true }), include: this.giftInclude(), orderBy: this.giftOrderBy(), skip: 0, take: 10 }),
       ]);
-      return { data: { mode: 'GUEST', categories: categories.map((category) => this.toCategory(category)), discountedGifts: discounted[0].map((gift) => this.toGiftCard(gift, new Set(), user)), featuredGifts: [], defaultAddress: null, upcomingReminder: null, guestPrompts: { showSignupPrompt: true, signupPromptText: 'Create an account to save wishlist, schedule gifts, and checkout.' } }, message: 'Customer home fetched successfully' };
+      const ratings = await this.ratingSummaries(discounted[0]);
+      return { data: { mode: 'GUEST', categories: categories.map((category) => this.toCategory(category)), discountedGifts: discounted[0].map((gift) => this.toGiftCard(gift, new Set(), ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user)), featuredGifts: [], defaultAddress: null, upcomingReminder: null, guestPrompts: { showSignupPrompt: true, signupPromptText: 'Create an account to save wishlist, schedule gifts, and checkout.' } }, message: 'Customer home fetched successfully' };
     }
     const [defaultAddress, upcomingReminder, categories, discounted] = await this.customerMarketplaceRepository.findCustomerHomeData({ userId: user.uid, giftWhere: this.availableGiftWhere(), activeOfferWhere: this.activeOfferWhere(), giftInclude: this.giftInclude() });
     const wishlist = await this.wishlistGiftIds(user.uid, discounted.map((gift) => gift.id));
-    return { data: { greeting: 'Welcome back', defaultAddress: defaultAddress ? this.toAddress(defaultAddress) : null, upcomingReminder: upcomingReminder ? this.toReminder(upcomingReminder) : null, categories: categories.map((category) => this.toCategory(category)), discountedGifts: discounted.map((gift) => this.toGiftCard(gift, wishlist, user)) }, message: 'Customer home fetched successfully' };
+    const ratings = await this.ratingSummaries(discounted);
+    return { data: { greeting: 'Welcome back', defaultAddress: defaultAddress ? this.toAddress(defaultAddress) : null, upcomingReminder: upcomingReminder ? this.toReminder(upcomingReminder) : null, categories: categories.map((category) => this.toCategory(category)), discountedGifts: discounted.map((gift) => this.toGiftCard(gift, wishlist, ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user)) }, message: 'Customer home fetched successfully' };
   }
 
   async categories(user?: AuthUserContext) {
@@ -92,7 +95,8 @@ export class CustomerMarketplaceService {
     const where = this.customerGiftWhere(query);
     const [items, total] = await this.customerMarketplaceRepository.findMarketplaceGiftsAndCount({ where, include: this.giftInclude(), orderBy: this.giftOrderBy(query.sortBy), skip: (page - 1) * limit, take: limit });
     const wishlist = this.isGuest(user) ? new Set<string>() : await this.wishlistGiftIds(user.uid, items.map((gift) => gift.id));
-    const data = items.map((gift) => this.toGiftListItem(gift, wishlist, user));
+    const ratings = await this.ratingSummaries(items);
+    const data = items.map((gift) => this.toGiftListItem(gift, wishlist, ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user));
     if (query.sortBy === CustomerGiftSortBy.DISCOUNT) data.sort((a, b) => (b.activeOffer?.discountAmount ?? 0) - (a.activeOffer?.discountAmount ?? 0));
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Customer gifts fetched successfully' };
   }
@@ -104,7 +108,7 @@ export class CustomerMarketplaceService {
     const gift = await this.customerMarketplaceRepository.findGiftDetailsForCustomer(id, { where: this.availableGiftWhere(), include: this.giftInclude() });
     if (!gift) throw new NotFoundException('Gift not found');
     const wishlist = this.isGuest(user) ? new Set<string>() : await this.wishlistGiftIds(user.uid, [gift.id]);
-    return { data: await this.toGiftDetail(gift, wishlist, user), message: 'Gift details fetched successfully' };
+    return { data: await this.toGiftDetail(gift, wishlist, await this.ratingSummary(gift.provider.id), user), message: 'Gift details fetched successfully' };
   }
 
   async filterOptions(user?: AuthUserContext) {
@@ -117,7 +121,8 @@ export class CustomerMarketplaceService {
     const rows = await this.customerMarketplaceRepository.findCustomerWishlistRows(user.uid);
     const gifts = await this.customerMarketplaceRepository.findWishlistGifts({ giftIds: rows.map((row) => row.giftId), where: this.availableGiftWhere(), include: this.giftInclude() });
     const wishlist = new Set(rows.map((row) => row.giftId));
-    return { data: gifts.map((gift) => this.toGiftListItem(gift, wishlist, user)), message: 'Wishlist fetched successfully' };
+    const ratings = await this.ratingSummaries(gifts);
+    return { data: gifts.map((gift) => this.toGiftListItem(gift, wishlist, ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user)), message: 'Wishlist fetched successfully' };
   }
 
   async addWishlist(user: AuthUserContext, giftId: string) {
@@ -331,9 +336,9 @@ export class CustomerMarketplaceService {
   private assertStock(gift: GiftView, variant: GiftVariantView | null, quantity: number): void { const stock = variant?.stockQuantity ?? gift.stockQuantity; if (stock < quantity) throw new BadRequestException('Requested quantity exceeds available stock'); }
 
   private toCategory(category: CategoryView) { return { id: category.id, name: category.name, slug: category.slug, backgroundColor: category.backgroundColor ?? category.color ?? '#F3E8FF', imageUrl: category.imageUrl }; }
-  private toGiftCard(gift: GiftView, wishlist: Set<string>, user?: AuthUserContext) { const offer = this.activeOffer(gift); return { id: gift.id, name: gift.name, price: Number(gift.price), currency: gift.currency, imageUrl: this.firstImage(gift.imageUrls), rating: Number(gift.ratingPlaceholder), isWishlisted: wishlist.has(gift.id), ...this.authFlags(user), activeOffer: this.toOffer(offer, Number(gift.price)) }; }
-  private toGiftListItem(gift: GiftView, wishlist: Set<string>, user?: AuthUserContext) { return { ...this.toGiftCard(gift, wishlist, user), shortDescription: gift.shortDescription, reviewCount: 0, stockStatus: gift.stockQuantity > 0 || gift.variants.some((variant) => variant.stockQuantity > 0) ? 'IN_STOCK' : 'OUT_OF_STOCK', stockQuantity: this.isGuest(user) ? undefined : gift.stockQuantity, category: this.toCategory(gift.category), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: Number(gift.ratingPlaceholder), reviewCount: 0 }, deliveryOptions: Object.values(CustomerDeliveryOption), popularity: 0 }; }
-  private async toGiftDetail(gift: GiftView, wishlist: Set<string>, user: AuthUserContext) { const visibility = await this.detailVisibility(user); return { ...this.toGiftListItem(gift, wishlist, user), description: gift.description, originalPrice: Number(gift.price), imageUrls: this.stringArray(gift.imageUrls), sku: visibility.showSku ? gift.sku : undefined, stockQuantity: visibility.showExactStock ? gift.stockQuantity : undefined, badges: this.giftBadges(gift), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: Number(gift.ratingPlaceholder), reviewCount: 0, fulfillmentMethods: this.stringArray(gift.provider.providerFulfillmentMethods) }, variants: gift.variants.map((variant) => ({ id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: Number(variant.originalPrice ?? variant.price), stockQuantity: visibility.showExactStock ? variant.stockQuantity : undefined, sku: visibility.showSku ? variant.sku : undefined, isPopular: variant.isPopular, isDefault: variant.isDefault })), deliveryOptions: Object.values(CustomerDeliveryOption), activeOffer: this.toOffer(this.activeOffer(gift), Number(gift.price)) }; }
+  private toGiftCard(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user?: AuthUserContext) { const offer = this.activeOffer(gift); return { id: gift.id, name: gift.name, price: Number(gift.price), currency: gift.currency, imageUrl: this.firstImage(gift.imageUrls), rating: ratingSummary.rating, isWishlisted: wishlist.has(gift.id), ...this.authFlags(user), activeOffer: this.toOffer(offer, Number(gift.price)) }; }
+  private toGiftListItem(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user?: AuthUserContext) { return { ...this.toGiftCard(gift, wishlist, ratingSummary, user), shortDescription: gift.shortDescription, reviewCount: ratingSummary.reviewCount, stockStatus: gift.stockQuantity > 0 || gift.variants.some((variant) => variant.stockQuantity > 0) ? 'IN_STOCK' : 'OUT_OF_STOCK', stockQuantity: this.isGuest(user) ? undefined : gift.stockQuantity, category: this.toCategory(gift.category), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount }, deliveryOptions: Object.values(CustomerDeliveryOption), popularity: 0 }; }
+  private async toGiftDetail(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user: AuthUserContext) { const visibility = await this.detailVisibility(user); return { ...this.toGiftListItem(gift, wishlist, ratingSummary, user), description: gift.description, originalPrice: Number(gift.price), imageUrls: this.stringArray(gift.imageUrls), sku: visibility.showSku ? gift.sku : undefined, stockQuantity: visibility.showExactStock ? gift.stockQuantity : undefined, badges: this.giftBadges(gift), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, fulfillmentMethods: this.stringArray(gift.provider.providerFulfillmentMethods) }, variants: gift.variants.map((variant) => ({ id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: Number(variant.originalPrice ?? variant.price), stockQuantity: visibility.showExactStock ? variant.stockQuantity : undefined, sku: visibility.showSku ? variant.sku : undefined, isPopular: variant.isPopular, isDefault: variant.isDefault })), deliveryOptions: Object.values(CustomerDeliveryOption), activeOffer: this.toOffer(this.activeOffer(gift), Number(gift.price)) }; }
   private activeOffer(gift: GiftView): OfferView | null { return gift.promotionalOffers[0] ?? null; }
   private toOffer(offer: OfferView | null, price: number) { if (!offer) return null; const value = Number(offer.discountValue); const discountAmount = offer.discountType === PromotionalOfferDiscountType.PERCENTAGE ? Math.min(price, price * (value / 100)) : Math.min(price, value); return { id: offer.id, title: offer.title, discountType: offer.discountType, discountValue: value, discountAmount, finalPrice: price - discountAmount, startDate: offer.startDate, endDate: offer.endDate }; }
   private priceSnapshot(gift: GiftView, offer: OfferView | null, variant: GiftVariantView | null) { const unitPrice = Number(variant?.price ?? gift.price); const activeOffer = this.toOffer(offer, unitPrice); const discountAmount = activeOffer?.discountAmount ?? 0; return { unitPrice: new Prisma.Decimal(unitPrice), discountAmount: new Prisma.Decimal(discountAmount), finalUnitPrice: new Prisma.Decimal(unitPrice - discountAmount) }; }
@@ -341,6 +346,16 @@ export class CustomerMarketplaceService {
   private firstImage(value: Prisma.JsonValue): string | null { return this.stringArray(value)[0] ?? null; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
   private providerName(provider: Pick<ProviderView, 'providerBusinessName' | 'firstName' | 'lastName'>): string { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
+  private emptyRatingSummary(): RatingSummary { return { rating: 0, reviewCount: 0 }; }
+  private async ratingSummary(providerId: string): Promise<RatingSummary> { return (await this.ratingSummaries([{ provider: { id: providerId } }])).get(providerId) ?? this.emptyRatingSummary(); }
+  private async ratingSummaries(gifts: { provider: { id: string } }[]): Promise<Map<string, RatingSummary>> {
+    const providerIds = [...new Set(gifts.map((gift) => gift.provider.id))];
+    if (providerIds.length === 0) return new Map();
+    const rows = await this.customerMarketplaceRepository.findProviderReviewSummaries(providerIds);
+    return new Map(rows.map((row) => [row.providerId, { rating: this.round(Number(row._avg.rating ?? 0)), reviewCount: this.groupCount(row._count) }]));
+  }
+  private round(value: number): number { return Number(value.toFixed(1)); }
+  private groupCount(count: true | { _all?: number }): number { return typeof count === 'object' ? count._all ?? 0 : 0; }
   private addressData(dto: CreateCustomerAddressDto | UpdateCustomerAddressDto) { return { label: dto.label?.trim(), fullName: dto.fullName?.trim(), phone: dto.phone?.trim(), line1: dto.line1?.trim(), line2: dto.line2?.trim(), city: dto.city?.trim(), state: dto.state?.trim(), country: dto.country?.trim(), postalCode: dto.postalCode?.trim(), latitude: dto.latitude === undefined ? undefined : new Prisma.Decimal(dto.latitude), longitude: dto.longitude === undefined ? undefined : new Prisma.Decimal(dto.longitude), deliveryInstructions: dto.deliveryInstructions?.trim(), isDefault: dto.isDefault }; }
   private toAddress(address: CustomerAddress) { return { id: address.id, label: address.label, fullName: address.fullName, phone: address.phone, line1: address.line1, line2: address.line2, city: address.city, state: address.state, country: address.country, postalCode: address.postalCode, latitude: address.latitude === null ? null : Number(address.latitude), longitude: address.longitude === null ? null : Number(address.longitude), deliveryInstructions: address.deliveryInstructions, isDefault: address.isDefault, createdAt: address.createdAt, updatedAt: address.updatedAt }; }
   private toReminder(reminder: CustomerReminder) { return { id: reminder.id, title: reminder.title, recipientName: reminder.recipientName, eventType: reminder.eventType, reminderDate: reminder.reminderDate, notes: reminder.notes, isActive: reminder.isActive, createdAt: reminder.createdAt, updatedAt: reminder.updatedAt }; }
