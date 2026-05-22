@@ -18,7 +18,14 @@ import {
   UpdateRegisteredUserDto,
   UpdateRegisteredUserStatusDto,
 } from '../dto/user-management.dto';
-import { UserManagementRepository, UserStats, UserSubscriptionSnapshot } from '../repositories/user-management.repository';
+import {
+  UserActivityOrder,
+  UserActivityPayment,
+  UserActivityProviderOrderTimeline,
+  UserManagementRepository,
+  UserStats,
+  UserSubscriptionSnapshot,
+} from '../repositories/user-management.repository';
 
 interface UserActivityItem {
   id: string;
@@ -234,7 +241,7 @@ export class UserManagementCoreService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const requestedType = query.type ?? UserActivityType.ALL;
-    const { loginAttempts, auditLogs } = await this.userManagementRepository.findUserActivity(user.id);
+    const { loginAttempts, auditLogs, orders, payments, providerOrderTimelines } = await this.userManagementRepository.findUserActivity(user.id);
     const activities = [
       ...loginAttempts.map((attempt): UserActivityItem => ({
         id: attempt.id,
@@ -244,6 +251,9 @@ export class UserManagementCoreService {
         createdAt: attempt.createdAt,
       })),
       ...auditLogs.map((log): UserActivityItem => this.toAuditActivity(log)),
+      ...orders.flatMap((order): UserActivityItem[] => this.toOrderActivities(order)),
+      ...payments.map((payment): UserActivityItem => this.toPaymentActivity(payment)),
+      ...providerOrderTimelines.map((timeline): UserActivityItem => this.toProviderOrderTimelineActivity(timeline)),
     ]
       .filter((activity) => requestedType === UserActivityType.ALL || activity.type === requestedType)
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime());
@@ -589,10 +599,63 @@ export class UserManagementCoreService {
     return {
       id: log.id,
       type: UserActivityType.SECURITY,
-      title: this.titleCase(log.action.replace('REGISTERED_USER_', '').replaceAll('_', ' ')),
+      title: this.titleCase(log.action.replace('REGISTERED_USER_', '').replace('USER_', '')),
       description: 'Account management action recorded',
       createdAt: log.createdAt,
     };
+  }
+
+  private toOrderActivities(order: UserActivityOrder): UserActivityItem[] {
+    const activities: UserActivityItem[] = [
+      {
+        id: `${order.id}:created`,
+        type: UserActivityType.ORDER,
+        title: 'Order placed',
+        description: `${order.orderNumber} created for ${this.formatMoney(order.total, order.currency)} with payment ${this.titleCase(order.paymentStatus)}.`,
+        createdAt: order.createdAt,
+      },
+    ];
+
+    if (order.updatedAt.getTime() !== order.createdAt.getTime()) {
+      activities.push({
+        id: `${order.id}:updated`,
+        type: UserActivityType.ORDER,
+        title: `Order ${this.titleCase(order.status)}`,
+        description: `${order.orderNumber} is ${this.titleCase(order.status)} with payment ${this.titleCase(order.paymentStatus)}.`,
+        createdAt: order.updatedAt,
+      });
+    }
+
+    return activities;
+  }
+
+  private toPaymentActivity(payment: UserActivityPayment): UserActivityItem {
+    const subject = payment.orderId ? 'order payment' : payment.moneyGiftId ? 'money gift payment' : 'payment';
+    return {
+      id: payment.id,
+      type: UserActivityType.PAYMENT,
+      title: `${this.titleCase(payment.status)} ${subject}`,
+      description: [
+        `${this.formatMoney(payment.amount, payment.currency)} via ${this.titleCase(payment.paymentMethod)}`,
+        payment.failureReason,
+      ].filter(Boolean).join(' • '),
+      createdAt: payment.updatedAt,
+    };
+  }
+
+  private toProviderOrderTimelineActivity(timeline: UserActivityProviderOrderTimeline): UserActivityItem {
+    const orderNumber = timeline.providerOrder.orderNumber ?? timeline.providerOrder.orderId;
+    return {
+      id: timeline.id,
+      type: UserActivityType.ORDER,
+      title: timeline.title,
+      description: `${orderNumber}: ${timeline.description || this.titleCase(timeline.status)}`,
+      createdAt: timeline.createdAt,
+    };
+  }
+
+  private formatMoney(amount: Prisma.Decimal | number, currency: string): string {
+    return `${Number(amount).toFixed(2)} ${currency}`;
   }
 
   private async suspendRegisteredUser(
@@ -722,6 +785,7 @@ export class UserManagementCoreService {
 
   private titleCase(value: string): string {
     return value
+      .replaceAll('_', ' ')
       .toLowerCase()
       .split(' ')
       .filter(Boolean)

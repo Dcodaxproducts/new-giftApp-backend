@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NotFoundException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { RegisteredUserSortBy, SortOrder, SuspensionReason } from '../dto/user-management.dto';
@@ -10,8 +10,9 @@ import { UserManagementCoreService } from '../services/user-management-core.serv
 function createService() {
   const prisma = {
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as unknown[])),
-    order: { groupBy: jest.fn().mockResolvedValue([]) },
-    payment: { groupBy: jest.fn().mockResolvedValue([]) },
+    order: { groupBy: jest.fn().mockResolvedValue([]), findMany: jest.fn().mockResolvedValue([]) },
+    payment: { groupBy: jest.fn().mockResolvedValue([]), findMany: jest.fn().mockResolvedValue([]) },
+    providerOrderTimeline: { findMany: jest.fn().mockResolvedValue([]) },
     customerSubscription: { findFirst: jest.fn().mockResolvedValue(null) },
     user: {
       delete: jest.fn(),
@@ -139,6 +140,33 @@ describe('UserManagementService', () => {
     const result = await service.stats('user_1');
 
     expect(result.data).toEqual(expect.objectContaining({ successfulPayments: 7, failedPayments: 3 }));
+  });
+
+  it('user activity maps login, profile/security, payment, and order events', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+    prisma.loginAttempt.findMany.mockResolvedValue([{ id: 'login_1', status: 'SUCCESS', ipAddress: '127.0.0.1', userAgent: 'iOS', reason: null, createdAt: new Date('2026-05-11T10:00:00.000Z') }]);
+    prisma.adminAuditLog.findMany.mockResolvedValue([
+      { id: 'audit_1', action: 'REGISTERED_USER_UPDATED', createdAt: new Date('2026-05-11T09:00:00.000Z') },
+      { id: 'audit_2', action: 'USER_PASSWORD_CHANGED_BY_ADMIN', createdAt: new Date('2026-05-11T08:00:00.000Z') },
+    ]);
+    prisma.order.findMany.mockResolvedValue([{ id: 'order_1', orderNumber: 'ORD-1001', status: OrderStatus.DELIVERED, paymentStatus: PaymentStatus.SUCCEEDED, total: new Prisma.Decimal(1200), currency: 'PKR', createdAt: new Date('2026-05-11T07:00:00.000Z'), updatedAt: new Date('2026-05-11T07:30:00.000Z') }]);
+    prisma.payment.findMany.mockResolvedValue([{ id: 'payment_1', status: PaymentStatus.SUCCEEDED, amount: new Prisma.Decimal(1200), currency: 'PKR', paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, orderId: 'order_1', moneyGiftId: null, createdAt: new Date('2026-05-11T07:01:00.000Z'), updatedAt: new Date('2026-05-11T07:02:00.000Z') }]);
+    prisma.providerOrderTimeline.findMany.mockResolvedValue([{ id: 'timeline_1', status: ProviderOrderStatus.SHIPPED, title: 'Order shipped', description: 'Provider shipped the order.', createdAt: new Date('2026-05-11T07:20:00.000Z'), providerOrder: { id: 'provider_order_1', orderNumber: 'PO-1001', orderId: 'order_1' } }]);
+
+    const result = await service.activity('user_1', { page: 1, limit: 20 });
+
+    expect(prisma.order.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'user_1' } }));
+    expect(prisma.payment.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'user_1' } }));
+    expect(prisma.providerOrderTimeline.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerOrder: { order: { userId: 'user_1' } } } }));
+    expect(result.data).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'LOGIN', title: 'Successful login' }),
+      expect.objectContaining({ type: 'PROFILE_UPDATE', title: 'Profile updated by admin' }),
+      expect.objectContaining({ type: 'SECURITY', title: 'Password Changed By Admin' }),
+      expect.objectContaining({ type: 'PAYMENT', title: 'Succeeded order payment' }),
+      expect.objectContaining({ type: 'ORDER', title: 'Order placed' }),
+      expect.objectContaining({ type: 'ORDER', title: 'Order shipped' }),
+    ]));
   });
 
   it('sort by totalSpent and ordersCount uses batch aggregates instead of per-user queries', async () => {

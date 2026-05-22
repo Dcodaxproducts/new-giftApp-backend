@@ -19,9 +19,24 @@ export interface UserSubscriptionSnapshot {
   progressPercentage: number;
 }
 
+export type UserActivityOrder = Prisma.OrderGetPayload<{
+  select: { id: true; orderNumber: true; status: true; paymentStatus: true; total: true; currency: true; createdAt: true; updatedAt: true };
+}>;
+
+export type UserActivityPayment = Prisma.PaymentGetPayload<{
+  select: { id: true; status: true; amount: true; currency: true; paymentMethod: true; failureReason: true; orderId: true; moneyGiftId: true; createdAt: true; updatedAt: true };
+}>;
+
+export type UserActivityProviderOrderTimeline = Prisma.ProviderOrderTimelineGetPayload<{
+  select: { id: true; status: true; title: true; description: true; createdAt: true; providerOrder: { select: { id: true; orderNumber: true; orderId: true } } };
+}>;
+
 export interface UserActivityRecords {
   loginAttempts: Awaited<ReturnType<PrismaService['loginAttempt']['findMany']>>;
   auditLogs: Awaited<ReturnType<PrismaService['adminAuditLog']['findMany']>>;
+  orders: UserActivityOrder[];
+  payments: UserActivityPayment[];
+  providerOrderTimelines: UserActivityProviderOrderTimeline[];
 }
 
 @Injectable()
@@ -237,7 +252,7 @@ export class UserManagementRepository {
   }
 
   async findUserActivity(userId: string): Promise<UserActivityRecords> {
-    const [loginAttempts, auditLogs] = await this.prisma.$transaction([
+    const [loginAttempts, auditLogs, orders, payments, providerOrderTimelines] = await this.prisma.$transaction([
       this.prisma.loginAttempt.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -248,9 +263,27 @@ export class UserManagementRepository {
         orderBy: { createdAt: 'desc' },
         take: 200,
       }),
+      this.prisma.order.findMany({
+        where: { userId },
+        select: { id: true, orderNumber: true, status: true, paymentStatus: true, total: true, currency: true, createdAt: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 200,
+      }),
+      this.prisma.payment.findMany({
+        where: { userId },
+        select: { id: true, status: true, amount: true, currency: true, paymentMethod: true, failureReason: true, orderId: true, moneyGiftId: true, createdAt: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 200,
+      }),
+      this.prisma.providerOrderTimeline.findMany({
+        where: { providerOrder: { order: { userId } } },
+        select: { id: true, status: true, title: true, description: true, createdAt: true, providerOrder: { select: { id: true, orderNumber: true, orderId: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+      }),
     ]);
 
-    return { loginAttempts, auditLogs };
+    return { loginAttempts, auditLogs, orders, payments, providerOrderTimelines };
   }
 
   createPasswordChangedNotification(userId: string): Promise<unknown> {
