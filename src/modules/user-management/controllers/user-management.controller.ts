@@ -11,7 +11,7 @@ import {
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -75,6 +75,16 @@ export class UserManagementController {
   @ApiOperation({
     summary: 'Run registered user lifecycle action',
     description: "SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require 'users.status.update'; SUSPEND requires 'users.suspend'; UNSUSPEND requires 'users.unsuspend'.",
+  })
+  @ApiBody({
+    type: UpdateRegisteredUserStatusDto,
+    examples: {
+      updateStatus: { value: { action: 'UPDATE_STATUS', status: 'ACTIVE', reason: 'OTHER', comment: 'Manual status update.', notifyUser: true } },
+      suspendUser: { value: { action: 'SUSPEND', reason: 'POLICY_VIOLATION', comment: 'User violated platform policy.', notifyUser: true } },
+      unsuspendUser: { value: { action: 'UNSUSPEND', comment: 'Account reviewed and restored.', notifyUser: true } },
+      disableUser: { value: { action: 'DISABLE', reason: 'OTHER', comment: 'Disabled after admin review.', notifyUser: true } },
+      enableUser: { value: { action: 'ENABLE', comment: 'Account enabled after verification.', notifyUser: true } },
+    },
   })
   @ApiResponse({
     status: 200,

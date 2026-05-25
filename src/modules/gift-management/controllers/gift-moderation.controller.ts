@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -25,6 +25,7 @@ export class GiftModerationController {
 
   @Post(':id/action')
   @ApiOperation({ summary: 'Run gift moderation action', description: "SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires 'giftModeration.approve'; REJECT requires 'giftModeration.reject'; FLAG requires 'giftModeration.flag'." })
+  @ApiBody({ type: GiftModerationActionDto, examples: { approve: { value: { action: 'APPROVE', comment: 'Gift content meets marketplace policy.', notifyProvider: true } }, reject: { value: { action: 'REJECT', reason: 'POLICY_VIOLATION', comment: 'Listing violates marketplace content policy.', notifyProvider: true } }, flagAndHide: { value: { action: 'FLAG', reason: 'POLICY_CONCERN', comment: 'Hide while policy team reviews images.', hideFromMarketplace: true, notifyProvider: true } }, flagReviewOnly: { value: { action: 'FLAG', reason: 'NEEDS_MANUAL_REVIEW', comment: 'Keep visible but queue for manual review.', hideFromMarketplace: false, notifyProvider: false } } } })
   @ApiResponse({ status: 200, description: 'Gift moderation action completed successfully', schema: { example: { success: true, data: { id: 'gift_id', moderationStatus: 'FLAGGED', isPublished: false, hiddenByModeration: true }, message: 'Gift flagged successfully' } } })
   action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: GiftModerationActionDto) { return this.gifts.moderationAction(user, id, dto); }
 }

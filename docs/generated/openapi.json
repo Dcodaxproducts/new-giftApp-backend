@@ -2797,7 +2797,7 @@
     },
     "/api/v1/referral-settings/status": {
       "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.",
         "operationId": "ReferralSettingsController_updateStatus",
         "parameters": [],
         "requestBody": {
@@ -2806,13 +2806,41 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ReferralSettingsStatusDto"
+              },
+              "examples": {
+                "activate": {
+                  "value": {
+                    "isActive": true,
+                    "reason": "Seasonal referral campaign enabled."
+                  }
+                },
+                "deactivate": {
+                  "value": {
+                    "isActive": false,
+                    "reason": "Referral campaign paused for budget review."
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Referral program status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "isActive": true,
+                      "updatedAt": "2026-05-25T10:00:00.000Z"
+                    },
+                    "message": "Referral program status updated successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -12403,13 +12431,65 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProviderOrderActionDto"
+              },
+              "examples": {
+                "accept": {
+                  "value": {
+                    "action": "ACCEPT",
+                    "comment": "Order accepted and will be processed shortly.",
+                    "notifyCustomer": true
+                  }
+                },
+                "reject": {
+                  "value": {
+                    "action": "REJECT",
+                    "reason": "OUT_OF_STOCK",
+                    "comment": "The selected item is currently unavailable.",
+                    "notifyCustomer": true
+                  }
+                },
+                "updateStatus": {
+                  "value": {
+                    "action": "UPDATE_STATUS",
+                    "status": "PROCESSING",
+                    "note": "Order is being prepared.",
+                    "notifyCustomer": true
+                  }
+                },
+                "fulfill": {
+                  "value": {
+                    "action": "FULFILL",
+                    "dispatchAt": "2026-10-25T10:00:00.000Z",
+                    "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z",
+                    "carrier": "FedEx",
+                    "trackingNumber": "FDX-123456",
+                    "notifyCustomer": true,
+                    "note": "Package handed to courier."
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "Provider order action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_order_id",
+                      "status": "PROCESSING",
+                      "orderId": "order_id",
+                      "orderNumber": "ORD-10293"
+                    },
+                    "message": "Provider order action completed successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -13866,6 +13946,38 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AdminPromotionalOfferActionDto"
+              },
+              "examples": {
+                "approve": {
+                  "value": {
+                    "action": "APPROVE",
+                    "comment": "Offer meets campaign rules.",
+                    "notifyProvider": true
+                  }
+                },
+                "reject": {
+                  "value": {
+                    "action": "REJECT",
+                    "reason": "INVALID_DISCOUNT",
+                    "comment": "Discount exceeds allowed campaign threshold.",
+                    "notifyProvider": true
+                  }
+                },
+                "activate": {
+                  "value": {
+                    "action": "ACTIVATE",
+                    "comment": "Offer is ready for publication.",
+                    "notifyProvider": true
+                  }
+                },
+                "deactivate": {
+                  "value": {
+                    "action": "DEACTIVATE",
+                    "reason": "OTHER",
+                    "comment": "Offer paused by admin.",
+                    "notifyProvider": true
+                  }
+                }
               }
             }
           }
@@ -14254,6 +14366,47 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateRegisteredUserStatusDto"
+              },
+              "examples": {
+                "updateStatus": {
+                  "value": {
+                    "action": "UPDATE_STATUS",
+                    "status": "ACTIVE",
+                    "reason": "OTHER",
+                    "comment": "Manual status update.",
+                    "notifyUser": true
+                  }
+                },
+                "suspendUser": {
+                  "value": {
+                    "action": "SUSPEND",
+                    "reason": "POLICY_VIOLATION",
+                    "comment": "User violated platform policy.",
+                    "notifyUser": true
+                  }
+                },
+                "unsuspendUser": {
+                  "value": {
+                    "action": "UNSUSPEND",
+                    "comment": "Account reviewed and restored.",
+                    "notifyUser": true
+                  }
+                },
+                "disableUser": {
+                  "value": {
+                    "action": "DISABLE",
+                    "reason": "OTHER",
+                    "comment": "Disabled after admin review.",
+                    "notifyUser": true
+                  }
+                },
+                "enableUser": {
+                  "value": {
+                    "action": "ENABLE",
+                    "comment": "Account enabled after verification.",
+                    "notifyUser": true
+                  }
+                }
               }
             }
           }
@@ -14907,6 +15060,7 @@
     },
     "/api/v1/admin/user-safety/reports/{id}/action": {
       "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or ADMIN with userSafety.moderate. MARK_REVIEWED records review completion; WARN_REPORTED_USER warns the reported user; SUSPEND_REPORTED_USER suspends the reported user; DISMISS_REPORT dismisses the report; ESCALATE moves the report for higher-priority review.",
         "operationId": "UserSafetyAdminController_action",
         "parameters": [
           {
@@ -14924,13 +15078,75 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserSafetyAdminActionDto"
+              },
+              "examples": {
+                "markReviewed": {
+                  "value": {
+                    "action": "MARK_REVIEWED",
+                    "reason": "REVIEW_COMPLETE",
+                    "comment": "Report reviewed and action logged.",
+                    "notifyReporter": true,
+                    "notifyReportedUser": false
+                  }
+                },
+                "warnReportedUser": {
+                  "value": {
+                    "action": "WARN_REPORTED_USER",
+                    "reason": "HARASSMENT_CONFIRMED",
+                    "comment": "Reported user warned for harassment.",
+                    "notifyReporter": true,
+                    "notifyReportedUser": true
+                  }
+                },
+                "suspendReportedUser": {
+                  "value": {
+                    "action": "SUSPEND_REPORTED_USER",
+                    "reason": "REPEATED_HARASSMENT",
+                    "comment": "Reported user suspended after repeated safety violations.",
+                    "notifyReporter": true,
+                    "notifyReportedUser": true
+                  }
+                },
+                "dismissReport": {
+                  "value": {
+                    "action": "DISMISS_REPORT",
+                    "reason": "INSUFFICIENT_EVIDENCE",
+                    "comment": "Report dismissed after review.",
+                    "notifyReporter": true,
+                    "notifyReportedUser": false
+                  }
+                },
+                "escalate": {
+                  "value": {
+                    "action": "ESCALATE",
+                    "reason": "TRUST_AND_SAFETY_REVIEW",
+                    "comment": "Escalated for senior trust and safety review.",
+                    "notifyReporter": false,
+                    "notifyReportedUser": false
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "User safety action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "report_id",
+                      "status": "WARNED",
+                      "action": "WARN_REPORTED_USER"
+                    },
+                    "message": "User safety action completed successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -14943,8 +15159,7 @@
           "02 Admin - User Safety Moderation"
         ],
         "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/admin/workflows/app-flow": {
@@ -19829,6 +20044,41 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GiftModerationActionDto"
+              },
+              "examples": {
+                "approve": {
+                  "value": {
+                    "action": "APPROVE",
+                    "comment": "Gift content meets marketplace policy.",
+                    "notifyProvider": true
+                  }
+                },
+                "reject": {
+                  "value": {
+                    "action": "REJECT",
+                    "reason": "POLICY_VIOLATION",
+                    "comment": "Listing violates marketplace content policy.",
+                    "notifyProvider": true
+                  }
+                },
+                "flagAndHide": {
+                  "value": {
+                    "action": "FLAG",
+                    "reason": "POLICY_CONCERN",
+                    "comment": "Hide while policy team reviews images.",
+                    "hideFromMarketplace": true,
+                    "notifyProvider": true
+                  }
+                },
+                "flagReviewOnly": {
+                  "value": {
+                    "action": "FLAG",
+                    "reason": "NEEDS_MANUAL_REVIEW",
+                    "comment": "Keep visible but queue for manual review.",
+                    "hideFromMarketplace": false,
+                    "notifyProvider": false
+                  }
+                }
               }
             }
           }
@@ -21534,6 +21784,71 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MessageModerationActionDto"
+              },
+              "examples": {
+                "hideMessage": {
+                  "value": {
+                    "action": "HIDE_MESSAGE",
+                    "reason": "OFF_PLATFORM_PAYMENT",
+                    "comment": "Message asks the customer to pay outside the platform.",
+                    "notifySender": true,
+                    "notifyParticipants": true
+                  }
+                },
+                "restoreMessage": {
+                  "value": {
+                    "action": "RESTORE_MESSAGE",
+                    "reason": "FALSE_POSITIVE",
+                    "comment": "Message was incorrectly flagged.",
+                    "notifyParticipants": true
+                  }
+                },
+                "warnSender": {
+                  "value": {
+                    "action": "WARN_SENDER",
+                    "reason": "POLICY_WARNING",
+                    "comment": "Sender warned for policy violation.",
+                    "notifySender": true,
+                    "severity": "MEDIUM"
+                  }
+                },
+                "suspendSender": {
+                  "value": {
+                    "action": "SUSPEND_SENDER",
+                    "reason": "REPEATED_POLICY_VIOLATION",
+                    "comment": "Sender suspended after repeated violations.",
+                    "notifySender": true
+                  }
+                },
+                "dismissFlag": {
+                  "value": {
+                    "action": "DISMISS_FLAG",
+                    "reason": "NOT_A_VIOLATION",
+                    "comment": "Flag dismissed after manual review."
+                  }
+                },
+                "addNote": {
+                  "value": {
+                    "action": "ADD_NOTE",
+                    "comment": "Internal note added for future reviews."
+                  }
+                },
+                "reprocess": {
+                  "value": {
+                    "action": "REPROCESS",
+                    "reason": "POLICY_UPDATED",
+                    "comment": "Re-run scanner using the current policy."
+                  }
+                },
+                "escalate": {
+                  "value": {
+                    "action": "ESCALATE",
+                    "reason": "SECURITY_REVIEW_REQUIRED",
+                    "comment": "Escalated for security review.",
+                    "severity": "HIGH",
+                    "assignToAdminId": "admin_id"
+                  }
+                }
               }
             }
           }

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -67,6 +67,8 @@ export class ProviderOrdersController {
   @Post(':id/action')
   @ApiTags('03 Provider - Orders')
   @ApiOperation({ summary: 'Run provider order action', description: 'PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.' })
+  @ApiBody({ type: ProviderOrderActionDto, examples: { accept: { value: { action: 'ACCEPT', comment: 'Order accepted and will be processed shortly.', notifyCustomer: true } }, reject: { value: { action: 'REJECT', reason: 'OUT_OF_STOCK', comment: 'The selected item is currently unavailable.', notifyCustomer: true } }, updateStatus: { value: { action: 'UPDATE_STATUS', status: 'PROCESSING', note: 'Order is being prepared.', notifyCustomer: true } }, fulfill: { value: { action: 'FULFILL', dispatchAt: '2026-10-25T10:00:00.000Z', estimatedDeliveryAt: '2026-10-26T10:00:00.000Z', carrier: 'FedEx', trackingNumber: 'FDX-123456', notifyCustomer: true, note: 'Package handed to courier.' } } } })
+  @ApiResponse({ status: 200, description: 'Provider order action completed successfully', schema: { example: { success: true, data: { id: 'provider_order_id', status: 'PROCESSING', orderId: 'order_id', orderNumber: 'ORD-10293' }, message: 'Provider order action completed successfully.' } } })
   action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ProviderOrderActionDto) { return this.providerOrders.action(user, id, dto); }
 
   @Get(':id/timeline')

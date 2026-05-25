@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Patch, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
@@ -32,7 +32,9 @@ export class ReferralSettingsController {
 
   @Patch('status')
   @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update referral program status', description: 'SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.' })
+  @ApiOperation({ summary: 'Update referral program status', description: 'SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.' })
+  @ApiBody({ type: ReferralSettingsStatusDto, examples: { activate: { value: { isActive: true, reason: 'Seasonal referral campaign enabled.' } }, deactivate: { value: { isActive: false, reason: 'Referral campaign paused for budget review.' } } } })
+  @ApiResponse({ status: 200, description: 'Referral program status updated successfully', schema: { example: { success: true, data: { isActive: true, updatedAt: '2026-05-25T10:00:00.000Z' }, message: 'Referral program status updated successfully.' } } })
   updateStatus(@CurrentUser() user: AuthUserContext, @Body() dto: ReferralSettingsStatusDto, @Req() request: Request) { return this.settings.updateStatus(user, dto, request.ip, request.headers['user-agent']); }
 
   @Get('stats')

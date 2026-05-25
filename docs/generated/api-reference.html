@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 09:53 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 09:53 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 10:41 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 10:41 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -367,11 +367,29 @@
     &quot;deletedRelatedRecords&quot;: true
   },
   &quot;message&quot;: &quot;User permanently deleted successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/users/{id}/status</code></div><div><span class="label">Summary:</span> Run registered user lifecycle action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=&gt;users.status.update, SUSPEND=&gt;users.suspend, UNSUSPEND=&gt;users.unsuspend)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=&gt;users.status.update, SUSPEND=&gt;users.suspend, UNSUSPEND=&gt;users.unsuspend). SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require users.status.update; SUSPEND requires users.suspend; UNSUSPEND requires users.unsuspend. SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require &#x27;users.status.update&#x27;; SUSPEND requires &#x27;users.suspend&#x27;; UNSUSPEND requires &#x27;users.unsuspend&#x27;.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/users/{id}/status</code></div><div><span class="label">Summary:</span> Run registered user lifecycle action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=&gt;users.status.update, SUSPEND=&gt;users.suspend, UNSUSPEND=&gt;users.unsuspend)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=&gt;users.status.update, SUSPEND=&gt;users.suspend, UNSUSPEND=&gt;users.unsuspend). SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require users.status.update; SUSPEND requires users.suspend; UNSUSPEND requires users.unsuspend. SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require &#x27;users.status.update&#x27;; SUSPEND requires &#x27;users.suspend&#x27;; UNSUSPEND requires &#x27;users.unsuspend&#x27;.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">updateStatus</div><pre>{
+  &quot;action&quot;: &quot;UPDATE_STATUS&quot;,
+  &quot;status&quot;: &quot;ACTIVE&quot;,
+  &quot;reason&quot;: &quot;OTHER&quot;,
+  &quot;comment&quot;: &quot;Manual status update.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">suspendUser</div><pre>{
   &quot;action&quot;: &quot;SUSPEND&quot;,
-  &quot;status&quot;: &quot;SUSPENDED&quot;,
   &quot;reason&quot;: &quot;POLICY_VIOLATION&quot;,
-  &quot;comment&quot;: &quot;Suspicious activity detected on this account.&quot;,
+  &quot;comment&quot;: &quot;User violated platform policy.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">unsuspendUser</div><pre>{
+  &quot;action&quot;: &quot;UNSUSPEND&quot;,
+  &quot;comment&quot;: &quot;Account reviewed and restored.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">disableUser</div><pre>{
+  &quot;action&quot;: &quot;DISABLE&quot;,
+  &quot;reason&quot;: &quot;OTHER&quot;,
+  &quot;comment&quot;: &quot;Disabled after admin review.&quot;,
+  &quot;notifyUser&quot;: true
+}</pre><div class="small">enableUser</div><pre>{
+  &quot;action&quot;: &quot;ENABLE&quot;,
+  &quot;comment&quot;: &quot;Account enabled after verification.&quot;,
   &quot;notifyUser&quot;: true
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
@@ -636,11 +654,23 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/promotional-offers/{id}/action</code></div><div><span class="label">Summary:</span> Run promotional offer admin action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=&gt;promotionalOffers.approve, REJECT=&gt;promotionalOffers.reject, ACTIVATE/DEACTIVATE=&gt;promotionalOffers.status.update)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=&gt;promotionalOffers.approve, REJECT=&gt;promotionalOffers.reject, ACTIVATE/DEACTIVATE=&gt;promotionalOffers.status.update). SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires promotionalOffers.approve; REJECT requires promotionalOffers.reject; ACTIVATE and DEACTIVATE require promotionalOffers.status.update. SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires &#x27;promotionalOffers.approve&#x27;; REJECT requires &#x27;promotionalOffers.reject&#x27;; ACTIVATE and DEACTIVATE require &#x27;promotionalOffers.status.update&#x27;.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/promotional-offers/{id}/action</code></div><div><span class="label">Summary:</span> Run promotional offer admin action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=&gt;promotionalOffers.approve, REJECT=&gt;promotionalOffers.reject, ACTIVATE/DEACTIVATE=&gt;promotionalOffers.status.update)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=&gt;promotionalOffers.approve, REJECT=&gt;promotionalOffers.reject, ACTIVATE/DEACTIVATE=&gt;promotionalOffers.status.update). SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires promotionalOffers.approve; REJECT requires promotionalOffers.reject; ACTIVATE and DEACTIVATE require promotionalOffers.status.update. SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires &#x27;promotionalOffers.approve&#x27;; REJECT requires &#x27;promotionalOffers.reject&#x27;; ACTIVATE and DEACTIVATE require &#x27;promotionalOffers.status.update&#x27;.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">approve</div><pre>{
   &quot;action&quot;: &quot;APPROVE&quot;,
+  &quot;comment&quot;: &quot;Offer meets campaign rules.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="small">reject</div><pre>{
+  &quot;action&quot;: &quot;REJECT&quot;,
   &quot;reason&quot;: &quot;INVALID_DISCOUNT&quot;,
-  &quot;comment&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;isActive&quot;: true,
+  &quot;comment&quot;: &quot;Discount exceeds allowed campaign threshold.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="small">activate</div><pre>{
+  &quot;action&quot;: &quot;ACTIVATE&quot;,
+  &quot;comment&quot;: &quot;Offer is ready for publication.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="small">deactivate</div><pre>{
+  &quot;action&quot;: &quot;DEACTIVATE&quot;,
+  &quot;reason&quot;: &quot;OTHER&quot;,
+  &quot;comment&quot;: &quot;Offer paused by admin.&quot;,
   &quot;notifyProvider&quot;: true
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
@@ -1233,14 +1263,45 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/message-moderation/messages/{messageId}/action</code></div><div><span class="label">Summary:</span> Run message moderation action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=&gt;messageModeration.moderate, WARN_SENDER=&gt;messageModeration.warn, SUSPEND_SENDER=&gt;messageModeration.suspend, ADD_NOTE=&gt;messageModeration.notes.create, REPROCESS=&gt;messageModeration.reprocess, ESCALATE=&gt;messageModeration.escalate)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=&gt;messageModeration.moderate, WARN_SENDER=&gt;messageModeration.warn, SUSPEND_SENDER=&gt;messageModeration.suspend, ADD_NOTE=&gt;messageModeration.notes.create, REPROCESS=&gt;messageModeration.reprocess, ESCALATE=&gt;messageModeration.escalate). SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require messageModeration.moderate; WARN_SENDER requires messageModeration.warn; SUSPEND_SENDER requires messageModeration.suspend; ADD_NOTE requires messageModeration.notes.create; REPROCESS requires messageModeration.reprocess; ESCALATE requires messageModeration.escalate. SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require &#x27;messageModeration.moderate&#x27;; WARN_SENDER requires &#x27;messageModeration.warn&#x27;; SUSPEND_SENDER requires &#x27;messageModeration.suspend&#x27;; ADD_NOTE requires &#x27;messageModeration.notes.create&#x27;; REPROCESS requires &#x27;messageModeration.reprocess&#x27;; ESCALATE requires &#x27;messageModeration.escalate&#x27;.</div><div class="label">Parameters:</div><ul><li><code>messageId</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/message-moderation/messages/{messageId}/action</code></div><div><span class="label">Summary:</span> Run message moderation action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=&gt;messageModeration.moderate, WARN_SENDER=&gt;messageModeration.warn, SUSPEND_SENDER=&gt;messageModeration.suspend, ADD_NOTE=&gt;messageModeration.notes.create, REPROCESS=&gt;messageModeration.reprocess, ESCALATE=&gt;messageModeration.escalate)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=&gt;messageModeration.moderate, WARN_SENDER=&gt;messageModeration.warn, SUSPEND_SENDER=&gt;messageModeration.suspend, ADD_NOTE=&gt;messageModeration.notes.create, REPROCESS=&gt;messageModeration.reprocess, ESCALATE=&gt;messageModeration.escalate). SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require messageModeration.moderate; WARN_SENDER requires messageModeration.warn; SUSPEND_SENDER requires messageModeration.suspend; ADD_NOTE requires messageModeration.notes.create; REPROCESS requires messageModeration.reprocess; ESCALATE requires messageModeration.escalate. SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require &#x27;messageModeration.moderate&#x27;; WARN_SENDER requires &#x27;messageModeration.warn&#x27;; SUSPEND_SENDER requires &#x27;messageModeration.suspend&#x27;; ADD_NOTE requires &#x27;messageModeration.notes.create&#x27;; REPROCESS requires &#x27;messageModeration.reprocess&#x27;; ESCALATE requires &#x27;messageModeration.escalate&#x27;.</div><div class="label">Parameters:</div><ul><li><code>messageId</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">hideMessage</div><pre>{
   &quot;action&quot;: &quot;HIDE_MESSAGE&quot;,
-  &quot;reason&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;comment&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;reason&quot;: &quot;OFF_PLATFORM_PAYMENT&quot;,
+  &quot;comment&quot;: &quot;Message asks the customer to pay outside the platform.&quot;,
   &quot;notifySender&quot;: true,
-  &quot;notifyParticipants&quot;: true,
-  &quot;severity&quot;: &quot;LOW&quot;,
-  &quot;assignToAdminId&quot;: &quot;&lt;string&gt;&quot;
+  &quot;notifyParticipants&quot;: true
+}</pre><div class="small">restoreMessage</div><pre>{
+  &quot;action&quot;: &quot;RESTORE_MESSAGE&quot;,
+  &quot;reason&quot;: &quot;FALSE_POSITIVE&quot;,
+  &quot;comment&quot;: &quot;Message was incorrectly flagged.&quot;,
+  &quot;notifyParticipants&quot;: true
+}</pre><div class="small">warnSender</div><pre>{
+  &quot;action&quot;: &quot;WARN_SENDER&quot;,
+  &quot;reason&quot;: &quot;POLICY_WARNING&quot;,
+  &quot;comment&quot;: &quot;Sender warned for policy violation.&quot;,
+  &quot;notifySender&quot;: true,
+  &quot;severity&quot;: &quot;MEDIUM&quot;
+}</pre><div class="small">suspendSender</div><pre>{
+  &quot;action&quot;: &quot;SUSPEND_SENDER&quot;,
+  &quot;reason&quot;: &quot;REPEATED_POLICY_VIOLATION&quot;,
+  &quot;comment&quot;: &quot;Sender suspended after repeated violations.&quot;,
+  &quot;notifySender&quot;: true
+}</pre><div class="small">dismissFlag</div><pre>{
+  &quot;action&quot;: &quot;DISMISS_FLAG&quot;,
+  &quot;reason&quot;: &quot;NOT_A_VIOLATION&quot;,
+  &quot;comment&quot;: &quot;Flag dismissed after manual review.&quot;
+}</pre><div class="small">addNote</div><pre>{
+  &quot;action&quot;: &quot;ADD_NOTE&quot;,
+  &quot;comment&quot;: &quot;Internal note added for future reviews.&quot;
+}</pre><div class="small">reprocess</div><pre>{
+  &quot;action&quot;: &quot;REPROCESS&quot;,
+  &quot;reason&quot;: &quot;POLICY_UPDATED&quot;,
+  &quot;comment&quot;: &quot;Re-run scanner using the current policy.&quot;
+}</pre><div class="small">escalate</div><pre>{
+  &quot;action&quot;: &quot;ESCALATE&quot;,
+  &quot;reason&quot;: &quot;SECURITY_REVIEW_REQUIRED&quot;,
+  &quot;comment&quot;: &quot;Escalated for security review.&quot;,
+  &quot;severity&quot;: &quot;HIGH&quot;,
+  &quot;assignToAdminId&quot;: &quot;admin_id&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
@@ -1395,13 +1456,19 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/referral-settings/status</code></div><div><span class="label">Summary:</span> Update referral program status</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/referral-settings/status</code></div><div><span class="label">Summary:</span> Update referral program status</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.</div><div class="label">Request payload(s):</div><div class="small">activate</div><pre>{
   &quot;isActive&quot;: true,
   &quot;reason&quot;: &quot;Seasonal referral campaign enabled.&quot;
+}</pre><div class="small">deactivate</div><pre>{
+  &quot;isActive&quot;: false,
+  &quot;reason&quot;: &quot;Referral campaign paused for budget review.&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
+  &quot;data&quot;: {
+    &quot;isActive&quot;: true,
+    &quot;updatedAt&quot;: &quot;2026-05-25T10:00:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Referral program status updated successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/referral-settings/stats</code></div><div><span class="label">Summary:</span> Fetch referral stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with referralSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
@@ -2800,21 +2867,37 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/action</code></div><div><span class="label">Summary:</span> Run provider order action</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. ACCEPT allows PENDING -&gt; ACCEPTED. REJECT allows PENDING -&gt; REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/action</code></div><div><span class="label">Summary:</span> Run provider order action</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. ACCEPT allows PENDING -&gt; ACCEPTED. REJECT allows PENDING -&gt; REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">accept</div><pre>{
   &quot;action&quot;: &quot;ACCEPT&quot;,
-  &quot;status&quot;: &quot;PROCESSING&quot;,
+  &quot;comment&quot;: &quot;Order accepted and will be processed shortly.&quot;,
+  &quot;notifyCustomer&quot;: true
+}</pre><div class="small">reject</div><pre>{
+  &quot;action&quot;: &quot;REJECT&quot;,
   &quot;reason&quot;: &quot;OUT_OF_STOCK&quot;,
-  &quot;comment&quot;: &quot;Order accepted.&quot;,
-  &quot;note&quot;: &quot;Package handed to courier.&quot;,
+  &quot;comment&quot;: &quot;The selected item is currently unavailable.&quot;,
+  &quot;notifyCustomer&quot;: true
+}</pre><div class="small">updateStatus</div><pre>{
+  &quot;action&quot;: &quot;UPDATE_STATUS&quot;,
+  &quot;status&quot;: &quot;PROCESSING&quot;,
+  &quot;note&quot;: &quot;Order is being prepared.&quot;,
+  &quot;notifyCustomer&quot;: true
+}</pre><div class="small">fulfill</div><pre>{
+  &quot;action&quot;: &quot;FULFILL&quot;,
+  &quot;dispatchAt&quot;: &quot;2026-10-25T10:00:00.000Z&quot;,
+  &quot;estimatedDeliveryAt&quot;: &quot;2026-10-26T10:00:00.000Z&quot;,
   &quot;carrier&quot;: &quot;FedEx&quot;,
   &quot;trackingNumber&quot;: &quot;FDX-123456&quot;,
-  &quot;estimatedDeliveryAt&quot;: &quot;2026-10-26T10:00:00.000Z&quot;,
-  &quot;dispatchAt&quot;: &quot;2026-10-25T10:00:00.000Z&quot;,
-  &quot;notifyCustomer&quot;: true
+  &quot;notifyCustomer&quot;: true,
+  &quot;note&quot;: &quot;Package handed to courier.&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
+  &quot;data&quot;: {
+    &quot;id&quot;: &quot;provider_order_id&quot;,
+    &quot;status&quot;: &quot;PROCESSING&quot;,
+    &quot;orderId&quot;: &quot;order_id&quot;,
+    &quot;orderNumber&quot;: &quot;ORD-10293&quot;
+  },
+  &quot;message&quot;: &quot;Provider order action completed successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/provider/orders/{id}/timeline</code></div><div><span class="label">Summary:</span> Fetch own provider order timeline</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Timeline is scoped to the authenticated provider order.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
@@ -3180,12 +3263,27 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/gift-moderation/{id}/action</code></div><div><span class="label">Summary:</span> Run gift moderation action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=&gt;giftModeration.approve, REJECT=&gt;giftModeration.reject, FLAG=&gt;giftModeration.flag)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=&gt;giftModeration.approve, REJECT=&gt;giftModeration.reject, FLAG=&gt;giftModeration.flag). SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag. SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires &#x27;giftModeration.approve&#x27;; REJECT requires &#x27;giftModeration.reject&#x27;; FLAG requires &#x27;giftModeration.flag&#x27;.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/gift-moderation/{id}/action</code></div><div><span class="label">Summary:</span> Run gift moderation action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=&gt;giftModeration.approve, REJECT=&gt;giftModeration.reject, FLAG=&gt;giftModeration.flag)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=&gt;giftModeration.approve, REJECT=&gt;giftModeration.reject, FLAG=&gt;giftModeration.flag). SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag. SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires &#x27;giftModeration.approve&#x27;; REJECT requires &#x27;giftModeration.reject&#x27;; FLAG requires &#x27;giftModeration.flag&#x27;.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">approve</div><pre>{
   &quot;action&quot;: &quot;APPROVE&quot;,
-  &quot;reason&quot;: &quot;INCOMPLETE_INFORMATION&quot;,
-  &quot;comment&quot;: &quot;&lt;string&gt;&quot;,
+  &quot;comment&quot;: &quot;Gift content meets marketplace policy.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="small">reject</div><pre>{
+  &quot;action&quot;: &quot;REJECT&quot;,
+  &quot;reason&quot;: &quot;POLICY_VIOLATION&quot;,
+  &quot;comment&quot;: &quot;Listing violates marketplace content policy.&quot;,
+  &quot;notifyProvider&quot;: true
+}</pre><div class="small">flagAndHide</div><pre>{
+  &quot;action&quot;: &quot;FLAG&quot;,
+  &quot;reason&quot;: &quot;POLICY_CONCERN&quot;,
+  &quot;comment&quot;: &quot;Hide while policy team reviews images.&quot;,
   &quot;hideFromMarketplace&quot;: true,
   &quot;notifyProvider&quot;: true
+}</pre><div class="small">flagReviewOnly</div><pre>{
+  &quot;action&quot;: &quot;FLAG&quot;,
+  &quot;reason&quot;: &quot;NEEDS_MANUAL_REVIEW&quot;,
+  &quot;comment&quot;: &quot;Keep visible but queue for manual review.&quot;,
+  &quot;hideFromMarketplace&quot;: false,
+  &quot;notifyProvider&quot;: false
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {

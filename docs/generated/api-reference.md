@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 09:53 UTC
+Generated at: 2026-05-25 10:41 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -1114,13 +1114,47 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - updateStatus:
+```json
+{
+  "action": "UPDATE_STATUS",
+  "status": "ACTIVE",
+  "reason": "OTHER",
+  "comment": "Manual status update.",
+  "notifyUser": true
+}
+```
+  - suspendUser:
 ```json
 {
   "action": "SUSPEND",
-  "status": "SUSPENDED",
   "reason": "POLICY_VIOLATION",
-  "comment": "Suspicious activity detected on this account.",
+  "comment": "User violated platform policy.",
+  "notifyUser": true
+}
+```
+  - unsuspendUser:
+```json
+{
+  "action": "UNSUSPEND",
+  "comment": "Account reviewed and restored.",
+  "notifyUser": true
+}
+```
+  - disableUser:
+```json
+{
+  "action": "DISABLE",
+  "reason": "OTHER",
+  "comment": "Disabled after admin review.",
+  "notifyUser": true
+}
+```
+  - enableUser:
+```json
+{
+  "action": "ENABLE",
+  "comment": "Account enabled after verification.",
   "notifyUser": true
 }
 ```
@@ -1845,13 +1879,37 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - approve:
 ```json
 {
   "action": "APPROVE",
+  "comment": "Offer meets campaign rules.",
+  "notifyProvider": true
+}
+```
+  - reject:
+```json
+{
+  "action": "REJECT",
   "reason": "INVALID_DISCOUNT",
-  "comment": "<string>",
-  "isActive": true,
+  "comment": "Discount exceeds allowed campaign threshold.",
+  "notifyProvider": true
+}
+```
+  - activate:
+```json
+{
+  "action": "ACTIVATE",
+  "comment": "Offer is ready for publication.",
+  "notifyProvider": true
+}
+```
+  - deactivate:
+```json
+{
+  "action": "DEACTIVATE",
+  "reason": "OTHER",
+  "comment": "Offer paused by admin.",
   "notifyProvider": true
 }
 ```
@@ -3040,16 +3098,75 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
-  - payload:
+  - hideMessage:
 ```json
 {
   "action": "HIDE_MESSAGE",
-  "reason": "<string>",
-  "comment": "<string>",
+  "reason": "OFF_PLATFORM_PAYMENT",
+  "comment": "Message asks the customer to pay outside the platform.",
   "notifySender": true,
-  "notifyParticipants": true,
-  "severity": "LOW",
-  "assignToAdminId": "<string>"
+  "notifyParticipants": true
+}
+```
+  - restoreMessage:
+```json
+{
+  "action": "RESTORE_MESSAGE",
+  "reason": "FALSE_POSITIVE",
+  "comment": "Message was incorrectly flagged.",
+  "notifyParticipants": true
+}
+```
+  - warnSender:
+```json
+{
+  "action": "WARN_SENDER",
+  "reason": "POLICY_WARNING",
+  "comment": "Sender warned for policy violation.",
+  "notifySender": true,
+  "severity": "MEDIUM"
+}
+```
+  - suspendSender:
+```json
+{
+  "action": "SUSPEND_SENDER",
+  "reason": "REPEATED_POLICY_VIOLATION",
+  "comment": "Sender suspended after repeated violations.",
+  "notifySender": true
+}
+```
+  - dismissFlag:
+```json
+{
+  "action": "DISMISS_FLAG",
+  "reason": "NOT_A_VIOLATION",
+  "comment": "Flag dismissed after manual review."
+}
+```
+  - addNote:
+```json
+{
+  "action": "ADD_NOTE",
+  "comment": "Internal note added for future reviews."
+}
+```
+  - reprocess:
+```json
+{
+  "action": "REPROCESS",
+  "reason": "POLICY_UPDATED",
+  "comment": "Re-run scanner using the current policy."
+}
+```
+  - escalate:
+```json
+{
+  "action": "ESCALATE",
+  "reason": "SECURITY_REVIEW_REQUIRED",
+  "comment": "Escalated for security review.",
+  "severity": "HIGH",
+  "assignToAdminId": "admin_id"
 }
 ```
 - Response body:
@@ -3521,21 +3638,31 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update referral program status
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.
 - Request payload(s):
-  - payload:
+  - activate:
 ```json
 {
   "isActive": true,
   "reason": "Seasonal referral campaign enabled."
 }
 ```
+  - deactivate:
+```json
+{
+  "isActive": false,
+  "reason": "Referral campaign paused for budget review."
+}
+```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "isActive": true,
+    "updatedAt": "2026-05-25T10:00:00.000Z"
+  },
+  "message": "Referral program status updated successfully."
 }
 ```
 
@@ -6354,27 +6481,55 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - accept:
 ```json
 {
   "action": "ACCEPT",
-  "status": "PROCESSING",
+  "comment": "Order accepted and will be processed shortly.",
+  "notifyCustomer": true
+}
+```
+  - reject:
+```json
+{
+  "action": "REJECT",
   "reason": "OUT_OF_STOCK",
-  "comment": "Order accepted.",
-  "note": "Package handed to courier.",
+  "comment": "The selected item is currently unavailable.",
+  "notifyCustomer": true
+}
+```
+  - updateStatus:
+```json
+{
+  "action": "UPDATE_STATUS",
+  "status": "PROCESSING",
+  "note": "Order is being prepared.",
+  "notifyCustomer": true
+}
+```
+  - fulfill:
+```json
+{
+  "action": "FULFILL",
+  "dispatchAt": "2026-10-25T10:00:00.000Z",
+  "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z",
   "carrier": "FedEx",
   "trackingNumber": "FDX-123456",
-  "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z",
-  "dispatchAt": "2026-10-25T10:00:00.000Z",
-  "notifyCustomer": true
+  "notifyCustomer": true,
+  "note": "Package handed to courier."
 }
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "provider_order_id",
+    "status": "PROCESSING",
+    "orderId": "order_id",
+    "orderNumber": "ORD-10293"
+  },
+  "message": "Provider order action completed successfully."
 }
 ```
 
@@ -7395,14 +7550,41 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - approve:
 ```json
 {
   "action": "APPROVE",
-  "reason": "INCOMPLETE_INFORMATION",
-  "comment": "<string>",
+  "comment": "Gift content meets marketplace policy.",
+  "notifyProvider": true
+}
+```
+  - reject:
+```json
+{
+  "action": "REJECT",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Listing violates marketplace content policy.",
+  "notifyProvider": true
+}
+```
+  - flagAndHide:
+```json
+{
+  "action": "FLAG",
+  "reason": "POLICY_CONCERN",
+  "comment": "Hide while policy team reviews images.",
   "hideFromMarketplace": true,
   "notifyProvider": true
+}
+```
+  - flagReviewOnly:
+```json
+{
+  "action": "FLAG",
+  "reason": "NEEDS_MANUAL_REVIEW",
+  "comment": "Keep visible but queue for manual review.",
+  "hideFromMarketplace": false,
+  "notifyProvider": false
 }
 ```
 - Response body:
