@@ -21900,10 +21900,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
       }
     },
-    "/api/v1/admin/message-moderation/messages/{messageId}/block": {
+    "/api/v1/admin/message-moderation/messages/{messageId}/action": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Hide a flagged message from chat participants. Does not block the sender account. SUPER_ADMIN or ADMIN with messageModeration.moderate. Hide a flagged message from chat participants. Does not block the sender account. Internally records HIDE_MESSAGE and never physically deletes chat messages.",
-        "operationId": "MessageModerationController_block",
+        "description": "Access: SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate). SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require messageModeration.moderate; WARN_SENDER requires messageModeration.warn; SUSPEND_SENDER requires messageModeration.suspend; ADD_NOTE requires messageModeration.notes.create; REPROCESS requires messageModeration.reprocess; ESCALATE requires messageModeration.escalate. SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require 'messageModeration.moderate'; WARN_SENDER requires 'messageModeration.warn'; SUSPEND_SENDER requires 'messageModeration.suspend'; ADD_NOTE requires 'messageModeration.notes.create'; REPROCESS requires 'messageModeration.reprocess'; ESCALATE requires 'messageModeration.escalate'.",
+        "operationId": "MessageModerationController_action",
         "parameters": [
           {
             "name": "messageId",
@@ -21919,14 +21919,28 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BlockMessageDto"
+                "$ref": "#/components/schemas/MessageModerationActionDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "messageId": "message_id",
+                      "status": "ACTION_TAKEN"
+                    },
+                    "message": "Message hidden successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -21934,306 +21948,12 @@
             "bearer": []
           }
         ],
-        "summary": "Hide a flagged message from chat participants",
+        "summary": "Run message moderation action",
         "tags": [
           "02 Admin - Message Moderation"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/restore": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Restores a message hidden by moderation. SUPER_ADMIN or ADMIN with messageModeration.moderate. Restores a message previously hidden by moderation and writes moderation/audit logs.",
-        "operationId": "MessageModerationController_restore",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RestoreMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Restore a hidden moderated message",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/warn-user": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. SUPER_ADMIN or ADMIN with messageModeration.warn. Warn the message sender. Sender may be registered user or provider. Does not expose internal notes to sender.",
-        "operationId": "MessageModerationController_warn",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WarnUserDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Warn message sender",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.warn",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.warn"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/suspend-account": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. SUPER_ADMIN or ADMIN with messageModeration.suspend. Suspends the message sender account using the correct registered-user/provider lifecycle service. Admin and Super Admin accounts cannot be suspended here.",
-        "operationId": "MessageModerationController_suspend",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SuspendAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Suspend message sender account",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.suspend",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.suspend"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. SUPER_ADMIN or ADMIN with messageModeration.moderate. Marks flag as false-positive/no-action and keeps the message visible.",
-        "operationId": "MessageModerationController_dismiss",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DismissFlagDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Dismiss a moderation flag",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.moderate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.moderate"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/note": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. SUPER_ADMIN or ADMIN with messageModeration.notes.create. Internal-only note is never visible to customer/provider participants.",
-        "operationId": "MessageModerationController_note",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InternalNoteDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Add internal private moderation note",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.notes.create",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.notes.create"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/reprocess": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.reprocess. SUPER_ADMIN or ADMIN with messageModeration.reprocess permission. SUPER_ADMIN or ADMIN with messageModeration.reprocess. Re-runs the content scanner using current policy and stores scanner result snapshot without duplicating active flags for the same reason.",
-        "operationId": "MessageModerationController_reprocess",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReprocessMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reprocess a message through scanner",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.reprocess",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.reprocess"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/escalate": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.escalate. SUPER_ADMIN or ADMIN with messageModeration.escalate permission. SUPER_ADMIN or ADMIN with messageModeration.escalate. Escalates a flagged message to support, security, or dispute review.",
-        "operationId": "MessageModerationController_escalate",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EscalateMessageDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Escalate a flagged message",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.escalate",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.escalate"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate)",
+        "x-access": "SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate)"
       }
     },
     "/api/v1/admin/messaging-settings": {
@@ -30104,215 +29824,49 @@
           "blockSvgUploads"
         ]
       },
-      "BlockMessageDto": {
+      "MessageModerationActionDto": {
         "type": "object",
         "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          },
-          "notifyParticipants": {
-            "type": "boolean"
-          },
-          "notifyUser": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "RestoreMessageDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
+          "action": {
             "type": "string",
             "enum": [
-              "FALSE_POSITIVE",
-              "APPEAL_APPROVED",
-              "POLICY_UPDATED",
-              "OTHER"
+              "HIDE_MESSAGE",
+              "RESTORE_MESSAGE",
+              "WARN_SENDER",
+              "SUSPEND_SENDER",
+              "DISMISS_FLAG",
+              "ADD_NOTE",
+              "REPROCESS",
+              "ESCALATE"
             ]
           },
-          "comment": {
-            "type": "string"
-          },
-          "notifyParticipants": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "WarnUserDto": {
-        "type": "object",
-        "properties": {
           "reason": {
             "type": "string"
           },
           "comment": {
-            "type": "string"
-          },
-          "warningMessage": {
-            "type": "string"
-          },
-          "internalNote": {
             "type": "string"
           },
           "notifySender": {
             "type": "boolean"
           },
-          "notifyUser": {
+          "notifyParticipants": {
             "type": "boolean"
           },
-          "warningSeverity": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "MEDIUM",
-              "HIGH"
-            ],
-            "default": "MEDIUM"
-          }
-        },
-        "required": [
-          "reason",
-          "warningSeverity"
-        ]
-      },
-      "SuspendAccountDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "suspensionScope": {
-            "type": "string",
-            "enum": [
-              "ACCOUNT",
-              "CHAT_ONLY"
-            ],
-            "default": "ACCOUNT"
-          },
-          "durationDays": {
-            "type": "number"
-          },
-          "notifySender": {
-            "type": "boolean"
-          },
-          "duration": {
-            "type": "string"
-          },
-          "suspendUntil": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          },
-          "notifyUser": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason",
-          "suspensionScope"
-        ]
-      },
-      "DismissFlagDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "internalNote": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "InternalNoteDto": {
-        "type": "object",
-        "properties": {
-          "note": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "note"
-        ]
-      },
-      "ReprocessMessageDto": {
-        "type": "object",
-        "properties": {
-          "scannerMode": {
-            "type": "string",
-            "enum": [
-              "CURRENT_POLICY",
-              "STRICT_POLICY",
-              "DEBUG_POLICY"
-            ],
-            "default": "CURRENT_POLICY"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "scannerMode"
-        ]
-      },
-      "EscalateMessageDto": {
-        "type": "object",
-        "properties": {
-          "escalationType": {
-            "type": "string",
-            "enum": [
-              "SUPPORT_REVIEW",
-              "SECURITY_REVIEW",
-              "DISPUTE_REVIEW"
-            ]
-          },
-          "priority": {
+          "severity": {
             "type": "string",
             "enum": [
               "LOW",
               "MEDIUM",
               "HIGH",
               "CRITICAL"
-            ],
-            "example": "HIGH"
-          },
-          "reason": {
-            "type": "string"
+            ]
           },
           "assignToAdminId": {
             "type": "string"
-          },
-          "notifyAssignedAdmin": {
-            "type": "boolean"
           }
         },
         "required": [
-          "escalationType",
-          "priority",
-          "reason"
+          "action"
         ]
       },
       "MessagingSettingsResponseDto": {

@@ -17,23 +17,25 @@ describe('Admin message moderation implementation guards', () => {
     for (const permission of [
       "@Permissions('messageModeration.read')",
       "@Permissions('messageModeration.export')",
-      "@Permissions('messageModeration.moderate')",
-      "@Permissions('messageModeration.warn')",
-      "@Permissions('messageModeration.suspend')",
-      "@Permissions('messageModeration.notes.create')",
-      "@Permissions('messageModeration.reprocess')",
-      "@Permissions('messageModeration.escalate')",
       "@Permissions('messageModeration.auditLogs.read')",
     ]) expect(controller).toContain(permission);
+    for (const permission of [
+      "'messageModeration.moderate'",
+      "'messageModeration.warn'",
+      "'messageModeration.suspend'",
+      "'messageModeration.notes.create'",
+      "'messageModeration.reprocess'",
+      "'messageModeration.escalate'",
+    ]) expect(service).toContain(permission);
   });
 
   it('adds restore, escalation, audit logs, and correct Swagger language', () => {
-    expect(controller).toContain("@Post('messages/:messageId/restore')");
-    expect(controller).toContain("@Post('messages/:messageId/escalate')");
+    expect(controller).toContain("@Post('messages/:messageId/action')");
+    expect(controller).not.toContain("@Post('messages/:messageId/restore')");
+    expect(controller).not.toContain("@Post('messages/:messageId/escalate')");
     expect(controller).toContain("@Get('audit-logs')");
-    expect(controller).toContain('Hide a flagged message from chat participants. Does not block the sender account.');
-    expect(controller).toContain('Warn message sender');
-    expect(controller).toContain('Suspend message sender account');
+    expect(controller).toContain('HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require');
+    expect(controller).toContain('Run message moderation action');
   });
 
   it('message visibility is reversible and participant views mask hidden bodies', () => {
@@ -53,8 +55,7 @@ describe('Admin message moderation implementation guards', () => {
   });
 
   it('suspension uses lifecycle services instead of direct message-moderation table updates', () => {
-    expect(service).toContain('userManagementService.suspend');
-    expect(service).toContain('providerManagementService.updateStatus');
+    expect(service).toContain('accountLifecycleService.updateStatus');
     expect(repository).not.toContain('suspendUser(');
   });
 

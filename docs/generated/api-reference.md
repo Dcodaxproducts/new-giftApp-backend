@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:10 UTC
+Generated at: 2026-05-25 07:27 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -20,7 +20,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Provider Payouts (9 APIs)
 - 02 Admin - Transaction Monitoring (9 APIs)
-- 02 Admin - Message Moderation (15 APIs)
+- 02 Admin - Message Moderation (8 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
 - 02 Admin - Notification Delivery Monitoring (4 APIs)
@@ -3032,215 +3032,35 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/block`
+### POST `/api/v1/admin/message-moderation/messages/{messageId}/action`
 
-- Summary: Hide a flagged message from chat participants
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Hide a flagged message from chat participants. Does not block the sender account. SUPER_ADMIN or ADMIN with messageModeration.moderate. Hide a flagged message from chat participants. Does not block the sender account. Internally records HIDE_MESSAGE and never physically deletes chat messages.
+- Summary: Run message moderation action
+- Allowed role/access: SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate)
+- Notes: Access: SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate). SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require messageModeration.moderate; WARN_SENDER requires messageModeration.warn; SUSPEND_SENDER requires messageModeration.suspend; ADD_NOTE requires messageModeration.notes.create; REPROCESS requires messageModeration.reprocess; ESCALATE requires messageModeration.escalate. SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require 'messageModeration.moderate'; WARN_SENDER requires 'messageModeration.warn'; SUSPEND_SENDER requires 'messageModeration.suspend'; ADD_NOTE requires 'messageModeration.notes.create'; REPROCESS requires 'messageModeration.reprocess'; ESCALATE requires 'messageModeration.escalate'.
 - Parameters:
   - `messageId` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
+  "action": "HIDE_MESSAGE",
   "reason": "<string>",
   "comment": "<string>",
-  "internalNote": "<string>",
+  "notifySender": true,
   "notifyParticipants": true,
-  "notifyUser": true
+  "severity": "LOW",
+  "assignToAdminId": "<string>"
 }
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/restore`
-
-- Summary: Restore a hidden moderated message
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. Restores a message hidden by moderation. SUPER_ADMIN or ADMIN with messageModeration.moderate. Restores a message previously hidden by moderation and writes moderation/audit logs.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "FALSE_POSITIVE",
-  "comment": "<string>",
-  "notifyParticipants": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/warn-user`
-
-- Summary: Warn message sender
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.warn
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.warn. SUPER_ADMIN or ADMIN with messageModeration.warn permission. Creates warning notification and audit log. SUPER_ADMIN or ADMIN with messageModeration.warn. Warn the message sender. Sender may be registered user or provider. Does not expose internal notes to sender.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "<string>",
-  "comment": "<string>",
-  "warningMessage": "<string>",
-  "internalNote": "<string>",
-  "notifySender": true,
-  "notifyUser": true,
-  "warningSeverity": "LOW"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account`
-
-- Summary: Suspend message sender account
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.suspend
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.suspend. SUPER_ADMIN or ADMIN with messageModeration.suspend permission. Refuses ADMIN/SUPER_ADMIN accounts. SUPER_ADMIN or ADMIN with messageModeration.suspend. Suspends the message sender account using the correct registered-user/provider lifecycle service. Admin and Super Admin accounts cannot be suspended here.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "<string>",
-  "comment": "<string>",
-  "suspensionScope": "ACCOUNT",
-  "durationDays": 1.0,
-  "notifySender": true,
-  "duration": "<string>",
-  "suspendUntil": "<string>",
-  "internalNote": "<string>",
-  "notifyUser": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag`
-
-- Summary: Dismiss a moderation flag
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.moderate
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.moderate. SUPER_ADMIN or ADMIN with messageModeration.moderate permission. SUPER_ADMIN or ADMIN with messageModeration.moderate. Marks flag as false-positive/no-action and keeps the message visible.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "<string>",
-  "comment": "<string>",
-  "internalNote": "<string>"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/note`
-
-- Summary: Add internal private moderation note
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.notes.create
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.notes.create. SUPER_ADMIN or ADMIN with messageModeration.notes.create permission. Internal-only note. SUPER_ADMIN or ADMIN with messageModeration.notes.create. Internal-only note is never visible to customer/provider participants.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "note": "<string>"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/reprocess`
-
-- Summary: Reprocess a message through scanner
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.reprocess
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.reprocess. SUPER_ADMIN or ADMIN with messageModeration.reprocess permission. SUPER_ADMIN or ADMIN with messageModeration.reprocess. Re-runs the content scanner using current policy and stores scanner result snapshot without duplicating active flags for the same reason.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "scannerMode": "CURRENT_POLICY",
-  "comment": "<string>",
-  "reason": "<string>"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/admin/message-moderation/messages/{messageId}/escalate`
-
-- Summary: Escalate a flagged message
-- Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.escalate
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.escalate. SUPER_ADMIN or ADMIN with messageModeration.escalate permission. SUPER_ADMIN or ADMIN with messageModeration.escalate. Escalates a flagged message to support, security, or dispute review.
-- Parameters:
-  - `messageId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "escalationType": "SUPPORT_REVIEW",
-  "priority": "HIGH",
-  "reason": "<string>",
-  "assignToAdminId": "<string>",
-  "notifyAssignedAdmin": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "messageId": "message_id",
+    "status": "ACTION_TAKEN"
+  },
+  "message": "Message hidden successfully."
 }
 ```
 

@@ -21,7 +21,7 @@ describe('Reporting core adoption guards', () => {
     expect(userSafetyAdminController).toContain("@Post('reports/:id/action')");
     expect(socialController).toContain("@ApiTags('02 Admin - Social Moderation')");
     expect(socialController).toContain("@Post('reports/:id/action')");
-    expect(messageController).toContain("@Post('messages/:messageId/escalate')");
+    expect(messageController).toContain("@Post('messages/:messageId/action')");
   });
 
   it('provider, user safety, social, and message moderation lifecycle delegate to ReportingCoreService', () => {

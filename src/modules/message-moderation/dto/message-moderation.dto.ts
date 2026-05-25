@@ -13,6 +13,7 @@ export enum SuspensionScope { ACCOUNT = 'ACCOUNT', CHAT_ONLY = 'CHAT_ONLY' }
 export enum ScannerMode { CURRENT_POLICY = 'CURRENT_POLICY', STRICT_POLICY = 'STRICT_POLICY', DEBUG_POLICY = 'DEBUG_POLICY' }
 export enum EscalationType { SUPPORT_REVIEW = 'SUPPORT_REVIEW', SECURITY_REVIEW = 'SECURITY_REVIEW', DISPUTE_REVIEW = 'DISPUTE_REVIEW' }
 export enum RestoreReason { FALSE_POSITIVE = 'FALSE_POSITIVE', APPEAL_APPROVED = 'APPEAL_APPROVED', POLICY_UPDATED = 'POLICY_UPDATED', OTHER = 'OTHER' }
+export enum MessageModerationMessageAction { HIDE_MESSAGE = 'HIDE_MESSAGE', RESTORE_MESSAGE = 'RESTORE_MESSAGE', WARN_SENDER = 'WARN_SENDER', SUSPEND_SENDER = 'SUSPEND_SENDER', DISMISS_FLAG = 'DISMISS_FLAG', ADD_NOTE = 'ADD_NOTE', REPROCESS = 'REPROCESS', ESCALATE = 'ESCALATE' }
 
 export class ListMessageModerationDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
@@ -62,3 +63,13 @@ export class DismissFlagDto { @ApiProperty() @IsString() reason!: string; @ApiPr
 export class InternalNoteDto { @ApiProperty() @IsString() @MaxLength(1000) note!: string; }
 export class ReprocessMessageDto { @ApiProperty({ enum: ScannerMode, default: ScannerMode.CURRENT_POLICY }) @IsEnum(ScannerMode) scannerMode!: ScannerMode; @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) comment?: string; @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) reason?: string; }
 export class EscalateMessageDto { @ApiProperty({ enum: EscalationType }) @IsEnum(EscalationType) escalationType!: EscalationType; @ApiProperty({ enum: MessageModerationSeverity, example: MessageModerationSeverity.HIGH }) @IsEnum(MessageModerationSeverity) priority!: MessageModerationSeverity; @ApiProperty() @IsString() @MaxLength(1000) reason!: string; @ApiPropertyOptional() @IsOptional() @IsString() assignToAdminId?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyAssignedAdmin?: boolean; }
+
+export class MessageModerationActionDto {
+  @ApiProperty({ enum: MessageModerationMessageAction }) @IsEnum(MessageModerationMessageAction) action!: MessageModerationMessageAction;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) reason?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) comment?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() notifySender?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyParticipants?: boolean;
+  @ApiPropertyOptional({ enum: MessageModerationSeverity }) @IsOptional() @IsEnum(MessageModerationSeverity) severity?: MessageModerationSeverity;
+  @ApiPropertyOptional() @IsOptional() @IsString() assignToAdminId?: string;
+}

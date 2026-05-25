@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:11 UTC
+Generated at: 2026-05-25 07:27 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 07:11 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 07:27 UTC.
 
 ## Frontend Integration Flows
 
@@ -111,7 +111,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:11 UTC.
 | PATCH | `/api/v1/media-upload-policy` | Update global media upload policy | SUPER_ADMIN |
 | GET | `/api/v1/media-upload-policy/audit-logs` | List media upload policy audit logs | SUPER_ADMIN |
 
-### Admin - Message Moderation (15 APIs)
+### Admin - Message Moderation (8 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -121,14 +121,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:11 UTC.
 | GET | `/api/v1/admin/message-moderation/conversations/{id}/history` | Fetch paginated message moderation conversation history | SUPER_ADMIN or ADMIN with messageModeration.read |
 | GET | `/api/v1/admin/message-moderation/export` | Export message moderation rows | SUPER_ADMIN or ADMIN with messageModeration.export |
 | GET | `/api/v1/admin/message-moderation/filter-options` | Fetch message moderation filter options | SUPER_ADMIN or ADMIN with messageModeration.read |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/block` | Hide a flagged message from chat participants | SUPER_ADMIN or ADMIN with messageModeration.moderate |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/dismiss-flag` | Dismiss a moderation flag | SUPER_ADMIN or ADMIN with messageModeration.moderate |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/escalate` | Escalate a flagged message | SUPER_ADMIN or ADMIN with messageModeration.escalate |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/note` | Add internal private moderation note | SUPER_ADMIN or ADMIN with messageModeration.notes.create |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/reprocess` | Reprocess a message through scanner | SUPER_ADMIN or ADMIN with messageModeration.reprocess |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/restore` | Restore a hidden moderated message | SUPER_ADMIN or ADMIN with messageModeration.moderate |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/suspend-account` | Suspend message sender account | SUPER_ADMIN or ADMIN with messageModeration.suspend |
-| POST | `/api/v1/admin/message-moderation/messages/{messageId}/warn-user` | Warn message sender | SUPER_ADMIN or ADMIN with messageModeration.warn |
+| POST | `/api/v1/admin/message-moderation/messages/{messageId}/action` | Run message moderation action | SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate) |
 | GET | `/api/v1/admin/message-moderation/stats` | Fetch message moderation stats | SUPER_ADMIN or ADMIN with messageModeration.read |
 
 **Message moderation frontend notes**

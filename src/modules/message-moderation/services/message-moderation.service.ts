@@ -1,12 +1,9 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { MessageModerationAction, MessageModerationCase, MessageModerationEscalation, MessageModerationFlagType, MessageModerationLog, MessageModerationSeverity, MessageModerationSource, MessageModerationStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
+import { AccountType, MessageModerationAction, MessageModerationCase, MessageModerationEscalation, MessageModerationFlagType, MessageModerationLog, MessageModerationSeverity, MessageModerationSource, MessageModerationStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
+import { AccountLifecycleService } from '../../../common/services/account-lifecycle.service';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
-import { ProviderLifecycleAction, ProviderLifecycleReason } from '../../provider-management/dto/provider-management.dto';
-import { ProviderManagementService } from '../../provider-management/services/provider-management.service';
-import { SuspensionReason } from '../../user-management/dto/user-management.dto';
-import { UserManagementService } from '../../user-management/services/user-management.service';
-import { BlockMessageDto, DismissFlagDto, EscalateMessageDto, InternalNoteDto, ListMessageModerationAuditLogsDto, ListMessageModerationDto, MessageModerationChatType, MessageModerationHistoryDto, MessageModerationQueueStatus, ModerationAll, ModerationSortBy, ReprocessMessageDto, RestoreMessageDto, ScannerMode, SortOrder, SuspendAccountDto, SuspensionScope, WarnUserDto } from '../dto/message-moderation.dto';
+import { ListMessageModerationAuditLogsDto, ListMessageModerationDto, MessageModerationActionDto, MessageModerationChatType, MessageModerationHistoryDto, MessageModerationMessageAction, MessageModerationQueueStatus, ModerationAll, ModerationSortBy, ScannerMode, SortOrder } from '../dto/message-moderation.dto';
 import { MessageModerationRepository } from '../repositories/message-moderation.repository';
 import { MessageModerationScanner } from './message-moderation-scanner.service';
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
@@ -21,8 +18,7 @@ export class MessageModerationService {
   constructor(
     private readonly repository: MessageModerationRepository,
     private readonly scanner: MessageModerationScanner,
-    private readonly userManagementService: UserManagementService,
-    private readonly providerManagementService: ProviderManagementService,
+    private readonly accountLifecycleService: AccountLifecycleService,
     private readonly notificationDispatch: NotificationDispatchService,
     private readonly reportingCore?: ReportingCoreService,
   ) {}
@@ -82,20 +78,55 @@ export class MessageModerationService {
     return { data: rows.map((row) => this.toAuditLog(row)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Message moderation audit logs fetched successfully.' };
   }
 
-  async block(user: AuthUserContext, messageId: string, dto: BlockMessageDto) {
+  async action(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
+    this.assertActionPermission(user, dto.action);
+
+    if (dto.action === MessageModerationMessageAction.HIDE_MESSAGE) {
+      return this.block(user, messageId, dto);
+    }
+
+    if (dto.action === MessageModerationMessageAction.RESTORE_MESSAGE) {
+      return this.restore(user, messageId, dto);
+    }
+
+    if (dto.action === MessageModerationMessageAction.WARN_SENDER) {
+      return this.warn(user, messageId, dto);
+    }
+
+    if (dto.action === MessageModerationMessageAction.SUSPEND_SENDER) {
+      return this.suspend(user, messageId, dto);
+    }
+
+    if (dto.action === MessageModerationMessageAction.DISMISS_FLAG) {
+      return this.dismiss(user, messageId, dto);
+    }
+
+    if (dto.action === MessageModerationMessageAction.ADD_NOTE) {
+      return this.note(user, messageId, dto);
+    }
+
+    if (dto.action === MessageModerationMessageAction.REPROCESS) {
+      return this.reprocess(user, messageId, dto);
+    }
+
+    return this.escalate(user, messageId, dto);
+  }
+
+  private async block(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
     const moderationCase = await this.getCaseByMessage(messageId);
     const now = new Date();
     await this.repository.runAction(async (tx) => {
       const updated = await this.repository.updateMessageVisibility(tx, messageId, user.uid, true);
       if (!updated) throw new NotFoundException('Message not found');
       await this.repository.updateStatus(tx, messageId, MessageModerationStatus.ACTION_TAKEN);
-      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.HIDE_MESSAGE, reason: dto.reason, internalNote: dto.comment ?? dto.internalNote, actorId: user.uid, metadata: { before: { visibilityStatus: 'VISIBLE' }, after: { visibilityStatus: 'HIDDEN_BY_MODERATION' }, notifyParticipants: dto.notifyParticipants ?? dto.notifyUser ?? false } });
+      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.HIDE_MESSAGE, reason: dto.reason, internalNote: dto.comment, actorId: user.uid, metadata: { before: { visibilityStatus: 'VISIBLE' }, after: { visibilityStatus: 'HIDDEN_BY_MODERATION' }, notifyParticipants: dto.notifyParticipants ?? false, severity: dto.severity } });
       await this.audit(tx, user.uid, moderationCase.id, 'MESSAGE_HIDDEN', messageId, moderationCase.conversationId, { visibilityStatus: 'VISIBLE' }, { visibilityStatus: 'HIDDEN_BY_MODERATION' });
     });
+    if (dto.notifyParticipants) await this.notifyParticipant(moderationCase, 'Message hidden', dto.comment ?? 'A message was hidden by moderation review.', 'MESSAGE_HIDDEN', messageId);
     return { data: { messageId, visibilityStatus: 'HIDDEN_BY_MODERATION', hiddenByModeration: true, hiddenAt: now, hiddenByAdminId: user.uid }, message: 'Message hidden successfully.' };
   }
 
-  async restore(user: AuthUserContext, messageId: string, dto: RestoreMessageDto) {
+  private async restore(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
     const moderationCase = await this.getCaseByMessage(messageId);
     if (!new Set<MessageModerationStatus>([MessageModerationStatus.ACTION_TAKEN, MessageModerationStatus.BLOCKED, MessageModerationStatus.RESOLVED]).has(moderationCase.status)) throw new BadRequestException('Only hidden/moderated messages can be restored.');
     const restoredAt = new Date();
@@ -106,65 +137,101 @@ export class MessageModerationService {
       await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.RESTORE_MESSAGE, reason: dto.reason, internalNote: dto.comment, actorId: user.uid, metadata: { notifyParticipants: dto.notifyParticipants ?? false } });
       await this.audit(tx, user.uid, moderationCase.id, 'MESSAGE_RESTORED', messageId, moderationCase.conversationId, { visibilityStatus: 'HIDDEN_BY_MODERATION' }, { visibilityStatus: 'VISIBLE' });
     });
+    if (dto.notifyParticipants) await this.notifyParticipant(moderationCase, 'Message restored', dto.comment ?? 'A previously hidden message is visible again.', 'MESSAGE_RESTORED', messageId);
     return { data: { messageId, visibilityStatus: 'VISIBLE', hiddenByModeration: false, restoredAt }, message: 'Message restored successfully.' };
   }
 
-  async warn(user: AuthUserContext, messageId: string, dto: WarnUserDto) {
+  private async warn(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
     const moderationCase = await this.getCaseByMessage(messageId); const sender = await this.resolveSender(moderationCase);
     await this.repository.runAction(async (tx) => {
       await this.repository.updateStatus(tx, messageId, MessageModerationStatus.WARNED);
-      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.WARN_USER, reason: dto.reason, internalNote: dto.comment ?? dto.internalNote, actorId: user.uid, metadata: { senderId: sender.id, senderRole: sender.role, warningSeverity: dto.warningSeverity } });
-      await this.audit(tx, user.uid, moderationCase.id, 'SENDER_WARNED', messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: 'ACTION_TAKEN', warningSeverity: dto.warningSeverity });
+      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.WARN_USER, reason: dto.reason, internalNote: dto.comment, actorId: user.uid, metadata: { senderId: sender.id, senderRole: sender.role, warningSeverity: dto.severity ?? MessageModerationSeverity.MEDIUM } });
+      await this.audit(tx, user.uid, moderationCase.id, 'SENDER_WARNED', messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: 'ACTION_TAKEN', warningSeverity: dto.severity ?? MessageModerationSeverity.MEDIUM });
     });
-    if (dto.notifySender ?? dto.notifyUser) await this.notifySender(sender, 'Message warning', dto.warningMessage ?? 'Please keep all payments and communication inside the platform.', messageId);
-    return { data: { messageId, senderId: sender.id, senderRole: sender.role, warningSeverity: dto.warningSeverity }, message: 'Message sender warned successfully.' };
+    if (dto.notifySender) await this.notifySender(sender, 'Message warning', dto.comment ?? 'Please keep all payments and communication inside the platform.', messageId);
+    return { data: { messageId, senderId: sender.id, senderRole: sender.role, warningSeverity: dto.severity ?? MessageModerationSeverity.MEDIUM }, message: 'Message sender warned successfully.' };
   }
 
-  async suspend(user: AuthUserContext, messageId: string, dto: SuspendAccountDto) {
+  private async suspend(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
     const moderationCase = await this.getCaseByMessage(messageId); const sender = await this.resolveSender(moderationCase);
     if (sender.id === user.uid) throw new ForbiddenException('Admins cannot suspend themselves from message moderation.');
     if (sender.role === UserRole.ADMIN || sender.role === UserRole.SUPER_ADMIN) throw new ForbiddenException('Admin and Super Admin accounts cannot be suspended from message moderation.');
-    if ((dto.suspensionScope ?? SuspensionScope.ACCOUNT) === SuspensionScope.ACCOUNT) {
-      if (sender.role === UserRole.PROVIDER) await this.providerManagementService.updateStatus(user, sender.id, { action: ProviderLifecycleAction.SUSPEND, reason: ProviderLifecycleReason.POLICY_VIOLATION, comment: dto.comment ?? dto.internalNote, notifyProvider: dto.notifySender ?? dto.notifyUser });
-      else await this.userManagementService.suspend(user, sender.id, { reason: SuspensionReason.POLICY_VIOLATION, comment: dto.comment ?? dto.internalNote, notifyUser: dto.notifySender ?? dto.notifyUser });
-    }
+    await this.accountLifecycleService.updateStatus({
+      actorId: user.uid,
+      accountId: sender.id,
+      accountType: sender.role === UserRole.PROVIDER ? AccountType.PROVIDER : AccountType.REGISTERED_USER,
+      status: 'SUSPENDED',
+      reason: dto.reason,
+      comment: dto.comment,
+      notify: dto.notifySender,
+      activeStatuses: ['ACTIVE'],
+      suspendedStatus: 'SUSPENDED',
+      actionPrefix: sender.role === UserRole.PROVIDER ? 'MESSAGE_MODERATION_PROVIDER' : 'MESSAGE_MODERATION_USER',
+      targetType: sender.role === UserRole.PROVIDER ? 'PROVIDER' : 'REGISTERED_USER',
+    });
     await this.repository.runAction(async (tx) => {
       await this.repository.updateStatus(tx, messageId, MessageModerationStatus.SUSPENDED);
-      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.SUSPEND_ACCOUNT, reason: dto.reason, internalNote: dto.comment ?? dto.internalNote, actorId: user.uid, metadata: { senderId: sender.id, senderRole: sender.role, suspensionScope: dto.suspensionScope, durationDays: dto.durationDays } });
-      await this.audit(tx, user.uid, moderationCase.id, 'SENDER_SUSPENDED', messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: 'ACTION_TAKEN', suspensionScope: dto.suspensionScope });
+      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.SUSPEND_ACCOUNT, reason: dto.reason, internalNote: dto.comment, actorId: user.uid, metadata: { senderId: sender.id, senderRole: sender.role } });
+      await this.audit(tx, user.uid, moderationCase.id, 'SENDER_SUSPENDED', messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: 'ACTION_TAKEN', suspensionScope: 'ACCOUNT' });
     });
-    if (dto.notifySender ?? dto.notifyUser) await this.notifySender(sender, 'Account suspended', 'Your account has been suspended after message moderation review.', messageId);
+    if (dto.notifySender) await this.notifySender(sender, 'Account suspended', dto.comment ?? 'Your account has been suspended after message moderation review.', messageId);
     return { data: { messageId, status: MessageModerationStatus.SUSPENDED, senderId: sender.id, senderRole: sender.role }, message: 'Message sender account suspended successfully.' };
   }
 
-  dismiss(user: AuthUserContext, messageId: string, dto: DismissFlagDto) { return this.simpleAction(user, messageId, MessageModerationStatus.DISMISSED, MessageModerationAction.DISMISS_FLAG, 'FLAG_DISMISSED', dto.reason, dto.comment ?? dto.internalNote, 'Message moderation flag dismissed successfully.'); }
-  note(user: AuthUserContext, messageId: string, dto: InternalNoteDto) { return this.simpleAction(user, messageId, MessageModerationStatus.UNDER_REVIEW, MessageModerationAction.ADD_NOTE, 'INTERNAL_NOTE_CREATED', 'INTERNAL_NOTE', dto.note, 'Internal moderation note created successfully.'); }
+  private dismiss(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) { return this.simpleAction(user, messageId, MessageModerationStatus.DISMISSED, MessageModerationAction.DISMISS_FLAG, 'FLAG_DISMISSED', dto.reason ?? 'DISMISSED', dto.comment, 'Message moderation flag dismissed successfully.'); }
+  private note(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) { return this.simpleAction(user, messageId, MessageModerationStatus.UNDER_REVIEW, MessageModerationAction.ADD_NOTE, 'INTERNAL_NOTE_CREATED', 'INTERNAL_NOTE', dto.comment, 'Internal moderation note created successfully.'); }
 
-  async reprocess(user: AuthUserContext, messageId: string, dto: ReprocessMessageDto) {
+  private async reprocess(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
     const moderationCase = await this.getCaseByMessage(messageId); const scan = this.scanner.scanMessage({ body: moderationCase.rawBody ?? moderationCase.redactedBody });
     if (scan.isFlagged) await this.repository.upsertFlaggedCase({ conversationId: moderationCase.conversationId, messageId, source: moderationCase.source, participantId: moderationCase.participantId, participantRole: moderationCase.participantRole, participantName: moderationCase.participantName, participantAvatarUrl: moderationCase.participantAvatarUrl, externalReference: moderationCase.externalReference, senderId: moderationCase.senderId, senderRole: moderationCase.senderRole, rawBody: moderationCase.rawBody, redactedBody: scan.redactedBody, flagTypesJson: scan.flagTypes, keywordsJson: scan.keywords, severity: scan.severity, confidence: new Prisma.Decimal(scan.confidence), status: MessageModerationStatus.PENDING_REVIEW, lastMessageAt: moderationCase.lastMessageAt });
-    await this.repository.runAction(async (tx) => { await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.REPROCESS, reason: dto.comment ?? dto.reason ?? dto.scannerMode ?? ScannerMode.CURRENT_POLICY, actorId: user.uid, metadata: { ...this.scanMetadata(scan), scannerMode: dto.scannerMode ?? ScannerMode.CURRENT_POLICY } }); await this.audit(tx, user.uid, moderationCase.id, 'MESSAGE_REPROCESSED', messageId, moderationCase.conversationId, { severity: moderationCase.severity }, { severity: scan.severity, isFlagged: scan.isFlagged }); });
+    await this.repository.runAction(async (tx) => { await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.REPROCESS, reason: dto.comment ?? dto.reason ?? ScannerMode.CURRENT_POLICY, actorId: user.uid, metadata: { ...this.scanMetadata(scan), scannerMode: ScannerMode.CURRENT_POLICY } }); await this.audit(tx, user.uid, moderationCase.id, 'MESSAGE_REPROCESSED', messageId, moderationCase.conversationId, { severity: moderationCase.severity }, { severity: scan.severity, isFlagged: scan.isFlagged }); });
     return { data: { messageId, isFlagged: scan.isFlagged, severity: scan.severity }, message: 'Message reprocessed successfully.' };
   }
 
-  async escalate(user: AuthUserContext, messageId: string, dto: EscalateMessageDto) {
+  private async escalate(user: AuthUserContext, messageId: string, dto: MessageModerationActionDto) {
     const moderationCase = await this.getCaseByMessage(messageId); let escalationId = '';
     await this.repository.runAction(async (tx) => {
-      const escalation = await this.repository.createEscalation(tx, { caseId: moderationCase.id, messageId, conversationId: moderationCase.conversationId, escalationType: dto.escalationType, priority: dto.priority, reason: dto.reason, assignedToAdminId: dto.assignToAdminId, createdByAdminId: user.uid });
+      const escalation = await this.repository.createEscalation(tx, { caseId: moderationCase.id, messageId, conversationId: moderationCase.conversationId, escalationType: 'SECURITY_REVIEW', priority: dto.severity ?? MessageModerationSeverity.HIGH, reason: dto.reason ?? 'ESCALATED', assignedToAdminId: dto.assignToAdminId, createdByAdminId: user.uid });
       escalationId = escalation.id;
       await this.repository.updateStatus(tx, messageId, MessageModerationStatus.ESCALATED);
-      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.ESCALATE_MESSAGE, reason: dto.reason, actorId: user.uid, metadata: { escalationId, escalationType: dto.escalationType, priority: dto.priority, assignedToAdminId: dto.assignToAdminId } });
+      await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action: MessageModerationAction.ESCALATE_MESSAGE, reason: dto.reason, actorId: user.uid, metadata: { escalationId, escalationType: 'SECURITY_REVIEW', priority: dto.severity ?? MessageModerationSeverity.HIGH, assignedToAdminId: dto.assignToAdminId } });
       await this.audit(tx, user.uid, moderationCase.id, 'MESSAGE_ESCALATED', messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: 'ESCALATED', escalationId });
     });
-    await this.reportingCore?.lifecycleEvent({ domain: 'messageModeration', reportId: moderationCase.id, action: 'MESSAGE_ESCALATED', metadata: { messageId, escalationId, priority: dto.priority } });
-    if (dto.notifyAssignedAdmin && dto.assignToAdminId) { if (this.reportingCore) await this.reportingCore.notify({ recipientId: dto.assignToAdminId, recipientType: 'ADMIN', title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadata: { messageId, escalationId } }); else await this.notificationDispatch.createAndEmit({ recipientId: dto.assignToAdminId, recipientType: NotificationRecipientType.ADMIN, title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadataJson: { messageId, escalationId } }); }
+    await this.reportingCore?.lifecycleEvent({ domain: 'messageModeration', reportId: moderationCase.id, action: 'MESSAGE_ESCALATED', metadata: { messageId, escalationId, priority: dto.severity ?? MessageModerationSeverity.HIGH } });
+    if (dto.assignToAdminId) { if (this.reportingCore) await this.reportingCore.notify({ recipientId: dto.assignToAdminId, recipientType: 'ADMIN', title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadata: { messageId, escalationId } }); else await this.notificationDispatch.createAndEmit({ recipientId: dto.assignToAdminId, recipientType: NotificationRecipientType.ADMIN, title: 'Message moderation escalation', message: 'A flagged message was escalated for your review.', type: 'MESSAGE_MODERATION_ESCALATION', metadataJson: { messageId, escalationId } }); }
     return { data: { messageId, escalationId, status: 'ESCALATED', assignedToAdminId: dto.assignToAdminId ?? null }, message: 'Message escalated successfully.' };
+  }
+
+  private assertActionPermission(user: AuthUserContext, action: MessageModerationMessageAction): void {
+    if (user.role === UserRole.SUPER_ADMIN) return;
+    const permission = this.permissionForAction(action);
+    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
+  }
+
+  private permissionForAction(action: MessageModerationMessageAction): string {
+    if (action === MessageModerationMessageAction.HIDE_MESSAGE || action === MessageModerationMessageAction.RESTORE_MESSAGE || action === MessageModerationMessageAction.DISMISS_FLAG) return 'messageModeration.moderate';
+    if (action === MessageModerationMessageAction.WARN_SENDER) return 'messageModeration.warn';
+    if (action === MessageModerationMessageAction.SUSPEND_SENDER) return 'messageModeration.suspend';
+    if (action === MessageModerationMessageAction.ADD_NOTE) return 'messageModeration.notes.create';
+    if (action === MessageModerationMessageAction.REPROCESS) return 'messageModeration.reprocess';
+    return 'messageModeration.escalate';
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return granted;
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) continue;
+      for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`);
+    }
+    return granted;
   }
 
   private async simpleAction(user: AuthUserContext, messageId: string, status: MessageModerationStatus, action: MessageModerationAction, auditAction: string, reason: string, note: string | undefined, message: string) { const moderationCase = await this.getCaseByMessage(messageId); await this.repository.runAction(async (tx) => { await this.repository.updateStatus(tx, messageId, status); await this.repository.createLog(tx, { caseId: moderationCase.id, messageId, action, reason, internalNote: note, actorId: user.uid }); await this.audit(tx, user.uid, moderationCase.id, auditAction, messageId, moderationCase.conversationId, { status: this.queueStatus(moderationCase.status) }, { status: this.queueStatus(status) }); }); return { data: { messageId, status }, message }; }
   private async getCaseByMessage(messageId: string) { const found = await this.repository.findCaseByMessage(messageId); if (!found) throw new NotFoundException('Message moderation case not found'); return found; }
   private async resolveSender(moderationCase: MessageModerationCase): Promise<Sender> { const sender = await this.repository.findUser(moderationCase.senderId); if (!sender) throw new NotFoundException('Message sender not found'); return sender; }
   private async notifySender(sender: Sender, title: string, body: string, messageId: string) { await this.notificationDispatch.createAndEmit({ recipientId: sender.id, recipientType: sender.role === UserRole.PROVIDER ? NotificationRecipientType.PROVIDER : NotificationRecipientType.REGISTERED_USER, title, message: body, type: 'MESSAGE_MODERATION', metadataJson: { messageId } }); }
+  private async notifyParticipant(moderationCase: MessageModerationCase, title: string, body: string, type: string, messageId: string) { await this.notificationDispatch.createAndEmit({ recipientId: moderationCase.participantId, recipientType: this.recipientType(moderationCase.participantRole), title, message: body, type, metadataJson: { messageId, conversationId: moderationCase.conversationId } }); }
   private async audit(tx: Parameters<Parameters<MessageModerationRepository['runAction']>[0]>[0], actorId: string, caseId: string, action: string, messageId: string, conversationId: string, before: Prisma.InputJsonObject, after: Prisma.InputJsonObject) { await this.repository.createAuditLog(tx, { actorId, action: `message_moderation.${action.toLowerCase()}`, entityId: caseId, metadata: { action, messageId, conversationId, before, after } }); }
   private buildWhere(dto: ListMessageModerationDto): Prisma.MessageModerationCaseWhereInput { const where: Prisma.MessageModerationCaseWhereInput = {}; const source = dto.chatType ? this.sourceFromChatType(dto.chatType) : dto.source; if (this.isSource(source)) where.source = source; if (dto.status) where.status = this.statusFromQueue(dto.status); if (dto.severity) where.severity = dto.severity; if (dto.assignedToAdminId ?? dto.assignedToId) where.assignedToId = dto.assignedToAdminId ?? dto.assignedToId; const flag = dto.flagReason ?? dto.flagType; if (this.isFlagType(flag)) where.flagTypesJson = { array_contains: flag }; if (dto.senderRole) where.senderRole = dto.senderRole; if (dto.participantType) where.participantRole = dto.participantType; if (dto.search) where.OR = [{ participantName: { contains: dto.search, mode: 'insensitive' } }, { externalReference: { contains: dto.search, mode: 'insensitive' } }, { redactedBody: { contains: dto.search, mode: 'insensitive' } }]; if (dto.fromDate || dto.toDate) where.createdAt = { gte: dto.fromDate ? new Date(dto.fromDate) : undefined, lte: dto.toDate ? new Date(dto.toDate) : undefined }; return where; }
   private auditWhere(dto: ListMessageModerationAuditLogsDto): Prisma.MessageModerationLogWhereInput { return { ...(dto.messageId ? { messageId: dto.messageId } : {}), ...(dto.actorAdminId ? { actorId: dto.actorAdminId } : {}), ...(dto.action ? { action: dto.action as MessageModerationAction } : {}), ...(dto.conversationId ? { case: { conversationId: dto.conversationId } } : {}), ...(dto.fromDate || dto.toDate ? { createdAt: { gte: dto.fromDate ? new Date(dto.fromDate) : undefined, lte: dto.toDate ? new Date(dto.toDate) : undefined } } : {}) }; }
@@ -182,5 +249,6 @@ export class MessageModerationService {
   private chatType(source: MessageModerationSource): MessageModerationChatType { if (source === MessageModerationSource.ADMIN_SUPPORT_CHAT) return MessageModerationChatType.SUPPORT_CHAT; if (source === MessageModerationSource.CUSTOMER_PROVIDER_CHAT || source === MessageModerationSource.PROVIDER_BUYER_CHAT) return MessageModerationChatType.BUYER_PROVIDER; return MessageModerationChatType.SYSTEM_REVIEW; }
   private statusFromQueue(status: MessageModerationQueueStatus): MessageModerationStatus { const map: Record<MessageModerationQueueStatus, MessageModerationStatus> = { PENDING_REVIEW: MessageModerationStatus.PENDING_REVIEW, ACTION_TAKEN: MessageModerationStatus.ACTION_TAKEN, DISMISSED: MessageModerationStatus.DISMISSED, ESCALATED: MessageModerationStatus.ESCALATED, RESOLVED: MessageModerationStatus.RESOLVED }; return map[status]; }
   private queueStatus(status: MessageModerationStatus): MessageModerationQueueStatus { if (status === MessageModerationStatus.DISMISSED) return MessageModerationQueueStatus.DISMISSED; if (status === MessageModerationStatus.ESCALATED) return MessageModerationQueueStatus.ESCALATED; if (status === MessageModerationStatus.RESOLVED) return MessageModerationQueueStatus.RESOLVED; if (new Set<MessageModerationStatus>([MessageModerationStatus.BLOCKED, MessageModerationStatus.WARNED, MessageModerationStatus.SUSPENDED, MessageModerationStatus.ACTION_TAKEN]).has(status)) return MessageModerationQueueStatus.ACTION_TAKEN; return MessageModerationQueueStatus.PENDING_REVIEW; }
+  private recipientType(role: string): NotificationRecipientType { return role === UserRole.PROVIDER ? NotificationRecipientType.PROVIDER : role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN ? NotificationRecipientType.ADMIN : NotificationRecipientType.REGISTERED_USER; }
   private maskSensitive(text: string | null): string { return (text ?? '').replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, '[REDACTED_EMAIL]').replace(/\+?\d[\d\s().-]{7,}\d/g, '[REDACTED_PHONE]').replace(/\b\d{12,19}\b/g, '[REDACTED_CARD]'); }
 }
