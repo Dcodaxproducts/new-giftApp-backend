@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, StreamableFile, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -7,7 +7,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ApproveOfferDto, CreateAdminOfferDto, ListPromotionalOffersDto, RejectOfferDto, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
+import { AdminPromotionalOfferActionDto, CreateAdminOfferDto, ListPromotionalOffersDto, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
 import { PromotionalOffersService } from '../services/promotional-offers.service';
 
 @ApiBearerAuth()
@@ -23,8 +23,9 @@ export class PromotionalOffersManagementController {
   @Post() @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.create') create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateAdminOfferDto) { return this.service.createAdmin(user, dto); }
   @Get(':id') @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.read') details(@Param('id') id: string) { return this.service.adminDetails(id); }
   @Patch(':id') @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.update') update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdatePromotionalOfferDto) { return this.service.updateAdmin(user, id, dto); }
-  @Patch(':id/approve') @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.approve') approve(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ApproveOfferDto) { return this.service.approve(user, id, dto); }
-  @Patch(':id/reject') @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.reject') reject(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: RejectOfferDto) { return this.service.reject(user, id, dto); }
-  @Patch(':id/status') @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.status.update') status(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateOfferStatusDto) { return this.service.updateAdminStatus(user, id, dto); }
+  @Post(':id/action') @ApiTags('02 Admin - Promotional Offers Management')
+  @ApiOperation({ summary: 'Run promotional offer admin action', description: "SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires 'promotionalOffers.approve'; REJECT requires 'promotionalOffers.reject'; ACTIVATE and DEACTIVATE require 'promotionalOffers.status.update'." })
+  @ApiResponse({ status: 200, description: 'Promotional offer action completed successfully', schema: { example: { success: true, data: { id: 'offer_id', approvalStatus: 'APPROVED', status: 'ACTIVE', isActive: true }, message: 'Promotional offer approved successfully' } } })
+  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AdminPromotionalOfferActionDto) { return this.service.action(user, id, dto); }
   @Delete(':id') @ApiTags('02 Admin - Promotional Offers Management') @Permissions('promotionalOffers.delete') delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.deleteAdmin(user, id); }
 }

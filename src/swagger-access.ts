@@ -102,9 +102,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/promotional-offers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.read', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.read permission.' },
   'PATCH /api/v1/promotional-offers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.update', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.update permission.' },
   'DELETE /api/v1/promotional-offers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.delete', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.delete permission.' },
-  'PATCH /api/v1/promotional-offers/{id}/approve': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.approve', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.approve permission.' },
-  'PATCH /api/v1/promotional-offers/{id}/reject': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.reject', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.reject permission.' },
-  'PATCH /api/v1/promotional-offers/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.status.update', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission.' },
+  'POST /api/v1/promotional-offers/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update)', description: 'SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires promotionalOffers.approve; REJECT requires promotionalOffers.reject; ACTIVATE and DEACTIVATE require promotionalOffers.status.update.' },
 
   'GET /api/v1/login-attempts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.read', description: 'SUPER_ADMIN or ADMIN with loginAttempts.read permission.' },
   'GET /api/v1/login-attempts/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.export', description: 'SUPER_ADMIN or ADMIN with loginAttempts.export permission.' },

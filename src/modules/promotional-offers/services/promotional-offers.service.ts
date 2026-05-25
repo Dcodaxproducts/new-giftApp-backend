@@ -1,12 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Gift, Prisma, PromotionalOffer, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferStatus } from '@prisma/client';
+import { Gift, NotificationRecipientType, Prisma, PromotionalOffer, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
+import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { OfferWithRelations, PromotionalOffersRepository, promotionalOfferInclude } from '../repositories/promotional-offers.repository';
 import { ProviderOffersRepository } from '../repositories/provider-offers.repository';
-import { ApproveOfferDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, RejectOfferDto, SortOrder, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
-
-;
+import { AdminPromotionalOfferAction, AdminPromotionalOfferActionDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, SortOrder, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
 
 @Injectable()
 export class PromotionalOffersService {
@@ -14,6 +13,7 @@ export class PromotionalOffersService {
     private readonly promotionalOffersRepository: PromotionalOffersRepository,
     private readonly providerOffersRepository: ProviderOffersRepository,
     private readonly auditLog: AuditLogWriterService,
+    private readonly notificationDispatch: NotificationDispatchService,
   ) {}
 
   async listProvider(user: AuthUserContext, query: ListProviderOffersDto) {
@@ -98,23 +98,27 @@ export class PromotionalOffersService {
     return this.updateOffer(user.uid, offer, dto, 'ADMIN_PROMOTIONAL_OFFER_UPDATED', false);
   }
 
-  async approve(user: AuthUserContext, id: string, dto: ApproveOfferDto) {
+  async action(user: AuthUserContext, id: string, dto: AdminPromotionalOfferActionDto) {
+    this.assertActionPermission(user, dto.action);
     const offer = await this.getOffer(id);
-    const updated = await this.promotionalOffersRepository.approveOffer(id, { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, status: this.computeStatus(offer.isActive, PromotionalOfferApprovalStatus.APPROVED, offer.startDate, offer.endDate), updatedBy: user.uid });
-    await this.audit(user.uid, id, 'PROMOTIONAL_OFFER_APPROVED', { ...this.toDetail(offer), comment: dto.comment, notifyProvider: dto.notifyProvider }, this.toDetail(updated));
-    return { data: this.toDetail(updated), message: 'Promotional offer approved successfully' };
-  }
 
-  async reject(user: AuthUserContext, id: string, dto: RejectOfferDto) {
-    const offer = await this.getOffer(id);
-    const updated = await this.promotionalOffersRepository.rejectOffer(id, { approvalStatus: PromotionalOfferApprovalStatus.REJECTED, rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment, status: PromotionalOfferStatus.REJECTED, updatedBy: user.uid });
-    await this.audit(user.uid, id, 'PROMOTIONAL_OFFER_REJECTED', this.toDetail(offer), { ...this.toDetail(updated), notifyProvider: dto.notifyProvider });
-    return { data: this.toDetail(updated), message: 'Promotional offer rejected successfully' };
-  }
+    if (dto.action === AdminPromotionalOfferAction.APPROVE) {
+      return this.approveAction(user, offer, dto);
+    }
 
-  async updateAdminStatus(user: AuthUserContext, id: string, dto: UpdateOfferStatusDto) {
-    const offer = await this.getOffer(id);
-    return this.updateStatus(user.uid, offer, dto, 'ADMIN_PROMOTIONAL_OFFER_STATUS_CHANGED');
+    if (dto.action === AdminPromotionalOfferAction.REJECT) {
+      if (!dto.reason) {
+        throw new BadRequestException('Reason is required when rejecting a promotional offer');
+      }
+
+      return this.rejectAction(user, offer, dto);
+    }
+
+    if (dto.action === AdminPromotionalOfferAction.ACTIVATE) {
+      return this.activateAction(user, offer, dto);
+    }
+
+    return this.deactivateAction(user, offer, dto);
   }
 
   async deleteAdmin(user: AuthUserContext, id: string) {
@@ -197,6 +201,138 @@ export class PromotionalOffersService {
     const updated = await this.updateOfferStatusRecord(offer, { isActive: dto.isActive, status: this.computeStatus(dto.isActive, offer.approvalStatus, offer.startDate, offer.endDate), updatedBy: actorId });
     await this.audit(actorId, offer.id, action, { ...this.toDetail(offer), reason: dto.reason }, this.toDetail(updated));
     return { data: this.toDetail(updated), message: 'Promotional offer status updated successfully' };
+  }
+
+  private async approveAction(user: AuthUserContext, offer: OfferWithRelations, dto: AdminPromotionalOfferActionDto) {
+    this.assertApprovalTransition(offer, [PromotionalOfferApprovalStatus.PENDING], 'Only pending promotional offers can be approved');
+    const updated = await this.promotionalOffersRepository.approveOffer(offer.id, { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, status: this.computeStatus(offer.isActive, PromotionalOfferApprovalStatus.APPROVED, offer.startDate, offer.endDate), updatedBy: user.uid });
+    await this.audit(user.uid, offer.id, 'PROMOTIONAL_OFFER_APPROVED', { ...this.toDetail(offer), comment: dto.comment, notifyProvider: dto.notifyProvider }, this.toDetail(updated));
+    await this.notifyProvider(updated, dto.notifyProvider, 'PROMOTIONAL_OFFER_APPROVED', dto.comment);
+    return { data: this.toDetail(updated), message: 'Promotional offer approved successfully' };
+  }
+
+  private async rejectAction(user: AuthUserContext, offer: OfferWithRelations, dto: AdminPromotionalOfferActionDto) {
+    this.assertApprovalTransition(offer, [PromotionalOfferApprovalStatus.PENDING], 'Only pending promotional offers can be rejected');
+    const updated = await this.promotionalOffersRepository.rejectOffer(offer.id, { approvalStatus: PromotionalOfferApprovalStatus.REJECTED, rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment, status: PromotionalOfferStatus.REJECTED, updatedBy: user.uid });
+    await this.audit(user.uid, offer.id, 'PROMOTIONAL_OFFER_REJECTED', this.toDetail(offer), { ...this.toDetail(updated), notifyProvider: dto.notifyProvider });
+    await this.notifyProvider(updated, dto.notifyProvider, 'PROMOTIONAL_OFFER_REJECTED', dto.comment, dto.reason);
+    return { data: this.toDetail(updated), message: 'Promotional offer rejected successfully' };
+  }
+
+  private async activateAction(user: AuthUserContext, offer: OfferWithRelations, dto: AdminPromotionalOfferActionDto) {
+    if (offer.approvalStatus !== PromotionalOfferApprovalStatus.APPROVED) {
+      throw new BadRequestException('Offer cannot be active until approved');
+    }
+
+    if (offer.isActive) {
+      throw new BadRequestException('Promotional offer is already active');
+    }
+
+    const updated = await this.updateOfferStatusRecord(offer, { isActive: true, status: this.computeStatus(true, offer.approvalStatus, offer.startDate, offer.endDate), updatedBy: user.uid });
+    await this.audit(user.uid, offer.id, 'ADMIN_PROMOTIONAL_OFFER_STATUS_CHANGED', { ...this.toDetail(offer), action: dto.action }, { ...this.toDetail(updated), action: dto.action, notifyProvider: dto.notifyProvider });
+    await this.notifyProvider(updated, dto.notifyProvider, 'PROMOTIONAL_OFFER_ACTIVATED', dto.comment);
+    return { data: this.toDetail(updated), message: 'Promotional offer activated successfully' };
+  }
+
+  private async deactivateAction(user: AuthUserContext, offer: OfferWithRelations, dto: AdminPromotionalOfferActionDto) {
+    if (!offer.isActive) {
+      throw new BadRequestException('Promotional offer is already inactive');
+    }
+
+    const updated = await this.updateOfferStatusRecord(offer, { isActive: false, status: this.computeStatus(false, offer.approvalStatus, offer.startDate, offer.endDate), updatedBy: user.uid });
+    await this.audit(user.uid, offer.id, 'ADMIN_PROMOTIONAL_OFFER_STATUS_CHANGED', { ...this.toDetail(offer), action: dto.action, reason: dto.reason }, { ...this.toDetail(updated), action: dto.action, notifyProvider: dto.notifyProvider });
+    await this.notifyProvider(updated, dto.notifyProvider, 'PROMOTIONAL_OFFER_DEACTIVATED', dto.comment, dto.reason);
+    return { data: this.toDetail(updated), message: 'Promotional offer deactivated successfully' };
+  }
+
+  private assertActionPermission(user: AuthUserContext, action: AdminPromotionalOfferAction): void {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return;
+    }
+
+    const permission = this.actionPermission(action);
+    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) {
+      throw new ForbiddenException('Your role does not have the required permission');
+    }
+  }
+
+  private actionPermission(action: AdminPromotionalOfferAction): string {
+    if (action === AdminPromotionalOfferAction.APPROVE) {
+      return 'promotionalOffers.approve';
+    }
+
+    if (action === AdminPromotionalOfferAction.REJECT) {
+      return 'promotionalOffers.reject';
+    }
+
+    return 'promotionalOffers.status.update';
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return granted;
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) continue;
+      for (const value of values) {
+        if (typeof value !== 'string') continue;
+        granted.add(`${module}.${value}`);
+        granted.add(`${module}.${this.normalizePermission(value)}`);
+      }
+    }
+    return granted;
+  }
+
+  private normalizePermission(permission: string): string {
+    if (permission === 'updateStatus') return 'status.update';
+    if (permission === 'status.update') return 'updateStatus';
+    return permission;
+  }
+
+  private assertApprovalTransition(offer: OfferWithRelations, allowed: PromotionalOfferApprovalStatus[], message: string): void {
+    if (!allowed.includes(offer.approvalStatus)) {
+      throw new BadRequestException(message);
+    }
+  }
+
+  private async notifyProvider(offer: OfferWithRelations, notifyProvider: boolean | undefined, type: string, comment?: string, reason?: string): Promise<void> {
+    if (!notifyProvider) {
+      return;
+    }
+
+    await this.notificationDispatch.createAndEmit({
+      recipientId: offer.providerId,
+      recipientType: NotificationRecipientType.PROVIDER,
+      title: this.notificationTitle(type),
+      message: comment ?? this.notificationMessage(type),
+      type,
+      metadataJson: { offerId: offer.id, action: type, reason },
+    });
+  }
+
+  private notificationTitle(type: string): string {
+    switch (type) {
+      case 'PROMOTIONAL_OFFER_APPROVED':
+        return 'Promotional offer approved';
+      case 'PROMOTIONAL_OFFER_REJECTED':
+        return 'Promotional offer rejected';
+      case 'PROMOTIONAL_OFFER_ACTIVATED':
+        return 'Promotional offer activated';
+      default:
+        return 'Promotional offer deactivated';
+    }
+  }
+
+  private notificationMessage(type: string): string {
+    switch (type) {
+      case 'PROMOTIONAL_OFFER_APPROVED':
+        return 'Your promotional offer was approved.';
+      case 'PROMOTIONAL_OFFER_REJECTED':
+        return 'Your promotional offer was rejected.';
+      case 'PROMOTIONAL_OFFER_ACTIVATED':
+        return 'Your promotional offer is now active.';
+      default:
+        return 'Your promotional offer is now inactive.';
+    }
   }
 
   private async deleteOffer(actorId: string, offer: OfferWithRelations, action: string) {

@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 06:50 UTC
+Generated at: 2026-05-25 07:02 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 06:50 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 07:02 UTC.
 
 ## Frontend Integration Flows
 
@@ -148,7 +148,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 06:50 UTC.
 | POST | `/api/v1/admin/notification-delivery/logs/{id}/retry` | Retry notification delivery | Authenticated |
 | GET | `/api/v1/admin/notification-delivery/stats` | Fetch notification delivery stats | Authenticated |
 
-### Admin - Promotional Offers Management (10 APIs)
+### Admin - Promotional Offers Management (8 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -159,9 +159,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 06:50 UTC.
 | GET | `/api/v1/promotional-offers/{id}` | Fetch Promotional Offers details | SUPER_ADMIN or ADMIN with promotionalOffers.read |
 | PATCH | `/api/v1/promotional-offers/{id}` | Update Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.update |
 | DELETE | `/api/v1/promotional-offers/{id}` | Delete Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.delete |
-| PATCH | `/api/v1/promotional-offers/{id}/approve` | Update Promotional Offers Approve | SUPER_ADMIN or ADMIN with promotionalOffers.approve |
-| PATCH | `/api/v1/promotional-offers/{id}/reject` | Update Promotional Offers Reject | SUPER_ADMIN or ADMIN with promotionalOffers.reject |
-| PATCH | `/api/v1/promotional-offers/{id}/status` | Update Promotional Offers Status | SUPER_ADMIN or ADMIN with promotionalOffers.status.update |
+| POST | `/api/v1/promotional-offers/{id}/action` | Run promotional offer admin action | SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update) |
 
 ### Admin - Provider Business Categories (5 APIs)
 

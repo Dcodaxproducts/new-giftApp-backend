@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 06:49 UTC
+Generated at: 2026-05-25 07:02 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -15,7 +15,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - User Management (9 APIs)
 - 02 Admin - Provider Management (12 APIs)
 - 02 Admin - Provider Business Categories (5 APIs)
-- 02 Admin - Promotional Offers Management (10 APIs)
+- 02 Admin - Promotional Offers Management (8 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Provider Payouts (9 APIs)
@@ -1837,43 +1837,21 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### PATCH `/api/v1/promotional-offers/{id}/approve`
+### POST `/api/v1/promotional-offers/{id}/action`
 
-- Summary: Update Promotional Offers Approve
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.approve
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission.
+- Summary: Run promotional offer admin action
+- Allowed role/access: SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update)
+- Notes: Access: SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update). SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires promotionalOffers.approve; REJECT requires promotionalOffers.reject; ACTIVATE and DEACTIVATE require promotionalOffers.status.update. SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires 'promotionalOffers.approve'; REJECT requires 'promotionalOffers.reject'; ACTIVATE and DEACTIVATE require 'promotionalOffers.status.update'.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
-  "comment": "<string>",
-  "notifyProvider": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/promotional-offers/{id}/reject`
-
-- Summary: Update Promotional Offers Reject
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.reject
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
+  "action": "APPROVE",
   "reason": "INVALID_DISCOUNT",
   "comment": "<string>",
+  "isActive": true,
   "notifyProvider": true
 }
 ```
@@ -1881,32 +1859,13 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/promotional-offers/{id}/status`
-
-- Summary: Update Promotional Offers Status
-- Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "isActive": true,
-  "reason": "<string>"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "offer_id",
+    "approvalStatus": "APPROVED",
+    "status": "ACTIVE",
+    "isActive": true
+  },
+  "message": "Promotional offer approved successfully"
 }
 ```
 

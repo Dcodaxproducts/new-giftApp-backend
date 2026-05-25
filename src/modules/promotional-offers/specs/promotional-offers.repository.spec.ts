@@ -24,11 +24,19 @@ describe('Promotional offers repository cleanup', () => {
   it('preserves route grouping, RBAC permissions, and module wiring', () => {
     expect(moduleFile).toContain('PromotionalOffersRepository');
     expect(moduleFile).toContain('ProviderOffersRepository');
+    expect(moduleFile).toContain('BroadcastNotificationsModule');
     expect(adminController).toContain("@Controller('promotional-offers')");
     expect(providerController).toContain("@Controller('provider/offers')");
     expect(adminController).toContain("@ApiTags('02 Admin - Promotional Offers Management')");
     expect(providerController).toContain("@ApiTags('03 Provider - Promotional Offers')");
     expect(adminController).toContain("@Permissions('promotionalOffers.read')");
+    expect(adminController).toContain("'promotionalOffers.approve'");
+    expect(adminController).toContain("'promotionalOffers.reject'");
+    expect(adminController).toContain("'promotionalOffers.status.update'");
+    expect(adminController).toContain("@Post(':id/action')");
+    expect(adminController).not.toContain("@Patch(':id/approve')");
+    expect(adminController).not.toContain("@Patch(':id/reject')");
+    expect(adminController).not.toContain("@Patch(':id/status')");
     expect(providerController).toContain('@Roles(UserRole.PROVIDER)');
   });
 });

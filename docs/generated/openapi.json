@@ -14079,9 +14079,10 @@
         "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.delete. SUPER_ADMIN or ADMIN with promotionalOffers.delete permission."
       }
     },
-    "/api/v1/promotional-offers/{id}/approve": {
-      "patch": {
-        "operationId": "PromotionalOffersManagementController_approve",
+    "/api/v1/promotional-offers/{id}/action": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update). SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires promotionalOffers.approve; REJECT requires promotionalOffers.reject; ACTIVATE and DEACTIVATE require promotionalOffers.status.update. SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires 'promotionalOffers.approve'; REJECT requires 'promotionalOffers.reject'; ACTIVATE and DEACTIVATE require 'promotionalOffers.status.update'.",
+        "operationId": "PromotionalOffersManagementController_action",
         "parameters": [
           {
             "name": "id",
@@ -14097,14 +14098,30 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApproveOfferDto"
+                "$ref": "#/components/schemas/AdminPromotionalOfferActionDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Promotional offer action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "offer_id",
+                      "approvalStatus": "APPROVED",
+                      "status": "ACTIVE",
+                      "isActive": true
+                    },
+                    "message": "Promotional offer approved successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -14112,97 +14129,12 @@
             "bearer": []
           }
         ],
+        "summary": "Run promotional offer admin action",
         "tags": [
           "02 Admin - Promotional Offers Management"
         ],
-        "summary": "Update Promotional Offers Approve",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.approve",
-        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.approve",
-        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.approve. SUPER_ADMIN or ADMIN with promotionalOffers.approve permission."
-      }
-    },
-    "/api/v1/promotional-offers/{id}/reject": {
-      "patch": {
-        "operationId": "PromotionalOffersManagementController_reject",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectOfferDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - Promotional Offers Management"
-        ],
-        "summary": "Update Promotional Offers Reject",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.reject",
-        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.reject",
-        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.reject. SUPER_ADMIN or ADMIN with promotionalOffers.reject permission."
-      }
-    },
-    "/api/v1/promotional-offers/{id}/status": {
-      "patch": {
-        "operationId": "PromotionalOffersManagementController_status",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOfferStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - Promotional Offers Management"
-        ],
-        "summary": "Update Promotional Offers Status",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
-        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.status.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.status.update. SUPER_ADMIN or ADMIN with promotionalOffers.status.update permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update)",
+        "x-access": "SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update)"
       }
     },
     "/api/v1/users/export": {
@@ -28391,20 +28323,18 @@
           "providerId"
         ]
       },
-      "ApproveOfferDto": {
+      "AdminPromotionalOfferActionDto": {
         "type": "object",
         "properties": {
-          "comment": {
-            "type": "string"
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "ACTIVATE",
+              "DEACTIVATE"
+            ]
           },
-          "notifyProvider": {
-            "type": "boolean"
-          }
-        }
-      },
-      "RejectOfferDto": {
-        "type": "object",
-        "properties": {
           "reason": {
             "type": "string",
             "enum": [
@@ -28419,12 +28349,15 @@
           "comment": {
             "type": "string"
           },
+          "isActive": {
+            "type": "boolean"
+          },
           "notifyProvider": {
             "type": "boolean"
           }
         },
         "required": [
-          "reason"
+          "action"
         ]
       },
       "UpdateRegisteredUserDto": {

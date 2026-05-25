@@ -55,5 +55,13 @@ export class UpdatePromotionalOfferDto {
 }
 
 export class UpdateOfferStatusDto { @ApiProperty() @IsBoolean() isActive!: boolean; @ApiPropertyOptional() @IsOptional() @IsString() reason?: string; }
-export class ApproveOfferDto { @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean; }
-export class RejectOfferDto { @ApiProperty({ enum: PromotionalOfferRejectionReason }) @IsEnum(PromotionalOfferRejectionReason) reason!: PromotionalOfferRejectionReason; @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean; }
+
+export enum AdminPromotionalOfferAction { APPROVE = 'APPROVE', REJECT = 'REJECT', ACTIVATE = 'ACTIVATE', DEACTIVATE = 'DEACTIVATE' }
+
+export class AdminPromotionalOfferActionDto {
+  @ApiProperty({ enum: AdminPromotionalOfferAction }) @IsEnum(AdminPromotionalOfferAction) action!: AdminPromotionalOfferAction;
+  @ApiPropertyOptional({ enum: PromotionalOfferRejectionReason }) @IsOptional() @IsEnum(PromotionalOfferRejectionReason) reason?: PromotionalOfferRejectionReason;
+  @ApiPropertyOptional() @IsOptional() @IsString() comment?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean;
+}
