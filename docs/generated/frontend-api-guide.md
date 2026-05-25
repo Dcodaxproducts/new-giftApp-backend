@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 11:04 UTC
+Generated at: 2026-05-25 11:14 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 11:04 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 11:14 UTC.
 
 ## Frontend Integration Flows
 
@@ -900,16 +900,15 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 11:04 UTC.
 | GET | `/api/v1/provider/payouts/{id}` | Fetch own provider payout details | PROVIDER |
 | POST | `/api/v1/provider/payouts/{id}/cancel` | Cancel own pending provider payout | PROVIDER |
 
-### Provider - Promotional Offers (6 APIs)
+### Provider - Promotional Offers (5 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/provider/offers` | List Provider Offers | PROVIDER |
 | POST | `/api/v1/provider/offers` | Create Provider Offers | PROVIDER |
 | GET | `/api/v1/provider/offers/{id}` | Fetch Provider Offers details | PROVIDER |
-| PATCH | `/api/v1/provider/offers/{id}` | Update Provider Offers | PROVIDER |
+| PATCH | `/api/v1/provider/offers/{id}` | Update own provider promotional offer | PROVIDER |
 | DELETE | `/api/v1/provider/offers/{id}` | Delete Provider Offers | PROVIDER |
-| PATCH | `/api/v1/provider/offers/{id}/status` | Update Provider Offers Status | PROVIDER |
 
 ### Provider - Refund Requests (5 APIs)
 

@@ -13360,6 +13360,7 @@
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "patch": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Updates are scoped to the authenticated provider offer. Standard offer fields preserve current update behavior; status or isActive changes are handled through this same PATCH endpoint.",
         "operationId": "ProviderPromotionalOffersController_update",
         "parameters": [
           {
@@ -13377,13 +13378,57 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdatePromotionalOfferDto"
+              },
+              "examples": {
+                "updateOffer": {
+                  "value": {
+                    "title": "Weekend Discount",
+                    "description": "Weekend-only campaign.",
+                    "discountType": "PERCENTAGE",
+                    "discountValue": 20,
+                    "startDate": "2026-06-01T00:00:00.000Z",
+                    "endDate": "2026-06-03T23:59:59.000Z"
+                  }
+                },
+                "activateOffer": {
+                  "value": {
+                    "title": "Weekend Discount",
+                    "isActive": true,
+                    "status": "ACTIVE",
+                    "reason": "Provider reactivated offer."
+                  }
+                },
+                "deactivateOffer": {
+                  "value": {
+                    "isActive": false,
+                    "status": "INACTIVE",
+                    "reason": "Provider paused offer."
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Promotional offer updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "offer_id",
+                      "title": "Weekend Discount",
+                      "isActive": true,
+                      "status": "ACTIVE",
+                      "approvalStatus": "APPROVED"
+                    },
+                    "message": "Promotional offer updated successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -13391,13 +13436,12 @@
             "bearer": []
           }
         ],
+        "summary": "Update own provider promotional offer",
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "Update Provider Offers",
         "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER",
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
+        "x-access": "PROVIDER"
       },
       "delete": {
         "operationId": "ProviderPromotionalOffersController_delete",
@@ -13425,48 +13469,6 @@
           "03 Provider - Promotional Offers"
         ],
         "summary": "Delete Provider Offers",
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER",
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
-      }
-    },
-    "/api/v1/provider/offers/{id}/status": {
-      "patch": {
-        "operationId": "ProviderPromotionalOffersController_status",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOfferStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "03 Provider - Promotional Offers"
-        ],
-        "summary": "Update Provider Offers Status",
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER",
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
@@ -27727,22 +27729,22 @@
           },
           "isActive": {
             "type": "boolean"
-          }
-        }
-      },
-      "UpdateOfferStatusDto": {
-        "type": "object",
-        "properties": {
-          "isActive": {
-            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SCHEDULED",
+              "EXPIRED",
+              "INACTIVE",
+              "PENDING",
+              "REJECTED"
+            ]
           },
           "reason": {
             "type": "string"
           }
-        },
-        "required": [
-          "isActive"
-        ]
+        }
       },
       "CreateAdminOfferDto": {
         "type": "object",

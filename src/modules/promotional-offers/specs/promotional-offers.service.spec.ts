@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { BadRequestException } from '@nestjs/common';
 import { GiftModerationStatus, GiftStatus, NotificationRecipientType, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferRejectionReason, PromotionalOfferStatus, UserRole } from '@prisma/client';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { PromotionalOffersRepository } from '../repositories/promotional-offers.repository';
 import { PromotionalOffersService } from '../services/promotional-offers.service';
 import { ProviderOffersRepository } from '../repositories/provider-offers.repository';
@@ -12,7 +14,7 @@ function createService() {
   const offer = { id: 'offer_1', providerId: 'provider_1', itemId: 'gift_1', title: 'Sale', description: null, discountType: PromotionalOfferDiscountType.PERCENTAGE, discountValue: { toString: () => '20' }, startDate: new Date(Date.now() - 1000), endDate: new Date(Date.now() + 86_400_000), eligibilityRules: null, isActive: true, status: PromotionalOfferStatus.PENDING, approvalStatus: PromotionalOfferApprovalStatus.PENDING, approvedAt: null, approvedBy: null, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, createdBy: 'provider_1', updatedBy: null, deletedAt: null, createdAt: new Date(), updatedAt: new Date(), item, provider };
   const prisma = {
     gift: { findFirst: jest.fn().mockResolvedValue(item) },
-    promotionalOffer: { create: jest.fn().mockResolvedValue(offer), findFirst: jest.fn().mockResolvedValue(offer), findMany: jest.fn().mockResolvedValue([offer]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...offer, ...data, item, provider })) },
+    promotionalOffer: { create: jest.fn().mockResolvedValue(offer), findFirst: jest.fn().mockResolvedValue(offer), findMany: jest.fn().mockResolvedValue([offer]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }: { data: Record<string, unknown> }) => Promise.resolve({ ...offer, ...Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined)), item, provider })) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
@@ -43,10 +45,45 @@ describe('PromotionalOffersService', () => {
   });
 
   it('resets approved provider offer to pending on material update', async () => {
-    const { service, prisma, offer } = createService();
+    const { service, prisma, auditLog, offer } = createService();
     prisma.promotionalOffer.findFirst.mockResolvedValue({ ...offer, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, status: PromotionalOfferStatus.ACTIVE });
-    await service.updateProvider({ uid: 'provider_1', role: UserRole.PROVIDER }, 'offer_1', { title: 'New Sale' });
+    const result = await service.updateProvider({ uid: 'provider_1', role: UserRole.PROVIDER }, 'offer_1', { title: 'New Sale' });
+    expect(result.data).toEqual(expect.objectContaining({ title: 'New Sale' }));
     expect(prisma.promotionalOffer.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ approvalStatus: PromotionalOfferApprovalStatus.PENDING }) }));
+    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PROVIDER_PROMOTIONAL_OFFER_UPDATED' }));
+  });
+
+  it('activates and deactivates provider offers through main PATCH', async () => {
+    const { service, prisma, offer, auditLog } = createService();
+    prisma.promotionalOffer.findFirst
+      .mockResolvedValueOnce({ ...offer, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: false, status: PromotionalOfferStatus.INACTIVE })
+      .mockResolvedValueOnce({ ...offer, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: true, status: PromotionalOfferStatus.ACTIVE });
+
+    const activate = await service.updateProvider({ uid: 'provider_1', role: UserRole.PROVIDER }, 'offer_1', { isActive: true, status: PromotionalOfferStatus.ACTIVE, reason: 'Provider reactivated offer.' });
+    const deactivate = await service.updateProvider({ uid: 'provider_1', role: UserRole.PROVIDER }, 'offer_1', { isActive: false, status: PromotionalOfferStatus.INACTIVE, reason: 'Provider paused offer.' });
+
+    expect(activate.data).toEqual(expect.objectContaining({ isActive: true, status: PromotionalOfferStatus.ACTIVE }));
+    expect(deactivate.data).toEqual(expect.objectContaining({ isActive: false, status: PromotionalOfferStatus.INACTIVE }));
+    expect(prisma.promotionalOffer.update).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: expect.objectContaining({ isActive: true }) }));
+    expect(prisma.promotionalOffer.update).toHaveBeenNthCalledWith(2, expect.objectContaining({ data: expect.objectContaining({ isActive: false }) }));
+    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ beforeJson: expect.objectContaining({ reason: 'Provider reactivated offer.' }) }));
+  });
+
+  it('enforces provider offer ownership on update', async () => {
+    const { service, prisma, offer } = createService();
+    prisma.promotionalOffer.findFirst.mockImplementation(({ where }: { where: { providerId?: string } }) => Promise.resolve(where.providerId === 'provider_1' ? offer : null));
+    await expect(service.updateProvider({ uid: 'provider_2', role: UserRole.PROVIDER }, 'offer_1', { title: 'Not Mine' })).rejects.toThrow('Promotional offer not found');
+    expect(prisma.promotionalOffer.update).not.toHaveBeenCalled();
+  });
+
+  it('removes old provider offer status route from Swagger', () => {
+    const controller = readFileSync(join(__dirname, '../controllers/provider-promotional-offers.controller.ts'), 'utf8');
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };
+    expect(controller).toContain("@Patch(':id')");
+    expect(controller).not.toContain("@Patch(':id/status')");
+    expect(openapi.paths['/api/v1/provider/offers/{id}']).toBeDefined();
+    expect(openapi.paths['/api/v1/provider/offers/{id}/status']).toBeUndefined();
+    expect(Object.keys(openapi.paths['/api/v1/provider/offers/{id}']?.patch?.requestBody?.content?.['application/json']?.examples ?? {})).toEqual(expect.arrayContaining(['updateOffer', 'activateOffer', 'deactivateOffer']));
   });
 
   it('approve works and dispatches provider notification with audit log', async () => {

@@ -5,7 +5,7 @@ import { AuditLogWriterService } from '../../../common/services/audit-log.servic
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { OfferWithRelations, PromotionalOffersRepository, promotionalOfferInclude } from '../repositories/promotional-offers.repository';
 import { ProviderOffersRepository } from '../repositories/provider-offers.repository';
-import { AdminPromotionalOfferAction, AdminPromotionalOfferActionDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, SortOrder, UpdateOfferStatusDto, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
+import { AdminPromotionalOfferAction, AdminPromotionalOfferActionDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, SortOrder, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
 
 @Injectable()
 export class PromotionalOffersService {
@@ -52,11 +52,6 @@ export class PromotionalOffersService {
   async updateProvider(user: AuthUserContext, id: string, dto: UpdatePromotionalOfferDto) {
     const offer = await this.getOffer(id, user.uid);
     return this.updateOffer(user.uid, offer, dto, 'PROVIDER_PROMOTIONAL_OFFER_UPDATED', true);
-  }
-
-  async updateProviderStatus(user: AuthUserContext, id: string, dto: UpdateOfferStatusDto) {
-    const offer = await this.getOffer(id, user.uid);
-    return this.updateStatus(user.uid, offer, dto, 'PROVIDER_PROMOTIONAL_OFFER_STATUS_CHANGED');
   }
 
   async deleteProvider(user: AuthUserContext, id: string) {
@@ -189,18 +184,13 @@ export class PromotionalOffersService {
     const startDate = dto.startDate ? new Date(dto.startDate) : offer.startDate;
     const endDate = dto.endDate ? new Date(dto.endDate) : offer.endDate;
     this.validateDates(startDate.toISOString(), endDate?.toISOString());
+    const isActive = this.offerActiveFromDto(dto, offer);
+    if (isActive && offer.approvalStatus !== PromotionalOfferApprovalStatus.APPROVED) throw new BadRequestException('Offer cannot be active until approved');
     const materialChanged = this.materialChanged(dto);
     const approvalStatus = resetApprovalOnMaterialChange && materialChanged && offer.approvalStatus === PromotionalOfferApprovalStatus.APPROVED ? PromotionalOfferApprovalStatus.PENDING : offer.approvalStatus;
-    const updated = await this.updateOfferRecord(offer, { title: dto.title?.trim(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue), startDate: dto.startDate ? new Date(dto.startDate) : undefined, endDate: dto.endDate ? new Date(dto.endDate) : undefined, eligibilityRules: dto.eligibilityRules?.trim(), isActive: dto.isActive, approvalStatus, approvedAt: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedAt, approvedBy: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedBy, status: this.computeStatus(dto.isActive ?? offer.isActive, approvalStatus, startDate, endDate), updatedBy: actorId });
-    await this.audit(actorId, offer.id, action, this.toDetail(offer), this.toDetail(updated));
-    return { data: this.toDetail(updated), message: 'Promotional offer updated successfully' };
-  }
-
-  private async updateStatus(actorId: string, offer: OfferWithRelations, dto: UpdateOfferStatusDto, action: string) {
-    if (dto.isActive && offer.approvalStatus !== PromotionalOfferApprovalStatus.APPROVED) throw new BadRequestException('Offer cannot be active until approved');
-    const updated = await this.updateOfferStatusRecord(offer, { isActive: dto.isActive, status: this.computeStatus(dto.isActive, offer.approvalStatus, offer.startDate, offer.endDate), updatedBy: actorId });
+    const updated = await this.updateOfferRecord(offer, { title: dto.title?.trim(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue), startDate: dto.startDate ? new Date(dto.startDate) : undefined, endDate: dto.endDate ? new Date(dto.endDate) : undefined, eligibilityRules: dto.eligibilityRules?.trim(), isActive: dto.isActive === undefined && dto.status === undefined ? undefined : isActive, approvalStatus, approvedAt: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedAt, approvedBy: approvalStatus === PromotionalOfferApprovalStatus.PENDING ? null : offer.approvedBy, status: this.computeStatus(isActive, approvalStatus, startDate, endDate), updatedBy: actorId });
     await this.audit(actorId, offer.id, action, { ...this.toDetail(offer), reason: dto.reason }, this.toDetail(updated));
-    return { data: this.toDetail(updated), message: 'Promotional offer status updated successfully' };
+    return { data: this.toDetail(updated), message: 'Promotional offer updated successfully' };
   }
 
   private async approveAction(user: AuthUserContext, offer: OfferWithRelations, dto: AdminPromotionalOfferActionDto) {
@@ -373,6 +363,11 @@ export class PromotionalOffersService {
 
   private validateDates(startDate: string, endDate?: string) { if (endDate && new Date(endDate).getTime() < new Date(startDate).getTime()) throw new BadRequestException('endDate cannot be before startDate'); }
   private materialChanged(dto: UpdatePromotionalOfferDto) { return dto.title !== undefined || dto.description !== undefined || dto.discountType !== undefined || dto.discountValue !== undefined || dto.startDate !== undefined || dto.endDate !== undefined || dto.eligibilityRules !== undefined; }
+  private offerActiveFromDto(dto: UpdatePromotionalOfferDto, offer: OfferWithRelations): boolean {
+    if (dto.status === PromotionalOfferStatus.ACTIVE) return true;
+    if (dto.status === PromotionalOfferStatus.INACTIVE || dto.status === PromotionalOfferStatus.EXPIRED) return false;
+    return dto.isActive ?? offer.isActive;
+  }
   private computeStatus(isActive: boolean, approvalStatus: PromotionalOfferApprovalStatus, startDate: Date, endDate: Date | null): PromotionalOfferStatus { if (approvalStatus === PromotionalOfferApprovalStatus.PENDING) return PromotionalOfferStatus.PENDING; if (approvalStatus === PromotionalOfferApprovalStatus.REJECTED) return PromotionalOfferStatus.REJECTED; if (!isActive) return PromotionalOfferStatus.INACTIVE; const now = new Date(); if (endDate && endDate.getTime() <= now.getTime()) return PromotionalOfferStatus.EXPIRED; if (startDate.getTime() > now.getTime()) return PromotionalOfferStatus.SCHEDULED; return PromotionalOfferStatus.ACTIVE; }
   private computeOfferStatus(offer: PromotionalOffer) { return this.computeStatus(offer.isActive, offer.approvalStatus, offer.startDate, offer.endDate); }
   private order(sortBy?: PromotionalOfferSortBy, sortOrder?: SortOrder): Prisma.PromotionalOfferOrderByWithRelationInput { const field = sortBy ?? PromotionalOfferSortBy.CREATED_AT; return { [field]: sortOrder === SortOrder.ASC ? 'asc' : 'desc' }; }

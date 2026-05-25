@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferRejectionReason } from '@prisma/client';
+import { PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferRejectionReason, PromotionalOfferStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
 
@@ -52,9 +52,9 @@ export class UpdatePromotionalOfferDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() eligibilityRules?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional({ enum: PromotionalOfferStatus }) @IsOptional() @IsEnum(PromotionalOfferStatus) status?: PromotionalOfferStatus;
+  @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
 }
-
-export class UpdateOfferStatusDto { @ApiProperty() @IsBoolean() isActive!: boolean; @ApiPropertyOptional() @IsOptional() @IsString() reason?: string; }
 
 export enum AdminPromotionalOfferAction { APPROVE = 'APPROVE', REJECT = 'REJECT', ACTIVATE = 'ACTIVATE', DEACTIVATE = 'DEACTIVATE' }
 

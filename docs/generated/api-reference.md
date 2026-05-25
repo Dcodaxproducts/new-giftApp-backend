@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 11:03 UTC
+Generated at: 2026-05-25 11:14 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -46,7 +46,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Business Info (2 APIs)
 - 03 Provider - Reviews (7 APIs)
 - 03 Provider - Inventory (8 APIs)
-- 03 Provider - Promotional Offers (6 APIs)
+- 03 Provider - Promotional Offers (5 APIs)
 - 03 Provider - Orders (9 APIs)
 - 03 Provider - Payout Methods (7 APIs)
 - 03 Provider - Payouts (6 APIs)
@@ -1838,7 +1838,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "startDate": "<string>",
   "endDate": "<string>",
   "eligibilityRules": "<string>",
-  "isActive": true
+  "isActive": true,
+  "status": "ACTIVE",
+  "reason": "<string>"
 }
 ```
 - Response body:
@@ -6298,31 +6300,52 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/provider/offers/{id}`
 
-- Summary: Update Provider Offers
+- Summary: Update own provider promotional offer
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Updates are scoped to the authenticated provider offer. Standard offer fields preserve current update behavior; status or isActive changes are handled through this same PATCH endpoint.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - updateOffer:
 ```json
 {
-  "title": "<string>",
-  "description": "<string>",
+  "title": "Weekend Discount",
+  "description": "Weekend-only campaign.",
   "discountType": "PERCENTAGE",
-  "discountValue": 1.0,
-  "startDate": "<string>",
-  "endDate": "<string>",
-  "eligibilityRules": "<string>",
-  "isActive": true
+  "discountValue": 20,
+  "startDate": "2026-06-01T00:00:00.000Z",
+  "endDate": "2026-06-03T23:59:59.000Z"
+}
+```
+  - activateOffer:
+```json
+{
+  "title": "Weekend Discount",
+  "isActive": true,
+  "status": "ACTIVE",
+  "reason": "Provider reactivated offer."
+}
+```
+  - deactivateOffer:
+```json
+{
+  "isActive": false,
+  "status": "INACTIVE",
+  "reason": "Provider paused offer."
 }
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "offer_id",
+    "title": "Weekend Discount",
+    "isActive": true,
+    "status": "ACTIVE",
+    "approvalStatus": "APPROVED"
+  },
+  "message": "Promotional offer updated successfully"
 }
 ```
 
@@ -6337,30 +6360,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/provider/offers/{id}/status`
-
-- Summary: Update Provider Offers Status
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "isActive": true,
-  "reason": "<string>"
-}
 ```
 - Response body:
 ```json
