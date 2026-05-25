@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 08:26 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 08:26 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 09:29 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 09:29 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -4737,26 +4737,26 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/chats/threads/{threadId}/status</code></div><div><span class="label">Summary:</span> Update chat thread status</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with supportChats.resolve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Update support thread status.</div><div class="label">Parameters:</div><ul><li><code>threadId</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/chats/threads/{threadId}/status</code></div><div><span class="label">Summary:</span> Update chat thread status</div><div><span class="label">Allowed role/access:</span> REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission</div><div><span class="label">Notes:</span> Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission. Unified chat thread lifecycle endpoint. Support thread RESOLVED/REOPENED requires supportChats.resolve; BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate. Unified thread lifecycle endpoint. RESOLVED and REOPENED require supportChats.resolve for support threads. ARCHIVED follows thread owner/admin access rules. BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate.</div><div class="label">Parameters:</div><ul><li><code>threadId</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">resolved</div><pre>{
   &quot;status&quot;: &quot;RESOLVED&quot;,
-  &quot;comment&quot;: &quot;Issue resolved.&quot;,
-  &quot;notifyParticipant&quot;: true
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/chats/threads/{threadId}/resolve</code></div><div><span class="label">Summary:</span> Resolve a support chat thread</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with supportChats.resolve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant when requested.</div><div class="label">Parameters:</div><ul><li><code>threadId</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;status&quot;: &quot;RESOLVED&quot;,
-  &quot;comment&quot;: &quot;Issue resolved.&quot;,
-  &quot;notifyParticipant&quot;: true
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/chats/threads/{threadId}/reopen</code></div><div><span class="label">Summary:</span> Reopen a support chat thread</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with supportChats.resolve</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant when requested.</div><div class="label">Parameters:</div><ul><li><code>threadId</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;status&quot;: &quot;RESOLVED&quot;,
-  &quot;comment&quot;: &quot;Issue resolved.&quot;,
-  &quot;notifyParticipant&quot;: true
+  &quot;reason&quot;: &quot;ISSUE_RESOLVED&quot;,
+  &quot;comment&quot;: &quot;Support issue resolved.&quot;,
+  &quot;notifyParticipants&quot;: true
+}</pre><div class="small">reopened</div><pre>{
+  &quot;status&quot;: &quot;REOPENED&quot;,
+  &quot;reason&quot;: &quot;CUSTOMER_REPLIED&quot;,
+  &quot;comment&quot;: &quot;Customer needs more help.&quot;,
+  &quot;notifyParticipants&quot;: true
+}</pre><div class="small">archived</div><pre>{
+  &quot;status&quot;: &quot;ARCHIVED&quot;,
+  &quot;reason&quot;: &quot;NO_LONGER_NEEDED&quot;,
+  &quot;comment&quot;: &quot;Archived by participant.&quot;,
+  &quot;notifyParticipants&quot;: false
+}</pre><div class="small">blocked</div><pre>{
+  &quot;status&quot;: &quot;BLOCKED_BY_MODERATION&quot;,
+  &quot;reason&quot;: &quot;POLICY_VIOLATION&quot;,
+  &quot;comment&quot;: &quot;Blocked by moderation.&quot;,
+  &quot;notifyParticipants&quot;: true
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,

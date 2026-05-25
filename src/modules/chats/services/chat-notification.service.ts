@@ -31,6 +31,30 @@ export class ChatNotificationService {
     });
   }
 
+  async notifyThreadStatus(params: {
+    threadId: string;
+    status: string;
+    actorId: string;
+    participants: { userId: string; role: string; leftAt: Date | null }[];
+    comment?: string;
+  }) {
+    const recipients = params.participants.filter((participant) => participant.userId !== params.actorId && !participant.leftAt);
+    await Promise.all(recipients.map((participant) => this.notificationDispatch.createAndEmit({
+      recipientId: participant.userId,
+      recipientType: this.recipientType(participant.role),
+      title: 'Chat thread updated',
+      message: params.comment ?? `Chat thread status changed to ${params.status}.`,
+      type: 'CHAT_THREAD_STATUS_UPDATED',
+      metadataJson: { threadId: params.threadId, status: params.status },
+    })));
+  }
+
+  private recipientType(role: string): NotificationRecipientType {
+    if (role === UserRole.PROVIDER) return NotificationRecipientType.PROVIDER;
+    if (role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) return NotificationRecipientType.ADMIN;
+    return NotificationRecipientType.REGISTERED_USER;
+  }
+
   private recipient(params: {
     threadType: ChatThreadType;
     senderId: string;

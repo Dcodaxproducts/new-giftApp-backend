@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 08:26 UTC
+Generated at: 2026-05-25 09:29 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 08:26 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 09:29 UTC.
 
 ## Frontend Integration Flows
 
@@ -555,7 +555,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 08:26 UTC.
 | POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
 | POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
 
-### Chat - Threads (11 APIs)
+### Chat - Threads (9 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -567,9 +567,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 08:26 UTC.
 | GET | `/api/v1/chats/threads/{threadId}/messages` | Fetch chat thread messages | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission |
 | POST | `/api/v1/chats/threads/{threadId}/messages` | Send a chat message | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply |
 | PATCH | `/api/v1/chats/threads/{threadId}/read` | Mark a chat thread as read | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read |
-| POST | `/api/v1/chats/threads/{threadId}/reopen` | Reopen a support chat thread | SUPER_ADMIN or ADMIN with supportChats.resolve |
-| POST | `/api/v1/chats/threads/{threadId}/resolve` | Resolve a support chat thread | SUPER_ADMIN or ADMIN with supportChats.resolve |
-| PATCH | `/api/v1/chats/threads/{threadId}/status` | Update chat thread status | SUPER_ADMIN or ADMIN with supportChats.resolve |
+| PATCH | `/api/v1/chats/threads/{threadId}/status` | Update chat thread status | REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission |
 
 ### Customer - Addresses (6 APIs)
 

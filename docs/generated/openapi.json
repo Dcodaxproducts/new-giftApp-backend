@@ -24549,6 +24549,7 @@
     },
     "/api/v1/chats/threads/{threadId}/status": {
       "patch": {
+        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission. Unified chat thread lifecycle endpoint. Support thread RESOLVED/REOPENED requires supportChats.resolve; BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate. Unified thread lifecycle endpoint. RESOLVED and REOPENED require supportChats.resolve for support threads. ARCHIVED follows thread owner/admin access rules. BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate.",
         "operationId": "ChatsController_updateStatus",
         "parameters": [
           {
@@ -24566,6 +24567,40 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
+              },
+              "examples": {
+                "resolved": {
+                  "value": {
+                    "status": "RESOLVED",
+                    "reason": "ISSUE_RESOLVED",
+                    "comment": "Support issue resolved.",
+                    "notifyParticipants": true
+                  }
+                },
+                "reopened": {
+                  "value": {
+                    "status": "REOPENED",
+                    "reason": "CUSTOMER_REPLIED",
+                    "comment": "Customer needs more help.",
+                    "notifyParticipants": true
+                  }
+                },
+                "archived": {
+                  "value": {
+                    "status": "ARCHIVED",
+                    "reason": "NO_LONGER_NEEDED",
+                    "comment": "Archived by participant.",
+                    "notifyParticipants": false
+                  }
+                },
+                "blocked": {
+                  "value": {
+                    "status": "BLOCKED_BY_MODERATION",
+                    "reason": "POLICY_VIOLATION",
+                    "comment": "Blocked by moderation.",
+                    "notifyParticipants": true
+                  }
+                }
               }
             }
           }
@@ -24584,93 +24619,8 @@
         "tags": [
           "08 Chat - Threads"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Update support thread status."
-      }
-    },
-    "/api/v1/chats/threads/{threadId}/resolve": {
-      "post": {
-        "operationId": "ChatsController_resolve",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Resolve a support chat thread",
-        "tags": [
-          "08 Chat - Threads"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant when requested."
-      }
-    },
-    "/api/v1/chats/threads/{threadId}/reopen": {
-      "post": {
-        "operationId": "ChatsController_reopen",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reopen a support chat thread",
-        "tags": [
-          "08 Chat - Threads"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.resolve",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant when requested."
+        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission",
+        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission"
       }
     },
     "/api/v1/chats/threads/{threadId}/audit-log": {
@@ -30262,13 +30212,23 @@
             ],
             "example": "RESOLVED"
           },
+          "reason": {
+            "type": "string",
+            "example": "ISSUE_RESOLVED"
+          },
           "comment": {
             "type": "string",
-            "example": "Issue resolved."
+            "example": "Support issue resolved."
+          },
+          "notifyParticipants": {
+            "type": "boolean",
+            "example": true
           },
           "notifyParticipant": {
             "type": "boolean",
-            "example": true
+            "example": true,
+            "deprecated": true,
+            "description": "Use notifyParticipants."
           }
         },
         "required": [

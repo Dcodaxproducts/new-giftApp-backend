@@ -155,9 +155,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/chats/threads/{threadId}/messages': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission', description: 'Fetch messages only for accessible threads.' },
   'POST /api/v1/chats/threads/{threadId}/messages': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply', description: 'Send a message in an accessible order/support thread.' },
   'PATCH /api/v1/chats/threads/{threadId}/read': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read', description: 'Mark an accessible thread as read for the authenticated participant/admin.' },
-  'PATCH /api/v1/chats/threads/{threadId}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Update support thread status.' },
-  'POST /api/v1/chats/threads/{threadId}/resolve': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Resolve support chat and notify participant when requested.' },
-  'POST /api/v1/chats/threads/{threadId}/reopen': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.resolve', description: 'Reopen support chat and notify participant when requested.' },
+  'PATCH /api/v1/chats/threads/{threadId}/status': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission', description: 'Unified chat thread lifecycle endpoint. Support thread RESOLVED/REOPENED requires supportChats.resolve; BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate.' },
   'GET /api/v1/chats/threads/{threadId}/audit-log': { allowedRoles: 'SUPER_ADMIN or ADMIN with supportChats.read', description: 'Fetch audit trail for an accessible support/moderation thread.' },
 
   'GET /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned.' },

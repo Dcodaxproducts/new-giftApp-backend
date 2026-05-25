@@ -80,6 +80,8 @@ export class SendChatThreadMessageDto {
 
 export class UpdateChatThreadStatusDto {
   @ApiProperty({ enum: ChatStatus, example: ChatStatus.RESOLVED }) @IsEnum(ChatStatus) status!: ChatStatus;
-  @ApiPropertyOptional({ example: 'Issue resolved.' }) @IsOptional() @IsString() @MaxLength(500) comment?: string;
-  @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() notifyParticipant?: boolean;
+  @ApiPropertyOptional({ example: 'ISSUE_RESOLVED' }) @IsOptional() @IsString() @MaxLength(120) reason?: string;
+  @ApiPropertyOptional({ example: 'Support issue resolved.' }) @IsOptional() @IsString() @MaxLength(500) comment?: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() notifyParticipants?: boolean;
+  @ApiPropertyOptional({ example: true, deprecated: true, description: 'Use notifyParticipants.' }) @IsOptional() @Type(() => Boolean) @IsBoolean() notifyParticipant?: boolean;
 }

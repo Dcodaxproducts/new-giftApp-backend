@@ -20,10 +20,10 @@ export class ChatRealtimeService {
   }
 
   resolve(user: AuthUserContext, threadId: string, dto: UpdateChatThreadStatusDto) {
-    return this.threads.resolve(user, threadId, dto);
+    return this.threads.updateStatus(user, threadId, dto);
   }
 
   reopen(user: AuthUserContext, threadId: string, dto: UpdateChatThreadStatusDto) {
-    return this.threads.reopen(user, threadId, dto);
+    return this.threads.updateStatus(user, threadId, dto);
   }
 }

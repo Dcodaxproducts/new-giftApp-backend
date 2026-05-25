@@ -39,14 +39,6 @@ export class ChatCoreService {
     return this.threads.updateStatus(user, threadId, dto);
   }
 
-  resolve(user: AuthUserContext, threadId: string, dto: UpdateChatThreadStatusDto) {
-    return this.threads.resolve(user, threadId, dto);
-  }
-
-  reopen(user: AuthUserContext, threadId: string, dto: UpdateChatThreadStatusDto) {
-    return this.threads.reopen(user, threadId, dto);
-  }
-
   auditLog(user: AuthUserContext, threadId: string) {
     return this.threads.auditLog(user, threadId);
   }

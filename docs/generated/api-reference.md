@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 08:26 UTC
+Generated at: 2026-05-25 09:29 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -75,7 +75,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 06 Broadcast Notifications (10 APIs)
 - 07 Plans & Coupons (21 APIs)
 - 07 Storage (5 APIs)
-- 08 Chat - Threads (11 APIs)
+- 08 Chat - Threads (9 APIs)
 
 ## 01 Auth
 
@@ -11168,67 +11168,45 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### PATCH `/api/v1/chats/threads/{threadId}/status`
 
 - Summary: Update chat thread status
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Update support thread status.
+- Allowed role/access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission
+- Notes: Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission. Unified chat thread lifecycle endpoint. Support thread RESOLVED/REOPENED requires supportChats.resolve; BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate. Unified thread lifecycle endpoint. RESOLVED and REOPENED require supportChats.resolve for support threads. ARCHIVED follows thread owner/admin access rules. BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate.
 - Parameters:
   - `threadId` (path, required, string)
 - Request payload(s):
-  - payload:
+  - resolved:
 ```json
 {
   "status": "RESOLVED",
-  "comment": "Issue resolved.",
-  "notifyParticipant": true
+  "reason": "ISSUE_RESOLVED",
+  "comment": "Support issue resolved.",
+  "notifyParticipants": true
 }
 ```
-- Response body:
+  - reopened:
 ```json
 {
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "status": "REOPENED",
+  "reason": "CUSTOMER_REPLIED",
+  "comment": "Customer needs more help.",
+  "notifyParticipants": true
 }
 ```
-
-### POST `/api/v1/chats/threads/{threadId}/resolve`
-
-- Summary: Resolve a support chat thread
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Resolve support chat and notify participant when requested.
-- Parameters:
-  - `threadId` (path, required, string)
-- Request payload(s):
-  - payload:
+  - archived:
 ```json
 {
-  "status": "RESOLVED",
-  "comment": "Issue resolved.",
-  "notifyParticipant": true
+  "status": "ARCHIVED",
+  "reason": "NO_LONGER_NEEDED",
+  "comment": "Archived by participant.",
+  "notifyParticipants": false
 }
 ```
-- Response body:
+  - blocked:
 ```json
 {
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/chats/threads/{threadId}/reopen`
-
-- Summary: Reopen a support chat thread
-- Allowed role/access: SUPER_ADMIN or ADMIN with supportChats.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with supportChats.resolve. Reopen support chat and notify participant when requested.
-- Parameters:
-  - `threadId` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "status": "RESOLVED",
-  "comment": "Issue resolved.",
-  "notifyParticipant": true
+  "status": "BLOCKED_BY_MODERATION",
+  "reason": "POLICY_VIOLATION",
+  "comment": "Blocked by moderation.",
+  "notifyParticipants": true
 }
 ```
 - Response body:

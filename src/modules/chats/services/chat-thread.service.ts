@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { ChatAccessPolicyService } from './chat-access-policy.service';
 import { ChatAttachmentPolicyService } from './chat-attachment-policy.service';
 import { ChatMessageService } from './chat-message.service';
+import { ChatNotificationService } from './chat-notification.service';
 import { ChatReadReceiptService } from './chat-read-receipt.service';
 import { CHAT_THREAD_INCLUDE, ChatThreadRepository } from '../repositories/chat-thread.repository';
 import { ChatAuditLogRepository } from '../repositories/chat-audit-log.repository';
@@ -21,6 +22,7 @@ export class ChatThreadService {
     private readonly receipts: ChatReadReceiptService,
     private readonly attachments: ChatAttachmentPolicyService,
     private readonly auditLogs: ChatAuditLogRepository,
+    private readonly notifications: ChatNotificationService,
   ) {}
 
   async list(user: AuthUserContext, query: ListChatsDto): Promise<Envelope<unknown>> {
@@ -75,25 +77,49 @@ export class ChatThreadService {
   }
 
   async updateStatus(user: AuthUserContext, threadId: string, dto: UpdateChatThreadStatusDto): Promise<Envelope<unknown>> {
-    if (dto.status === ChatStatus.RESOLVED) return this.resolve(user, threadId, dto);
-    if (dto.status === ChatStatus.ACTIVE || dto.status === ChatStatus.REOPENED) return this.reopen(user, threadId, dto);
-    throw new BadRequestException('Only ACTIVE, REOPENED, and RESOLVED status updates are supported');
+    const thread = await this.access.getAllowedThread(user, threadId);
+    this.assertCanUpdateStatus(user, thread, dto.status);
+    const status = this.statusFor(dto.status);
+    const updated = await this.threads.update(threadId, { status, ...this.statusResolutionData(user, dto.status) });
+    const notifyParticipants = dto.notifyParticipants ?? dto.notifyParticipant ?? true;
+    await this.auditLogs.create({ threadId, actorId: user.uid, action: this.statusAuditAction(dto.status), metadataJson: { status: dto.status, reason: dto.reason, comment: dto.comment, notifyParticipants } });
+    if (notifyParticipants) await this.notifications.notifyThreadStatus({ threadId, status: dto.status, actorId: user.uid, participants: thread.participants, comment: dto.comment });
+    return { data: { id: updated.id, status: updated.status }, message: this.statusMessage(dto.status) };
   }
 
-  async resolve(user: AuthUserContext, threadId: string, dto: Pick<UpdateChatThreadStatusDto, 'comment' | 'notifyParticipant'>): Promise<Envelope<unknown>> {
-    const thread = await this.access.getAllowedThread(user, threadId);
-    this.access.assertCanResolve(user, thread);
-    const updated = await this.threads.update(threadId, { status: ChatThreadStatus.RESOLVED, resolvedAt: new Date(), resolvedBy: { connect: { id: user.uid } } });
-    await this.auditLogs.create({ threadId, actorId: user.uid, action: 'chat.thread.resolved', metadataJson: { comment: dto.comment, notifyParticipant: dto.notifyParticipant ?? true } });
-    return { data: { id: updated.id, status: updated.status }, message: 'Chat thread resolved successfully.' };
+  private assertCanUpdateStatus(user: AuthUserContext, thread: Thread, status: ChatStatus): void {
+    if ((status === ChatStatus.RESOLVED || status === ChatStatus.REOPENED) && thread.threadType === ChatThreadType.SUPPORT_CHAT) {
+      this.access.assertCanResolve(user, thread);
+      return;
+    }
+    if (status === ChatStatus.BLOCKED_BY_MODERATION) {
+      if (this.access.isAdmin(user) && this.access.hasAny(user, ['messageModeration.moderate', 'chats.moderate'])) return;
+      throw new ForbiddenException('Your role does not have the required permission');
+    }
   }
 
-  async reopen(user: AuthUserContext, threadId: string, dto: Pick<UpdateChatThreadStatusDto, 'comment' | 'notifyParticipant'>): Promise<Envelope<unknown>> {
-    const thread = await this.access.getAllowedThread(user, threadId);
-    this.access.assertCanResolve(user, thread);
-    const updated = await this.threads.update(threadId, { status: ChatThreadStatus.REOPENED, resolvedAt: null, resolvedBy: { disconnect: true } });
-    await this.auditLogs.create({ threadId, actorId: user.uid, action: 'chat.thread.reopened', metadataJson: { comment: dto.comment, notifyParticipant: dto.notifyParticipant ?? true } });
-    return { data: { id: updated.id, status: updated.status }, message: 'Chat thread reopened successfully.' };
+  private statusFor(status: ChatStatus): ChatThreadStatus {
+    return status;
+  }
+
+  private statusResolutionData(user: AuthUserContext, status: ChatStatus): Prisma.ChatThreadUpdateInput {
+    if (status === ChatStatus.RESOLVED) return { resolvedAt: new Date(), resolvedBy: { connect: { id: user.uid } } };
+    if (status === ChatStatus.ACTIVE || status === ChatStatus.REOPENED) return { resolvedAt: null, resolvedBy: { disconnect: true } };
+    return {};
+  }
+
+  private statusAuditAction(status: ChatStatus): string {
+    if (status === ChatStatus.RESOLVED) return 'chat.thread.resolved';
+    if (status === ChatStatus.REOPENED || status === ChatStatus.ACTIVE) return 'chat.thread.reopened';
+    if (status === ChatStatus.ARCHIVED) return 'chat.thread.archived';
+    return 'chat.thread.blocked_by_moderation';
+  }
+
+  private statusMessage(status: ChatStatus): string {
+    if (status === ChatStatus.RESOLVED) return 'Chat thread resolved successfully.';
+    if (status === ChatStatus.REOPENED || status === ChatStatus.ACTIVE) return 'Chat thread reopened successfully.';
+    if (status === ChatStatus.ARCHIVED) return 'Chat thread archived successfully.';
+    return 'Chat thread blocked by moderation successfully.';
   }
 
   async auditLog(user: AuthUserContext, threadId: string): Promise<Envelope<unknown>> {

@@ -62,24 +62,10 @@ export class ChatsController {
   }
 
   @Patch('threads/:threadId/status')
-  @ApiOperation({ summary: 'Update chat thread status' })
-  @ApiBody({ type: UpdateChatThreadStatusDto })
+  @ApiOperation({ summary: 'Update chat thread status', description: 'Unified thread lifecycle endpoint. RESOLVED and REOPENED require supportChats.resolve for support threads. ARCHIVED follows thread owner/admin access rules. BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate.' })
+  @ApiBody({ type: UpdateChatThreadStatusDto, examples: { resolved: { value: { status: 'RESOLVED', reason: 'ISSUE_RESOLVED', comment: 'Support issue resolved.', notifyParticipants: true } }, reopened: { value: { status: 'REOPENED', reason: 'CUSTOMER_REPLIED', comment: 'Customer needs more help.', notifyParticipants: true } }, archived: { value: { status: 'ARCHIVED', reason: 'NO_LONGER_NEEDED', comment: 'Archived by participant.', notifyParticipants: false } }, blocked: { value: { status: 'BLOCKED_BY_MODERATION', reason: 'POLICY_VIOLATION', comment: 'Blocked by moderation.', notifyParticipants: true } } } })
   updateStatus(@CurrentUser() user: AuthUserContext, @Param('threadId') threadId: string, @Body() dto: UpdateChatThreadStatusDto) {
     return this.chats.updateStatus(user, threadId, dto);
-  }
-
-  @Post('threads/:threadId/resolve')
-  @ApiOperation({ summary: 'Resolve a support chat thread' })
-  @ApiBody({ type: UpdateChatThreadStatusDto })
-  resolve(@CurrentUser() user: AuthUserContext, @Param('threadId') threadId: string, @Body() dto: UpdateChatThreadStatusDto) {
-    return this.chats.resolve(user, threadId, dto);
-  }
-
-  @Post('threads/:threadId/reopen')
-  @ApiOperation({ summary: 'Reopen a support chat thread' })
-  @ApiBody({ type: UpdateChatThreadStatusDto })
-  reopen(@CurrentUser() user: AuthUserContext, @Param('threadId') threadId: string, @Body() dto: UpdateChatThreadStatusDto) {
-    return this.chats.reopen(user, threadId, dto);
   }
 
   @Get('threads/:threadId/audit-log')
