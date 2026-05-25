@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:46 UTC
+Generated at: 2026-05-25 07:58 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -50,7 +50,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Orders (9 APIs)
 - 03 Provider - Payout Methods (7 APIs)
 - 03 Provider - Payouts (6 APIs)
-- 03 Provider - Refund Requests (6 APIs)
+- 03 Provider - Refund Requests (5 APIs)
 - 03 Provider - Order Analytics (5 APIs)
 - 04 Gifts - Categories (7 APIs)
 - 04 Gifts - Management (8 APIs)
@@ -6857,44 +6857,29 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/provider/refund-requests/{id}/approve`
+### POST `/api/v1/provider/refund-requests/{id}/action`
 
-- Summary: Approve own requested refund
+- Summary: Run own refund request action
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Validates ownership, REQUESTED status, requested amount, refundable amount, creates refund transaction marker, timeline entry, and customer notification.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. APPROVE validates ownership, REQUESTED status, requested/refundable amount, creates refund transaction marker/timeline, and notifies the customer by default. REJECT validates ownership and REQUESTED status, requires reason, creates timeline, and does not create a Stripe refund.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - approve:
 ```json
 {
-  "comment": "Refund approved after reviewing evidence.",
+  "action": "APPROVE",
+  "comment": "Refund approved after evidence review.",
   "refundAmount": 45,
   "notifyCustomer": true
 }
 ```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/provider/refund-requests/{id}/reject`
-
-- Summary: Reject own requested refund
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Validates ownership and REQUESTED status. Creates timeline entry and optional customer notification. No Stripe refund is created.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
   - reject:
 ```json
 {
-  "reason": "REFUND_WINDOW_EXPIRED",
-  "comment": "The request was submitted after the allowed refund period.",
+  "action": "REJECT",
+  "reason": "NOT_COVERED_BY_POLICY",
+  "comment": "Refund rejected after evidence review.",
   "notifyCustomer": true
 }
 ```

@@ -6,6 +6,7 @@ import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNumber, IsOptional, IsString, Ma
 export enum ProviderRefundRequestStatusFilter { ALL = 'ALL', REQUESTED = 'REQUESTED', APPROVED = 'APPROVED', REJECTED = 'REJECTED', REFUNDED = 'REFUNDED', FAILED = 'FAILED' }
 export enum ProviderRefundRequestSortBy { CREATED_AT = 'createdAt', AMOUNT = 'amount', STATUS = 'status' }
 export enum ProviderRefundRequestSortOrder { ASC = 'ASC', DESC = 'DESC' }
+export enum ProviderRefundRequestAction { APPROVE = 'APPROVE', REJECT = 'REJECT' }
 
 export class ListProviderRefundRequestsDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
@@ -18,15 +19,11 @@ export class ListProviderRefundRequestsDto {
   @ApiPropertyOptional({ enum: ProviderRefundRequestSortOrder }) @IsOptional() @IsEnum(ProviderRefundRequestSortOrder) sortOrder?: ProviderRefundRequestSortOrder;
 }
 
-export class ApproveProviderRefundRequestDto {
-  @ApiPropertyOptional({ example: 'Refund approved after reviewing evidence.' }) @IsOptional() @IsString() comment?: string;
-  @ApiProperty({ example: 45 }) @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) refundAmount!: number;
-  @ApiPropertyOptional({ example: true, default: true }) @IsOptional() @IsBoolean() notifyCustomer?: boolean;
-}
-
-export class RejectProviderRefundRequestDto {
-  @ApiProperty({ enum: RefundRejectReason, example: RefundRejectReason.REFUND_WINDOW_EXPIRED }) @IsEnum(RefundRejectReason) reason!: RefundRejectReason;
-  @ApiPropertyOptional({ example: 'The request was submitted after the allowed refund period.' }) @IsOptional() @IsString() comment?: string;
+export class ProviderRefundRequestActionDto {
+  @ApiProperty({ enum: ProviderRefundRequestAction, example: ProviderRefundRequestAction.APPROVE }) @IsEnum(ProviderRefundRequestAction) action!: ProviderRefundRequestAction;
+  @ApiPropertyOptional({ enum: RefundRejectReason, example: RefundRejectReason.NOT_COVERED_BY_POLICY, description: 'Required when action is REJECT.' }) @IsOptional() @IsEnum(RefundRejectReason) reason?: RefundRejectReason;
+  @ApiPropertyOptional({ example: 'Refund approved after evidence review.' }) @IsOptional() @IsString() comment?: string;
+  @ApiPropertyOptional({ example: 45, description: 'Required when action is APPROVE.' }) @IsOptional() @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) refundAmount?: number;
   @ApiPropertyOptional({ example: true, default: true }) @IsOptional() @IsBoolean() notifyCustomer?: boolean;
 }
 

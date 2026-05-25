@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PaymentMethod, PaymentStatus, Prisma, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { PROVIDER_REFUND_REQUEST_INCLUDE, ProviderRefundRequestsRepository } from '../repositories/provider-refund-requests.repository';
-import { ApproveProviderRefundRequestDto, ListProviderRefundRequestsDto, ProviderRefundRequestSortBy, ProviderRefundRequestSortOrder, ProviderRefundRequestStatusFilter, RejectProviderRefundRequestDto } from '../dto/provider-refund-requests.dto';
+import { ListProviderRefundRequestsDto, ProviderRefundRequestAction, ProviderRefundRequestActionDto, ProviderRefundRequestSortBy, ProviderRefundRequestSortOrder, ProviderRefundRequestStatusFilter } from '../dto/provider-refund-requests.dto';
 
 type RefundRequestView = Prisma.RefundRequestGetPayload<{ include: typeof PROVIDER_REFUND_REQUEST_INCLUDE }>;
 
@@ -27,9 +27,16 @@ export class ProviderRefundRequestsService {
 
   async details(user: AuthUserContext, id: string) { const refund = await this.getOwnedRefundRequest(user.uid, id); return { data: this.toDetails(refund), message: 'Refund request fetched successfully.' }; }
 
-  async approve(user: AuthUserContext, id: string, dto: ApproveProviderRefundRequestDto) {
+  async action(user: AuthUserContext, id: string, dto: ProviderRefundRequestActionDto) {
     const refund = await this.getOwnedRefundRequest(user.uid, id);
     this.assertRequested(refund);
+    if (dto.action === ProviderRefundRequestAction.APPROVE) return this.approveAction(user, refund, dto);
+    return this.rejectAction(user, refund, dto);
+  }
+
+  rejectReasons() { return { data: [{ key: RefundRejectReason.ITEM_DELIVERED_AS_DESCRIBED, label: 'Item was delivered as described' }, { key: RefundRejectReason.NO_DAMAGE_EVIDENCE, label: 'No evidence of damage provided' }, { key: RefundRejectReason.REFUND_WINDOW_EXPIRED, label: 'Refund window has expired' }, { key: RefundRejectReason.NOT_COVERED_BY_POLICY, label: 'Issue not covered under refund policy' }, { key: RefundRejectReason.OTHER, label: 'Other' }], message: 'Refund rejection reasons fetched successfully.' }; }
+  private async approveAction(user: AuthUserContext, refund: RefundRequestView, dto: ProviderRefundRequestActionDto) {
+    if (dto.refundAmount === undefined) throw new BadRequestException('Refund amount is required when approving a refund request');
     const refundableAmount = await this.refundableAmount(refund);
     if (dto.refundAmount > Number(refund.requestedAmount)) throw new BadRequestException('Refund amount cannot exceed requested amount');
     if (dto.refundAmount > refundableAmount) throw new BadRequestException('Refund amount cannot exceed refundable amount');
@@ -39,14 +46,11 @@ export class ProviderRefundRequestsService {
     return { data: { id: updated.id, status: updated.status, refundAmount: Number(updated.approvedAmount), transactionId: updated.transactionId }, message: status === RefundRequestStatus.REFUNDED ? 'Refund approved and processed successfully.' : 'Refund approved and queued for processing.' };
   }
 
-  async reject(user: AuthUserContext, id: string, dto: RejectProviderRefundRequestDto) {
-    const refund = await this.getOwnedRefundRequest(user.uid, id);
-    this.assertRequested(refund);
+  private async rejectAction(user: AuthUserContext, refund: RefundRequestView, dto: ProviderRefundRequestActionDto) {
+    if (!dto.reason) throw new BadRequestException('Reason is required when rejecting a refund request');
     const updated = await this.repository.rejectWithSideEffects({ refundId: refund.id, providerOrderId: refund.providerOrderId, userId: refund.userId, actorId: user.uid, reason: dto.reason, providerComment: dto.comment?.trim(), description: dto.comment?.trim() ?? this.rejectReasonLabel(dto.reason), providerOrderStatus: refund.providerOrder.status, notifyCustomer: dto.notifyCustomer ?? true });
     return { data: { id: updated.id, status: updated.status, rejectionReason: updated.rejectionReason }, message: 'Refund request rejected successfully.' };
   }
-
-  rejectReasons() { return { data: [{ key: RefundRejectReason.ITEM_DELIVERED_AS_DESCRIBED, label: 'Item was delivered as described' }, { key: RefundRejectReason.NO_DAMAGE_EVIDENCE, label: 'No evidence of damage provided' }, { key: RefundRejectReason.REFUND_WINDOW_EXPIRED, label: 'Refund window has expired' }, { key: RefundRejectReason.NOT_COVERED_BY_POLICY, label: 'Issue not covered under refund policy' }, { key: RefundRejectReason.OTHER, label: 'Other' }], message: 'Refund rejection reasons fetched successfully.' }; }
   private where(providerId: string, query: ListProviderRefundRequestsDto): Prisma.RefundRequestWhereInput { const where: Prisma.RefundRequestWhereInput = { providerId }; if (query.status && query.status !== ProviderRefundRequestStatusFilter.ALL) where.status = query.status; if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined }; if (query.search) where.OR = [{ providerOrder: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { user: { firstName: { contains: query.search, mode: 'insensitive' } } }, { user: { lastName: { contains: query.search, mode: 'insensitive' } } }, { user: { email: { contains: query.search, mode: 'insensitive' } } }]; return where; }
   private orderBy(sortBy?: ProviderRefundRequestSortBy, sortOrder?: ProviderRefundRequestSortOrder): Prisma.RefundRequestOrderByWithRelationInput { const direction = sortOrder === ProviderRefundRequestSortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ProviderRefundRequestSortBy.AMOUNT) return { requestedAmount: direction }; if (sortBy === ProviderRefundRequestSortBy.STATUS) return { status: direction }; return { createdAt: direction }; }
   private async getOwnedRefundRequest(providerId: string, id: string): Promise<RefundRequestView> { const refund = await this.repository.findOwnedByProvider(providerId, id); if (!refund) throw new NotFoundException('Refund request not found'); return refund; }

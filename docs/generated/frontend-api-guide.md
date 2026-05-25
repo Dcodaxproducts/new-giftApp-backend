@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:46 UTC
+Generated at: 2026-05-25 07:58 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 07:46 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 07:58 UTC.
 
 ## Frontend Integration Flows
 
@@ -920,7 +920,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:46 UTC.
 | DELETE | `/api/v1/provider/offers/{id}` | Delete Provider Offers | PROVIDER |
 | PATCH | `/api/v1/provider/offers/{id}/status` | Update Provider Offers Status | PROVIDER |
 
-### Provider - Refund Requests (6 APIs)
+### Provider - Refund Requests (5 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -928,8 +928,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:46 UTC.
 | GET | `/api/v1/provider/refund-requests/reject-reasons` | List refund rejection reasons | PROVIDER |
 | GET | `/api/v1/provider/refund-requests/summary` | Fetch own refund request summary | PROVIDER |
 | GET | `/api/v1/provider/refund-requests/{id}` | Fetch own refund request details | PROVIDER |
-| POST | `/api/v1/provider/refund-requests/{id}/approve` | Approve own requested refund | PROVIDER |
-| POST | `/api/v1/provider/refund-requests/{id}/reject` | Reject own requested refund | PROVIDER |
+| POST | `/api/v1/provider/refund-requests/{id}/action` | Run own refund request action | PROVIDER |
 
 ### Provider - Reviews (7 APIs)
 
