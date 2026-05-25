@@ -24,8 +24,6 @@ import {
   ListRegisteredUsersDto,
   ListUserActivityDto,
   ResetRegisteredUserPasswordDto,
-  SuspendRegisteredUserDto,
-  UnsuspendRegisteredUserDto,
   UpdateRegisteredUserDto,
   UpdateRegisteredUserStatusDto,
 } from '../dto/user-management.dto';
@@ -74,33 +72,27 @@ export class UserManagementController {
   }
 
   @Patch(':id/status')
-  @Permissions('users.status.update')
+  @ApiOperation({
+    summary: 'Run registered user lifecycle action',
+    description: "SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require 'users.status.update'; SUSPEND requires 'users.suspend'; UNSUSPEND requires 'users.unsuspend'.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User lifecycle action completed successfully',
+    schema: {
+      example: {
+        success: true,
+        data: { id: 'user_id', status: 'SUSPENDED', isActive: false, suspension: { reason: 'POLICY_VIOLATION', comment: 'User violated platform policy.', suspendedAt: '2026-05-25T10:00:00.000Z', suspendedBy: 'admin_id' } },
+        message: 'User suspended successfully',
+      },
+    },
+  })
   updateStatus(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,
     @Body() dto: UpdateRegisteredUserStatusDto,
   ): Promise<unknown> {
     return this.userManagementService.updateStatus(user, id, dto);
-  }
-
-  @Post(':id/suspend')
-  @Permissions('users.suspend')
-  suspend(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: SuspendRegisteredUserDto,
-  ): Promise<unknown> {
-    return this.userManagementService.suspend(user, id, dto);
-  }
-
-  @Post(':id/unsuspend')
-  @Permissions('users.unsuspend')
-  unsuspend(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: UnsuspendRegisteredUserDto,
-  ): Promise<unknown> {
-    return this.userManagementService.unsuspend(user, id, dto);
   }
 
   @Post(':id/reset-password')

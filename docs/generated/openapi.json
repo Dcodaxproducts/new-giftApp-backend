@@ -14537,6 +14537,7 @@
     },
     "/api/v1/users/{id}/status": {
       "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=>users.status.update, SUSPEND=>users.suspend, UNSUSPEND=>users.unsuspend). SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require users.status.update; SUSPEND requires users.suspend; UNSUSPEND requires users.unsuspend. SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require 'users.status.update'; SUSPEND requires 'users.suspend'; UNSUSPEND requires 'users.unsuspend'.",
         "operationId": "UserManagementController_updateStatus",
         "parameters": [
           {
@@ -14560,105 +14561,41 @@
         },
         "responses": {
           "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Update Users Status",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.status.update",
-        "x-access": "SUPER_ADMIN or ADMIN with users.status.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission."
-      }
-    },
-    "/api/v1/users/{id}/suspend": {
-      "post": {
-        "operationId": "UserManagementController_suspend",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SuspendRegisteredUserDto"
+            "description": "User lifecycle action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "user_id",
+                      "status": "SUSPENDED",
+                      "isActive": false,
+                      "suspension": {
+                        "reason": "POLICY_VIOLATION",
+                        "comment": "User violated platform policy.",
+                        "suspendedAt": "2026-05-25T10:00:00.000Z",
+                        "suspendedBy": "admin_id"
+                      }
+                    },
+                    "message": "User suspended successfully"
+                  }
+                }
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
         "security": [
           {
             "bearer": []
           }
         ],
+        "summary": "Run registered user lifecycle action",
         "tags": [
           "02 Admin - User Management"
         ],
-        "summary": "Create Users Suspend",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.suspend",
-        "x-access": "SUPER_ADMIN or ADMIN with users.suspend",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission."
-      }
-    },
-    "/api/v1/users/{id}/unsuspend": {
-      "post": {
-        "operationId": "UserManagementController_unsuspend",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UnsuspendRegisteredUserDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - User Management"
-        ],
-        "summary": "Create Users Unsuspend",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with users.unsuspend",
-        "x-access": "SUPER_ADMIN or ADMIN with users.unsuspend",
-        "description": "Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=>users.status.update, SUSPEND=>users.suspend, UNSUSPEND=>users.unsuspend)",
+        "x-access": "SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=>users.status.update, SUSPEND=>users.suspend, UNSUSPEND=>users.unsuspend)"
       }
     },
     "/api/v1/users/{id}/reset-password": {
@@ -28518,13 +28455,25 @@
       "UpdateRegisteredUserStatusDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "UPDATE_STATUS",
+              "SUSPEND",
+              "UNSUSPEND",
+              "DISABLE",
+              "ENABLE"
+            ],
+            "example": "SUSPEND"
+          },
           "status": {
             "type": "string",
             "enum": [
               "ACTIVE",
               "SUSPENDED",
               "DISABLED"
-            ]
+            ],
+            "example": "SUSPENDED"
           },
           "reason": {
             "type": "string",
@@ -28547,48 +28496,8 @@
           }
         },
         "required": [
-          "status"
+          "action"
         ]
-      },
-      "SuspendRegisteredUserDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "POLICY_VIOLATION",
-              "PAYMENT_ISSUE",
-              "FRAUD_SUSPECTED",
-              "USER_REQUEST",
-              "ABUSE_REPORT",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string",
-            "example": "Suspicious account activity."
-          },
-          "notifyUser": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "UnsuspendRegisteredUserDto": {
-        "type": "object",
-        "properties": {
-          "comment": {
-            "type": "string",
-            "example": "Account reviewed and restored."
-          },
-          "notifyUser": {
-            "type": "boolean",
-            "example": true
-          }
-        }
       },
       "ResetRegisteredUserPasswordDto": {
         "type": "object",

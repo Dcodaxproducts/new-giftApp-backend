@@ -3,7 +3,9 @@ import { NotFoundException } from '@nestjs/common';
 import { OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { RegisteredUserSortBy, SortOrder, SuspensionReason } from '../dto/user-management.dto';
+import { RegisteredUserLifecycleAction, RegisteredUserSortBy, RegisteredUserStatusUpdate, SortOrder, SuspensionReason } from '../dto/user-management.dto';
+import { AccountStatusRepository } from '../../../common/repositories/account-status.repository';
+import { AccountLifecycleService } from '../../../common/services/account-lifecycle.service';
 import { UserManagementRepository } from '../repositories/user-management.repository';
 import { UserManagementCoreService } from '../services/user-management-core.service';
 
@@ -22,7 +24,7 @@ function createService() {
       update: jest.fn(),
     },
     adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
-    authSession: { deleteMany: jest.fn() },
+    authSession: { deleteMany: jest.fn(), updateMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn() },
@@ -51,11 +53,24 @@ function createService() {
   };
   const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
   const repository = new UserManagementRepository(prisma as unknown as ConstructorParameters<typeof UserManagementRepository>[0], notificationDispatch as never);
+  const accountLifecycleRepository = new AccountStatusRepository(prisma as unknown as ConstructorParameters<typeof AccountStatusRepository>[0]);
+  const accountLifecycleAudit = {
+    write: jest.fn((input: unknown) => {
+      prisma.adminAuditLog.create({ data: input });
+      return Promise.resolve();
+    }),
+  };
+  const accountLifecycleService = new AccountLifecycleService(
+    accountLifecycleRepository,
+    accountLifecycleAudit as unknown as ConstructorParameters<typeof AccountLifecycleService>[1],
+    mailer as unknown as ConstructorParameters<typeof AccountLifecycleService>[2],
+  );
   const service = new UserManagementCoreService(
     repository,
     mailer as unknown as ConstructorParameters<typeof UserManagementCoreService>[1],
+    accountLifecycleService,
   );
-  return { service, prisma, mailer, repository, notificationDispatch };
+  return { service, prisma, mailer, repository, notificationDispatch, accountLifecycleAudit };
 }
 
 const registeredUser = {
@@ -188,34 +203,91 @@ describe('UserManagementService', () => {
     expect(prisma.user.count).not.toHaveBeenCalled();
   });
 
-  it('suspends only registered users through repository-owned status persistence', async () => {
-    const { service, prisma } = createService();
+  it('SUSPEND works, invalidates sessions, dispatches notification, and audits', async () => {
+    const { service, prisma, mailer } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
-    prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: false, suspendedAt: new Date(), suspendedBy: 'admin_1' });
+    prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: false, suspendedAt: new Date(), suspendedBy: 'admin_1', refreshTokenHash: null });
 
-    await service.suspend({ uid: 'admin_1', role: UserRole.ADMIN }, 'user_1', {
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['suspend'] } }, 'user_1', {
+      action: RegisteredUserLifecycleAction.SUSPEND,
       reason: SuspensionReason.POLICY_VIOLATION,
+      comment: 'User violated platform policy.',
+      notifyUser: true,
     });
 
+    expect(result.message).toBe('User suspended successfully');
     expect(prisma.user.findFirst).toHaveBeenCalledWith({ where: { id: 'user_1', role: UserRole.REGISTERED_USER, deletedAt: null } });
     expect(prisma.accountSuspension.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ accountId: 'user_1', accountType: 'REGISTERED_USER', reason: SuspensionReason.POLICY_VIOLATION }),
     }));
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
+    expect(prisma.authSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'user_1', revokedAt: null }, data: expect.objectContaining({ revokedAt: expect.any(Date) }) }));
+    expect(mailer.sendAccountStatusEmail).toHaveBeenCalledWith('user@example.com', RegisteredUserStatusUpdate.SUSPENDED, 'User violated platform policy.');
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_SUSPENDED' }) }));
   });
 
-  it('unsuspends registered users through repository-owned status persistence', async () => {
-    const { service, prisma } = createService();
+  it('UNSUSPEND works through shared lifecycle service', async () => {
+    const { service, prisma, mailer } = createService();
     prisma.user.findFirst.mockResolvedValue({ ...registeredUser, isActive: false, suspendedAt: new Date() });
     prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: true, suspendedAt: null });
 
-    await service.unsuspend({ uid: 'admin_1', role: UserRole.ADMIN }, 'user_1', {});
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['unsuspend'] } }, 'user_1', {
+      action: RegisteredUserLifecycleAction.UNSUSPEND,
+      comment: 'Account reviewed and restored.',
+      notifyUser: true,
+    });
 
+    expect(result.message).toBe('User unsuspended successfully');
     expect(prisma.accountSuspension.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { accountId: 'user_1', isActive: true },
       data: expect.objectContaining({ isActive: false, unsuspendedBy: 'admin_1' }),
     }));
+    expect(mailer.sendAccountStatusEmail).toHaveBeenCalledWith('user@example.com', 'ACTIVE', 'Account reviewed and restored.');
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_UNSUSPENDED' }) }));
+  });
+
+  it('UPDATE_STATUS works for ACTIVE/DISABLED without suspend permission', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+    prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: false });
+
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['updateStatus'] } }, 'user_1', {
+      action: RegisteredUserLifecycleAction.UPDATE_STATUS,
+      status: RegisteredUserStatusUpdate.DISABLED,
+    });
+
+    expect(result.message).toBe('User status updated successfully');
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
+    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_STATUS_CHANGED' }) }));
+  });
+
+  it('DISABLE and ENABLE work with users.status.update permission', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+    prisma.user.update
+      .mockResolvedValueOnce({ ...registeredUser, isActive: false, refreshTokenHash: null })
+      .mockResolvedValueOnce({ ...registeredUser, isActive: true });
+    const admin = { uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['status.update'] } };
+
+    await service.updateStatus(admin, 'user_1', { action: RegisteredUserLifecycleAction.DISABLE });
+    await service.updateStatus(admin, 'user_1', { action: RegisteredUserLifecycleAction.ENABLE });
+
+    expect(prisma.user.update).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
+    expect(prisma.user.update).toHaveBeenNthCalledWith(2, expect.objectContaining({ data: expect.objectContaining({ isActive: true }) }));
+  });
+
+  it('action-specific permissions are enforced', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findFirst.mockResolvedValue(registeredUser);
+
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['updateStatus'] } }, 'user_1', {
+      action: RegisteredUserLifecycleAction.SUSPEND,
+      reason: SuspensionReason.POLICY_VIOLATION,
+    })).rejects.toThrow('Your role does not have the required permission');
+
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['suspend'] } }, 'user_1', {
+      action: RegisteredUserLifecycleAction.UNSUSPEND,
+    })).rejects.toThrow('Your role does not have the required permission');
   });
 
   it('SUPER_ADMIN can change registered user password, notify user, and audit without password', async () => {
@@ -277,6 +349,13 @@ describe('UserManagementService', () => {
     const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
     expect(controller).toContain("@Permissions('users.resetPassword')");
+  });
+
+  it('old suspend and unsuspend routes are removed from Swagger-facing controller code', () => {
+    const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
+    expect(controller).toContain("@Patch(':id/status')");
+    expect(controller).not.toContain("@Post(':id/suspend')");
+    expect(controller).not.toContain("@Post(':id/unsuspend')");
   });
 
   it('REGISTERED_USER and PROVIDER cannot call endpoint through controller role guard', () => {

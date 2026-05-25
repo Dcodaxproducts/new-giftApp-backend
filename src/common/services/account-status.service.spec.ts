@@ -60,6 +60,9 @@ function createService() {
       create: jest.fn().mockResolvedValue({ id: 'suspension_1' }),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
     },
+    authSession: {
+      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+    },
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const mailer = { sendAccountStatusEmail: jest.fn().mockResolvedValue(undefined) };
@@ -103,6 +106,10 @@ describe('AccountStatusService', () => {
     }));
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ isActive: false, suspensionReason: 'POLICY_VIOLATION' }),
+    }));
+    expect(prisma.authSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'user_1', revokedAt: null },
+      data: expect.objectContaining({ revokedAt: expect.any(Date) }),
     }));
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'REGISTERED_USER_SUSPENDED' }));
     expect(response.status).toBe('SUSPENDED');

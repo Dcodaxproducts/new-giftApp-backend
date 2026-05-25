@@ -1,13 +1,15 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AccountType, LoginAttemptStatus, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
+import { AccountLifecycleService } from '../../../common/services/account-lifecycle.service';
 import { MailerService } from '../../mailer/mailer.service';
 import {
   ExportFormat,
   ExportRegisteredUsersDto,
   ListRegisteredUsersDto,
   ListUserActivityDto,
+  RegisteredUserLifecycleAction,
   RegisteredUserSortBy,
   RegisteredUserStatusFilter,
   RegisteredUserStatusUpdate,
@@ -40,6 +42,7 @@ export class UserManagementCoreService {
   constructor(
     private readonly userManagementRepository: UserManagementRepository,
     private readonly mailerService: MailerService,
+    private readonly accountLifecycleService: AccountLifecycleService,
   ) {}
 
   async list(query: ListRegisteredUsersDto) {
@@ -110,49 +113,40 @@ export class UserManagementCoreService {
   }
 
   async updateStatus(user: AuthUserContext, id: string, dto: UpdateRegisteredUserStatusDto) {
-    const target = await this.getRegisteredUser(id);
+    this.assertLifecyclePermission(user, this.permissionForLifecycleAction(dto.action));
 
-    if (dto.status === RegisteredUserStatusUpdate.SUSPENDED) {
-      const response = await this.suspendRegisteredUser(user, target, dto.reason, dto.comment, dto.notifyUser);
-      return { data: response, message: 'User suspended successfully' };
+    if (dto.action === RegisteredUserLifecycleAction.UPDATE_STATUS && !dto.status) {
+      throw new BadRequestException('Status is required when updating user status');
     }
 
-    const isActive = dto.status === RegisteredUserStatusUpdate.ACTIVE;
-    const updated = target.suspendedAt
-      ? await this.userManagementRepository.clearSuspensionAndUpdateStatus({
-          userId: target.id,
-          actorId: user.uid,
-          isActive,
-          refreshTokenHash: isActive ? target.refreshTokenHash : null,
-        })
-      : await this.userManagementRepository.updateUserStatus(target.id, {
-          isActive,
-          suspensionReason: null,
-          suspensionComment: null,
-          suspendedAt: null,
-          suspendedBy: null,
-          refreshTokenHash: isActive ? target.refreshTokenHash : null,
+    if (dto.action === RegisteredUserLifecycleAction.SUSPEND && !dto.reason) {
+      throw new BadRequestException('Suspension reason is required');
+    }
+
+    if (dto.action === RegisteredUserLifecycleAction.UPDATE_STATUS && dto.status === RegisteredUserStatusUpdate.SUSPENDED) {
+      throw new BadRequestException('Use SUSPEND action to suspend a user');
+    }
+
+    const status = this.statusForLifecycleAction(dto);
+    const data = dto.action === RegisteredUserLifecycleAction.UNSUSPEND
+      ? await this.accountLifecycleService.unsuspend(this.lifecycleInput(user, id, dto))
+      : await this.accountLifecycleService.updateStatus({
+          ...this.lifecycleInput(user, id, dto),
+          status,
+          reason: dto.reason,
+          activeStatuses: [RegisteredUserStatusUpdate.ACTIVE],
+          suspendedStatus: RegisteredUserStatusUpdate.SUSPENDED,
         });
 
-    await this.recordAudit(
-      user.uid,
-      target.id,
-      'REGISTERED_USER_STATUS_CHANGED',
-      this.toStatusSnapshot(target),
-      this.toStatusSnapshot(updated),
-    );
-    await this.notifyStatusChange(updated, dto.notifyUser, dto.status, dto.comment);
-
     return {
-      data: this.toStatusResponse(updated, dto.status),
-      message: dto.status === RegisteredUserStatusUpdate.ACTIVE
-        ? 'User unsuspended successfully'
-        : 'User disabled successfully',
+      data,
+      message: this.messageForLifecycleAction(dto.action),
     };
   }
 
   async suspend(user: AuthUserContext, id: string, dto: SuspendRegisteredUserDto) {
     return this.updateStatus(user, id, {
+      action: RegisteredUserLifecycleAction.SUSPEND,
       status: RegisteredUserStatusUpdate.SUSPENDED,
       reason: dto.reason,
       comment: dto.comment,
@@ -165,18 +159,119 @@ export class UserManagementCoreService {
     id: string,
     dto: { comment?: string; notifyUser?: boolean },
   ) {
-    const target = await this.getRegisteredUser(id);
-    const updated = await this.userManagementRepository.unsuspendUser({ userId: target.id, actorId: user.uid });
-    await this.recordAudit(
-      user.uid,
-      target.id,
-      'REGISTERED_USER_UNSUSPENDED',
-      this.toStatusSnapshot(target),
-      this.toStatusSnapshot(updated),
-    );
-    await this.notifyStatusChange(updated, dto.notifyUser, RegisteredUserStatusUpdate.ACTIVE, dto.comment);
+    return this.updateStatus(user, id, {
+      action: RegisteredUserLifecycleAction.UNSUSPEND,
+      comment: dto.comment,
+      notifyUser: dto.notifyUser,
+    });
+  }
 
-    return { data: this.toStatusResponse(updated, RegisteredUserStatusUpdate.ACTIVE), message: 'User unsuspended successfully' };
+  private lifecycleInput(user: AuthUserContext, id: string, dto: UpdateRegisteredUserStatusDto) {
+    return {
+      actorId: user.uid,
+      accountId: id,
+      accountType: AccountType.REGISTERED_USER,
+      comment: dto.comment,
+      notify: dto.notifyUser,
+      activeStatuses: [RegisteredUserStatusUpdate.ACTIVE],
+      suspendedStatus: RegisteredUserStatusUpdate.SUSPENDED,
+      actionPrefix: 'REGISTERED_USER',
+      targetType: 'REGISTERED_USER',
+    };
+  }
+
+  private statusForLifecycleAction(dto: UpdateRegisteredUserStatusDto): RegisteredUserStatusUpdate {
+    if (dto.action === RegisteredUserLifecycleAction.SUSPEND) {
+      return RegisteredUserStatusUpdate.SUSPENDED;
+    }
+
+    if (dto.action === RegisteredUserLifecycleAction.UNSUSPEND || dto.action === RegisteredUserLifecycleAction.ENABLE) {
+      return RegisteredUserStatusUpdate.ACTIVE;
+    }
+
+    if (dto.action === RegisteredUserLifecycleAction.DISABLE) {
+      return RegisteredUserStatusUpdate.DISABLED;
+    }
+
+    if (!dto.status) {
+      throw new BadRequestException('Status is required when updating user status');
+    }
+
+    return dto.status;
+  }
+
+  private messageForLifecycleAction(action: RegisteredUserLifecycleAction): string {
+    switch (action) {
+      case RegisteredUserLifecycleAction.SUSPEND:
+        return 'User suspended successfully';
+      case RegisteredUserLifecycleAction.UNSUSPEND:
+        return 'User unsuspended successfully';
+      case RegisteredUserLifecycleAction.DISABLE:
+        return 'User disabled successfully';
+      case RegisteredUserLifecycleAction.ENABLE:
+        return 'User enabled successfully';
+      case RegisteredUserLifecycleAction.UPDATE_STATUS:
+        return 'User status updated successfully';
+    }
+  }
+
+  private permissionForLifecycleAction(action: RegisteredUserLifecycleAction): string {
+    if (action === RegisteredUserLifecycleAction.SUSPEND) {
+      return 'users.suspend';
+    }
+
+    if (action === RegisteredUserLifecycleAction.UNSUSPEND) {
+      return 'users.unsuspend';
+    }
+
+    return 'users.status.update';
+  }
+
+  private assertLifecyclePermission(user: AuthUserContext, permission: string): void {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return;
+    }
+
+    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) {
+      throw new ForbiddenException('Your role does not have the required permission');
+    }
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) {
+      return granted;
+    }
+
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) {
+        continue;
+      }
+
+      for (const value of values) {
+        if (typeof value !== 'string') {
+          continue;
+        }
+
+        granted.add(`${module}.${value}`);
+        granted.add(`${module}.${this.normalizePermission(value)}`);
+      }
+    }
+
+    return granted;
+  }
+
+  private normalizePermission(permission: string): string {
+    if (permission === 'updateStatus') {
+      return 'status.update';
+    }
+
+    if (permission === 'status.update') {
+      return 'updateStatus';
+    }
+
+    return permission;
   }
 
   async resetPassword(

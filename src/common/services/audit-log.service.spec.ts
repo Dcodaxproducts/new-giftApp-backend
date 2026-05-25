@@ -45,9 +45,9 @@ describe('AuditLogWriterService', () => {
   });
 
   it('existing modules still write audit logs through the shared service', () => {
-    const accountStatusSource = readFileSync('src/common/services/account-status.service.ts', 'utf8');
+    const accountLifecycleSource = readFileSync('src/common/services/account-lifecycle.service.ts', 'utf8');
     const broadcastsSource = readFileSync('src/modules/broadcast-notifications/services/broadcasts.service.ts', 'utf8');
-    expect(accountStatusSource).toContain('this.auditLog.write');
+    expect(accountLifecycleSource).toContain('this.auditLog.write');
     expect(broadcastsSource).toContain('this.auditLog.write');
   });
 });

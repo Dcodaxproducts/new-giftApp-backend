@@ -21,4 +21,8 @@ export class AccountStatusRepository {
   deactivateActiveSuspensions(accountId: string, actorId: string) {
     return this.prisma.accountSuspension.updateMany({ where: { accountId, isActive: true }, data: { isActive: false, unsuspendedBy: actorId, unsuspendedAt: new Date() } });
   }
+
+  invalidateActiveSessions(accountId: string) {
+    return this.prisma.authSession.updateMany({ where: { userId: accountId, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
 }

@@ -42,6 +42,14 @@ export enum RegisteredUserStatusUpdate {
   DISABLED = 'DISABLED',
 }
 
+export enum RegisteredUserLifecycleAction {
+  UPDATE_STATUS = 'UPDATE_STATUS',
+  SUSPEND = 'SUSPEND',
+  UNSUSPEND = 'UNSUSPEND',
+  DISABLE = 'DISABLE',
+  ENABLE = 'ENABLE',
+}
+
 export enum SuspensionReason {
   POLICY_VIOLATION = 'POLICY_VIOLATION',
   PAYMENT_ISSUE = 'PAYMENT_ISSUE',
@@ -140,9 +148,14 @@ export class UpdateRegisteredUserDto {
 }
 
 export class UpdateRegisteredUserStatusDto {
-  @ApiProperty({ enum: RegisteredUserStatusUpdate })
+  @ApiProperty({ enum: RegisteredUserLifecycleAction, example: RegisteredUserLifecycleAction.SUSPEND })
+  @IsEnum(RegisteredUserLifecycleAction)
+  action!: RegisteredUserLifecycleAction;
+
+  @ApiPropertyOptional({ enum: RegisteredUserStatusUpdate, example: RegisteredUserStatusUpdate.SUSPENDED })
+  @IsOptional()
   @IsEnum(RegisteredUserStatusUpdate)
-  status!: RegisteredUserStatusUpdate;
+  status?: RegisteredUserStatusUpdate;
 
   @ApiPropertyOptional({ enum: SuspensionReason })
   @IsOptional()

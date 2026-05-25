@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 12:21 UTC
+Generated at: 2026-05-25 06:50 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-21 12:21 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 06:50 UTC.
 
 ## Frontend Integration Flows
 
@@ -382,7 +382,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-21 12:21 UTC.
 | POST | `/api/v1/admin/transactions/{id}/refund` | Refund transaction | SUPER_ADMIN or ADMIN with transactions.refund |
 | GET | `/api/v1/admin/transactions/{id}/timeline` | Fetch transaction timeline | SUPER_ADMIN or ADMIN with transactions.read |
 
-### Admin - User Management (11 APIs)
+### Admin - User Management (9 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -394,9 +394,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-21 12:21 UTC.
 | GET | `/api/v1/users/{id}/activity` | Fetch Users Activity details | SUPER_ADMIN or ADMIN with users.read |
 | POST | `/api/v1/users/{id}/reset-password` | Change registered user password | SUPER_ADMIN or ADMIN with users.resetPassword |
 | GET | `/api/v1/users/{id}/stats` | Fetch Users Stats details | SUPER_ADMIN or ADMIN with users.read |
-| PATCH | `/api/v1/users/{id}/status` | Update Users Status | SUPER_ADMIN or ADMIN with users.status.update |
-| POST | `/api/v1/users/{id}/suspend` | Create Users Suspend | SUPER_ADMIN or ADMIN with users.suspend |
-| POST | `/api/v1/users/{id}/unsuspend` | Create Users Unsuspend | SUPER_ADMIN or ADMIN with users.unsuspend |
+| PATCH | `/api/v1/users/{id}/status` | Run registered user lifecycle action | SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=>users.status.update, SUSPEND=>users.suspend, UNSUSPEND=>users.unsuspend) |
 
 ### Admin - User Safety Moderation (4 APIs)
 

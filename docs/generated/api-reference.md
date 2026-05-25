@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-21 12:20 UTC
+Generated at: 2026-05-25 06:49 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -12,7 +12,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 01 Auth - Login Attempts (3 APIs)
 - 02 Admin - Staff Management (7 APIs)
 - 02 Admin - Roles & Permissions (7 APIs)
-- 02 Admin - User Management (11 APIs)
+- 02 Admin - User Management (9 APIs)
 - 02 Admin - Provider Management (12 APIs)
 - 02 Admin - Provider Business Categories (5 APIs)
 - 02 Admin - Promotional Offers Management (10 APIs)
@@ -1108,16 +1108,17 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/users/{id}/status`
 
-- Summary: Update Users Status
-- Allowed role/access: SUPER_ADMIN or ADMIN with users.status.update
-- Notes: Access: SUPER_ADMIN or ADMIN with users.status.update. SUPER_ADMIN or ADMIN with users.status.update permission.
+- Summary: Run registered user lifecycle action
+- Allowed role/access: SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=>users.status.update, SUSPEND=>users.suspend, UNSUSPEND=>users.unsuspend)
+- Notes: Access: SUPER_ADMIN or ADMIN with user lifecycle permission (UPDATE_STATUS/DISABLE/ENABLE=>users.status.update, SUSPEND=>users.suspend, UNSUSPEND=>users.unsuspend). SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require users.status.update; SUSPEND requires users.suspend; UNSUSPEND requires users.unsuspend. SUPER_ADMIN or ADMIN with action-specific user lifecycle permission. UPDATE_STATUS, DISABLE, and ENABLE require 'users.status.update'; SUSPEND requires 'users.suspend'; UNSUSPEND requires 'users.unsuspend'.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
-  "status": "ACTIVE",
+  "action": "SUSPEND",
+  "status": "SUSPENDED",
   "reason": "POLICY_VIOLATION",
   "comment": "Suspicious activity detected on this account.",
   "notifyUser": true
@@ -1127,57 +1128,18 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/users/{id}/suspend`
-
-- Summary: Create Users Suspend
-- Allowed role/access: SUPER_ADMIN or ADMIN with users.suspend
-- Notes: Access: SUPER_ADMIN or ADMIN with users.suspend. SUPER_ADMIN or ADMIN with users.suspend permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "POLICY_VIOLATION",
-  "comment": "Suspicious account activity.",
-  "notifyUser": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/users/{id}/unsuspend`
-
-- Summary: Create Users Unsuspend
-- Allowed role/access: SUPER_ADMIN or ADMIN with users.unsuspend
-- Notes: Access: SUPER_ADMIN or ADMIN with users.unsuspend. SUPER_ADMIN or ADMIN with users.unsuspend permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "comment": "Account reviewed and restored.",
-  "notifyUser": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "user_id",
+    "status": "SUSPENDED",
+    "isActive": false,
+    "suspension": {
+      "reason": "POLICY_VIOLATION",
+      "comment": "User violated platform policy.",
+      "suspendedAt": "2026-05-25T10:00:00.000Z",
+      "suspendedBy": "admin_id"
+    }
+  },
+  "message": "User suspended successfully"
 }
 ```
 

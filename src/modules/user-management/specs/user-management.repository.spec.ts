@@ -44,14 +44,19 @@ describe('User management repository cleanup', () => {
     expect(service).toContain('Suspension reason is required');
   });
 
-  it('controller keeps routes, permissions, roles, and Swagger tag stable', () => {
+  it('controller keeps unified lifecycle route, permissions, roles, and Swagger tag stable', () => {
     expect(controller).toContain("@ApiTags('02 Admin - User Management')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
     expect(controller).toContain("@Permissions('users.read')");
     expect(controller).toContain("@Permissions('users.export')");
     expect(controller).toContain("@Permissions('users.update')");
-    expect(controller).toContain("@Permissions('users.suspend')");
+    expect(controller).toContain("'users.status.update'");
+    expect(controller).toContain("'users.suspend'");
+    expect(controller).toContain("'users.unsuspend'");
     expect(controller).toContain("@Permissions('users.resetPassword')");
+    expect(controller).toContain("@Patch(':id/status')");
+    expect(controller).not.toContain("@Post(':id/suspend')");
+    expect(controller).not.toContain("@Post(':id/unsuspend')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(controller).toContain("@Get(':id/activity')");
     expect(controller).toContain("@Get(':id/stats')");
