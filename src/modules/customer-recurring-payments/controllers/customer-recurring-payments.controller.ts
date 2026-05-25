@@ -6,7 +6,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { CustomerRecurringPaymentsService } from '../services/customer-recurring-payments.service';
-import { CancelRecurringPaymentDto, CreateRecurringPaymentDto, ListRecurringPaymentsDto, PauseRecurringPaymentDto, RecurringPaymentHistoryDto, UpdateRecurringPaymentDto } from '../dto/customer-recurring-payments.dto';
+import { CreateRecurringPaymentDto, ListRecurringPaymentsDto, RecurringPaymentActionDto, RecurringPaymentHistoryDto, UpdateRecurringPaymentDto } from '../dto/customer-recurring-payments.dto';
 
 @ApiTags('05 Customer - Recurring Payments')
 @ApiBearerAuth()
@@ -43,20 +43,11 @@ export class CustomerRecurringPaymentsController {
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'recurring_payment_id', status: 'ACTIVE', nextBillingAt: '2026-03-15T09:00:00.000Z' }, message: 'Recurring payment updated successfully. Changes will apply from the next billing cycle.' } } })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateRecurringPaymentDto) { return this.service.update(user, id, dto); }
 
-  @Post(':id/pause')
-  @ApiOperation({ summary: 'Pause own active recurring payment' })
-  @ApiBody({ type: PauseRecurringPaymentDto, examples: { pause: { value: { reason: 'User paused recurring payment.' } } } })
-  pause(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: PauseRecurringPaymentDto) { return this.service.pause(user, id, dto); }
-
-  @Post(':id/resume')
-  @ApiOperation({ summary: 'Resume own paused recurring payment' })
-  resume(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.resume(user, id); }
-
-  @Post(':id/cancel')
-  @ApiOperation({ summary: 'Cancel own recurring payment', description: 'IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.' })
-  @ApiBody({ type: CancelRecurringPaymentDto, examples: { immediately: { value: { cancelMode: 'IMMEDIATELY', reason: 'No longer needed.' } }, periodEnd: { value: { cancelMode: 'AFTER_CURRENT_BILLING_CYCLE', reason: 'Finish current cycle.' } } } })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'recurring_payment_id', status: 'CANCELLED', cancelMode: 'IMMEDIATELY' }, message: 'Recurring payment cancelled successfully.' } } })
-  cancel(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: CancelRecurringPaymentDto) { return this.service.cancel(user, id, dto); }
+  @Post(':id/action')
+  @ApiOperation({ summary: 'Run own recurring payment action', description: 'PAUSE is allowed only from ACTIVE and moves the recurring payment to PAUSED. RESUME is allowed only from PAUSED and moves it back to ACTIVE. CANCEL is allowed from ACTIVE or PAUSED, supports cancelAtPeriodEnd, and preserves billing history.' })
+  @ApiBody({ type: RecurringPaymentActionDto, examples: { pause: { value: { action: 'PAUSE', reason: 'USER_REQUEST', comment: 'User paused payment temporarily.' } }, resume: { value: { action: 'RESUME', reason: 'USER_REQUEST', comment: 'User resumed recurring payment.' } }, cancelImmediate: { value: { action: 'CANCEL', reason: 'USER_REQUEST', cancelAtPeriodEnd: false, comment: 'User no longer needs this recurring payment.' } }, cancelAtPeriodEnd: { value: { action: 'CANCEL', reason: 'USER_REQUEST', cancelAtPeriodEnd: true, comment: 'User wants to finish the current billing cycle.' } } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'recurring_payment_id', status: 'PAUSED', action: 'PAUSE' }, message: 'Recurring payment paused successfully.' } } })
+  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: RecurringPaymentActionDto) { return this.service.action(user, id, dto); }
 
   @Get(':id/history')
   @ApiOperation({ summary: 'List own recurring payment billing history' })

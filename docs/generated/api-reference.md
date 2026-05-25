@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:58 UTC
+Generated at: 2026-05-25 08:08 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -64,7 +64,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 05 Customer - Orders (3 APIs)
 - 05 Customer - Reviews (5 APIs)
 - 05 Customer - Provider Reports (4 APIs)
-- 05 Customer - Recurring Payments (9 APIs)
+- 05 Customer - Recurring Payments (7 APIs)
 - 05 Customer - Transactions (5 APIs)
 - 05 Customer - Referrals & Rewards (7 APIs)
 - 05 Customer - Subscriptions (9 APIs)
@@ -8829,70 +8829,46 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/customer/recurring-payments/{id}/pause`
+### POST `/api/v1/customer/recurring-payments/{id}/action`
 
-- Summary: Pause own active recurring payment
+- Summary: Run own recurring payment action
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. PAUSE is allowed only from ACTIVE and moves the recurring payment to PAUSED. RESUME is allowed only from PAUSED and moves it back to ACTIVE. CANCEL is allowed from ACTIVE or PAUSED, supports cancelAtPeriodEnd, and preserves billing history.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - pause:
 ```json
 {
-  "reason": "User paused recurring payment."
+  "action": "PAUSE",
+  "reason": "USER_REQUEST",
+  "comment": "User paused payment temporarily."
 }
 ```
-- Response body:
+  - resume:
 ```json
 {
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "action": "RESUME",
+  "reason": "USER_REQUEST",
+  "comment": "User resumed recurring payment."
 }
 ```
-
-### POST `/api/v1/customer/recurring-payments/{id}/resume`
-
-- Summary: Resume own paused recurring payment
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
+  - cancelImmediate:
 ```json
 {
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "action": "CANCEL",
+  "reason": "USER_REQUEST",
+  "cancelAtPeriodEnd": false,
+  "comment": "User no longer needs this recurring payment."
 }
 ```
-
-### POST `/api/v1/customer/recurring-payments/{id}/cancel`
-
-- Summary: Cancel own recurring payment
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - immediately:
+  - cancelAtPeriodEnd:
 ```json
 {
-  "cancelMode": "IMMEDIATELY",
-  "reason": "No longer needed."
-}
-```
-  - periodEnd:
-```json
-{
-  "cancelMode": "AFTER_CURRENT_BILLING_CYCLE",
-  "reason": "Finish current cycle."
+  "action": "CANCEL",
+  "reason": "USER_REQUEST",
+  "cancelAtPeriodEnd": true,
+  "comment": "User wants to finish the current billing cycle."
 }
 ```
 - Response body:
@@ -8901,10 +8877,10 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": {
     "id": "recurring_payment_id",
-    "status": "CANCELLED",
-    "cancelMode": "IMMEDIATELY"
+    "status": "PAUSED",
+    "action": "PAUSE"
   },
-  "message": "Recurring payment cancelled successfully."
+  "message": "Recurring payment paused successfully."
 }
 ```
 

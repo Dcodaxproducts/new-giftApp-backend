@@ -1,13 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CustomerRecurringPaymentCancelMode, CustomerRecurringPaymentFrequency, PaymentMethod } from '@prisma/client';
+import { CustomerRecurringPaymentFrequency, PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
 export enum Weekday { MONDAY = 'MONDAY', TUESDAY = 'TUESDAY', WEDNESDAY = 'WEDNESDAY', THURSDAY = 'THURSDAY', FRIDAY = 'FRIDAY', SATURDAY = 'SATURDAY', SUNDAY = 'SUNDAY' }
 export enum ListRecurringPaymentsStatus { ALL = 'ALL', ACTIVE = 'ACTIVE', PAUSED = 'PAUSED', CANCELLED = 'CANCELLED', EXPIRED = 'EXPIRED', FAILED = 'FAILED' }
 export enum ListRecurringPaymentsSortBy { CREATED_AT = 'createdAt', NEXT_BILLING_AT = 'nextBillingAt', AMOUNT = 'amount' }
 export enum HistoryStatusFilter { ALL = 'ALL', SUCCESS = 'SUCCESS', FAILED = 'FAILED', PENDING = 'PENDING' }
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
+export enum CustomerRecurringPaymentAction { PAUSE = 'PAUSE', RESUME = 'RESUME', CANCEL = 'CANCEL' }
 
 export class RecurringPaymentScheduleDto {
   @ApiPropertyOptional({ enum: Weekday, example: Weekday.MONDAY }) @IsOptional() @IsEnum(Weekday) dayOfWeek?: Weekday;
@@ -52,8 +53,12 @@ export class UpdateRecurringPaymentDto {
   @ApiPropertyOptional({ example: 'pm_xxx' }) @IsOptional() @IsString() stripePaymentMethodId?: string;
 }
 
-export class PauseRecurringPaymentDto { @ApiPropertyOptional({ example: 'User paused recurring payment.' }) @IsOptional() @IsString() @MaxLength(500) reason?: string; }
-export class CancelRecurringPaymentDto { @ApiProperty({ enum: CustomerRecurringPaymentCancelMode, example: CustomerRecurringPaymentCancelMode.IMMEDIATELY }) @IsEnum(CustomerRecurringPaymentCancelMode) cancelMode!: CustomerRecurringPaymentCancelMode; @ApiPropertyOptional({ example: 'No longer needed.' }) @IsOptional() @IsString() @MaxLength(500) reason?: string; }
+export class RecurringPaymentActionDto {
+  @ApiProperty({ enum: CustomerRecurringPaymentAction, example: CustomerRecurringPaymentAction.PAUSE }) @IsEnum(CustomerRecurringPaymentAction) action!: CustomerRecurringPaymentAction;
+  @ApiPropertyOptional({ example: 'USER_REQUEST' }) @IsOptional() @IsString() @MaxLength(100) reason?: string;
+  @ApiPropertyOptional({ example: true, description: 'Supported for CANCEL. When true, cancellation happens at the current billing period end.' }) @IsOptional() @IsBoolean() cancelAtPeriodEnd?: boolean;
+  @ApiPropertyOptional({ example: 'User paused payment temporarily.' }) @IsOptional() @IsString() @MaxLength(500) comment?: string;
+}
 
 export class RecurringPaymentHistoryDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;

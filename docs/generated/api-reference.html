@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 07:58 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 07:58 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 08:08 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 08:08 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -3805,30 +3805,32 @@
     &quot;nextBillingAt&quot;: &quot;2026-03-15T09:00:00.000Z&quot;
   },
   &quot;message&quot;: &quot;Recurring payment updated successfully. Changes will apply from the next billing cycle.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/customer/recurring-payments/{id}/pause</code></div><div><span class="label">Summary:</span> Pause own active recurring payment</div><div><span class="label">Allowed role/access:</span> REGISTERED_USER</div><div><span class="label">Notes:</span> Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">pause</div><pre>{
-  &quot;reason&quot;: &quot;User paused recurring payment.&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/customer/recurring-payments/{id}/resume</code></div><div><span class="label">Summary:</span> Resume own paused recurring payment</div><div><span class="label">Allowed role/access:</span> REGISTERED_USER</div><div><span class="label">Notes:</span> Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>&quot;&lt;standard success envelope&gt;&quot;</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/customer/recurring-payments/{id}/cancel</code></div><div><span class="label">Summary:</span> Cancel own recurring payment</div><div><span class="label">Allowed role/access:</span> REGISTERED_USER</div><div><span class="label">Notes:</span> Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">immediately</div><pre>{
-  &quot;cancelMode&quot;: &quot;IMMEDIATELY&quot;,
-  &quot;reason&quot;: &quot;No longer needed.&quot;
-}</pre><div class="small">periodEnd</div><pre>{
-  &quot;cancelMode&quot;: &quot;AFTER_CURRENT_BILLING_CYCLE&quot;,
-  &quot;reason&quot;: &quot;Finish current cycle.&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/customer/recurring-payments/{id}/action</code></div><div><span class="label">Summary:</span> Run own recurring payment action</div><div><span class="label">Allowed role/access:</span> REGISTERED_USER</div><div><span class="label">Notes:</span> Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. PAUSE is allowed only from ACTIVE and moves the recurring payment to PAUSED. RESUME is allowed only from PAUSED and moves it back to ACTIVE. CANCEL is allowed from ACTIVE or PAUSED, supports cancelAtPeriodEnd, and preserves billing history.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">pause</div><pre>{
+  &quot;action&quot;: &quot;PAUSE&quot;,
+  &quot;reason&quot;: &quot;USER_REQUEST&quot;,
+  &quot;comment&quot;: &quot;User paused payment temporarily.&quot;
+}</pre><div class="small">resume</div><pre>{
+  &quot;action&quot;: &quot;RESUME&quot;,
+  &quot;reason&quot;: &quot;USER_REQUEST&quot;,
+  &quot;comment&quot;: &quot;User resumed recurring payment.&quot;
+}</pre><div class="small">cancelImmediate</div><pre>{
+  &quot;action&quot;: &quot;CANCEL&quot;,
+  &quot;reason&quot;: &quot;USER_REQUEST&quot;,
+  &quot;cancelAtPeriodEnd&quot;: false,
+  &quot;comment&quot;: &quot;User no longer needs this recurring payment.&quot;
+}</pre><div class="small">cancelAtPeriodEnd</div><pre>{
+  &quot;action&quot;: &quot;CANCEL&quot;,
+  &quot;reason&quot;: &quot;USER_REQUEST&quot;,
+  &quot;cancelAtPeriodEnd&quot;: true,
+  &quot;comment&quot;: &quot;User wants to finish the current billing cycle.&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;id&quot;: &quot;recurring_payment_id&quot;,
-    &quot;status&quot;: &quot;CANCELLED&quot;,
-    &quot;cancelMode&quot;: &quot;IMMEDIATELY&quot;
+    &quot;status&quot;: &quot;PAUSED&quot;,
+    &quot;action&quot;: &quot;PAUSE&quot;
   },
-  &quot;message&quot;: &quot;Recurring payment cancelled successfully.&quot;
+  &quot;message&quot;: &quot;Recurring payment paused successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/customer/recurring-payments/{id}/history</code></div><div><span class="label">Summary:</span> List own recurring payment billing history</div><div><span class="label">Allowed role/access:</span> REGISTERED_USER</div><div><span class="label">Notes:</span> Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>status</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: [

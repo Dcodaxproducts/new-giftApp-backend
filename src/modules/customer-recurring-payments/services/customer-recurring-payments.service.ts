@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { CustomerRecurringPayment, CustomerRecurringPaymentCancelMode, CustomerRecurringPaymentFrequency, CustomerRecurringPaymentOccurrence, CustomerRecurringPaymentOccurrenceStatus, CustomerRecurringPaymentStatus, MoneyGiftStatus, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
+import { CustomerRecurringPayment, CustomerRecurringPaymentFrequency, CustomerRecurringPaymentOccurrence, CustomerRecurringPaymentOccurrenceStatus, CustomerRecurringPaymentStatus, MoneyGiftStatus, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CustomerRecurringPaymentsRepository } from '../repositories/customer-recurring-payments.repository';
-import { CancelRecurringPaymentDto, CreateRecurringPaymentDto, HistoryStatusFilter, ListRecurringPaymentsDto, ListRecurringPaymentsSortBy, ListRecurringPaymentsStatus, PauseRecurringPaymentDto, RecurringPaymentScheduleDto, SortOrder, UpdateRecurringPaymentDto, Weekday } from '../dto/customer-recurring-payments.dto';
+import { CreateRecurringPaymentDto, CustomerRecurringPaymentAction, HistoryStatusFilter, ListRecurringPaymentsDto, ListRecurringPaymentsSortBy, ListRecurringPaymentsStatus, RecurringPaymentActionDto, RecurringPaymentScheduleDto, SortOrder, UpdateRecurringPaymentDto, Weekday } from '../dto/customer-recurring-payments.dto';
 
 type RecurringWithContact = CustomerRecurringPayment & { recipientContact: { id: string; name: string; email: string | null; avatarUrl: string | null } };
 type StripeSetupIntentLike = { id: string; client_secret: string | null };
@@ -60,31 +60,11 @@ export class CustomerRecurringPaymentsService {
     return { data: { id: updated.id, status: updated.status, nextBillingAt: updated.nextBillingAt }, message: 'Recurring payment updated successfully. Changes will apply from the next billing cycle.' };
   }
 
-  async pause(user: AuthUserContext, id: string, dto: PauseRecurringPaymentDto) {
+  async action(user: AuthUserContext, id: string, dto: RecurringPaymentActionDto) {
     const item = await this.getOwned(user.uid, id);
-    if (item.status !== CustomerRecurringPaymentStatus.ACTIVE) throw new BadRequestException('Only active recurring payment can be paused');
-    const updated = await this.repository.pauseRecurringPayment(id, dto.reason);
-    await this.notify(user.uid, 'Recurring payment paused', 'Your recurring payment was paused.', 'RECURRING_PAYMENT_PAUSED', { recurringPaymentId: id });
-    return { data: { id: updated.id, status: updated.status }, message: 'Recurring payment paused successfully.' };
-  }
-
-  async resume(user: AuthUserContext, id: string) {
-    const item = await this.getOwned(user.uid, id);
-    if (item.status !== CustomerRecurringPaymentStatus.PAUSED) throw new BadRequestException('Only paused recurring payment can be resumed');
-    const nextBillingAt = this.calculateNextBillingAt(item.frequency, this.scheduleFromJson(item.scheduleJson), new Date());
-    const updated = await this.repository.resumeRecurringPayment(id, nextBillingAt);
-    await this.notify(user.uid, 'Recurring payment resumed', 'Your recurring payment was resumed.', 'RECURRING_PAYMENT_RESUMED', { recurringPaymentId: id });
-    return { data: { id: updated.id, status: updated.status, nextBillingAt: updated.nextBillingAt }, message: 'Recurring payment resumed successfully.' };
-  }
-
-  async cancel(user: AuthUserContext, id: string, dto: CancelRecurringPaymentDto) {
-    const item = await this.getOwned(user.uid, id);
-    if (item.status === CustomerRecurringPaymentStatus.CANCELLED) throw new BadRequestException('Recurring payment is already cancelled');
-    const now = new Date();
-    const data: Prisma.CustomerRecurringPaymentUpdateInput = dto.cancelMode === CustomerRecurringPaymentCancelMode.IMMEDIATELY ? { status: CustomerRecurringPaymentStatus.CANCELLED, cancelledAt: now, cancelAtPeriodEnd: false, cancelAt: null, cancelReason: dto.reason } : { cancelAtPeriodEnd: true, cancelAt: item.nextBillingAt, cancelReason: dto.reason };
-    const updated = await this.repository.cancelRecurringPayment(id, data);
-    await this.notify(user.uid, 'Recurring payment cancelled', 'Your recurring payment was cancelled.', 'RECURRING_PAYMENT_CANCELLED', { recurringPaymentId: id, cancelMode: dto.cancelMode });
-    return { data: { id: updated.id, status: updated.status, cancelMode: dto.cancelMode }, message: 'Recurring payment cancelled successfully.' };
+    if (dto.action === CustomerRecurringPaymentAction.PAUSE) return this.pauseAction(user.uid, item, dto);
+    if (dto.action === CustomerRecurringPaymentAction.RESUME) return this.resumeAction(user.uid, item, dto);
+    return this.cancelAction(user.uid, item, dto);
   }
 
   async history(user: AuthUserContext, id: string, query: { page?: number; limit?: number; status?: HistoryStatusFilter }) {
@@ -174,6 +154,38 @@ export class CustomerRecurringPaymentsService {
     if (frequency === CustomerRecurringPaymentFrequency.WEEKLY && !schedule.dayOfWeek) throw new BadRequestException('WEEKLY schedule requires dayOfWeek');
     if (frequency === CustomerRecurringPaymentFrequency.MONTHLY && !schedule.dayOfMonth) throw new BadRequestException('MONTHLY schedule requires dayOfMonth');
     if (frequency === CustomerRecurringPaymentFrequency.YEARLY && (!schedule.monthOfYear || !schedule.dayOfMonth)) throw new BadRequestException('YEARLY schedule requires monthOfYear and dayOfMonth');
+  }
+
+  private async pauseAction(userId: string, item: RecurringWithContact, dto: RecurringPaymentActionDto) {
+    if (item.status !== CustomerRecurringPaymentStatus.ACTIVE) throw new BadRequestException('Only active recurring payment can be paused');
+    const updated = await this.repository.updateRecurringPayment(item.id, { status: CustomerRecurringPaymentStatus.PAUSED, cancelReason: this.actionComment(dto), cancelAtPeriodEnd: false, cancelAt: null });
+    await this.notify(userId, 'Recurring payment paused', 'Your recurring payment was paused.', 'RECURRING_PAYMENT_PAUSED', { recurringPaymentId: item.id, action: dto.action, reason: dto.reason ?? null });
+    return { data: { id: updated.id, status: updated.status, action: dto.action }, message: 'Recurring payment paused successfully.' };
+  }
+
+  private async resumeAction(userId: string, item: RecurringWithContact, dto: RecurringPaymentActionDto) {
+    if (item.status !== CustomerRecurringPaymentStatus.PAUSED) throw new BadRequestException('Only paused recurring payment can be resumed');
+    const nextBillingAt = this.calculateNextBillingAt(item.frequency, this.scheduleFromJson(item.scheduleJson), new Date());
+    const updated = await this.repository.updateRecurringPayment(item.id, { status: CustomerRecurringPaymentStatus.ACTIVE, nextBillingAt, cancelReason: null, cancelAtPeriodEnd: false, cancelAt: null, cancelledAt: null });
+    await this.notify(userId, 'Recurring payment resumed', 'Your recurring payment was resumed.', 'RECURRING_PAYMENT_RESUMED', { recurringPaymentId: item.id, action: dto.action, reason: dto.reason ?? null });
+    return { data: { id: updated.id, status: updated.status, action: dto.action, nextBillingAt: updated.nextBillingAt }, message: 'Recurring payment resumed successfully.' };
+  }
+
+  private async cancelAction(userId: string, item: RecurringWithContact, dto: RecurringPaymentActionDto) {
+    const cancellableStatuses: CustomerRecurringPaymentStatus[] = [CustomerRecurringPaymentStatus.ACTIVE, CustomerRecurringPaymentStatus.PAUSED];
+    if (!cancellableStatuses.includes(item.status)) throw new BadRequestException('Only active or paused recurring payment can be cancelled');
+    const now = new Date();
+    const cancelAtPeriodEnd = dto.cancelAtPeriodEnd ?? false;
+    const data: Prisma.CustomerRecurringPaymentUpdateInput = cancelAtPeriodEnd
+      ? { cancelAtPeriodEnd: true, cancelAt: item.nextBillingAt, cancelReason: this.actionComment(dto) }
+      : { status: CustomerRecurringPaymentStatus.CANCELLED, cancelledAt: now, cancelAtPeriodEnd: false, cancelAt: null, cancelReason: this.actionComment(dto) };
+    const updated = await this.repository.updateRecurringPayment(item.id, data);
+    await this.notify(userId, 'Recurring payment cancelled', 'Your recurring payment was cancelled.', 'RECURRING_PAYMENT_CANCELLED', { recurringPaymentId: item.id, action: dto.action, cancelAtPeriodEnd, reason: dto.reason ?? null });
+    return { data: { id: updated.id, status: updated.status, action: dto.action, cancelAtPeriodEnd: updated.cancelAtPeriodEnd }, message: 'Recurring payment cancelled successfully.' };
+  }
+
+  private actionComment(dto: RecurringPaymentActionDto): string | null {
+    return dto.comment?.trim() || dto.reason?.trim() || null;
   }
 
   private listWhere(userId: string, query: ListRecurringPaymentsDto): Prisma.CustomerRecurringPaymentWhereInput {

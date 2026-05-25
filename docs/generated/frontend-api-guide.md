@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:58 UTC
+Generated at: 2026-05-25 08:08 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 07:58 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 08:08 UTC.
 
 ## Frontend Integration Flows
 
@@ -639,7 +639,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:58 UTC.
 | DELETE | `/api/v1/customer/payment-methods/{id}` | Delete own saved payment method | REGISTERED_USER |
 | PATCH | `/api/v1/customer/payment-methods/{id}/default` | Set own default payment method | REGISTERED_USER |
 
-### Customer - Recurring Payments (9 APIs)
+### Customer - Recurring Payments (7 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -648,10 +648,8 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:58 UTC.
 | GET | `/api/v1/customer/recurring-payments/summary` | Fetch recurring payment summary counts | REGISTERED_USER |
 | GET | `/api/v1/customer/recurring-payments/{id}` | Fetch own recurring payment details | REGISTERED_USER |
 | PATCH | `/api/v1/customer/recurring-payments/{id}` | Update own recurring payment | REGISTERED_USER |
-| POST | `/api/v1/customer/recurring-payments/{id}/cancel` | Cancel own recurring payment | REGISTERED_USER |
+| POST | `/api/v1/customer/recurring-payments/{id}/action` | Run own recurring payment action | REGISTERED_USER |
 | GET | `/api/v1/customer/recurring-payments/{id}/history` | List own recurring payment billing history | REGISTERED_USER |
-| POST | `/api/v1/customer/recurring-payments/{id}/pause` | Pause own active recurring payment | REGISTERED_USER |
-| POST | `/api/v1/customer/recurring-payments/{id}/resume` | Resume own paused recurring payment | REGISTERED_USER |
 
 ### Customer - Referrals & Rewards (7 APIs)
 

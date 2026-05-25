@@ -18136,9 +18136,10 @@
         "x-access": "REGISTERED_USER"
       }
     },
-    "/api/v1/customer/recurring-payments/{id}/pause": {
+    "/api/v1/customer/recurring-payments/{id}/action": {
       "post": {
-        "operationId": "CustomerRecurringPaymentsController_pause",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. PAUSE is allowed only from ACTIVE and moves the recurring payment to PAUSED. RESUME is allowed only from PAUSED and moves it back to ACTIVE. CANCEL is allowed from ACTIVE or PAUSED, supports cancelAtPeriodEnd, and preserves billing history.",
+        "operationId": "CustomerRecurringPaymentsController_action",
         "parameters": [
           {
             "name": "id",
@@ -18154,101 +18155,37 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PauseRecurringPaymentDto"
+                "$ref": "#/components/schemas/RecurringPaymentActionDto"
               },
               "examples": {
                 "pause": {
                   "value": {
-                    "reason": "User paused recurring payment."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Pause own active recurring payment",
-        "tags": [
-          "05 Customer - Recurring Payments"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/recurring-payments/{id}/resume": {
-      "post": {
-        "operationId": "CustomerRecurringPaymentsController_resume",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Resume own paused recurring payment",
-        "tags": [
-          "05 Customer - Recurring Payments"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER",
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account."
-      }
-    },
-    "/api/v1/customer/recurring-payments/{id}/cancel": {
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. IMMEDIATELY cancels future processing. AFTER_CURRENT_BILLING_CYCLE sets cancelAtPeriodEnd and cancelAt.",
-        "operationId": "CustomerRecurringPaymentsController_cancel",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelRecurringPaymentDto"
-              },
-              "examples": {
-                "immediately": {
-                  "value": {
-                    "cancelMode": "IMMEDIATELY",
-                    "reason": "No longer needed."
+                    "action": "PAUSE",
+                    "reason": "USER_REQUEST",
+                    "comment": "User paused payment temporarily."
                   }
                 },
-                "periodEnd": {
+                "resume": {
                   "value": {
-                    "cancelMode": "AFTER_CURRENT_BILLING_CYCLE",
-                    "reason": "Finish current cycle."
+                    "action": "RESUME",
+                    "reason": "USER_REQUEST",
+                    "comment": "User resumed recurring payment."
+                  }
+                },
+                "cancelImmediate": {
+                  "value": {
+                    "action": "CANCEL",
+                    "reason": "USER_REQUEST",
+                    "cancelAtPeriodEnd": false,
+                    "comment": "User no longer needs this recurring payment."
+                  }
+                },
+                "cancelAtPeriodEnd": {
+                  "value": {
+                    "action": "CANCEL",
+                    "reason": "USER_REQUEST",
+                    "cancelAtPeriodEnd": true,
+                    "comment": "User wants to finish the current billing cycle."
                   }
                 }
               }
@@ -18265,10 +18202,10 @@
                     "success": true,
                     "data": {
                       "id": "recurring_payment_id",
-                      "status": "CANCELLED",
-                      "cancelMode": "IMMEDIATELY"
+                      "status": "PAUSED",
+                      "action": "PAUSE"
                     },
-                    "message": "Recurring payment cancelled successfully."
+                    "message": "Recurring payment paused successfully."
                   }
                 }
               }
@@ -18280,7 +18217,7 @@
             "bearer": []
           }
         ],
-        "summary": "Cancel own recurring payment",
+        "summary": "Run own recurring payment action",
         "tags": [
           "05 Customer - Recurring Payments"
         ],
@@ -28824,33 +28761,34 @@
           }
         }
       },
-      "PauseRecurringPaymentDto": {
+      "RecurringPaymentActionDto": {
         "type": "object",
         "properties": {
-          "reason": {
-            "type": "string",
-            "example": "User paused recurring payment."
-          }
-        }
-      },
-      "CancelRecurringPaymentDto": {
-        "type": "object",
-        "properties": {
-          "cancelMode": {
+          "action": {
             "type": "string",
             "enum": [
-              "IMMEDIATELY",
-              "AFTER_CURRENT_BILLING_CYCLE"
+              "PAUSE",
+              "RESUME",
+              "CANCEL"
             ],
-            "example": "IMMEDIATELY"
+            "example": "PAUSE"
           },
           "reason": {
             "type": "string",
-            "example": "No longer needed."
+            "example": "USER_REQUEST"
+          },
+          "cancelAtPeriodEnd": {
+            "type": "boolean",
+            "example": true,
+            "description": "Supported for CANCEL. When true, cancellation happens at the current billing period end."
+          },
+          "comment": {
+            "type": "string",
+            "example": "User paused payment temporarily."
           }
         },
         "required": [
-          "cancelMode"
+          "action"
         ]
       },
       "CreateGiftCategoryDto": {
