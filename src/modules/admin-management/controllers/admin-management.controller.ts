@@ -9,7 +9,6 @@ import {
   CreateAdminDto,
   ListAdminsDto,
   ResetAdminPasswordDto,
-  UpdateAdminActiveStatusDto,
   UpdateAdminDto,
 } from '../dto/admin-management.dto';
 import { AdminManagementService } from '../services/admin-management.service';
@@ -62,21 +61,15 @@ export class AdminManagementController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update admin staff profile or active status', description: 'SUPER_ADMIN only. Updates ADMIN staff profile, role assignment, and active/inactive status in one endpoint. Password updates are handled only by the dedicated password endpoint. SUPER_ADMIN self-disable and SUPER_ADMIN role updates are blocked.' })
+  @ApiBody({ type: UpdateAdminDto, examples: { updateAdminProfile: { value: { firstName: 'Operations', lastName: 'Staff', roleId: 'admin_role_id' } }, activateAdmin: { value: { isActive: true, reason: 'Staff account re-enabled.' } }, deactivateAdmin: { value: { isActive: false, reason: 'Staff account disabled after access review.' } } } })
+  @ApiResponse({ status: 200, description: 'Admin updated successfully', schema: { example: { success: true, data: { id: 'admin_id', firstName: 'Operations', lastName: 'Staff', role: { id: 'admin_role_id', name: 'Gift Manager' }, isActive: true }, message: 'Admin updated successfully' } } })
   update(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,
     @Body() dto: UpdateAdminDto,
   ) {
     return this.adminManagementService.update(user, id, dto);
-  }
-
-  @Patch(':id/active-status')
-  updateActiveStatus(
-    @CurrentUser() user: AuthUserContext,
-    @Param('id') id: string,
-    @Body() dto: UpdateAdminActiveStatusDto,
-  ) {
-    return this.adminManagementService.updateActiveStatus(user, id, dto);
   }
 
 

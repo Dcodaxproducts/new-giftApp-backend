@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 12:12 UTC
+Generated at: 2026-05-25 12:56 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 12:12 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 12:56 UTC.
 
 ## Frontend Integration Flows
 
@@ -324,16 +324,15 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 12:12 UTC.
 | PATCH | `/api/v1/admin/social-reporting-rules/{id}` | Update social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.update |
 | DELETE | `/api/v1/admin/social-reporting-rules/{id}` | Delete social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.delete |
 
-### Admin - Staff Management (7 APIs)
+### Admin - Staff Management (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/admins` | List admin staff users | SUPER_ADMIN |
 | POST | `/api/v1/admins` | Create admin staff user | SUPER_ADMIN |
 | GET | `/api/v1/admins/{id}` | Fetch Admins details | SUPER_ADMIN |
-| PATCH | `/api/v1/admins/{id}` | Update Admins | SUPER_ADMIN |
+| PATCH | `/api/v1/admins/{id}` | Update admin staff profile or active status | SUPER_ADMIN |
 | DELETE | `/api/v1/admins/{id}` | Permanently delete admin staff user | SUPER_ADMIN |
-| PATCH | `/api/v1/admins/{id}/active-status` | Update Admins Active Status | SUPER_ADMIN |
 | PATCH | `/api/v1/admins/{id}/password` | Update Admins Password | SUPER_ADMIN |
 
 ### Admin - System Logs & Audit Trail (6 APIs)

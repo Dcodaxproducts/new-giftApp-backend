@@ -12,7 +12,6 @@ import {
   ListAdminsDto,
   ResetAdminPasswordDto,
   SortOrderDto,
-  UpdateAdminActiveStatusDto,
   UpdateAdminDto,
 } from '../dto/admin-management.dto';
 import { AdminManagementRepository } from '../repositories/admin-management.repository';
@@ -169,21 +168,13 @@ export class AdminManagementService {
       targetId: admin.id,
       targetType: 'ADMIN',
       action: 'ADMIN_UPDATED',
-      beforeJson: before,
-      afterJson: this.toAdminDetail(updated, updated.adminRole),
+      beforeJson: { ...before, reason: dto.reason },
+      afterJson: { ...this.toAdminDetail(updated, updated.adminRole), reason: dto.reason },
     });
 
     return {
       data: this.toAdminDetail(updated, updated.adminRole),
       message: 'Admin updated successfully',
-    };
-  }
-
-  async updateActiveStatus(user: AuthUserContext, id: string, dto: UpdateAdminActiveStatusDto) {
-    await this.update(user, id, { isActive: dto.isActive });
-    return {
-      data: { id, isActive: dto.isActive },
-      message: dto.isActive ? 'Admin enabled successfully' : 'Admin disabled successfully',
     };
   }
 

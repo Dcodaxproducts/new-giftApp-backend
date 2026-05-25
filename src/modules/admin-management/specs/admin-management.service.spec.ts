@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
@@ -93,6 +94,10 @@ describe('AdminManagementService', () => {
     await expect(service.details(superAdmin, 'admin_1')).resolves.toEqual(expect.objectContaining({ message: 'Admin details fetched successfully' }));
     await expect(service.update(superAdmin, 'admin_1', { email: 'Staff.Updated@Example.com', firstName: 'Updated' })).resolves.toEqual(expect.objectContaining({ message: 'Admin updated successfully' }));
     expect(repository.updateAdminUser).toHaveBeenCalledWith('admin_1', expect.objectContaining({ email: 'staff.updated@example.com', firstName: 'Updated' }));
+    await expect(service.update(superAdmin, 'admin_1', { isActive: false, reason: 'Staff access paused.' })).resolves.toEqual(expect.objectContaining({ message: 'Admin updated successfully' }));
+    await expect(service.update(superAdmin, 'admin_1', { isActive: true, reason: 'Staff account re-enabled.' })).resolves.toEqual(expect.objectContaining({ message: 'Admin updated successfully' }));
+    expect(repository.updateAdminUser).toHaveBeenCalledWith('admin_1', expect.objectContaining({ isActive: false, refreshTokenHash: null }));
+    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'ADMIN_UPDATED', afterJson: expect.objectContaining({ reason: 'Staff account re-enabled.' }) }));
     await expect(service.resetPassword(superAdmin, 'admin_1', {})).resolves.toEqual({ data: null, message: 'Temporary password generated successfully' });
     await expect(service.permanentlyDelete(superAdmin, 'admin_1')).resolves.toEqual({ data: { deletedAdminId: 'admin_1' }, message: 'Admin staff user permanently deleted successfully.' });
     expect(repository.deleteAdminPermanently).toHaveBeenCalledWith('admin_1');
@@ -125,6 +130,17 @@ describe('AdminManagementService', () => {
     await expect(service.update({ uid: 'other_super', role: UserRole.SUPER_ADMIN }, 'super_1', { roleId: 'role_1' })).rejects.toThrow(ForbiddenException);
 
     repository.countOtherActiveSuperAdmins.mockResolvedValueOnce(0);
-    await expect(service.updateActiveStatus({ uid: 'other_super', role: UserRole.SUPER_ADMIN }, 'super_1', { isActive: false })).rejects.toThrow(ForbiddenException);
+    await expect(service.update({ uid: 'other_super', role: UserRole.SUPER_ADMIN }, 'super_1', { isActive: false })).rejects.toThrow(ForbiddenException);
+    await expect(service.update({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, 'super_1', { isActive: false })).rejects.toThrow(ForbiddenException);
+  });
+
+  it('removes old admin active-status route from Swagger', () => {
+    const controller = readFileSync('src/modules/admin-management/controllers/admin-management.controller.ts', 'utf8');
+    const openapi = JSON.parse(readFileSync('docs/generated/openapi.json', 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };
+    expect(controller).toContain("@Patch(':id')");
+    expect(controller).not.toContain("@Patch(':id/active-status')");
+    expect(openapi.paths['/api/v1/admins/{id}']).toBeDefined();
+    expect(openapi.paths['/api/v1/admins/{id}/active-status']).toBeUndefined();
+    expect(Object.keys(openapi.paths['/api/v1/admins/{id}']?.patch?.requestBody?.content?.['application/json']?.examples ?? {})).toEqual(expect.arrayContaining(['updateAdminProfile', 'activateAdmin', 'deactivateAdmin']));
   });
 });

@@ -7513,6 +7513,7 @@
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches ADMIN staff details."
       },
       "patch": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details. SUPER_ADMIN only. Updates ADMIN staff profile, role assignment, and active/inactive status in one endpoint. Password updates are handled only by the dedicated password endpoint. SUPER_ADMIN self-disable and SUPER_ADMIN role updates are blocked.",
         "operationId": "AdminManagementController_update",
         "parameters": [
           {
@@ -7530,13 +7531,54 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateAdminDto"
+              },
+              "examples": {
+                "updateAdminProfile": {
+                  "value": {
+                    "firstName": "Operations",
+                    "lastName": "Staff",
+                    "roleId": "admin_role_id"
+                  }
+                },
+                "activateAdmin": {
+                  "value": {
+                    "isActive": true,
+                    "reason": "Staff account re-enabled."
+                  }
+                },
+                "deactivateAdmin": {
+                  "value": {
+                    "isActive": false,
+                    "reason": "Staff account disabled after access review."
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Admin updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "admin_id",
+                      "firstName": "Operations",
+                      "lastName": "Staff",
+                      "role": {
+                        "id": "admin_role_id",
+                        "name": "Gift Manager"
+                      },
+                      "isActive": true
+                    },
+                    "message": "Admin updated successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7544,13 +7586,12 @@
             "bearer": []
           }
         ],
+        "summary": "Update admin staff profile or active status",
         "tags": [
           "02 Admin - Staff Management"
         ],
-        "summary": "Update Admins",
         "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details."
+        "x-access": "SUPER_ADMIN"
       },
       "delete": {
         "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanently deletes an ADMIN staff account. DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.",
@@ -7594,48 +7635,6 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/admins/{id}/active-status": {
-      "patch": {
-        "operationId": "AdminManagementController_updateActiveStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAdminActiveStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "02 Admin - Staff Management"
-        ],
-        "summary": "Update Admins Active Status",
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff active status."
       }
     },
     "/api/v1/admins/{id}/password": {
@@ -26461,19 +26460,12 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Staff account re-enabled."
           }
         }
-      },
-      "UpdateAdminActiveStatusDto": {
-        "type": "object",
-        "properties": {
-          "isActive": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "isActive"
-        ]
       },
       "ResetAdminPasswordDto": {
         "type": "object",

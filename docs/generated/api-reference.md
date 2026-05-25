@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 12:12 UTC
+Generated at: 2026-05-25 12:56 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -10,7 +10,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ## Contents
 - 01 Auth (20 APIs)
 - 01 Auth - Login Attempts (3 APIs)
-- 02 Admin - Staff Management (7 APIs)
+- 02 Admin - Staff Management (6 APIs)
 - 02 Admin - Roles & Permissions (7 APIs)
 - 02 Admin - User Management (9 APIs)
 - 02 Admin - Provider Management (12 APIs)
@@ -734,31 +734,49 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/admins/{id}`
 
-- Summary: Update Admins
+- Summary: Update admin staff profile or active status
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details. SUPER_ADMIN only. Updates ADMIN staff profile, role assignment, and active/inactive status in one endpoint. Password updates are handled only by the dedicated password endpoint. SUPER_ADMIN self-disable and SUPER_ADMIN role updates are blocked.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - updateAdminProfile:
 ```json
 {
-  "email": "staff.updated@example.com",
-  "firstName": "<string>",
-  "lastName": "<string>",
-  "phone": "<string>",
-  "avatarUrl": "<string>",
-  "title": "<string>",
-  "roleId": "<string>",
-  "isActive": true
+  "firstName": "Operations",
+  "lastName": "Staff",
+  "roleId": "admin_role_id"
+}
+```
+  - activateAdmin:
+```json
+{
+  "isActive": true,
+  "reason": "Staff account re-enabled."
+}
+```
+  - deactivateAdmin:
+```json
+{
+  "isActive": false,
+  "reason": "Staff account disabled after access review."
 }
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "admin_id",
+    "firstName": "Operations",
+    "lastName": "Staff",
+    "role": {
+      "id": "admin_role_id",
+      "name": "Gift Manager"
+    },
+    "isActive": true
+  },
+  "message": "Admin updated successfully"
 }
 ```
 
@@ -782,29 +800,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "deletedAdminId": "admin_id"
   },
   "message": "Admin staff user permanently deleted successfully."
-}
-```
-
-### PATCH `/api/v1/admins/{id}/active-status`
-
-- Summary: Update Admins Active Status
-- Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff active status.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "isActive": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
 }
 ```
 

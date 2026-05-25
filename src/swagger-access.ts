@@ -21,7 +21,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admins/{id}': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Fetches ADMIN staff details.' },
   'PATCH /api/v1/admins/{id}': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates ADMIN staff account details.' },
   'DELETE /api/v1/admins/{id}': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Permanently deletes an ADMIN staff account.' },
-  'PATCH /api/v1/admins/{id}/active-status': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates ADMIN staff active status.' },
   'PATCH /api/v1/admins/{id}/password': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Changes ADMIN staff password from dashboard.' },
 
   'GET /api/v1/users/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with users.export', description: 'SUPER_ADMIN or ADMIN with users.export permission.' },

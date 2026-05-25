@@ -170,12 +170,11 @@ export class UpdateAdminDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-}
 
-export class UpdateAdminActiveStatusDto {
-  @ApiProperty()
-  @IsBoolean()
-  isActive!: boolean;
+  @ApiPropertyOptional({ example: 'Staff account re-enabled.' })
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }
 
 export class ResetAdminPasswordDto {
@@ -200,4 +199,3 @@ export class ResetAdminPasswordDto {
   @IsBoolean()
   sendEmail?: boolean;
 }
-
