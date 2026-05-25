@@ -11678,7 +11678,7 @@
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
       },
       "patch": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Price, name, media, and variant changes do not reset provider inventory to pending moderation.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Provider can update only own inventory item. Variant id must belong to the provider-owned gift. Status and availability changes go through this same PATCH endpoint. Stock-only availability updates do not trigger unnecessary moderation; material changes preserve existing moderation behavior.",
         "operationId": "ProviderInventoryController_update",
         "parameters": [
           {
@@ -11698,8 +11698,10 @@
                 "$ref": "#/components/schemas/UpdateProviderInventoryItemDto"
               },
               "examples": {
-                "upsertVariants": {
+                "updateItem": {
                   "value": {
+                    "name": "Luxury Perfume",
+                    "description": "Updated premium fragrance.",
                     "replaceVariants": false,
                     "variants": [
                       {
@@ -11723,6 +11725,26 @@
                       }
                     ]
                   }
+                },
+                "activateItem": {
+                  "value": {
+                    "status": "ACTIVE",
+                    "isAvailable": true,
+                    "reason": "Item reactivated after stock update."
+                  }
+                },
+                "deactivateItem": {
+                  "value": {
+                    "status": "INACTIVE",
+                    "isAvailable": false,
+                    "reason": "Item paused by provider."
+                  }
+                },
+                "markOutOfStock": {
+                  "value": {
+                    "isAvailable": false,
+                    "reason": "Temporarily out of stock."
+                  }
                 }
               }
             }
@@ -11739,6 +11761,8 @@
                     "data": {
                       "id": "gift_id",
                       "name": "Luxury Perfume",
+                      "status": "ACTIVE",
+                      "isAvailable": true,
                       "variants": [
                         {
                           "id": "variant_id",
@@ -11792,48 +11816,6 @@
           }
         ],
         "summary": "Delete own inventory item",
-        "tags": [
-          "03 Provider - Inventory"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/inventory/{id}/status": {
-      "patch": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Manually switches own inventory item between ACTIVE and INACTIVE.",
-        "operationId": "ProviderInventoryController_updateStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProviderInventoryStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update own inventory status",
         "tags": [
           "03 Provider - Inventory"
         ],
@@ -27378,6 +27360,21 @@
               "type": "string"
             }
           },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "example": "ACTIVE"
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "example": true
+          },
+          "reason": {
+            "type": "string"
+          },
           "replaceVariants": {
             "type": "boolean",
             "example": false
@@ -27389,22 +27386,6 @@
             }
           }
         }
-      },
-      "UpdateProviderInventoryStatusDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "INACTIVE"
-            ],
-            "example": "ACTIVE"
-          }
-        },
-        "required": [
-          "status"
-        ]
       },
       "ProviderOrderActionDto": {
         "type": "object",

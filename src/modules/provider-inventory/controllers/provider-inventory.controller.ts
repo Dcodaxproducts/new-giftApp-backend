@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../../common/decorators/current
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { CreateProviderInventoryItemDto, ListProviderInventoryDto, UpdateProviderInventoryItemDto, UpdateProviderInventoryStatusDto } from '../dto/provider-inventory.dto';
+import { CreateProviderInventoryItemDto, ListProviderInventoryDto, UpdateProviderInventoryItemDto } from '../dto/provider-inventory.dto';
 import { ProviderInventoryService } from '../services/provider-inventory.service';
 
 @ApiTags('03 Provider - Inventory')
@@ -41,14 +41,10 @@ export class ProviderInventoryController {
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.details(user, id); }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update own provider inventory item and upsert variants', description: 'Variant id must belong to the provider-owned gift. Price, name, media, and variant changes do not reset provider inventory to pending moderation.' })
-  @ApiBody({ type: UpdateProviderInventoryItemDto, examples: { upsertVariants: { value: { replaceVariants: false, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }, { name: '150ml', price: 249.99, originalPrice: 299.99, isPopular: false, isDefault: false, sortOrder: 4, isActive: true }] } } } })
-  @ApiResponse({ status: 200, description: 'Inventory item updated successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', variants: [{ id: 'variant_id', name: '50ml', price: 129.99, isDefault: true, isActive: true }] }, message: 'Inventory item updated successfully' } } })
+  @ApiOperation({ summary: 'Update own provider inventory item and upsert variants', description: 'Provider can update only own inventory item. Variant id must belong to the provider-owned gift. Status and availability changes go through this same PATCH endpoint. Stock-only availability updates do not trigger unnecessary moderation; material changes preserve existing moderation behavior.' })
+  @ApiBody({ type: UpdateProviderInventoryItemDto, examples: { updateItem: { value: { name: 'Luxury Perfume', description: 'Updated premium fragrance.', replaceVariants: false, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }, { name: '150ml', price: 249.99, originalPrice: 299.99, isPopular: false, isDefault: false, sortOrder: 4, isActive: true }] } }, activateItem: { value: { status: 'ACTIVE', isAvailable: true, reason: 'Item reactivated after stock update.' } }, deactivateItem: { value: { status: 'INACTIVE', isAvailable: false, reason: 'Item paused by provider.' } }, markOutOfStock: { value: { isAvailable: false, reason: 'Temporarily out of stock.' } } } })
+  @ApiResponse({ status: 200, description: 'Inventory item updated successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', status: 'ACTIVE', isAvailable: true, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, isDefault: true, isActive: true }] }, message: 'Inventory item updated successfully' } } })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderInventoryItemDto) { return this.service.update(user, id, dto); }
-
-  @Patch(':id/status')
-  @ApiOperation({ summary: 'Update own inventory status', description: 'PROVIDER only. Manually switches own inventory item between ACTIVE and INACTIVE.' })
-  updateStatus(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderInventoryStatusDto) { return this.service.updateStatus(user, id, dto); }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete own inventory item', description: 'Permanently deletes the provider inventory item.' })

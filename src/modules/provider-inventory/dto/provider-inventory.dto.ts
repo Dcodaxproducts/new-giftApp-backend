@@ -48,10 +48,9 @@ export class UpdateProviderInventoryItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) imageUrls?: string[];
+  @ApiPropertyOptional({ enum: ProviderInventoryManualStatus, example: GiftStatus.ACTIVE }) @IsOptional() @IsEnum(ProviderInventoryManualStatus) status?: ProviderInventoryManualStatus;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isAvailable?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
   @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() replaceVariants?: boolean;
   @ApiPropertyOptional({ type: [ProviderInventoryVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProviderInventoryVariantDto) variants?: ProviderInventoryVariantDto[];
-}
-
-export class UpdateProviderInventoryStatusDto {
-  @ApiProperty({ enum: ProviderInventoryManualStatus, example: GiftStatus.ACTIVE }) @IsEnum(ProviderInventoryManualStatus) status!: ProviderInventoryManualStatus;
 }

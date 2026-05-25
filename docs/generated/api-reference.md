@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 11:14 UTC
+Generated at: 2026-05-25 11:25 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -45,7 +45,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Earnings (3 APIs)
 - 03 Provider - Business Info (2 APIs)
 - 03 Provider - Reviews (7 APIs)
-- 03 Provider - Inventory (8 APIs)
+- 03 Provider - Inventory (7 APIs)
 - 03 Provider - Promotional Offers (5 APIs)
 - 03 Provider - Orders (9 APIs)
 - 03 Provider - Payout Methods (7 APIs)
@@ -6133,13 +6133,15 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update own provider inventory item and upsert variants
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Variant id must belong to the provider-owned gift. Price, name, media, and variant changes do not reset provider inventory to pending moderation.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Provider can update only own inventory item. Variant id must belong to the provider-owned gift. Status and availability changes go through this same PATCH endpoint. Stock-only availability updates do not trigger unnecessary moderation; material changes preserve existing moderation behavior.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - upsertVariants:
+  - updateItem:
 ```json
 {
+  "name": "Luxury Perfume",
+  "description": "Updated premium fragrance.",
   "replaceVariants": false,
   "variants": [
     {
@@ -6164,6 +6166,29 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ]
 }
 ```
+  - activateItem:
+```json
+{
+  "status": "ACTIVE",
+  "isAvailable": true,
+  "reason": "Item reactivated after stock update."
+}
+```
+  - deactivateItem:
+```json
+{
+  "status": "INACTIVE",
+  "isAvailable": false,
+  "reason": "Item paused by provider."
+}
+```
+  - markOutOfStock:
+```json
+{
+  "isAvailable": false,
+  "reason": "Temporarily out of stock."
+}
+```
 - Response body:
 ```json
 {
@@ -6171,6 +6196,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "data": {
     "id": "gift_id",
     "name": "Luxury Perfume",
+    "status": "ACTIVE",
+    "isAvailable": true,
     "variants": [
       {
         "id": "variant_id",
@@ -6196,29 +6223,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/provider/inventory/{id}/status`
-
-- Summary: Update own inventory status
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Manually switches own inventory item between ACTIVE and INACTIVE.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "status": "ACTIVE"
-}
 ```
 - Response body:
 ```json

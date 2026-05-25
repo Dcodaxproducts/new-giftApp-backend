@@ -75,11 +75,6 @@ export class ProviderInventoryRepository {
       else await tx.giftVariant.create({ data: { giftId: params.id, ...variant.createData } });
     }
   }
-
-  updateStatus(id: string, status: GiftStatus) {
-    return this.prisma.gift.update({ where: { id }, data: { status }, include: PROVIDER_INVENTORY_INCLUDE });
-  }
-
   deleteItem(id: string) {
     return this.prisma.gift.delete({ where: { id } });
   }
