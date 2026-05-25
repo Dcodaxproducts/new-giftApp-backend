@@ -83,19 +83,18 @@ describe('Provider orders repository cleanup', () => {
   });
 
   it('repository owns action and write DB calls while service owns decisions', () => {
-    for (const method of ['runActionTransaction', 'findProviderOrderForAction', 'markProviderOrderAccepted', 'markProviderOrderRejected', 'updateProviderOrderStatus', 'fulfillProviderOrder', 'createProviderOrderTimelineEntry', 'createCustomerOrderNotification', 'createOrderBuyerMessage', 'updateProviderOrderChecklist', 'syncParentOrderStatus', 'upsertOrderEarningLedger']) expect(repository).toContain(method);
+    for (const method of ['runActionTransaction', 'findProviderOrderForAction', 'markProviderOrderAccepted', 'markProviderOrderRejected', 'updateProviderOrderStatus', 'fulfillProviderOrder', 'createProviderOrderTimelineEntry', 'createCustomerOrderNotification', 'updateProviderOrderChecklist', 'syncParentOrderStatus', 'upsertOrderEarningLedger']) expect(repository).toContain(method);
     expect(repository).toContain('tx.providerOrder.update');
     expect(repository).toContain('tx.providerOrderTimeline.create');
     expect(repository).toContain('this.notificationDispatch.createAndEmit');
-    expect(repository).toContain('tx.orderMessage.create');
     expect(repository).toContain('this.prisma.providerOrderChecklist.update');
     expect(repository).toContain('tx.order.update');
     expect(repository).toContain('tx.providerEarningsLedger.upsert');
+    expect(service).toContain('async action');
     expect(service).toContain('async accept');
     expect(service).toContain('async reject');
     expect(service).toContain('async updateStatus');
     expect(service).toContain('async fulfill');
-    expect(service).toContain('async messageBuyer');
   });
 
   it('action flows preserve provider ownership, transitions, parent sync, and notifications', () => {
@@ -110,11 +109,10 @@ describe('Provider orders repository cleanup', () => {
     expect(service).toContain('createCustomerOrderNotification');
   });
 
-  it('checklist and message buyer behavior remain unchanged', () => {
+  it('checklist behavior remains unchanged and buyer messaging moves to chats', () => {
     expect(service).toContain('updateProviderOrderChecklist(order.id');
     expect(service).not.toContain('status: dto.status, itemsPacked');
-    expect(service).toContain('createOrderBuyerMessage');
-    expect(service).toContain('PROVIDER_MESSAGE_RECEIVED');
-    expect(service).toContain('senderRole: UserRole.PROVIDER');
+    expect(service).not.toContain('createOrderBuyerMessage');
+    expect(service).not.toContain('PROVIDER_MESSAGE_RECEIVED');
   });
 });

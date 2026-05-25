@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../../common/decorators/current
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from '../dto/provider-orders.dto';
+import { ListProviderOrdersDto, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, UpdateProviderOrderChecklistDto } from '../dto/provider-orders.dto';
 import { ProviderOrdersService } from '../services/provider-orders.service';
 
 @ApiBearerAuth()
@@ -64,15 +64,10 @@ export class ProviderOrdersController {
   rejectReasons() { return this.providerOrders.rejectReasons(); }
 
 
-  @Patch(':id/status')
+  @Post(':id/action')
   @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Update own provider order fulfillment status', description: 'PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.' })
-  updateStatus(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderStatusDto) { return this.providerOrders.updateStatus(user, id, dto); }
-
-  @Post(':id/fulfill')
-  @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Fulfill own provider order with dispatch details', description: 'PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.' })
-  fulfill(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: FulfillProviderOrderDto) { return this.providerOrders.fulfill(user, id, dto); }
+  @ApiOperation({ summary: 'Run provider order action', description: 'PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.' })
+  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ProviderOrderActionDto) { return this.providerOrders.action(user, id, dto); }
 
   @Get(':id/timeline')
   @ApiTags('03 Provider - Orders')
@@ -89,23 +84,9 @@ export class ProviderOrdersController {
   @ApiOperation({ summary: 'Update own provider order checklist', description: 'PROVIDER only. Checklist updates do not directly change order status.' })
   updateChecklist(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderChecklistDto) { return this.providerOrders.updateChecklist(user, id, dto); }
 
-  @Post(':id/message-buyer')
-  @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Message buyer for own provider order', description: 'PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.' })
-  messageBuyer(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: MessageBuyerDto) { return this.providerOrders.messageBuyer(user, id, dto); }
-
   @Get(':id')
   @ApiTags('03 Provider - Orders')
   @ApiOperation({ summary: 'Fetch own provider order details', description: 'PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.' })
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.providerOrders.details(user, id); }
 
-  @Post(':id/accept')
-  @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Accept own pending provider order', description: 'Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.' })
-  accept(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AcceptProviderOrderDto) { return this.providerOrders.accept(user, id, dto); }
-
-  @Post(':id/reject')
-  @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Reject own pending provider order', description: 'Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.' })
-  reject(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: RejectProviderOrderDto) { return this.providerOrders.reject(user, id, dto); }
 }

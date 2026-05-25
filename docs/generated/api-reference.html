@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 07:27 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 07:27 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-25 07:46 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-25 07:46 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -2803,23 +2803,17 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/provider/orders/{id}/status</code></div><div><span class="label">Summary:</span> Update own provider order fulfillment status</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;status&quot;: &quot;SHIPPED&quot;,
-  &quot;note&quot;: &quot;Package handed over to courier.&quot;,
-  &quot;trackingNumber&quot;: &quot;FDX-123456&quot;,
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/action</code></div><div><span class="label">Summary:</span> Run provider order action</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. ACCEPT allows PENDING -&gt; ACCEPTED. REJECT allows PENDING -&gt; REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+  &quot;action&quot;: &quot;ACCEPT&quot;,
+  &quot;status&quot;: &quot;PROCESSING&quot;,
+  &quot;reason&quot;: &quot;OUT_OF_STOCK&quot;,
+  &quot;comment&quot;: &quot;Order accepted.&quot;,
+  &quot;note&quot;: &quot;Package handed to courier.&quot;,
   &quot;carrier&quot;: &quot;FedEx&quot;,
-  &quot;estimatedDeliveryAt&quot;: &quot;2026-10-26T10:00:00.000Z&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/fulfill</code></div><div><span class="label">Summary:</span> Fulfill own provider order with dispatch details</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;dispatchAt&quot;: &quot;2026-04-23T14:45:00.000Z&quot;,
-  &quot;estimatedDeliveryAt&quot;: &quot;2026-04-28T10:00:00.000Z&quot;,
-  &quot;carrier&quot;: &quot;Express Delivery Co.&quot;,
-  &quot;trackingNumber&quot;: &quot;TRK-8842-4567-9023&quot;,
-  &quot;notifyCustomer&quot;: true,
-  &quot;note&quot;: &quot;Order dispatched successfully.&quot;
+  &quot;trackingNumber&quot;: &quot;FDX-123456&quot;,
+  &quot;estimatedDeliveryAt&quot;: &quot;2026-10-26T10:00:00.000Z&quot;,
+  &quot;dispatchAt&quot;: &quot;2026-10-25T10:00:00.000Z&quot;,
+  &quot;notifyCustomer&quot;: true
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
@@ -2849,27 +2843,7 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/message-buyer</code></div><div><span class="label">Summary:</span> Message buyer for own provider order</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;message&quot;: &quot;Your order is being prepared and will be shipped soon.&quot;,
-  &quot;channel&quot;: &quot;IN_APP&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/provider/orders/{id}</code></div><div><span class="label">Summary:</span> Fetch own provider order details</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/accept</code></div><div><span class="label">Summary:</span> Accept own pending provider order</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -&gt; ACCEPTED. Creates timeline entry and customer notification.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;note&quot;: &quot;Order accepted and will be processed shortly.&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/provider/orders/{id}/reject</code></div><div><span class="label">Summary:</span> Reject own pending provider order</div><div><span class="label">Allowed role/access:</span> PROVIDER</div><div><span class="label">Notes:</span> Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -&gt; REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;reason&quot;: &quot;OUT_OF_STOCK&quot;,
-  &quot;comment&quot;: &quot;The selected size is currently unavailable.&quot;
-}</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;

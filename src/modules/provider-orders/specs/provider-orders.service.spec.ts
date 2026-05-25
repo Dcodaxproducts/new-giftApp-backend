@@ -15,8 +15,9 @@ describe('Provider assigned orders source safety', () => {
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
     expect(controller.indexOf("@Get('summary')")).toBeLessThan(controller.indexOf("@Get(':id')"));
     expect(controller.indexOf("@Get('reject-reasons')")).toBeLessThan(controller.indexOf("@Get(':id')"));
-    expect(controller).toContain("@Post(':id/accept')");
-    expect(controller).toContain("@Post(':id/reject')");
+    expect(controller).toContain("@Post(':id/action')");
+    expect(controller).not.toContain("@Post(':id/accept')");
+    expect(controller).not.toContain("@Post(':id/reject')");
   });
 
   it('scopes all provider order reads/writes to the logged-in provider', () => {
@@ -54,6 +55,7 @@ describe('Provider assigned orders source safety', () => {
   });
 
   it('accepts only pending orders and creates timeline plus customer notification', () => {
+    expect(service).toContain('dto.action === ProviderOrderAction.ACCEPT');
     expect(service).toContain('Only pending provider orders can be accepted');
     expect(service).toContain('ProviderOrderStatus.ACCEPTED');
     expect(providerOrdersRepository).toContain('providerOrderTimeline.create');
@@ -61,10 +63,19 @@ describe('Provider assigned orders source safety', () => {
   });
 
   it('rejects only pending orders with reason and creates notifications', () => {
+    expect(service).toContain('dto.action === ProviderOrderAction.REJECT');
+    expect(service).toContain('Reason is required when rejecting an order');
     expect(service).toContain('Only pending provider orders can be rejected');
     expect(service).toContain('ProviderOrderStatus.REJECTED');
     expect(providerOrdersRepository).toContain('rejectionReason: params.reason');
     expect(service).toContain('CUSTOMER_ORDER_REJECTED');
     expect(service).toContain('ADMIN_ORDER_REQUIRES_REVIEW');
+  });
+
+  it('uses unified chat endpoints for buyer messaging instead of provider order route', () => {
+    const chatsController = readFileSync(join(__dirname, '../../chats/controllers/chats.controller.ts'), 'utf8');
+    expect(controller).not.toContain("@Post(':id/message-buyer')");
+    expect(chatsController).toContain("@Post('threads')");
+    expect(chatsController).toContain("@Post('threads/:threadId/messages')");
   });
 });

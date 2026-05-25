@@ -9,12 +9,13 @@ describe('Provider order fulfillment source safety', () => {
   const repository = readFileSync(join(__dirname, '../repositories/provider-orders.repository.ts'), 'utf8');
 
   it('adds provider fulfillment APIs under Provider Orders', () => {
-    expect(controller).toContain("@Patch(':id/status')");
+    expect(controller).toContain("@Post(':id/action')");
+    expect(controller).not.toContain("@Patch(':id/status')");
     expect(controller).toContain("@Get(':id/timeline')");
     expect(controller).toContain("@Get(':id/checklist')");
     expect(controller).toContain("@Patch(':id/checklist')");
-    expect(controller).toContain("@Post(':id/message-buyer')");
-    expect(controller).toContain("@Post(':id/fulfill')");
+    expect(controller).not.toContain("@Post(':id/message-buyer')");
+    expect(controller).not.toContain("@Post(':id/fulfill')");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
   });
 
@@ -30,6 +31,8 @@ describe('Provider order fulfillment source safety', () => {
   });
 
   it('provider status updates enforce ownership, payment, and transitions', () => {
+    expect(service).toContain('dto.action === ProviderOrderAction.UPDATE_STATUS');
+    expect(service).toContain('Status is required when updating order status');
     expect(service).toContain('getOwnedProviderOrder(user.uid, id)');
     expect(service).toContain('assertTransition(order.status, dto.status)');
     expect(service).toContain('Cannot update a closed provider order');
@@ -38,13 +41,14 @@ describe('Provider order fulfillment source safety', () => {
   });
 
   it('dedicated fulfill action validates ownership/payment, stores dispatch fields, and ships', () => {
-    expect(dto).toContain('class FulfillProviderOrderDto');
-    expect(dto).toContain('dispatchAt!: string');
-    expect(dto).toContain('carrier!: string');
-    expect(dto).toContain('trackingNumber!: string');
-    expect(service).toContain('async fulfill(user: AuthUserContext, id: string');
+    expect(dto).toContain('ProviderOrderAction');
+    expect(dto).toContain('dispatchAt?: string');
+    expect(dto).toContain('carrier?: string');
+    expect(dto).toContain('trackingNumber?: string');
+    expect(service).toContain('dispatchAt, carrier, and trackingNumber are required when fulfilling an order');
     expect(service).toContain('getOwnedProviderOrder(user.uid, id)');
     expect(service).toContain('assertCanFulfill(order)');
+    expect(service).toContain('dispatchAt, carrier, and trackingNumber are required when fulfilling an order');
     expect(service).toContain('Cannot fulfill unpaid order');
     expect(repository).toContain('status: ProviderOrderStatus.SHIPPED');
     expect(service).toContain('dispatchAt');
@@ -74,11 +78,12 @@ describe('Provider order fulfillment source safety', () => {
     expect(service).toContain('providerOrderId: order.id');
   });
 
-  it('message buyer stores order message and creates customer notification', () => {
-    expect(dto).toContain('ProviderOrderMessageChannel');
-    expect(repository).toContain('orderMessage.create');
-    expect(service).toContain('PROVIDER_MESSAGE_RECEIVED');
-    expect(service).toContain('recipientId: order.order.userId');
+  it('buyer messaging is replaced by unified chats endpoints', () => {
+    const chatsController = readFileSync(join(__dirname, '../../chats/controllers/chats.controller.ts'), 'utf8');
+    expect(controller).not.toContain("@Post(':id/message-buyer')");
+    expect(service).not.toContain('async messageBuyer');
+    expect(chatsController).toContain("@Post('threads')");
+    expect(chatsController).toContain("@Post('threads/:threadId/messages')");
   });
 
   it('completed provider orders sync parent order status', () => {

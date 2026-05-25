@@ -12406,52 +12406,10 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/provider/orders/{id}/status": {
-      "patch": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.",
-        "operationId": "ProviderOrdersController_updateStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProviderOrderStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update own provider order fulfillment status",
-        "tags": [
-          "03 Provider - Orders"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/orders/{id}/fulfill": {
+    "/api/v1/provider/orders/{id}/action": {
       "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.",
-        "operationId": "ProviderOrdersController_fulfill",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.",
+        "operationId": "ProviderOrdersController_action",
         "parameters": [
           {
             "name": "id",
@@ -12467,7 +12425,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FulfillProviderOrderDto"
+                "$ref": "#/components/schemas/ProviderOrderActionDto"
               }
             }
           }
@@ -12482,7 +12440,7 @@
             "bearer": []
           }
         ],
-        "summary": "Fulfill own provider order with dispatch details",
+        "summary": "Run provider order action",
         "tags": [
           "03 Provider - Orders"
         ],
@@ -12594,48 +12552,6 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/provider/orders/{id}/message-buyer": {
-      "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.",
-        "operationId": "ProviderOrdersController_messageBuyer",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MessageBuyerDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Message buyer for own provider order",
-        "tags": [
-          "03 Provider - Orders"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
     "/api/v1/provider/orders/{id}": {
       "get": {
         "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.",
@@ -12661,90 +12577,6 @@
           }
         ],
         "summary": "Fetch own provider order details",
-        "tags": [
-          "03 Provider - Orders"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/orders/{id}/accept": {
-      "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.",
-        "operationId": "ProviderOrdersController_accept",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AcceptProviderOrderDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Accept own pending provider order",
-        "tags": [
-          "03 Provider - Orders"
-        ],
-        "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER"
-      }
-    },
-    "/api/v1/provider/orders/{id}/reject": {
-      "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.",
-        "operationId": "ProviderOrdersController_reject",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectProviderOrderDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reject own pending provider order",
         "tags": [
           "03 Provider - Orders"
         ],
@@ -27517,9 +27349,19 @@
           "status"
         ]
       },
-      "UpdateProviderOrderStatusDto": {
+      "ProviderOrderActionDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "ACCEPT",
+              "REJECT",
+              "UPDATE_STATUS",
+              "FULFILL"
+            ],
+            "example": "ACCEPT"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -27536,62 +27378,50 @@
               "REJECTED",
               "REFUNDED"
             ],
-            "example": "SHIPPED"
+            "example": "PROCESSING"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "OUT_OF_STOCK",
+              "BUSINESS_CLOSED",
+              "CANNOT_DELIVER_TO_AREA",
+              "PRICING_ERROR",
+              "OTHER"
+            ],
+            "example": "OUT_OF_STOCK"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Order accepted."
           },
           "note": {
             "type": "string",
-            "example": "Package handed over to courier."
-          },
-          "trackingNumber": {
-            "type": "string",
-            "example": "FDX-123456"
+            "example": "Package handed to courier."
           },
           "carrier": {
             "type": "string",
             "example": "FedEx"
           },
+          "trackingNumber": {
+            "type": "string",
+            "example": "FDX-123456"
+          },
           "estimatedDeliveryAt": {
             "type": "string",
             "example": "2026-10-26T10:00:00.000Z"
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "FulfillProviderOrderDto": {
-        "type": "object",
-        "properties": {
+          },
           "dispatchAt": {
             "type": "string",
-            "example": "2026-04-23T14:45:00.000Z"
-          },
-          "estimatedDeliveryAt": {
-            "type": "string",
-            "example": "2026-04-28T10:00:00.000Z"
-          },
-          "carrier": {
-            "type": "string",
-            "example": "Express Delivery Co."
-          },
-          "trackingNumber": {
-            "type": "string",
-            "example": "TRK-8842-4567-9023"
+            "example": "2026-10-25T10:00:00.000Z"
           },
           "notifyCustomer": {
             "type": "boolean",
-            "example": true,
-            "default": true
-          },
-          "note": {
-            "type": "string",
-            "example": "Order dispatched successfully."
+            "example": true
           }
         },
         "required": [
-          "dispatchAt",
-          "carrier",
-          "trackingNumber"
+          "action"
         ]
       },
       "UpdateProviderOrderChecklistDto": {
@@ -27631,60 +27461,6 @@
             }
           }
         }
-      },
-      "MessageBuyerDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "example": "Your order is being prepared and will be shipped soon."
-          },
-          "channel": {
-            "type": "string",
-            "enum": [
-              "IN_APP",
-              "EMAIL",
-              "SMS_PLACEHOLDER"
-            ],
-            "example": "IN_APP"
-          }
-        },
-        "required": [
-          "message",
-          "channel"
-        ]
-      },
-      "AcceptProviderOrderDto": {
-        "type": "object",
-        "properties": {
-          "note": {
-            "type": "string",
-            "example": "Order accepted and will be processed shortly."
-          }
-        }
-      },
-      "RejectProviderOrderDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "OUT_OF_STOCK",
-              "BUSINESS_CLOSED",
-              "CANNOT_DELIVER_TO_AREA",
-              "PRICING_ERROR",
-              "OTHER"
-            ],
-            "example": "OUT_OF_STOCK"
-          },
-          "comment": {
-            "type": "string",
-            "example": "The selected size is currently unavailable."
-          }
-        },
-        "required": [
-          "reason"
-        ]
       },
       "CreateProviderBankAccountDto": {
         "type": "object",

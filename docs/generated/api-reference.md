@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:27 UTC
+Generated at: 2026-05-25 07:46 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -47,7 +47,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Reviews (7 APIs)
 - 03 Provider - Inventory (8 APIs)
 - 03 Provider - Promotional Offers (6 APIs)
-- 03 Provider - Orders (13 APIs)
+- 03 Provider - Orders (9 APIs)
 - 03 Provider - Payout Methods (7 APIs)
 - 03 Provider - Payouts (6 APIs)
 - 03 Provider - Refund Requests (6 APIs)
@@ -6364,50 +6364,27 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### PATCH `/api/v1/provider/orders/{id}/status`
+### POST `/api/v1/provider/orders/{id}/action`
 
-- Summary: Update own provider order fulfillment status
+- Summary: Run provider order action
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Enforces ownership, valid transitions, paid-order fulfillment checks, timeline entries, and customer notifications.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
-  "status": "SHIPPED",
-  "note": "Package handed over to courier.",
-  "trackingNumber": "FDX-123456",
+  "action": "ACCEPT",
+  "status": "PROCESSING",
+  "reason": "OUT_OF_STOCK",
+  "comment": "Order accepted.",
+  "note": "Package handed to courier.",
   "carrier": "FedEx",
-  "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/provider/orders/{id}/fulfill`
-
-- Summary: Fulfill own provider order with dispatch details
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Dedicated Figma fulfill action. Stores dispatch date/time, estimated delivery, carrier, tracking number, moves provider order to SHIPPED, syncs parent order, creates timeline entry, and optionally notifies customer.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "dispatchAt": "2026-04-23T14:45:00.000Z",
-  "estimatedDeliveryAt": "2026-04-28T10:00:00.000Z",
-  "carrier": "Express Delivery Co.",
-  "trackingNumber": "TRK-8842-4567-9023",
-  "notifyCustomer": true,
-  "note": "Order dispatched successfully."
+  "trackingNumber": "FDX-123456",
+  "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z",
+  "dispatchAt": "2026-10-25T10:00:00.000Z",
+  "notifyCustomer": true
 }
 ```
 - Response body:
@@ -6485,30 +6462,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/provider/orders/{id}/message-buyer`
-
-- Summary: Message buyer for own provider order
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Creates an order message and customer notification; SMS is placeholder only.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "message": "Your order is being prepared and will be shipped soon.",
-  "channel": "IN_APP"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
 ### GET `/api/v1/provider/orders/{id}`
 
 - Summary: Fetch own provider order details
@@ -6516,53 +6469,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Does not expose customer card/payment secrets or admin-only order fields.
 - Parameters:
   - `id` (path, required, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/provider/orders/{id}/accept`
-
-- Summary: Accept own pending provider order
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -> ACCEPTED. Creates timeline entry and customer notification.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "note": "Order accepted and will be processed shortly."
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/provider/orders/{id}/reject`
-
-- Summary: Reject own pending provider order
-- Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Allowed transition: PENDING -> REJECTED. Does not refund automatically; flags order for review/cancellation based on provider split count.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "OUT_OF_STOCK",
-  "comment": "The selected size is currently unavailable."
-}
-```
 - Response body:
 ```json
 {

@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:27 UTC
+Generated at: 2026-05-25 07:46 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 07:27 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 07:46 UTC.
 
 ## Frontend Integration Flows
 
@@ -872,7 +872,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:27 UTC.
 | GET | `/api/v1/provider/orders/performance` | Fetch own provider order performance | PROVIDER |
 | GET | `/api/v1/provider/orders/recent` | List recent own provider orders | PROVIDER |
 
-### Provider - Orders (13 APIs)
+### Provider - Orders (9 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -881,13 +881,9 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:27 UTC.
 | GET | `/api/v1/provider/orders/reject-reasons` | List provider order reject reasons | PROVIDER |
 | GET | `/api/v1/provider/orders/summary` | Fetch own provider order summary | PROVIDER |
 | GET | `/api/v1/provider/orders/{id}` | Fetch own provider order details | PROVIDER |
-| POST | `/api/v1/provider/orders/{id}/accept` | Accept own pending provider order | PROVIDER |
+| POST | `/api/v1/provider/orders/{id}/action` | Run provider order action | PROVIDER |
 | GET | `/api/v1/provider/orders/{id}/checklist` | Fetch own provider order checklist | PROVIDER |
 | PATCH | `/api/v1/provider/orders/{id}/checklist` | Update own provider order checklist | PROVIDER |
-| POST | `/api/v1/provider/orders/{id}/fulfill` | Fulfill own provider order with dispatch details | PROVIDER |
-| POST | `/api/v1/provider/orders/{id}/message-buyer` | Message buyer for own provider order | PROVIDER |
-| POST | `/api/v1/provider/orders/{id}/reject` | Reject own pending provider order | PROVIDER |
-| PATCH | `/api/v1/provider/orders/{id}/status` | Update own provider order fulfillment status | PROVIDER |
 | GET | `/api/v1/provider/orders/{id}/timeline` | Fetch own provider order timeline | PROVIDER |
 
 ### Provider - Payout Methods (7 APIs)

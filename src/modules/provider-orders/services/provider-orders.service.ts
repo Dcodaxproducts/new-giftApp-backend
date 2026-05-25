@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
-import { Notification, NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus, UserRole } from '@prisma/client';
+import { Notification, NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, MessageBuyerDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from '../dto/provider-orders.dto';
+import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, ProviderOrderAction, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from '../dto/provider-orders.dto';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from '../repositories/provider-orders.repository';
 
@@ -87,6 +87,47 @@ export class ProviderOrdersService {
     const order = await this.getOwnedProviderOrderForRead(user.uid, id);
     const address = await this.providerOrdersRepository.findCustomerAddressForProviderOrder({ deliveryAddressId: order.order.deliveryAddressId, userId: order.order.userId });
     return { data: this.toDetails(order, address), message: 'Provider order fetched successfully.' };
+  }
+
+  async action(user: AuthUserContext, id: string, dto: ProviderOrderActionDto) {
+    if (dto.action === ProviderOrderAction.ACCEPT) {
+      return this.accept(user, id, { note: dto.note ?? dto.comment });
+    }
+
+    if (dto.action === ProviderOrderAction.REJECT) {
+      if (!dto.reason) {
+        throw new BadRequestException('Reason is required when rejecting an order');
+      }
+
+      return this.reject(user, id, { reason: dto.reason, comment: dto.comment });
+    }
+
+    if (dto.action === ProviderOrderAction.UPDATE_STATUS) {
+      if (!dto.status) {
+        throw new BadRequestException('Status is required when updating order status');
+      }
+
+      return this.updateStatus(user, id, {
+        status: dto.status,
+        note: dto.note,
+        trackingNumber: dto.trackingNumber,
+        carrier: dto.carrier,
+        estimatedDeliveryAt: dto.estimatedDeliveryAt,
+      });
+    }
+
+    if (!dto.dispatchAt || !dto.carrier || !dto.trackingNumber) {
+      throw new BadRequestException('dispatchAt, carrier, and trackingNumber are required when fulfilling an order');
+    }
+
+    return this.fulfill(user, id, {
+      dispatchAt: dto.dispatchAt,
+      estimatedDeliveryAt: dto.estimatedDeliveryAt,
+      carrier: dto.carrier,
+      trackingNumber: dto.trackingNumber,
+      notifyCustomer: dto.notifyCustomer,
+      note: dto.note ?? dto.comment,
+    });
   }
 
   async accept(user: AuthUserContext, id: string, dto: AcceptProviderOrderDto) {
@@ -176,17 +217,6 @@ export class ProviderOrdersService {
     await this.getOrCreateChecklist(order.id);
     const updated = await this.providerOrdersRepository.updateProviderOrderChecklist(order.id, { itemsPacked: dto.itemsPacked, giftMessageAttached: dto.giftMessageAttached, addressVerified: dto.addressVerified, customerContactChecked: dto.customerContactChecked, readyForCourier: dto.readyForCourier, customItemsJson: dto.customItems === undefined ? undefined : dto.customItems });
     return { data: this.toChecklist(updated), message: 'Order checklist updated successfully.' };
-  }
-
-  async messageBuyer(user: AuthUserContext, id: string, dto: MessageBuyerDto) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    const message = dto.message.trim();
-    if (!message) throw new BadRequestException('Message is required');
-    await this.providerOrdersRepository.runActionTransaction(async (tx) => {
-      await this.providerOrdersRepository.createOrderBuyerMessage(tx, { orderId: order.orderId, providerOrderId: order.id, senderId: user.uid, senderRole: UserRole.PROVIDER, recipientId: order.order.userId, message, channel: dto.channel });
-      await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Message from provider', message, type: 'PROVIDER_MESSAGE_RECEIVED', metadataJson: { orderId: order.orderId, providerOrderId: order.id, channel: dto.channel } });
-    });
-    return { success: true, message: 'Message sent to buyer successfully.' };
   }
 
   rejectReasons() {
