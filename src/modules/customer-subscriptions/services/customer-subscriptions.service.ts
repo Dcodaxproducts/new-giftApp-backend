@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { BillingCycle, Coupon, CouponDiscountType, CustomerSubscription, CustomerSubscriptionCancelMode, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, Prisma, SubscriptionPlan } from '@prisma/client';
+import { BillingCycle, Coupon, CouponDiscountType, CustomerSubscription, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, Prisma, SubscriptionPlan } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { ApplyCouponDto, ConfirmSubscriptionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
+import { ApplyCouponDto, ConfirmSubscriptionDto, CustomerSubscriptionAction, CustomerSubscriptionActionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
 import { CustomerSubscriptionsRepository } from '../repositories/customer-subscriptions.repository';
 
 type PlanFeature = { key: string; label: string; description?: string | null; enabled: boolean };
@@ -50,25 +50,10 @@ export class CustomerSubscriptionsService {
     return { data: { id: updated.id, status: updated.status, isPremium: updated.isPremium, currentPeriodEnd: updated.currentPeriodEnd }, message: 'Premium subscription activated successfully.' };
   }
 
-  async cancel(user: AuthUserContext, dto: { cancelMode: CustomerSubscriptionCancelMode; reason?: string }) {
+  async action(user: AuthUserContext, dto: CustomerSubscriptionActionDto) {
     const sub = await this.requireCurrent(user.uid);
-    if (!sub.stripeSubscriptionId) throw new BadRequestException('Stripe subscription is missing');
-    let updatedStripe: StripeSubscriptionLike;
-    if (dto.cancelMode === CustomerSubscriptionCancelMode.AFTER_CURRENT_PERIOD) updatedStripe = await this.stripe().subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: true, metadata: { cancelReason: dto.reason ?? '' } }) as StripeSubscriptionLike;
-    else updatedStripe = await this.stripe().subscriptions.cancel(sub.stripeSubscriptionId) as StripeSubscriptionLike;
-    const status = dto.cancelMode === CustomerSubscriptionCancelMode.IMMEDIATELY ? CustomerSubscriptionStatus.CANCELLED : this.statusFromStripe(updatedStripe.status);
-    const updated = await this.repository.markSubscriptionCancelled(sub.id, { status, isPremium: this.isPremiumStatus(status), cancelAtPeriodEnd: dto.cancelMode === CustomerSubscriptionCancelMode.AFTER_CURRENT_PERIOD, cancelledAt: dto.cancelMode === CustomerSubscriptionCancelMode.IMMEDIATELY ? new Date() : null });
-    await this.notify(user.uid, 'Subscription cancelled', dto.cancelMode === CustomerSubscriptionCancelMode.AFTER_CURRENT_PERIOD ? 'Subscription will cancel at period end.' : 'Subscription cancelled.', 'SUBSCRIPTION_CANCELLED', { subscriptionId: sub.id });
-    return { data: { id: updated.id, status: updated.status, cancelAtPeriodEnd: updated.cancelAtPeriodEnd, currentPeriodEnd: updated.currentPeriodEnd }, message: dto.cancelMode === CustomerSubscriptionCancelMode.AFTER_CURRENT_PERIOD ? 'Subscription will be cancelled at the end of the current billing period.' : 'Subscription cancelled successfully.' };
-  }
-
-  async reactivate(user: AuthUserContext) {
-    const sub = await this.requireCurrent(user.uid);
-    if (!sub.cancelAtPeriodEnd || !sub.stripeSubscriptionId) throw new BadRequestException('Subscription is not scheduled for cancellation');
-    await this.stripe().subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: false });
-    const updated = await this.repository.reactivateSubscription(sub.id);
-    await this.notify(user.uid, 'Subscription reactivated', 'Your premium subscription was reactivated.', 'SUBSCRIPTION_REACTIVATED', { subscriptionId: sub.id });
-    return { data: { id: updated.id, status: updated.status, cancelAtPeriodEnd: updated.cancelAtPeriodEnd }, message: 'Subscription reactivated successfully.' };
+    if (dto.action === CustomerSubscriptionAction.CANCEL) return this.cancelAction(user.uid, sub, dto);
+    return this.reactivateAction(user.uid, sub);
   }
 
   async invoices(user: AuthUserContext, query: ListSubscriptionInvoicesDto) { const page = query.page ?? 1; const limit = query.limit ?? 20; const where: Prisma.CustomerSubscriptionInvoiceWhereInput = { userId: user.uid, ...(query.status && query.status !== InvoiceStatusFilter.ALL ? { status: query.status } : {}) }; const [items, total] = await this.repository.findSubscriptionInvoicesAndCountForUser(where, { skip: (page - 1) * limit, take: limit }); return { data: items.map((item) => this.invoiceItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Subscription invoices fetched successfully.' }; }
@@ -83,6 +68,29 @@ export class CustomerSubscriptionsService {
 
   async subscriptionSummary(userId: string) { const current = await this.activeSubscription(userId); if (!current) return { isPremium: false, status: 'FREE', planId: null, planName: null, billingCycle: null }; return { isPremium: current.isPremium, status: current.status, planId: current.planId, planName: current.plan.name, billingCycle: current.billingCycle }; }
 
+  private async cancelAction(userId: string, sub: CustomerSubscription, dto: CustomerSubscriptionActionDto) {
+    if (!sub.stripeSubscriptionId) throw new BadRequestException('Stripe subscription is missing');
+    const cancelAtPeriodEnd = dto.cancelAtPeriodEnd ?? false;
+    let updatedStripe: StripeSubscriptionLike;
+    if (cancelAtPeriodEnd) updatedStripe = await this.stripe().subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: true, metadata: { cancelReason: this.actionReason(dto) } }) as StripeSubscriptionLike;
+    else updatedStripe = await this.stripe().subscriptions.cancel(sub.stripeSubscriptionId) as StripeSubscriptionLike;
+    const status = cancelAtPeriodEnd ? this.statusFromStripe(updatedStripe.status) : CustomerSubscriptionStatus.CANCELLED;
+    const updated = await this.repository.markSubscriptionCancelled(sub.id, { status, isPremium: this.isPremiumStatus(status), cancelAtPeriodEnd, cancelledAt: cancelAtPeriodEnd ? null : new Date() });
+    await this.notify(userId, 'Subscription cancelled', cancelAtPeriodEnd ? 'Subscription will cancel at period end.' : 'Subscription cancelled.', 'SUBSCRIPTION_CANCELLED', { subscriptionId: sub.id, action: dto.action, reason: dto.reason ?? null });
+    return { data: { id: updated.id, status: updated.status, cancelAtPeriodEnd: updated.cancelAtPeriodEnd, currentPeriodEnd: updated.currentPeriodEnd }, message: cancelAtPeriodEnd ? 'Subscription will be cancelled at the end of the current billing period.' : 'Subscription cancelled successfully.' };
+  }
+
+  private async reactivateAction(userId: string, sub: CustomerSubscription) {
+    if (!sub.cancelAtPeriodEnd || !sub.stripeSubscriptionId) throw new BadRequestException('Subscription is not scheduled for cancellation');
+    await this.stripe().subscriptions.update(sub.stripeSubscriptionId, { cancel_at_period_end: false });
+    const updated = await this.repository.reactivateSubscription(sub.id);
+    await this.notify(userId, 'Subscription reactivated', 'Your premium subscription was reactivated.', 'SUBSCRIPTION_REACTIVATED', { subscriptionId: sub.id });
+    return { data: { id: updated.id, status: updated.status, cancelAtPeriodEnd: updated.cancelAtPeriodEnd }, message: 'Subscription reactivated successfully.' };
+  }
+
+  private actionReason(dto: CustomerSubscriptionActionDto): string {
+    return dto.comment?.trim() || dto.reason?.trim() || '';
+  }
   private async currentPayload(userId: string) { const current = await this.repository.findCurrentSubscriptionForUser(userId); if (!current || !this.isPremiumStatus(current.status)) return { status: 'FREE', isPremium: false, plan: null, features: [] }; return { status: current.status, isPremium: current.isPremium, plan: { id: current.plan.id, name: current.plan.name, billingCycle: current.billingCycle, price: this.planPrice(current.plan, current.billingCycle), currency: current.plan.currency }, features: this.features(current.plan), currentPeriodStart: current.currentPeriodStart, currentPeriodEnd: current.currentPeriodEnd, cancelAtPeriodEnd: current.cancelAtPeriodEnd, stripeSubscriptionId: current.stripeSubscriptionId }; }
   private async publicPlan(id: string): Promise<SubscriptionPlan> { const plan = await this.repository.findPlanById(id); if (!plan) throw new NotFoundException('Subscription plan not found'); return plan; }
   private async activeSubscription(userId: string) { return this.repository.findActiveSubscriptionForUser(userId); }

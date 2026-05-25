@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../../common/decorators/current
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ApplyCouponDto, CancelSubscriptionDto, ConfirmSubscriptionDto, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
+import { ApplyCouponDto, ConfirmSubscriptionDto, CustomerSubscriptionActionDto, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
 import { CustomerSubscriptionsService } from '../services/customer-subscriptions.service';
 
 @ApiTags('05 Customer - Subscriptions')
@@ -34,13 +34,10 @@ export class CustomerSubscriptionsController {
   @ApiOperation({ summary: 'Confirm Stripe subscription activation', description: 'REGISTERED_USER only. Fetches Stripe subscription server-side and activates local entitlement when active/trialing.' })
   confirm(@CurrentUser() user: AuthUserContext, @Body() dto: ConfirmSubscriptionDto) { return this.subscriptions.confirm(user, dto); }
 
-  @Post('cancel')
-  @ApiOperation({ summary: 'Cancel own subscription', description: 'REGISTERED_USER only. Supports immediate cancellation or cancel_at_period_end in Stripe. Does not delete local subscription record.' })
-  cancel(@CurrentUser() user: AuthUserContext, @Body() dto: CancelSubscriptionDto) { return this.subscriptions.cancel(user, dto); }
-
-  @Post('reactivate')
-  @ApiOperation({ summary: 'Reactivate scheduled cancellation', description: 'REGISTERED_USER only. Works only when own subscription has cancelAtPeriodEnd=true.' })
-  reactivate(@CurrentUser() user: AuthUserContext) { return this.subscriptions.reactivate(user); }
+  @Post('action')
+  @ApiOperation({ summary: 'Run own subscription lifecycle action', description: 'REGISTERED_USER only. CANCEL cancels the current customer subscription and supports cancelAtPeriodEnd. REACTIVATE only works when the own subscription is scheduled for cancellation.' })
+  @ApiBody({ type: CustomerSubscriptionActionDto, examples: { cancel: { value: { action: 'CANCEL', cancelAtPeriodEnd: true, reason: 'USER_REQUEST', comment: 'User requested cancellation.' } }, reactivate: { value: { action: 'REACTIVATE', reason: 'USER_REQUEST', comment: 'User changed their mind.' } } } })
+  action(@CurrentUser() user: AuthUserContext, @Body() dto: CustomerSubscriptionActionDto) { return this.subscriptions.action(user, dto); }
 
   @Get('invoices')
   @ApiOperation({ summary: 'List own subscription invoices', description: 'REGISTERED_USER only. Returns invoices synced from Stripe subscription webhooks.' })

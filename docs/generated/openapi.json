@@ -17548,17 +17548,34 @@
         "x-access": "REGISTERED_USER"
       }
     },
-    "/api/v1/customer/subscription/cancel": {
+    "/api/v1/customer/subscription/action": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Supports immediate cancellation or cancel_at_period_end in Stripe. Does not delete local subscription record.",
-        "operationId": "CustomerSubscriptionsController_cancel",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. CANCEL cancels the current customer subscription and supports cancelAtPeriodEnd. REACTIVATE only works when the own subscription is scheduled for cancellation.",
+        "operationId": "CustomerSubscriptionsController_action",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelSubscriptionDto"
+                "$ref": "#/components/schemas/CustomerSubscriptionActionDto"
+              },
+              "examples": {
+                "cancel": {
+                  "value": {
+                    "action": "CANCEL",
+                    "cancelAtPeriodEnd": true,
+                    "reason": "USER_REQUEST",
+                    "comment": "User requested cancellation."
+                  }
+                },
+                "reactivate": {
+                  "value": {
+                    "action": "REACTIVATE",
+                    "reason": "USER_REQUEST",
+                    "comment": "User changed their mind."
+                  }
+                }
               }
             }
           }
@@ -17573,30 +17590,7 @@
             "bearer": []
           }
         ],
-        "summary": "Cancel own subscription",
-        "tags": [
-          "05 Customer - Subscriptions"
-        ],
-        "x-allowed-roles": "REGISTERED_USER",
-        "x-access": "REGISTERED_USER"
-      }
-    },
-    "/api/v1/customer/subscription/reactivate": {
-      "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Works only when own subscription has cancelAtPeriodEnd=true.",
-        "operationId": "CustomerSubscriptionsController_reactivate",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reactivate scheduled cancellation",
+        "summary": "Run own subscription lifecycle action",
         "tags": [
           "05 Customer - Subscriptions"
         ],
@@ -28567,22 +28561,33 @@
           "stripeSubscriptionId"
         ]
       },
-      "CancelSubscriptionDto": {
+      "CustomerSubscriptionActionDto": {
         "type": "object",
         "properties": {
-          "cancelMode": {
+          "action": {
             "type": "string",
             "enum": [
-              "IMMEDIATELY",
-              "AFTER_CURRENT_PERIOD"
-            ]
+              "CANCEL",
+              "REACTIVATE"
+            ],
+            "example": "CANCEL"
+          },
+          "cancelAtPeriodEnd": {
+            "type": "boolean",
+            "example": true,
+            "description": "Supported for CANCEL. When true, cancellation is scheduled at period end."
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "example": "USER_REQUEST"
+          },
+          "comment": {
+            "type": "string",
+            "example": "User requested cancellation."
           }
         },
         "required": [
-          "cancelMode"
+          "action"
         ]
       },
       "ApplyCouponDto": {

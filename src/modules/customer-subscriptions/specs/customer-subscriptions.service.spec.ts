@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BillingCycle, CouponDiscountType, CustomerSubscriptionCancelMode, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
+import { BillingCycle, CouponDiscountType, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { CustomerSubscriptionsRepository } from '../repositories/customer-subscriptions.repository';
 import { CustomerSubscriptionsService } from '../services/customer-subscriptions.service';
-import { InvoiceStatusFilter } from '../dto/customer-subscriptions.dto';
+import { CustomerSubscriptionAction, InvoiceStatusFilter } from '../dto/customer-subscriptions.dto';
 
 const plan = { id: 'plan_premium', name: 'Premium', description: 'Premium plan', monthlyPrice: 10, yearlyPrice: 100, currency: 'USD', isPopular: true, featuresJson: { premium_support: true }, limitsJson: { unlimitedCredits: true }, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null, stripeProductId: null, stripeMonthlyPriceId: null, stripeYearlyPriceId: null };
 const activeSubscription = { id: 'sub_1', userId: 'customer_1', planId: 'plan_premium', plan, billingCycle: BillingCycle.MONTHLY, status: CustomerSubscriptionStatus.ACTIVE, isPremium: true, currentPeriodStart: new Date('2026-01-01T00:00:00.000Z'), currentPeriodEnd: new Date('2026-02-01T00:00:00.000Z'), cancelAtPeriodEnd: false, cancelledAt: null, stripeCustomerId: 'cus_1', stripeSubscriptionId: 'stripe_sub_1', stripePriceId: 'price_1', couponId: null };
@@ -90,7 +90,9 @@ describe('Customer Premium Subscription module', () => {
   });
 
   it('exposes all required customer subscription routes', () => {
-    for (const route of ["@Get('plans')", "@Get('current')", "@Post('checkout')", "@Post('confirm')", "@Post('cancel')", "@Post('reactivate')", "@Get('invoices')", "@Get('invoices/:id')", "@Post('apply-coupon')"]) expect(controller).toContain(route);
+    for (const route of ["@Get('plans')", "@Get('current')", "@Post('checkout')", "@Post('confirm')", "@Post('action')", "@Get('invoices')", "@Get('invoices/:id')", "@Post('apply-coupon')"]) expect(controller).toContain(route);
+    expect(controller).not.toContain("@Post('cancel')");
+    expect(controller).not.toContain("@Post('reactivate')");
   });
 
   it('lists only active public admin-created plans and hides admin fields', () => {
@@ -137,8 +139,9 @@ describe('Customer Premium Subscription module', () => {
     expect(service).toContain('finalPrice(plan, dto.billingCycle, coupon)');
   });
 
-  it('supports confirm/cancel/reactivate/invoices/coupon preview', () => {
+  it('supports confirm/unified action/invoices/coupon preview', () => {
     expect(service).toContain('Premium subscription activated successfully.');
+    expect(service).toContain('dto.action === CustomerSubscriptionAction.CANCEL');
     expect(service).toContain('cancel_at_period_end');
     expect(service).toContain('Subscription reactivated successfully.');
     expect(repository).toContain('customerSubscriptionInvoice.findMany');
@@ -238,22 +241,35 @@ describe('CustomerSubscriptionsService read APIs', () => {
     expect(prisma.customerSubscription.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'sub_1' }, data: expect.objectContaining({ status: CustomerSubscriptionStatus.ACTIVE, isPremium: true }) }));
   });
 
-  it('cancel applies only to own subscription', async () => {
+  it('cancel action applies only to own subscription', async () => {
     const { service, prisma } = createService();
     const stripe = mockStripe(service);
-    const result = await service.cancel({ uid: 'customer_1', role: 'REGISTERED_USER' }, { cancelMode: CustomerSubscriptionCancelMode.AFTER_CURRENT_PERIOD, reason: 'pause' });
+    const result = await service.action({ uid: 'customer_1', role: 'REGISTERED_USER' }, { action: CustomerSubscriptionAction.CANCEL, cancelAtPeriodEnd: true, reason: 'USER_REQUEST', comment: 'pause' });
     expect(result.message).toBe('Subscription will be cancelled at the end of the current billing period.');
     expect(stripe.subscriptionsUpdate).toHaveBeenCalledWith('stripe_sub_1', { cancel_at_period_end: true, metadata: { cancelReason: 'pause' } });
     expect(prisma.customerSubscription.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ userId: 'customer_1' }) }));
   });
 
-  it('reactivate applies only to own subscription', async () => {
+  it('reactivate action applies only to own scheduled cancellation', async () => {
     const { service, prisma } = createService({ current: { ...activeSubscription, cancelAtPeriodEnd: true } });
     const stripe = mockStripe(service);
-    const result = await service.reactivate({ uid: 'customer_1', role: 'REGISTERED_USER' });
+    const result = await service.action({ uid: 'customer_1', role: 'REGISTERED_USER' }, { action: CustomerSubscriptionAction.REACTIVATE });
     expect(result.message).toBe('Subscription reactivated successfully.');
     expect(stripe.subscriptionsUpdate).toHaveBeenCalledWith('stripe_sub_1', { cancel_at_period_end: false });
     expect(prisma.customerSubscription.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'sub_1' }, data: expect.objectContaining({ status: CustomerSubscriptionStatus.ACTIVE, isPremium: true, cancelAtPeriodEnd: false }) }));
+  });
+
+  it('invalid action state is rejected', async () => {
+    const { service } = createService();
+    mockStripe(service);
+    await expect(service.action({ uid: 'customer_1', role: 'REGISTERED_USER' }, { action: CustomerSubscriptionAction.REACTIVATE })).rejects.toThrow('Subscription is not scheduled for cancellation');
+  });
+
+  it('old cancel and reactivate routes are removed from Swagger', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    expect(openapi.paths['/api/v1/customer/subscription/action']).toBeDefined();
+    expect(openapi.paths['/api/v1/customer/subscription/cancel']).toBeUndefined();
+    expect(openapi.paths['/api/v1/customer/subscription/reactivate']).toBeUndefined();
   });
 
   it('coupon apply validates active coupon and calculates discount backend-side', async () => {

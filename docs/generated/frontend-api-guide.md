@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 08:08 UTC
+Generated at: 2026-05-25 08:15 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 08:08 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 08:15 UTC.
 
 ## Frontend Integration Flows
 
@@ -673,19 +673,18 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 08:08 UTC.
 | PATCH | `/api/v1/customer/reviews/{id}` | Update own review | REGISTERED_USER |
 | DELETE | `/api/v1/customer/reviews/{id}` | Delete own review | REGISTERED_USER |
 
-### Customer - Subscriptions (9 APIs)
+### Customer - Subscriptions (8 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
+| POST | `/api/v1/customer/subscription/action` | Run own subscription lifecycle action | REGISTERED_USER |
 | POST | `/api/v1/customer/subscription/apply-coupon` | Preview subscription coupon | REGISTERED_USER |
-| POST | `/api/v1/customer/subscription/cancel` | Cancel own subscription | REGISTERED_USER |
 | POST | `/api/v1/customer/subscription/checkout` | Create Stripe subscription checkout | REGISTERED_USER |
 | POST | `/api/v1/customer/subscription/confirm` | Confirm Stripe subscription activation | REGISTERED_USER |
 | GET | `/api/v1/customer/subscription/current` | Fetch own current subscription | REGISTERED_USER |
 | GET | `/api/v1/customer/subscription/invoices` | List own subscription invoices | REGISTERED_USER |
 | GET | `/api/v1/customer/subscription/invoices/{id}` | Fetch own subscription invoice details | REGISTERED_USER |
 | GET | `/api/v1/customer/subscription/plans` | List public active subscription plans | REGISTERED_USER |
-| POST | `/api/v1/customer/subscription/reactivate` | Reactivate scheduled cancellation | REGISTERED_USER |
 
 ### Customer - Transactions (5 APIs)
 

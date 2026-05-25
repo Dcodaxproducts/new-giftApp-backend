@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 08:08 UTC
+Generated at: 2026-05-25 08:15 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -67,7 +67,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 05 Customer - Recurring Payments (7 APIs)
 - 05 Customer - Transactions (5 APIs)
 - 05 Customer - Referrals & Rewards (7 APIs)
-- 05 Customer - Subscriptions (9 APIs)
+- 05 Customer - Subscriptions (8 APIs)
 - 05 Customer - Wallet (3 APIs)
 - 05 Customer - Payment Methods (9 APIs)
 - 06 Payments (7 APIs)
@@ -9352,37 +9352,28 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/customer/subscription/cancel`
+### POST `/api/v1/customer/subscription/action`
 
-- Summary: Cancel own subscription
+- Summary: Run own subscription lifecycle action
 - Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Supports immediate cancellation or cancel_at_period_end in Stripe. Does not delete local subscription record.
+- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. CANCEL cancels the current customer subscription and supports cancelAtPeriodEnd. REACTIVATE only works when the own subscription is scheduled for cancellation.
 - Request payload(s):
-  - payload:
+  - cancel:
 ```json
 {
-  "cancelMode": "IMMEDIATELY",
-  "reason": "<string>"
+  "action": "CANCEL",
+  "cancelAtPeriodEnd": true,
+  "reason": "USER_REQUEST",
+  "comment": "User requested cancellation."
 }
 ```
-- Response body:
+  - reactivate:
 ```json
 {
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "action": "REACTIVATE",
+  "reason": "USER_REQUEST",
+  "comment": "User changed their mind."
 }
-```
-
-### POST `/api/v1/customer/subscription/reactivate`
-
-- Summary: Reactivate scheduled cancellation
-- Allowed role/access: REGISTERED_USER
-- Notes: Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Works only when own subscription has cancelAtPeriodEnd=true.
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
 ```
 - Response body:
 ```json
