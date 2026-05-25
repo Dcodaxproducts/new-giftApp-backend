@@ -73,5 +73,6 @@ export class UpdateCouponDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString() expiresAt?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) maxRedemptions?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional({ enum: CouponStatus }) @IsOptional() @IsEnum(CouponStatus) status?: CouponStatus;
+  @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
 }
-export class UpdateCouponStatusDto { @ApiProperty({ enum: CouponStatus }) @IsEnum(CouponStatus) status!: CouponStatus; @ApiPropertyOptional() @IsOptional() @IsString() reason?: string; }

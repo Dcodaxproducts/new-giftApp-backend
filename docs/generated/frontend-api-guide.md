@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 10:41 UTC
+Generated at: 2026-05-25 11:04 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 10:41 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 11:04 UTC.
 
 ## Frontend Integration Flows
 
@@ -493,16 +493,15 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 10:41 UTC.
 | POST | `/api/v1/notifications/{id}/action` | Process notification action | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 | PATCH | `/api/v1/notifications/{id}/read` | Mark notification as read | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 
-### Plans & Coupons (19 APIs)
+### Plans & Coupons (18 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/coupons` | List Coupons | SUPER_ADMIN or ADMIN with coupons.read |
 | POST | `/api/v1/coupons` | Create Coupons | SUPER_ADMIN or ADMIN with coupons.create |
 | GET | `/api/v1/coupons/{id}` | Fetch Coupons details | SUPER_ADMIN or ADMIN with coupons.read |
-| PATCH | `/api/v1/coupons/{id}` | Update Coupons | SUPER_ADMIN or ADMIN with coupons.update |
+| PATCH | `/api/v1/coupons/{id}` | Update coupon details or lifecycle status | SUPER_ADMIN or ADMIN with coupon-specific update permission |
 | DELETE | `/api/v1/coupons/{id}` | Delete Coupons | SUPER_ADMIN or ADMIN with coupons.delete |
-| PATCH | `/api/v1/coupons/{id}/status` | Update Coupons Status | SUPER_ADMIN or ADMIN with coupons.status.update |
 | GET | `/api/v1/plan-features` | List Plan Features | SUPER_ADMIN or ADMIN with planFeatures.read |
 | POST | `/api/v1/plan-features` | Create Plan Features | SUPER_ADMIN or ADMIN with planFeatures.create |
 | GET | `/api/v1/plan-features/catalog` | List Plan Features Catalog | SUPER_ADMIN or ADMIN with planFeatures.read |

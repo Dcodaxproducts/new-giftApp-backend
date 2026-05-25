@@ -216,9 +216,8 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/coupons': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.read', description: 'SUPER_ADMIN or ADMIN with coupons.read permission.' },
   'POST /api/v1/coupons': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.create', description: 'SUPER_ADMIN or ADMIN with coupons.create permission.' },
   'GET /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.read', description: 'SUPER_ADMIN or ADMIN with coupons.read permission.' },
-  'PATCH /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.update', description: 'SUPER_ADMIN or ADMIN with coupons.update permission.' },
+  'PATCH /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupon-specific update permission', description: 'SUPER_ADMIN or ADMIN with coupon-specific permissions. Standard coupon fields require coupons.update; status or isActive changes require coupons.status.update; mixed payloads require both permissions.' },
   'DELETE /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.delete', description: 'SUPER_ADMIN or ADMIN with coupons.delete permission.' },
-  'PATCH /api/v1/coupons/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.status.update', description: 'SUPER_ADMIN or ADMIN with coupons.status.update permission.' },
 
 
   'GET /api/v1/admin/disputes/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },

@@ -4,7 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { CouponsRepository } from '../repositories/coupons.repository';
 import { PlanFeaturesRepository } from '../repositories/plan-features.repository';
-import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdateCouponStatusDto, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
+import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
 import { SubscriptionPlansRepository } from '../repositories/subscription-plans.repository';
 
 const DEFAULT_FEATURES = [
@@ -75,8 +75,29 @@ export class SubscriptionPlansService implements OnModuleInit {
   async listCoupons(query: ListCouponsDto) { const page = query.page ?? 1; const limit = query.limit ?? 10; const now = new Date(); const where: Prisma.CouponWhereInput = { deletedAt: null, ...(query.search ? { code: { contains: query.search, mode: 'insensitive' } } : {}), ...(query.status === CouponStatusFilter.ACTIVE ? { isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } : {}), ...(query.status === CouponStatusFilter.INACTIVE ? { isActive: false } : {}), ...(query.status === CouponStatusFilter.EXPIRED ? { expiresAt: { lte: now } } : {}) }; const [items, total] = await this.couponsRepository.findCouponsAndCount({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }); const filtered = query.planId ? items.filter((coupon) => this.stringArray(coupon.planIdsJson).includes(query.planId ?? '')) : items; return { data: filtered.map((coupon) => this.toCoupon(coupon)), meta: { page, limit, total: query.planId ? filtered.length : total, totalPages: Math.ceil((query.planId ? filtered.length : total) / limit) }, message: 'Coupons fetched successfully' }; }
   async couponDetails(id: string) { const coupon = await this.getCoupon(id); return { data: this.toCoupon(coupon), message: 'Coupon fetched successfully' }; }
   async createCoupon(user: AuthUserContext, dto: CreateCouponDto) { this.assertValidCoupon(dto.discountType, dto.discountValue, dto.startsAt, dto.expiresAt); await this.assertUniqueCoupon(dto.code); const coupon = await this.couponsRepository.createCoupon( { code: dto.code.trim().toUpperCase(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: new Prisma.Decimal(dto.discountValue), planIdsJson: dto.planIds ?? [], startsAt: dto.startsAt ? new Date(dto.startsAt) : null, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null, maxRedemptions: dto.maxRedemptions, isActive: dto.isActive ?? true, createdBy: user.uid }); await this.audit(user.uid, coupon.id, 'COUPON_CREATED', undefined, this.toCoupon(coupon)); return { data: this.toCoupon(coupon), message: 'Coupon created successfully' }; }
-  async updateCoupon(user: AuthUserContext, id: string, dto: UpdateCouponDto) { const coupon = await this.getCoupon(id); if (dto.code) await this.assertUniqueCoupon(dto.code, id); this.assertValidCoupon(dto.discountType ?? coupon.discountType, dto.discountValue ?? Number(coupon.discountValue), dto.startsAt ?? coupon.startsAt?.toISOString(), dto.expiresAt ?? coupon.expiresAt?.toISOString()); const updated = await this.couponsRepository.updateCoupon(id, { code: dto.code?.trim().toUpperCase(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue), planIdsJson: dto.planIds, startsAt: dto.startsAt ? new Date(dto.startsAt) : undefined, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined, maxRedemptions: dto.maxRedemptions, isActive: dto.isActive, updatedBy: user.uid }); await this.audit(user.uid, id, 'COUPON_UPDATED', this.toCoupon(coupon), this.toCoupon(updated)); return { data: this.toCoupon(updated), message: 'Coupon updated successfully' }; }
-  async updateCouponStatus(user: AuthUserContext, id: string, dto: UpdateCouponStatusDto) { const coupon = await this.getCoupon(id); const data = dto.status === CouponStatus.ACTIVE ? { isActive: true, updatedBy: user.uid } : dto.status === CouponStatus.INACTIVE ? { isActive: false, updatedBy: user.uid } : { isActive: false, expiresAt: new Date(), updatedBy: user.uid }; const updated = await this.couponsRepository.updateCouponStatus(id, data); await this.audit(user.uid, id, 'COUPON_STATUS_CHANGED', { status: this.couponStatus(coupon), reason: dto.reason }, { status: this.couponStatus(updated), reason: dto.reason }); return { data: this.toCoupon(updated), message: 'Coupon status updated successfully' }; }
+  async updateCoupon(user: AuthUserContext, id: string, dto: UpdateCouponDto) {
+    const coupon = await this.getCoupon(id);
+    this.assertCouponUpdatePermissions(user, dto);
+    if (dto.code) await this.assertUniqueCoupon(dto.code, id);
+    this.assertValidCoupon(dto.discountType ?? coupon.discountType, dto.discountValue ?? Number(coupon.discountValue), dto.startsAt ?? coupon.startsAt?.toISOString(), dto.expiresAt ?? coupon.expiresAt?.toISOString());
+
+    const before = this.toCoupon(coupon);
+    const updated = await this.couponsRepository.updateCoupon(id, {
+      code: dto.code?.trim().toUpperCase(),
+      description: dto.description?.trim(),
+      discountType: dto.discountType,
+      discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue),
+      planIdsJson: dto.planIds,
+      startsAt: dto.startsAt ? new Date(dto.startsAt) : undefined,
+      expiresAt: dto.status === CouponStatus.EXPIRED ? new Date() : dto.expiresAt ? new Date(dto.expiresAt) : undefined,
+      maxRedemptions: dto.maxRedemptions,
+      isActive: dto.status === CouponStatus.ACTIVE ? true : dto.status === CouponStatus.INACTIVE || dto.status === CouponStatus.EXPIRED ? false : dto.isActive,
+      updatedBy: user.uid,
+    });
+    const after = this.toCoupon(updated);
+    await this.audit(user.uid, id, 'COUPON_UPDATED', this.changedFields(before, after, dto.reason), this.changedFields(after, before, dto.reason));
+    return { data: after, message: 'Coupon updated successfully' };
+  }
   async deleteCoupon(user: AuthUserContext, id: string) { const coupon = await this.getCoupon(id); await this.couponsRepository.deleteCoupon(id); await this.audit(user.uid, id, 'COUPON_DELETED', this.toCoupon(coupon), null); return { data: null, message: 'Coupon deleted successfully' }; }
 
   private async getPlan(id: string): Promise<SubscriptionPlan> { const plan = await this.subscriptionPlansRepository.findPlanById(id); if (!plan) throw new NotFoundException('Subscription plan not found'); return plan; }
@@ -102,6 +123,20 @@ export class SubscriptionPlansService implements OnModuleInit {
 
   private hasNormalPlanFields(dto: UpdateSubscriptionPlanDto): boolean {
     return dto.name !== undefined || dto.description !== undefined || dto.monthlyPrice !== undefined || dto.yearlyPrice !== undefined || dto.currency !== undefined || dto.isPopular !== undefined || dto.features !== undefined || dto.limits !== undefined;
+  }
+
+  private assertCouponUpdatePermissions(user: AuthUserContext, dto: UpdateCouponDto): void {
+    const permissions = this.flattenPermissions(user.permissions);
+    if (this.hasCouponStandardFields(dto) && !this.hasPlanPermission(user, permissions, ['coupons.update'])) throw new ForbiddenException('Your role does not have the required permission');
+    if (this.hasCouponStatusFields(dto) && !this.hasPlanPermission(user, permissions, ['coupons.status.update'])) throw new ForbiddenException('Your role does not have the required permission');
+  }
+
+  private hasCouponStandardFields(dto: UpdateCouponDto): boolean {
+    return dto.code !== undefined || dto.description !== undefined || dto.discountType !== undefined || dto.discountValue !== undefined || dto.planIds !== undefined || dto.startsAt !== undefined || dto.expiresAt !== undefined || dto.maxRedemptions !== undefined;
+  }
+
+  private hasCouponStatusFields(dto: UpdateCouponDto): boolean {
+    return dto.isActive !== undefined || dto.status !== undefined;
   }
 
   private visibilityFromDto(dto: UpdateSubscriptionPlanDto): SubscriptionPlanVisibility | undefined {

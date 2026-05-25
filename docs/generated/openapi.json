@@ -20765,6 +20765,7 @@
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission."
       },
       "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with coupon-specific update permission. SUPER_ADMIN or ADMIN with coupon-specific permissions. Standard coupon fields require coupons.update; status or isActive changes require coupons.status.update; mixed payloads require both permissions. SUPER_ADMIN or ADMIN with coupon-specific permissions. Standard coupon fields require 'coupons.update'; status or isActive changes require 'coupons.status.update'; mixed payloads require both permissions.",
         "operationId": "CouponsController_update",
         "parameters": [
           {
@@ -20782,13 +20783,56 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateCouponDto"
+              },
+              "examples": {
+                "updateCoupon": {
+                  "value": {
+                    "code": "SUMMER20",
+                    "description": "Seasonal 20% off campaign.",
+                    "discountType": "PERCENTAGE",
+                    "discountValue": 20,
+                    "maxRedemptions": 500
+                  }
+                },
+                "activateCoupon": {
+                  "value": {
+                    "isActive": true,
+                    "status": "ACTIVE",
+                    "reason": "Campaign enabled."
+                  }
+                },
+                "deactivateCoupon": {
+                  "value": {
+                    "isActive": false,
+                    "status": "INACTIVE",
+                    "reason": "Campaign paused after budget review."
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Coupon updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "coupon_id",
+                      "code": "SUMMER20",
+                      "isActive": true,
+                      "status": "ACTIVE",
+                      "discountType": "PERCENTAGE",
+                      "discountValue": 20
+                    },
+                    "message": "Coupon updated successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -20796,13 +20840,12 @@
             "bearer": []
           }
         ],
+        "summary": "Update coupon details or lifecycle status",
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "Update Coupons",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.update",
-        "x-access": "SUPER_ADMIN or ADMIN with coupons.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with coupons.update. SUPER_ADMIN or ADMIN with coupons.update permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupon-specific update permission",
+        "x-access": "SUPER_ADMIN or ADMIN with coupon-specific update permission"
       },
       "delete": {
         "operationId": "CouponsController_delete",
@@ -20833,48 +20876,6 @@
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.delete",
         "x-access": "SUPER_ADMIN or ADMIN with coupons.delete",
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.delete. SUPER_ADMIN or ADMIN with coupons.delete permission."
-      }
-    },
-    "/api/v1/coupons/{id}/status": {
-      "patch": {
-        "operationId": "CouponsController_status",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCouponStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "07 Plans & Coupons"
-        ],
-        "summary": "Update Coupons Status",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.status.update",
-        "x-access": "SUPER_ADMIN or ADMIN with coupons.status.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission."
       }
     },
     "/api/v1/media-upload-policy": {
@@ -29522,12 +29523,7 @@
           },
           "isActive": {
             "type": "boolean"
-          }
-        }
-      },
-      "UpdateCouponStatusDto": {
-        "type": "object",
-        "properties": {
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -29539,10 +29535,7 @@
           "reason": {
             "type": "string"
           }
-        },
-        "required": [
-          "status"
-        ]
+        }
       },
       "AllowedFileTypesDto": {
         "type": "object",

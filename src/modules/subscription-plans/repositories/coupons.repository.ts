@@ -37,10 +37,6 @@ export class CouponsRepository {
     return this.prisma.coupon.update({ where: { id }, data });
   }
 
-  updateCouponStatus(id: string, data: Prisma.CouponUncheckedUpdateInput) {
-    return this.updateCoupon(id, data);
-  }
-
   deleteCoupon(id: string) {
     return this.prisma.coupon.delete({ where: { id } });
   }

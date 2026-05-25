@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 10:41 UTC
+Generated at: 2026-05-25 11:03 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -73,7 +73,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 06 Payments (7 APIs)
 - 06 Notifications (9 APIs)
 - 06 Broadcast Notifications (10 APIs)
-- 07 Plans & Coupons (19 APIs)
+- 07 Plans & Coupons (18 APIs)
 - 07 Storage (5 APIs)
 - 08 Chat - Threads (9 APIs)
 
@@ -10922,34 +10922,51 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/coupons/{id}`
 
-- Summary: Update Coupons
-- Allowed role/access: SUPER_ADMIN or ADMIN with coupons.update
-- Notes: Access: SUPER_ADMIN or ADMIN with coupons.update. SUPER_ADMIN or ADMIN with coupons.update permission.
+- Summary: Update coupon details or lifecycle status
+- Allowed role/access: SUPER_ADMIN or ADMIN with coupon-specific update permission
+- Notes: Access: SUPER_ADMIN or ADMIN with coupon-specific update permission. SUPER_ADMIN or ADMIN with coupon-specific permissions. Standard coupon fields require coupons.update; status or isActive changes require coupons.status.update; mixed payloads require both permissions. SUPER_ADMIN or ADMIN with coupon-specific permissions. Standard coupon fields require 'coupons.update'; status or isActive changes require 'coupons.status.update'; mixed payloads require both permissions.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - updateCoupon:
 ```json
 {
-  "code": "<string>",
-  "description": "<string>",
+  "code": "SUMMER20",
+  "description": "Seasonal 20% off campaign.",
   "discountType": "PERCENTAGE",
-  "discountValue": 1.0,
-  "planIds": [
-    "<string>"
-  ],
-  "startsAt": "<string>",
-  "expiresAt": "<string>",
-  "maxRedemptions": 1.0,
-  "isActive": true
+  "discountValue": 20,
+  "maxRedemptions": 500
+}
+```
+  - activateCoupon:
+```json
+{
+  "isActive": true,
+  "status": "ACTIVE",
+  "reason": "Campaign enabled."
+}
+```
+  - deactivateCoupon:
+```json
+{
+  "isActive": false,
+  "status": "INACTIVE",
+  "reason": "Campaign paused after budget review."
 }
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "coupon_id",
+    "code": "SUMMER20",
+    "isActive": true,
+    "status": "ACTIVE",
+    "discountType": "PERCENTAGE",
+    "discountValue": 20
+  },
+  "message": "Coupon updated successfully"
 }
 ```
 
@@ -10964,30 +10981,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/coupons/{id}/status`
-
-- Summary: Update Coupons Status
-- Allowed role/access: SUPER_ADMIN or ADMIN with coupons.status.update
-- Notes: Access: SUPER_ADMIN or ADMIN with coupons.status.update. SUPER_ADMIN or ADMIN with coupons.status.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "status": "ACTIVE",
-  "reason": "<string>"
-}
 ```
 - Response body:
 ```json
