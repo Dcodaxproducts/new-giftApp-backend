@@ -20103,9 +20103,9 @@
           "07 Plans & Coupons"
         ],
         "summary": "Update Subscription Plans",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.update",
-        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update. SUPER_ADMIN or ADMIN with subscriptionPlans.update permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields",
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields",
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields. Normal plan fields require subscriptionPlans.update; status requires subscriptionPlans.status.update or subscriptionPlans.update; visibility/isVisible requires subscriptionPlans.visibility.update or subscriptionPlans.update."
       },
       "delete": {
         "operationId": "SubscriptionPlansController_delete",
@@ -20136,90 +20136,6 @@
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.delete",
         "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.delete",
         "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.delete. SUPER_ADMIN or ADMIN with subscriptionPlans.delete permission."
-      }
-    },
-    "/api/v1/subscription-plans/{id}/status": {
-      "patch": {
-        "operationId": "SubscriptionPlansController_status",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePlanStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "07 Plans & Coupons"
-        ],
-        "summary": "Update Subscription Plans Status",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update",
-        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.status.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update. SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission."
-      }
-    },
-    "/api/v1/subscription-plans/{id}/visibility": {
-      "patch": {
-        "operationId": "SubscriptionPlansController_visibility",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePlanVisibilityDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "07 Plans & Coupons"
-        ],
-        "summary": "Update Subscription Plans Visibility",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update",
-        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update. SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission."
       }
     },
     "/api/v1/subscription-plans/{id}/analytics": {
@@ -29068,6 +28984,11 @@
               "ARCHIVED"
             ]
           },
+          "isVisible": {
+            "type": "boolean",
+            "example": true,
+            "description": "Alias for visibility=PUBLIC/PRIVATE."
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -29117,6 +29038,11 @@
               "ARCHIVED"
             ]
           },
+          "isVisible": {
+            "type": "boolean",
+            "example": true,
+            "description": "Alias for visibility=PUBLIC/PRIVATE."
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -29124,6 +29050,10 @@
               "INACTIVE",
               "ARCHIVED"
             ]
+          },
+          "reason": {
+            "type": "string",
+            "example": "Plan published."
           },
           "isPopular": {
             "type": "boolean"
@@ -29135,41 +29065,6 @@
             "$ref": "#/components/schemas/PlanLimitsDto"
           }
         }
-      },
-      "UpdatePlanStatusDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "INACTIVE",
-              "ARCHIVED"
-            ]
-          },
-          "reason": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "UpdatePlanVisibilityDto": {
-        "type": "object",
-        "properties": {
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "PUBLIC",
-              "PRIVATE",
-              "ARCHIVED"
-            ]
-          }
-        },
-        "required": [
-          "visibility"
-        ]
       },
       "CreatePlanFeatureDto": {
         "type": "object",

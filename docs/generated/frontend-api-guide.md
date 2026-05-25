@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 09:29 UTC
+Generated at: 2026-05-25 09:53 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 09:29 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 09:53 UTC.
 
 ## Frontend Integration Flows
 
@@ -493,7 +493,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 09:29 UTC.
 | POST | `/api/v1/notifications/{id}/action` | Process notification action | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 | PATCH | `/api/v1/notifications/{id}/read` | Mark notification as read | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 
-### Plans & Coupons (21 APIs)
+### Plans & Coupons (19 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -513,11 +513,9 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 09:29 UTC.
 | POST | `/api/v1/subscription-plans` | Create Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.create |
 | GET | `/api/v1/subscription-plans/stats` | List Subscription Plans Stats | SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read |
 | GET | `/api/v1/subscription-plans/{id}` | Fetch Subscription Plans details | SUPER_ADMIN or ADMIN with subscriptionPlans.read |
-| PATCH | `/api/v1/subscription-plans/{id}` | Update Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.update |
+| PATCH | `/api/v1/subscription-plans/{id}` | Update Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields |
 | DELETE | `/api/v1/subscription-plans/{id}` | Delete Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.delete |
 | GET | `/api/v1/subscription-plans/{id}/analytics` | Fetch Subscription Plans Analytics details | SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read |
-| PATCH | `/api/v1/subscription-plans/{id}/status` | Update Subscription Plans Status | SUPER_ADMIN or ADMIN with subscriptionPlans.status.update |
-| PATCH | `/api/v1/subscription-plans/{id}/visibility` | Update Subscription Plans Visibility | SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update |
 
 ### Storage (5 APIs)
 

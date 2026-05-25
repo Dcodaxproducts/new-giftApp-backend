@@ -1,10 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { Coupon, CouponDiscountType, PlanFeatureCatalog, Prisma, SubscriptionPlan, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Coupon, CouponDiscountType, PlanFeatureCatalog, Prisma, SubscriptionPlan, SubscriptionPlanStatus, SubscriptionPlanVisibility, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { CouponsRepository } from '../repositories/coupons.repository';
 import { PlanFeaturesRepository } from '../repositories/plan-features.repository';
-import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdateCouponStatusDto, UpdatePlanFeatureDto, UpdatePlanStatusDto, UpdatePlanVisibilityDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
+import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdateCouponStatusDto, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
 import { SubscriptionPlansRepository } from '../repositories/subscription-plans.repository';
 
 const DEFAULT_FEATURES = [
@@ -49,15 +49,15 @@ export class SubscriptionPlansService implements OnModuleInit {
 
   async updatePlan(user: AuthUserContext, id: string, dto: UpdateSubscriptionPlanDto) {
     const plan = await this.getPlan(id);
+    this.assertPlanUpdatePermissions(user, dto);
     const before = await this.toPlanDetail(plan);
+    const visibility = this.visibilityFromDto(dto);
     if (dto.isPopular) await this.clearPopular(id);
-    const updated = await this.subscriptionPlansRepository.updatePlan(id, { name: dto.name?.trim(), slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined, description: dto.description?.trim(), monthlyPrice: dto.monthlyPrice === undefined ? undefined : new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: dto.yearlyPrice === undefined ? undefined : new Prisma.Decimal(dto.yearlyPrice), currency: dto.currency, visibility: dto.visibility, status: dto.status, isPopular: dto.isPopular, featuresJson: dto.features === undefined ? undefined : this.toJson(dto.features), limitsJson: dto.limits === undefined ? undefined : this.toJson(dto.limits), updatedBy: user.uid });
-    await this.audit(user.uid, id, 'SUBSCRIPTION_PLAN_UPDATED', before, await this.toPlanDetail(updated));
-    return { data: await this.toPlanDetail(updated), message: 'Subscription plan updated successfully' };
+    const updated = await this.subscriptionPlansRepository.updatePlan(id, { name: dto.name?.trim(), slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined, description: dto.description?.trim(), monthlyPrice: dto.monthlyPrice === undefined ? undefined : new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: dto.yearlyPrice === undefined ? undefined : new Prisma.Decimal(dto.yearlyPrice), currency: dto.currency, visibility, status: dto.status, isPopular: dto.isPopular, featuresJson: dto.features === undefined ? undefined : this.toJson(dto.features), limitsJson: dto.limits === undefined ? undefined : this.toJson(dto.limits), updatedBy: user.uid });
+    const after = await this.toPlanDetail(updated);
+    await this.audit(user.uid, id, 'SUBSCRIPTION_PLAN_UPDATED', this.changedFields(before, after, dto.reason), this.changedFields(after, before, dto.reason));
+    return { data: after, message: 'Subscription plan updated successfully' };
   }
-
-  async updateStatus(user: AuthUserContext, id: string, dto: UpdatePlanStatusDto) { const plan = await this.getPlan(id); const updated = await this.subscriptionPlansRepository.updatePlan(id, { status: dto.status, updatedBy: user.uid }); await this.audit(user.uid, id, 'SUBSCRIPTION_PLAN_STATUS_CHANGED', { status: plan.status, reason: dto.reason }, { status: updated.status, reason: dto.reason }); return { data: this.toPlanListItem(updated), message: 'Subscription plan status updated successfully' }; }
-  async updateVisibility(user: AuthUserContext, id: string, dto: UpdatePlanVisibilityDto) { const plan = await this.getPlan(id); const updated = await this.subscriptionPlansRepository.updatePlan(id, { visibility: dto.visibility, updatedBy: user.uid }); await this.audit(user.uid, id, 'SUBSCRIPTION_PLAN_VISIBILITY_CHANGED', { visibility: plan.visibility }, { visibility: updated.visibility }); return { data: this.toPlanListItem(updated), message: 'Subscription plan visibility updated successfully' }; }
   async deletePlan(user: AuthUserContext, id: string) { const plan = await this.getPlan(id); if (plan.activeSubscribersPlaceholder > 0) throw new BadRequestException('Plan has active subscribers and cannot be deleted'); await this.subscriptionPlansRepository.deletePlan(id); await this.audit(user.uid, id, 'SUBSCRIPTION_PLAN_DELETED', this.toPlanListItem(plan), null); return { data: null, message: 'Subscription plan deleted successfully' }; }
 
   async stats() {
@@ -87,6 +87,56 @@ export class SubscriptionPlansService implements OnModuleInit {
   private assertValidCoupon(discountType: CouponDiscountType, discountValue: number, startsAt?: string, expiresAt?: string) { if (discountType === CouponDiscountType.PERCENTAGE && (discountValue < 1 || discountValue > 100)) throw new BadRequestException('Percentage discount must be between 1 and 100'); if (discountType === CouponDiscountType.FIXED_AMOUNT && discountValue <= 0) throw new BadRequestException('Fixed amount discount must be greater than 0'); if (startsAt && expiresAt && new Date(expiresAt).getTime() < new Date(startsAt).getTime()) throw new BadRequestException('expiresAt cannot be before startsAt'); }
   private async clearPopular(exceptId?: string) { await this.subscriptionPlansRepository.clearPopular(exceptId); }
   private planOrder(sortBy?: PlanSortBy, sortOrder?: SortOrder): Prisma.SubscriptionPlanOrderByWithRelationInput { const direction = sortOrder === SortOrder.ASC ? 'asc' : 'desc'; const field = sortBy === PlanSortBy.NAME ? 'name' : sortBy === PlanSortBy.MONTHLY_PRICE ? 'monthlyPrice' : sortBy === PlanSortBy.YEARLY_PRICE ? 'yearlyPrice' : sortBy === PlanSortBy.ACTIVE_SUBSCRIBERS ? 'activeSubscribersPlaceholder' : 'createdAt'; return { [field]: direction }; }
+
+  private assertPlanUpdatePermissions(user: AuthUserContext, dto: UpdateSubscriptionPlanDto): void {
+    const permissions = this.flattenPermissions(user.permissions);
+    if (dto.status !== undefined && !this.hasPlanPermission(user, permissions, ['subscriptionPlans.status.update', 'subscriptionPlans.update'])) throw new ForbiddenException('Your role does not have the required permission');
+    if ((dto.visibility !== undefined || dto.isVisible !== undefined) && !this.hasPlanPermission(user, permissions, ['subscriptionPlans.visibility.update', 'subscriptionPlans.update'])) throw new ForbiddenException('Your role does not have the required permission');
+    if (this.hasNormalPlanFields(dto) && !this.hasPlanPermission(user, permissions, ['subscriptionPlans.update'])) throw new ForbiddenException('Your role does not have the required permission');
+  }
+
+  private hasPlanPermission(user: AuthUserContext, permissions: Set<string>, allowed: string[]): boolean {
+    if (user.role === UserRole.SUPER_ADMIN) return true;
+    return user.role === UserRole.ADMIN && allowed.some((permission) => permissions.has(permission));
+  }
+
+  private hasNormalPlanFields(dto: UpdateSubscriptionPlanDto): boolean {
+    return dto.name !== undefined || dto.description !== undefined || dto.monthlyPrice !== undefined || dto.yearlyPrice !== undefined || dto.currency !== undefined || dto.isPopular !== undefined || dto.features !== undefined || dto.limits !== undefined;
+  }
+
+  private visibilityFromDto(dto: UpdateSubscriptionPlanDto): SubscriptionPlanVisibility | undefined {
+    if (dto.visibility !== undefined) return dto.visibility;
+    if (dto.isVisible === true) return SubscriptionPlanVisibility.PUBLIC;
+    if (dto.isVisible === false) return SubscriptionPlanVisibility.PRIVATE;
+    return undefined;
+  }
+
+  private changedFields(source: Record<string, unknown>, compare: Record<string, unknown>, reason?: string): Record<string, unknown> {
+    const changed = Object.fromEntries(Object.entries(source).filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(compare[key])));
+    return reason ? { ...changed, reason } : changed;
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return granted;
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) continue;
+      for (const value of values) {
+        if (typeof value !== 'string') continue;
+        granted.add(`${module}.${value}`);
+        granted.add(`${module}.${this.normalizePermission(value)}`);
+      }
+    }
+    return granted;
+  }
+
+  private normalizePermission(permission: string): string {
+    if (permission === 'updateStatus') return 'status.update';
+    if (permission === 'updateVisibility') return 'visibility.update';
+    if (permission === 'status.update') return 'updateStatus';
+    if (permission === 'visibility.update') return 'updateVisibility';
+    return permission;
+  }
   private toPlanListItem(plan: SubscriptionPlan) { return { id: plan.id, name: plan.name, slug: plan.slug, description: plan.description, badge: plan.isPopular ? 'MOST_POPULAR' : null, monthlyPrice: Number(plan.monthlyPrice), yearlyPrice: Number(plan.yearlyPrice), currency: plan.currency, status: plan.status, visibility: plan.visibility, activeSubscribers: plan.activeSubscribersPlaceholder, features: Object.entries(this.boolMap(plan.featuresJson)).filter(([, enabled]) => enabled).map(([key]) => key), limits: this.limits(plan.limitsJson), isPopular: plan.isPopular, createdAt: plan.createdAt }; }
   private async toPlanDetail(plan: SubscriptionPlan) { const catalog = await this.planFeaturesRepository.findManyFeatures({ where: { isActive: true } }); const features = this.boolMap(plan.featuresJson); return { ...this.toPlanListItem(plan), activeSubscribersChangePercent: 0, features: catalog.map((item) => ({ key: item.key, label: item.label, description: item.description, enabled: features[item.key] ?? false })), updatedAt: plan.updatedAt }; }
   private toFeature(item: PlanFeatureCatalog) { return { id: item.id, key: item.key, label: item.label, description: item.description, type: item.type, isActive: item.isActive, sortOrder: item.sortOrder, createdAt: item.createdAt, updatedAt: item.updatedAt }; }

@@ -25,6 +25,7 @@ export class CreateSubscriptionPlanDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) yearlyPrice?: number;
   @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional({ enum: SubscriptionPlanVisibility }) @IsOptional() @IsEnum(SubscriptionPlanVisibility) visibility?: SubscriptionPlanVisibility;
+  @ApiPropertyOptional({ example: true, description: 'Alias for visibility=PUBLIC/PRIVATE.' }) @IsOptional() @IsBoolean() isVisible?: boolean;
   @ApiPropertyOptional({ enum: SubscriptionPlanStatus }) @IsOptional() @IsEnum(SubscriptionPlanStatus) status?: SubscriptionPlanStatus;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPopular?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsObject() features?: Record<string, boolean>;
@@ -38,7 +39,9 @@ export class UpdateSubscriptionPlanDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) yearlyPrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional({ enum: SubscriptionPlanVisibility }) @IsOptional() @IsEnum(SubscriptionPlanVisibility) visibility?: SubscriptionPlanVisibility;
+  @ApiPropertyOptional({ example: true, description: 'Alias for visibility=PUBLIC/PRIVATE.' }) @IsOptional() @IsBoolean() isVisible?: boolean;
   @ApiPropertyOptional({ enum: SubscriptionPlanStatus }) @IsOptional() @IsEnum(SubscriptionPlanStatus) status?: SubscriptionPlanStatus;
+  @ApiPropertyOptional({ example: 'Plan published.' }) @IsOptional() @IsString() reason?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPopular?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsObject() features?: Record<string, boolean>;
   @ApiPropertyOptional({ type: PlanLimitsDto }) @IsOptional() @IsObject() limits?: PlanLimitsDto;
@@ -54,9 +57,6 @@ export class ListSubscriptionPlansDto {
   @ApiPropertyOptional({ enum: PlanSortBy }) @IsOptional() @IsEnum(PlanSortBy) sortBy?: PlanSortBy;
   @ApiPropertyOptional({ enum: SortOrder }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }
-export class UpdatePlanStatusDto { @ApiProperty({ enum: SubscriptionPlanStatus }) @IsEnum(SubscriptionPlanStatus) status!: SubscriptionPlanStatus; @ApiPropertyOptional() @IsOptional() @IsString() reason?: string; }
-export class UpdatePlanVisibilityDto { @ApiProperty({ enum: SubscriptionPlanVisibility }) @IsEnum(SubscriptionPlanVisibility) visibility!: SubscriptionPlanVisibility; }
-
 export class ListPlanFeaturesDto { @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional() @IsOptional() @IsString() search?: string; @ApiPropertyOptional() @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean; }
 export class CreatePlanFeatureDto { @ApiProperty() @IsString() @MinLength(2) key!: string; @ApiProperty() @IsString() @MinLength(2) label!: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiProperty({ enum: PlanFeatureType }) @IsEnum(PlanFeatureType) type!: PlanFeatureType; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortOrder?: number; }
 export class UpdatePlanFeatureDto { @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) key?: string; @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) label?: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiPropertyOptional({ enum: PlanFeatureType }) @IsOptional() @IsEnum(PlanFeatureType) type?: PlanFeatureType; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortOrder?: number; }

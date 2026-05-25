@@ -202,10 +202,8 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'POST /api/v1/subscription-plans': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.create', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.create permission.' },
   'GET /api/v1/subscription-plans/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.' },
   'GET /api/v1/subscription-plans/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.read', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.' },
-  'PATCH /api/v1/subscription-plans/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.update', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.update permission.' },
+  'PATCH /api/v1/subscription-plans/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields', description: 'Normal plan fields require subscriptionPlans.update; status requires subscriptionPlans.status.update or subscriptionPlans.update; visibility/isVisible requires subscriptionPlans.visibility.update or subscriptionPlans.update.' },
   'DELETE /api/v1/subscription-plans/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.delete', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.delete permission.' },
-  'PATCH /api/v1/subscription-plans/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.status.update', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission.' },
-  'PATCH /api/v1/subscription-plans/{id}/visibility': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission.' },
   'GET /api/v1/subscription-plans/{id}/analytics': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read permission.' },
 
   'GET /api/v1/plan-features/catalog': { allowedRoles: 'SUPER_ADMIN or ADMIN with planFeatures.read', description: 'SUPER_ADMIN or ADMIN with planFeatures.read permission.' },

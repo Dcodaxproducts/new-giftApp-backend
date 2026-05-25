@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 09:29 UTC
+Generated at: 2026-05-25 09:53 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -73,7 +73,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 06 Payments (7 APIs)
 - 06 Notifications (9 APIs)
 - 06 Broadcast Notifications (10 APIs)
-- 07 Plans & Coupons (21 APIs)
+- 07 Plans & Coupons (19 APIs)
 - 07 Storage (5 APIs)
 - 08 Chat - Threads (9 APIs)
 
@@ -10420,6 +10420,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "yearlyPrice": 1.0,
   "currency": "USD",
   "visibility": "PUBLIC",
+  "isVisible": true,
   "status": "ACTIVE",
   "isPopular": true,
   "features": {},
@@ -10473,8 +10474,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ### PATCH `/api/v1/subscription-plans/{id}`
 
 - Summary: Update Subscription Plans
-- Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.update
-- Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update. SUPER_ADMIN or ADMIN with subscriptionPlans.update permission.
+- Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields
+- Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.update, subscriptionPlans.status.update, or subscriptionPlans.visibility.update depending on changed fields. Normal plan fields require subscriptionPlans.update; status requires subscriptionPlans.status.update or subscriptionPlans.update; visibility/isVisible requires subscriptionPlans.visibility.update or subscriptionPlans.update.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -10487,7 +10488,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "yearlyPrice": 1.0,
   "currency": "<string>",
   "visibility": "PUBLIC",
+  "isVisible": true,
   "status": "ACTIVE",
+  "reason": "Plan published.",
   "isPopular": true,
   "features": {},
   "limits": {
@@ -10518,53 +10521,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/subscription-plans/{id}/status`
-
-- Summary: Update Subscription Plans Status
-- Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update
-- Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.status.update. SUPER_ADMIN or ADMIN with subscriptionPlans.status.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "status": "ACTIVE",
-  "reason": "<string>"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/subscription-plans/{id}/visibility`
-
-- Summary: Update Subscription Plans Visibility
-- Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update
-- Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update. SUPER_ADMIN or ADMIN with subscriptionPlans.visibility.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "visibility": "PUBLIC"
-}
 ```
 - Response body:
 ```json

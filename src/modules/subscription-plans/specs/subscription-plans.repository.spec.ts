@@ -20,7 +20,7 @@ describe('Subscription plans repository cleanup', () => {
   });
 
   it('moves plan, feature, and coupon persistence into repositories', () => {
-    ['findManyPlans', 'countPlans', 'findPlansAndCount', 'findPlanById', 'createPlan', 'updatePlan', 'updatePlanStatus', 'updatePlanVisibility', 'deletePlan', 'clearPopular', 'countPlanStats'].forEach((method) => expect(plansRepository).toContain(method));
+    ['findManyPlans', 'countPlans', 'findPlansAndCount', 'findPlanById', 'createPlan', 'updatePlan', 'deletePlan', 'clearPopular', 'countPlanStats'].forEach((method) => expect(plansRepository).toContain(method));
     ['upsertFeatureByKey', 'findActiveCatalog', 'findFeaturesAndCount', 'findFeatureById', 'findFeatureByKey', 'createFeature', 'updateFeature', 'deleteFeature'].forEach((method) => expect(featuresRepository).toContain(method));
     ['findCouponsAndCount', 'findCouponById', 'findCouponByCode', 'createCoupon', 'updateCoupon', 'updateCouponStatus', 'deleteCoupon'].forEach((method) => expect(couponsRepository).toContain(method));
   });

@@ -37,14 +37,6 @@ export class SubscriptionPlansRepository {
     return this.prisma.subscriptionPlan.update({ where: { id }, data });
   }
 
-  updatePlanStatus(id: string, data: Prisma.SubscriptionPlanUncheckedUpdateInput) {
-    return this.updatePlan(id, data);
-  }
-
-  updatePlanVisibility(id: string, data: Prisma.SubscriptionPlanUncheckedUpdateInput) {
-    return this.updatePlan(id, data);
-  }
-
   deletePlan(id: string) {
     return this.prisma.subscriptionPlan.delete({ where: { id } });
   }
