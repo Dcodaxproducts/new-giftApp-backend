@@ -21,9 +21,12 @@ describe('Gift management repository cleanup', () => {
 
   it('keeps gift management and moderation API behavior stable', () => {
     for (const route of ["@Get()", "@Post()", "@Get('stats')", "@Get('export')", "@Get(':id')", "@Patch(':id')", "@Delete(':id')", "@Patch(':id/status')"]) expect(giftsController).toContain(route);
-    for (const route of ["@Get()", "@Patch(':id/approve')", "@Patch(':id/reject')", "@Patch(':id/flag')"]) expect(moderationController).toContain(route);
+    for (const route of ["@Get()", "@Post(':id/action')"]) expect(moderationController).toContain(route);
+    for (const oldRoute of ["@Patch(':id/approve')", "@Patch(':id/reject')", "@Patch(':id/flag')"]) expect(moderationController).not.toContain(oldRoute);
     expect(giftsController).toContain("@Permissions('gifts.create')");
-    expect(moderationController).toContain("@Permissions('giftModeration.approve')");
+    expect(moderationController).toContain("'giftModeration.approve'");
+    expect(moderationController).toContain("'giftModeration.reject'");
+    expect(moderationController).toContain("'giftModeration.flag'");
   });
 
   it('repository owns gift category DB access', () => {

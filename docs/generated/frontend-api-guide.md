@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:02 UTC
+Generated at: 2026-05-25 07:11 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 07:02 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 07:11 UTC.
 
 ## Frontend Integration Flows
 
@@ -480,14 +480,12 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 07:02 UTC.
 | DELETE | `/api/v1/gifts/{id}` | Delete gift | SUPER_ADMIN or ADMIN with gifts.delete |
 | PATCH | `/api/v1/gifts/{id}/status` | Update gift status | SUPER_ADMIN or ADMIN with gifts.status.update |
 
-### Gifts - Moderation (4 APIs)
+### Gifts - Moderation (2 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/gift-moderation` | List optional gift moderation queue | SUPER_ADMIN or ADMIN with giftModeration.read |
-| PATCH | `/api/v1/gift-moderation/{id}/approve` | Approve gift in optional moderation workflow | SUPER_ADMIN or ADMIN with giftModeration.approve |
-| PATCH | `/api/v1/gift-moderation/{id}/flag` | Flag gift for manual review | SUPER_ADMIN or ADMIN with giftModeration.flag |
-| PATCH | `/api/v1/gift-moderation/{id}/reject` | Reject gift in optional moderation workflow | SUPER_ADMIN or ADMIN with giftModeration.reject |
+| POST | `/api/v1/gift-moderation/{id}/action` | Run gift moderation action | SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag) |
 
 ### Notifications (9 APIs)
 

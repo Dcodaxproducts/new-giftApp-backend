@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GiftModerationStatus, GiftStatus, UserRole } from '@prisma/client';
-import { GiftFlagReason, GiftRejectReason } from '../dto/gift-management.dto';
+import { GiftFlagReason, GiftModerationAction, GiftRejectReason } from '../dto/gift-management.dto';
 import { GiftManagementRepository } from '../repositories/gift-management.repository';
 import { GiftManagementService } from '../services/gift-management.service';
 
@@ -118,7 +118,7 @@ describe('GiftManagementService', () => {
   it('flag with hideFromMarketplace hides gift from customer marketplace', async () => {
     const { service, prisma, notificationDispatch } = createService();
     prisma.gift.findFirst.mockResolvedValue(gift);
-    await service.flagGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { reason: GiftFlagReason.NEEDS_MANUAL_REVIEW, comment: 'Suspicious image.', hideFromMarketplace: true, notifyProvider: true });
+    await service.moderationAction({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { action: GiftModerationAction.FLAG, reason: GiftFlagReason.NEEDS_MANUAL_REVIEW, comment: 'Suspicious image.', hideFromMarketplace: true, notifyProvider: true });
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, hiddenByModeration: true, isPublished: false }) }));
     expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
   });
@@ -126,22 +126,49 @@ describe('GiftManagementService', () => {
   it('flag without hideFromMarketplace leaves visibility unchanged but appears in moderation queue', async () => {
     const { service, prisma } = createService();
     prisma.gift.findFirst.mockResolvedValue(gift);
-    await service.flagGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { reason: GiftFlagReason.NEEDS_MANUAL_REVIEW, hideFromMarketplace: false });
+    await service.moderationAction({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { action: GiftModerationAction.FLAG, reason: GiftFlagReason.NEEDS_MANUAL_REVIEW, hideFromMarketplace: false });
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, hiddenByModeration: false, isPublished: true }) }));
   });
 
   it('approve clears review block', async () => {
     const { service, prisma } = createService();
     prisma.gift.findFirst.mockResolvedValue({ ...gift, requiresManualReview: true, hiddenByModeration: true, moderationStatus: GiftModerationStatus.FLAGGED, isPublished: false });
-    await service.approveGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { publishNow: true });
+    await service.moderationAction({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { action: GiftModerationAction.APPROVE });
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ moderationStatus: GiftModerationStatus.APPROVED, requiresManualReview: false, hiddenByModeration: false, manualReviewReason: null, isPublished: true }) }));
   });
 
   it('reject hides gift', async () => {
     const { service, prisma, notificationDispatch } = createService();
     prisma.gift.findFirst.mockResolvedValue(gift);
-    await service.rejectGift({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { reason: GiftRejectReason.POLICY_VIOLATION, notifyProvider: true });
+    await service.moderationAction({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'gift_1', { action: GiftModerationAction.REJECT, reason: GiftRejectReason.POLICY_VIOLATION, notifyProvider: true });
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ moderationStatus: GiftModerationStatus.REJECTED, requiresManualReview: false, hiddenByModeration: true, isPublished: false, status: GiftStatus.INACTIVE }) }));
     expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
   });
+
+  it('action-specific gift moderation permissions are enforced', async () => {
+    const { service, prisma } = createService();
+    prisma.gift.findFirst.mockResolvedValue(gift);
+
+    await expect(service.moderationAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { giftModeration: ['flag'] } }, 'gift_1', { action: GiftModerationAction.APPROVE })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.moderationAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { giftModeration: ['approve'] } }, 'gift_1', { action: GiftModerationAction.REJECT, reason: GiftRejectReason.POLICY_VIOLATION })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.moderationAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { giftModeration: ['reject'] } }, 'gift_1', { action: GiftModerationAction.FLAG, reason: GiftFlagReason.NEEDS_MANUAL_REVIEW })).rejects.toThrow('Your role does not have the required permission');
+  });
+
+  it('admin permissions allow matching gift moderation actions', async () => {
+    const { service, prisma, audit } = createService();
+    prisma.gift.findFirst
+      .mockResolvedValueOnce({ ...gift, requiresManualReview: true, hiddenByModeration: true, moderationStatus: GiftModerationStatus.FLAGGED, isPublished: false })
+      .mockResolvedValueOnce(gift)
+      .mockResolvedValueOnce(gift);
+    const admin = { uid: 'admin_1', role: UserRole.ADMIN, permissions: { giftModeration: ['approve', 'reject', 'flag'] } };
+
+    await service.moderationAction(admin, 'gift_1', { action: GiftModerationAction.APPROVE });
+    await service.moderationAction(admin, 'gift_1', { action: GiftModerationAction.REJECT, reason: GiftRejectReason.POLICY_VIOLATION });
+    await service.moderationAction(admin, 'gift_1', { action: GiftModerationAction.FLAG, reason: GiftFlagReason.POLICY_REVIEW });
+
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_APPROVED' }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_REJECTED' }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_FLAGGED' }));
+  });
+
 });

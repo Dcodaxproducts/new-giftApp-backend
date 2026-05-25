@@ -25,7 +25,7 @@ export enum GiftModerationFilter { ALL = 'ALL', NOT_REQUIRED = 'NOT_REQUIRED', P
 export enum ModerationSortBy { SUBMITTED_AT = 'submittedAt', NAME = 'name', PROVIDER = 'provider' }
 export enum ModerationView { TABLE = 'TABLE', GRID = 'GRID' }
 export enum GiftRejectReason { INCOMPLETE_INFORMATION = 'INCOMPLETE_INFORMATION', INVALID_MEDIA = 'INVALID_MEDIA', POLICY_VIOLATION = 'POLICY_VIOLATION', DUPLICATE_LISTING = 'DUPLICATE_LISTING', INCORRECT_CATEGORY = 'INCORRECT_CATEGORY', PRICE_ISSUE = 'PRICE_ISSUE', OTHER = 'OTHER' }
-export enum GiftFlagReason { NEEDS_MANUAL_REVIEW = 'NEEDS_MANUAL_REVIEW', INVALID_MEDIA = 'INVALID_MEDIA', POLICY_CONCERN = 'POLICY_CONCERN', PRICE_REVIEW = 'PRICE_REVIEW', OTHER = 'OTHER' }
+export enum GiftFlagReason { NEEDS_MANUAL_REVIEW = 'NEEDS_MANUAL_REVIEW', INVALID_MEDIA = 'INVALID_MEDIA', POLICY_CONCERN = 'POLICY_CONCERN', POLICY_REVIEW = 'POLICY_REVIEW', PRICE_REVIEW = 'PRICE_REVIEW', OTHER = 'OTHER' }
 
 export class CreateGiftCategoryDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
@@ -129,3 +129,12 @@ export class ListGiftModerationDto {
 export class ApproveGiftDto { @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() publishNow?: boolean; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean; }
 export class RejectGiftDto { @ApiProperty({ enum: GiftRejectReason }) @IsEnum(GiftRejectReason) reason!: GiftRejectReason; @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyProvider?: boolean; }
 export class FlagGiftDto { @ApiProperty({ enum: GiftFlagReason }) @IsEnum(GiftFlagReason) reason!: GiftFlagReason; @ApiPropertyOptional() @IsOptional() @IsString() comment?: string; @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() hideFromMarketplace?: boolean; @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyProvider?: boolean; }
+
+export enum GiftModerationAction { APPROVE = 'APPROVE', REJECT = 'REJECT', FLAG = 'FLAG' }
+export class GiftModerationActionDto {
+  @ApiProperty({ enum: GiftModerationAction }) @IsEnum(GiftModerationAction) action!: GiftModerationAction;
+  @ApiPropertyOptional({ enum: { ...GiftRejectReason, ...GiftFlagReason } }) @IsOptional() @IsString() reason?: GiftRejectReason | GiftFlagReason;
+  @ApiPropertyOptional() @IsOptional() @IsString() comment?: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() hideFromMarketplace?: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyProvider?: boolean;
+}

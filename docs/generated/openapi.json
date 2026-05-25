@@ -20111,10 +20111,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with giftModeration.read"
       }
     },
-    "/api/v1/gift-moderation/{id}/approve": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. Clears manual review/hidden-by-moderation flags. This is not required for normal provider-created inventory visibility; approved active providers can publish inventory directly.",
-        "operationId": "GiftModerationController_approve",
+    "/api/v1/gift-moderation/{id}/action": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag). SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag. SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires 'giftModeration.approve'; REJECT requires 'giftModeration.reject'; FLAG requires 'giftModeration.flag'.",
+        "operationId": "GiftModerationController_action",
         "parameters": [
           {
             "name": "id",
@@ -20130,14 +20130,30 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApproveGiftDto"
+                "$ref": "#/components/schemas/GiftModerationActionDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Gift moderation action completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "gift_id",
+                      "moderationStatus": "FLAGGED",
+                      "isPublished": false,
+                      "hiddenByModeration": true
+                    },
+                    "message": "Gift flagged successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -20145,96 +20161,12 @@
             "bearer": []
           }
         ],
-        "summary": "Approve gift in optional moderation workflow",
+        "summary": "Run gift moderation action",
         "tags": [
           "04 Gifts - Moderation"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.approve",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.approve"
-      }
-    },
-    "/api/v1/gift-moderation/{id}/reject": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission. Rejecting hides the gift from marketplace, clears manual review, sets moderationStatus=REJECTED, and writes an audit log.",
-        "operationId": "GiftModerationController_reject",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectGiftDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Reject gift in optional moderation workflow",
-        "tags": [
-          "04 Gifts - Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.reject",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.reject"
-      }
-    },
-    "/api/v1/gift-moderation/{id}/flag": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission. Flags optional moderation case. If hideFromMarketplace=true, sets moderationStatus=FLAGGED, requiresManualReview=true, hiddenByModeration=true, and isPublished=false. If false, the gift remains visible but appears in moderation queue. Always writes an audit log.",
-        "operationId": "GiftModerationController_flag",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FlagGiftDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Flag gift for manual review",
-        "tags": [
-          "04 Gifts - Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with giftModeration.flag",
-        "x-access": "SUPER_ADMIN or ADMIN with giftModeration.flag"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag)",
+        "x-access": "SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag)"
       }
     },
     "/api/v1/subscription-plans": {
@@ -29725,23 +29657,17 @@
           "status"
         ]
       },
-      "ApproveGiftDto": {
+      "GiftModerationActionDto": {
         "type": "object",
         "properties": {
-          "comment": {
-            "type": "string"
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "FLAG"
+            ]
           },
-          "publishNow": {
-            "type": "boolean"
-          },
-          "notifyProvider": {
-            "type": "boolean"
-          }
-        }
-      },
-      "RejectGiftDto": {
-        "type": "object",
-        "properties": {
           "reason": {
             "type": "string",
             "enum": [
@@ -29751,31 +29677,11 @@
               "DUPLICATE_LISTING",
               "INCORRECT_CATEGORY",
               "PRICE_ISSUE",
-              "OTHER"
-            ]
-          },
-          "comment": {
-            "type": "string"
-          },
-          "notifyProvider": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "FlagGiftDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
+              "OTHER",
               "NEEDS_MANUAL_REVIEW",
-              "INVALID_MEDIA",
               "POLICY_CONCERN",
-              "PRICE_REVIEW",
-              "OTHER"
+              "POLICY_REVIEW",
+              "PRICE_REVIEW"
             ]
           },
           "comment": {
@@ -29791,7 +29697,7 @@
           }
         },
         "required": [
-          "reason"
+          "action"
         ]
       },
       "PlanLimitsDto": {

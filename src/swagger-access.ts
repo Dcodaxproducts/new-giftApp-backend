@@ -79,9 +79,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'PATCH /api/v1/gifts/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.status.update', description: 'SUPER_ADMIN or ADMIN with gifts.status.update permission.' },
 
   'GET /api/v1/gift-moderation': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftModeration.read', description: 'SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift moderation is optional/exception-based; default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Provider-created inventory does not require separate Super Admin approval by default.' },
-  'PATCH /api/v1/gift-moderation/{id}/approve': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftModeration.approve', description: 'SUPER_ADMIN or ADMIN with giftModeration.approve permission.' },
-  'PATCH /api/v1/gift-moderation/{id}/reject': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftModeration.reject', description: 'SUPER_ADMIN or ADMIN with giftModeration.reject permission.' },
-  'PATCH /api/v1/gift-moderation/{id}/flag': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftModeration.flag', description: 'SUPER_ADMIN or ADMIN with giftModeration.flag permission.' },
+  'POST /api/v1/gift-moderation/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag)', description: 'SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag.' },
 
   'POST /api/v1/broadcasts': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.create', description: 'SUPER_ADMIN or ADMIN with broadcasts.create permission.' },
   'GET /api/v1/broadcasts': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.read', description: 'SUPER_ADMIN or ADMIN with broadcasts.read permission.' },

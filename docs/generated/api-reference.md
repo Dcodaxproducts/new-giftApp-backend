@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 07:02 UTC
+Generated at: 2026-05-25 07:10 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -54,7 +54,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Order Analytics (5 APIs)
 - 04 Gifts - Categories (7 APIs)
 - 04 Gifts - Management (8 APIs)
-- 04 Gifts - Moderation (4 APIs)
+- 04 Gifts - Moderation (2 APIs)
 - 05 Customer / Guest - Marketplace (6 APIs)
 - 05 Customer - Wishlist (3 APIs)
 - 05 Customer - Addresses (6 APIs)
@@ -7694,68 +7694,19 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### PATCH `/api/v1/gift-moderation/{id}/approve`
+### POST `/api/v1/gift-moderation/{id}/action`
 
-- Summary: Approve gift in optional moderation workflow
-- Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.approve
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.approve. SUPER_ADMIN or ADMIN with giftModeration.approve permission. Clears manual review/hidden-by-moderation flags. This is not required for normal provider-created inventory visibility; approved active providers can publish inventory directly.
+- Summary: Run gift moderation action
+- Allowed role/access: SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag)
+- Notes: Access: SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag). SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag. SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires 'giftModeration.approve'; REJECT requires 'giftModeration.reject'; FLAG requires 'giftModeration.flag'.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
   - payload:
 ```json
 {
-  "comment": "<string>",
-  "publishNow": true,
-  "notifyProvider": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/gift-moderation/{id}/reject`
-
-- Summary: Reject gift in optional moderation workflow
-- Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.reject
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.reject. SUPER_ADMIN or ADMIN with giftModeration.reject permission. Rejecting hides the gift from marketplace, clears manual review, sets moderationStatus=REJECTED, and writes an audit log.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
+  "action": "APPROVE",
   "reason": "INCOMPLETE_INFORMATION",
-  "comment": "<string>",
-  "notifyProvider": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/gift-moderation/{id}/flag`
-
-- Summary: Flag gift for manual review
-- Allowed role/access: SUPER_ADMIN or ADMIN with giftModeration.flag
-- Notes: Access: SUPER_ADMIN or ADMIN with giftModeration.flag. SUPER_ADMIN or ADMIN with giftModeration.flag permission. Flags optional moderation case. If hideFromMarketplace=true, sets moderationStatus=FLAGGED, requiresManualReview=true, hiddenByModeration=true, and isPublished=false. If false, the gift remains visible but appears in moderation queue. Always writes an audit log.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "NEEDS_MANUAL_REVIEW",
   "comment": "<string>",
   "hideFromMarketplace": true,
   "notifyProvider": true
@@ -7765,8 +7716,13 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "gift_id",
+    "moderationStatus": "FLAGGED",
+    "isPublished": false,
+    "hiddenByModeration": true
+  },
+  "message": "Gift flagged successfully"
 }
 ```
 

@@ -4,12 +4,12 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from '../repositories/gift-management.repository';
 import {
-  ApproveGiftDto,
   CreateGiftCategoryDto,
   CreateGiftDto,
   ExportFormat,
   ExportGiftsDto,
-  FlagGiftDto,
+  GiftModerationAction,
+  GiftModerationActionDto,
   GiftVariantDto,
   GiftCategorySortBy,
   GiftListStatus,
@@ -19,7 +19,6 @@ import {
   ListGiftModerationDto,
   ListGiftsDto,
   ModerationSortBy,
-  RejectGiftDto,
   SortOrder,
   UpdateGiftCategoryDto,
   UpdateGiftDto,
@@ -253,32 +252,76 @@ export class GiftManagementService {
     return { data: items.map((gift) => ({ id: gift.id, name: gift.name, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, imageUrl: this.firstImage(gift), submittedAt: gift.createdAt, moderationStatus: gift.moderationStatus, status: gift.moderationStatus })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gift moderation queue fetched successfully' };
   }
 
-  async approveGift(user: AuthUserContext, id: string, dto: ApproveGiftDto) {
+  async moderationAction(user: AuthUserContext, id: string, dto: GiftModerationActionDto) {
+    this.assertGiftModerationPermission(user, dto.action);
+
+    if (dto.action === GiftModerationAction.REJECT && !dto.reason) {
+      throw new BadRequestException('Reason is required when rejecting a gift');
+    }
+
+    if (dto.action === GiftModerationAction.FLAG && !dto.reason) {
+      throw new BadRequestException('Reason is required when flagging a gift');
+    }
+
     const gift = await this.getGift(id);
+
+    if (dto.action === GiftModerationAction.APPROVE) {
+      return this.approveGiftAction(user, gift, dto);
+    }
+
+    if (dto.action === GiftModerationAction.REJECT) {
+      return this.rejectGiftAction(user, gift, dto);
+    }
+
+    return this.flagGiftAction(user, gift, dto);
+  }
+
+  private async approveGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
     const canRestore = this.canPublishAfterApproval(gift);
-    const updated = await this.giftManagementRepository.updateGiftModerationStatus(id, { moderationStatus: GiftModerationStatus.APPROVED, requiresManualReview: false, hiddenByModeration: false, manualReviewReason: null, moderationResolvedAt: new Date(), status: dto.publishNow && canRestore ? GiftStatus.ACTIVE : gift.status, isPublished: dto.publishNow && canRestore ? true : gift.isPublished, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null });
-    const data = { id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, approvedAt: updated.approvedAt, approvedBy: updated.approvedBy };
-    await this.audit(user.uid, id, 'GIFT_APPROVED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
+    const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.APPROVED, requiresManualReview: false, hiddenByModeration: false, manualReviewReason: null, moderationResolvedAt: new Date(), status: canRestore ? GiftStatus.ACTIVE : gift.status, isPublished: canRestore ? true : gift.isPublished, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null });
+    const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, approvedAt: updated.approvedAt, approvedBy: updated.approvedBy };
+    await this.audit(user.uid, gift.id, 'GIFT_APPROVED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, comment: dto.comment, notifyProvider: dto.notifyProvider });
+    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift approved', dto.comment?.trim() ?? 'Your gift passed moderation review.', 'GIFT_APPROVED');
     return { data, message: 'Gift approved successfully' };
   }
 
-  async rejectGift(user: AuthUserContext, id: string, dto: RejectGiftDto) {
-    const gift = await this.getGift(id);
-    const updated = await this.giftManagementRepository.updateGiftModerationStatus(id, { moderationStatus: GiftModerationStatus.REJECTED, requiresManualReview: false, hiddenByModeration: true, isPublished: false, status: GiftStatus.INACTIVE, moderationResolvedAt: new Date(), rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment?.trim() });
-    const data = { id, moderationStatus: updated.moderationStatus, status: updated.status, rejectedAt: updated.rejectedAt, rejectedBy: updated.rejectedBy, rejectionReason: updated.rejectionReason, rejectionComment: updated.rejectionComment };
-    await this.audit(user.uid, id, 'GIFT_REJECTED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
-    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, id, 'Gift rejected', dto.comment?.trim() ?? 'Your gift was rejected by moderation.', 'GIFT_REJECTED');
+  private async rejectGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
+    const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.REJECTED, requiresManualReview: false, hiddenByModeration: true, isPublished: false, status: GiftStatus.INACTIVE, moderationResolvedAt: new Date(), rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment?.trim() });
+    const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, rejectedAt: updated.rejectedAt, rejectedBy: updated.rejectedBy, rejectionReason: updated.rejectionReason, rejectionComment: updated.rejectionComment };
+    await this.audit(user.uid, gift.id, 'GIFT_REJECTED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, notifyProvider: dto.notifyProvider });
+    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift rejected', dto.comment?.trim() ?? 'Your gift was rejected by moderation.', 'GIFT_REJECTED');
     return { data, message: 'Gift rejected successfully' };
   }
 
-  async flagGift(user: AuthUserContext, id: string, dto: FlagGiftDto) {
-    const gift = await this.getGift(id);
+  private async flagGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
     const hide = dto.hideFromMarketplace ?? false;
-    const updated = await this.giftManagementRepository.updateGiftModerationStatus(id, { moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, manualReviewReason: dto.reason, hiddenByModeration: hide, isPublished: hide ? false : gift.isPublished, flaggedAt: new Date(), flaggedById: user.uid, flagReason: dto.reason, flagComment: dto.comment?.trim(), moderationResolvedAt: null });
-    const data = { id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, requiresManualReview: updated.requiresManualReview, hiddenByModeration: updated.hiddenByModeration, flaggedAt: updated.flaggedAt, flaggedById: updated.flaggedById, flagReason: updated.flagReason, flagComment: updated.flagComment };
-    await this.audit(user.uid, id, 'GIFT_FLAGGED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
-    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, id, 'Gift flagged for review', dto.comment?.trim() ?? 'Your gift requires manual moderation review.', 'GIFT_FLAGGED');
+    const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, manualReviewReason: dto.reason, hiddenByModeration: hide, isPublished: hide ? false : gift.isPublished, flaggedAt: new Date(), flaggedById: user.uid, flagReason: dto.reason, flagComment: dto.comment?.trim(), moderationResolvedAt: null });
+    const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, requiresManualReview: updated.requiresManualReview, hiddenByModeration: updated.hiddenByModeration, flaggedAt: updated.flaggedAt, flaggedById: updated.flaggedById, flagReason: updated.flagReason, flagComment: updated.flagComment };
+    await this.audit(user.uid, gift.id, 'GIFT_FLAGGED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
+    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift flagged for review', dto.comment?.trim() ?? 'Your gift requires manual moderation review.', 'GIFT_FLAGGED');
     return { data, message: 'Gift flagged successfully' };
+  }
+
+  private assertGiftModerationPermission(user: AuthUserContext, action: GiftModerationAction): void {
+    if (user.role === UserRole.SUPER_ADMIN) return;
+    const permission = this.giftModerationPermission(action);
+    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
+  }
+
+  private giftModerationPermission(action: GiftModerationAction): string {
+    if (action === GiftModerationAction.APPROVE) return 'giftModeration.approve';
+    if (action === GiftModerationAction.REJECT) return 'giftModeration.reject';
+    return 'giftModeration.flag';
+  }
+
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return granted;
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) continue;
+      for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`);
+    }
+    return granted;
   }
 
   private async getCategory(id: string): Promise<GiftCategory> {
