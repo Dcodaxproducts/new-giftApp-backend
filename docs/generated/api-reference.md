@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 08:15 UTC
+Generated at: 2026-05-25 08:26 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -24,7 +24,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (8 APIs)
 - 02 Admin - Notification Delivery Monitoring (4 APIs)
-- 02 Admin - Referral Settings (6 APIs)
+- 02 Admin - Referral Settings (5 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Settings (5 APIs)
@@ -3517,35 +3517,17 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/referral-settings/activate`
+### PATCH `/api/v1/referral-settings/status`
 
-- Summary: Activate referral program
+- Summary: Update referral program status
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Activates referral program. SUPER_ADMIN only. Existing earned rewards remain redeemable.
-- Request payload(s):
-  - payload:
-```json
-"<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/referral-settings/deactivate`
-
-- Summary: Deactivate referral program
-- Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Deactivates referral program. SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.
 - Request payload(s):
   - payload:
 ```json
 {
-  "reason": "Temporarily paused by Super Admin."
+  "isActive": true,
+  "reason": "Seasonal referral campaign enabled."
 }
 ```
 - Response body:

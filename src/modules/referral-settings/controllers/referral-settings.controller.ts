@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { UserRole } from '@prisma/client';
@@ -8,7 +8,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { DeactivateReferralSettingsDto, ListReferralSettingsAuditLogsDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
+import { ListReferralSettingsAuditLogsDto, ReferralSettingsStatusDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
 import { ReferralSettingsService } from '../services/referral-settings.service';
 
 @ApiTags('02 Admin - Referral Settings')
@@ -30,15 +30,10 @@ export class ReferralSettingsController {
   @ApiOperation({ summary: 'Update referral settings', description: 'SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.' })
   update(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateReferralSettingsDto, @Req() request: Request) { return this.settings.update(user, dto, request.ip, request.headers['user-agent']); }
 
-  @Post('activate')
+  @Patch('status')
   @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Activate referral program', description: 'SUPER_ADMIN only. Existing earned rewards remain redeemable.' })
-  activate(@CurrentUser() user: AuthUserContext, @Req() request: Request) { return this.settings.activate(user, request.ip, request.headers['user-agent']); }
-
-  @Post('deactivate')
-  @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Deactivate referral program', description: 'SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.' })
-  deactivate(@CurrentUser() user: AuthUserContext, @Body() dto: DeactivateReferralSettingsDto, @Req() request: Request) { return this.settings.deactivate(user, dto, request.ip, request.headers['user-agent']); }
+  @ApiOperation({ summary: 'Update referral program status', description: 'SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.' })
+  updateStatus(@CurrentUser() user: AuthUserContext, @Body() dto: ReferralSettingsStatusDto, @Req() request: Request) { return this.settings.updateStatus(user, dto, request.ip, request.headers['user-agent']); }
 
   @Get('stats')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

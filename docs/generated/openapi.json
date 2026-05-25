@@ -2795,46 +2795,23 @@
         "x-access": "SUPER_ADMIN"
       }
     },
-    "/api/v1/referral-settings/activate": {
-      "post": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Activates referral program. SUPER_ADMIN only. Existing earned rewards remain redeemable.",
-        "operationId": "ReferralSettingsController_activate",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Activate referral program",
-        "tags": [
-          "02 Admin - Referral Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/referral-settings/deactivate": {
-      "post": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Deactivates referral program. SUPER_ADMIN only. New referral rewards are blocked while inactive; earned rewards remain redeemable.",
-        "operationId": "ReferralSettingsController_deactivate",
+    "/api/v1/referral-settings/status": {
+      "patch": {
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program. isActive=false deactivates it; reason is optional but recommended. Earned rewards remain redeemable.",
+        "operationId": "ReferralSettingsController_updateStatus",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DeactivateReferralSettingsDto"
+                "$ref": "#/components/schemas/ReferralSettingsStatusDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": ""
           }
         },
@@ -2843,7 +2820,7 @@
             "bearer": []
           }
         ],
-        "summary": "Deactivate referral program",
+        "summary": "Update referral program status",
         "tags": [
           "02 Admin - Referral Settings"
         ],
@@ -25655,14 +25632,21 @@
           "qualificationRule"
         ]
       },
-      "DeactivateReferralSettingsDto": {
+      "ReferralSettingsStatusDto": {
         "type": "object",
         "properties": {
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
           "reason": {
             "type": "string",
-            "example": "Temporarily paused by Super Admin."
+            "example": "Seasonal referral campaign enabled."
           }
-        }
+        },
+        "required": [
+          "isActive"
+        ]
       },
       "UpdateGuestAccessSettingsDto": {
         "type": "object",

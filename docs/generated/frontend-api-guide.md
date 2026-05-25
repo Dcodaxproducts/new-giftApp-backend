@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 08:15 UTC
+Generated at: 2026-05-25 08:26 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 08:15 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 08:26 UTC.
 
 ## Frontend Integration Flows
 
@@ -245,16 +245,15 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 08:15 UTC.
 | POST | `/api/v1/admin/provider-payouts/{id}/action` | Run provider payout action | SUPER_ADMIN or ADMIN with action-specific providerPayouts permission |
 | GET | `/api/v1/admin/provider-payouts/{id}/breakdown` | Fetch pending payout transaction breakdown | SUPER_ADMIN or ADMIN with providerPayouts.read |
 
-### Admin - Referral Settings (6 APIs)
+### Admin - Referral Settings (5 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/referral-settings` | Fetch referral settings | SUPER_ADMIN or ADMIN with referralSettings.read |
 | PATCH | `/api/v1/referral-settings` | Update referral settings | SUPER_ADMIN |
-| POST | `/api/v1/referral-settings/activate` | Activate referral program | SUPER_ADMIN |
 | GET | `/api/v1/referral-settings/audit-logs` | List referral settings audit logs | SUPER_ADMIN |
-| POST | `/api/v1/referral-settings/deactivate` | Deactivate referral program | SUPER_ADMIN |
 | GET | `/api/v1/referral-settings/stats` | Fetch referral stats | SUPER_ADMIN or ADMIN with referralSettings.read |
+| PATCH | `/api/v1/referral-settings/status` | Update referral program status | SUPER_ADMIN |
 
 ### Admin - Refund Policy Settings (3 APIs)
 

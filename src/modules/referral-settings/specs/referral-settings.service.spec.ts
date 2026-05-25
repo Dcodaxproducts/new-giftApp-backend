@@ -1,5 +1,41 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { ReferralSettingsService } from '../services/referral-settings.service';
+
+describe('Referral settings status actions', () => {
+  const baseSettings = { id: 'settings_1', isActive: false, referrerRewardAmount: 25, newUserRewardAmount: 10, rewardCurrency: 'USD', minimumTransactionAmount: 50, referralExpirationValue: 30, referralExpirationUnit: 'DAYS', allowSelfReferrals: false, qualificationRule: 'FIRST_SUCCESSFUL_PURCHASE', updatedAt: new Date(), updatedBy: null };
+  const createService = (overrides: Record<string, unknown> = {}) => {
+    const repository = {
+      findFirstSettings: async () => baseSettings,
+      createDefaultSettings: async () => baseSettings,
+      updateSettings: async (_id: string, data: Record<string, unknown>) => ({ ...baseSettings, ...data }),
+      ...overrides,
+    };
+    const auditLog = { write: async () => undefined };
+    return { service: new ReferralSettingsService(repository as never, auditLog as never), auditLog, repository };
+  };
+
+  it('activate works through status API', async () => {
+    const { service } = createService();
+    const result = await service.updateStatus({ uid: 'admin_1', role: 'SUPER_ADMIN' }, { isActive: true, reason: 'Seasonal referral campaign enabled.' });
+    expect(result).toEqual({ data: { isActive: true }, message: 'Referral program activated successfully.' });
+  });
+
+  it('deactivate works through status API', async () => {
+    const { service } = createService({ findFirstSettings: async () => ({ ...baseSettings, isActive: true }) });
+    const result = await service.updateStatus({ uid: 'admin_1', role: 'SUPER_ADMIN' }, { isActive: false, reason: 'Seasonal referral campaign ended.' });
+    expect(result).toEqual({ data: { isActive: false }, message: 'Referral program deactivated successfully.' });
+  });
+
+  it('audit log created', async () => {
+    const auditLog = { write: jest.fn(async () => undefined) };
+    const repository = { findFirstSettings: async () => baseSettings, createDefaultSettings: async () => baseSettings, updateSettings: async (_id: string, data: Record<string, unknown>) => ({ ...baseSettings, ...data }) };
+    const service = new ReferralSettingsService(repository as never, auditLog as never);
+    await service.updateStatus({ uid: 'admin_1', role: 'SUPER_ADMIN' }, { isActive: true, reason: 'Campaign enabled.' }, '127.0.0.1', 'jest');
+    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'REFERRAL_PROGRAM_ACTIVATED', targetType: 'REFERRAL_SETTINGS' }));
+  });
+});
 
 describe('Referral settings source safety', () => {
   const service = readFileSync(join(__dirname, '../services/referral-settings.service.ts'), 'utf8');
@@ -25,8 +61,9 @@ describe('Referral settings source safety', () => {
     expect(controller).toContain("@ApiTags('02 Admin - Referral Settings')");
     expect(controller).toContain("@Controller('referral-settings')");
     expect(controller).toContain("@Permissions('referralSettings.read')");
-    expect(controller).toContain("@Post('activate')");
-    expect(controller).toContain("@Post('deactivate')");
+    expect(controller).toContain("@Patch('status')");
+    expect(controller).not.toContain("@Post('activate')");
+    expect(controller).not.toContain("@Post('deactivate')");
     expect(controller).toContain("@Get('stats')");
     expect(controller).toContain("@Get('audit-logs')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
@@ -71,5 +108,15 @@ describe('Referral settings source safety', () => {
     expect(service).toContain('REFERRAL_PROGRAM_ACTIVATED');
     expect(service).toContain('REFERRAL_PROGRAM_DEACTIVATED');
     expect(repository).toContain('adminAuditLog.findMany');
+  });
+
+  it('old routes are removed from Swagger and controller code', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    expect(controller).toContain("@Patch('status')");
+    expect(controller).not.toContain("@Post('activate')");
+    expect(controller).not.toContain("@Post('deactivate')");
+    expect(openapi.paths['/api/v1/referral-settings/status']).toBeDefined();
+    expect(openapi.paths['/api/v1/referral-settings/activate']).toBeUndefined();
+    expect(openapi.paths['/api/v1/referral-settings/deactivate']).toBeUndefined();
   });
 });

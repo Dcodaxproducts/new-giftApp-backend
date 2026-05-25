@@ -14,8 +14,9 @@ export class UpdateReferralSettingsDto {
   @ApiProperty({ enum: ReferralQualificationRule, example: ReferralQualificationRule.FIRST_SUCCESSFUL_PURCHASE }) @IsEnum(ReferralQualificationRule) qualificationRule!: ReferralQualificationRule;
 }
 
-export class DeactivateReferralSettingsDto {
-  @ApiPropertyOptional({ example: 'Temporarily paused by Super Admin.' }) @IsOptional() @IsString() reason?: string;
+export class ReferralSettingsStatusDto {
+  @ApiProperty({ example: true }) @IsBoolean() isActive!: boolean;
+  @ApiPropertyOptional({ example: 'Seasonal referral campaign enabled.' }) @IsOptional() @IsString() reason?: string;
 }
 
 export class ListReferralSettingsAuditLogsDto {

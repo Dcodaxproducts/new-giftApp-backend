@@ -3,7 +3,7 @@ import { Prisma, ReferralExpirationUnit, ReferralSettings } from '@prisma/client
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { ReferralSettingsRepository } from '../repositories/referral-settings.repository';
-import { DeactivateReferralSettingsDto, ListReferralSettingsAuditLogsDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
+import { ListReferralSettingsAuditLogsDto, ReferralSettingsStatusDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
 
 type SettingsWithUpdater = ReferralSettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
 
@@ -22,20 +22,14 @@ export class ReferralSettingsService {
     return { data: { isActive: after.isActive, referrerRewardAmount: after.referrerRewardAmount, newUserRewardAmount: after.newUserRewardAmount, rewardCurrency: after.rewardCurrency, minimumTransactionAmount: after.minimumTransactionAmount, referralExpirationValue: after.referralExpirationValue, referralExpirationUnit: after.referralExpirationUnit, allowSelfReferrals: after.allowSelfReferrals }, message: 'Referral settings updated successfully.' };
   }
 
-  async activate(user: AuthUserContext, ipAddress?: string, userAgent?: string | string[]) {
+  async updateStatus(user: AuthUserContext, dto: ReferralSettingsStatusDto, ipAddress?: string, userAgent?: string | string[]) {
     const current = await this.getOrCreate();
     const before = this.toView(current);
-    const updated = await this.repository.updateSettings(current.id, { isActive: true, updatedById: user.uid });
-    await this.writeAudit(user, 'REFERRAL_PROGRAM_ACTIVATED', current.id, before, this.toView(updated), ipAddress, userAgent);
-    return { data: { isActive: true }, message: 'Referral program activated successfully.' };
-  }
-
-  async deactivate(user: AuthUserContext, dto: DeactivateReferralSettingsDto, ipAddress?: string, userAgent?: string | string[]) {
-    const current = await this.getOrCreate();
-    const before = this.toView(current);
-    const updated = await this.repository.updateSettings(current.id, { isActive: false, updatedById: user.uid });
-    await this.writeAudit(user, 'REFERRAL_PROGRAM_DEACTIVATED', current.id, before, { ...this.toView(updated), reason: dto.reason }, ipAddress, userAgent);
-    return { data: { isActive: false }, message: 'Referral program deactivated successfully.' };
+    const updated = await this.repository.updateSettings(current.id, { isActive: dto.isActive, updatedById: user.uid });
+    const action = dto.isActive ? 'REFERRAL_PROGRAM_ACTIVATED' : 'REFERRAL_PROGRAM_DEACTIVATED';
+    const after = dto.reason ? { ...this.toView(updated), reason: dto.reason } : this.toView(updated);
+    await this.writeAudit(user, action, current.id, before, after, ipAddress, userAgent);
+    return { data: { isActive: updated.isActive }, message: updated.isActive ? 'Referral program activated successfully.' : 'Referral program deactivated successfully.' };
   }
 
   async stats() {
