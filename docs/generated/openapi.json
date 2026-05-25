@@ -23795,7 +23795,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update. Standard rule fields and isActive status changes both go through this endpoint.",
         "operationId": "SocialReportingRulesController_update",
         "parameters": [
           {
@@ -23813,13 +23813,55 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateSocialReportingRuleDto"
+              },
+              "examples": {
+                "updateRule": {
+                  "value": {
+                    "label": "Spam",
+                    "description": "Spam or advertising content.",
+                    "iconKey": "spam",
+                    "autoFlagThreshold": 10,
+                    "escalationRule": "MANUAL_REVIEW"
+                  }
+                },
+                "activateRule": {
+                  "value": {
+                    "label": "Spam",
+                    "isActive": true,
+                    "reason": "Rule enabled for campaign period."
+                  }
+                },
+                "deactivateRule": {
+                  "value": {
+                    "label": "Spam",
+                    "isActive": false,
+                    "reason": "Rule paused after campaign period."
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Social reporting rule updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "rule_1",
+                      "label": "Spam",
+                      "isActive": true,
+                      "autoFlagThreshold": 10,
+                      "escalationRule": "MANUAL_REVIEW"
+                    },
+                    "message": "Social reporting rule updated successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -23863,48 +23905,6 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.delete",
         "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.delete"
-      }
-    },
-    "/api/v1/admin/social-reporting-rules/{id}/status": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.",
-        "operationId": "SocialReportingRulesController_status",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSocialReportingRuleStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update social reporting rule status",
-        "tags": [
-          "02 Admin - Social Reporting Rules"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with socialReportingRules.update",
-        "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.update"
       }
     },
     "/api/v1/uploads/presigned-url": {
@@ -30039,22 +30039,11 @@
           },
           "isActive": {
             "type": "boolean"
-          }
-        }
-      },
-      "UpdateSocialReportingRuleStatusDto": {
-        "type": "object",
-        "properties": {
-          "isActive": {
-            "type": "boolean"
           },
           "reason": {
             "type": "string"
           }
-        },
-        "required": [
-          "isActive"
-        ]
+        }
       },
       "CreatePresignedUploadDto": {
         "type": "object",

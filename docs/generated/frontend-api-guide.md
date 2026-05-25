@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 11:26 UTC
+Generated at: 2026-05-25 12:12 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 11:26 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-25 12:12 UTC.
 
 ## Frontend Integration Flows
 
@@ -312,7 +312,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 11:26 UTC.
 | POST | `/api/v1/admin/social-moderation/reports/{id}/action` | Run social moderation action | SUPER_ADMIN or ADMIN with socialModeration.moderate |
 | GET | `/api/v1/admin/social-moderation/stats` | Fetch social moderation stats | SUPER_ADMIN or ADMIN with socialModeration.read |
 
-### Admin - Social Reporting Rules (8 APIs)
+### Admin - Social Reporting Rules (7 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -323,7 +323,6 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 11:26 UTC.
 | GET | `/api/v1/admin/social-reporting-rules/{id}` | Fetch social reporting rule details | SUPER_ADMIN or ADMIN with socialReportingRules.read |
 | PATCH | `/api/v1/admin/social-reporting-rules/{id}` | Update social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.update |
 | DELETE | `/api/v1/admin/social-reporting-rules/{id}` | Delete social reporting rule | SUPER_ADMIN or ADMIN with socialReportingRules.delete |
-| PATCH | `/api/v1/admin/social-reporting-rules/{id}/status` | Update social reporting rule status | SUPER_ADMIN or ADMIN with socialReportingRules.update |
 
 ### Admin - Staff Management (7 APIs)
 

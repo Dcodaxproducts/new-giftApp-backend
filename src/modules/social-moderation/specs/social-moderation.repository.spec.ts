@@ -9,14 +9,17 @@ describe('Social moderation repository cleanup', () => {
 
   it('keeps social moderation and rules APIs stable', () => {
     for (const route of ["@Get('stats')", "@Get('reports')", "@Get('reports/:id')", "@Post('reports/:id/action')", "@Get('export')"]) expect(controller).toContain(route);
-    for (const route of ["@Get('stats')", '@Get()', '@Post()', "@Get(':id')", "@Patch(':id')", "@Delete(':id')", "@Patch(':id/status')", "@Get('export')"]) expect(controller).toContain(route);
+    for (const route of ["@Get('stats')", '@Get()', '@Post()', "@Get(':id')", "@Patch(':id')", "@Delete(':id')", "@Get('export')"]) expect(controller).toContain(route);
+    expect(controller).not.toContain("@Patch(':id/status')");
+    expect(controller).toContain('activateRule');
+    expect(controller).toContain('deactivateRule');
     expect(controller).toContain("@ApiTags('02 Admin - Social Moderation')");
     expect(controller).toContain("@ApiTags('02 Admin - Social Reporting Rules')");
   });
 
   it('repositories own social moderation and reporting rule DB access', () => {
     for (const method of ['findStatsRows', 'findReportsAndCount', 'findReport', 'findReportHistory', 'runModerationAction', 'updateSocialPost', 'updateSocialReportStatus', 'createSocialModerationLog', 'createUserWarning', 'createNotification', 'findReportsForExport']) expect(moderationRepository).toContain(method);
-    for (const method of ['findRuleStatsRows', 'findRulesAndCount', 'createRule', 'findRuleById', 'updateRule', 'deleteRule', 'updateRuleStatus', 'findRulesForExport']) expect(rulesRepository).toContain(method);
+    for (const method of ['findRuleStatsRows', 'findRulesAndCount', 'createRule', 'findRuleById', 'updateRule', 'deleteRule', 'findRulesForExport']) expect(rulesRepository).toContain(method);
     expect(moderationRepository).toContain('tx.socialModerationLog.create');
     expect(moderationRepository).toContain('tx.userWarning.create');
     expect(rulesRepository).toContain('socialReportingRule.delete');

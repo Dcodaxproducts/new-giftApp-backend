@@ -140,7 +140,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/social-reporting-rules/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with socialReportingRules.read', description: 'SUPER_ADMIN or ADMIN with socialReportingRules.read permission.' },
   'PATCH /api/v1/admin/social-reporting-rules/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with socialReportingRules.update', description: 'SUPER_ADMIN or ADMIN with socialReportingRules.update permission.' },
   'DELETE /api/v1/admin/social-reporting-rules/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with socialReportingRules.delete', description: 'SUPER_ADMIN or ADMIN with socialReportingRules.delete permission.' },
-  'PATCH /api/v1/admin/social-reporting-rules/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with socialReportingRules.update', description: 'SUPER_ADMIN or ADMIN with socialReportingRules.update permission.' },
 
   'GET /api/v1/admin/dashboard/overview': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only dashboard overview metrics.' },
   'GET /api/v1/admin/dashboard/revenue-trends': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only monthly revenue trends.' },

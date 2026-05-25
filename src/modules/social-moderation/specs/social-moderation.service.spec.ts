@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { SocialModerationAction, SocialPostStatus, SocialPostVisibility, SocialReportReason, SocialReportSeverity, SocialReportStatus, SocialReportingEscalationRule, UserRole } from '@prisma/client';
@@ -54,8 +55,13 @@ describe('SocialModerationService', () => {
     expect((await service.ruleStats()).data.activeRules).toBe(1);
     expect((await service.createRule(actor, { reportCategory: 'SPAM_ADVERTISING', label: 'Spam & Advertising', autoFlagThreshold: 15, escalationRule: SocialReportingEscalationRule.AUTO_HIDE_CONTENT })).data.reportCategory).toBe('SPAM_ADVERTISING');
     await service.updateRule(actor, 'rule_1', { label: 'Updated' });
+    await service.updateRule(actor, 'rule_1', { isActive: false, reason: 'Rule paused after campaign period.' });
     await service.deleteRule(actor, 'rule_1');
     expect((prisma.socialModerationLog as { findMany: jest.Mock }).findMany).not.toHaveBeenCalledWith('delete');
+    const socialReportingRuleUpdate = (prisma.socialReportingRule as { update: jest.Mock }).update;
+    const auditWrite = auditLog.write;
+    expect(socialReportingRuleUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false }) }));
+    expect(auditWrite).toHaveBeenCalledWith(expect.objectContaining({ action: 'SOCIAL_REPORTING_RULE_UPDATED', afterJson: expect.objectContaining({ reason: 'Rule paused after campaign period.' }) }));
     const file = await service.exportRules(actor, { format: 'CSV' as never });
     expect(file.content).toContain('SPAM_ADVERTISING');
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'SOCIAL_REPORTING_RULE_EXPORT_GENERATED' }));
@@ -87,6 +93,15 @@ describe('Social moderation source safety', () => {
     expect(controller.indexOf("@Get('stats')")).toBeLessThan(controller.indexOf("@Get('reports/:id')"));
     expect(controller.indexOf("@Get('export')")).toBeLessThan(controller.indexOf("@Get('reports/:id')"));
     expect(swaggerAccess).toContain('/api/v1/admin/social-moderation/reports/{id}/action');
-    expect(swaggerAccess).toContain('/api/v1/admin/social-reporting-rules/{id}/status');
+    expect(controller).toContain("@Patch(':id') @Permissions('socialReportingRules.update')");
+    expect(controller).not.toContain("@Patch(':id/status')");
+    expect(swaggerAccess).not.toContain('/api/v1/admin/social-reporting-rules/{id}/status');
+  });
+
+  it('removes old social reporting rule status route from Swagger', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };
+    expect(openapi.paths['/api/v1/admin/social-reporting-rules/{id}']).toBeDefined();
+    expect(openapi.paths['/api/v1/admin/social-reporting-rules/{id}/status']).toBeUndefined();
+    expect(Object.keys(openapi.paths['/api/v1/admin/social-reporting-rules/{id}']?.patch?.requestBody?.content?.['application/json']?.examples ?? {})).toEqual(expect.arrayContaining(['updateRule', 'activateRule', 'deactivateRule']));
   });
 });

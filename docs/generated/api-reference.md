@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 11:25 UTC
+Generated at: 2026-05-25 12:12 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -22,7 +22,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Transaction Monitoring (9 APIs)
 - 02 Admin - Message Moderation (8 APIs)
 - 02 Admin - Social Moderation (5 APIs)
-- 02 Admin - Social Reporting Rules (8 APIs)
+- 02 Admin - Social Reporting Rules (7 APIs)
 - 02 Admin - Notification Delivery Monitoring (4 APIs)
 - 02 Admin - Referral Settings (5 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
@@ -3431,27 +3431,48 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update social reporting rule
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.update
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update. Standard rule fields and isActive status changes both go through this endpoint.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - updateRule:
 ```json
 {
-  "label": "<string>",
-  "description": "<string>",
-  "iconKey": "<string>",
-  "autoFlagThreshold": 1.0,
-  "escalationRule": "AUTO_HIDE_CONTENT",
-  "isActive": true
+  "label": "Spam",
+  "description": "Spam or advertising content.",
+  "iconKey": "spam",
+  "autoFlagThreshold": 10,
+  "escalationRule": "MANUAL_REVIEW"
+}
+```
+  - activateRule:
+```json
+{
+  "label": "Spam",
+  "isActive": true,
+  "reason": "Rule enabled for campaign period."
+}
+```
+  - deactivateRule:
+```json
+{
+  "label": "Spam",
+  "isActive": false,
+  "reason": "Rule paused after campaign period."
 }
 ```
 - Response body:
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "rule_1",
+    "label": "Spam",
+    "isActive": true,
+    "autoFlagThreshold": 10,
+    "escalationRule": "MANUAL_REVIEW"
+  },
+  "message": "Social reporting rule updated successfully."
 }
 ```
 
@@ -3466,30 +3487,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/admin/social-reporting-rules/{id}/status`
-
-- Summary: Update social reporting rule status
-- Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.update
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "isActive": true,
-  "reason": "<string>"
-}
 ```
 - Response body:
 ```json

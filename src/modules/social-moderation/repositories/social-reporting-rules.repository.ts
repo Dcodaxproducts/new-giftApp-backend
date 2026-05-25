@@ -29,6 +29,5 @@ export class SocialReportingRulesRepository {
   findRuleById(id: string) { return this.prisma.socialReportingRule.findFirst({ where: { id, deletedAt: null } }); }
   updateRule(id: string, data: RuleUpdateData) { return this.prisma.socialReportingRule.update({ where: { id }, data }); }
   deleteRule(id: string) { return this.prisma.socialReportingRule.delete({ where: { id } }); }
-  updateRuleStatus(id: string, isActive: boolean) { return this.prisma.socialReportingRule.update({ where: { id }, data: { isActive } }); }
   findRulesForExport(isActive?: boolean) { return this.prisma.socialReportingRule.findMany({ where: { deletedAt: null, isActive }, orderBy: { updatedAt: 'desc' }, take: 10000 }); }
 }
