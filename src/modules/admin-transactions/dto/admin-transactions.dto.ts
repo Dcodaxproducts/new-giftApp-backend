@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DisputePriority, DisputeReason } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsISO8601, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsISO8601, IsInt, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
 
 export enum AdminTransactionRange { TODAY = 'TODAY', LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS', CUSTOM = 'CUSTOM' }
 export enum AdminTransactionType { ALL = 'ALL', PAYMENT = 'PAYMENT', GIFT = 'GIFT', WITHDRAWAL = 'WITHDRAWAL', SUBSCRIPTION_PAYMENT = 'SUBSCRIPTION_PAYMENT', RECURRING_PAYMENT = 'RECURRING_PAYMENT', WALLET_TOP_UP = 'WALLET_TOP_UP', REFUND = 'REFUND' }
@@ -13,6 +13,7 @@ export enum AdminTransactionExportFormat { CSV = 'CSV', PDF = 'PDF' }
 export enum AdminRefundType { FULL = 'FULL', PARTIAL = 'PARTIAL' }
 export enum AdminRefundReason { CUSTOMER_REQUEST = 'CUSTOMER_REQUEST', ORDER_CANCELLED = 'ORDER_CANCELLED', PRODUCT_NOT_RECEIVED = 'PRODUCT_NOT_RECEIVED', DUPLICATE_CHARGE = 'DUPLICATE_CHARGE', FRAUD_REVIEW = 'FRAUD_REVIEW', DISPUTE_RESOLUTION = 'DISPUTE_RESOLUTION', OTHER = 'OTHER' }
 export enum AdminNotificationChannel { IN_APP = 'IN_APP', EMAIL = 'EMAIL', BOTH = 'BOTH' }
+export enum AdminTransactionAction { REFUND = 'REFUND', OPEN_DISPUTE = 'OPEN_DISPUTE', NOTIFY_USER = 'NOTIFY_USER' }
 export enum AdminReceiptFormat { PDF = 'PDF' }
 
 export class AdminTransactionStatsDto {
@@ -59,6 +60,22 @@ export class NotifyTransactionUserDto {
   @ApiProperty({ enum: AdminNotificationChannel, example: AdminNotificationChannel.EMAIL }) @IsEnum(AdminNotificationChannel) channel!: AdminNotificationChannel;
   @ApiProperty({ example: 'Transaction update' }) @IsString() subject!: string;
   @ApiProperty({ example: 'Your transaction has been successfully processed.' }) @IsString() message!: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() includeReceipt?: boolean;
+}
+
+export class AdminTransactionActionDto {
+  @ApiProperty({ enum: AdminTransactionAction, example: AdminTransactionAction.REFUND }) @IsEnum(AdminTransactionAction) action!: AdminTransactionAction;
+  @ApiPropertyOptional({ enum: AdminRefundType, example: AdminRefundType.FULL }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND) @IsEnum(AdminRefundType) refundType?: AdminRefundType;
+  @ApiPropertyOptional({ example: 1281.25 }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND) @Type(() => Number) @IsNumber() @Min(0.01) refundAmount?: number;
+  @ApiPropertyOptional({ enum: { ...AdminRefundReason, ...DisputeReason }, example: AdminRefundReason.CUSTOMER_REQUEST }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND || dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsEnum({ ...AdminRefundReason, ...DisputeReason }) reason?: AdminRefundReason | DisputeReason;
+  @ApiPropertyOptional({ enum: DisputePriority, example: DisputePriority.HIGH }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsEnum(DisputePriority) priority?: DisputePriority;
+  @ApiPropertyOptional({ example: 'Dispute opened from transaction detail screen.' }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsString() claimDetails?: string;
+  @ApiPropertyOptional({ example: 'admin_id' }) @IsOptional() @IsString() assignToId?: string;
+  @ApiPropertyOptional({ enum: AdminNotificationChannel, example: AdminNotificationChannel.EMAIL }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.NOTIFY_USER) @IsEnum(AdminNotificationChannel) channel?: AdminNotificationChannel;
+  @ApiPropertyOptional({ example: 'Transaction update' }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.NOTIFY_USER) @IsString() subject?: string;
+  @ApiPropertyOptional({ example: 'Your transaction has been successfully processed.' }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.NOTIFY_USER) @IsString() message?: string;
+  @ApiPropertyOptional({ example: 'Refund approved by support.' }) @IsOptional() @IsString() comment?: string;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyUser?: boolean;
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() includeReceipt?: boolean;
 }
 

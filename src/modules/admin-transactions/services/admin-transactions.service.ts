@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { AdminTransactionsRepository } from '../repositories/admin-transactions.repository';
 import { RefundPolicySettingsService } from '../../refund-policy-settings/services/refund-policy-settings.service';
-import { AdminGatewayProvider, AdminNotificationChannel, AdminRefundType, AdminTransactionExportFormat, AdminTransactionRange, AdminTransactionSortBy, AdminTransactionSortOrder, AdminTransactionStatus, AdminTransactionStatsDto, AdminTransactionType, ExportAdminTransactionsDto, ListAdminTransactionsDto, NotifyTransactionUserDto, OpenTransactionDisputeDto, RefundAdminTransactionDto } from '../dto/admin-transactions.dto';
+import { AdminGatewayProvider, AdminNotificationChannel, AdminRefundReason, AdminRefundType, AdminTransactionAction, AdminTransactionActionDto, AdminTransactionExportFormat, AdminTransactionRange, AdminTransactionSortBy, AdminTransactionSortOrder, AdminTransactionStatus, AdminTransactionStatsDto, AdminTransactionType, ExportAdminTransactionsDto, ListAdminTransactionsDto, NotifyTransactionUserDto, OpenTransactionDisputeDto, RefundAdminTransactionDto } from '../dto/admin-transactions.dto';
 
 type PaymentRecord = Prisma.PaymentGetPayload<{ include: ReturnType<AdminTransactionsService['paymentInclude']> }>;
 type NormalizedAdminTransaction = { id: string; transactionId: string; paymentId: string; orderId: string | null; orderNumber: string | null; userId: string; user: { id: string; name: string; email: string; avatarUrl: string | null; location: string | null }; providerId: string | null; providerBusinessName: string | null; gatewayProvider: AdminGatewayProvider; type: AdminTransactionType; amount: number; currency: string; status: AdminTransactionStatus; paymentStatus: PaymentStatus; paymentMethod: PaymentMethod; gatewayReference: string | null; metadata: Record<string, unknown>; subtotal: number; discount: number; deliveryFee: number; tax: number; createdAt: Date; };
@@ -51,6 +51,13 @@ export class AdminTransactionsService {
     const [refunds, disputes, audits] = await this.adminTransactionsRepository.findTransactionTimeline(item.paymentId, item.transactionId);
     const events = [{ status: 'INITIATED', title: 'Initiated', description: 'Checkout session started by user via mobile application.', source: 'User Session', timestamp: item.createdAt }, { status: this.statusTitle(item.status), title: this.statusTitle(item.status), description: this.timelineDescription(item), source: item.gatewayReference ? 'Gateway Response' : 'System Auto-Update', timestamp: item.createdAt }, ...refunds.map((refund) => ({ status: refund.status, title: 'Refund Updated', description: `Refund ${refund.transactionId ?? refund.id} ${refund.status.toLowerCase().replaceAll('_', ' ')}.`, source: 'Refund Workflow', timestamp: refund.createdAt })), ...disputes.map((dispute) => ({ status: dispute.status, title: 'Dispute Opened', description: `${dispute.caseId} opened for ${dispute.reason}.`, source: 'Admin Dispute Manager', timestamp: dispute.createdAt })), ...audits.map((audit) => ({ status: audit.action, title: audit.actionLabel ?? this.label(audit.action), description: `${this.label(audit.action)} completed.`, source: 'Audit Log', timestamp: audit.createdAt }))].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     return { data: events, message: 'Transaction timeline fetched successfully.' };
+  }
+
+  async action(user: AuthUserContext, id: string, dto: AdminTransactionActionDto) {
+    this.assertActionPermission(user, dto.action);
+    if (dto.action === AdminTransactionAction.REFUND) return this.refund(user, id, this.refundDto(dto));
+    if (dto.action === AdminTransactionAction.OPEN_DISPUTE) return this.openDispute(user, id, this.disputeDto(dto));
+    return this.notifyUser(user, id, this.notifyDto(dto));
   }
 
   async refund(user: AuthUserContext, id: string, dto: RefundAdminTransactionDto) {
@@ -152,6 +159,23 @@ export class AdminTransactionsService {
   }
 
   private sort(items: NormalizedAdminTransaction[], sortBy: AdminTransactionSortBy, sortOrder: AdminTransactionSortOrder): NormalizedAdminTransaction[] { const direction = sortOrder === AdminTransactionSortOrder.ASC ? 1 : -1; return [...items].sort((a, b) => { if (sortBy === AdminTransactionSortBy.AMOUNT) return (a.amount - b.amount) * direction; if (sortBy === AdminTransactionSortBy.STATUS) return a.status.localeCompare(b.status) * direction; return (a.createdAt.getTime() - b.createdAt.getTime()) * direction; }); }
+  private assertActionPermission(user: AuthUserContext, action: AdminTransactionAction): void {
+    if (user.role === UserRole.SUPER_ADMIN) return;
+    const permission = action === AdminTransactionAction.REFUND ? 'transactions.refund' : action === AdminTransactionAction.OPEN_DISPUTE ? 'transactions.openDispute' : 'transactions.notifyUser';
+    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
+  }
+  private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
+    const granted = new Set<string>();
+    if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return granted;
+    for (const [module, values] of Object.entries(permissions)) {
+      if (!Array.isArray(values)) continue;
+      for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`);
+    }
+    return granted;
+  }
+  private refundDto(dto: AdminTransactionActionDto): RefundAdminTransactionDto { return { refundType: dto.refundType ?? AdminRefundType.FULL, refundAmount: dto.refundAmount ?? 0, reason: dto.reason as AdminRefundReason, comment: dto.comment, notifyUser: dto.notifyUser }; }
+  private disputeDto(dto: AdminTransactionActionDto): OpenTransactionDisputeDto { return { reason: dto.reason as OpenTransactionDisputeDto['reason'], priority: dto.priority!, claimDetails: dto.claimDetails!, assignToId: dto.assignToId }; }
+  private notifyDto(dto: AdminTransactionActionDto): NotifyTransactionUserDto { return { channel: dto.channel!, subject: dto.subject!, message: dto.message!, includeReceipt: dto.includeReceipt }; }
   private toListItem(item: NormalizedAdminTransaction) { return { id: item.id, transactionId: item.transactionId, user: { id: item.user.id, name: item.user.name, avatarUrl: item.user.avatarUrl }, gatewayProvider: item.gatewayProvider, type: item.type, amount: item.amount, currency: item.currency, status: item.status, createdAt: item.createdAt }; }
   private range(query: Partial<AdminTransactionStatsDto>): { fromDate?: Date; toDate?: Date } { if (query.fromDate || query.toDate) return { fromDate: query.fromDate ? new Date(query.fromDate) : undefined, toDate: query.toDate ? new Date(query.toDate) : undefined }; const now = new Date(); const range = query.range ?? AdminTransactionRange.LAST_30_DAYS; if (range === AdminTransactionRange.TODAY) return this.todayRange(); const days = range === AdminTransactionRange.LAST_7_DAYS ? 7 : 30; return { fromDate: new Date(now.getTime() - days * 86_400_000), toDate: now }; }
   private previousRange(query: AdminTransactionStatsDto): { fromDate?: string; toDate?: string } { const current = this.range(query); if (!current.fromDate || !current.toDate) return {}; const length = current.toDate.getTime() - current.fromDate.getTime(); return { fromDate: new Date(current.fromDate.getTime() - length).toISOString(), toDate: current.fromDate.toISOString() }; }

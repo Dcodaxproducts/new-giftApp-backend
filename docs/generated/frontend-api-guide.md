@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-29 04:54 UTC
+Generated at: 2026-05-29 05:06 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-29 04:54 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-29 05:06 UTC.
 
 ## Frontend Integration Flows
 
@@ -356,7 +356,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-29 04:54 UTC.
 | POST | `/api/v1/admin/system-settings/logo` | Update system logo URL/reference | SUPER_ADMIN or ADMIN with systemSettings.update |
 | POST | `/api/v1/admin/system-settings/smtp/test` | Send SMTP test email | SUPER_ADMIN or ADMIN with systemSettings.update |
 
-### Admin - Transaction Monitoring (9 APIs)
+### Admin - Transaction Monitoring (7 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -364,10 +364,8 @@ Generated from `docs/generated/openapi.json` on 2026-05-29 04:54 UTC.
 | GET | `/api/v1/admin/transactions/export` | Export admin transactions | SUPER_ADMIN or ADMIN with transactions.export |
 | GET | `/api/v1/admin/transactions/stats` | Fetch transaction monitoring stats | SUPER_ADMIN or ADMIN with transactions.read |
 | GET | `/api/v1/admin/transactions/{id}` | Fetch transaction details | SUPER_ADMIN or ADMIN with transactions.read |
-| POST | `/api/v1/admin/transactions/{id}/notify-user` | Send transaction notification to user | SUPER_ADMIN or ADMIN with transactions.notifyUser |
-| POST | `/api/v1/admin/transactions/{id}/open-dispute` | Open dispute from transaction | SUPER_ADMIN or ADMIN with transactions.openDispute |
+| POST | `/api/v1/admin/transactions/{id}/action` | Run transaction action | SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser) |
 | GET | `/api/v1/admin/transactions/{id}/receipt` | Download transaction receipt | SUPER_ADMIN or ADMIN with transactions.receipt.download |
-| POST | `/api/v1/admin/transactions/{id}/refund` | Refund transaction | SUPER_ADMIN or ADMIN with transactions.refund |
 | GET | `/api/v1/admin/transactions/{id}/timeline` | Fetch transaction timeline | SUPER_ADMIN or ADMIN with transactions.read |
 
 ### Admin - User Management (9 APIs)

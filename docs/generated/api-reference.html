@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-29 04:53 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-29 04:53 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-05-29 05:06 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-05-29 05:06 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC. PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;firstName&quot;: &quot;&lt;string&gt;&quot;,
@@ -1112,18 +1112,25 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/refund</code></div><div><span class="label">Summary:</span> Refund transaction</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.refund</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.refund. SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated. SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">full</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/action</code></div><div><span class="label">Summary:</span> Run transaction action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transaction action permission (REFUND=&gt;transactions.refund, OPEN_DISPUTE=&gt;transactions.openDispute, NOTIFY_USER=&gt;transactions.notifyUser)</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transaction action permission (REFUND=&gt;transactions.refund, OPEN_DISPUTE=&gt;transactions.openDispute, NOTIFY_USER=&gt;transactions.notifyUser). SUPER_ADMIN or ADMIN with action-specific transaction permission. Refund amount is server-validated, duplicate open disputes are blocked, and notifications use NotificationDispatchService. SUPER_ADMIN or ADMIN with action-specific transaction permission. REFUND requires &#x27;transactions.refund&#x27; and keeps existing server-side refund validation. OPEN_DISPUTE requires &#x27;transactions.openDispute&#x27; and keeps duplicate dispute prevention. NOTIFY_USER requires &#x27;transactions.notifyUser&#x27; and dispatches through NotificationDispatchService. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">refund</div><pre>{
+  &quot;action&quot;: &quot;REFUND&quot;,
   &quot;refundType&quot;: &quot;FULL&quot;,
   &quot;refundAmount&quot;: 1281.25,
   &quot;reason&quot;: &quot;CUSTOMER_REQUEST&quot;,
   &quot;comment&quot;: &quot;Refund approved by support.&quot;,
   &quot;notifyUser&quot;: true
-}</pre><div class="small">partial</div><pre>{
-  &quot;refundType&quot;: &quot;PARTIAL&quot;,
-  &quot;refundAmount&quot;: 250,
+}</pre><div class="small">openDispute</div><pre>{
+  &quot;action&quot;: &quot;OPEN_DISPUTE&quot;,
   &quot;reason&quot;: &quot;PRODUCT_NOT_RECEIVED&quot;,
-  &quot;comment&quot;: &quot;Partial goodwill refund.&quot;,
-  &quot;notifyUser&quot;: true
+  &quot;priority&quot;: &quot;HIGH&quot;,
+  &quot;claimDetails&quot;: &quot;Dispute opened from transaction detail screen.&quot;,
+  &quot;assignToId&quot;: &quot;admin_id&quot;
+}</pre><div class="small">notifyUser</div><pre>{
+  &quot;action&quot;: &quot;NOTIFY_USER&quot;,
+  &quot;channel&quot;: &quot;EMAIL&quot;,
+  &quot;subject&quot;: &quot;Transaction update&quot;,
+  &quot;message&quot;: &quot;Your transaction has been successfully processed.&quot;,
+  &quot;includeReceipt&quot;: true
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
@@ -1134,33 +1141,6 @@
     &quot;status&quot;: &quot;REFUNDED&quot;
   },
   &quot;message&quot;: &quot;Transaction refunded successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/open-dispute</code></div><div><span class="label">Summary:</span> Open dispute from transaction</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.openDispute</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.openDispute. SUPER_ADMIN or ADMIN with transactions.openDispute permission. SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">open</div><pre>{
-  &quot;reason&quot;: &quot;PRODUCT_NOT_RECEIVED&quot;,
-  &quot;priority&quot;: &quot;HIGH&quot;,
-  &quot;claimDetails&quot;: &quot;Dispute opened from transaction detail screen.&quot;,
-  &quot;assignToId&quot;: &quot;admin_id&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {
-    &quot;disputeId&quot;: &quot;dispute_id&quot;,
-    &quot;caseId&quot;: &quot;DSP-1024&quot;,
-    &quot;transactionId&quot;: &quot;TRX-982341&quot;,
-    &quot;status&quot;: &quot;OPEN&quot;
-  },
-  &quot;message&quot;: &quot;Dispute opened successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/admin/transactions/{id}/notify-user</code></div><div><span class="label">Summary:</span> Send transaction notification to user</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.notifyUser</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.notifyUser. SUPER_ADMIN or ADMIN with transactions.notifyUser permission. SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">email</div><pre>{
-  &quot;channel&quot;: &quot;EMAIL&quot;,
-  &quot;subject&quot;: &quot;Transaction update&quot;,
-  &quot;message&quot;: &quot;Your transaction has been successfully processed.&quot;,
-  &quot;includeReceipt&quot;: true
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: {
-    &quot;transactionId&quot;: &quot;TRX-982341&quot;,
-    &quot;notificationSent&quot;: true,
-    &quot;channel&quot;: &quot;EMAIL&quot;
-  },
-  &quot;message&quot;: &quot;Notification sent successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/transactions/{id}</code></div><div><span class="label">Summary:</span> Fetch transaction details</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with transactions.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. SUPER_ADMIN or ADMIN with transactions.read. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {

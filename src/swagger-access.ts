@@ -191,9 +191,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/transactions/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked.' },
   'GET /api/v1/admin/transactions/{id}/timeline': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.read', description: 'SUPER_ADMIN or ADMIN with transactions.read permission.' },
   'GET /api/v1/admin/transactions/{id}/receipt': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.receipt.download', description: 'SUPER_ADMIN or ADMIN with transactions.receipt.download permission.' },
-  'POST /api/v1/admin/transactions/{id}/refund': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.refund', description: 'SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated.' },
-  'POST /api/v1/admin/transactions/{id}/open-dispute': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.openDispute', description: 'SUPER_ADMIN or ADMIN with transactions.openDispute permission.' },
-  'POST /api/v1/admin/transactions/{id}/notify-user': { allowedRoles: 'SUPER_ADMIN or ADMIN with transactions.notifyUser', description: 'SUPER_ADMIN or ADMIN with transactions.notifyUser permission.' },
+  'POST /api/v1/admin/transactions/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser)', description: 'SUPER_ADMIN or ADMIN with action-specific transaction permission. Refund amount is server-validated, duplicate open disputes are blocked, and notifications use NotificationDispatchService.' },
 
   'GET /api/v1/subscription-plans': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.read', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.' },
   'POST /api/v1/subscription-plans': { allowedRoles: 'SUPER_ADMIN or ADMIN with subscriptionPlans.create', description: 'SUPER_ADMIN or ADMIN with subscriptionPlans.create permission.' },

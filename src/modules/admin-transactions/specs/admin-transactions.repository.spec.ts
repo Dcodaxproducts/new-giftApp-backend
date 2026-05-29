@@ -34,7 +34,10 @@ describe('Admin transactions repository cleanup', () => {
     expect(controller).toContain("@Controller('admin/transactions')");
     expect(controller).toContain("@ApiTags('02 Admin - Transaction Monitoring')");
     expect(controller).toContain("@Permissions('transactions.read')");
-    expect(controller).toContain("@Permissions('transactions.refund')");
+    expect(controller).toContain("@Post(':id/action')");
+    expect(service).toContain("'transactions.refund'");
+    expect(service).toContain("'transactions.openDispute'");
+    expect(service).toContain("'transactions.notifyUser'");
     expect(controller).toContain('Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed');
   });
 });

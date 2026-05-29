@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-29 04:53 UTC
+Generated at: 2026-05-29 05:06 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -19,7 +19,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Dashboard Overview (5 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Provider Payouts (9 APIs)
-- 02 Admin - Transaction Monitoring (9 APIs)
+- 02 Admin - Transaction Monitoring (7 APIs)
 - 02 Admin - Message Moderation (8 APIs)
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (7 APIs)
@@ -2736,17 +2736,18 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/admin/transactions/{id}/refund`
+### POST `/api/v1/admin/transactions/{id}/action`
 
-- Summary: Refund transaction
-- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.refund
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.refund. SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated. SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.
+- Summary: Run transaction action
+- Allowed role/access: SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser)
+- Notes: Access: SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser). SUPER_ADMIN or ADMIN with action-specific transaction permission. Refund amount is server-validated, duplicate open disputes are blocked, and notifications use NotificationDispatchService. SUPER_ADMIN or ADMIN with action-specific transaction permission. REFUND requires 'transactions.refund' and keeps existing server-side refund validation. OPEN_DISPUTE requires 'transactions.openDispute' and keeps duplicate dispute prevention. NOTIFY_USER requires 'transactions.notifyUser' and dispatches through NotificationDispatchService. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - full:
+  - refund:
 ```json
 {
+  "action": "REFUND",
   "refundType": "FULL",
   "refundAmount": 1281.25,
   "reason": "CUSTOMER_REQUEST",
@@ -2754,14 +2755,24 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "notifyUser": true
 }
 ```
-  - partial:
+  - openDispute:
 ```json
 {
-  "refundType": "PARTIAL",
-  "refundAmount": 250,
+  "action": "OPEN_DISPUTE",
   "reason": "PRODUCT_NOT_RECEIVED",
-  "comment": "Partial goodwill refund.",
-  "notifyUser": true
+  "priority": "HIGH",
+  "claimDetails": "Dispute opened from transaction detail screen.",
+  "assignToId": "admin_id"
+}
+```
+  - notifyUser:
+```json
+{
+  "action": "NOTIFY_USER",
+  "channel": "EMAIL",
+  "subject": "Transaction update",
+  "message": "Your transaction has been successfully processed.",
+  "includeReceipt": true
 }
 ```
 - Response body:
@@ -2776,67 +2787,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "status": "REFUNDED"
   },
   "message": "Transaction refunded successfully."
-}
-```
-
-### POST `/api/v1/admin/transactions/{id}/open-dispute`
-
-- Summary: Open dispute from transaction
-- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.openDispute
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.openDispute. SUPER_ADMIN or ADMIN with transactions.openDispute permission. SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - open:
-```json
-{
-  "reason": "PRODUCT_NOT_RECEIVED",
-  "priority": "HIGH",
-  "claimDetails": "Dispute opened from transaction detail screen.",
-  "assignToId": "admin_id"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "disputeId": "dispute_id",
-    "caseId": "DSP-1024",
-    "transactionId": "TRX-982341",
-    "status": "OPEN"
-  },
-  "message": "Dispute opened successfully."
-}
-```
-
-### POST `/api/v1/admin/transactions/{id}/notify-user`
-
-- Summary: Send transaction notification to user
-- Allowed role/access: SUPER_ADMIN or ADMIN with transactions.notifyUser
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.notifyUser. SUPER_ADMIN or ADMIN with transactions.notifyUser permission. SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - email:
-```json
-{
-  "channel": "EMAIL",
-  "subject": "Transaction update",
-  "message": "Your transaction has been successfully processed.",
-  "includeReceipt": true
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "transactionId": "TRX-982341",
-    "notificationSent": true,
-    "channel": "EMAIL"
-  },
-  "message": "Notification sent successfully."
 }
 ```
 

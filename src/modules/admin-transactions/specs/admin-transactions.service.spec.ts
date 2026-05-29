@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminTransactionsRepository } from '../repositories/admin-transactions.repository';
 import { AdminTransactionsService } from '../services/admin-transactions.service';
-import { AdminNotificationChannel, AdminRefundReason, AdminRefundType, AdminTransactionStatus, AdminTransactionType } from '../dto/admin-transactions.dto';
+import { AdminNotificationChannel, AdminRefundReason, AdminRefundType, AdminTransactionAction, AdminTransactionStatus, AdminTransactionType } from '../dto/admin-transactions.dto';
 
 const createdAt = new Date('2026-10-24T14:20:00.000Z');
 const payment = {
@@ -77,38 +77,46 @@ describe('AdminTransactionsService', () => {
     await expect(service.refund({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { refundType: AdminRefundType.PARTIAL, refundAmount: 2000, reason: AdminRefundReason.CUSTOMER_REQUEST, notifyUser: true })).rejects.toThrow('Refund amount cannot exceed remaining refundable amount');
   });
 
-  it('refund creates refund transaction record and updates original transaction status', async () => {
+  it('REFUND action creates refund transaction record and updates original transaction status', async () => {
     const { service, prisma, auditLog } = createService();
-    const response = await service.refund({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST, notifyUser: true });
-    expect(response.data.status).toBe('REFUNDED');
+    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST, notifyUser: true });
+    expect(response.data).toMatchObject({ status: 'REFUNDED' });
     expect(prisma.refundRequest.create).toHaveBeenCalled();
     expect(prisma.payment.update).toHaveBeenCalled();
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'TRANSACTION_REFUNDED_BY_ADMIN' }));
   });
 
-  it('open dispute creates linked dispute case and blocks duplicate open dispute', async () => {
+  it('OPEN_DISPUTE action creates linked dispute case and blocks duplicate open dispute', async () => {
     const { service, prisma, auditLog } = createService();
-    const response = await service.openDispute({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' });
-    expect(response.data.caseId).toBe('DSP-1024');
+    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' });
+    expect(response.data).toMatchObject({ caseId: 'DSP-1024' });
     expect(prisma.disputeCase.create).toHaveBeenCalled();
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'TRANSACTION_DISPUTE_OPENED' }));
 
     const duplicate = createService({ disputes: [{ id: 'dispute_existing' }] });
-    await expect(duplicate.service.openDispute({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('An open dispute already exists');
+    await expect(duplicate.service.action({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('An open dispute already exists');
   });
 
-  it('receipt download, notification, and export create safe audit logs', async () => {
+  it('NOTIFY_USER action plus receipt download and export create safe audit logs', async () => {
     const { service, auditLog, notificationDispatch } = createService();
     const user = { uid: 'admin_1', role: UserRole.SUPER_ADMIN };
     const receipt = await service.receipt(user, 'payment_1');
     expect(receipt.content).toContain('Visa **** 4242');
     expect(receipt.content).not.toContain('clientSecret');
-    await service.notifyUser(user, 'payment_1', { channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.', includeReceipt: true });
+    const notified = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['notifyUser'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.', includeReceipt: true });
+    expect(notified.data).toMatchObject({ notificationSent: true, channel: AdminNotificationChannel.IN_APP });
     expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
     const exported = await service.export(user, { status: AdminTransactionStatus.SUCCESS });
     expect(exported.content).toContain('TRX-982341');
     expect(exported.content).not.toContain('4242');
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'TRANSACTION_EXPORT_GENERATED' }));
+  });
+
+  it('enforces action-specific transaction permissions', async () => {
+    const { service } = createService();
+    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.' })).rejects.toThrow('Your role does not have the required permission');
   });
 });
 
@@ -130,16 +138,29 @@ describe('Admin transaction monitoring source safety', () => {
   it('adds all required permissions and access metadata', () => {
     for (const permission of ['read', 'export', 'refund', 'openDispute', 'notifyUser', 'receipt.download']) expect(permissions).toContain(`key: '${permission}'`);
     expect(swaggerAccess).toContain('GET /api/v1/admin/transactions/stats');
-    expect(swaggerAccess).toContain('POST /api/v1/admin/transactions/{id}/refund');
+    expect(swaggerAccess).toContain('POST /api/v1/admin/transactions/{id}/action');
+    expect(swaggerAccess).not.toContain('POST /api/v1/admin/transactions/{id}/refund');
   });
 
   it('documents Swagger tag, masking, server-side refund validation, and export secret exclusion', () => {
     expect(main).toContain("'02 Admin - Transaction Monitoring'");
     expect(controller).toContain("@ApiTags('02 Admin - Transaction Monitoring')");
-    expect(controller).toContain('Refund amount is server-validated');
+    expect(controller).toContain('server-side refund validation');
     expect(controller).toContain('Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed');
     expect(service).toContain('safeExportFilters');
     expect(service).toContain('AdminTransactionsRepository');
     expect(dto).toContain('AdminTransactionType');
+  });
+
+  it('removes old transaction action routes from controller and generated Swagger', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    expect(controller).toContain("@Post(':id/action')");
+    expect(controller).not.toContain("@Post(':id/refund')");
+    expect(controller).not.toContain("@Post(':id/open-dispute')");
+    expect(controller).not.toContain("@Post(':id/notify-user')");
+    expect(openapi.paths['/api/v1/admin/transactions/{id}/action']).toBeDefined();
+    expect(openapi.paths['/api/v1/admin/transactions/{id}/refund']).toBeUndefined();
+    expect(openapi.paths['/api/v1/admin/transactions/{id}/open-dispute']).toBeUndefined();
+    expect(openapi.paths['/api/v1/admin/transactions/{id}/notify-user']).toBeUndefined();
   });
 });

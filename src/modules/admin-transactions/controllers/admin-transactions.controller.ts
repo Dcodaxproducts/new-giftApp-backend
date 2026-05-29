@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { AdminTransactionsService } from '../services/admin-transactions.service';
-import { AdminTransactionStatsDto, ExportAdminTransactionsDto, ListAdminTransactionsDto, NotifyTransactionUserDto, OpenTransactionDisputeDto, RefundAdminTransactionDto } from '../dto/admin-transactions.dto';
+import { AdminTransactionActionDto, AdminTransactionStatsDto, ExportAdminTransactionsDto, ListAdminTransactionsDto } from '../dto/admin-transactions.dto';
 
 @ApiTags('02 Admin - Transaction Monitoring')
 @ApiBearerAuth()
@@ -46,26 +46,11 @@ export class AdminTransactionsController {
   @ApiOperation({ summary: 'Download transaction receipt', description: 'SUPER_ADMIN or ADMIN with transactions.receipt.download. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.' })
   async receipt(@CurrentUser() user: AuthUserContext, @Param('id') id: string): Promise<StreamableFile> { const file = await this.transactions.receipt(user, id); return new StreamableFile(Buffer.from(file.content), { disposition: `attachment; filename="${file.filename}"`, type: file.contentType }); }
 
-  @Post(':id/refund')
-  @Permissions('transactions.refund')
-  @ApiOperation({ summary: 'Refund transaction', description: 'SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.' })
-  @ApiBody({ type: RefundAdminTransactionDto, examples: { full: { value: { refundType: 'FULL', refundAmount: 1281.25, reason: 'CUSTOMER_REQUEST', comment: 'Refund approved by support.', notifyUser: true } }, partial: { value: { refundType: 'PARTIAL', refundAmount: 250, reason: 'PRODUCT_NOT_RECEIVED', comment: 'Partial goodwill refund.', notifyUser: true } } } })
+  @Post(':id/action')
+  @ApiOperation({ summary: 'Run transaction action', description: "SUPER_ADMIN or ADMIN with action-specific transaction permission. REFUND requires 'transactions.refund' and keeps existing server-side refund validation. OPEN_DISPUTE requires 'transactions.openDispute' and keeps duplicate dispute prevention. NOTIFY_USER requires 'transactions.notifyUser' and dispatches through NotificationDispatchService. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed." })
+  @ApiBody({ type: AdminTransactionActionDto, examples: { refund: { value: { action: 'REFUND', refundType: 'FULL', refundAmount: 1281.25, reason: 'CUSTOMER_REQUEST', comment: 'Refund approved by support.', notifyUser: true } }, openDispute: { value: { action: 'OPEN_DISPUTE', reason: 'PRODUCT_NOT_RECEIVED', priority: 'HIGH', claimDetails: 'Dispute opened from transaction detail screen.', assignToId: 'admin_id' } }, notifyUser: { value: { action: 'NOTIFY_USER', channel: 'EMAIL', subject: 'Transaction update', message: 'Your transaction has been successfully processed.', includeReceipt: true } } } })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { transactionId: 'TRX-982341', refundId: 'RF-45678', refundAmount: 1281.25, currency: 'PKR', status: 'REFUNDED' }, message: 'Transaction refunded successfully.' } } })
-  refund(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: RefundAdminTransactionDto) { return this.transactions.refund(user, id, dto); }
-
-  @Post(':id/open-dispute')
-  @Permissions('transactions.openDispute')
-  @ApiOperation({ summary: 'Open dispute from transaction', description: 'SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.' })
-  @ApiBody({ type: OpenTransactionDisputeDto, examples: { open: { value: { reason: 'PRODUCT_NOT_RECEIVED', priority: 'HIGH', claimDetails: 'Dispute opened from transaction detail screen.', assignToId: 'admin_id' } } } })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { disputeId: 'dispute_id', caseId: 'DSP-1024', transactionId: 'TRX-982341', status: 'OPEN' }, message: 'Dispute opened successfully.' } } })
-  openDispute(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: OpenTransactionDisputeDto) { return this.transactions.openDispute(user, id, dto); }
-
-  @Post(':id/notify-user')
-  @Permissions('transactions.notifyUser')
-  @ApiOperation({ summary: 'Send transaction notification to user', description: 'SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.' })
-  @ApiBody({ type: NotifyTransactionUserDto, examples: { email: { value: { channel: 'EMAIL', subject: 'Transaction update', message: 'Your transaction has been successfully processed.', includeReceipt: true } } } })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { transactionId: 'TRX-982341', notificationSent: true, channel: 'EMAIL' }, message: 'Notification sent successfully.' } } })
-  notifyUser(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: NotifyTransactionUserDto) { return this.transactions.notifyUser(user, id, dto); }
+  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AdminTransactionActionDto) { return this.transactions.action(user, id, dto); }
 
   @Get(':id')
   @Permissions('transactions.read')

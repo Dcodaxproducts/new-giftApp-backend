@@ -6775,10 +6775,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with transactions.receipt.download"
       }
     },
-    "/api/v1/admin/transactions/{id}/refund": {
+    "/api/v1/admin/transactions/{id}/action": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.refund. SUPER_ADMIN or ADMIN with transactions.refund permission. Refund amount is server-validated. SUPER_ADMIN or ADMIN with transactions.refund. Refund amount is server-validated against remaining refundable amount and Refund Policy Settings. No frontend amount is trusted; no card/payment secrets are exposed.",
-        "operationId": "AdminTransactionsController_refund",
+        "description": "Access: SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser). SUPER_ADMIN or ADMIN with action-specific transaction permission. Refund amount is server-validated, duplicate open disputes are blocked, and notifications use NotificationDispatchService. SUPER_ADMIN or ADMIN with action-specific transaction permission. REFUND requires 'transactions.refund' and keeps existing server-side refund validation. OPEN_DISPUTE requires 'transactions.openDispute' and keeps duplicate dispute prevention. NOTIFY_USER requires 'transactions.notifyUser' and dispatches through NotificationDispatchService. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.",
+        "operationId": "AdminTransactionsController_action",
         "parameters": [
           {
             "name": "id",
@@ -6794,11 +6794,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefundAdminTransactionDto"
+                "$ref": "#/components/schemas/AdminTransactionActionDto"
               },
               "examples": {
-                "full": {
+                "refund": {
                   "value": {
+                    "action": "REFUND",
                     "refundType": "FULL",
                     "refundAmount": 1281.25,
                     "reason": "CUSTOMER_REQUEST",
@@ -6806,13 +6807,22 @@
                     "notifyUser": true
                   }
                 },
-                "partial": {
+                "openDispute": {
                   "value": {
-                    "refundType": "PARTIAL",
-                    "refundAmount": 250,
+                    "action": "OPEN_DISPUTE",
                     "reason": "PRODUCT_NOT_RECEIVED",
-                    "comment": "Partial goodwill refund.",
-                    "notifyUser": true
+                    "priority": "HIGH",
+                    "claimDetails": "Dispute opened from transaction detail screen.",
+                    "assignToId": "admin_id"
+                  }
+                },
+                "notifyUser": {
+                  "value": {
+                    "action": "NOTIFY_USER",
+                    "channel": "EMAIL",
+                    "subject": "Transaction update",
+                    "message": "Your transaction has been successfully processed.",
+                    "includeReceipt": true
                   }
                 }
               }
@@ -6846,147 +6856,12 @@
             "bearer": []
           }
         ],
-        "summary": "Refund transaction",
+        "summary": "Run transaction action",
         "tags": [
           "02 Admin - Transaction Monitoring"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.refund",
-        "x-access": "SUPER_ADMIN or ADMIN with transactions.refund"
-      }
-    },
-    "/api/v1/admin/transactions/{id}/open-dispute": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.openDispute. SUPER_ADMIN or ADMIN with transactions.openDispute permission. SUPER_ADMIN or ADMIN with transactions.openDispute. Creates an Admin Dispute Manager case linked to transaction/payment/order and blocks duplicate open disputes.",
-        "operationId": "AdminTransactionsController_openDispute",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OpenTransactionDisputeDto"
-              },
-              "examples": {
-                "open": {
-                  "value": {
-                    "reason": "PRODUCT_NOT_RECEIVED",
-                    "priority": "HIGH",
-                    "claimDetails": "Dispute opened from transaction detail screen.",
-                    "assignToId": "admin_id"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "disputeId": "dispute_id",
-                      "caseId": "DSP-1024",
-                      "transactionId": "TRX-982341",
-                      "status": "OPEN"
-                    },
-                    "message": "Dispute opened successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Open dispute from transaction",
-        "tags": [
-          "02 Admin - Transaction Monitoring"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.openDispute",
-        "x-access": "SUPER_ADMIN or ADMIN with transactions.openDispute"
-      }
-    },
-    "/api/v1/admin/transactions/{id}/notify-user": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.notifyUser. SUPER_ADMIN or ADMIN with transactions.notifyUser permission. SUPER_ADMIN or ADMIN with transactions.notifyUser. Creates in-app notification and/or email handoff audit; includeReceipt links receipt metadata without exposing payment secrets.",
-        "operationId": "AdminTransactionsController_notifyUser",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NotifyTransactionUserDto"
-              },
-              "examples": {
-                "email": {
-                  "value": {
-                    "channel": "EMAIL",
-                    "subject": "Transaction update",
-                    "message": "Your transaction has been successfully processed.",
-                    "includeReceipt": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "transactionId": "TRX-982341",
-                      "notificationSent": true,
-                      "channel": "EMAIL"
-                    },
-                    "message": "Notification sent successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Send transaction notification to user",
-        "tags": [
-          "02 Admin - Transaction Monitoring"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transactions.notifyUser",
-        "x-access": "SUPER_ADMIN or ADMIN with transactions.notifyUser"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser)",
+        "x-access": "SUPER_ADMIN or ADMIN with transaction action permission (REFUND=>transactions.refund, OPEN_DISPUTE=>transactions.openDispute, NOTIFY_USER=>transactions.notifyUser)"
       }
     },
     "/api/v1/admin/transactions/{id}": {
@@ -26247,9 +26122,18 @@
           "notifyProvider"
         ]
       },
-      "RefundAdminTransactionDto": {
+      "AdminTransactionActionDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "REFUND",
+              "OPEN_DISPUTE",
+              "NOTIFY_USER"
+            ],
+            "example": "REFUND"
+          },
           "refundType": {
             "type": "string",
             "enum": [
@@ -26271,40 +26155,13 @@
               "DUPLICATE_CHARGE",
               "FRAUD_REVIEW",
               "DISPUTE_RESOLUTION",
-              "OTHER"
-            ],
-            "example": "CUSTOMER_REQUEST"
-          },
-          "comment": {
-            "type": "string",
-            "example": "Refund approved by support."
-          },
-          "notifyUser": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "refundType",
-          "refundAmount",
-          "reason"
-        ]
-      },
-      "OpenTransactionDisputeDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "enum": [
-              "PRODUCT_NOT_RECEIVED",
+              "OTHER",
               "PRODUCT_DAMAGED",
               "WRONG_ITEM",
-              "DUPLICATE_CHARGE",
               "REFUND_NOT_RECEIVED",
-              "PROVIDER_ISSUE",
-              "OTHER"
+              "PROVIDER_ISSUE"
             ],
-            "example": "PRODUCT_NOT_RECEIVED"
+            "example": "CUSTOMER_REQUEST"
           },
           "priority": {
             "type": "string",
@@ -26323,17 +26180,7 @@
           "assignToId": {
             "type": "string",
             "example": "admin_id"
-          }
-        },
-        "required": [
-          "reason",
-          "priority",
-          "claimDetails"
-        ]
-      },
-      "NotifyTransactionUserDto": {
-        "type": "object",
-        "properties": {
+          },
           "channel": {
             "type": "string",
             "enum": [
@@ -26351,15 +26198,21 @@
             "type": "string",
             "example": "Your transaction has been successfully processed."
           },
+          "comment": {
+            "type": "string",
+            "example": "Refund approved by support."
+          },
+          "notifyUser": {
+            "type": "boolean",
+            "example": true
+          },
           "includeReceipt": {
             "type": "boolean",
             "example": true
           }
         },
         "required": [
-          "channel",
-          "subject",
-          "message"
+          "action"
         ]
       },
       "UpdateRefundPolicySettingsDto": {
