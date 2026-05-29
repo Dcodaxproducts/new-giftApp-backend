@@ -33,6 +33,10 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.customerSubscription.findUnique({ where: { stripeSubscriptionId } });
   }
 
+  findSubscriptionByIdempotencyKey(userId: string, idempotencyKey: string) {
+    return this.prisma.payment.findFirst({ where: { userId, idempotencyKey, customerSubscriptionId: { not: null } }, include: { customerSubscription: true } });
+  }
+
   createCustomerSubscription(data: Prisma.CustomerSubscriptionUncheckedCreateInput) {
     return this.prisma.customerSubscription.create({ data });
   }
@@ -101,7 +105,15 @@ export class CustomerSubscriptionsRepository {
   }
 
   createSubscriptionTransaction(params: { userId: string; customerSubscriptionId: string; providerPaymentIntentId: string | null; amount: Prisma.Decimal; currency: string; stripeInvoiceId: string }) {
-    return this.prisma.payment.create({ data: { userId: params.userId, customerSubscriptionId: params.customerSubscriptionId, provider: PaymentProvider.STRIPE, providerPaymentIntentId: params.providerPaymentIntentId, amount: params.amount, currency: params.currency, status: PaymentStatus.SUCCEEDED, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { stripeInvoiceId: params.stripeInvoiceId, subscriptionId: params.customerSubscriptionId } } });
+    return this.prisma.payment.upsert({ where: { providerPaymentIntentId: params.providerPaymentIntentId ?? params.stripeInvoiceId }, update: { status: PaymentStatus.SUCCEEDED, amount: params.amount, currency: params.currency }, create: { userId: params.userId, customerSubscriptionId: params.customerSubscriptionId, provider: PaymentProvider.STRIPE, providerPaymentIntentId: params.providerPaymentIntentId ?? params.stripeInvoiceId, amount: params.amount, currency: params.currency, status: PaymentStatus.SUCCEEDED, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { stripeInvoiceId: params.stripeInvoiceId, subscriptionId: params.customerSubscriptionId } } });
+  }
+
+  createInitialSubscriptionPayment(params: { userId: string; customerSubscriptionId: string; providerPaymentIntentId: string | null; amount: Prisma.Decimal; currency: string; idempotencyKey: string; metadataJson: Prisma.InputJsonObject }) {
+    return this.prisma.payment.create({ data: { userId: params.userId, customerSubscriptionId: params.customerSubscriptionId, provider: PaymentProvider.STRIPE, providerPaymentIntentId: params.providerPaymentIntentId, amount: params.amount, currency: params.currency, status: PaymentStatus.PROCESSING, paymentMethod: PaymentMethod.STRIPE_CARD, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson } });
+  }
+
+  createPaymentAuditLog(params: { paymentId?: string; userId?: string; action: string; status?: PaymentStatus; idempotencyKey?: string; metadataJson?: Prisma.InputJsonObject }) {
+    return this.prisma.paymentAuditLog.create({ data: { paymentId: params.paymentId, userId: params.userId, action: params.action, status: params.status, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson ?? {} } });
   }
 
   createCustomerNotification(data: Omit<Prisma.NotificationUncheckedCreateInput, 'recipientType'>) {

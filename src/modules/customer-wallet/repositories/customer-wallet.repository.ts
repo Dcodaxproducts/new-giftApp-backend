@@ -38,6 +38,10 @@ export class CustomerWalletRepository {
     ]);
   }
 
+  findPaymentByIdempotencyKey(userId: string, idempotencyKey: string) {
+    return this.prisma.payment.findFirst({ where: { userId, idempotencyKey } });
+  }
+
   createWalletLedgerEntry(data: Prisma.CustomerWalletLedgerUncheckedCreateInput) {
     return this.prisma.customerWalletLedger.create({ data });
   }
@@ -52,6 +56,10 @@ export class CustomerWalletRepository {
 
   markWalletTopUpPaymentProcessing(params: { paymentId: string; providerPaymentIntentId: string; metadataJson: Prisma.InputJsonObject }) {
     return this.prisma.payment.update({ where: { id: params.paymentId }, data: { providerPaymentIntentId: params.providerPaymentIntentId, status: PaymentStatus.PROCESSING, metadataJson: params.metadataJson } });
+  }
+
+  createPaymentAuditLog(params: { paymentId?: string; userId?: string; action: string; status?: PaymentStatus; idempotencyKey?: string; metadataJson?: Prisma.InputJsonObject }) {
+    return this.prisma.paymentAuditLog.create({ data: { paymentId: params.paymentId, userId: params.userId, action: params.action, status: params.status, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson ?? {} } });
   }
 
   findWalletTopUpLedger(params: { walletTopUpId: string; userId: string }) {

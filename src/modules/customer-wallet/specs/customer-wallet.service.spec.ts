@@ -25,7 +25,8 @@ function createService(overrides: Partial<{ wallet: unknown; ledgerRows: unknown
     customerPaymentMethod: { findFirst: jest.fn().mockResolvedValue(paymentMethod) },
     customerBankAccount: { findFirst: jest.fn().mockResolvedValue(bankAccount), findMany: jest.fn().mockResolvedValue([bankAccount]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn().mockResolvedValue({ ...bankAccount, isDefault: true }), create: jest.fn().mockResolvedValue(bankAccount), delete: jest.fn().mockResolvedValue(bankAccount) },
     customerWalletLedger: { findMany: jest.fn().mockResolvedValue(ledgerRows), count: jest.fn().mockResolvedValue(ledgerRows.length), create: jest.fn().mockResolvedValue(pendingLedger), findFirst: jest.fn(), update: jest.fn().mockResolvedValue({ ...pendingLedger, paymentId: payment.id }), updateMany: jest.fn() },
-    payment: { create: jest.fn().mockResolvedValue(payment), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payment, ...data })) },
+    payment: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(payment), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payment, ...data })) },
+    paymentAuditLog: { create: jest.fn() },
     notification: { create: jest.fn() },
     $transaction: jest.fn().mockImplementation((input: unknown) => Array.isArray(input) ? Promise.all(input as Promise<unknown>[]) : (input as (tx: unknown) => unknown)(prisma)),
   };
@@ -214,7 +215,7 @@ describe('CustomerWalletService read APIs', () => {
     const result = await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD, stripePaymentMethodId: 'pm_card_visa' });
     expect(result.message).toBe('Wallet top-up payment created successfully.');
     expect(result.data).toEqual(expect.objectContaining({ walletTopUpId: 'ledger_pending', paymentId: 'payment_1', clientSecret: 'secret_1', amount: 50, currency: 'USD', status: 'PAYMENT_PENDING' }));
-    expect(stripeCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 5000, currency: 'usd', payment_method: 'pm_card_visa', metadata: { paymentId: 'payment_1', walletTopUpId: 'ledger_pending', userId: 'customer_1' } }));
+    expect(stripeCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 5000, currency: 'usd', payment_method: 'pm_card_visa', metadata: expect.objectContaining({ paymentId: 'payment_1', walletTopUpId: 'ledger_pending', userId: 'customer_1' }) }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
     expect(prisma.payment.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payment_1' }, data: expect.objectContaining({ providerPaymentIntentId: 'pi_1', status: PaymentStatus.PROCESSING }) }));
   });
 

@@ -58,8 +58,12 @@ export class PaymentsRepository {
     return this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: true } });
   }
 
-  createPayment(params: { userId: string; provider: PaymentProvider; amount: Prisma.Decimal; currency: string; status: PaymentStatus; paymentMethod: string; metadataJson: Prisma.InputJsonObject; moneyGiftId?: string }) {
-    return this.prisma.payment.create({ data: { userId: params.userId, provider: params.provider, amount: params.amount, currency: params.currency, status: params.status, paymentMethod: params.paymentMethod as never, metadataJson: params.metadataJson, ...(params.moneyGiftId ? { moneyGiftId: params.moneyGiftId } : {}) } });
+  findPaymentByIdempotencyKey(userId: string, idempotencyKey: string) {
+    return this.prisma.payment.findFirst({ where: { userId, idempotencyKey } });
+  }
+
+  createPayment(params: { userId: string; provider: PaymentProvider; amount: Prisma.Decimal; currency: string; status: PaymentStatus; paymentMethod: string; metadataJson: Prisma.InputJsonObject; idempotencyKey?: string; moneyGiftId?: string; customerSubscriptionId?: string; providerPaymentIntentId?: string | null }) {
+    return this.prisma.payment.create({ data: { userId: params.userId, provider: params.provider, amount: params.amount, currency: params.currency, status: params.status, paymentMethod: params.paymentMethod as never, metadataJson: params.metadataJson, idempotencyKey: params.idempotencyKey, providerPaymentIntentId: params.providerPaymentIntentId, ...(params.moneyGiftId ? { moneyGiftId: params.moneyGiftId } : {}), ...(params.customerSubscriptionId ? { customerSubscriptionId: params.customerSubscriptionId } : {}) } });
   }
 
   updatePaymentIntent(params: { id: string; providerPaymentIntentId: string; status: PaymentStatus; metadataJson: Prisma.InputJsonObject }) {
@@ -72,6 +76,10 @@ export class PaymentsRepository {
 
   updatePaymentConfirmation(params: { id: string; status: PaymentStatus; failureReason: string | null; metadataJson: Prisma.InputJsonObject }) {
     return this.prisma.payment.update({ where: { id: params.id }, data: { status: params.status, failureReason: params.failureReason, metadataJson: params.metadataJson } });
+  }
+
+  createPaymentAuditLog(params: { paymentId?: string; userId?: string; action: string; status?: PaymentStatus; idempotencyKey?: string; metadataJson?: Prisma.InputJsonObject }) {
+    return this.prisma.paymentAuditLog.create({ data: { paymentId: params.paymentId, userId: params.userId, action: params.action, status: params.status, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson ?? {} } });
   }
 
   createNotification(recipientId: string, title: string, message: string, type: string, metadataJson: Prisma.InputJsonObject) {

@@ -31,13 +31,17 @@ export class CustomerWalletService {
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) throw new BadRequestException('Wallet top-up currently supports STRIPE_CARD only');
     const currency = this.currency(dto.currency);
     if (currency !== this.currency()) throw new BadRequestException('Currency does not match configured payment currency');
+    const idempotencyKey = this.idempotencyKey('wallet-top-up', user.uid, dto.idempotencyKey ?? `${dto.amount}:${currency}`);
+    const existing = await this.repository.findPaymentByIdempotencyKey(user.uid, idempotencyKey);
+    if (existing) return { data: { walletTopUpId: this.metadata(existing.metadataJson).walletTopUpId, paymentId: existing.id, amount: Number(existing.amount), currency: existing.currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
     const wallet = await this.getOrCreateWallet(user.uid);
     const amount = this.money(dto.amount);
     const ledger = await this.repository.createWalletLedgerEntry({ userId: user.uid, walletId: wallet.id, type: CustomerWalletLedgerType.TOP_UP, direction: CustomerWalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: CustomerWalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
-    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripePaymentMethodId: dto.stripePaymentMethodId } });
+    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripePaymentMethodId: dto.stripePaymentMethodId, idempotencyKey }, idempotencyKey });
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
-    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), payment_method: dto.stripePaymentMethodId, automatic_payment_methods: dto.stripePaymentMethodId ? undefined : { enabled: true }, confirm: false, metadata: { paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid } }) as StripeIntentCreateResult;
-    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, stripePaymentMethodId: dto.stripePaymentMethodId } });
+    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), payment_method: dto.stripePaymentMethodId, automatic_payment_methods: dto.stripePaymentMethodId ? undefined : { enabled: true }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
+    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, stripePaymentMethodId: dto.stripePaymentMethodId, idempotencyKey } });
+    await this.repository.createPaymentAuditLog({ paymentId: updatedPayment.id, userId: user.uid, action: 'WALLET_TOP_UP_INTENT_CREATED', status: updatedPayment.status, idempotencyKey, metadataJson: { walletTopUpId: ledger.id } });
     return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, clientSecret: intent.client_secret, amount, currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 
@@ -92,6 +96,8 @@ export class CustomerWalletService {
   private metadata(value: Prisma.JsonValue): { walletTopUpId?: string } { if (!value || typeof value !== 'object' || Array.isArray(value)) return {}; const source = value as Record<string, unknown>; return { walletTopUpId: typeof source.walletTopUpId === 'string' ? source.walletTopUpId : undefined }; }
   private last4(value: string): string { const digits = value.replace(/\D/g, ''); if (digits.length < 4) throw new BadRequestException('Bank account number must include at least 4 digits'); return digits.slice(-4); }
   private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
+  private idempotencyKey(scope: string, userId: string, raw: string): string { return `${scope}:${userId}:${raw}`.replace(/[^a-zA-Z0-9:_-]/g, '_').slice(0, 120); }
+  private sanitizeMetadata(input: Record<string, unknown>): Record<string, string> { return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined && value !== null).map(([key, value]) => [key, String(value).replace(/[\r\n\t]/g, ' ').slice(0, 500)])); }
   private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'USD').toUpperCase(); }
   private toSmallestUnit(amount: number, currency: string): number { return this.zeroDecimalCurrencies().has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100); }
   private zeroDecimalCurrencies(): Set<string> { return new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'XAF', 'XOF', 'XPF']); }

@@ -7,8 +7,9 @@ import { ProviderOrdersService } from '../../provider-orders/services/provider-o
 describe('real-time notification integration paths', () => {
   it('payment success notification emits in real time', async () => {
     const repository = {
-      findOwnedPayment: jest.fn().mockResolvedValue({ id: 'payment_1', userId: 'user_1', providerPaymentIntentId: 'pi_1', metadataJson: {}, amount: 10 }),
-      updatePaymentConfirmation: jest.fn().mockResolvedValue({ id: 'payment_1', userId: 'user_1', status: PaymentStatus.SUCCEEDED, amount: 10, metadataJson: {} }),
+      findOwnedPayment: jest.fn().mockResolvedValue({ id: 'payment_1', userId: 'user_1', providerPaymentIntentId: 'pi_1', metadataJson: {}, amount: 10, currency: 'PKR', status: PaymentStatus.PROCESSING }),
+      updatePaymentConfirmation: jest.fn().mockResolvedValue({ id: 'payment_1', userId: 'user_1', status: PaymentStatus.SUCCEEDED, amount: 10, currency: 'PKR', metadataJson: {} }),
+      createPaymentAuditLog: jest.fn(),
     };
     const dispatch = { createAndEmit: jest.fn().mockResolvedValue({ id: 'notif_1' }) };
     const service = new PaymentsService({ awardReferralForFirstEligiblePurchase: jest.fn() } as never, { creditWalletTopUp: jest.fn(), failWalletTopUp: jest.fn() } as never, { handleStripeSubscriptionEvent: jest.fn() } as never, repository as never, {} as never, {} as never, dispatch as never);

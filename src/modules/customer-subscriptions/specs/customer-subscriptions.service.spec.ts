@@ -37,7 +37,8 @@ function createService(overrides: Partial<{ plans: unknown[]; current: unknown; 
     },
     coupon: { findFirst: jest.fn().mockResolvedValue(Object.prototype.hasOwnProperty.call(overrides, 'coupon') ? overrides.coupon : coupon) },
     user: { findUniqueOrThrow: jest.fn().mockResolvedValue({ id: 'customer_1', email: 'customer@example.com', firstName: 'Jane', lastName: 'Doe' }) },
-    payment: { create: jest.fn() },
+    payment: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ id: 'payment_1', status: 'PROCESSING' }), upsert: jest.fn() },
+    paymentAuditLog: { create: jest.fn() },
     notification: { create: jest.fn() },
     $transaction: jest.fn().mockImplementation((items: Promise<unknown>[]) => Promise.all(items)),
   };
@@ -222,7 +223,7 @@ describe('CustomerSubscriptionsService read APIs', () => {
     const result = await service.checkout({ uid: 'customer_1', role: 'REGISTERED_USER' }, { planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY, paymentMethod: PaymentMethod.STRIPE_CARD });
     expect(result.message).toBe('Subscription checkout created successfully.');
     expect(result.data).toEqual(expect.objectContaining({ amount: 1000, currency: 'USD', status: CustomerSubscriptionStatus.INCOMPLETE }));
-    expect(stripe.subscriptionsCreate).toHaveBeenCalledWith(expect.objectContaining({ customer: 'cus_new', items: [{ price: 'price_monthly' }], payment_behavior: 'default_incomplete', metadata: { userId: 'customer_1', planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY } }));
+    expect(stripe.subscriptionsCreate).toHaveBeenCalledWith(expect.objectContaining({ customer: 'cus_new', items: [{ price: 'price_monthly' }], payment_behavior: 'default_incomplete', metadata: expect.objectContaining({ userId: 'customer_1', planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY }) }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
     expect(prisma.customerSubscription.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'customer_1', planId: 'plan_premium', stripePriceId: 'price_monthly' }) });
   });
 
@@ -233,7 +234,7 @@ describe('CustomerSubscriptionsService read APIs', () => {
   });
 
   it('confirm activates own subscription after server verification', async () => {
-    const { service, prisma } = createService();
+    const { service, prisma } = createService({ current: { ...activeSubscription, status: CustomerSubscriptionStatus.INCOMPLETE, isPremium: false } });
     mockStripe(service);
     const result = await service.confirm({ uid: 'customer_1', role: 'REGISTERED_USER' }, { customerSubscriptionId: 'sub_1', stripeSubscriptionId: 'stripe_sub_1' });
     expect(result.message).toBe('Premium subscription activated successfully.');

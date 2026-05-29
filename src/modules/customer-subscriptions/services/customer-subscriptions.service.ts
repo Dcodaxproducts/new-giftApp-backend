@@ -25,6 +25,9 @@ export class CustomerSubscriptionsService {
 
   async checkout(user: AuthUserContext, dto: SubscriptionCheckoutDto) {
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) throw new BadRequestException('Premium subscriptions require STRIPE_CARD');
+    const idempotencyKey = this.idempotencyKey('subscription-checkout', user.uid, dto.idempotencyKey ?? `${dto.planId}:${dto.billingCycle}:${dto.couponCode ?? ''}`);
+    const duplicate = await this.repository.findSubscriptionByIdempotencyKey(user.uid, idempotencyKey);
+    if (duplicate?.customerSubscription) return { data: { customerSubscriptionId: duplicate.customerSubscription.id, stripeSubscriptionId: duplicate.customerSubscription.stripeSubscriptionId, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount: this.toSmallestUnit(Number(duplicate.amount), duplicate.currency), currency: duplicate.currency, billingCycle: duplicate.customerSubscription.billingCycle, status: duplicate.customerSubscription.status }, message: 'Subscription checkout created successfully.' };
     const existing = await this.activeSubscription(user.uid);
     if (existing) throw new BadRequestException('You already have an active premium subscription');
     const plan = await this.publicPlan(dto.planId);
@@ -32,20 +35,24 @@ export class CustomerSubscriptionsService {
     const coupon = dto.couponCode ? await this.validCoupon(dto.planId, dto.couponCode) : null;
     const price = await this.ensureStripePrice(plan, dto.billingCycle);
     const customerId = await this.ensureStripeCustomer(user.uid);
-    const subscription = await this.stripe().subscriptions.create({ customer: customerId, items: [{ price }], default_payment_method: dto.stripePaymentMethodId, payment_behavior: 'default_incomplete', expand: ['latest_invoice.payment_intent'], metadata: { userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle } }) as StripeSubscriptionLike;
+    const subscription = await this.stripe().subscriptions.create({ customer: customerId, items: [{ price }], default_payment_method: dto.stripePaymentMethodId, payment_behavior: 'default_incomplete', expand: ['latest_invoice.payment_intent'], metadata: this.sanitizeMetadata({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, idempotencyKey }) }, { idempotencyKey }) as StripeSubscriptionLike;
     const paymentIntent = typeof subscription.latest_invoice === 'object' ? subscription.latest_invoice?.payment_intent : null;
     const clientSecret = typeof paymentIntent === 'object' ? paymentIntent?.client_secret ?? null : null;
     const amount = this.toSmallestUnit(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice, plan.currency);
     const saved = await this.repository.createCustomerSubscription({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, status: CustomerSubscriptionStatus.INCOMPLETE, stripeCustomerId: customerId, stripeSubscriptionId: subscription.id, stripePriceId: price, couponId: coupon?.id });
+    const payment = await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: typeof paymentIntent === 'object' ? paymentIntent?.id ?? null : null, amount: new Prisma.Decimal(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
+    await this.repository.createPaymentAuditLog({ paymentId: payment.id, userId: user.uid, action: 'SUBSCRIPTION_CHECKOUT_CREATED', status: payment.status, idempotencyKey, metadataJson: { subscriptionId: saved.id } });
     return { data: { customerSubscriptionId: saved.id, stripeSubscriptionId: subscription.id, clientSecret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount, currency: plan.currency, billingCycle: dto.billingCycle, status: saved.status }, message: 'Subscription checkout created successfully.' };
   }
 
   async confirm(user: AuthUserContext, dto: ConfirmSubscriptionDto) {
     const local = await this.ownedSubscription(user.uid, dto.customerSubscriptionId);
     if (local.stripeSubscriptionId !== dto.stripeSubscriptionId) throw new BadRequestException('Stripe subscription does not match local subscription');
+    if (this.isPremiumStatus(local.status)) return { data: { id: local.id, status: local.status, isPremium: local.isPremium, currentPeriodEnd: local.currentPeriodEnd }, message: 'Premium subscription activated successfully.' };
     const stripeSub = await this.stripe().subscriptions.retrieve(dto.stripeSubscriptionId) as StripeSubscriptionLike;
     const status = this.statusFromStripe(stripeSub.status);
     const updated = await this.repository.updateCustomerSubscriptionStatus(local.id, { status, isPremium: this.isPremiumStatus(status), currentPeriodStart: this.fromUnix(stripeSub.current_period_start), currentPeriodEnd: this.fromUnix(stripeSub.current_period_end), cancelAtPeriodEnd: stripeSub.cancel_at_period_end ?? false });
+    await this.repository.createPaymentAuditLog({ userId: user.uid, action: 'SUBSCRIPTION_CONFIRMED', idempotencyKey: this.idempotencyKey('subscription-confirm', user.uid, dto.idempotencyKey ?? dto.customerSubscriptionId), metadataJson: { subscriptionId: updated.id, stripeSubscriptionId: dto.stripeSubscriptionId, stripeStatus: stripeSub.status } });
     if (this.isPremiumStatus(status)) await this.notify(user.uid, 'Premium activated', 'Your premium subscription is now active.', 'SUBSCRIPTION_ACTIVATED', { subscriptionId: updated.id });
     return { data: { id: updated.id, status: updated.status, isPremium: updated.isPremium, currentPeriodEnd: updated.currentPeriodEnd }, message: 'Premium subscription activated successfully.' };
   }
@@ -91,6 +98,8 @@ export class CustomerSubscriptionsService {
   private actionReason(dto: CustomerSubscriptionActionDto): string {
     return dto.comment?.trim() || dto.reason?.trim() || '';
   }
+  private idempotencyKey(scope: string, userId: string, raw: string): string { return `${scope}:${userId}:${raw}`.replace(/[^a-zA-Z0-9:_-]/g, '_').slice(0, 120); }
+  private sanitizeMetadata(input: Record<string, unknown>): Record<string, string> { return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined && value !== null).map(([key, value]) => [key, String(value).replace(/[\r\n\t]/g, ' ').slice(0, 500)])); }
   private async currentPayload(userId: string) { const current = await this.repository.findCurrentSubscriptionForUser(userId); if (!current || !this.isPremiumStatus(current.status)) return { status: 'FREE', isPremium: false, plan: null, features: [] }; return { status: current.status, isPremium: current.isPremium, plan: { id: current.plan.id, name: current.plan.name, billingCycle: current.billingCycle, price: this.planPrice(current.plan, current.billingCycle), currency: current.plan.currency }, features: this.features(current.plan), currentPeriodStart: current.currentPeriodStart, currentPeriodEnd: current.currentPeriodEnd, cancelAtPeriodEnd: current.cancelAtPeriodEnd, stripeSubscriptionId: current.stripeSubscriptionId }; }
   private async publicPlan(id: string): Promise<SubscriptionPlan> { const plan = await this.repository.findPlanById(id); if (!plan) throw new NotFoundException('Subscription plan not found'); return plan; }
   private async activeSubscription(userId: string) { return this.repository.findActiveSubscriptionForUser(userId); }

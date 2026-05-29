@@ -1022,6 +1022,7 @@ model User {
   notificationPreference              NotificationPreference?
   authSessions                        AuthSession[]
   payments                            Payment[]
+  paymentAuditLogs                    PaymentAuditLog[]
   moneyGifts                          MoneyGift[]
   customerRecurringPayments           CustomerRecurringPayment[]
   customerRecurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
@@ -1484,6 +1485,7 @@ model Payment {
   paymentMethod           PaymentMethod   @map("payment_method")
   failureReason           String?         @map("failure_reason")
   metadataJson            Json            @default("{}") @map("metadata_json")
+  idempotencyKey          String?         @unique @map("idempotency_key")
   createdAt               DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt               DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -1496,9 +1498,47 @@ model Payment {
   disputeCases                DisputeCase[]
   providerDisputes            ProviderDisputeCase[]
 
+  auditLogs                   PaymentAuditLog[]
+
   @@index([userId, status])
   @@index([status, createdAt])
+  @@index([userId, idempotencyKey])
   @@map("payments")
+}
+
+model StripeWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique @map("event_id")
+  eventType   String   @map("event_type")
+  status      String   @default("PROCESSING")
+  processedAt DateTime? @map("processed_at") @db.Timestamptz
+  errorMessage String? @map("error_message")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([eventType, createdAt])
+  @@index([status, createdAt])
+  @@map("stripe_webhook_events")
+}
+
+model PaymentAuditLog {
+  id           String   @id @default(cuid())
+  paymentId    String?  @map("payment_id")
+  userId       String?  @map("user_id")
+  action       String
+  status       PaymentStatus?
+  idempotencyKey String? @map("idempotency_key")
+  metadataJson Json     @default("{}") @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  payment Payment? @relation(fields: [paymentId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
+
+  @@index([paymentId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([idempotencyKey])
+  @@map("payment_audit_logs")
 }
 
 model CustomerSubscription {

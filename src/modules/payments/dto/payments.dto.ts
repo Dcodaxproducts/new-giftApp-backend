@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Min } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, MaxLength, Min } from 'class-validator';
 
 export enum OrderHistoryType {
   ALL = 'ALL',
@@ -12,11 +12,13 @@ export enum OrderHistoryType {
 export class CreatePaymentIntentDto {
   @ApiProperty({ example: 'cmf0cartactive001' }) @IsString() cartId!: string;
   @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.STRIPE_CARD }) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
+  @ApiPropertyOptional({ example: 'cart_customer_1_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
 }
 
 export class ConfirmPaymentDto {
   @ApiProperty({ example: 'cmf0payment001' }) @IsString() paymentId!: string;
   @ApiProperty({ example: 'pi_3Pxxxxxxxxxxxxxxxx' }) @IsString() stripePaymentIntentId!: string;
+  @ApiPropertyOptional({ example: 'confirm_payment_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
 }
 
 export class ListOrdersDto {
@@ -37,4 +39,5 @@ export class CreateMoneyGiftDto {
   @ApiProperty({ example: '2026-12-24T00:00:00.000Z' }) @IsDateString() deliveryDate!: string;
   @ApiPropertyOptional({ example: false }) @IsOptional() repeatAnnually?: boolean;
   @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.STRIPE_CARD }) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
+  @ApiPropertyOptional({ example: 'money_gift_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
 }
