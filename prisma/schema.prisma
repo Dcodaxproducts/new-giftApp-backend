@@ -1085,6 +1085,7 @@ model User {
   providerPayoutMethods               ProviderPayoutMethod[]
   providerEarningsLedger              ProviderEarningsLedger[]
   providerPayouts                     ProviderPayout[]
+  providerPayoutAuditLogs             ProviderPayoutAuditLog[]
   updatedPayoutSettings              AdminPayoutSettings[]              @relation("AdminPayoutSettingsUpdater")
   updatedSystemSettings              SystemSettings[]                   @relation("SystemSettingsUpdater")
   updatedGuestAccessSettings         GuestAccessSettings[]              @relation("GuestAccessSettingsUpdater")
@@ -3094,6 +3095,7 @@ model ProviderPayoutMethod {
   payerId            String                           @map("payer_id")
   externalProvider   ProviderPayoutExternalProvider   @default(MANUAL) @map("external_provider")
   externalAccountId  String?                          @map("external_account_id")
+  fingerprint        String?                          @map("fingerprint")
   verificationStatus ProviderPayoutVerificationStatus @default(PENDING) @map("verification_status")
   isDefault          Boolean                          @default(false) @map("is_default")
   isActive           Boolean                          @default(true) @map("is_active")
@@ -3106,6 +3108,7 @@ model ProviderPayoutMethod {
 
   @@index([providerId, deletedAt])
   @@index([providerId, isDefault])
+  @@unique([providerId, fingerprint])
   @@index([providerId, verificationStatus])
   @@map("provider_payout_methods")
 }
@@ -3157,10 +3160,30 @@ model ProviderPayout {
   provider     User                   @relation(fields: [providerId], references: [id])
   payoutMethod ProviderPayoutMethod   @relation(fields: [payoutMethodId], references: [id])
   ledger       ProviderEarningsLedger[]
+  auditLogs    ProviderPayoutAuditLog[]
 
   @@index([providerId, status, createdAt])
   @@index([payoutMethodId])
   @@map("provider_payouts")
+}
+
+model ProviderPayoutAuditLog {
+  id           String                @id @default(cuid())
+  payoutId     String?               @map("payout_id")
+  providerId   String                @map("provider_id")
+  actorId      String?               @map("actor_id")
+  action       String
+  status       ProviderPayoutStatus?
+  metadataJson Json                  @default("{}") @map("metadata_json")
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  payout   ProviderPayout? @relation(fields: [payoutId], references: [id])
+  provider User            @relation(fields: [providerId], references: [id])
+
+  @@index([payoutId, createdAt])
+  @@index([providerId, createdAt])
+  @@index([action, createdAt])
+  @@map("provider_payout_audit_logs")
 }
 
 model ProviderDisputeResolution {

@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { createHmac } from 'crypto';
 import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderPayoutExternalProvider, ProviderPayoutMethod, ProviderPayoutMethodType, ProviderPayoutVerificationStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { ProviderPayoutMethodsRepository } from '../repositories/provider-payout-methods.repository';
@@ -19,6 +20,9 @@ export class ProviderPayoutMethodsService {
     const sourceNumber = dto.accountNumber ?? dto.iban;
     if (!sourceNumber) throw new BadRequestException('accountNumber or iban is required');
     const last4 = this.last4(sourceNumber);
+    const fingerprint = this.fingerprint(provider.id, sourceNumber, dto.routingNumber, dto.iban);
+    const duplicate = await this.repository.findByFingerprint(provider.id, fingerprint);
+    if (duplicate) throw new ConflictException('Duplicate payout method');
     const maskedAccount = `${this.accountTypeLabel(dto.accountType)} **** ${last4}`;
     const method = await this.repository.createBankAccount({
         providerId: provider.id,
@@ -31,6 +35,7 @@ export class ProviderPayoutMethodsService {
         maskedAccount,
         last4,
         payerId: this.payerId(provider, last4),
+        fingerprint,
         externalProvider: ProviderPayoutExternalProvider.MANUAL,
         verificationStatus: ProviderPayoutVerificationStatus.PENDING,
         isDefault: false,
@@ -64,7 +69,7 @@ export class ProviderPayoutMethodsService {
   async delete(user: AuthUserContext, id: string) {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
-    await this.assertNoPendingPayoutUsage(user.uid);
+    await this.assertNoPendingPayoutUsage(user.uid, method.id);
     await this.repository.deleteAndPromoteNextDefault(user.uid, method.id, method.isDefault);
     return { data: null, message: 'Provider payout method deleted successfully.' };
   }
@@ -89,8 +94,8 @@ export class ProviderPayoutMethodsService {
     return method;
   }
 
-  private async assertNoPendingPayoutUsage(providerId: string): Promise<void> {
-    const pending = await this.repository.findPendingPayoutUsage(providerId);
+  private async assertNoPendingPayoutUsage(providerId: string, payoutMethodId: string): Promise<void> {
+    const pending = await this.repository.findPendingPayoutUsage(providerId, payoutMethodId);
     if (pending) throw new ConflictException('Cannot delete payout method while a provider payout is pending');
   }
 
@@ -115,6 +120,8 @@ export class ProviderPayoutMethodsService {
   private accountTypeLabel(accountType: string): string {
     return accountType.toLowerCase().replace(/_/g, ' ').replace(/^\w/, (letter) => letter.toUpperCase());
   }
+
+  private fingerprint(providerId: string, accountNumber?: string | null, routingNumber?: string | null, iban?: string | null): string { const secret = process.env.PAYOUT_METHOD_FINGERPRINT_SECRET ?? process.env.JWT_SECRET ?? 'local-payout-fingerprint-secret'; const normalized = [providerId, accountNumber, routingNumber, iban].filter(Boolean).join(':').replace(/\s+/g, '').toUpperCase(); return createHmac('sha256', secret).update(normalized).digest('hex'); }
 
   private payerId(provider: { id: string; firstName: string; lastName: string; providerBusinessName: string | null }, last4: string): string {
     const source = provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`;

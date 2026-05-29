@@ -41,7 +41,15 @@ export class ProviderEarningsPayoutsRepository {
   }
 
   findLedgerForAvailableBalance(providerId: string) {
-    return this.prisma.providerEarningsLedger.findMany({ where: { providerId, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING] } } });
+    return this.prisma.providerEarningsLedger.findMany({ where: { providerId, status: ProviderEarningsLedgerStatus.AVAILABLE } });
+  }
+
+  findAvailableLedgerEntries(providerId: string) {
+    return this.prisma.providerEarningsLedger.findMany({ where: { providerId, status: ProviderEarningsLedgerStatus.AVAILABLE, direction: 'CREDIT' }, orderBy: { createdAt: 'asc' }, take: 100 });
+  }
+
+  findActivePayoutForMethod(providerId: string, payoutMethodId: string) {
+    return this.prisma.providerPayout.findFirst({ where: { providerId, payoutMethodId, status: { in: [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING, ProviderPayoutStatus.ON_HOLD] } } });
   }
 
   findEarningsChartRows(where: Prisma.ProviderEarningsLedgerWhereInput) {
@@ -104,10 +112,11 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.providerPayout.findFirst({ where: { providerId, idempotencyKey } });
   }
 
-  createPayoutRequest(params: { payoutData: Prisma.ProviderPayoutUncheckedCreateInput; ledgerData: Prisma.ProviderEarningsLedgerUncheckedCreateInput; notificationData: Prisma.NotificationUncheckedCreateInput }) {
+  createPayoutRequest(params: { payoutData: Prisma.ProviderPayoutUncheckedCreateInput; ledgerEntryIds: string[]; notificationData: Prisma.NotificationUncheckedCreateInput }) {
     return this.prisma.$transaction(async (tx) => {
       const created = await this.createPayout(tx, params.payoutData);
-      await this.markLedgerEntriesPayoutPending(tx, { ...params.ledgerData, payoutId: created.id });
+      await tx.providerEarningsLedger.updateMany({ where: { id: { in: params.ledgerEntryIds }, providerId: params.payoutData.providerId, status: ProviderEarningsLedgerStatus.AVAILABLE }, data: { status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, payoutId: created.id, metadataJson: { payoutId: created.id } } });
+      await tx.providerPayoutAuditLog.create({ data: { payoutId: created.id, providerId: params.payoutData.providerId, action: 'PROVIDER_PAYOUT_REQUESTED', status: created.status, metadataJson: { ledgerEntryIds: params.ledgerEntryIds } } });
       await this.createPayoutNotification(tx, { ...params.notificationData, metadataJson: { payoutId: created.id } });
       return created;
     });
@@ -117,6 +126,7 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.$transaction(async (tx) => {
       await this.releaseLedgerEntriesFromPayout(tx, params.providerId, params.payoutId, params.cancelReason);
       const item = await this.cancelPayout(tx, params.payoutId, params.payoutData);
+      await tx.providerPayoutAuditLog.create({ data: { payoutId: params.payoutId, providerId: params.providerId, action: 'PROVIDER_PAYOUT_CANCELLED', status: item.status, metadataJson: { reason: params.cancelReason } } });
       await this.createPayoutNotification(tx, params.notificationData);
       return item;
     });

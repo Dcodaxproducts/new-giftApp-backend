@@ -36,10 +36,12 @@ export class AdminProviderPayoutsRepository {
     return this.prisma.commissionTier.findMany({ where: { deletedAt: null, isActive: true }, orderBy: { orderVolumeThreshold: 'asc' } });
   }
 
-  transitionPayout(params: { payoutId: string; providerId: string; status: ProviderPayoutStatus; failureReason?: string; releaseLedger: boolean; notification?: { title: string; message: string; type: string; metadataJson: Prisma.InputJsonValue } }) {
+  transitionPayout(params: { payoutId: string; providerId: string; status: ProviderPayoutStatus; failureReason?: string; releaseLedger: boolean; settleLedger?: boolean; actorId?: string; action?: string; notification?: { title: string; message: string; type: string; metadataJson: Prisma.InputJsonValue } }) {
     return this.prisma.$transaction(async (tx) => {
-      if (params.releaseLedger) await tx.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { payoutId: params.payoutId, releaseReason: params.failureReason ?? params.status } } });
+      if (params.releaseLedger) await tx.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, payoutId: null, metadataJson: { payoutId: params.payoutId, releaseReason: params.failureReason ?? params.status } } });
+      if (params.settleLedger) await tx.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.PAID, metadataJson: { payoutId: params.payoutId, settledAt: new Date().toISOString() } } });
       const payout = await tx.providerPayout.update({ where: { id: params.payoutId }, data: { status: params.status, failureReason: params.failureReason, ...(params.status === ProviderPayoutStatus.COMPLETED ? { completedAt: new Date() } : {}) }, include: ADMIN_PROVIDER_PAYOUT_INCLUDE });
+      await tx.providerPayoutAuditLog.create({ data: { payoutId: params.payoutId, providerId: params.providerId, actorId: params.actorId, action: params.action ?? `PROVIDER_PAYOUT_${params.status}`, status: params.status, metadataJson: { failureReason: params.failureReason ?? null } } });
       if (params.notification) await this.notificationDispatch.createAndEmit({ recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: params.notification.title, message: params.notification.message, type: params.notification.type, metadataJson: params.notification.metadataJson })
       return payout;
     });

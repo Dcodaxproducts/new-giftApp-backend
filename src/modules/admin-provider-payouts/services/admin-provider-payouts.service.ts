@@ -98,7 +98,7 @@ export class AdminProviderPayoutsService {
     const payout = await this.getPayout(id);
     if (payout.status === ProviderPayoutStatus.PROCESSING || payout.status === ProviderPayoutStatus.COMPLETED) return { data: { id: payout.id, status: payout.status, idempotent: true }, message: 'Payout already approved.' };
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.ON_HOLD], 'Only PENDING or ON_HOLD payout can be approved');
-    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, notification: dto.notifyProvider ? this.notification('Provider payout approved', 'Your payout was approved and is processing.', 'PROVIDER_PAYOUT_APPROVED', payout.id, dto.comment) : undefined });
+    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, actorId: user.uid, action: 'PROVIDER_PAYOUT_APPROVED', notification: dto.notifyProvider ? this.notification('Provider payout approved', 'Your payout was approved and is processing.', 'PROVIDER_PAYOUT_APPROVED', payout.id, dto.comment) : undefined });
     await this.writeAudit(user, payout, updated, 'PROVIDER_PAYOUT_APPROVED', dto.comment);
     return { data: { id: updated.id, status: updated.status }, message: 'Payout approved successfully.' };
   }
@@ -106,7 +106,7 @@ export class AdminProviderPayoutsService {
   async hold(user: AuthUserContext, id: string, dto: HoldProviderPayoutDto | { reason: string; comment?: string; notifyProvider: boolean }) {
     const payout = await this.getPayout(id);
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING], 'Only PENDING payout can be placed on hold');
-    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.ON_HOLD, failureReason: dto.reason, releaseLedger: false, notification: dto.notifyProvider ? this.notification('Provider payout on hold', dto.comment ?? 'Your payout is on hold pending review.', 'PROVIDER_PAYOUT_ON_HOLD', payout.id, dto.reason) : undefined });
+    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.ON_HOLD, failureReason: dto.reason, releaseLedger: false, actorId: user.uid, action: 'PROVIDER_PAYOUT_HELD', notification: dto.notifyProvider ? this.notification('Provider payout on hold', dto.comment ?? 'Your payout is on hold pending review.', 'PROVIDER_PAYOUT_ON_HOLD', payout.id, dto.reason) : undefined });
     await this.writeAudit(user, payout, updated, 'PROVIDER_PAYOUT_HELD', dto.comment ?? dto.reason);
     return { data: { id: updated.id, status: updated.status }, message: 'Payout held successfully.' };
   }
@@ -114,7 +114,7 @@ export class AdminProviderPayoutsService {
   async reject(user: AuthUserContext, id: string, dto: RejectProviderPayoutDto | { reason: string; comment?: string; notifyProvider: boolean }) {
     const payout = await this.getPayout(id);
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.ON_HOLD], 'Only PENDING or ON_HOLD payout can be rejected');
-    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.REJECTED, failureReason: dto.reason, releaseLedger: true, notification: dto.notifyProvider ? this.notification('Provider payout rejected', dto.comment ?? 'Your payout was rejected.', 'PROVIDER_PAYOUT_REJECTED', payout.id, dto.reason) : undefined });
+    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.REJECTED, failureReason: dto.reason, releaseLedger: true, actorId: user.uid, action: 'PROVIDER_PAYOUT_REJECTED', notification: dto.notifyProvider ? this.notification('Provider payout rejected', dto.comment ?? 'Your payout was rejected.', 'PROVIDER_PAYOUT_REJECTED', payout.id, dto.reason) : undefined });
     await this.writeAudit(user, payout, updated, 'PROVIDER_PAYOUT_REJECTED', dto.comment ?? dto.reason);
     return { data: { id: updated.id, status: updated.status, ledgerReleased: true }, message: 'Payout rejected successfully.' };
   }

@@ -67,10 +67,13 @@ export class ProviderEarningsPayoutsService {
     const duplicate = await this.repository.findExistingPayoutByIdempotencyKey(user.uid, dto.idempotencyKey);
     if (duplicate) throw new ConflictException('Duplicate payout request');
     const preview = await this.preview(user.uid, dto.amount, dto.payoutMethodId);
+    const activeForMethod = await this.repository.findActivePayoutForMethod(user.uid, preview.destination.id);
+    if (activeForMethod) throw new ConflictException('Active payout already exists for this payout method');
+    const locked = await this.lockableLedgerEntries(user.uid, preview.requestedAmount);
     const transactionId = this.transactionId();
     const payout = await this.repository.createPayoutRequest({
       payoutData: { providerId: user.uid, payoutMethodId: preview.destination.id, transactionId, amount: new Prisma.Decimal(preview.requestedAmount), processingFee: new Prisma.Decimal(preview.processingFee), totalToReceive: new Prisma.Decimal(preview.totalToReceive), currency: preview.currency, status: ProviderPayoutStatus.PENDING, expectedArrivalAt: this.expectedArrivalAt(), idempotencyKey: dto.idempotencyKey },
-      ledgerData: { providerId: user.uid, type: ProviderEarningsLedgerType.PAYOUT, direction: ProviderEarningsLedgerDirection.DEBIT, amount: new Prisma.Decimal(preview.requestedAmount), currency: preview.currency, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, description: `Payout request ${transactionId}`, metadataJson: { payoutMethodId: preview.destination.id } },
+      ledgerEntryIds: locked.map((item) => item.id),
       notificationData: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Payout requested', message: 'Your payout request was submitted.', type: 'PROVIDER_PAYOUT_REQUESTED' },
     });
     return { data: this.toPayoutResponse(payout, preview.destination), message: 'Payout requested successfully.' };
@@ -111,7 +114,8 @@ export class ProviderEarningsPayoutsService {
     return { requestedAmount: this.money(amount), processingFee: 0, totalToReceive: this.money(amount), availableBalance, currency: method.currency, destination: { id: method.id, bankName: method.bankName, maskedAccount: method.maskedAccount }, expectedArrivalText: '2-3 Business Days' };
   }
 
-  private async availableBalance(providerId: string): Promise<number> { const items = await this.repository.findLedgerForAvailableBalance(providerId); return this.money(items.reduce((sum, item) => sum + (item.direction === ProviderEarningsLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount)), 0)); }
+  private async availableBalance(providerId: string): Promise<number> { const items = await this.repository.findLedgerForAvailableBalance(providerId); return this.money(items.reduce((sum, item) => sum + Number(item.amount), 0)); }
+  private async lockableLedgerEntries(providerId: string, amount: number) { const entries = await this.repository.findAvailableLedgerEntries(providerId); const selected = []; let total = 0; for (const entry of entries) { selected.push(entry); total += Number(entry.amount); if (total >= amount) break; } if (this.money(total) < amount) throw new BadRequestException('Payout amount exceeds available ledger balance'); return selected; }
   private async getApprovedActiveProvider(id: string) { const provider = await this.repository.findProviderUserById(id); if (!provider) throw new NotFoundException('Provider not found'); if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access earnings and payouts'); return provider; }
   private async getOwnedPayoutMethod(providerId: string, id: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findPayoutMethodForProvider(providerId, id); if (!method) throw new NotFoundException('Provider payout method not found'); return method; }
   private async defaultPayoutMethod(providerId: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findDefaultPayoutMethodForProvider(providerId); if (!method) throw new NotFoundException('Default payout method not found'); return method; }
