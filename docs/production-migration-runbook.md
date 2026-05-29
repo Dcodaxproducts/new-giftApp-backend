@@ -1,104 +1,89 @@
 # Production Migration Runbook
 
-## Scope
-
-This runbook covers production deployment for recent Gift App Prisma migrations:
+Applies to the recent migration hardening set:
 
 - `20260519103000_harden_guest_sessions`
 - `20260519111500_unify_chat_runtime`
 - `20260520093000_notification_delivery_logs`
 
-It also covers the duplicate-risk message moderation migrations:
+## 1. Backup
 
-- `20260518055500_add_message_moderation`
-- `20260518060000_add_message_moderation`
-
-## 1. Back up production database
-
-Before any migration action, create and verify a restorable backup:
+1. Confirm the production `DATABASE_URL` points to the intended database.
+2. Take a logical backup before deploying migrations:
 
 ```bash
-pg_dump "$DATABASE_URL" --format=custom --file=giftapp-prod-before-migrate.dump
-pg_restore --list giftapp-prod-before-migrate.dump >/dev/null
+BACKUP_FILE="giftapp-$(date +%Y%m%d-%H%M%S).dump"
+pg_dump "$DATABASE_URL" --format=custom --file="$BACKUP_FILE"
+pg_restore --list "$BACKUP_FILE" >/dev/null
 ```
 
-Do not continue if backup creation or validation fails.
+3. Store the backup in the approved secure backup location.
 
-## 2. Run migration status
+## 2. Pre-deploy validation
 
 ```bash
-DATABASE_URL="$DATABASE_URL" npx prisma migrate status
+npx prisma validate
+npx prisma generate
+npx prisma migrate status
 ```
 
-Record whether Prisma reports unapplied migrations, failed migrations, or schema drift.
+Expected result: Prisma schema is valid and migration status does not report drift or failed migrations.
 
-## 3. Inspect `_prisma_migrations`
-
-```sql
-SELECT migration_name, started_at, finished_at, rolled_back_at, checksum
-FROM _prisma_migrations
-ORDER BY started_at;
-```
-
-Confirm whether these migrations are already applied:
-
-- `20260518055500_add_message_moderation`
-- `20260518060000_add_message_moderation`
-- `20260519103000_harden_guest_sessions`
-- `20260519111500_unify_chat_runtime`
-- `20260520093000_notification_delivery_logs`
-
-## 4. Confirm duplicate message moderation state
-
-The repository now makes `20260518060000_add_message_moderation` duplicate-safe with guarded enum/table/index/foreign-key creation. If production already applied the original migration, do **not** edit production history manually.
-
-If a duplicate migration failed in production because objects already existed:
-
-1. Verify the schema contains exactly:
-   - `message_moderation_cases`
-   - `message_moderation_logs`
-   - `MessageModerationSource`
-   - `MessageModerationFlagType`
-   - `MessageModerationStatus`
-   - `MessageModerationSeverity`
-   - `MessageModerationAction`
-2. Verify indexes and FK exist.
-3. Only then use `npx prisma migrate resolve --applied 20260518060000_add_message_moderation`.
-
-## 5. Apply safe migration deployment
+## 3. Deploy migrations
 
 ```bash
-DATABASE_URL="$DATABASE_URL" npx prisma migrate deploy
-DATABASE_URL="$DATABASE_URL" npx prisma generate
+npx prisma migrate deploy
 ```
 
-The chat runtime migration is hardened with `to_regclass` and dynamic SQL so it works whether old `support_chats` tables exist or not.
+Notes:
 
-## 6. Smoke checks
+- The targeted migrations are guarded for production re-runs.
+- Legacy support chat table reads are wrapped in `to_regclass` checks and dynamic SQL.
+- Duplicate message moderation migrations are duplicate-safe through `IF NOT EXISTS` guards.
 
-Run schema smoke check:
+## 4. Post-deploy verification
+
+Run Prisma status and the schema smoke check:
 
 ```bash
-DATABASE_URL="$DATABASE_URL" npx ts-node scripts/db/smoke-check-schema.ts
+npx prisma migrate status
+node scripts/smoke-migration-schema.js
+npm run build
 ```
 
-Then run API smoke checks:
+The smoke script verifies these required tables:
 
-- guest session creation: `POST /api/v1/auth/guest/session`
-- customer/guest marketplace read endpoints
-- chat thread create/send/read endpoints under `08 Chat - Threads`
-- notification delivery log creation via a notification-producing action
-- provider payout method list endpoint
+- `guest_sessions`
+- `chat_threads`
+- `chat_messages`
+- `chat_participants`
+- `notification_delivery_logs`
 
-## 7. Rollback strategy
+And required runtime enums for guest sessions, chat runtime, and notification delivery logs.
 
-Preferred rollback is database restore from the verified backup plus redeploying the previous application image/commit.
+## 5. Rollback plan
 
-If app rollback only is sufficient:
+Prisma migrations are forward-only. If deployment fails:
 
-1. Stop traffic or put service in maintenance mode.
-2. Deploy previous app commit.
-3. Keep DB migrated forward if the previous app remains compatible.
-4. If incompatible, restore the pre-migration backup.
+1. Stop application rollout / keep previous app version running.
+2. Capture the error output and current migration status:
 
-Never drop migrated production tables/enums manually unless a restore plan has been tested.
+```bash
+npx prisma migrate status
+```
+
+3. If schema/data was partially changed and cannot be safely forward-fixed, restore the pre-deploy backup to a clean database:
+
+```bash
+pg_restore --clean --if-exists --dbname="$DATABASE_URL" "$BACKUP_FILE"
+```
+
+4. Re-run smoke checks against restored DB.
+5. Prefer a forward fix migration when production data has already accepted writes after migration start.
+
+## 6. Success criteria
+
+- `npx prisma migrate deploy` exits 0.
+- `npx prisma migrate status` reports database schema is up to date.
+- `node scripts/smoke-migration-schema.js` exits 0.
+- `npm run build` exits 0.

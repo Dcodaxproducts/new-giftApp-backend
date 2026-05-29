@@ -1,6 +1,15 @@
 -- Unify all chat runtime persistence behind ChatThread/ChatMessage.
 DO $$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatSenderType') THEN
+    CREATE TYPE "ChatSenderType" AS ENUM ('CUSTOMER', 'PROVIDER', 'ADMIN', 'PARTICIPANT', 'SYSTEM');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatMessageType') THEN
+    CREATE TYPE "ChatMessageType" AS ENUM ('TEXT', 'IMAGE', 'AUDIO', 'VIDEO', 'FILE');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'MessageVisibilityStatus') THEN
+    CREATE TYPE "MessageVisibilityStatus" AS ENUM ('VISIBLE', 'HIDDEN_BY_MODERATION');
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ChatThreadType') THEN
     CREATE TYPE "ChatThreadType" AS ENUM ('ORDER_CHAT', 'SUPPORT_CHAT', 'MODERATION_REVIEW');
   END IF;
@@ -18,6 +27,46 @@ END $$;
 ALTER TYPE "ChatSenderType" ADD VALUE IF NOT EXISTS 'PARTICIPANT';
 ALTER TYPE "ChatSenderType" ADD VALUE IF NOT EXISTS 'SYSTEM';
 
+CREATE TABLE IF NOT EXISTS "chat_threads" (
+  "id" TEXT NOT NULL,
+  "thread_type" "ChatThreadType" NOT NULL DEFAULT 'ORDER_CHAT',
+  "source_type" "ChatSourceType" NOT NULL DEFAULT 'PROVIDER_ORDER',
+  "source_id" TEXT,
+  "subject" TEXT,
+  "status" "ChatThreadStatus" NOT NULL DEFAULT 'ACTIVE',
+  "order_id" TEXT,
+  "provider_order_id" TEXT,
+  "provider_id" TEXT,
+  "customer_id" TEXT,
+  "assigned_admin_id" TEXT,
+  "resolved_by_id" TEXT,
+  "resolved_at" TIMESTAMPTZ,
+  "last_message_id" TEXT,
+  "last_message_at" TIMESTAMPTZ,
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "chat_threads_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "chat_messages" (
+  "id" TEXT NOT NULL,
+  "thread_id" TEXT NOT NULL,
+  "sender_id" TEXT NOT NULL,
+  "sender_type" "ChatSenderType" NOT NULL,
+  "client_message_id" TEXT,
+  "message_type" "ChatMessageType" NOT NULL DEFAULT 'TEXT',
+  "body" TEXT,
+  "attachment_urls_json" JSONB NOT NULL DEFAULT '[]',
+  "is_read_by_customer" BOOLEAN NOT NULL DEFAULT false,
+  "is_read_by_provider" BOOLEAN NOT NULL DEFAULT false,
+  "visibility_status" "MessageVisibilityStatus" NOT NULL DEFAULT 'VISIBLE',
+  "hidden_by_moderation" BOOLEAN NOT NULL DEFAULT false,
+  "hidden_at" TIMESTAMPTZ,
+  "hidden_by_admin_id" TEXT,
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "chat_messages_pkey" PRIMARY KEY ("id")
+);
+
 ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "thread_type" "ChatThreadType" NOT NULL DEFAULT 'ORDER_CHAT';
 ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "source_type" "ChatSourceType" NOT NULL DEFAULT 'PROVIDER_ORDER';
 ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "source_id" TEXT;
@@ -27,6 +76,7 @@ ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "assigned_admin_id" TEXT;
 ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "resolved_by_id" TEXT;
 ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "resolved_at" TIMESTAMPTZ;
 ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "last_message_at" TIMESTAMPTZ;
+ALTER TABLE "chat_threads" ADD COLUMN IF NOT EXISTS "last_message_id" TEXT;
 ALTER TABLE "chat_threads" ALTER COLUMN "order_id" DROP NOT NULL;
 ALTER TABLE "chat_threads" ALTER COLUMN "provider_order_id" DROP NOT NULL;
 ALTER TABLE "chat_threads" ALTER COLUMN "provider_id" DROP NOT NULL;
@@ -136,14 +186,29 @@ CREATE INDEX IF NOT EXISTS "chat_attachments_message_id_idx" ON "chat_attachment
 CREATE INDEX IF NOT EXISTS "chat_audit_logs_thread_id_created_at_idx" ON "chat_audit_logs"("thread_id", "created_at");
 CREATE INDEX IF NOT EXISTS "chat_audit_logs_message_id_idx" ON "chat_audit_logs"("message_id");
 CREATE INDEX IF NOT EXISTS "chat_audit_logs_actor_id_created_at_idx" ON "chat_audit_logs"("actor_id", "created_at");
+CREATE UNIQUE INDEX IF NOT EXISTS "chat_threads_provider_order_id_key" ON "chat_threads"("provider_order_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "chat_threads_last_message_id_key" ON "chat_threads"("last_message_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "chat_messages_thread_id_sender_id_client_message_id_key" ON "chat_messages"("thread_id", "sender_id", "client_message_id");
 CREATE INDEX IF NOT EXISTS "chat_threads_thread_type_status_updated_at_idx" ON "chat_threads"("thread_type", "status", "updated_at");
 CREATE INDEX IF NOT EXISTS "chat_threads_source_type_source_id_idx" ON "chat_threads"("source_type", "source_id");
 CREATE INDEX IF NOT EXISTS "chat_threads_assigned_admin_id_updated_at_idx" ON "chat_threads"("assigned_admin_id", "updated_at");
+CREATE INDEX IF NOT EXISTS "chat_threads_customer_id_updated_at_idx" ON "chat_threads"("customer_id", "updated_at");
+CREATE INDEX IF NOT EXISTS "chat_threads_provider_id_updated_at_idx" ON "chat_threads"("provider_id", "updated_at");
+CREATE INDEX IF NOT EXISTS "chat_threads_order_id_idx" ON "chat_threads"("order_id");
+CREATE INDEX IF NOT EXISTS "chat_messages_thread_id_created_at_idx" ON "chat_messages"("thread_id", "created_at");
+CREATE INDEX IF NOT EXISTS "chat_messages_sender_id_created_at_idx" ON "chat_messages"("sender_id", "created_at");
 
 DO $$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_order_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_provider_order_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_provider_order_id_fkey" FOREIGN KEY ("provider_order_id") REFERENCES "provider_orders"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_provider_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_provider_id_fkey" FOREIGN KEY ("provider_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_customer_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_assigned_admin_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_assigned_admin_id_fkey" FOREIGN KEY ("assigned_admin_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_resolved_by_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_resolved_by_id_fkey" FOREIGN KEY ("resolved_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_threads_last_message_id_fkey') THEN ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_last_message_id_fkey" FOREIGN KEY ("last_message_id") REFERENCES "chat_messages"("id") ON DELETE SET NULL ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_messages_thread_id_fkey') THEN ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_messages_sender_id_fkey') THEN ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_participants_thread_id_fkey') THEN ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_participants_user_id_fkey') THEN ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chat_message_read_receipts_thread_id_fkey') THEN ALTER TABLE "chat_message_read_receipts" ADD CONSTRAINT "chat_message_read_receipts_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "chat_threads"("id") ON DELETE RESTRICT ON UPDATE CASCADE; END IF;

@@ -22,7 +22,8 @@
     "docs:openapi": "DATABASE_URL='postgresql://user:pass@127.0.0.1:5432/giftapp' JWT_ACCESS_SECRET='dev-docs-secret' JWT_SECRET='dev-docs-secret' node scripts/docs/generate-openapi.js",
     "docs:reference": "python3 scripts/docs/generate-api-reference.py",
     "docs:frontend": "python3 scripts/docs/generate-frontend-guide.py",
-    "docs:assert": "node scripts/docs/assert-generated-docs-current.js"
+    "docs:assert": "node scripts/docs/assert-generated-docs-current.js",
+    "db:smoke:migration-schema": "node scripts/smoke-migration-schema.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1042.0",
