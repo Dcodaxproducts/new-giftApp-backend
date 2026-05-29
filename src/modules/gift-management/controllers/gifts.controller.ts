@@ -7,7 +7,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { CreateGiftDto, ExportGiftsDto, ListGiftsDto, UpdateGiftDto, UpdateGiftStatusDto } from '../dto/gift-management.dto';
+import { CreateGiftDto, ExportGiftsDto, ListGiftsDto, UpdateGiftDto } from '../dto/gift-management.dto';
 import { GiftManagementService } from '../services/gift-management.service';
 
 @ApiTags('04 Gifts - Management')
@@ -49,16 +49,10 @@ export class GiftsController {
   details(@Param('id') id: string) { return this.gifts.giftDetails(id); }
 
   @Patch(':id')
-  @Permissions('gifts.update')
-  @ApiOperation({ summary: 'Update admin gift and upsert nested variants', description: 'If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.' })
-  @ApiBody({ type: UpdateGiftDto, examples: { upsertVariants: { value: { name: 'Luxury Perfume Updated', replaceVariants: false, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }, { name: '150ml', price: 249.99, originalPrice: 299.99, isPopular: false, isDefault: false, sortOrder: 4, isActive: true }] } } } })
-  @ApiResponse({ status: 200, description: 'Gift updated successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume Updated', variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isDefault: true, isActive: true }] }, message: 'Gift updated successfully' } } })
+  @ApiOperation({ summary: 'Update admin gift, nested variants, or operational catalog status', description: "SUPER_ADMIN or ADMIN with 'gifts.update' for normal fields and 'gifts.status.update' for status changes. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed. Moderation decisions stay under POST /api/v1/gift-moderation/:id/action." })
+  @ApiBody({ type: UpdateGiftDto, examples: { upsertVariants: { value: { name: 'Luxury Perfume Updated', replaceVariants: false, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }, { name: '150ml', price: 249.99, originalPrice: 299.99, isPopular: false, isDefault: false, sortOrder: 4, isActive: true }] } }, activateGift: { value: { status: 'ACTIVE', reason: 'Back in stock and approved by admin.' } }, deactivateGift: { value: { status: 'INACTIVE', reason: 'Temporarily disabled by admin.' } }, markOutOfStock: { value: { status: 'OUT_OF_STOCK', reason: 'Inventory is depleted.' } } } })
+  @ApiResponse({ status: 200, description: 'Gift updated successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume Updated', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isDefault: true, isActive: true }] }, message: 'Gift updated successfully' } } })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateGiftDto) { return this.gifts.updateGift(user, id, dto); }
-
-  @Patch(':id/status')
-  @Permissions('gifts.status.update')
-  @ApiOperation({ summary: 'Update gift status' })
-  updateStatus(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateGiftStatusDto) { return this.gifts.updateGiftStatus(user, id, dto); }
 
   @Delete(':id')
   @Permissions('gifts.delete')

@@ -95,9 +95,12 @@ export class UpdateGiftDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPublished?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
+  @ApiPropertyOptional({ enum: GiftStatus, description: 'Operational/admin catalog status. Moderation decisions stay under /gift-moderation/:id/action.' }) @IsOptional() @IsEnum(GiftStatus) status?: GiftStatus;
+  @ApiPropertyOptional({ example: 'Back in stock and approved by admin.', description: 'Audit reason for operational status changes.' }) @IsOptional() @IsString() reason?: string;
   @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() replaceVariants?: boolean;
   @ApiPropertyOptional({ type: [GiftVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => GiftVariantDto) variants?: GiftVariantDto[];
 }
+
 
 
 export class ListGiftsDto {
@@ -113,7 +116,6 @@ export class ListGiftsDto {
   @ApiPropertyOptional({ enum: SortOrder }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }
 export class ExportGiftsDto extends ListGiftsDto { @ApiPropertyOptional({ enum: ExportFormat }) @IsOptional() @IsEnum(ExportFormat) format?: ExportFormat; }
-export class UpdateGiftStatusDto { @ApiProperty({ enum: GiftStatus }) @IsEnum(GiftStatus) status!: GiftStatus; @ApiPropertyOptional() @IsOptional() @IsString() reason?: string; }
 
 export class ListGiftModerationDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;

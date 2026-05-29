@@ -11,7 +11,7 @@ const gift = {
 
 function createService() {
   const prisma = {
-    $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
+    $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as unknown[])),
     $queryRaw: jest.fn().mockResolvedValue([{ name: 'Flowers', totalQuantity: BigInt(4), totalSales: { toString: () => '120' } }]),
     giftCategory: {
       findFirst: jest.fn().mockResolvedValue({ id: 'cat_1', name: 'Digital', slug: 'digital', description: null, iconKey: null, color: null, sortOrder: 0, isActive: true, createdAt: now, updatedAt: now, deletedAt: null }),
@@ -22,10 +22,17 @@ function createService() {
     },
     gift: {
       findFirst: jest.fn().mockResolvedValue(null),
+      findUniqueOrThrow: jest.fn().mockResolvedValue(gift),
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
       create: jest.fn().mockResolvedValue(gift),
       update: jest.fn().mockResolvedValue(gift),
+    },
+    giftVariant: {
+      updateMany: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
     },
     review: { groupBy: jest.fn().mockResolvedValue([]) },
     user: { findFirst: jest.fn().mockResolvedValue({ id: 'provider_1', role: UserRole.PROVIDER, deletedAt: null }) },
@@ -79,8 +86,34 @@ describe('GiftManagementService', () => {
 
   it('writes audit log when creating gift', async () => {
     const { service, audit } = createService();
-    await service.createGift({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10 });
+    await service.createGift({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['create'] } }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10 });
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_CREATED', targetType: 'GIFT' }));
+  });
+
+  it('PATCH /gifts/:id updates normal gift fields through the unified endpoint', async () => {
+    const { service, prisma, audit } = createService();
+    prisma.gift.findFirst.mockResolvedValue(gift);
+    prisma.gift.update.mockResolvedValue({ ...gift, shortDescription: 'Updated short copy.' });
+    prisma.gift.findUniqueOrThrow.mockResolvedValue({ ...gift, shortDescription: 'Updated short copy.' });
+
+    const result = await service.updateGift({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['update'] } }, 'gift_1', { shortDescription: 'Updated short copy.' });
+
+    expect(result.data.shortDescription).toBe('Updated short copy.');
+    expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ shortDescription: 'Updated short copy.' }) }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_UPDATED' }));
+  });
+
+  it('PATCH /gifts/:id updates operational status and audits the reason', async () => {
+    const { service, prisma, audit } = createService();
+    prisma.gift.findFirst.mockResolvedValue({ ...gift, status: GiftStatus.INACTIVE, isPublished: false });
+    prisma.gift.update.mockResolvedValue({ ...gift, status: GiftStatus.ACTIVE, isPublished: true });
+    prisma.gift.findUniqueOrThrow.mockResolvedValue({ ...gift, status: GiftStatus.ACTIVE, isPublished: true });
+
+    const result = await service.updateGift({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['status.update'] } }, 'gift_1', { status: GiftStatus.ACTIVE, reason: 'Back in stock and approved by admin.' });
+
+    expect(result.data.status).toBe(GiftStatus.ACTIVE);
+    expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: GiftStatus.ACTIVE, isPublished: true }) }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_STATUS_CHANGED', beforeJson: expect.objectContaining({ reason: 'Back in stock and approved by admin.' }), afterJson: expect.objectContaining({ status: GiftStatus.ACTIVE, reason: 'Back in stock and approved by admin.' }) }));
   });
 
   it('uses order sales aggregates for the most popular category stat', async () => {

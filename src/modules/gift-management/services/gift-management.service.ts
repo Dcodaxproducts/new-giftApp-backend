@@ -22,7 +22,6 @@ import {
   SortOrder,
   UpdateGiftCategoryDto,
   UpdateGiftDto,
-  UpdateGiftStatusDto,
 } from '../dto/gift-management.dto';
 
 type GiftWithRelations = Gift & {
@@ -188,6 +187,7 @@ export class GiftManagementService {
   async updateGift(user: AuthUserContext, id: string, dto: UpdateGiftDto) {
     const gift = await this.getGift(id);
     this.assertCanManageGift(user, gift);
+    this.assertGiftUpdatePermission(user, dto);
     if (dto.categoryId) await this.assertCategory(dto.categoryId);
     if (dto.providerId) await this.assertProvider(dto.providerId);
     this.assertSingleDefaultVariant(dto.variants);
@@ -207,26 +207,22 @@ export class GiftManagementService {
         price: dto.price === undefined ? undefined : new Prisma.Decimal(dto.price),
         currency: dto.currency,
         imageUrls: dto.imageUrls,
-        isPublished: dto.isPublished,
+        isPublished: dto.status === GiftStatus.ACTIVE ? true : dto.isPublished,
         isFeatured: dto.isFeatured,
         tags: dto.tags,
         moderationStatus: nextModeration,
+        status: dto.status,
       });
       if (normalizedVariants) await this.upsertVariants(tx, id, normalizedVariants, dto.replaceVariants ?? false);
       return this.giftManagementRepository.findGiftByIdWithVariantsTx(tx, base.id);
     });
     const beforeRating = await this.ratingSummary(gift.providerId);
     const afterRating = updated.providerId === gift.providerId ? beforeRating : await this.ratingSummary(updated.providerId);
-    await this.audit(user.uid, id, 'GIFT_UPDATED', this.toGiftDetail(gift, beforeRating), this.toGiftDetail(updated, afterRating));
-    return { data: this.toGiftDetail(updated, afterRating), message: 'Gift updated successfully' };
-  }
-
-  async updateGiftStatus(user: AuthUserContext, id: string, dto: UpdateGiftStatusDto) {
-    const gift = await this.getGift(id);
-    this.assertCanManageGift(user, gift);
-    const updated = await this.giftManagementRepository.updateGiftStatus(id, { status: dto.status, isPublished: dto.status === GiftStatus.ACTIVE ? true : gift.isPublished });
-    await this.audit(user.uid, id, 'GIFT_STATUS_CHANGED', { status: gift.status, reason: dto.reason }, { status: updated.status, reason: dto.reason });
-    return { data: this.toGiftDetail(updated, await this.ratingSummary(updated.providerId)), message: 'Gift status updated successfully' };
+    const before = this.toGiftDetail(gift, beforeRating);
+    const after = this.toGiftDetail(updated, afterRating);
+    const auditReason = dto.reason?.trim();
+    await this.audit(user.uid, id, dto.status === undefined ? 'GIFT_UPDATED' : 'GIFT_STATUS_CHANGED', auditReason ? { ...before, reason: auditReason } : before, auditReason ? { ...after, reason: auditReason } : after);
+    return { data: after, message: 'Gift updated successfully' };
   }
 
   async deleteGift(user: AuthUserContext, id: string) {
@@ -407,6 +403,18 @@ export class GiftManagementService {
   private round(value: number): number { return Number(value.toFixed(1)); }
   private groupCount(count: true | { _all?: number }): number { return typeof count === 'object' ? count._all ?? 0 : 0; }
   private assertCanManageGift(user: AuthUserContext, gift: Gift): void { if (user.role === UserRole.PROVIDER && gift.providerId !== user.uid) throw new ForbiddenException('Provider cannot manage another provider gift'); }
+  private assertGiftUpdatePermission(user: AuthUserContext, dto: UpdateGiftDto): void {
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.PROVIDER) return;
+    const permissions = this.flattenPermissions(user.permissions);
+    const statusChanged = dto.status !== undefined;
+    const standardChanged = this.hasStandardGiftUpdateFields(dto);
+    if (statusChanged && !permissions.has('gifts.status.update')) throw new ForbiddenException('Your role does not have the required permission');
+    if (standardChanged && !permissions.has('gifts.update')) throw new ForbiddenException('Your role does not have the required permission');
+    if (!statusChanged && !standardChanged && !permissions.has('gifts.update')) throw new ForbiddenException('Your role does not have the required permission');
+  }
+  private hasStandardGiftUpdateFields(dto: UpdateGiftDto): boolean {
+    return dto.name !== undefined || dto.description !== undefined || dto.shortDescription !== undefined || dto.categoryId !== undefined || dto.providerId !== undefined || dto.price !== undefined || dto.currency !== undefined || dto.imageUrls !== undefined || dto.isPublished !== undefined || dto.isFeatured !== undefined || dto.tags !== undefined || dto.replaceVariants !== undefined || dto.variants !== undefined;
+  }
   private async uniqueCategorySlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftCategoryBySlug(slug, exceptId)); }
   private async uniqueGiftSlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftBySlug(slug, exceptId)); }
   private async uniqueSlug(name: string, exists: (slug: string) => Promise<unknown>): Promise<string> { const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'; let slug = base; let i = 1; while (await exists(slug)) slug = `${base}-${i++}`; return slug; }

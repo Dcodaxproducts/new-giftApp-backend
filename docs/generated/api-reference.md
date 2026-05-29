@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 12:56 UTC
+Generated at: 2026-05-29 04:53 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -53,7 +53,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 03 Provider - Refund Requests (5 APIs)
 - 03 Provider - Order Analytics (5 APIs)
 - 04 Gifts - Categories (7 APIs)
-- 04 Gifts - Management (8 APIs)
+- 04 Gifts - Management (7 APIs)
 - 04 Gifts - Moderation (2 APIs)
 - 05 Customer / Guest - Marketplace (6 APIs)
 - 05 Customer - Wishlist (3 APIs)
@@ -7410,9 +7410,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/gifts/{id}`
 
-- Summary: Update admin gift and upsert nested variants
-- Allowed role/access: SUPER_ADMIN or ADMIN with gifts.update
-- Notes: Access: SUPER_ADMIN or ADMIN with gifts.update. SUPER_ADMIN or ADMIN with gifts.update permission. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.
+- Summary: Update admin gift, nested variants, or operational catalog status
+- Allowed role/access: SUPER_ADMIN or ADMIN with gift-specific update permission
+- Notes: Access: SUPER_ADMIN or ADMIN with gift-specific update permission. SUPER_ADMIN or ADMIN with gifts.update for standard gift fields and gifts.status.update for operational status changes. SUPER_ADMIN or ADMIN with 'gifts.update' for normal fields and 'gifts.status.update' for status changes. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed. Moderation decisions stay under POST /api/v1/gift-moderation/:id/action.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -7444,6 +7444,27 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ]
 }
 ```
+  - activateGift:
+```json
+{
+  "status": "ACTIVE",
+  "reason": "Back in stock and approved by admin."
+}
+```
+  - deactivateGift:
+```json
+{
+  "status": "INACTIVE",
+  "reason": "Temporarily disabled by admin."
+}
+```
+  - markOutOfStock:
+```json
+{
+  "status": "OUT_OF_STOCK",
+  "reason": "Inventory is depleted."
+}
+```
 - Response body:
 ```json
 {
@@ -7451,6 +7472,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "data": {
     "id": "gift_id",
     "name": "Luxury Perfume Updated",
+    "status": "ACTIVE",
     "variants": [
       {
         "id": "variant_id",
@@ -7477,30 +7499,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - payload:
 ```json
 "<standard success envelope>"
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/gifts/{id}/status`
-
-- Summary: Update gift status
-- Allowed role/access: SUPER_ADMIN or ADMIN with gifts.status.update
-- Notes: Access: SUPER_ADMIN or ADMIN with gifts.status.update. SUPER_ADMIN or ADMIN with gifts.status.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "status": "ACTIVE",
-  "reason": "<string>"
-}
 ```
 - Response body:
 ```json

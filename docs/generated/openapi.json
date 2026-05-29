@@ -19725,7 +19725,7 @@
         "description": "Access: SUPER_ADMIN or ADMIN with gifts.read. SUPER_ADMIN or ADMIN with gifts.read permission."
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with gifts.update. SUPER_ADMIN or ADMIN with gifts.update permission. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed.",
+        "description": "Access: SUPER_ADMIN or ADMIN with gift-specific update permission. SUPER_ADMIN or ADMIN with gifts.update for standard gift fields and gifts.status.update for operational status changes. SUPER_ADMIN or ADMIN with 'gifts.update' for normal fields and 'gifts.status.update' for status changes. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed. Moderation decisions stay under POST /api/v1/gift-moderation/:id/action.",
         "operationId": "GiftsController_update",
         "parameters": [
           {
@@ -19771,6 +19771,24 @@
                       }
                     ]
                   }
+                },
+                "activateGift": {
+                  "value": {
+                    "status": "ACTIVE",
+                    "reason": "Back in stock and approved by admin."
+                  }
+                },
+                "deactivateGift": {
+                  "value": {
+                    "status": "INACTIVE",
+                    "reason": "Temporarily disabled by admin."
+                  }
+                },
+                "markOutOfStock": {
+                  "value": {
+                    "status": "OUT_OF_STOCK",
+                    "reason": "Inventory is depleted."
+                  }
                 }
               }
             }
@@ -19787,6 +19805,7 @@
                     "data": {
                       "id": "gift_id",
                       "name": "Luxury Perfume Updated",
+                      "status": "ACTIVE",
                       "variants": [
                         {
                           "id": "variant_id",
@@ -19810,12 +19829,12 @@
             "bearer": []
           }
         ],
-        "summary": "Update admin gift and upsert nested variants",
+        "summary": "Update admin gift, nested variants, or operational catalog status",
         "tags": [
           "04 Gifts - Management"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.update",
-        "x-access": "SUPER_ADMIN or ADMIN with gifts.update"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gift-specific update permission",
+        "x-access": "SUPER_ADMIN or ADMIN with gift-specific update permission"
       },
       "delete": {
         "description": "Access: SUPER_ADMIN or ADMIN with gifts.delete. SUPER_ADMIN or ADMIN with gifts.delete permission. Permanently deletes the gift record.",
@@ -19846,48 +19865,6 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.delete",
         "x-access": "SUPER_ADMIN or ADMIN with gifts.delete"
-      }
-    },
-    "/api/v1/gifts/{id}/status": {
-      "patch": {
-        "operationId": "GiftsController_updateStatus",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGiftStatusDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update gift status",
-        "tags": [
-          "04 Gifts - Management"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with gifts.status.update",
-        "x-access": "SUPER_ADMIN or ADMIN with gifts.status.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with gifts.status.update. SUPER_ADMIN or ADMIN with gifts.status.update permission."
       }
     },
     "/api/v1/gift-moderation": {
@@ -29157,6 +29134,20 @@
               "type": "string"
             }
           },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "OUT_OF_STOCK"
+            ],
+            "description": "Operational/admin catalog status. Moderation decisions stay under /gift-moderation/:id/action."
+          },
+          "reason": {
+            "type": "string",
+            "example": "Back in stock and approved by admin.",
+            "description": "Audit reason for operational status changes."
+          },
           "replaceVariants": {
             "type": "boolean",
             "example": false
@@ -29168,25 +29159,6 @@
             }
           }
         }
-      },
-      "UpdateGiftStatusDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "INACTIVE",
-              "OUT_OF_STOCK"
-            ]
-          },
-          "reason": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ]
       },
       "GiftModerationActionDto": {
         "type": "object",

@@ -109,8 +109,6 @@ export class GiftManagementRepository {
 
   deleteGift(id: string) { return this.prisma.gift.delete({ where: { id } }); }
 
-  updateGiftStatus(id: string, data: Prisma.GiftUncheckedUpdateInput) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
-
   findGiftStats() { return this.prisma.$transaction([this.prisma.gift.count({ where: { deletedAt: null } }), this.prisma.gift.count({ where: { deletedAt: null, status: GiftStatus.ACTIVE } }), this.prisma.gift.count({ where: { deletedAt: null, moderationStatus: GiftModerationStatus.PENDING } })]); }
 
   findGiftsForExport(where: Prisma.GiftWhereInput) { return this.prisma.gift.findMany({ where, include: GIFT_MANAGEMENT_INCLUDE, orderBy: { createdAt: 'desc' }, take: 10000 }); }

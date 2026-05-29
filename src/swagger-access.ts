@@ -73,9 +73,8 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/gifts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
   'GET /api/v1/gifts/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.export', description: 'SUPER_ADMIN or ADMIN with gifts.export permission.' },
   'GET /api/v1/gifts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
-  'PATCH /api/v1/gifts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.update', description: 'SUPER_ADMIN or ADMIN with gifts.update permission.' },
+  'PATCH /api/v1/gifts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with gift-specific update permission', description: 'SUPER_ADMIN or ADMIN with gifts.update for standard gift fields and gifts.status.update for operational status changes.' },
   'DELETE /api/v1/gifts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.delete', description: 'SUPER_ADMIN or ADMIN with gifts.delete permission.' },
-  'PATCH /api/v1/gifts/{id}/status': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.status.update', description: 'SUPER_ADMIN or ADMIN with gifts.status.update permission.' },
 
   'GET /api/v1/gift-moderation': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftModeration.read', description: 'SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift moderation is optional/exception-based; default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Provider-created inventory does not require separate Super Admin approval by default.' },
   'POST /api/v1/gift-moderation/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag)', description: 'SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag.' },

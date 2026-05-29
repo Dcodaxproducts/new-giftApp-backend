@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-25 12:56 UTC
+Generated at: 2026-05-29 04:54 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-25 12:56 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-29 04:54 UTC.
 
 ## Frontend Integration Flows
 
@@ -457,7 +457,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 12:56 UTC.
 | PATCH | `/api/v1/gift-categories/{id}` | Update gift category | SUPER_ADMIN or ADMIN with giftCategories.update |
 | DELETE | `/api/v1/gift-categories/{id}` | Delete gift category | SUPER_ADMIN or ADMIN with giftCategories.delete |
 
-### Gifts - Management (8 APIs)
+### Gifts - Management (7 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
@@ -466,9 +466,8 @@ Generated from `docs/generated/openapi.json` on 2026-05-25 12:56 UTC.
 | GET | `/api/v1/gifts/export` | Export gift inventory | SUPER_ADMIN or ADMIN with gifts.export |
 | GET | `/api/v1/gifts/stats` | Fetch gift inventory stats | SUPER_ADMIN or ADMIN with gifts.read |
 | GET | `/api/v1/gifts/{id}` | Fetch admin gift details with variants | SUPER_ADMIN or ADMIN with gifts.read |
-| PATCH | `/api/v1/gifts/{id}` | Update admin gift and upsert nested variants | SUPER_ADMIN or ADMIN with gifts.update |
+| PATCH | `/api/v1/gifts/{id}` | Update admin gift, nested variants, or operational catalog status | SUPER_ADMIN or ADMIN with gift-specific update permission |
 | DELETE | `/api/v1/gifts/{id}` | Delete gift | SUPER_ADMIN or ADMIN with gifts.delete |
-| PATCH | `/api/v1/gifts/{id}/status` | Update gift status | SUPER_ADMIN or ADMIN with gifts.status.update |
 
 ### Gifts - Moderation (2 APIs)
 

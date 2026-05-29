@@ -20,7 +20,8 @@ describe('Gift management repository cleanup', () => {
   });
 
   it('keeps gift management and moderation API behavior stable', () => {
-    for (const route of ["@Get()", "@Post()", "@Get('stats')", "@Get('export')", "@Get(':id')", "@Patch(':id')", "@Delete(':id')", "@Patch(':id/status')"]) expect(giftsController).toContain(route);
+    for (const route of ["@Get()", "@Post()", "@Get('stats')", "@Get('export')", "@Get(':id')", "@Patch(':id')", "@Delete(':id')"]) expect(giftsController).toContain(route);
+    expect(giftsController).not.toContain("@Patch(':id/status')");
     for (const route of ["@Get()", "@Post(':id/action')"]) expect(moderationController).toContain(route);
     for (const oldRoute of ["@Patch(':id/approve')", "@Patch(':id/reject')", "@Patch(':id/flag')"]) expect(moderationController).not.toContain(oldRoute);
     expect(giftsController).toContain("@Permissions('gifts.create')");
@@ -39,7 +40,8 @@ describe('Gift management repository cleanup', () => {
   });
 
   it('repository owns admin gift and variant DB access', () => {
-    for (const method of ['findGiftsForAdmin', 'countGiftsForAdmin', 'findGiftByIdWithVariants', 'createGiftWithVariants', 'updateGiftBase', 'deleteGift', 'updateGiftStatus', 'findGiftStats', 'findGiftsForExport']) expect(repository).toContain(method);
+    for (const method of ['findGiftsForAdmin', 'countGiftsForAdmin', 'findGiftByIdWithVariants', 'createGiftWithVariants', 'updateGiftBase', 'deleteGift', 'findGiftStats', 'findGiftsForExport']) expect(repository).toContain(method);
+    expect(repository).not.toContain('updateGiftStatus');
     for (const method of ['softDeleteVariantsForGift', 'clearDefaultVariantsForGift', 'findGiftVariantForGift', 'updateGiftVariant', 'createGiftVariant']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.gift.create');
     expect(repository).toContain('tx.gift.update');
@@ -60,12 +62,22 @@ describe('Gift management repository cleanup', () => {
   it('service preserves admin gift create/update/delete/status behavior', () => {
     expect(service).toContain('const providerId = user.role === UserRole.PROVIDER ? user.uid : dto.providerId');
     expect(service).toContain('statusFromPublication');
-    expect(service).toContain('dto.status === GiftStatus.ACTIVE ? true : gift.isPublished');
+    expect(service).toContain('dto.status === GiftStatus.ACTIVE ? true : dto.isPublished');
     expect(service).toContain('Provider cannot manage another provider gift');
     expect(service).toContain('GIFT_CREATED');
     expect(service).toContain('GIFT_UPDATED');
     expect(service).toContain('GIFT_DELETED');
     expect(service).toContain('GIFT_STATUS_CHANGED');
+    expect(service).toContain('assertGiftUpdatePermission');
+  });
+
+  it('old gift status route is removed from Swagger and update docs include status examples', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    expect(giftsController).not.toContain("@Patch(':id/status')");
+    expect(openapi.paths['/api/v1/gifts/{id}/status']).toBeUndefined();
+    expect(giftsController).toContain('activateGift');
+    expect(giftsController).toContain('deactivateGift');
+    expect(giftsController).toContain('markOutOfStock');
   });
 
   it('repository owns gift moderation DB access and service preserves workflow decisions', () => {
