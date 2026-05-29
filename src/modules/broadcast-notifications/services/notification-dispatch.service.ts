@@ -30,8 +30,8 @@ export class NotificationDispatchService {
     private readonly notificationsRepository: NotificationsRepository,
     private readonly notificationPreferencesRepository: NotificationPreferencesRepository,
     private readonly gateway: NotificationsGateway,
-    private readonly deliveryLogs: NotificationDeliveryLogRepository = undefined as unknown as NotificationDeliveryLogRepository,
-    private readonly mailer: MailerService = undefined as unknown as MailerService,
+    private readonly deliveryLogs: NotificationDeliveryLogRepository,
+    private readonly mailer: MailerService,
   ) {}
 
   async dispatch(input: DispatchNotificationInput): Promise<Notification> {
@@ -44,6 +44,12 @@ export class NotificationDispatchService {
     }
     const channels: NotificationChannel[] = input.channels?.length ? Array.from(new Set(['IN_APP', ...input.channels])) : ['IN_APP', 'SOCKET'];
     const metadata = this.sanitizeMetadata((input.metadataJson ?? input.metadata ?? {}) as Prisma.JsonValue) as Prisma.InputJsonValue;
+    const preferences = await this.notificationPreferencesRepository.findPreferences(input.recipientId);
+    const effectiveChannels = channels.filter((channel) => {
+      if (channel === 'PUSH') return preferences?.pushEnabled !== false;
+      if (channel === 'EMAIL') return preferences?.emailEnabled !== false;
+      return true;
+    });
     let notification: Notification | null = null;
     let inAppStatus: NotificationDeliveryStatus = channels.includes('IN_APP') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED;
     const log = await this.deliveryLogs.create({
@@ -51,15 +57,15 @@ export class NotificationDispatchService {
       recipientId: input.recipientId,
       recipientType: input.recipientType as NotificationRecipientType,
       notificationType: input.type,
-      channelsJson: channels,
+      channelsJson: effectiveChannels,
       idempotencyKey: input.idempotencyKey,
       inAppStatus,
-      socketStatus: channels.includes('SOCKET') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED,
-      pushStatus: channels.includes('PUSH') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED,
-      emailStatus: channels.includes('EMAIL') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED,
+      socketStatus: effectiveChannels.includes('SOCKET') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED,
+      pushStatus: channels.includes('PUSH') ? (effectiveChannels.includes('PUSH') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED) : NotificationDeliveryStatus.SKIPPED,
+      emailStatus: channels.includes('EMAIL') ? (effectiveChannels.includes('EMAIL') ? NotificationDeliveryStatus.QUEUED : NotificationDeliveryStatus.SKIPPED) : NotificationDeliveryStatus.SKIPPED,
     });
     try {
-      if (channels.includes('IN_APP')) {
+      if (effectiveChannels.includes('IN_APP')) {
         notification = await this.notificationsRepository.createNotification({ recipientId: input.recipientId, recipientType: input.recipientType as NotificationRecipientType, title: input.title, message: input.message, type: input.type, metadataJson: metadata });
         inAppStatus = NotificationDeliveryStatus.DELIVERED;
         await this.deliveryLogs.update(log.id, { notificationId: notification.id, inAppStatus });
@@ -70,7 +76,7 @@ export class NotificationDispatchService {
       throw error;
     }
     if (!notification) throw new Error('In-app notification was not persisted');
-    await this.deliverSideChannels(log.id, notification, input, channels);
+    await this.deliverSideChannels(log.id, notification, { ...input, metadataJson: metadata }, effectiveChannels, preferences);
     return notification;
   }
 
@@ -105,8 +111,7 @@ export class NotificationDispatchService {
   emitRead(userId: string, payload: unknown): void { this.gateway.emitToUser(userId, 'notification.read', payload); }
   toPayload(notification: Notification): NotificationPayload { return { id: notification.id, title: notification.title, message: notification.message, type: notification.type, isRead: notification.isRead, metadata: this.sanitizeMetadata(notification.metadataJson), createdAt: notification.createdAt }; }
 
-  private async deliverSideChannels(logId: string, notification: Notification | null, input: DispatchNotificationInput, channels: NotificationChannel[]): Promise<void> {
-    const preferences = await this.notificationPreferencesRepository.findPreferences(input.recipientId);
+  private async deliverSideChannels(logId: string, notification: Notification | null, input: DispatchNotificationInput, channels: NotificationChannel[], preferences?: Awaited<ReturnType<NotificationPreferencesRepository['findPreferences']>>): Promise<void> {
     if (channels.includes('SOCKET')) await this.safeChannel(logId, 'socketStatus', () => { if (!notification || preferences?.inAppEnabled === false) return NotificationDeliveryStatus.SKIPPED; this.emitToUser(input.recipientId, notification); return NotificationDeliveryStatus.DELIVERED; });
     if (channels.includes('PUSH')) await this.safeChannel(logId, 'pushStatus', () => preferences?.pushEnabled === false ? NotificationDeliveryStatus.SKIPPED : NotificationDeliveryStatus.DELIVERED);
     if (channels.includes('EMAIL')) await this.safeChannel(logId, 'emailStatus', async () => {

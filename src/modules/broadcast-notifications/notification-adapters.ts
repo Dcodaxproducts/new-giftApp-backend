@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Broadcast, BroadcastChannel, NotificationRecipientType, User, UserRole } from '@prisma/client';
 import { MailerService } from '../mailer/mailer.service';
-import { NotificationsRepository } from './repositories/notifications.repository';
+import { NotificationDispatchService } from './services/notification-dispatch.service';
 
 export interface DeliveryAdapterInput {
   broadcast: Broadcast;
@@ -39,17 +39,17 @@ export class PushNotificationAdapter {
 
 @Injectable()
 export class InAppNotificationAdapter {
-  constructor(private readonly notificationsRepository: NotificationsRepository) {}
+  constructor(private readonly notificationDispatch: NotificationDispatchService) {}
 
   async send(input: DeliveryAdapterInput): Promise<string> {
-    await this.notificationsRepository.createInAppBroadcastNotification({
+    await this.notificationDispatch.createAndEmit({
       recipientId: input.recipient.id,
       recipientType: this.recipientType(input.recipient.role),
-      broadcastId: input.broadcast.id,
       title: input.broadcast.title,
       message: input.broadcast.message,
-      imageUrl: input.broadcast.imageUrl,
-      ctaUrl: input.broadcast.ctaUrl,
+      type: 'BROADCAST',
+      metadataJson: { broadcastId: input.broadcast.id, imageUrl: input.broadcast.imageUrl, ctaUrl: input.broadcast.ctaUrl },
+      idempotencyKey: `broadcast:${input.broadcast.id}:${input.recipient.id}:in-app`,
     });
     return `in-app-${input.deliveryId}`;
   }

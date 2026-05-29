@@ -15,8 +15,8 @@ describe('Notification adapters', () => {
   };
 
   it('in-app adapter creates the same notification payload and delivery reference', async () => {
-    const notificationsRepository = { createInAppBroadcastNotification: jest.fn().mockResolvedValue({ id: 'notif_1' }) };
-    const adapter = new InAppNotificationAdapter(notificationsRepository as never);
+    const notificationDispatch = { createAndEmit: jest.fn().mockResolvedValue({ id: 'notif_1' }) };
+    const adapter = new InAppNotificationAdapter(notificationDispatch as never);
 
     await expect(adapter.send({
       broadcast: broadcast as never,
@@ -24,26 +24,26 @@ describe('Notification adapters', () => {
       deliveryId: 'delivery_1',
     })).resolves.toBe('in-app-delivery_1');
 
-    expect(notificationsRepository.createInAppBroadcastNotification).toHaveBeenCalledWith({
+    expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({
       recipientId: 'user_1',
       recipientType: NotificationRecipientType.REGISTERED_USER,
-      broadcastId: 'broadcast_1',
       title: 'Promo',
       message: 'Hello',
-      imageUrl: 'https://cdn.example.com/image.png',
-      ctaUrl: 'https://example.com/open',
-    });
+      type: 'BROADCAST',
+      metadataJson: { broadcastId: 'broadcast_1', imageUrl: 'https://cdn.example.com/image.png', ctaUrl: 'https://example.com/open' },
+      idempotencyKey: 'broadcast:broadcast_1:user_1:in-app',
+    }));
   });
 
   it('recipient type mapping remains unchanged', async () => {
-    const notificationsRepository = { createInAppBroadcastNotification: jest.fn().mockResolvedValue({ id: 'notif_1' }) };
-    const adapter = new InAppNotificationAdapter(notificationsRepository as never);
+    const notificationDispatch = { createAndEmit: jest.fn().mockResolvedValue({ id: 'notif_1' }) };
+    const adapter = new InAppNotificationAdapter(notificationDispatch as never);
 
     await adapter.send({ broadcast: broadcast as never, recipient: { id: 'provider_1', role: UserRole.PROVIDER } as never, deliveryId: 'delivery_2' });
     await adapter.send({ broadcast: broadcast as never, recipient: { id: 'admin_1', role: UserRole.ADMIN } as never, deliveryId: 'delivery_3' });
 
-    expect(notificationsRepository.createInAppBroadcastNotification).toHaveBeenNthCalledWith(1, expect.objectContaining({ recipientType: NotificationRecipientType.PROVIDER }));
-    expect(notificationsRepository.createInAppBroadcastNotification).toHaveBeenNthCalledWith(2, expect.objectContaining({ recipientType: NotificationRecipientType.ADMIN }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenNthCalledWith(1, expect.objectContaining({ recipientType: NotificationRecipientType.PROVIDER }));
+    expect(notificationDispatch.createAndEmit).toHaveBeenNthCalledWith(2, expect.objectContaining({ recipientType: NotificationRecipientType.ADMIN }));
   });
 
   it('email adapter behavior remains unchanged', async () => {
@@ -78,8 +78,8 @@ describe('Notification adapters', () => {
 
     expect(adapterSource).not.toContain('PrismaService');
     expect(adapterSource).not.toContain('this.prisma');
-    expect(adapterSource).toContain('NotificationsRepository');
-    expect(adapterSource).toContain('createInAppBroadcastNotification');
+    expect(adapterSource).toContain('NotificationDispatchService');
+    expect(adapterSource).toContain('createAndEmit');
     expect(repositorySource).toContain('createInAppBroadcastNotification');
     expect(repositorySource).toContain('this.prisma.notification.create');
     expect(deliverySource).toContain('this.adapters.adapter(channel).send');

@@ -25,7 +25,7 @@ describe('notification dispatch hardening guard', () => {
         offenders.push(rel);
         continue;
       }
-      if (!allowedDirectCreate.has(rel) && /prisma\.notification\.create\s*\(/.test(source)) {
+      if (!allowedDirectCreate.has(rel) && /prisma\.notification\.create(?:Many)?\s*\(/.test(source)) {
         offenders.push(rel);
       }
     }
