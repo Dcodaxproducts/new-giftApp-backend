@@ -3,7 +3,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderFulfillmentMethodDto, ExportFormat, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderStatusUpdate } from '../dto/provider-management.dto';
+import { AdminProviderFulfillmentMethodDto, ExportFormat, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderSortBy, ProviderStatusUpdate, SortOrder } from '../dto/provider-management.dto';
 import { ProviderManagementRepository } from '../repositories/provider-management.repository';
 import { ProviderManagementService } from '../services/provider-management.service';
 
@@ -111,6 +111,27 @@ describe('ProviderManagementService', () => {
 
     expect(aggregateSpy).toHaveBeenCalledTimes(1);
     expect(result.data[0]).toEqual(expect.objectContaining({ revenue: 1200, listedItems: 6, performanceStats: 88.5 }));
+  });
+
+  it('provider revenue sort uses batched aggregate values before pagination', async () => {
+    const { service, repository } = createService();
+    jest.spyOn(repository, 'findManyProviders').mockResolvedValue([
+      { ...provider, id: 'provider_low', createdAt: new Date('2026-05-02T00:00:00.000Z') },
+      { ...provider, id: 'provider_high', createdAt: new Date('2026-05-01T00:00:00.000Z') },
+    ] as never);
+    const countSpy = jest.spyOn(repository, 'countProviders');
+    const aggregateSpy = jest.spyOn(repository, 'findProviderAggregateMap').mockResolvedValue(new Map([
+      ['provider_low', { revenue: 100, performanceStats: 0, performanceChangePercent: 0, listedItems: 0, listedItemsChange: 0, orderFulfillment: 0, orderFulfillmentChangePercent: 0, disputeCount: 0, disputeChangePercent: 0, averageRating: 0, reviewCount: 0 }],
+      ['provider_high', { revenue: 900, performanceStats: 0, performanceChangePercent: 0, listedItems: 0, listedItemsChange: 0, orderFulfillment: 0, orderFulfillmentChangePercent: 0, disputeCount: 0, disputeChangePercent: 0, averageRating: 0, reviewCount: 0 }],
+    ]));
+
+    const result = await service.list({ page: 1, limit: 1, sortBy: ProviderSortBy.REVENUE, sortOrder: SortOrder.DESC });
+
+    expect(aggregateSpy).toHaveBeenCalledWith(['provider_low', 'provider_high']);
+    expect(countSpy).not.toHaveBeenCalled();
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'provider_high', revenue: 900 }));
+    expect(result.meta).toEqual({ page: 1, limit: 1, total: 2, totalPages: 2 });
   });
 
   it('provider details returns real aggregate stats', async () => {

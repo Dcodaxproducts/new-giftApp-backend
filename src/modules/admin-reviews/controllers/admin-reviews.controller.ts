@@ -21,7 +21,7 @@ export class AdminReviewsController {
   @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
   @ApiOperation({ summary: 'Fetch platform review dashboard', description: 'SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { health: { averageRating: 4.62, averageRatingDelta: 0, totalReviews: 12847, newReviewsThisWeek: 842, flaggedQueueCount: 34, criticalFlaggedCount: 12, autoModeratedCount: 1203, autoModerationAccuracy: 82 }, systemWarning: { enabled: true, title: 'System Warning', message: 'Auto-moderation confidence dropped to 82%. Review recommended.', severity: 'WARNING' } }, message: 'Review dashboard fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: { health: { averageRating: 0, averageRatingDelta: 0, totalReviews: 0, newReviewsThisWeek: 0, flaggedQueueCount: 0, criticalFlaggedCount: 0, autoModeratedCount: 0, autoModerationAccuracy: 0 }, systemWarning: { enabled: true, title: 'System Warning', message: 'Auto-moderation confidence dropped to 0%. Review recommended.', severity: 'WARNING' } }, message: 'Review dashboard fetched successfully.' } } })
   dashboard() { return this.reviews.dashboard(); }
 
   @Get('stats')

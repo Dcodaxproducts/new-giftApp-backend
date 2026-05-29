@@ -23,8 +23,10 @@ import {
   ProviderLifecycleAction,
   ProviderLifecycleReason,
   ProviderLookupDto,
+  ProviderSortBy,
   ProviderStatusFilter,
   ProviderStatusUpdate,
+  SortOrder,
   UpdateProviderDto,
   UpdateProviderStatusDto,
 } from '../dto/provider-management.dto';
@@ -50,6 +52,25 @@ export class ProviderManagementService {
   async list(query: ListProvidersDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
+
+    if (query.sortBy === ProviderSortBy.REVENUE) {
+      const providers = await this.repository.findManyProviders(query, { skip: 0, take: 10000 });
+      const aggregateMap = await this.repository.findProviderAggregateMap(providers.map((provider) => provider.id));
+      const direction = query.sortOrder === SortOrder.ASC ? 1 : -1;
+      const sorted = [...providers].sort((left, right) => {
+        const leftRevenue = aggregateMap.get(left.id)?.revenue ?? 0;
+        const rightRevenue = aggregateMap.get(right.id)?.revenue ?? 0;
+        return ((leftRevenue - rightRevenue) * direction) || (right.createdAt.getTime() - left.createdAt.getTime());
+      });
+      const paged = sorted.slice((page - 1) * limit, page * limit);
+
+      return {
+        data: paged.map((provider) => this.toListItem(provider, aggregateMap.get(provider.id) ?? this.zeroStats())),
+        meta: { page, limit, total: sorted.length, totalPages: Math.ceil(sorted.length / limit) },
+        message: 'Providers fetched successfully',
+      };
+    }
+
     const [items, total] = await Promise.all([
       this.repository.findManyProviders(query, { skip: (page - 1) * limit, take: limit }),
       this.repository.countProviders(query),

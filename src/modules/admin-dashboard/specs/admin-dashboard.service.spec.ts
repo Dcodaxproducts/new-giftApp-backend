@@ -1,10 +1,10 @@
-import { DisputePriority, DisputeReason, DisputeStatus, PaymentStatus, Prisma, ProviderDisputeCategory, ProviderDisputeSeverity, ProviderDisputeStatus, ProviderOrderStatus } from '@prisma/client';
+import { DisputePriority, DisputeReason, DisputeStatus, PaymentStatus, Prisma, ProviderDisputeCategory, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository';
 import { AdminDashboardService } from '../services/admin-dashboard.service';
 
-type MockRepository = jest.Mocked<Pick<AdminDashboardRepository, 'countUsers' | 'countProviders' | 'countPayments' | 'sumPayments' | 'findRevenuePayments' | 'findDistributionPayments' | 'findProviderOrders' | 'findRecentCustomerDisputes' | 'findRecentProviderDisputes'>>;
+type MockRepository = jest.Mocked<Pick<AdminDashboardRepository, 'countUsers' | 'countProviders' | 'countPayments' | 'countOrders' | 'sumPayments' | 'findRevenuePayments' | 'findDistributionPayments' | 'findProviderPerformanceRows' | 'findRecentCustomerDisputes' | 'findRecentProviderDisputes'>>;
 
 function aggregate(amount: number): Prisma.GetPaymentAggregateType<{ _sum: { amount: true }; where: Prisma.PaymentWhereInput }> {
   return { _sum: { amount: new Prisma.Decimal(amount) } };
@@ -15,10 +15,11 @@ function createService(overrides: Partial<MockRepository> = {}) {
     countUsers: jest.fn().mockResolvedValue(0),
     countProviders: jest.fn().mockResolvedValue(0),
     countPayments: jest.fn().mockResolvedValue(0),
+    countOrders: jest.fn().mockResolvedValue(0),
     sumPayments: jest.fn().mockResolvedValue(aggregate(0)),
     findRevenuePayments: jest.fn().mockResolvedValue([]),
     findDistributionPayments: jest.fn().mockResolvedValue([]),
-    findProviderOrders: jest.fn().mockResolvedValue([]),
+    findProviderPerformanceRows: jest.fn().mockResolvedValue([]),
     findRecentCustomerDisputes: jest.fn().mockResolvedValue([]),
     findRecentProviderDisputes: jest.fn().mockResolvedValue([]),
     ...overrides,
@@ -31,12 +32,13 @@ describe('AdminDashboardService', () => {
     const { service, repository } = createService({
       countUsers: jest.fn().mockResolvedValueOnce(100).mockResolvedValueOnce(12).mockResolvedValueOnce(8),
       countProviders: jest.fn().mockResolvedValueOnce(20).mockResolvedValueOnce(3).mockResolvedValueOnce(2),
-      countPayments: jest.fn().mockResolvedValueOnce(50).mockResolvedValueOnce(11).mockResolvedValueOnce(10),
+      countOrders: jest.fn().mockResolvedValueOnce(50).mockResolvedValueOnce(11).mockResolvedValueOnce(10),
       sumPayments: jest.fn().mockResolvedValueOnce(aggregate(1240)).mockResolvedValueOnce(aggregate(550)).mockResolvedValueOnce(aggregate(500)),
     });
     const response = await service.overview();
-    expect(response.data).toMatchObject({ totalUsers: 100, totalUsersDeltaPercent: 50, totalProviders: 20, totalProvidersDeltaPercent: 50, transactions: 50, transactionsDeltaPercent: 10, totalRevenue: 1240, totalRevenueDeltaPercent: 10, currency: 'USD' });
+    expect(response.data).toMatchObject({ totalUsers: 100, totalUsersDeltaPercent: 50, totalProviders: 20, totalProvidersDeltaPercent: 50, orders: 50, ordersDeltaPercent: 10, transactions: 50, transactionsDeltaPercent: 10, totalRevenue: 1240, totalRevenueDeltaPercent: 10, currency: 'USD' });
     expect(repository.countUsers).toHaveBeenCalledWith(expect.objectContaining({ role: 'REGISTERED_USER', deletedAt: null }));
+    expect(repository.countOrders).toHaveBeenCalledWith({});
     expect(repository.sumPayments).toHaveBeenCalledWith({ status: PaymentStatus.SUCCEEDED });
   });
 
@@ -59,9 +61,8 @@ describe('AdminDashboardService', () => {
     const { service } = createService({
       findRevenuePayments: jest.fn().mockResolvedValue([{ amount: new Prisma.Decimal(120), currency: 'USD', createdAt: currentMonth }]),
       findDistributionPayments: jest.fn().mockResolvedValue([{ moneyGiftId: 'gift_1' }, { moneyGiftId: null }, { moneyGiftId: 'gift_2' }]),
-      findProviderOrders: jest.fn().mockResolvedValue([
-        { providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, total: new Prisma.Decimal(200), currency: 'USD', provider: { providerBusinessName: 'Stripe Integration', firstName: 'Stripe', lastName: 'Team' } },
-        { providerId: 'provider_1', status: ProviderOrderStatus.PENDING, total: new Prisma.Decimal(300), currency: 'USD', provider: { providerBusinessName: 'Stripe Integration', firstName: 'Stripe', lastName: 'Team' } },
+        findProviderPerformanceRows: jest.fn().mockResolvedValue([
+        { providerId: 'provider_1', providerName: 'Stripe Integration', totalOrders: 2, successfulOrders: 1, totalVolume: 200, currency: 'USD' },
       ]),
       findRecentCustomerDisputes: jest.fn().mockResolvedValue([{ id: 'dispute_1', caseId: 'DISP-9021', reason: DisputeReason.DUPLICATE_CHARGE, priority: DisputePriority.HIGH, status: DisputeStatus.OPEN, createdAt: new Date('2026-04-08T10:00:00.000Z'), user: { firstName: 'Marcus', lastName: 'Wright' } }]),
       findRecentProviderDisputes: jest.fn().mockResolvedValue([{ id: 'provider_dispute_1', caseId: 'PD-9021', reason: 'Late evidence', category: ProviderDisputeCategory.NON_DELIVERY, priority: ProviderDisputeSeverity.LOW, status: ProviderDisputeStatus.OPEN, createdAt: new Date('2026-04-07T10:00:00.000Z'), customer: { firstName: 'Ada', lastName: 'Lovelace' } }]),
@@ -101,7 +102,7 @@ describe('Admin dashboard overview source safety', () => {
 
   it('stays read-only and reuses existing source tables', () => {
     expect(repository).toContain('this.prisma.payment.findMany');
-    expect(repository).toContain('this.prisma.providerOrder.findMany');
+    expect(repository).toContain('this.prisma.providerOrder.groupBy');
     expect(repository).toContain('this.prisma.disputeCase.findMany');
     expect(repository).toContain('this.prisma.providerDisputeCase.findMany');
     expect(repository).not.toContain('.create(');

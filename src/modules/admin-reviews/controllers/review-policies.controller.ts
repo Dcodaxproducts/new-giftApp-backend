@@ -21,7 +21,7 @@ export class ReviewPoliciesController {
   @Get()
   @Permissions('reviewPolicies.read')
   @ApiOperation({ summary: 'Fetch review moderation policies', description: 'SUPER_ADMIN or ADMIN with reviewPolicies.read. AI moderation fields are config-only until external AI is configured.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { autoApprovalRules: { enabled: true, minRating: 4, minConfidence: 90 }, spamDetection: { enabled: true, autoHideConfidenceThreshold: 85 }, abuseThresholds: { enabled: true, warningThreshold: 3, autoRemoveThreshold: 5, status: 'WARNING' }, visibilityRules: { enabled: true, hideUntilModerated: true }, autoModeration: { enabled: true, confidenceWarningThreshold: 85, currentConfidence: 82 } }, message: 'Review policies fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: { autoApprovalRules: { enabled: true, minRating: 4, minConfidence: 90 }, spamDetection: { enabled: true, autoHideConfidenceThreshold: 85 }, abuseThresholds: { enabled: true, warningThreshold: 3, autoRemoveThreshold: 5, status: 'WARNING' }, visibilityRules: { enabled: true, hideUntilModerated: true }, autoModeration: { enabled: true, confidenceWarningThreshold: 85, currentConfidence: 0 } }, message: 'Review policies fetched successfully.' } } })
   policies() { return this.reviews.policies(); }
 
   @Patch()
@@ -32,6 +32,6 @@ export class ReviewPoliciesController {
 
   @Post('test')
   @Permissions('reviewPolicies.read')
-  @ApiOperation({ summary: 'Test review policy result', description: 'Deterministic rule-based placeholder. No external AI call is made unless future configuration enables it.' })
+  @ApiOperation({ summary: 'Test review policy result', description: 'Deterministic rule-based local policy check. No external AI call is made unless future configuration enables it.' })
   test(@Body() dto: TestReviewPolicyDto) { return this.reviews.testPolicy(dto); }
 }

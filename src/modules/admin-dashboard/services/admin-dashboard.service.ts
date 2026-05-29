@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DisputePriority, PaymentStatus, Prisma, ProviderDisputeSeverity, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { DisputePriority, PaymentStatus, Prisma, ProviderDisputeSeverity, UserRole } from '@prisma/client';
 import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository';
 
 type RevenuePayment = Awaited<ReturnType<AdminDashboardRepository['findRevenuePayments']>>[number];
-type ProviderOrder = Awaited<ReturnType<AdminDashboardRepository['findProviderOrders']>>[number];
 type CustomerDispute = Awaited<ReturnType<AdminDashboardRepository['findRecentCustomerDisputes']>>[number];
 type ProviderDispute = Awaited<ReturnType<AdminDashboardRepository['findRecentProviderDisputes']>>[number];
-type ProviderPerformanceAccumulator = { providerId: string; providerName: string; totalOrders: number; successfulOrders: number; totalVolume: number; currency: string };
 type RecentDispute = { id: string; caseId: string; userName: string; reason: string; status: string; createdAt: Date };
 
 @Injectable()
@@ -17,25 +15,25 @@ export class AdminDashboardService {
     const { currentStart, previousStart, previousEnd } = this.monthRanges();
     const activeUserWhere = { deletedAt: null, role: UserRole.REGISTERED_USER } satisfies Prisma.UserWhereInput;
     const activeProviderWhere = { deletedAt: null } satisfies Prisma.UserWhereInput;
-    const currentPaymentWhere = { createdAt: { gte: currentStart } } satisfies Prisma.PaymentWhereInput;
-    const previousPaymentWhere = { createdAt: { gte: previousStart, lt: previousEnd } } satisfies Prisma.PaymentWhereInput;
-    const currentRevenueWhere = { ...currentPaymentWhere, status: PaymentStatus.SUCCEEDED } satisfies Prisma.PaymentWhereInput;
-    const previousRevenueWhere = { ...previousPaymentWhere, status: PaymentStatus.SUCCEEDED } satisfies Prisma.PaymentWhereInput;
-    const [totalUsers, currentUsers, previousUsers, totalProviders, currentProviders, previousProviders, transactions, currentTransactions, previousTransactions, totalRevenueAggregate, currentRevenueAggregate, previousRevenueAggregate] = await Promise.all([
+    const currentOrderWhere = { createdAt: { gte: currentStart } } satisfies Prisma.OrderWhereInput;
+    const previousOrderWhere = { createdAt: { gte: previousStart, lt: previousEnd } } satisfies Prisma.OrderWhereInput;
+    const currentRevenueWhere = { createdAt: { gte: currentStart }, status: PaymentStatus.SUCCEEDED } satisfies Prisma.PaymentWhereInput;
+    const previousRevenueWhere = { createdAt: { gte: previousStart, lt: previousEnd }, status: PaymentStatus.SUCCEEDED } satisfies Prisma.PaymentWhereInput;
+    const [totalUsers, currentUsers, previousUsers, totalProviders, currentProviders, previousProviders, totalOrders, currentOrders, previousOrders, totalRevenueAggregate, currentRevenueAggregate, previousRevenueAggregate] = await Promise.all([
       this.dashboardRepository.countUsers(activeUserWhere),
       this.dashboardRepository.countUsers({ ...activeUserWhere, createdAt: { gte: currentStart } }),
       this.dashboardRepository.countUsers({ ...activeUserWhere, createdAt: { gte: previousStart, lt: previousEnd } }),
       this.dashboardRepository.countProviders(activeProviderWhere),
       this.dashboardRepository.countProviders({ ...activeProviderWhere, createdAt: { gte: currentStart } }),
       this.dashboardRepository.countProviders({ ...activeProviderWhere, createdAt: { gte: previousStart, lt: previousEnd } }),
-      this.dashboardRepository.countPayments({}),
-      this.dashboardRepository.countPayments(currentPaymentWhere),
-      this.dashboardRepository.countPayments(previousPaymentWhere),
+      this.dashboardRepository.countOrders({}),
+      this.dashboardRepository.countOrders(currentOrderWhere),
+      this.dashboardRepository.countOrders(previousOrderWhere),
       this.dashboardRepository.sumPayments({ status: PaymentStatus.SUCCEEDED }),
       this.dashboardRepository.sumPayments(currentRevenueWhere),
       this.dashboardRepository.sumPayments(previousRevenueWhere),
     ]);
-    return { data: { totalUsers, totalUsersDeltaPercent: this.delta(currentUsers, previousUsers), totalProviders, totalProvidersDeltaPercent: this.delta(currentProviders, previousProviders), transactions, transactionsDeltaPercent: this.delta(currentTransactions, previousTransactions), totalRevenue: this.money(totalRevenueAggregate._sum.amount), totalRevenueDeltaPercent: this.delta(this.money(currentRevenueAggregate._sum.amount), this.money(previousRevenueAggregate._sum.amount)), currency: 'USD' }, message: 'Dashboard overview fetched successfully.' };
+    return { data: { totalUsers, totalUsersDeltaPercent: this.delta(currentUsers, previousUsers), totalProviders, totalProvidersDeltaPercent: this.delta(currentProviders, previousProviders), orders: totalOrders, ordersDeltaPercent: this.delta(currentOrders, previousOrders), transactions: totalOrders, transactionsDeltaPercent: this.delta(currentOrders, previousOrders), totalRevenue: this.money(totalRevenueAggregate._sum.amount), totalRevenueDeltaPercent: this.delta(this.money(currentRevenueAggregate._sum.amount), this.money(previousRevenueAggregate._sum.amount)), currency: 'USD' }, message: 'Dashboard overview fetched successfully.' };
   }
 
   async revenueTrends() {
@@ -53,18 +51,11 @@ export class AdminDashboardService {
   }
 
   async providerPerformance() {
-    const orders = await this.dashboardRepository.findProviderOrders();
-    const providers = new Map<string, ProviderPerformanceAccumulator>();
-    for (const order of orders) {
-      const current = providers.get(order.providerId) ?? { providerId: order.providerId, providerName: this.providerName(order), totalOrders: 0, successfulOrders: 0, totalVolume: 0, currency: order.currency };
-      current.totalOrders += 1;
-      if (this.isSuccessfulProviderOrder(order.status)) {
-        current.successfulOrders += 1;
-        current.totalVolume = this.money(current.totalVolume + this.money(order.total));
-      }
-      providers.set(order.providerId, current);
-    }
-    const data = [...providers.values()].sort((left, right) => right.totalVolume - left.totalVolume).slice(0, 10).map((provider) => ({ providerId: provider.providerId, providerName: provider.providerName, successRate: provider.totalOrders ? this.money((provider.successfulOrders / provider.totalOrders) * 100) : 0, totalVolume: provider.totalVolume, currency: provider.currency }));
+    const rows = await this.dashboardRepository.findProviderPerformanceRows();
+    const data = rows
+      .sort((left, right) => right.totalVolume - left.totalVolume)
+      .slice(0, 10)
+      .map((provider) => ({ providerId: provider.providerId, providerName: provider.providerName, successRate: provider.totalOrders ? this.money((provider.successfulOrders / provider.totalOrders) * 100) : 0, totalVolume: this.money(provider.totalVolume), currency: provider.currency }));
     return { data, message: 'Provider performance fetched successfully.' };
   }
 
@@ -92,14 +83,6 @@ export class AdminDashboardService {
       const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
       return { label: start.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }), start, end };
     });
-  }
-
-  private providerName(order: ProviderOrder): string {
-    return order.provider.providerBusinessName ?? (`${order.provider.firstName} ${order.provider.lastName}`.trim() || 'Provider');
-  }
-
-  private isSuccessfulProviderOrder(status: ProviderOrderStatus): boolean {
-    return status === ProviderOrderStatus.DELIVERED || status === ProviderOrderStatus.COMPLETED;
   }
 
   private customerDispute(dispute: CustomerDispute): RecentDispute {
