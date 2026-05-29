@@ -118,12 +118,18 @@ describe('AdminProviderPayoutsService', () => {
     expect(auditCalls[0]?.[0]).toMatchObject({ action: 'PROVIDER_PAYOUT_REJECTED' });
   });
 
-  it('rejects invalid status transitions and keeps bulk approve idempotent', async () => {
+  it('rejects invalid status transitions and keeps bulk APPROVE idempotent', async () => {
     const { service, repository } = createService();
     await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_1', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
     repository.findPayoutById.mockResolvedValueOnce(completedPayout).mockResolvedValueOnce(pendingPayout);
-    const response = await service.bulkApprove({ uid: 'admin_1', role: UserRole.ADMIN }, { payoutIds: ['payout_1', 'payout_2'], comment: 'Bulk approval', notifyProvider: false });
+    const response = await service.bulkAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['approve'] } }, { action: AdminProviderPayoutAction.APPROVE, payoutIds: ['payout_1', 'payout_2'], reason: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW, comment: 'Bulk approval', notifyProvider: false });
     expect(response.data).toEqual(expect.arrayContaining([{ payoutId: 'payout_1', status: ProviderPayoutStatus.COMPLETED, success: true, idempotent: true }, { payoutId: 'payout_2', status: ProviderPayoutStatus.PROCESSING, success: true, idempotent: false }]));
+  });
+
+  it('rejects unsupported bulk payout actions and enforces permissions', async () => {
+    const { service } = createService();
+    await expect(service.bulkAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, { action: AdminProviderPayoutAction.HOLD, payoutIds: ['payout_2'], reason: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW, notifyProvider: false })).rejects.toThrow('Only APPROVE is supported for bulk payout actions');
+    await expect(service.bulkAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['read'] } }, { action: AdminProviderPayoutAction.APPROVE, payoutIds: ['payout_2'], notifyProvider: false })).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('enforces action-specific permissions and reason requirements', async () => {
@@ -141,6 +147,7 @@ describe('AdminProviderPayoutsService', () => {
 
 describe('Admin provider payouts Swagger and permission safety', () => {
   const controller = readFileSync(join(__dirname, '../controllers/admin-provider-payouts.controller.ts'), 'utf8');
+  const serviceSource = readFileSync(join(__dirname, '../services/admin-provider-payouts.service.ts'), 'utf8');
   const repository = readFileSync(join(__dirname, '../repositories/admin-provider-payouts.repository.ts'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
@@ -149,7 +156,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   it('adds required routes, Swagger examples, and access metadata', () => {
     expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts')");
     expect(controller).not.toContain('02 Admin - Provider Payout Approvals');
-    for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", '@Get()', "@Post(':id/action')", "@Get(':id')"]) expect(controller).toContain(route);
+    for (const route of ["@Get('stats')", "@Get('trends')", "@Get('earning-distribution')", "@Get('export')", "@Post('bulk-action')", '@Get()', "@Post(':id/action')", "@Get(':id')"]) expect(controller).toContain(route);
     expect(controller).toContain('AdminProviderPayoutTrendRange');
     expect(controller).toContain("trends(@Query() query: AdminProviderPayoutTrendsDto)");
     expect(controller).toContain('totalPayoutsThisMonth');
@@ -164,7 +171,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
     expect(permissions).toContain("key: 'export'");
     expect(permissions).toContain("key: 'initiate'");
     expect(controller.match(/@Permissions\('providerPayouts\.read'\)/g)).toHaveLength(6);
-    expect(controller).toContain("@Permissions('providerPayouts.approve')");
+    expect(serviceSource).toContain('assertActionPermission(user, dto.action)');
     expect(controller).not.toContain("@Post(':id/approve')");
     expect(controller).not.toContain("@Post(':id/hold')");
     expect(controller).not.toContain("@Post(':id/reject')");
@@ -178,9 +185,18 @@ describe('Admin provider payouts Swagger and permission safety', () => {
 
   it('removes old action routes from Swagger metadata and keeps one unified action route', () => {
     expect(swaggerAccess).toContain('POST /api/v1/admin/provider-payouts/{id}/action');
+    expect(swaggerAccess).toContain('POST /api/v1/admin/provider-payouts/bulk-action');
+    expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/bulk-approve');
     expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/{id}/approve');
     expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/{id}/hold');
     expect(swaggerAccess).not.toContain('POST /api/v1/admin/provider-payouts/{id}/reject');
     expect(controller.match(/@Post\(':id\/action'\)/g)).toHaveLength(1);
+  });
+
+  it('removes old bulk approve route from generated Swagger', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    expect(controller).not.toContain("@Post('bulk-approve')");
+    expect(openapi.paths['/api/v1/admin/provider-payouts/bulk-action']).toBeDefined();
+    expect(openapi.paths['/api/v1/admin/provider-payouts/bulk-approve']).toBeUndefined();
   });
 });

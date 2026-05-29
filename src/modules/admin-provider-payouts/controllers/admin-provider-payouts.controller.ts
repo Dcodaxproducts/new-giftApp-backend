@@ -7,7 +7,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, BulkApproveProviderPayoutsDto, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto, ProviderPayoutActionDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, BulkProviderPayoutActionDto, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto, ProviderPayoutActionDto } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
 @ApiTags('02 Admin - Provider Payouts')
@@ -42,12 +42,11 @@ export class AdminProviderPayoutsController {
   @ApiOperation({ summary: 'Export provider payouts', description: 'SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.' })
   async export(@Query() query: ExportAdminProviderPayoutsDto): Promise<StreamableFile> { const file = await this.payouts.export(query); return new StreamableFile(Buffer.from(file.content), { disposition: `attachment; filename="${file.filename}"`, type: file.contentType }); }
 
-  @Post('bulk-approve')
-  @Permissions('providerPayouts.approve')
-  @ApiOperation({ summary: 'Bulk approve provider payouts', description: 'SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.' })
-  @ApiBody({ type: BulkApproveProviderPayoutsDto, examples: { approve: { value: { payoutIds: ['payout_id_1', 'payout_id_2'], comment: 'Bulk approved after verification.', notifyProvider: true } } } })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: [{ payoutId: 'payout_id_1', status: 'PROCESSING', success: true, idempotent: false }, { payoutId: 'payout_id_2', status: 'PROCESSING', success: true, idempotent: true }], message: 'Bulk payout approval processed.' } } })
-  bulkApprove(@CurrentUser() user: AuthUserContext, @Body() dto: BulkApproveProviderPayoutsDto) { return this.payouts.bulkApprove(user, dto); }
+  @Post('bulk-action')
+  @ApiOperation({ summary: 'Run bulk provider payout action', description: 'SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and is currently the only enabled bulk action. HOLD and REJECT are reserved for future bulk logic and return a validation error for now. Approval remains idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.' })
+  @ApiBody({ type: BulkProviderPayoutActionDto, examples: { approve: { value: { action: 'APPROVE', payoutIds: ['payout_id_1', 'payout_id_2'], reason: 'COMPLIANCE_REVIEW', comment: 'Bulk processed after finance review.', notifyProvider: true } }, holdUnsupported: { value: { action: 'HOLD', payoutIds: ['payout_id_1'], reason: 'COMPLIANCE_REVIEW', comment: 'Reserved for future bulk hold support.', notifyProvider: true } }, rejectUnsupported: { value: { action: 'REJECT', payoutIds: ['payout_id_1'], reason: 'COMPLIANCE_REJECTED', comment: 'Reserved for future bulk reject support.', notifyProvider: true } } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: [{ payoutId: 'payout_id_1', status: 'PROCESSING', success: true, idempotent: false }, { payoutId: 'payout_id_2', status: 'PROCESSING', success: true, idempotent: true }], message: 'Bulk payout action processed.' } } })
+  bulkAction(@CurrentUser() user: AuthUserContext, @Body() dto: BulkProviderPayoutActionDto) { return this.payouts.bulkAction(user, dto); }
 
   @Get()
   @Permissions('providerPayouts.read')

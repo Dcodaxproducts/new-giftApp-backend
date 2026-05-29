@@ -56,8 +56,10 @@ export class RejectProviderPayoutDto {
   @ApiProperty({ example: true }) @IsBoolean() notifyProvider!: boolean;
 }
 
-export class BulkApproveProviderPayoutsDto {
+export class BulkProviderPayoutActionDto {
+  @ApiProperty({ enum: AdminProviderPayoutAction, example: AdminProviderPayoutAction.APPROVE }) @IsEnum(AdminProviderPayoutAction) action!: AdminProviderPayoutAction;
   @ApiProperty({ example: ['payout_id_1', 'payout_id_2'], type: [String] }) @IsArray() @ArrayNotEmpty() @ArrayUnique() @IsString({ each: true }) payoutIds!: string[];
-  @ApiPropertyOptional({ example: 'Bulk approved after review.', maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) comment?: string;
+  @ApiPropertyOptional({ enum: AdminProviderPayoutActionReason, example: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW }) @IsOptional() @IsEnum(AdminProviderPayoutActionReason) reason?: AdminProviderPayoutActionReason;
+  @ApiPropertyOptional({ example: 'Bulk processed after finance review.', maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) comment?: string;
   @ApiProperty({ example: true }) @IsBoolean() notifyProvider!: boolean;
 }

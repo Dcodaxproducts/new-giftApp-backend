@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { CommissionTier, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { AdminProviderPayoutAction, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkApproveProviderPayoutsDto, HoldProviderPayoutDto, ProviderPayoutActionDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutAction, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkProviderPayoutActionDto, HoldProviderPayoutDto, ProviderPayoutActionDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
 import { ADMIN_PROVIDER_PAYOUT_INCLUDE, AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 
 type PayoutWithRelations = Prisma.ProviderPayoutGetPayload<{ include: typeof ADMIN_PROVIDER_PAYOUT_INCLUDE }>;
@@ -119,7 +119,9 @@ export class AdminProviderPayoutsService {
     return { data: { id: updated.id, status: updated.status, ledgerReleased: true }, message: 'Payout rejected successfully.' };
   }
 
-  async bulkApprove(user: AuthUserContext, dto: BulkApproveProviderPayoutsDto) {
+  async bulkAction(user: AuthUserContext, dto: BulkProviderPayoutActionDto) {
+    this.assertActionPermission(user, dto.action);
+    if (dto.action !== AdminProviderPayoutAction.APPROVE) throw new BadRequestException('Only APPROVE is supported for bulk payout actions');
     const results = [];
     for (const payoutId of dto.payoutIds) {
       try {
@@ -129,7 +131,7 @@ export class AdminProviderPayoutsService {
         results.push({ payoutId, success: false, error: error instanceof Error ? error.message : 'Payout approval failed' });
       }
     }
-    return { data: results, message: 'Bulk payout approval processed.' };
+    return { data: results, message: 'Bulk payout action processed.' };
   }
 
   private assertActionPermission(user: AuthUserContext, action: AdminProviderPayoutAction): void {

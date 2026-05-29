@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-29 05:06 UTC
+Generated at: 2026-05-29 05:14 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-05-29 05:06 UTC.
+Generated from `docs/generated/openapi.json` on 2026-05-29 05:14 UTC.
 
 ## Frontend Integration Flows
 
@@ -236,7 +236,7 @@ Generated from `docs/generated/openapi.json` on 2026-05-29 05:06 UTC.
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/admin/provider-payouts` | List provider payouts | SUPER_ADMIN or ADMIN with providerPayouts.read |
-| POST | `/api/v1/admin/provider-payouts/bulk-approve` | Bulk approve provider payouts | SUPER_ADMIN or ADMIN with providerPayouts.approve |
+| POST | `/api/v1/admin/provider-payouts/bulk-action` | Run bulk provider payout action | SUPER_ADMIN or ADMIN with providerPayouts.approve |
 | GET | `/api/v1/admin/provider-payouts/earning-distribution` | Fetch earning distribution by provider tier | SUPER_ADMIN or ADMIN with providerPayouts.read |
 | GET | `/api/v1/admin/provider-payouts/export` | Export provider payouts | SUPER_ADMIN or ADMIN with providerPayouts.export |
 | GET | `/api/v1/admin/provider-payouts/stats` | Fetch provider payout dashboard stats | SUPER_ADMIN or ADMIN with providerPayouts.read |

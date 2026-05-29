@@ -5695,26 +5695,50 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.export"
       }
     },
-    "/api/v1/admin/provider-payouts/bulk-approve": {
+    "/api/v1/admin/provider-payouts/bulk-action": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.",
-        "operationId": "AdminProviderPayoutsController_bulkApprove",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. APPROVE is currently the only enabled bulk action and returns per-item idempotent results. SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and is currently the only enabled bulk action. HOLD and REJECT are reserved for future bulk logic and return a validation error for now. Approval remains idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.",
+        "operationId": "AdminProviderPayoutsController_bulkAction",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BulkApproveProviderPayoutsDto"
+                "$ref": "#/components/schemas/BulkProviderPayoutActionDto"
               },
               "examples": {
                 "approve": {
                   "value": {
+                    "action": "APPROVE",
                     "payoutIds": [
                       "payout_id_1",
                       "payout_id_2"
                     ],
-                    "comment": "Bulk approved after verification.",
+                    "reason": "COMPLIANCE_REVIEW",
+                    "comment": "Bulk processed after finance review.",
+                    "notifyProvider": true
+                  }
+                },
+                "holdUnsupported": {
+                  "value": {
+                    "action": "HOLD",
+                    "payoutIds": [
+                      "payout_id_1"
+                    ],
+                    "reason": "COMPLIANCE_REVIEW",
+                    "comment": "Reserved for future bulk hold support.",
+                    "notifyProvider": true
+                  }
+                },
+                "rejectUnsupported": {
+                  "value": {
+                    "action": "REJECT",
+                    "payoutIds": [
+                      "payout_id_1"
+                    ],
+                    "reason": "COMPLIANCE_REJECTED",
+                    "comment": "Reserved for future bulk reject support.",
                     "notifyProvider": true
                   }
                 }
@@ -5744,7 +5768,7 @@
                         "idempotent": true
                       }
                     ],
-                    "message": "Bulk payout approval processed."
+                    "message": "Bulk payout action processed."
                   }
                 }
               }
@@ -5756,7 +5780,7 @@
             "bearer": []
           }
         ],
-        "summary": "Bulk approve provider payouts",
+        "summary": "Run bulk provider payout action",
         "tags": [
           "02 Admin - Provider Payouts"
         ],
@@ -26052,9 +26076,18 @@
           "visibility"
         ]
       },
-      "BulkApproveProviderPayoutsDto": {
+      "BulkProviderPayoutActionDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "HOLD",
+              "REJECT"
+            ],
+            "example": "APPROVE"
+          },
           "payoutIds": {
             "example": [
               "payout_id_1",
@@ -26065,9 +26098,23 @@
               "type": "string"
             }
           },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "BANK_VERIFICATION_PENDING",
+              "COMPLIANCE_REVIEW",
+              "PROVIDER_DOCUMENTS_REQUIRED",
+              "INVALID_BANK_ACCOUNT",
+              "FRAUD_RISK",
+              "COMPLIANCE_REJECTED",
+              "PROVIDER_INELIGIBLE",
+              "OTHER"
+            ],
+            "example": "COMPLIANCE_REVIEW"
+          },
           "comment": {
             "type": "string",
-            "example": "Bulk approved after review.",
+            "example": "Bulk processed after finance review.",
             "maxLength": 500
           },
           "notifyProvider": {
@@ -26076,6 +26123,7 @@
           }
         },
         "required": [
+          "action",
           "payoutIds",
           "notifyProvider"
         ]

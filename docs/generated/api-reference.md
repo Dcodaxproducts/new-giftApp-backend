@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-29 05:06 UTC
+Generated at: 2026-05-29 05:14 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -2371,20 +2371,46 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/admin/provider-payouts/bulk-approve`
+### POST `/api/v1/admin/provider-payouts/bulk-action`
 
-- Summary: Bulk approve provider payouts
+- Summary: Run bulk provider payout action
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.approve
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. Returns per-item idempotent results. SUPER_ADMIN or ADMIN with providerPayouts.approve. Idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.approve. SUPER_ADMIN or ADMIN with providerPayouts.approve permission. APPROVE is currently the only enabled bulk action and returns per-item idempotent results. SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and is currently the only enabled bulk action. HOLD and REJECT are reserved for future bulk logic and return a validation error for now. Approval remains idempotent per payout: already PROCESSING/COMPLETED payouts are returned as successful idempotent items and are not processed twice.
 - Request payload(s):
   - approve:
 ```json
 {
+  "action": "APPROVE",
   "payoutIds": [
     "payout_id_1",
     "payout_id_2"
   ],
-  "comment": "Bulk approved after verification.",
+  "reason": "COMPLIANCE_REVIEW",
+  "comment": "Bulk processed after finance review.",
+  "notifyProvider": true
+}
+```
+  - holdUnsupported:
+```json
+{
+  "action": "HOLD",
+  "payoutIds": [
+    "payout_id_1"
+  ],
+  "reason": "COMPLIANCE_REVIEW",
+  "comment": "Reserved for future bulk hold support.",
+  "notifyProvider": true
+}
+```
+  - rejectUnsupported:
+```json
+{
+  "action": "REJECT",
+  "payoutIds": [
+    "payout_id_1"
+  ],
+  "reason": "COMPLIANCE_REJECTED",
+  "comment": "Reserved for future bulk reject support.",
   "notifyProvider": true
 }
 ```
@@ -2406,7 +2432,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "idempotent": true
     }
   ],
-  "message": "Bulk payout approval processed."
+  "message": "Bulk payout action processed."
 }
 ```
 
