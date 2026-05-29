@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-29 05:14 UTC
+Generated at: 2026-05-29 11:54 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -1936,14 +1936,16 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "success": true,
   "data": {
-    "totalUsers": 128430,
-    "totalUsersDeltaPercent": 12.5,
-    "totalProviders": 1240,
-    "totalProvidersDeltaPercent": 5.2,
-    "transactions": 45200,
-    "transactionsDeltaPercent": 18.1,
-    "totalRevenue": 1240000,
-    "totalRevenueDeltaPercent": 10.3,
+    "totalUsers": 0,
+    "totalUsersDeltaPercent": 0,
+    "totalProviders": 0,
+    "totalProvidersDeltaPercent": 0,
+    "orders": 0,
+    "ordersDeltaPercent": 0,
+    "transactions": 0,
+    "transactionsDeltaPercent": 0,
+    "totalRevenue": 0,
+    "totalRevenueDeltaPercent": 0,
     "currency": "USD"
   },
   "message": "Dashboard overview fetched successfully."
@@ -1967,9 +1969,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "Mar"
     ],
     "values": [
-      12000,
-      28000,
-      16000
+      0,
+      0,
+      0
     ],
     "currency": "USD"
   },
@@ -1987,8 +1989,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "success": true,
   "data": {
-    "giftCardsPercent": 65,
-    "directPaymentsPercent": 35
+    "giftCardsPercent": 0,
+    "directPaymentsPercent": 0
   },
   "message": "Gift vs payment distribution fetched successfully."
 }
@@ -2006,9 +2008,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "data": [
     {
       "providerId": "provider_id",
-      "providerName": "Stripe Integration",
-      "successRate": 99.2,
-      "totalVolume": 450230,
+      "providerName": "Provider",
+      "successRate": 0,
+      "totalVolume": 0,
       "currency": "USD"
     }
   ],
@@ -2025,15 +2027,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "dispute_id",
-      "caseId": "DISP-9021",
-      "userName": "Marcus Wright",
-      "reason": "Unauthorized transaction",
-      "status": "HIGH_PRIORITY"
-    }
-  ],
+  "data": [],
   "message": "Recent disputes fetched successfully."
 }
 ```
@@ -9473,7 +9467,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "customerSubscriptionId": "<string>",
-  "stripeSubscriptionId": "<string>"
+  "stripeSubscriptionId": "<string>",
+  "idempotencyKey": "sub_confirm_2026_001"
 }
 ```
 - Response body:
@@ -9641,7 +9636,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "amount": 100,
   "currency": "USD",
   "paymentMethod": "STRIPE_CARD",
-  "stripePaymentMethodId": "pm_xxx"
+  "stripePaymentMethodId": "pm_xxx",
+  "idempotencyKey": "wallet_topup_2026_001"
 }
 ```
 - Response body:
@@ -9932,7 +9928,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "paymentId": "cmf0payment001",
-  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx"
+  "stripePaymentIntentId": "pi_3Pxxxxxxxxxxxxxxxx",
+  "idempotencyKey": "confirm_payment_2026_001"
 }
 ```
 - Response body:

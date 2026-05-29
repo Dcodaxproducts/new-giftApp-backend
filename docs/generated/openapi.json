@@ -3030,14 +3030,16 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "totalUsers": 128430,
-                      "totalUsersDeltaPercent": 12.5,
-                      "totalProviders": 1240,
-                      "totalProvidersDeltaPercent": 5.2,
-                      "transactions": 45200,
-                      "transactionsDeltaPercent": 18.1,
-                      "totalRevenue": 1240000,
-                      "totalRevenueDeltaPercent": 10.3,
+                      "totalUsers": 0,
+                      "totalUsersDeltaPercent": 0,
+                      "totalProviders": 0,
+                      "totalProvidersDeltaPercent": 0,
+                      "orders": 0,
+                      "ordersDeltaPercent": 0,
+                      "transactions": 0,
+                      "transactionsDeltaPercent": 0,
+                      "totalRevenue": 0,
+                      "totalRevenueDeltaPercent": 0,
                       "currency": "USD"
                     },
                     "message": "Dashboard overview fetched successfully."
@@ -3081,9 +3083,9 @@
                         "Mar"
                       ],
                       "values": [
-                        12000,
-                        28000,
-                        16000
+                        0,
+                        0,
+                        0
                       ],
                       "currency": "USD"
                     },
@@ -3121,8 +3123,8 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "giftCardsPercent": 65,
-                      "directPaymentsPercent": 35
+                      "giftCardsPercent": 0,
+                      "directPaymentsPercent": 0
                     },
                     "message": "Gift vs payment distribution fetched successfully."
                   }
@@ -3160,9 +3162,9 @@
                     "data": [
                       {
                         "providerId": "provider_id",
-                        "providerName": "Stripe Integration",
-                        "successRate": 99.2,
-                        "totalVolume": 450230,
+                        "providerName": "Provider",
+                        "successRate": 0,
+                        "totalVolume": 0,
                         "currency": "USD"
                       }
                     ],
@@ -3199,15 +3201,7 @@
                 "schema": {
                   "example": {
                     "success": true,
-                    "data": [
-                      {
-                        "id": "dispute_id",
-                        "caseId": "DISP-9021",
-                        "userName": "Marcus Wright",
-                        "reason": "Unauthorized transaction",
-                        "status": "HIGH_PRIORITY"
-                      }
-                    ],
+                    "data": [],
                     "message": "Recent disputes fetched successfully."
                   }
                 }
@@ -8027,19 +8021,19 @@
                     "success": true,
                     "data": {
                       "health": {
-                        "averageRating": 4.62,
+                        "averageRating": 0,
                         "averageRatingDelta": 0,
-                        "totalReviews": 12847,
-                        "newReviewsThisWeek": 842,
-                        "flaggedQueueCount": 34,
-                        "criticalFlaggedCount": 12,
-                        "autoModeratedCount": 1203,
-                        "autoModerationAccuracy": 82
+                        "totalReviews": 0,
+                        "newReviewsThisWeek": 0,
+                        "flaggedQueueCount": 0,
+                        "criticalFlaggedCount": 0,
+                        "autoModeratedCount": 0,
+                        "autoModerationAccuracy": 0
                       },
                       "systemWarning": {
                         "enabled": true,
                         "title": "System Warning",
-                        "message": "Auto-moderation confidence dropped to 82%. Review recommended.",
+                        "message": "Auto-moderation confidence dropped to 0%. Review recommended.",
                         "severity": "WARNING"
                       }
                     },
@@ -9011,7 +9005,7 @@
                       "autoModeration": {
                         "enabled": true,
                         "confidenceWarningThreshold": 85,
-                        "currentConfidence": 82
+                        "currentConfidence": 0
                       }
                     },
                     "message": "Review policies fetched successfully."
@@ -9067,7 +9061,7 @@
     },
     "/api/v1/admin/review-policies/test": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.read. SUPER_ADMIN or ADMIN with reviewPolicies.read permission. Deterministic rule-based placeholder. No external AI call is made unless future configuration enables it.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.read. SUPER_ADMIN or ADMIN with reviewPolicies.read permission. Deterministic rule-based local policy check. No external AI call is made unless future configuration enables it.",
         "operationId": "ReviewPoliciesController_test",
         "parameters": [],
         "requestBody": {
@@ -25584,6 +25578,10 @@
           "stripePaymentMethodId": {
             "type": "string",
             "example": "pm_xxx"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "wallet_topup_2026_001"
           }
         },
         "required": [
@@ -28557,6 +28555,10 @@
           "couponCode": {
             "type": "string",
             "example": "SAVE30"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "sub_checkout_2026_001"
           }
         },
         "required": [
@@ -28573,6 +28575,10 @@
           },
           "stripeSubscriptionId": {
             "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "sub_confirm_2026_001"
           }
         },
         "required": [
@@ -29718,6 +29724,10 @@
               "PLACEHOLDER"
             ],
             "example": "STRIPE_CARD"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "cart_customer_1_2026_001"
           }
         },
         "required": [
@@ -29735,6 +29745,10 @@
           "stripePaymentIntentId": {
             "type": "string",
             "example": "pi_3Pxxxxxxxxxxxxxxxx"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "confirm_payment_2026_001"
           }
         },
         "required": [
@@ -29788,6 +29802,10 @@
               "PLACEHOLDER"
             ],
             "example": "STRIPE_CARD"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "example": "money_gift_2026_001"
           }
         },
         "required": [
