@@ -35,10 +35,10 @@ describe('ProviderBusinessCategoriesService', () => {
     expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: false }) }));
   });
 
-  it('keeps soft-deleted categories excluded and searches name or description', async () => {
+  it('keeps soft-deleted categories excluded and searches name only', async () => {
     const { service, prisma } = createService();
     await service.list({ search: 'flower' });
-    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null, OR: [{ name: { contains: 'flower', mode: 'insensitive' } }, { description: { contains: 'flower', mode: 'insensitive' } }] } }));
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null, name: { contains: 'flower', mode: 'insensitive' } } }));
   });
 
   it('lookup returns active categories only for signup dropdown', async () => {
