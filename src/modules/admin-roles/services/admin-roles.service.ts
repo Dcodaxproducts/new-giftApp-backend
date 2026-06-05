@@ -36,7 +36,7 @@ export class AdminRolesService {
     const roles = await this.repository.findManyAdminRoles({
       where,
       include: { _count: { select: { admins: true } } },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
     });
 
     return {

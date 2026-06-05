@@ -58,6 +58,12 @@ describe('AdminRolesService', () => {
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'ADMIN_ROLE_DELETED' }));
   });
 
+  it('lists newest admin roles first', async () => {
+    const { service, repository } = createService();
+    await service.list(superAdmin, {});
+    expect(repository.findManyAdminRoles).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
+  });
+
   it('permission catalog behavior remains unchanged', () => {
     const { service, catalogRepository } = createService();
     expect(service.catalog()).toEqual({ data: [{ module: 'admins' }], message: 'Permission catalog fetched successfully' });

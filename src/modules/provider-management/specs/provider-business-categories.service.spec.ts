@@ -23,6 +23,12 @@ describe('ProviderBusinessCategoriesService', () => {
     expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null } }));
   });
 
+  it('orders new categories first when sortOrder ties', async () => {
+    const { service, prisma } = createService();
+    await service.list({ page: 1, limit: 10 });
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { name: 'asc' }] }));
+  });
+
   it('filters active categories when isActive=true', async () => {
     const { service, prisma } = createService();
     await service.list({ isActive: true });

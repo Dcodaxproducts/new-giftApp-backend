@@ -132,6 +132,12 @@ describe('SubscriptionPlansService', () => {
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PLAN_FEATURE_DELETED' }));
   });
 
+  it('lists newest plan features first when sortOrder ties', async () => {
+    const { service, prisma } = createService();
+    await service.listFeatures({});
+    expect(prisma.planFeatureCatalog.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { label: 'asc' }] }));
+  });
+
   it('old coupon status route is removed from Swagger', () => {
     const controller = readFileSync(join(__dirname, '../controllers/coupons.controller.ts'), 'utf8');
     const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };

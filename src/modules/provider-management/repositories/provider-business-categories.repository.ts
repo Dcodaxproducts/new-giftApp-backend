@@ -12,7 +12,7 @@ export class ProviderBusinessCategoriesRepository {
 
   findManyForList(params: { where: Prisma.ProviderBusinessCategoryWhereInput; skip: number; take: number }) {
     return this.prisma.$transaction([
-      this.prisma.providerBusinessCategory.findMany({ where: params.where, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }], skip: params.skip, take: params.take }),
+      this.prisma.providerBusinessCategory.findMany({ where: params.where, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { name: 'asc' }], skip: params.skip, take: params.take }),
       this.prisma.providerBusinessCategory.count({ where: params.where }),
     ]);
   }

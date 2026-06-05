@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 09:22 UTC
+Generated at: 2026-06-05 09:35 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
