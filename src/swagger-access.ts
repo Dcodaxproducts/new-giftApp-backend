@@ -140,11 +140,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'PATCH /api/v1/admin/social-reporting-rules/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with socialReportingRules.update', description: 'SUPER_ADMIN or ADMIN with socialReportingRules.update permission.' },
   'DELETE /api/v1/admin/social-reporting-rules/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with socialReportingRules.delete', description: 'SUPER_ADMIN or ADMIN with socialReportingRules.delete permission.' },
 
-  'GET /api/v1/admin/dashboard/overview': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only dashboard overview metrics.' },
-  'GET /api/v1/admin/dashboard/revenue-trends': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only monthly revenue trends.' },
-  'GET /api/v1/admin/dashboard/gift-vs-payment': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only gift versus direct payment distribution.' },
-  'GET /api/v1/admin/dashboard/provider-performance': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table.' },
-  'GET /api/v1/admin/dashboard/recent-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data.' },
+  'GET /api/v1/admin/dashboard': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only merged dashboard overview, trends, gift/payment distribution, provider performance, and recent disputes.' },
 
   'GET /api/v1/admin/platform-analytics/summary': { allowedRoles: 'SUPER_ADMIN or ADMIN with analytics.read', description: 'SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records.' },
   'GET /api/v1/admin/platform-analytics/revenue-transactions': { allowedRoles: 'SUPER_ADMIN or ADMIN with analytics.read', description: 'SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned.' },

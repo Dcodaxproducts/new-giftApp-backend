@@ -11,11 +11,7 @@
 ## 2. APIs added
 
 ### Admin Dashboard
-- `GET /api/v1/admin/dashboard/overview`
-- `GET /api/v1/admin/dashboard/revenue-trends`
-- `GET /api/v1/admin/dashboard/gift-vs-payment`
-- `GET /api/v1/admin/dashboard/provider-performance`
-- `GET /api/v1/admin/dashboard/recent-disputes`
+- `GET /api/v1/admin/dashboard`
 
 ### Admin Provider Payouts / Approvals
 - `GET /api/v1/admin/provider-payouts/stats`
@@ -87,6 +83,7 @@
 - This confirms commission rules affect future provider payout calculation rather than rewriting historical payouts.
 
 ### Verified dashboard integration
+- Dashboard overview returns overview metrics, revenue trends, gift/payment distribution, provider performance, and recent disputes from one merged API.
 - Dashboard overview reads live aggregates from `user`, `payment`, `providerOrder`, `disputeCase`, and `providerDisputeCase` tables via repository methods.
 - Revenue metrics use succeeded payments only.
 - User/provider counts exclude deleted records and distinguish provider role correctly.

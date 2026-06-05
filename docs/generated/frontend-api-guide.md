@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 10:10 UTC
+Generated at: 2026-06-05 10:26 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-05 10:10 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-05 10:26 UTC.
 
 ## Frontend Integration Flows
 
@@ -33,15 +33,11 @@ Generated from `docs/generated/openapi.json` on 2026-06-05 10:10 UTC.
 | PATCH | `/api/v1/admin/payout-settings/commission-tiers/{id}` | Update commission tier | SUPER_ADMIN or ADMIN with payoutSettings.update |
 | DELETE | `/api/v1/admin/payout-settings/commission-tiers/{id}` | Delete commission tier | SUPER_ADMIN or ADMIN with payoutSettings.update |
 
-### Admin - Dashboard Overview (5 APIs)
+### Admin - Dashboard Overview (1 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/dashboard/gift-vs-payment` | Fetch gift vs direct payment distribution | SUPER_ADMIN or ADMIN with dashboard.read |
-| GET | `/api/v1/admin/dashboard/overview` | Fetch Super Admin dashboard overview metrics | SUPER_ADMIN or ADMIN with dashboard.read |
-| GET | `/api/v1/admin/dashboard/provider-performance` | Fetch provider performance table | SUPER_ADMIN or ADMIN with dashboard.read |
-| GET | `/api/v1/admin/dashboard/recent-disputes` | Fetch recent disputes table | SUPER_ADMIN or ADMIN with dashboard.read |
-| GET | `/api/v1/admin/dashboard/revenue-trends` | Fetch monthly revenue trends | SUPER_ADMIN or ADMIN with dashboard.read |
+| GET | `/api/v1/admin/dashboard` | Fetch Super Admin dashboard data | SUPER_ADMIN or ADMIN with dashboard.read |
 
 ### Admin - Dispute Decisions (3 APIs)
 

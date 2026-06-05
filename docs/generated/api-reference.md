@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 10:09 UTC
+Generated at: 2026-06-05 10:25 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -16,7 +16,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Management (12 APIs)
 - 02 Admin - Provider Business Categories (6 APIs)
 - 02 Admin - Promotional Offers Management (8 APIs)
-- 02 Admin - Dashboard Overview (5 APIs)
+- 02 Admin - Dashboard Overview (1 APIs)
 - 02 Admin - Platform Analytics (4 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Provider Payouts (9 APIs)
@@ -1946,109 +1946,66 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ## 02 Admin - Dashboard Overview
 
-### GET `/api/v1/admin/dashboard/overview`
+### GET `/api/v1/admin/dashboard`
 
-- Summary: Fetch Super Admin dashboard overview metrics
+- Summary: Fetch Super Admin dashboard data
 - Allowed role/access: SUPER_ADMIN or ADMIN with dashboard.read
-- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only dashboard overview metrics. SUPER_ADMIN or ADMIN with dashboard.read. Read-only metrics are aggregated from existing users, providers, payments, and transaction records. Missing analytics sources return zeros instead of fake data.
+- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only merged dashboard overview, trends, gift/payment distribution, provider performance, and recent disputes. SUPER_ADMIN or ADMIN with dashboard.read. Returns overview metrics, revenue trends, gift/payment distribution, provider performance, and recent disputes from real records only. Payment secrets, card data, provider bank data, dispute evidence, and private internal notes are never selected or returned.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
 - Response body:
 ```json
 {
   "success": true,
   "data": {
-    "totalUsers": 0,
-    "totalUsersDeltaPercent": 0,
-    "totalProviders": 0,
-    "totalProvidersDeltaPercent": 0,
-    "orders": 0,
-    "ordersDeltaPercent": 0,
-    "transactions": 0,
-    "transactionsDeltaPercent": 0,
-    "totalRevenue": 0,
-    "totalRevenueDeltaPercent": 0,
-    "currency": "USD"
-  },
-  "message": "Dashboard overview fetched successfully."
-}
-```
-
-### GET `/api/v1/admin/dashboard/revenue-trends`
-
-- Summary: Fetch monthly revenue trends
-- Allowed role/access: SUPER_ADMIN or ADMIN with dashboard.read
-- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only monthly revenue trends. SUPER_ADMIN or ADMIN with dashboard.read. Uses successful payment records for the last 12 calendar months and returns zero for months with no revenue.
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "range": "LAST_12_MONTHS",
-    "labels": [
-      "Jan",
-      "Feb",
-      "Mar"
+    "overview": {
+      "totalUsers": 128430,
+      "totalUsersDeltaPercent": 12.5,
+      "totalProviders": 1240,
+      "totalProvidersDeltaPercent": 5.2,
+      "transactions": 45200,
+      "transactionsDeltaPercent": 18.1,
+      "totalRevenue": 1240000,
+      "totalRevenueDeltaPercent": 10.3
+    },
+    "revenueTrends": {
+      "range": "LAST_12_MONTHS",
+      "labels": [
+        "Jan",
+        "Feb",
+        "Mar"
+      ],
+      "values": [
+        12000,
+        28000,
+        16000
+      ]
+    },
+    "giftVsPayment": {
+      "giftCardsPercent": 65,
+      "directPaymentsPercent": 35
+    },
+    "providerPerformance": [
+      {
+        "providerId": "provider_id",
+        "providerName": "Gift Provider",
+        "successRate": 99.2,
+        "totalVolume": 450230
+      }
     ],
-    "values": [
-      0,
-      0,
-      0
-    ],
-    "currency": "USD"
+    "recentDisputes": [
+      {
+        "id": "dispute_id",
+        "caseId": "DISP-9021",
+        "userName": "Marcus Wright",
+        "reason": "Unauthorized transaction",
+        "status": "HIGH_PRIORITY"
+      }
+    ]
   },
-  "message": "Revenue trends fetched successfully."
-}
-```
-
-### GET `/api/v1/admin/dashboard/gift-vs-payment`
-
-- Summary: Fetch gift vs direct payment distribution
-- Allowed role/access: SUPER_ADMIN or ADMIN with dashboard.read
-- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only gift versus direct payment distribution. SUPER_ADMIN or ADMIN with dashboard.read. Distribution is calculated from successful payment records; money gift payments count as gift cards and all other successful payments count as direct payments.
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "giftCardsPercent": 0,
-    "directPaymentsPercent": 0
-  },
-  "message": "Gift vs payment distribution fetched successfully."
-}
-```
-
-### GET `/api/v1/admin/dashboard/provider-performance`
-
-- Summary: Fetch provider performance table
-- Allowed role/access: SUPER_ADMIN or ADMIN with dashboard.read
-- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table. SUPER_ADMIN or ADMIN with dashboard.read. Aggregates provider order success rate and fulfilled volume from existing provider order records without exposing payout or customer-sensitive data.
-- Response body:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "providerId": "provider_id",
-      "providerName": "Provider",
-      "successRate": 0,
-      "totalVolume": 0,
-      "currency": "USD"
-    }
-  ],
-  "message": "Provider performance fetched successfully."
-}
-```
-
-### GET `/api/v1/admin/dashboard/recent-disputes`
-
-- Summary: Fetch recent disputes table
-- Allowed role/access: SUPER_ADMIN or ADMIN with dashboard.read
-- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data. SUPER_ADMIN or ADMIN with dashboard.read. Combines recent customer and provider dispute cases and returns non-sensitive case, customer display name, reason, and priority/status only.
-- Response body:
-```json
-{
-  "success": true,
-  "data": [],
-  "message": "Recent disputes fetched successfully."
+  "message": "Dashboard data fetched successfully."
 }
 ```
 
