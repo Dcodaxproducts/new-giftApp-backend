@@ -17,9 +17,33 @@ function createService() {
 }
 
 describe('ProviderBusinessCategoriesService', () => {
-  it('lists active non-deleted categories', async () => {
+  it('lists all non-deleted categories when isActive is not provided', async () => {
+    const { service, prisma } = createService();
+    await service.list({ page: 1, limit: 10 });
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null } }));
+  });
+
+  it('filters active categories when isActive=true', async () => {
     const { service, prisma } = createService();
     await service.list({ isActive: true });
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: true }) }));
+  });
+
+  it('filters inactive categories when isActive=false', async () => {
+    const { service, prisma } = createService();
+    await service.list({ isActive: false });
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: false }) }));
+  });
+
+  it('keeps soft-deleted categories excluded and searches name or description', async () => {
+    const { service, prisma } = createService();
+    await service.list({ search: 'flower' });
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null, OR: [{ name: { contains: 'flower', mode: 'insensitive' } }, { description: { contains: 'flower', mode: 'insensitive' } }] } }));
+  });
+
+  it('lookup returns active categories only for signup dropdown', async () => {
+    const { service, prisma } = createService();
+    await service.lookup({});
     expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: true }) }));
   });
 

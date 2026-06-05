@@ -10192,7 +10192,7 @@
     },
     "/api/v1/provider-business-categories": {
       "get": {
-        "description": "Access: PUBLIC. PUBLIC. Active provider business category lookup for provider signup. Public/provider-signup dropdown. Returns active provider business categories.",
+        "description": "Access: PUBLIC. PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "ProviderBusinessCategoriesController_list",
         "parameters": [
           {
@@ -10270,6 +10270,57 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with providerBusinessCategories.create",
         "x-access": "SUPER_ADMIN or ADMIN with providerBusinessCategories.create"
+      }
+    },
+    "/api/v1/provider-business-categories/lookup": {
+      "get": {
+        "description": "Access: PUBLIC. PUBLIC. Provider signup dropdown. Returns active provider business categories only. Public/provider-signup dropdown. Returns active provider business categories only.",
+        "operationId": "ProviderBusinessCategoriesController_lookup",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Lookup active provider business categories",
+        "tags": [
+          "02 Admin - Provider Business Categories"
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/provider-business-categories/{id}": {

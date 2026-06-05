@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 06:45 UTC
+Generated at: 2026-06-05 07:43 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -14,7 +14,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Roles & Permissions (7 APIs)
 - 02 Admin - User Management (9 APIs)
 - 02 Admin - Provider Management (12 APIs)
-- 02 Admin - Provider Business Categories (5 APIs)
+- 02 Admin - Provider Business Categories (6 APIs)
 - 02 Admin - Promotional Offers Management (8 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
@@ -1594,7 +1594,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List provider business categories
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Active provider business category lookup for provider signup. Public/provider-signup dropdown. Returns active provider business categories.
+- Notes: Access: PUBLIC. PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -1625,6 +1625,25 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "isActive": true
 }
 ```
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
+}
+```
+
+### GET `/api/v1/provider-business-categories/lookup`
+
+- Summary: Lookup active provider business categories
+- Allowed role/access: PUBLIC
+- Notes: Access: PUBLIC. PUBLIC. Provider signup dropdown. Returns active provider business categories only. Public/provider-signup dropdown. Returns active provider business categories only.
+- Parameters:
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `search` (query, optional, string)
+  - `isActive` (query, optional, boolean)
 - Response body:
 ```json
 {

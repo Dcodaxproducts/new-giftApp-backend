@@ -16,9 +16,15 @@ export class ProviderBusinessCategoriesController {
   constructor(private readonly service: ProviderBusinessCategoriesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List provider business categories', description: 'Public/provider-signup dropdown. Returns active provider business categories.' })
+  @ApiOperation({ summary: 'List provider business categories', description: 'Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.' })
   list(@Query() query: ListProviderBusinessCategoriesDto) {
     return this.service.list(query);
+  }
+
+  @Get('lookup')
+  @ApiOperation({ summary: 'Lookup active provider business categories', description: 'Public/provider-signup dropdown. Returns active provider business categories only.' })
+  lookup(@Query() query: ListProviderBusinessCategoriesDto) {
+    return this.service.lookup(query);
   }
 
   @ApiBearerAuth()

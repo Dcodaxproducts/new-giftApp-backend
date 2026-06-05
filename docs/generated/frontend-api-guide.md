@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 06:45 UTC
+Generated at: 2026-06-05 07:43 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-05 06:45 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-05 07:43 UTC.
 
 ## Frontend Integration Flows
 
@@ -154,12 +154,13 @@ Generated from `docs/generated/openapi.json` on 2026-06-05 06:45 UTC.
 | DELETE | `/api/v1/promotional-offers/{id}` | Delete Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.delete |
 | POST | `/api/v1/promotional-offers/{id}/action` | Run promotional offer admin action | SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update) |
 
-### Admin - Provider Business Categories (5 APIs)
+### Admin - Provider Business Categories (6 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/provider-business-categories` | List provider business categories | PUBLIC |
 | POST | `/api/v1/provider-business-categories` | Create provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.create |
+| GET | `/api/v1/provider-business-categories/lookup` | Lookup active provider business categories | PUBLIC |
 | GET | `/api/v1/provider-business-categories/{id}` | Fetch provider business category details | SUPER_ADMIN or ADMIN with providerBusinessCategories.read |
 | PATCH | `/api/v1/provider-business-categories/{id}` | Update provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.update |
 | DELETE | `/api/v1/provider-business-categories/{id}` | Delete provider business category | SUPER_ADMIN or ADMIN with providerBusinessCategories.delete |

@@ -47,7 +47,8 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'POST /api/v1/providers/{id}/message': { allowedRoles: 'SUPER_ADMIN or ADMIN with providers.message', description: 'SUPER_ADMIN or ADMIN with providers.message permission.' },
 
 
-  'GET /api/v1/provider-business-categories': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Active provider business category lookup for provider signup.' },
+  'GET /api/v1/provider-business-categories': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.' },
+  'GET /api/v1/provider-business-categories/lookup': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Provider signup dropdown. Returns active provider business categories only.' },
   'POST /api/v1/provider-business-categories': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.create', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission.' },
   'GET /api/v1/provider-business-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.read', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission.' },
   'PATCH /api/v1/provider-business-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.update', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission.' },

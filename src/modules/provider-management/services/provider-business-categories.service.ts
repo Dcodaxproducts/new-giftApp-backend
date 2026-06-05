@@ -30,8 +30,8 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     const limit = query.limit ?? 100;
     const where: Prisma.ProviderBusinessCategoryWhereInput = {
       deletedAt: null,
-      ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
-      isActive: true,
+      ...(query.search ? { OR: [{ name: { contains: query.search, mode: 'insensitive' } }, { description: { contains: query.search, mode: 'insensitive' } }] } : {}),
+      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
     };
     const [items, total] = await this.repository.findManyForList({ where, skip: (page - 1) * limit, take: limit });
 
@@ -40,6 +40,10 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       message: 'Provider business categories fetched successfully',
     };
+  }
+
+  lookup(query: ListProviderBusinessCategoriesDto = {}) {
+    return this.list({ ...query, isActive: true });
   }
 
   async details(id: string) {
