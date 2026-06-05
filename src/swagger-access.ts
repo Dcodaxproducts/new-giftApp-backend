@@ -146,6 +146,11 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/admin/dashboard/provider-performance': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only provider performance table.' },
   'GET /api/v1/admin/dashboard/recent-disputes': { allowedRoles: 'SUPER_ADMIN or ADMIN with dashboard.read', description: 'SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only recent dispute table without sensitive payment/customer data.' },
 
+  'GET /api/v1/admin/platform-analytics/summary': { allowedRoles: 'SUPER_ADMIN or ADMIN with analytics.read', description: 'SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records.' },
+  'GET /api/v1/admin/platform-analytics/revenue-transactions': { allowedRoles: 'SUPER_ADMIN or ADMIN with analytics.read', description: 'SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned.' },
+  'GET /api/v1/admin/platform-analytics/filter-options': { allowedRoles: 'SUPER_ADMIN or ADMIN with analytics.read', description: 'SUPER_ADMIN or ADMIN with analytics.read permission.' },
+  'GET /api/v1/admin/platform-analytics/report': { allowedRoles: 'SUPER_ADMIN or ADMIN with analytics.export', description: 'SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets.' },
+
   'GET /api/v1/chats': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission', description: 'Role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions.' },
   'GET /api/v1/chats/quick-replies': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN', description: 'Role-aware quick replies.' },
   'POST /api/v1/chats/threads': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission', description: 'Create or get an order/support/moderation chat thread based on role and sourceType.' },

@@ -6144,6 +6144,482 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
       }
     },
+    "/api/v1/admin/platform-analytics/summary": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. SUPER_ADMIN or ADMIN with analytics.read. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.",
+        "operationId": "AdminPlatformAnalyticsController_summary",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_30_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "LAST_90_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "gift_category_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "alex.rivera@gmail.com",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "totalRevenue": {
+                        "value": 154320,
+                        "changePercent": 8.1
+                      },
+                      "newSubscriptions": {
+                        "value": 215,
+                        "changePercent": 5.3
+                      },
+                      "churnRate": {
+                        "value": 2.9,
+                        "changePercent": 0.1
+                      },
+                      "activeUsers": {
+                        "value": 5120,
+                        "changePercent": -2.1
+                      }
+                    },
+                    "message": "Platform analytics summary fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch platform analytics summary",
+        "tags": [
+          "02 Admin - Platform Analytics"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with analytics.read",
+        "x-access": "SUPER_ADMIN or ADMIN with analytics.read"
+      }
+    },
+    "/api/v1/admin/platform-analytics/revenue-transactions": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned. SUPER_ADMIN or ADMIN with analytics.read. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.",
+        "operationId": "AdminPlatformAnalyticsController_revenueTransactions",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_30_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "LAST_90_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "gift_category_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "alex.rivera@gmail.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "COMPLETED",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "COMPLETED",
+                "PENDING",
+                "FAILED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "plan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Pro",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "transaction_id",
+                        "date": "2023-09-17T00:00:00.000Z",
+                        "userEmail": "alex.rivera@gmail.com",
+                        "plan": "Pro",
+                        "amount": 150,
+                        "status": "COMPLETED",
+                        "currency": "PKR",
+                        "provider": {
+                          "id": "provider_id",
+                          "businessName": "Gift Provider"
+                        },
+                        "category": {
+                          "id": "category_id",
+                          "name": "Flowers"
+                        }
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 10,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Revenue transactions fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List recent revenue transactions",
+        "tags": [
+          "02 Admin - Platform Analytics"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with analytics.read",
+        "x-access": "SUPER_ADMIN or ADMIN with analytics.read"
+      }
+    },
+    "/api/v1/admin/platform-analytics/filter-options": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. SUPER_ADMIN or ADMIN with analytics.read. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.",
+        "operationId": "AdminPlatformAnalyticsController_filterOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "categories": [
+                        {
+                          "id": "category_id",
+                          "name": "Flowers"
+                        }
+                      ],
+                      "providers": [
+                        {
+                          "id": "provider_id",
+                          "businessName": "Gift Provider"
+                        }
+                      ],
+                      "plans": [
+                        "Free",
+                        "Pro",
+                        "Enterprise"
+                      ],
+                      "statuses": [
+                        "COMPLETED",
+                        "PENDING",
+                        "FAILED",
+                        "REFUNDED"
+                      ]
+                    },
+                    "message": "Platform analytics filter options fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch platform analytics filter options",
+        "tags": [
+          "02 Admin - Platform Analytics"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with analytics.read",
+        "x-access": "SUPER_ADMIN or ADMIN with analytics.read"
+      }
+    },
+    "/api/v1/admin/platform-analytics/report": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.export. SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets. SUPER_ADMIN or ADMIN with analytics.export. Streams a CSV report using the same transaction filters and excludes card numbers, CVV, Stripe secrets, payment client secrets, and bank details.",
+        "operationId": "AdminPlatformAnalyticsController_report",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LAST_30_DAYS",
+              "type": "string",
+              "enum": [
+                "TODAY",
+                "LAST_7_DAYS",
+                "LAST_30_DAYS",
+                "LAST_90_DAYS",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-05-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "gift_category_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "provider_id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "alex.rivera@gmail.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CSV",
+              "type": "string",
+              "enum": [
+                "CSV",
+                "XLSX",
+                "PDF"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "COMPLETED",
+              "type": "string",
+              "enum": [
+                "ALL",
+                "COMPLETED",
+                "PENDING",
+                "FAILED",
+                "REFUNDED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate platform analytics report",
+        "tags": [
+          "02 Admin - Platform Analytics"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with analytics.export",
+        "x-access": "SUPER_ADMIN or ADMIN with analytics.export"
+      }
+    },
     "/api/v1/admin/transactions/stats": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.",
@@ -24905,6 +25381,9 @@
     },
     {
       "name": "02 Admin - Dashboard Overview"
+    },
+    {
+      "name": "02 Admin - Platform Analytics"
     },
     {
       "name": "02 Admin - Commission & Payout Settings"

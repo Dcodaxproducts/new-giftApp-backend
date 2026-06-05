@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 09:35 UTC
+Generated at: 2026-06-05 10:10 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-05 09:35 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-05 10:10 UTC.
 
 ## Frontend Integration Flows
 
@@ -140,6 +140,15 @@ Generated from `docs/generated/openapi.json` on 2026-06-05 09:35 UTC.
 | GET | `/api/v1/admin/notification-delivery/logs/{id}` | Fetch notification delivery log detail | Authenticated |
 | POST | `/api/v1/admin/notification-delivery/logs/{id}/retry` | Retry notification delivery | Authenticated |
 | GET | `/api/v1/admin/notification-delivery/stats` | Fetch notification delivery stats | Authenticated |
+
+### Admin - Platform Analytics (4 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/admin/platform-analytics/filter-options` | Fetch platform analytics filter options | SUPER_ADMIN or ADMIN with analytics.read |
+| GET | `/api/v1/admin/platform-analytics/report` | Generate platform analytics report | SUPER_ADMIN or ADMIN with analytics.export |
+| GET | `/api/v1/admin/platform-analytics/revenue-transactions` | List recent revenue transactions | SUPER_ADMIN or ADMIN with analytics.read |
+| GET | `/api/v1/admin/platform-analytics/summary` | Fetch platform analytics summary | SUPER_ADMIN or ADMIN with analytics.read |
 
 ### Admin - Promotional Offers Management (8 APIs)
 

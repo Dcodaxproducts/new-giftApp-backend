@@ -160,6 +160,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'analytics',
+    label: 'Platform Analytics',
+    permissions: [
+      { key: 'read', label: 'View Platform Analytics', description: 'View platform analytics summary, filters, and revenue transactions.' },
+      { key: 'export', label: 'Export Platform Analytics', description: 'Generate platform analytics reports.' },
+    ],
+  },
+  {
     module: 'providerPayouts',
     label: 'Provider Payouts',
     permissions: [

@@ -8,6 +8,7 @@ import { AdminDashboardModule } from './modules/admin-dashboard/admin-dashboard.
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
 import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
 import { AdminProviderPayoutsModule } from './modules/admin-provider-payouts/admin-provider-payouts.module';
+import { AdminPlatformAnalyticsModule } from './modules/admin-platform-analytics/admin-platform-analytics.module';
 import { AdminTransactionsModule } from './modules/admin-transactions/admin-transactions.module';
 import { AdminManagementModule } from './modules/admin-management/admin-management.module';
 import { AdminPayoutSettingsModule } from './modules/admin-payout-settings/admin-payout-settings.module';
@@ -63,6 +64,7 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     AdminDisputesModule,
     AdminProviderDisputesModule,
     AdminProviderPayoutsModule,
+    AdminPlatformAnalyticsModule,
     AdminTransactionsModule,
     AdminManagementModule,
     AdminPayoutSettingsModule,

@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-05 09:35 UTC
+Generated at: 2026-06-05 10:09 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -17,6 +17,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Provider Business Categories (6 APIs)
 - 02 Admin - Promotional Offers Management (8 APIs)
 - 02 Admin - Dashboard Overview (5 APIs)
+- 02 Admin - Platform Analytics (4 APIs)
 - 02 Admin - Commission & Payout Settings (7 APIs)
 - 02 Admin - Provider Payouts (9 APIs)
 - 02 Admin - Transaction Monitoring (7 APIs)
@@ -2048,6 +2049,158 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": [],
   "message": "Recent disputes fetched successfully."
+}
+```
+
+## 02 Admin - Platform Analytics
+
+### GET `/api/v1/admin/platform-analytics/summary`
+
+- Summary: Fetch platform analytics summary
+- Allowed role/access: SUPER_ADMIN or ADMIN with analytics.read
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. SUPER_ADMIN or ADMIN with analytics.read. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `categoryId` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `search` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "totalRevenue": {
+      "value": 154320,
+      "changePercent": 8.1
+    },
+    "newSubscriptions": {
+      "value": 215,
+      "changePercent": 5.3
+    },
+    "churnRate": {
+      "value": 2.9,
+      "changePercent": 0.1
+    },
+    "activeUsers": {
+      "value": 5120,
+      "changePercent": -2.1
+    }
+  },
+  "message": "Platform analytics summary fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/platform-analytics/revenue-transactions`
+
+- Summary: List recent revenue transactions
+- Allowed role/access: SUPER_ADMIN or ADMIN with analytics.read
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned. SUPER_ADMIN or ADMIN with analytics.read. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `categoryId` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `search` (query, optional, string)
+  - `page` (query, optional, number)
+  - `limit` (query, optional, number)
+  - `status` (query, optional, string)
+  - `plan` (query, optional, string)
+  - `sortBy` (query, optional, string)
+  - `sortOrder` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "transaction_id",
+      "date": "2023-09-17T00:00:00.000Z",
+      "userEmail": "alex.rivera@gmail.com",
+      "plan": "Pro",
+      "amount": 150,
+      "status": "COMPLETED",
+      "currency": "PKR",
+      "provider": {
+        "id": "provider_id",
+        "businessName": "Gift Provider"
+      },
+      "category": {
+        "id": "category_id",
+        "name": "Flowers"
+      }
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 1,
+    "totalPages": 1
+  },
+  "message": "Revenue transactions fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/platform-analytics/filter-options`
+
+- Summary: Fetch platform analytics filter options
+- Allowed role/access: SUPER_ADMIN or ADMIN with analytics.read
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. SUPER_ADMIN or ADMIN with analytics.read. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "categories": [
+      {
+        "id": "category_id",
+        "name": "Flowers"
+      }
+    ],
+    "providers": [
+      {
+        "id": "provider_id",
+        "businessName": "Gift Provider"
+      }
+    ],
+    "plans": [
+      "Free",
+      "Pro",
+      "Enterprise"
+    ],
+    "statuses": [
+      "COMPLETED",
+      "PENDING",
+      "FAILED",
+      "REFUNDED"
+    ]
+  },
+  "message": "Platform analytics filter options fetched successfully."
+}
+```
+
+### GET `/api/v1/admin/platform-analytics/report`
+
+- Summary: Generate platform analytics report
+- Allowed role/access: SUPER_ADMIN or ADMIN with analytics.export
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.export. SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets. SUPER_ADMIN or ADMIN with analytics.export. Streams a CSV report using the same transaction filters and excludes card numbers, CVV, Stripe secrets, payment client secrets, and bank details.
+- Parameters:
+  - `range` (query, optional, string)
+  - `fromDate` (query, optional, string)
+  - `toDate` (query, optional, string)
+  - `categoryId` (query, optional, string)
+  - `providerId` (query, optional, string)
+  - `search` (query, optional, string)
+  - `format` (query, optional, string)
+  - `status` (query, optional, string)
+- Response body:
+```json
+{
+  "success": true,
+  "data": "<response returned by endpoint>",
+  "message": "Request completed successfully."
 }
 ```
 

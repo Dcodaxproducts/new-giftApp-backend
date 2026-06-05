@@ -18,6 +18,7 @@ export const SWAGGER_TAG_ORDER = [
   '02 Admin - Provider Business Categories',
   '02 Admin - Promotional Offers Management',
   '02 Admin - Dashboard Overview',
+  '02 Admin - Platform Analytics',
   '02 Admin - Commission & Payout Settings',
   '02 Admin - Provider Payouts',
   '02 Admin - Transaction Monitoring',
