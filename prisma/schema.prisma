@@ -1162,12 +1162,16 @@ model ReferralSettings {
 
 model RefundPolicySettings {
   id                           String   @id @default(cuid())
+  allowRefund                  Boolean  @default(true) @map("allow_refund")
+  noteText                     String?  @map("note_text")
   refundWindowDays             Int      @default(30) @map("refund_window_days")
   autoRefundThresholdAmount    Decimal  @default(50) @map("auto_refund_threshold_amount") @db.Decimal(10, 2)
   currency                     String   @default("PKR")
   autoApproveSmallRefunds      Boolean  @default(true) @map("auto_approve_small_refunds")
   smallRefundAutoApproveAmount Decimal  @default(15) @map("small_refund_auto_approve_amount") @db.Decimal(10, 2)
+  refundForAllCategories       Boolean  @default(false) @map("refund_for_all_categories")
   eligibleCategoryIdsJson      Json     @default("[]") @map("eligible_category_ids_json")
+  cancellationTiersJson        Json     @default("[]") @map("cancellation_tiers_json")
   updatedById                  String?  @map("updated_by_id")
   createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz

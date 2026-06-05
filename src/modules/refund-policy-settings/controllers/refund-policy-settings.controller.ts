@@ -11,6 +11,69 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { ListRefundPolicyAuditLogsDto, UpdateRefundPolicySettingsDto } from '../dto/refund-policy-settings.dto';
 import { RefundPolicySettingsService } from '../services/refund-policy-settings.service';
 
+const refundPolicySettingsResponseExample = {
+  success: true,
+  data: {
+    allowRefund: true,
+    noteText: 'Refunds are processed according to cancellation policy.',
+    refundWindowDays: 30,
+    autoRefundThresholdAmount: 50,
+    autoApproveSmallRefunds: true,
+    smallRefundAutoApproveAmount: 15,
+    refundForAllCategories: true,
+    eligibleCategories: [{ id: 'category_id', name: 'Electronics' }],
+    cancellationTiers: [{ id: 'tier_id', daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early', sortOrder: 1 }],
+    lastUpdatedAt: '2026-05-25T10:00:00.000Z',
+    lastUpdatedBy: { id: 'admin_id', name: 'Super Admin' },
+  },
+  message: 'Refund policy settings fetched successfully.',
+};
+
+const refundPolicyPatchExamples = {
+  allowRefundForAllCategories: {
+    value: {
+      allowRefund: true,
+      noteText: 'Refunds are processed according to cancellation policy.',
+      refundWindowDays: 30,
+      autoRefundThresholdAmount: 50,
+      autoApproveSmallRefunds: true,
+      smallRefundAutoApproveAmount: 15,
+      refundForAllCategories: true,
+      eligibleCategoryIds: [],
+      cancellationTiers: [{ daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early', sortOrder: 1 }],
+    },
+  },
+  allowRefundForSelectedCategories: {
+    value: {
+      allowRefund: true,
+      noteText: 'Selected categories are eligible for automatic refund review.',
+      refundWindowDays: 30,
+      autoRefundThresholdAmount: 50,
+      autoApproveSmallRefunds: true,
+      smallRefundAutoApproveAmount: 15,
+      refundForAllCategories: false,
+      eligibleCategoryIds: ['category_electronics', 'category_apparel'],
+      cancellationTiers: [{ daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early', sortOrder: 1 }],
+    },
+  },
+  disableRefunds: {
+    value: {
+      allowRefund: false,
+      noteText: 'Refunds are temporarily disabled.',
+      refundForAllCategories: true,
+      eligibleCategoryIds: [],
+    },
+  },
+  updateCancellationTiers: {
+    value: {
+      cancellationTiers: [
+        { daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early', sortOrder: 1 },
+        { daysBeforeCheckIn: 2, deductionPercent: 25, label: 'Late', sortOrder: 2 },
+      ],
+    },
+  },
+} as const;
+
 @ApiTags('02 Admin - Refund Policy Settings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
@@ -21,15 +84,15 @@ export class RefundPolicySettingsController {
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Permissions('refundPolicies.read')
-  @ApiOperation({ summary: 'Fetch refund policy settings', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { refundWindowDays: 30, autoRefundThresholdAmount: 50, currency: 'PKR', autoApproveSmallRefunds: true, smallRefundAutoApproveAmount: 15, eligibleCategories: [{ id: 'category_electronics', name: 'Electronics' }, { id: 'category_apparel', name: 'Apparel' }, { id: 'category_home_decor', name: 'Home Decor' }], lastUpdatedAt: '2026-05-14T10:00:00.000Z', lastUpdatedBy: { id: 'admin_id', name: 'Alex Rivera' } }, message: 'Refund policy settings fetched successfully.' } } })
+  @ApiOperation({ summary: 'Fetch refund policy settings', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, cancellation deduction tiers, dispute decisions, and provider refund workflows.' })
+  @ApiResponse({ status: 200, schema: { example: refundPolicySettingsResponseExample } })
   get() { return this.settings.get(); }
 
   @Patch()
   @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update refund policy settings', description: 'SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.' })
-  @ApiBody({ type: UpdateRefundPolicySettingsDto, examples: { update: { value: { refundWindowDays: 30, autoRefundThresholdAmount: 50, currency: 'PKR', autoApproveSmallRefunds: true, smallRefundAutoApproveAmount: 15, eligibleCategoryIds: ['category_electronics', 'category_apparel', 'category_home_decor'] } } } })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { refundWindowDays: 30, autoRefundThresholdAmount: 50, currency: 'PKR', autoApproveSmallRefunds: true, smallRefundAutoApproveAmount: 15, eligibleCategoryIds: ['category_electronics', 'category_apparel', 'category_home_decor'], lastUpdatedAt: '2026-05-14T10:00:00.000Z' }, message: 'Refund policy settings updated successfully.' } } })
+  @ApiOperation({ summary: 'Update refund policy settings', description: 'SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.' })
+  @ApiBody({ type: UpdateRefundPolicySettingsDto, examples: refundPolicyPatchExamples })
+  @ApiResponse({ status: 200, schema: { example: { ...refundPolicySettingsResponseExample, message: 'Refund policy settings updated successfully.' } } })
   update(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateRefundPolicySettingsDto, @Req() request: Request) { return this.settings.update(user, dto, request.ip, request.headers['user-agent']); }
 
   @Get('logs')
@@ -39,6 +102,6 @@ export class RefundPolicySettingsController {
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
   @ApiQuery({ name: 'toDate', required: false })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'audit_log_id', action: 'REFUND_POLICY_SETTINGS_UPDATED', actor: { id: 'admin_id', name: 'Alex Rivera' }, before: { refundWindowDays: 14, autoRefundThresholdAmount: 25 }, after: { refundWindowDays: 30, autoRefundThresholdAmount: 50 }, createdAt: '2026-05-14T10:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Refund policy audit logs fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'audit_log_id', action: 'REFUND_POLICY_SETTINGS_UPDATED', actor: { id: 'admin_id', name: 'Alex Rivera' }, before: { allowRefund: true, noteText: 'Refunds are processed according to cancellation policy.', refundForAllCategories: true, eligibleCategoryIds: [], cancellationTiers: [] }, after: { allowRefund: false, noteText: 'Refunds are temporarily disabled.', refundForAllCategories: true, eligibleCategoryIds: [], cancellationTiers: [] }, createdAt: '2026-05-14T10:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Refund policy audit logs fetched successfully.' } } })
   logs(@Query() query: ListRefundPolicyAuditLogsDto) { return this.settings.auditLogs(query); }
 }

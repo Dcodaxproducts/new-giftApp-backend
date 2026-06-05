@@ -1,13 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
 import { Prisma, RefundPolicySettings } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { RefundPolicySettingsRepository } from '../repositories/refund-policy-settings.repository';
-import { ListRefundPolicyAuditLogsDto, UpdateRefundPolicySettingsDto } from '../dto/refund-policy-settings.dto';
+import { CancellationTierDto, ListRefundPolicyAuditLogsDto, UpdateRefundPolicySettingsDto } from '../dto/refund-policy-settings.dto';
 
 type SettingsWithUpdater = RefundPolicySettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
 type EligibleCategory = { id: string; name: string };
+type CancellationTier = { id: string; daysBeforeCheckIn: number; deductionPercent: number; label: string; sortOrder: number };
 
 export interface RefundEligibilityInput {
   deliveredAt: Date;
@@ -26,11 +28,14 @@ export interface RefundEligibilityResult {
   canProcessWithoutSeniorReview: boolean;
   reasons: string[];
   policy: {
+    allowRefund: boolean;
     refundWindowDays: number;
     autoRefundThresholdAmount: number;
     autoApproveSmallRefunds: boolean;
     smallRefundAutoApproveAmount: number;
+    refundForAllCategories: boolean;
     eligibleCategoryIds: string[];
+    cancellationTiers: CancellationTier[];
   };
 }
 
@@ -40,24 +45,33 @@ export class RefundPolicySettingsService {
 
   async get() {
     const settings = await this.getOrCreate();
-    const categories = await this.activeCategories(this.categoryIds(settings.eligibleCategoryIdsJson));
+    const categories = await this.eligibleCategories(settings);
     return { data: this.toView(settings, categories), message: 'Refund policy settings fetched successfully.' };
   }
 
   async update(user: AuthUserContext, dto: UpdateRefundPolicySettingsDto, ipAddress?: string, userAgent?: string | string[]) {
-    this.assertCurrencyAllowed(dto.currency);
-    this.assertSmallRefundLimit(dto);
-    await this.assertActiveCategories(dto.eligibleCategoryIds);
-
     const current = await this.getOrCreate();
+    const refundForAllCategories = dto.refundForAllCategories ?? (dto.eligibleCategoryIds === undefined ? current.refundForAllCategories : false);
+    const eligibleCategoryIds = refundForAllCategories ? [] : (dto.eligibleCategoryIds ?? this.categoryIds(current.eligibleCategoryIdsJson));
+    this.assertEligibleCategorySelection(refundForAllCategories, eligibleCategoryIds);
+    this.assertSmallRefundLimit({
+      autoApproveSmallRefunds: dto.autoApproveSmallRefunds ?? current.autoApproveSmallRefunds,
+      autoRefundThresholdAmount: dto.autoRefundThresholdAmount ?? Number(current.autoRefundThresholdAmount),
+      smallRefundAutoApproveAmount: dto.smallRefundAutoApproveAmount ?? Number(current.smallRefundAutoApproveAmount),
+    });
+    await this.assertActiveCategories(eligibleCategoryIds);
+    const cancellationTiers = dto.cancellationTiers === undefined ? this.cancellationTiers(current.cancellationTiersJson) : this.normalizeCancellationTiers(dto.cancellationTiers);
     const before = this.toAuditView(current);
     const updated = await this.repository.updateSettings(current.id, {
-      refundWindowDays: dto.refundWindowDays,
-      autoRefundThresholdAmount: new Prisma.Decimal(dto.autoRefundThresholdAmount),
-      currency: dto.currency.toUpperCase(),
-      autoApproveSmallRefunds: dto.autoApproveSmallRefunds,
-      smallRefundAutoApproveAmount: new Prisma.Decimal(dto.smallRefundAutoApproveAmount),
-      eligibleCategoryIdsJson: dto.eligibleCategoryIds,
+      allowRefund: dto.allowRefund ?? current.allowRefund,
+      noteText: dto.noteText ?? current.noteText,
+      refundWindowDays: dto.refundWindowDays ?? current.refundWindowDays,
+      autoRefundThresholdAmount: new Prisma.Decimal(dto.autoRefundThresholdAmount ?? Number(current.autoRefundThresholdAmount)),
+      autoApproveSmallRefunds: dto.autoApproveSmallRefunds ?? current.autoApproveSmallRefunds,
+      smallRefundAutoApproveAmount: new Prisma.Decimal(dto.smallRefundAutoApproveAmount ?? Number(current.smallRefundAutoApproveAmount)),
+      refundForAllCategories,
+      eligibleCategoryIdsJson: eligibleCategoryIds,
+      cancellationTiersJson: cancellationTiers,
       updatedById: user.uid,
     });
     const after = this.toAuditView(updated);
@@ -84,8 +98,9 @@ export class RefundPolicySettingsService {
     const eligibleCategoryIds = this.categoryIds(settings.eligibleCategoryIdsJson);
     const reasons: string[] = [];
     const daysSinceDelivery = this.daysBetween(input.deliveredAt, input.now ?? new Date());
-    const categoryEligible = input.categoryIds.some((categoryId) => eligibleCategoryIds.includes(categoryId));
+    const categoryEligible = settings.refundForAllCategories || input.categoryIds.some((categoryId) => eligibleCategoryIds.includes(categoryId));
 
+    if (!settings.allowRefund) reasons.push('REFUNDS_DISABLED_BY_POLICY');
     if (daysSinceDelivery > settings.refundWindowDays) reasons.push('REFUND_WINDOW_EXPIRED');
     if (!categoryEligible) reasons.push('CATEGORY_MANUAL_REVIEW_REQUIRED');
     if (!input.paymentRefundable) reasons.push('PAYMENT_NOT_REFUNDABLE');
@@ -96,16 +111,19 @@ export class RefundPolicySettingsService {
     const autoApproveSmallRefund = eligible && settings.autoApproveSmallRefunds && input.requestedAmount <= Number(settings.smallRefundAutoApproveAmount);
     return {
       eligible,
-      manualReviewRequired: !categoryEligible || input.requestedAmount > Number(settings.autoRefundThresholdAmount) || Boolean(input.riskFlagged),
+      manualReviewRequired: settings.allowRefund && (!categoryEligible || input.requestedAmount > Number(settings.autoRefundThresholdAmount) || Boolean(input.riskFlagged)),
       autoApproveSmallRefund,
       canProcessWithoutSeniorReview: eligible && input.requestedAmount <= Number(settings.autoRefundThresholdAmount),
       reasons,
       policy: {
+        allowRefund: settings.allowRefund,
         refundWindowDays: settings.refundWindowDays,
         autoRefundThresholdAmount: Number(settings.autoRefundThresholdAmount),
         autoApproveSmallRefunds: settings.autoApproveSmallRefunds,
         smallRefundAutoApproveAmount: Number(settings.smallRefundAutoApproveAmount),
+        refundForAllCategories: settings.refundForAllCategories,
         eligibleCategoryIds,
+        cancellationTiers: this.cancellationTiers(settings.cancellationTiersJson),
       },
     };
   }
@@ -114,6 +132,11 @@ export class RefundPolicySettingsService {
     const existing = await this.repository.findFirstSettings();
     if (existing) return existing;
     return this.repository.createDefaultSettings(this.platformCurrency());
+  }
+
+  private async eligibleCategories(settings: SettingsWithUpdater): Promise<EligibleCategory[]> {
+    if (settings.refundForAllCategories) return this.repository.findAllActiveCategories();
+    return this.activeCategories(this.categoryIds(settings.eligibleCategoryIdsJson));
   }
 
   private async activeCategories(ids: string[]): Promise<EligibleCategory[]> {
@@ -130,25 +153,43 @@ export class RefundPolicySettingsService {
     if (inactiveIds.length) throw new BadRequestException(`Inactive gift categories cannot be selected: ${inactiveIds.join(', ')}`);
   }
 
-  private assertSmallRefundLimit(dto: UpdateRefundPolicySettingsDto): void {
+  private assertSmallRefundLimit(dto: { autoApproveSmallRefunds: boolean; smallRefundAutoApproveAmount: number; autoRefundThresholdAmount: number }): void {
     if (dto.autoApproveSmallRefunds && dto.smallRefundAutoApproveAmount > dto.autoRefundThresholdAmount) throw new BadRequestException('smallRefundAutoApproveAmount cannot exceed autoRefundThresholdAmount when autoApproveSmallRefunds is true');
   }
 
-  private assertCurrencyAllowed(currency: string): void {
-    const normalized = currency.toUpperCase();
-    if (!this.allowedCurrencies().has(normalized)) throw new BadRequestException('Currency does not match configured payment currency');
+  private assertEligibleCategorySelection(refundForAllCategories: boolean, eligibleCategoryIds: string[]): void {
+    if (!refundForAllCategories && eligibleCategoryIds.length === 0) throw new BadRequestException('eligibleCategoryIds is required when refundForAllCategories is false');
   }
 
-  private allowedCurrencies(): Set<string> {
-    const configured = this.configService.get<string>('REFUND_POLICY_ALLOWED_CURRENCIES');
-    if (configured) return new Set(configured.split(',').map((currency) => currency.trim().toUpperCase()).filter(Boolean));
-    return new Set([this.platformCurrency()]);
+  private normalizeCancellationTiers(tiers: CancellationTierDto[]): CancellationTier[] {
+    const seenDays = new Set<number>();
+    const normalized = tiers.map((tier) => {
+      const label = tier.label.trim();
+      if (!label) throw new BadRequestException('Cancellation tier label is required');
+      if (seenDays.has(tier.daysBeforeCheckIn)) throw new BadRequestException('Duplicate cancellation tier daysBeforeCheckIn values are not allowed');
+      seenDays.add(tier.daysBeforeCheckIn);
+      return { id: randomUUID(), daysBeforeCheckIn: tier.daysBeforeCheckIn, deductionPercent: tier.deductionPercent, label, sortOrder: tier.sortOrder ?? 0 };
+    });
+    return normalized.sort((left, right) => (left.sortOrder || Number.MAX_SAFE_INTEGER) - (right.sortOrder || Number.MAX_SAFE_INTEGER) || right.daysBeforeCheckIn - left.daysBeforeCheckIn).map((tier, index) => ({ ...tier, sortOrder: index + 1 }));
   }
 
   private platformCurrency(): string { return this.configService.get<string>('STRIPE_CURRENCY', 'PKR').toUpperCase(); }
   private categoryIds(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
-  private toView(settings: SettingsWithUpdater, categories: EligibleCategory[]) { return { refundWindowDays: settings.refundWindowDays, autoRefundThresholdAmount: Number(settings.autoRefundThresholdAmount), currency: settings.currency, autoApproveSmallRefunds: settings.autoApproveSmallRefunds, smallRefundAutoApproveAmount: Number(settings.smallRefundAutoApproveAmount), eligibleCategories: categories, lastUpdatedAt: settings.updatedAt, lastUpdatedBy: settings.updatedBy ? { id: settings.updatedBy.id, name: this.name(settings.updatedBy) } : null }; }
-  private toAuditView(settings: SettingsWithUpdater) { return { refundWindowDays: settings.refundWindowDays, autoRefundThresholdAmount: Number(settings.autoRefundThresholdAmount), currency: settings.currency, autoApproveSmallRefunds: settings.autoApproveSmallRefunds, smallRefundAutoApproveAmount: Number(settings.smallRefundAutoApproveAmount), eligibleCategoryIds: this.categoryIds(settings.eligibleCategoryIdsJson) }; }
+  private cancellationTiers(value: Prisma.JsonValue): CancellationTier[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((item): item is Prisma.JsonObject => Boolean(item) && typeof item === 'object' && !Array.isArray(item))
+      .map((item, index) => ({
+        id: typeof item.id === 'string' ? item.id : `tier_${index + 1}`,
+        daysBeforeCheckIn: typeof item.daysBeforeCheckIn === 'number' ? item.daysBeforeCheckIn : 0,
+        deductionPercent: typeof item.deductionPercent === 'number' ? item.deductionPercent : 0,
+        label: typeof item.label === 'string' ? item.label : '',
+        sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : index + 1,
+      }))
+      .sort((left, right) => left.sortOrder - right.sortOrder || right.daysBeforeCheckIn - left.daysBeforeCheckIn);
+  }
+  private toView(settings: SettingsWithUpdater, categories: EligibleCategory[]) { return { allowRefund: settings.allowRefund, noteText: settings.noteText, refundWindowDays: settings.refundWindowDays, autoRefundThresholdAmount: Number(settings.autoRefundThresholdAmount), autoApproveSmallRefunds: settings.autoApproveSmallRefunds, smallRefundAutoApproveAmount: Number(settings.smallRefundAutoApproveAmount), refundForAllCategories: settings.refundForAllCategories, eligibleCategories: categories, cancellationTiers: this.cancellationTiers(settings.cancellationTiersJson), lastUpdatedAt: settings.updatedAt, lastUpdatedBy: settings.updatedBy ? { id: settings.updatedBy.id, name: this.name(settings.updatedBy) } : null }; }
+  private toAuditView(settings: SettingsWithUpdater) { return { allowRefund: settings.allowRefund, noteText: settings.noteText, refundWindowDays: settings.refundWindowDays, autoRefundThresholdAmount: Number(settings.autoRefundThresholdAmount), autoApproveSmallRefunds: settings.autoApproveSmallRefunds, smallRefundAutoApproveAmount: Number(settings.smallRefundAutoApproveAmount), refundForAllCategories: settings.refundForAllCategories, eligibleCategoryIds: this.categoryIds(settings.eligibleCategoryIdsJson), cancellationTiers: this.cancellationTiers(settings.cancellationTiersJson) }; }
   private async writeAudit(user: AuthUserContext, targetId: string, beforeJson: unknown, afterJson: unknown, ipAddress?: string, userAgent?: string | string[]) { await this.auditLog.write({ actorId: user.uid, targetId, targetType: 'REFUND_POLICY_SETTINGS', action: 'REFUND_POLICY_SETTINGS_UPDATED', module: 'Refund Policy Settings', beforeJson, afterJson, ipAddress, userAgent: Array.isArray(userAgent) ? userAgent.join(', ') : userAgent }); }
   private daysBetween(from: Date, to: Date): number { return Math.floor((to.getTime() - from.getTime()) / 86_400_000); }
   private name(user: { firstName: string; lastName: string }): string { return `${user.firstName} ${user.lastName}`.trim(); }

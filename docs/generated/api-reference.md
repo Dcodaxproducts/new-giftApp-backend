@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-05-29 11:54 UTC
+Generated at: 2026-06-05 06:45 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -3669,35 +3669,38 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch refund policy settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with refundPolicies.read
-- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, auto-refund, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, dispute decisions, and provider refund workflows. Only active gift categories are returned as eligible auto-refund categories; non-selected categories require manual review.
+- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, cancellation deduction tiers, dispute decisions, and provider refund workflows.
 - Response body:
 ```json
 {
   "success": true,
   "data": {
+    "allowRefund": true,
+    "noteText": "Refunds are processed according to cancellation policy.",
     "refundWindowDays": 30,
     "autoRefundThresholdAmount": 50,
-    "currency": "PKR",
     "autoApproveSmallRefunds": true,
     "smallRefundAutoApproveAmount": 15,
+    "refundForAllCategories": true,
     "eligibleCategories": [
       {
-        "id": "category_electronics",
+        "id": "category_id",
         "name": "Electronics"
-      },
-      {
-        "id": "category_apparel",
-        "name": "Apparel"
-      },
-      {
-        "id": "category_home_decor",
-        "name": "Home Decor"
       }
     ],
-    "lastUpdatedAt": "2026-05-14T10:00:00.000Z",
+    "cancellationTiers": [
+      {
+        "id": "tier_id",
+        "daysBeforeCheckIn": 5,
+        "deductionPercent": 10,
+        "label": "Early",
+        "sortOrder": 1
+      }
+    ],
+    "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
     "lastUpdatedBy": {
       "id": "admin_id",
-      "name": "Alex Rivera"
+      "name": "Super Admin"
     }
   },
   "message": "Refund policy settings fetched successfully."
@@ -3708,20 +3711,78 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update refund policy settings
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund rules. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, small auto-refunds, provider refund handling, and admin/provider dispute workflows.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.
 - Request payload(s):
-  - update:
+  - allowRefundForAllCategories:
 ```json
 {
+  "allowRefund": true,
+  "noteText": "Refunds are processed according to cancellation policy.",
   "refundWindowDays": 30,
   "autoRefundThresholdAmount": 50,
-  "currency": "PKR",
   "autoApproveSmallRefunds": true,
   "smallRefundAutoApproveAmount": 15,
+  "refundForAllCategories": true,
+  "eligibleCategoryIds": [],
+  "cancellationTiers": [
+    {
+      "daysBeforeCheckIn": 5,
+      "deductionPercent": 10,
+      "label": "Early",
+      "sortOrder": 1
+    }
+  ]
+}
+```
+  - allowRefundForSelectedCategories:
+```json
+{
+  "allowRefund": true,
+  "noteText": "Selected categories are eligible for automatic refund review.",
+  "refundWindowDays": 30,
+  "autoRefundThresholdAmount": 50,
+  "autoApproveSmallRefunds": true,
+  "smallRefundAutoApproveAmount": 15,
+  "refundForAllCategories": false,
   "eligibleCategoryIds": [
     "category_electronics",
-    "category_apparel",
-    "category_home_decor"
+    "category_apparel"
+  ],
+  "cancellationTiers": [
+    {
+      "daysBeforeCheckIn": 5,
+      "deductionPercent": 10,
+      "label": "Early",
+      "sortOrder": 1
+    }
+  ]
+}
+```
+  - disableRefunds:
+```json
+{
+  "allowRefund": false,
+  "noteText": "Refunds are temporarily disabled.",
+  "refundForAllCategories": true,
+  "eligibleCategoryIds": []
+}
+```
+  - updateCancellationTiers:
+```json
+{
+  "cancellationTiers": [
+    {
+      "daysBeforeCheckIn": 5,
+      "deductionPercent": 10,
+      "label": "Early",
+      "sortOrder": 1
+    },
+    {
+      "daysBeforeCheckIn": 2,
+      "deductionPercent": 25,
+      "label": "Late",
+      "sortOrder": 2
+    }
   ]
 }
 ```
@@ -3730,17 +3791,33 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "success": true,
   "data": {
+    "allowRefund": true,
+    "noteText": "Refunds are processed according to cancellation policy.",
     "refundWindowDays": 30,
     "autoRefundThresholdAmount": 50,
-    "currency": "PKR",
     "autoApproveSmallRefunds": true,
     "smallRefundAutoApproveAmount": 15,
-    "eligibleCategoryIds": [
-      "category_electronics",
-      "category_apparel",
-      "category_home_decor"
+    "refundForAllCategories": true,
+    "eligibleCategories": [
+      {
+        "id": "category_id",
+        "name": "Electronics"
+      }
     ],
-    "lastUpdatedAt": "2026-05-14T10:00:00.000Z"
+    "cancellationTiers": [
+      {
+        "id": "tier_id",
+        "daysBeforeCheckIn": 5,
+        "deductionPercent": 10,
+        "label": "Early",
+        "sortOrder": 1
+      }
+    ],
+    "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
+    "lastUpdatedBy": {
+      "id": "admin_id",
+      "name": "Super Admin"
+    }
   },
   "message": "Refund policy settings updated successfully."
 }
@@ -3769,12 +3846,18 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
         "name": "Alex Rivera"
       },
       "before": {
-        "refundWindowDays": 14,
-        "autoRefundThresholdAmount": 25
+        "allowRefund": true,
+        "noteText": "Refunds are processed according to cancellation policy.",
+        "refundForAllCategories": true,
+        "eligibleCategoryIds": [],
+        "cancellationTiers": []
       },
       "after": {
-        "refundWindowDays": 30,
-        "autoRefundThresholdAmount": 50
+        "allowRefund": false,
+        "noteText": "Refunds are temporarily disabled.",
+        "refundForAllCategories": true,
+        "eligibleCategoryIds": [],
+        "cancellationTiers": []
       },
       "createdAt": "2026-05-14T10:00:00.000Z"
     }

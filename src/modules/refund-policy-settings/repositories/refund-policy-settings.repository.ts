@@ -24,6 +24,10 @@ export class RefundPolicySettingsRepository {
     return this.prisma.giftCategory.findMany({ where: { id: { in: ids }, isActive: true, deletedAt: null }, select: { id: true, name: true }, orderBy: { sortOrder: 'asc' } });
   }
 
+  findAllActiveCategories() {
+    return this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null }, select: { id: true, name: true }, orderBy: { sortOrder: 'asc' } });
+  }
+
   findCategoriesForValidation(ids: string[]) {
     return this.prisma.giftCategory.findMany({ where: { id: { in: ids }, deletedAt: null }, select: { id: true, isActive: true } });
   }
