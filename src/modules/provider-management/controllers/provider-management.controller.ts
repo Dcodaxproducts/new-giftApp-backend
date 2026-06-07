@@ -82,13 +82,9 @@ export class ProviderManagementController {
         summary: 'Admin creates provider',
         value: {
           name: 'Ali Raza',
-          username: 'gifts-blooms-admin',
           email: 'contact@giftsandblooms.com',
           contact: '+15551234567',
           password: 'Provider@123456',
-          generateTemporaryPassword: false,
-          mustChangePassword: true,
-          sendInviteEmail: true,
           businessName: 'Gifts & Blooms Co. Ltd',
           businessCategoryId: 'provider_business_category_id',
           taxId: 'TAX-12345',
@@ -101,15 +97,13 @@ export class ProviderManagementController {
           isActive: true,
         },
       },
-      generatedPassword: {
-        summary: 'Generate temporary password',
+      pendingProvider: {
+        summary: 'Create pending provider',
         value: {
           name: 'Ali Raza',
           email: 'contact@giftsandblooms.com',
           contact: '+15551234567',
-          generateTemporaryPassword: true,
-          mustChangePassword: true,
-          sendInviteEmail: true,
+          password: 'Provider@123456',
           businessName: 'Gifts & Blooms Co. Ltd',
           businessCategoryId: 'provider_business_category_id',
           businessAddress: '123 Gift Street',

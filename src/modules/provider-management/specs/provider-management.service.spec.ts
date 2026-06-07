@@ -228,9 +228,9 @@ describe('ProviderManagementService', () => {
 
     const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
       name: 'Ali Raza',
-      username: 'gifts-blooms-admin',
       email: 'contact@giftsandblooms.com',
       contact: '+15551234567',
+      password: 'Provider@123456',
       businessName: 'Gifts & Blooms Co. Ltd',
       businessCategoryId: 'provider_business_category_id',
       taxId: 'TAX-12345',
@@ -239,10 +239,6 @@ describe('ProviderManagementService', () => {
       companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
       coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
       location: { lat: 31.5, lng: 74.3 },
-      generateTemporaryPassword: false,
-      password: 'Provider@123456',
-      mustChangePassword: true,
-      sendInviteEmail: true,
       approvalStatus: ProviderApprovalStatus.PENDING,
       isActive: true,
     });
@@ -284,7 +280,7 @@ describe('ProviderManagementService', () => {
     }));
   });
 
-  it('admin provider creation generates password and handles invite email failure without returning password', async () => {
+  it('admin provider creation handles invite email failure without returning password', async () => {
     const { service, prisma, mailer } = createService();
     mailer.sendProviderInviteEmail.mockRejectedValue(new Error('smtp down'));
 
@@ -292,20 +288,19 @@ describe('ProviderManagementService', () => {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
+      password: 'Provider@123456',
       businessName: 'Premium Gifts Co',
       businessCategoryId: 'provider_business_category_id',
       businessAddress: '123 Gift Street',
-      generateTemporaryPassword: true,
-      sendInviteEmail: true,
     });
 
     expect(prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ password: expect.any(String) as string }) }));
     expect(result.data).toEqual(expect.objectContaining({ inviteEmailSent: false }));
     expect(result.message).toBe('Provider created successfully, but invite email could not be sent.');
-    expect(JSON.stringify(result)).not.toContain('Gift-');
+    expect(JSON.stringify(result)).not.toContain('Provider@123456');
   });
 
-  it('admin provider creation requires password when generation is disabled', async () => {
+  it('admin provider creation requires password', async () => {
     const { service } = createService();
     await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
       email: 'provider@example.com',
@@ -314,8 +309,7 @@ describe('ProviderManagementService', () => {
       businessName: 'Premium Gifts Co',
       businessCategoryId: 'provider_business_category_id',
       businessAddress: '123 Gift Street',
-      generateTemporaryPassword: false,
-    })).rejects.toThrow(BadRequestException);
+    } as CreateProviderDto)).rejects.toThrow(BadRequestException);
   });
 
   it('admin provider creation rejects missing categories and oversized completed branding uploads', async () => {
@@ -325,10 +319,10 @@ describe('ProviderManagementService', () => {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
+      password: 'Provider@123456',
       businessName: 'Premium Gifts Co',
       businessCategoryId: 'missing_category',
       businessAddress: '123 Gift Street',
-      generateTemporaryPassword: true,
     })).rejects.toThrow('Provider business category not found');
 
     prisma.providerBusinessCategory.findUnique.mockResolvedValueOnce({ id: 'provider_business_category_id', isActive: false });
@@ -337,11 +331,11 @@ describe('ProviderManagementService', () => {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
+      password: 'Provider@123456',
       businessName: 'Premium Gifts Co',
       businessCategoryId: 'provider_business_category_id',
       businessAddress: '123 Gift Street',
       companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
-      generateTemporaryPassword: true,
     })).rejects.toThrow('Company Logo must be 5MB or smaller.');
   });
 
@@ -351,14 +345,18 @@ describe('ProviderManagementService', () => {
       name: 'Ali Raza',
       email: 'contact@giftsandblooms.com',
       contact: '+15551234567',
+      password: 'Provider@123456',
       businessName: 'Gifts & Blooms Co. Ltd',
       businessCategoryId: 'provider_business_category_id',
       businessAddress: '123 Gift Street',
-      generateTemporaryPassword: true,
     };
 
     await expect(pipe.transform({ ...basePayload, fulfillmentMethods: ['DELIVERY'] }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, firstName: 'Ali', lastName: 'Raza' }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, username: 'gifts-blooms-admin' }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, generateTemporaryPassword: true }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, mustChangePassword: true }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, sendInviteEmail: true }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, businessBio: 'x'.repeat(501) }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, businessBio: 'x'.repeat(500) }, { type: 'body', metatype: CreateProviderDto })).resolves.toBeInstanceOf(CreateProviderDto);
   });
@@ -389,6 +387,10 @@ describe('ProviderManagementService', () => {
     expect(createProviderDto).toContain('businessBio?: string');
     expect(createProviderDto).toContain('companyLogoUrl?: string');
     expect(createProviderDto).toContain('coverImageUrl?: string');
+    expect(createProviderDto).not.toContain('username');
+    expect(createProviderDto).not.toContain('generateTemporaryPassword');
+    expect(createProviderDto).not.toContain('mustChangePassword');
+    expect(createProviderDto).not.toContain('sendInviteEmail');
     expect(createProviderDto).not.toContain('firstName');
     expect(createProviderDto).not.toContain('lastName');
     expect(createProviderDto).not.toContain('fulfillmentMethods');

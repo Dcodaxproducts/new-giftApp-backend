@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { MailerService } from '../../mailer/mailer.service';
 import {
@@ -137,11 +136,7 @@ export class ProviderManagementService {
     await this.getProviderBusinessCategory(dto.businessCategoryId);
     await this.validateBrandingUploads(dto);
 
-    const shouldGeneratePassword = dto.generateTemporaryPassword ?? true;
-    if (!shouldGeneratePassword && !dto.password) {
-      throw new BadRequestException('Password is required when generateTemporaryPassword is false');
-    }
-    const password = shouldGeneratePassword ? this.generateTemporaryPassword() : dto.password;
+    const password = dto.password;
     if (!password) {
       throw new BadRequestException('Password is required');
     }
@@ -159,7 +154,7 @@ export class ProviderManagementService {
         isActive: dto.isActive ?? true,
         isApproved: approvalStatus === ProviderApprovalStatus.APPROVED,
         isVerified: true,
-        mustChangePassword: dto.mustChangePassword ?? true,
+        mustChangePassword: true,
         location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
         providerLegalName: dto.businessName.trim(),
         providerBusinessEmail: email,
@@ -175,9 +170,7 @@ export class ProviderManagementService {
         providerApprovedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
     });
 
-    const inviteEmailSent = dto.sendInviteEmail ?? true
-      ? await this.sendProviderInvite(provider, password, approvalStatus)
-      : false;
+    const inviteEmailSent = await this.sendProviderInvite(provider, password, approvalStatus);
 
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_CREATED_BY_ADMIN', null, {
       actorId: user.uid,
@@ -201,11 +194,9 @@ export class ProviderManagementService {
         isActive: provider.isActive,
         inviteEmailSent,
       },
-      message: (dto.sendInviteEmail ?? true) && !inviteEmailSent
-        ? 'Provider created successfully, but invite email could not be sent.'
-        : inviteEmailSent
-          ? 'Provider created successfully and invite email sent.'
-          : 'Provider created successfully.',
+      message: inviteEmailSent
+        ? 'Provider created successfully and invite email sent.'
+        : 'Provider created successfully, but invite email could not be sent.',
     };
   }
 
@@ -985,10 +976,6 @@ export class ProviderManagementService {
 
   private round(value: number): number {
     return Number(value.toFixed(2));
-  }
-
-  private generateTemporaryPassword(): string {
-    return `Gift-${randomBytes(6).toString('hex')}1!`;
   }
 
   private inferTargetType(action: string): string | null {

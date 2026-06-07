@@ -114,9 +114,7 @@ describe('Production critical flow E2E smoke', () => {
       businessName: `Smoke Provider ${stamp}`,
       businessCategoryId: seed.providerBusinessCategoryId,
       businessAddress: '123 Smoke Street',
-      generateTemporaryPassword: false,
       password: seed.providerPassword,
-      sendInviteEmail: false,
       approvalStatus: 'PENDING',
       isActive: true,
     }).expect(201);

@@ -169,11 +169,6 @@ export class CreateProviderDto {
   @MaxLength(120)
   name!: string;
 
-  @ApiPropertyOptional({ example: 'gifts-blooms-admin', description: 'Optional display username from the admin form. Stored only if the schema supports usernames.' })
-  @IsOptional()
-  @IsString()
-  username?: string;
-
   @ApiProperty({ example: 'contact@giftsandblooms.com' })
   @IsEmail()
   email!: string;
@@ -183,29 +178,14 @@ export class CreateProviderDto {
   @IsNotEmpty()
   contact!: string;
 
-  @ApiPropertyOptional({ example: 'Provider@123456' })
-  @ValidateIf((dto: CreateProviderDto) => dto.generateTemporaryPassword === false)
+  @ApiProperty({ example: 'Provider@123456', description: 'Password set by the admin for this provider account.' })
   @IsString()
+  @IsNotEmpty()
   @MinLength(8)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
     message: 'Password does not meet security requirements.',
   })
-  password?: string;
-
-  @ApiPropertyOptional({ example: false, default: true })
-  @IsOptional()
-  @IsBoolean()
-  generateTemporaryPassword?: boolean;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  mustChangePassword?: boolean;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  sendInviteEmail?: boolean;
+  password!: string;
 
   @ApiProperty({ example: 'Gifts & Blooms Co. Ltd' })
   @IsString()

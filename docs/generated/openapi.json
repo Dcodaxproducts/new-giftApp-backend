@@ -10107,13 +10107,9 @@
                   "summary": "Admin creates provider",
                   "value": {
                     "name": "Ali Raza",
-                    "username": "gifts-blooms-admin",
                     "email": "contact@giftsandblooms.com",
                     "contact": "+15551234567",
                     "password": "Provider@123456",
-                    "generateTemporaryPassword": false,
-                    "mustChangePassword": true,
-                    "sendInviteEmail": true,
                     "businessName": "Gifts & Blooms Co. Ltd",
                     "businessCategoryId": "provider_business_category_id",
                     "taxId": "TAX-12345",
@@ -10129,15 +10125,13 @@
                     "isActive": true
                   }
                 },
-                "generatedPassword": {
-                  "summary": "Generate temporary password",
+                "pendingProvider": {
+                  "summary": "Create pending provider",
                   "value": {
                     "name": "Ali Raza",
                     "email": "contact@giftsandblooms.com",
                     "contact": "+15551234567",
-                    "generateTemporaryPassword": true,
-                    "mustChangePassword": true,
-                    "sendInviteEmail": true,
+                    "password": "Provider@123456",
                     "businessName": "Gifts & Blooms Co. Ltd",
                     "businessCategoryId": "provider_business_category_id",
                     "businessAddress": "123 Gift Street",
@@ -27460,11 +27454,6 @@
             "example": "Ali Raza",
             "maxLength": 120
           },
-          "username": {
-            "type": "string",
-            "example": "gifts-blooms-admin",
-            "description": "Optional display username from the admin form. Stored only if the schema supports usernames."
-          },
           "email": {
             "type": "string",
             "example": "contact@giftsandblooms.com"
@@ -27475,22 +27464,8 @@
           },
           "password": {
             "type": "string",
-            "example": "Provider@123456"
-          },
-          "generateTemporaryPassword": {
-            "type": "boolean",
-            "example": false,
-            "default": true
-          },
-          "mustChangePassword": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          },
-          "sendInviteEmail": {
-            "type": "boolean",
-            "example": true,
-            "default": true
+            "example": "Provider@123456",
+            "description": "Password set by the admin for this provider account."
           },
           "businessName": {
             "type": "string",
@@ -27554,6 +27529,7 @@
           "name",
           "email",
           "contact",
+          "password",
           "businessName",
           "businessCategoryId",
           "businessAddress"

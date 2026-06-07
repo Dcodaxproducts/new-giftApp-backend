@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 10:39 UTC
+Generated at: 2026-06-07 10:59 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -1330,13 +1330,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "name": "Ali Raza",
-  "username": "gifts-blooms-admin",
   "email": "contact@giftsandblooms.com",
   "contact": "+15551234567",
   "password": "Provider@123456",
-  "generateTemporaryPassword": false,
-  "mustChangePassword": true,
-  "sendInviteEmail": true,
   "businessName": "Gifts & Blooms Co. Ltd",
   "businessCategoryId": "provider_business_category_id",
   "taxId": "TAX-12345",
@@ -1352,15 +1348,13 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "isActive": true
 }
 ```
-  - generatedPassword:
+  - pendingProvider:
 ```json
 {
   "name": "Ali Raza",
   "email": "contact@giftsandblooms.com",
   "contact": "+15551234567",
-  "generateTemporaryPassword": true,
-  "mustChangePassword": true,
-  "sendInviteEmail": true,
+  "password": "Provider@123456",
   "businessName": "Gifts & Blooms Co. Ltd",
   "businessCategoryId": "provider_business_category_id",
   "businessAddress": "123 Gift Street",

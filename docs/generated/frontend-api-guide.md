@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 10:40 UTC
+Generated at: 2026-06-07 10:59 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 10:40 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 10:59 UTC.
 
 ## Frontend Integration Flows
 
