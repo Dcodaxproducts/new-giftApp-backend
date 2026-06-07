@@ -15,6 +15,7 @@ export class AdminProviderDisputesRepository {
       this.prisma.providerDisputeCase.count({ where: { resolvedAt: { gte: params.weekStart }, status: ProviderDisputeStatus.RESOLVED } }),
       this.prisma.providerDisputeCase.findMany({ where: { resolvedAt: { not: null } }, select: { createdAt: true, resolvedAt: true }, take: 100 }),
       this.prisma.providerDisputeCase.groupBy({ by: ['providerId', 'category'], _count: { _all: true }, orderBy: { _count: { providerId: 'desc' } }, take: 1 }),
+      this.prisma.providerDisputeCase.count({ where: params.where }),
     ]);
   }
 

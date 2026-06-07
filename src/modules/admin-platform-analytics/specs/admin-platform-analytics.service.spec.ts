@@ -97,6 +97,28 @@ describe('AdminPlatformAnalyticsService', () => {
     expect(result.data.activeUsers).toEqual({ value: 5120, changePercent: -2.1 });
   });
 
+  it('summary and revenue transactions return zeros and empty arrays when no records exist', async () => {
+    const { service, repository } = createService();
+    repository.sumSuccessfulPayments.mockResolvedValue({ _sum: { amount: null } });
+    repository.countNewSubscriptions.mockResolvedValue(0);
+    repository.countCancelledSubscriptions.mockResolvedValue(0);
+    repository.countActiveSubscriptionsAt.mockResolvedValue(0);
+    repository.countActiveRegisteredUsers.mockResolvedValue(0);
+    repository.findPayments.mockResolvedValue([]);
+
+    const summary = await service.summary({ range: PlatformAnalyticsRange.LAST_30_DAYS });
+    const transactions = await service.revenueTransactions({ page: 1, limit: 10 });
+
+    expect(summary.data).toEqual({
+      totalRevenue: { value: 0, changePercent: 0 },
+      newSubscriptions: { value: 0, changePercent: 0 },
+      churnRate: { value: 0, changePercent: 0 },
+      activeUsers: { value: 0, changePercent: 0 },
+    });
+    expect(transactions.data).toEqual([]);
+    expect(transactions.meta).toEqual({ page: 1, limit: 10, total: 0, totalPages: 0 });
+  });
+
   it('revenue transactions paginate and map safe fields only', async () => {
     const { service, repository } = createService();
     repository.findPayments.mockResolvedValue([

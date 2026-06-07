@@ -18,11 +18,11 @@ const approvedProvider = {
   suspendedAt: null,
 };
 
-function createService(provider: Record<string, unknown> | null = approvedProvider) {
-  const orders = [
+function createService(provider: Record<string, unknown> | null = approvedProvider, empty = false) {
+  const orders = empty ? [] : [
     { createdAt: new Date(), totalPayout: 120, total: 120, currency: 'PKR' },
   ];
-  const recentOrder = {
+  const recentOrder = empty ? null : {
     id: 'provider_order_1',
     orderNumber: 'ORD-8821',
     status: ProviderOrderStatus.PENDING,
@@ -36,11 +36,11 @@ function createService(provider: Record<string, unknown> | null = approvedProvid
   const prisma = {
     user: { findFirst: jest.fn().mockResolvedValue(provider) },
     providerOrder: {
-      count: jest.fn().mockResolvedValueOnce(24).mockResolvedValueOnce(12),
-      findMany: jest.fn().mockResolvedValueOnce(orders).mockResolvedValueOnce([recentOrder]),
+      count: jest.fn().mockResolvedValueOnce(empty ? 0 : 24).mockResolvedValueOnce(empty ? 0 : 12),
+      findMany: jest.fn().mockResolvedValueOnce(orders).mockResolvedValueOnce(recentOrder ? [recentOrder] : []),
     },
-    promotionalOffer: { count: jest.fn().mockResolvedValue(5) },
-    gift: { count: jest.fn().mockResolvedValue(128) },
+    promotionalOffer: { count: jest.fn().mockResolvedValue(empty ? 0 : 5) },
+    gift: { count: jest.fn().mockResolvedValue(empty ? 0 : 128) },
     $transaction: jest.fn().mockImplementation((queries: Promise<unknown>[]) => Promise.all(queries)),
   };
   const repository = new ProviderDashboardRepository(prisma as unknown as ConstructorParameters<typeof ProviderDashboardRepository>[0]);
@@ -102,5 +102,14 @@ describe('ProviderDashboardService', () => {
     const result = await service.get({ uid: 'provider_1', role: UserRole.PROVIDER });
     expect(result.data.performance).toEqual(expect.objectContaining({ range: 'WEEKLY', labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], currency: 'PKR' }));
     expect(result.data.performance.values).toHaveLength(7);
+  });
+
+  it('dashboard returns zeros and empty arrays when provider has no activity', async () => {
+    const { service } = createService(approvedProvider, true);
+    const result = await service.get({ uid: 'provider_1', role: UserRole.PROVIDER });
+    expect(result.data.operationalSummary).toEqual({ todayOrders: 0, pendingOrders: 0, activeOffers: 0, totalItems: 0 });
+    expect(result.data.recentOrders).toEqual([]);
+    expect(result.data.performance).toEqual(expect.objectContaining({ range: 'WEEKLY', currency: 'PKR' }));
+    expect(result.data.performance.values).toEqual([0, 0, 0, 0, 0, 0, 0]);
   });
 });
