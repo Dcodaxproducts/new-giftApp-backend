@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 13:22 UTC
+Generated at: 2026-06-07 13:39 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -7024,17 +7024,18 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### POST `/api/v1/provider/payouts/{id}/cancel`
+### POST `/api/v1/provider/payouts/{id}/action`
 
-- Summary: Cancel own pending provider payout
+- Summary: Run provider payout action
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Can cancel only PENDING payouts and returns locked balance to AVAILABLE.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Supported action: CANCEL. Cancels only own PENDING payouts and returns locked PAYOUT_PENDING ledger balance to AVAILABLE.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - cancel:
 ```json
 {
+  "action": "CANCEL",
   "reason": "Requested by provider."
 }
 ```

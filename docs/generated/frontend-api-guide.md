@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 13:22 UTC
+Generated at: 2026-06-07 13:39 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 13:22 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 13:39 UTC.
 
 ## Frontend Integration Flows
 
@@ -894,7 +894,7 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 13:22 UTC.
 | POST | `/api/v1/provider/payouts/request` | Request provider payout | PROVIDER |
 | GET | `/api/v1/provider/payouts/summary` | Fetch own provider payout summary | PROVIDER |
 | GET | `/api/v1/provider/payouts/{id}` | Fetch own provider payout details | PROVIDER |
-| POST | `/api/v1/provider/payouts/{id}/cancel` | Cancel own pending provider payout | PROVIDER |
+| POST | `/api/v1/provider/payouts/{id}/action` | Run provider payout action | PROVIDER |
 
 ### Provider - Promotional Offers (5 APIs)
 

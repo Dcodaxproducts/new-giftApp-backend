@@ -32,7 +32,7 @@ export class AdminProviderPayoutTrendsDto {
   @ApiPropertyOptional({ enum: AdminProviderPayoutTrendRange, example: AdminProviderPayoutTrendRange.LAST_12_MONTHS }) @IsOptional() @IsEnum(AdminProviderPayoutTrendRange) range?: AdminProviderPayoutTrendRange;
 }
 
-export class ProviderPayoutActionDto {
+export class AdminProviderPayoutActionDto {
   @ApiProperty({ enum: AdminProviderPayoutAction, example: AdminProviderPayoutAction.APPROVE }) @IsEnum(AdminProviderPayoutAction) action!: AdminProviderPayoutAction;
   @ApiPropertyOptional({ enum: AdminProviderPayoutActionReason, example: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, description: 'Required for HOLD and REJECT actions.' }) @IsOptional() @IsEnum(AdminProviderPayoutActionReason) reason?: AdminProviderPayoutActionReason;
   @ApiPropertyOptional({ example: 'Approved after verification.', maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) comment?: string;

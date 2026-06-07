@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { CommissionTier, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { AdminProviderPayoutAction, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkProviderPayoutActionDto, HoldProviderPayoutDto, ProviderPayoutActionDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutAction, AdminProviderPayoutActionDto, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkProviderPayoutActionDto, HoldProviderPayoutDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
 import { ADMIN_PROVIDER_PAYOUT_INCLUDE, AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -86,7 +86,7 @@ export class AdminProviderPayoutsService {
     return { data: { payoutId: payout.id, provider: { id: payout.provider.id, businessName: payout.provider.providerBusinessName ?? this.name(payout.provider), merchantId: this.merchantId(payout.provider.id) }, grossAmount, platformFee, platformFeePercent, processingFee: this.money(payout.processingFee), netPayout: this.money(payout.totalToReceive), currency: payout.currency, recentTransactions: ledger.map((item) => ({ orderNumber: item.providerOrder?.orderNumber ?? item.providerOrderId ?? item.id, description: item.description, amount: this.money(item.amount) })) }, message: 'Payout breakdown fetched successfully.' };
   }
 
-  async action(user: AuthUserContext, id: string, dto: ProviderPayoutActionDto) {
+  async action(user: AuthUserContext, id: string, dto: AdminProviderPayoutActionDto) {
     this.assertActionPermission(user, dto.action);
     if (dto.action === AdminProviderPayoutAction.APPROVE) return this.approve(user, id, { comment: dto.comment, notifyProvider: dto.notifyProvider });
     if (!dto.reason) throw new BadRequestException('Reason is required for HOLD and REJECT payout actions');

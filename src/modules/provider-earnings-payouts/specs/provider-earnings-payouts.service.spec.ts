@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, ForbiddenException, NotFoundExc
 import { PaymentStatus, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayoutAccountType, ProviderPayoutExternalProvider, ProviderPayoutMethodType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { ProviderPayoutAction } from '../dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from '../repositories/provider-earnings-payouts.repository';
 import { ProviderEarningsPayoutsService } from '../services/provider-earnings-payouts.service';
 
@@ -25,8 +26,9 @@ function createService(overrides: Partial<{ ledgers: unknown[]; payoutMethod: un
     notification: { create: jest.fn().mockResolvedValue({ id: 'n1' }) },
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
-  const repository = new ProviderEarningsPayoutsRepository(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsRepository>[0], { createAndEmit: jest.fn(), emitExisting: jest.fn() } as never);
-  return { service: new ProviderEarningsPayoutsService(repository), prisma, repository };
+  const notificationDispatch = { createAndEmit: jest.fn(), emitExisting: jest.fn() };
+  const repository = new ProviderEarningsPayoutsRepository(prisma as unknown as ConstructorParameters<typeof ProviderEarningsPayoutsRepository>[0], notificationDispatch as never);
+  return { service: new ProviderEarningsPayoutsService(repository), prisma, repository, notificationDispatch };
 }
 
 describe('Provider earnings/payouts source safety', () => {
@@ -40,6 +42,9 @@ describe('Provider earnings/payouts source safety', () => {
     expect(earningsController).toContain('@Roles(UserRole.PROVIDER)');
     expect(payoutsController.indexOf("@Get('summary')")).toBeLessThan(payoutsController.indexOf("@Get(':id')"));
     expect(payoutsController.indexOf("@Get('preview')")).toBeLessThan(payoutsController.indexOf("@Get(':id')"));
+    expect(payoutsController).toContain("@Post(':id/action')");
+    expect(payoutsController).not.toContain("@Post(':id/cancel')");
+    expect(payoutsController).toContain('ProviderPayoutActionDto');
   });
   it('derives provider from JWT and never trusts providerId', () => {
     expect(service).toContain('getApprovedActiveProvider(user.uid)');
@@ -66,11 +71,14 @@ describe('Provider earnings/payouts source safety', () => {
     expect(repository).toContain('cancelPayoutRequest');
     expect(repository).toContain('releaseLedgerEntriesFromPayout');
     expect(repository).toContain('createPayoutNotification');
+    expect(repository).toContain('actorId: params.actorId');
     expect(repository).toContain('findProviderOrderForEarning');
     expect(repository).toContain('createOrderEarningLedgerEntry');
     expect(repository).toContain('returnFailedPayoutBalance');
     expect(service).toContain('if (duplicate) throw new ConflictException');
     expect(service).toContain('if (payout.status !== ProviderPayoutStatus.PENDING)');
+    expect(service).toContain('async payoutAction');
+    expect(service).toContain('ProviderPayoutAction.CANCEL');
     expect(service).toContain('preview(user.uid, dto.amount, dto.payoutMethodId)');
   });
   it('service no longer contains direct Prisma writes for payout lifecycle methods', () => {
@@ -106,9 +114,9 @@ describe('ProviderEarningsPayoutsService', () => {
   it('recordOrderEarning skips unpaid or incomplete orders', async () => { const { service, prisma } = createService({ providerOrder: { ...providerOrder, status: ProviderOrderStatus.ACCEPTED } }); await service.recordOrderEarning('po_1'); expect(prisma.providerEarningsLedger.upsert).not.toHaveBeenCalled(); });
   it('failed payout returns balance to available and marks payout failed', async () => { const { service, prisma } = createService(); await service.returnFailedPayoutBalance('provider_1', 'payout_1', 'Bank failed'); expect(prisma.providerEarningsLedger.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1', payoutId: 'payout_1', status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }), data: expect.objectContaining({ status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { failureReason: 'Bank failed' } }) })); expect(prisma.providerPayout.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payout_1' }, data: expect.objectContaining({ status: ProviderPayoutStatus.FAILED, failureReason: 'Bank failed' }) })); });
   it('failed payout balance return does not affect another provider ledger', async () => { const { service, prisma } = createService(); await service.returnFailedPayoutBalance('provider_2', 'payout_1', 'Bank failed'); expect(prisma.providerEarningsLedger.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_2', payoutId: 'payout_1' }) })); });
-  it('pending payout can be cancelled and returns ledger amount to available', async () => { const { service, prisma } = createService(); const result = await service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', { reason: 'Requested by provider.' }); expect(result.data.status).toBe(ProviderPayoutStatus.CANCELLED); expect(prisma.providerEarningsLedger.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1', payoutId: 'payout_1', status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }), data: expect.objectContaining({ status: ProviderEarningsLedgerStatus.AVAILABLE }) })); });
-  it('processing payout cannot be cancelled', async () => { const { service } = createService({ payout: { ...payout, status: ProviderPayoutStatus.PROCESSING } }); await expect(service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', {})).rejects.toThrow(ConflictException); });
-  it('completed payout cannot be cancelled', async () => { const { service } = createService({ payout: { ...payout, status: ProviderPayoutStatus.COMPLETED } }); await expect(service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', {})).rejects.toThrow(ConflictException); });
+  it('pending payout can be cancelled through action and returns ledger amount to available', async () => { const { service, prisma, notificationDispatch } = createService(); const result = await service.payoutAction({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', { action: ProviderPayoutAction.CANCEL, reason: 'Requested by provider.' }); expect(result.data.status).toBe(ProviderPayoutStatus.CANCELLED); expect(prisma.providerEarningsLedger.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerId: 'provider_1', payoutId: 'payout_1', status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }), data: expect.objectContaining({ status: ProviderEarningsLedgerStatus.AVAILABLE }) })); expect(prisma.providerPayoutAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ actorId: 'provider_1', action: 'PROVIDER_PAYOUT_CANCELLED', metadataJson: { reason: 'Requested by provider.' } }) })); expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ recipientId: 'provider_1', type: 'PROVIDER_PAYOUT_CANCELLED', metadataJson: { payoutId: 'payout_1' } })); });
+  it('processing payout cannot be cancelled', async () => { const { service } = createService({ payout: { ...payout, status: ProviderPayoutStatus.PROCESSING } }); await expect(service.payoutAction({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', { action: ProviderPayoutAction.CANCEL })).rejects.toThrow(ConflictException); });
+  it('completed payout cannot be cancelled', async () => { const { service } = createService({ payout: { ...payout, status: ProviderPayoutStatus.COMPLETED } }); await expect(service.payoutAction({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_1', { action: ProviderPayoutAction.CANCEL })).rejects.toThrow(ConflictException); });
   it('provider cannot access another provider payout', async () => { const { service } = createService({ payout: null }); await expect(service.payoutDetails({ uid: 'provider_1', role: UserRole.PROVIDER }, 'other_payout')).rejects.toThrow(NotFoundException); });
-  it('provider cannot cancel another provider payout', async () => { const { service } = createService({ payout: null }); await expect(service.cancelPayout({ uid: 'provider_1', role: UserRole.PROVIDER }, 'other_payout', {})).rejects.toThrow(NotFoundException); });
+  it('provider cannot cancel another provider payout', async () => { const { service } = createService({ payout: null }); await expect(service.payoutAction({ uid: 'provider_1', role: UserRole.PROVIDER }, 'other_payout', { action: ProviderPayoutAction.CANCEL })).rejects.toThrow(NotFoundException); });
 });

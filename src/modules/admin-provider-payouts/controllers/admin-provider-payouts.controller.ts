@@ -7,7 +7,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, BulkProviderPayoutActionDto, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto, ProviderPayoutActionDto } from '../dto/admin-provider-payouts.dto';
+import { AdminProviderPayoutActionDto, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, BulkProviderPayoutActionDto, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
 import { AdminProviderPayoutsService } from '../services/admin-provider-payouts.service';
 
 @ApiTags('02 Admin - Provider Payouts')
@@ -71,9 +71,9 @@ export class AdminProviderPayoutsController {
 
   @Post(':id/action')
   @ApiOperation({ summary: 'Run provider payout action', description: 'SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.' })
-  @ApiBody({ type: ProviderPayoutActionDto, examples: { approve: { value: { action: 'APPROVE', comment: 'Approved after verification.', notifyProvider: true } }, hold: { value: { action: 'HOLD', reason: 'BANK_VERIFICATION_PENDING', comment: 'Bank verification required.', notifyProvider: true } }, reject: { value: { action: 'REJECT', reason: 'INVALID_BANK_ACCOUNT', comment: 'Bank details are invalid.', notifyProvider: true } } } })
+  @ApiBody({ type: AdminProviderPayoutActionDto, examples: { approve: { value: { action: 'APPROVE', comment: 'Approved after verification.', notifyProvider: true } }, hold: { value: { action: 'HOLD', reason: 'BANK_VERIFICATION_PENDING', comment: 'Bank verification required.', notifyProvider: true } }, reject: { value: { action: 'REJECT', reason: 'INVALID_BANK_ACCOUNT', comment: 'Bank details are invalid.', notifyProvider: true } } } })
   @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'payout_id', status: 'PROCESSING' }, message: 'Payout action processed successfully.' } } })
-  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ProviderPayoutActionDto) { return this.payouts.action(user, id, dto); }
+  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AdminProviderPayoutActionDto) { return this.payouts.action(user, id, dto); }
 
   @Get(':id')
   @Permissions('providerPayouts.read')

@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { NotificationRecipientType, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { CancelProviderPayoutDto, EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, RequestProviderPayoutDto, SortOrder } from '../dto/provider-earnings-payouts.dto';
+import { EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, ProviderPayoutAction, ProviderPayoutActionDto, RequestProviderPayoutDto, SortOrder } from '../dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from '../repositories/provider-earnings-payouts.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -82,15 +82,22 @@ export class ProviderEarningsPayoutsService {
 
   async payoutDetails(user: AuthUserContext, id: string) { await this.getApprovedActiveProvider(user.uid); const payout = await this.getOwnedPayout(user.uid, id); return { data: this.toPayoutDetail(payout), message: 'Provider payout fetched successfully.' }; }
 
-  async cancelPayout(user: AuthUserContext, id: string, dto: CancelProviderPayoutDto) {
+  async payoutAction(user: AuthUserContext, id: string, dto: ProviderPayoutActionDto) {
+    if (dto.action === ProviderPayoutAction.CANCEL) return this.cancelPayout(user, id, dto.reason);
+    throw new BadRequestException('Unsupported payout action');
+  }
+
+  private async cancelPayout(user: AuthUserContext, id: string, reason?: string) {
     await this.getApprovedActiveProvider(user.uid);
     const payout = await this.getOwnedPayout(user.uid, id);
     if (payout.status !== ProviderPayoutStatus.PENDING) throw new ConflictException('Only pending payouts can be cancelled');
+    const cancelReason = reason?.trim() || 'Requested by provider.';
     const updated = await this.repository.cancelPayoutRequest({
       providerId: user.uid,
+      actorId: user.uid,
       payoutId: payout.id,
-      cancelReason: dto.reason ?? 'Requested by provider.',
-      payoutData: { status: ProviderPayoutStatus.CANCELLED, failureReason: dto.reason?.trim() },
+      cancelReason,
+      payoutData: { status: ProviderPayoutStatus.CANCELLED, failureReason: cancelReason },
       notificationData: { recipientId: user.uid, recipientType: NotificationRecipientType.PROVIDER, title: 'Payout cancelled', message: 'Your payout request was cancelled.', type: 'PROVIDER_PAYOUT_CANCELLED', metadataJson: { payoutId: payout.id } },
     });
     return { data: { id: updated.id, status: updated.status }, message: 'Provider payout cancelled successfully.' };

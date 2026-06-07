@@ -122,11 +122,11 @@ export class ProviderEarningsPayoutsRepository {
     });
   }
 
-  cancelPayoutRequest(params: { providerId: string; payoutId: string; cancelReason: string; payoutData: Prisma.ProviderPayoutUpdateArgs['data']; notificationData: Prisma.NotificationUncheckedCreateInput }) {
+  cancelPayoutRequest(params: { providerId: string; actorId: string; payoutId: string; cancelReason: string; payoutData: Prisma.ProviderPayoutUpdateArgs['data']; notificationData: Prisma.NotificationUncheckedCreateInput }) {
     return this.prisma.$transaction(async (tx) => {
       await this.releaseLedgerEntriesFromPayout(tx, params.providerId, params.payoutId, params.cancelReason);
       const item = await this.cancelPayout(tx, params.payoutId, params.payoutData);
-      await tx.providerPayoutAuditLog.create({ data: { payoutId: params.payoutId, providerId: params.providerId, action: 'PROVIDER_PAYOUT_CANCELLED', status: item.status, metadataJson: { reason: params.cancelReason } } });
+      await tx.providerPayoutAuditLog.create({ data: { payoutId: params.payoutId, providerId: params.providerId, actorId: params.actorId, action: 'PROVIDER_PAYOUT_CANCELLED', status: item.status, metadataJson: { reason: params.cancelReason } } });
       await this.createPayoutNotification(tx, params.notificationData);
       return item;
     });

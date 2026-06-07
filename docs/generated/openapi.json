@@ -6389,7 +6389,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProviderPayoutActionDto"
+                "$ref": "#/components/schemas/AdminProviderPayoutActionDto"
               },
               "examples": {
                 "approve": {
@@ -11573,10 +11573,10 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/provider/payouts/{id}/cancel": {
+    "/api/v1/provider/payouts/{id}/action": {
       "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. Can cancel only PENDING payouts and returns locked balance to AVAILABLE.",
-        "operationId": "ProviderPayoutsController_cancel",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Supported action: CANCEL. Cancels only own PENDING payouts and returns locked PAYOUT_PENDING ledger balance to AVAILABLE.",
+        "operationId": "ProviderPayoutsController_action",
         "parameters": [
           {
             "name": "id",
@@ -11592,7 +11592,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelProviderPayoutDto"
+                "$ref": "#/components/schemas/ProviderPayoutActionDto"
+              },
+              "examples": {
+                "cancel": {
+                  "summary": "Cancel payout",
+                  "value": {
+                    "action": "CANCEL",
+                    "reason": "Requested by provider."
+                  }
+                }
               }
             }
           }
@@ -11607,7 +11616,7 @@
             "bearer": []
           }
         ],
-        "summary": "Cancel own pending provider payout",
+        "summary": "Run provider payout action",
         "tags": [
           "03 Provider - Payouts"
         ],
@@ -27087,7 +27096,7 @@
           "notifyProvider"
         ]
       },
-      "ProviderPayoutActionDto": {
+      "AdminProviderPayoutActionDto": {
         "type": "object",
         "properties": {
           "action": {
@@ -27869,14 +27878,24 @@
           "idempotencyKey"
         ]
       },
-      "CancelProviderPayoutDto": {
+      "ProviderPayoutActionDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "CANCEL"
+            ],
+            "example": "CANCEL"
+          },
           "reason": {
             "type": "string",
             "example": "Requested by provider."
           }
-        }
+        },
+        "required": [
+          "action"
+        ]
       },
       "ProviderStoreAddressDto": {
         "type": "object",
