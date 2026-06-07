@@ -122,6 +122,8 @@ export class AuthCoreService implements OnModuleInit {
       providerBusinessCategoryId: dto.businessCategoryId,
       providerTaxId: dto.taxId?.trim(),
       providerBusinessAddress: dto.businessAddress.trim(),
+      location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
+      providerStoreAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
       providerFulfillmentMethods: dto.fulfillmentMethods,
       providerAutoAcceptOrders: dto.autoAcceptOrders ?? false,
     });
@@ -557,6 +559,8 @@ export class AuthCoreService implements OnModuleInit {
     providerBusinessCategoryId?: string;
     providerTaxId?: string;
     providerBusinessAddress?: string;
+    location?: string;
+    providerStoreAddress?: Prisma.InputJsonValue;
     providerServiceArea?: string;
     providerFulfillmentMethods?: string[];
     providerAutoAcceptOrders?: boolean;
@@ -591,6 +595,8 @@ export class AuthCoreService implements OnModuleInit {
         providerBusinessCategoryId: input.providerBusinessCategoryId,
         providerTaxId: input.providerTaxId,
         providerBusinessAddress: input.providerBusinessAddress,
+        location: input.location,
+        providerStoreAddress: input.providerStoreAddress,
         providerServiceArea: input.providerServiceArea,
         providerFulfillmentMethods: input.providerFulfillmentMethods ?? undefined,
         providerAutoAcceptOrders: input.providerAutoAcceptOrders ?? false,
@@ -711,6 +717,7 @@ export class AuthCoreService implements OnModuleInit {
             : null,
           taxId: user.providerTaxId,
           businessAddress: user.providerBusinessAddress,
+          location: this.providerLocation(user),
           fulfillmentMethods: this.stringArray(user.providerFulfillmentMethods),
           autoAcceptOrders: user.providerAutoAcceptOrders,
           serviceArea: user.providerServiceArea,
@@ -723,6 +730,19 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     return { ...baseUser, subscription: await this.customerSubscriptionSummary(user.id) };
+  }
+
+  private providerLocation(user: User): { lat: number; lng: number } | null {
+    const value = user.providerStoreAddress;
+    if (value && !Array.isArray(value) && typeof value === 'object') {
+      const lat = value.lat;
+      const lng = value.lng;
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        return { lat, lng };
+      }
+    }
+
+    return null;
   }
 
   private async customerSubscriptionSummary(userId: string) {

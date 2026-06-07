@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 11:27 UTC
+Generated at: 2026-06-07 11:43 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -127,6 +127,10 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "businessCategoryId": "<string>",
   "taxId": "<string>",
   "businessAddress": "<string>",
+  "location": {
+    "lat": 31.5,
+    "lng": 74.3
+  },
   "fulfillmentMethods": [
     "PICKUP"
   ],
@@ -1324,7 +1328,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create provider from admin dashboard
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.create
-- Notes: Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.
+- Notes: Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. Optional location coordinates can be stored for future routing, proximity, service-area, distance sorting, and provider availability flows. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.
 - Request payload(s):
   - createAdminProvider:
 ```json
@@ -1375,6 +1379,10 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "businessName": "Gifts & Blooms Co. Ltd",
     "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
     "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
+    "location": {
+      "lat": 31.5,
+      "lng": 74.3
+    },
     "approvalStatus": "PENDING",
     "isActive": true,
     "inviteEmailSent": true

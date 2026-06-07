@@ -190,6 +190,7 @@ export class ProviderManagementService {
         businessName: this.businessName(provider),
         companyLogoUrl: provider.avatarUrl,
         coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
+        location: this.providerLocation(provider),
         approvalStatus: provider.providerApprovalStatus,
         isActive: provider.isActive,
         inviteEmailSent,

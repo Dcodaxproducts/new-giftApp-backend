@@ -275,9 +275,32 @@ describe('ProviderManagementService', () => {
     expect(JSON.stringify(prisma.adminAuditLog.create.mock.calls)).not.toContain('Provider@123456');
     expect(JSON.stringify(result)).not.toContain('Provider@123456');
     expect(result).toEqual(expect.objectContaining({
-      data: expect.objectContaining({ name: 'Ali Raza', email: 'contact@giftsandblooms.com', contact: '+15551234567', businessName: 'Gifts & Blooms Co. Ltd', companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png', coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png', inviteEmailSent: true }),
+      data: expect.objectContaining({ name: 'Ali Raza', email: 'contact@giftsandblooms.com', contact: '+15551234567', businessName: 'Gifts & Blooms Co. Ltd', companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png', coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png', location: { lat: 31.5, lng: 74.3 }, inviteEmailSent: true }),
       message: 'Provider created successfully and invite email sent.',
     }));
+  });
+
+  it('admin provider creation remains optional without location and stores address only', async () => {
+    const { service, prisma } = createService();
+
+    const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      email: 'provider@example.com',
+      name: 'Ali Raza',
+      contact: '+15551234567',
+      password: 'Provider@123456',
+      businessName: 'Premium Gifts Co',
+      businessCategoryId: 'provider_business_category_id',
+      businessAddress: '123 Gift Street',
+    });
+
+    expect(prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        providerBusinessAddress: '123 Gift Street',
+        location: undefined,
+        providerStoreAddress: undefined,
+      }),
+    }));
+    expect(result.data).toEqual(expect.objectContaining({ location: null }));
   });
 
   it('admin provider creation handles invite email failure without returning password', async () => {
@@ -358,7 +381,11 @@ describe('ProviderManagementService', () => {
     await expect(pipe.transform({ ...basePayload, mustChangePassword: true }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, sendInviteEmail: true }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, businessBio: 'x'.repeat(501) }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, location: { lat: 31.5 } }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, location: { lat: 91, lng: 74.3 } }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: 181 } }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, businessBio: 'x'.repeat(500) }, { type: 'body', metatype: CreateProviderDto })).resolves.toBeInstanceOf(CreateProviderDto);
+    await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: 74.3 } }, { type: 'body', metatype: CreateProviderDto })).resolves.toBeInstanceOf(CreateProviderDto);
   });
 
   it('provider-management.service.ts no longer imports PrismaService or uses this.prisma', () => {
@@ -387,6 +414,7 @@ describe('ProviderManagementService', () => {
     expect(createProviderDto).toContain('businessBio?: string');
     expect(createProviderDto).toContain('companyLogoUrl?: string');
     expect(createProviderDto).toContain('coverImageUrl?: string');
+    expect(createProviderDto).toContain('location?: ProviderLocationDto');
     expect(createProviderDto).not.toContain('username');
     expect(createProviderDto).not.toContain('generateTemporaryPassword');
     expect(createProviderDto).not.toContain('mustChangePassword');

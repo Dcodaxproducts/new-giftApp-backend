@@ -73,7 +73,7 @@ export class ProviderManagementController {
   @Permissions('providers.create')
   @ApiOperation({
     summary: 'Create provider from admin dashboard',
-    description: 'SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.',
+    description: 'SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. Optional location coordinates can be stored for future routing, proximity, service-area, distance sorting, and provider availability flows. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.',
   })
   @ApiBody({
     type: CreateProviderDto,
@@ -128,6 +128,7 @@ export class ProviderManagementController {
           businessName: 'Gifts & Blooms Co. Ltd',
           companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
           coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
+          location: { lat: 31.5, lng: 74.3 },
           approvalStatus: 'PENDING',
           isActive: true,
           inviteEmailSent: true,

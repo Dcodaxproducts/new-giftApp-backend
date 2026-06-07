@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GuestSessionPlatform } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
@@ -7,16 +8,36 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
+  Max,
   MaxLength,
+  Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 export enum ProviderFulfillmentMethodDto {
   PICKUP = 'PICKUP',
   DELIVERY = 'DELIVERY',
+}
+
+export class RegisterProviderLocationDto {
+  @ApiProperty({ example: 31.5 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  lat!: number;
+
+  @ApiProperty({ example: 74.3 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  lng!: number;
 }
 
 export class RegisterUserDto {
@@ -77,6 +98,15 @@ export class RegisterProviderDto extends RegisterUserDto {
   @IsString()
   @IsNotEmpty()
   businessAddress!: string;
+
+  @ApiPropertyOptional({
+    example: { lat: 31.5, lng: 74.3 },
+    description: 'Optional provider coordinates for future routing, proximity, delivery availability, distance sorting, and service-area flows.',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RegisterProviderLocationDto)
+  location?: RegisterProviderLocationDto;
 
   @ApiPropertyOptional({ enum: ProviderFulfillmentMethodDto, isArray: true, description: 'Optional public provider onboarding fulfillment preferences.' })
   @IsOptional()

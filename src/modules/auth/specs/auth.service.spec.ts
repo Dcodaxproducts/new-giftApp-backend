@@ -1,11 +1,11 @@
-import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { ServiceUnavailableException, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { readFileSync } from 'fs';
 import { resetPasswordTemplate } from '../../../mail/templates/reset-password.template';
 import { AuthPasswordRepository } from '../repositories/auth-password.repository';
 import { AuthRepository } from '../repositories/auth.repository';
-import { ProviderFulfillmentMethodDto } from '../dto/auth.dto';
+import { ProviderFulfillmentMethodDto, RegisterProviderDto } from '../dto/auth.dto';
 import { AuthCoreService } from '../services/auth-core.service';
 import { AuthSessionsRepository } from '../repositories/auth-sessions.repository';
 import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exception';
@@ -266,6 +266,7 @@ function authUser(overrides: Partial<Record<string, unknown>> = {}) {
     providerBusinessCategoryId: null,
     providerTaxId: null,
     providerBusinessAddress: null,
+    providerStoreAddress: null,
     providerServiceArea: null,
     providerFulfillmentMethods: null,
     providerAutoAcceptOrders: false,
@@ -557,6 +558,27 @@ describe('AuthService sensitive auth behavior', () => {
     expect(registerProviderCall[0].data.firstName).toBe('Cake');
     expect(registerProviderCall[0].data.lastName).toBe('Owner');
     expect(registerProviderCall[0].data.providerFulfillmentMethods).toBeUndefined();
+  });
+
+  it('provider registration optionally stores valid location and validates coordinates', async () => {
+    const user = authUser({ email: 'provider-location@example.com', role: UserRole.PROVIDER, firstName: 'Cake', lastName: 'Owner', isApproved: false, providerApprovalStatus: 'PENDING', verificationOtp: '123456', providerBusinessName: 'Cake Shop', location: '31.5,74.3', providerStoreAddress: { lat: 31.5, lng: 74.3 } });
+    const { service, prisma } = createSensitiveAuthService({ user });
+    prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
+
+    const result = await service.registerProvider({ email: 'provider-location@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', location: { lat: 31.5, lng: 74.3 } });
+
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { location?: string; providerStoreAddress?: { lat: number; lng: number } } }];
+    expect(registerProviderCall[0].data.location).toBe('31.5,74.3');
+    expect(registerProviderCall[0].data.providerStoreAddress).toEqual({ lat: 31.5, lng: 74.3 });
+    const providerUser = result.data.user as { provider: { location: { lat: number; lng: number } } };
+    expect(providerUser.provider).toEqual(expect.objectContaining({ location: { lat: 31.5, lng: 74.3 } }));
+
+    const pipe = new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true });
+    const basePayload = { email: 'provider-invalid@example.com', password: 'Password@123', name: 'Cake Owner', businessName: 'Cake Shop', businessCategoryId: 'cat_1', businessAddress: 'Main Street' };
+    await expect(pipe.transform({ ...basePayload, location: { lat: 31.5 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, location: { lat: -91, lng: 74.3 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: -181 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: 74.3 } }, { type: 'body', metatype: RegisterProviderDto })).resolves.toBeInstanceOf(RegisterProviderDto);
   });
 
   it('guest session fallback remains server-issued', () => {

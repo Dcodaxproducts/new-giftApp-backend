@@ -10077,7 +10077,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with providers.read"
       },
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. Optional location coordinates can be stored for future routing, proximity, service-area, distance sorting, and provider availability flows. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.",
         "operationId": "ProviderManagementController_create",
         "parameters": [],
         "requestBody": {
@@ -10145,6 +10145,10 @@
                       "businessName": "Gifts & Blooms Co. Ltd",
                       "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
                       "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
+                      "location": {
+                        "lat": 31.5,
+                        "lng": 74.3
+                      },
                       "approvalStatus": "PENDING",
                       "isActive": true,
                       "inviteEmailSent": true
@@ -25700,6 +25704,23 @@
           "password"
         ]
       },
+      "RegisterProviderLocationDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 31.5
+          },
+          "lng": {
+            "type": "number",
+            "example": 74.3
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
       "RegisterProviderDto": {
         "type": "object",
         "properties": {
@@ -25741,6 +25762,18 @@
           },
           "businessAddress": {
             "type": "string"
+          },
+          "location": {
+            "example": {
+              "lat": 31.5,
+              "lng": 74.3
+            },
+            "description": "Optional provider coordinates for future routing, proximity, delivery availability, distance sorting, and service-area flows.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RegisterProviderLocationDto"
+              }
+            ]
           },
           "fulfillmentMethods": {
             "type": "array",
