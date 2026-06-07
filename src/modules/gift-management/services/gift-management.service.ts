@@ -59,7 +59,7 @@ export class GiftManagementService {
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.GiftCategoryWhereInput = {
       deletedAt: null,
-      isActive: query.isActive,
+      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
     };
     const [items, total] = await this.giftManagementRepository.findGiftCategoriesAndCount({ where, orderBy: this.categoryOrderBy(query.sortBy, query.sortOrder), skip, take });

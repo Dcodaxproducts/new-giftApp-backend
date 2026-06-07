@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsObject, IsOptional, IsString, MinLength } from 'class-validator';
+import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export class CreateAdminRoleDto {
   @ApiProperty()
@@ -49,13 +50,13 @@ export class ListAdminRolesDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }: { value: unknown }) => optionalBoolean(value))
   @IsBoolean()
   isSystem?: boolean;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'When omitted, the list returns all non-deleted roles. Use true for active only or false for inactive only.' })
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }: { value: unknown }) => optionalBoolean(value))
   @IsBoolean()
   isActive?: boolean;
 }

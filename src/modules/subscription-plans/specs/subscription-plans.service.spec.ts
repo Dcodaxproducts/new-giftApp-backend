@@ -154,6 +154,18 @@ describe('SubscriptionPlansService', () => {
     expect(prisma.planFeatureCatalog.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { label: 'asc' }] }));
   });
 
+  it('lists all non-deleted plan features when isActive is omitted and filters explicit active state', async () => {
+    const { service, prisma } = createService();
+
+    await service.listFeatures({});
+    await service.listFeatures({ isActive: true });
+    await service.listFeatures({ isActive: false });
+
+    expect(prisma.planFeatureCatalog.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({ where: { deletedAt: null } }));
+    expect(prisma.planFeatureCatalog.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: true }) }));
+    expect(prisma.planFeatureCatalog.findMany).toHaveBeenNthCalledWith(3, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: false }) }));
+  });
+
   it('old coupon status route is removed from Swagger', () => {
     const controller = readFileSync(join(__dirname, '../controllers/coupons.controller.ts'), 'utf8');
     const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };

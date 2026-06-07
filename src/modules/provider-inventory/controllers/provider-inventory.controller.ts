@@ -17,7 +17,7 @@ export class ProviderInventoryController {
   constructor(private readonly service: ProviderInventoryService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List provider inventory items', description: 'PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus manually managed item status and not deleted.' })
+  @ApiOperation({ summary: 'List provider inventory items', description: 'PROVIDER only. Pending providers cannot access inventory. By default returns all non-deleted inventory items for the authenticated provider. Use status to filter ACTIVE, INACTIVE, PENDING, or REJECTED items.' })
   @ApiResponse({ status: 200, description: 'Provider inventory fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', status: 'ACTIVE', moderationStatus: 'NOT_REQUIRED', category: { id: 'category_id', name: 'Perfumes' }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, isDefault: true }] }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Provider inventory fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderInventoryDto) { return this.service.list(user, query); }
 

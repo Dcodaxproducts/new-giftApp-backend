@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 09:00 UTC
+Generated at: 2026-06-07 09:17 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -838,11 +838,11 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List Admin Roles
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions. By default returns all non-deleted roles. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `search` (query, optional, string)
   - `isSystem` (query, optional, boolean)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the list returns all non-deleted roles. Use true for active only or false for inactive only.
 - Response body:
 ```json
 {
@@ -1378,7 +1378,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - Parameters:
   - `search` (query, optional, string)
   - `approvalStatus` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) Lookup defaults to active providers only for dropdowns. Use false only for admin-managed inactive lookups.
   - `limit` (query, optional, number)
 - Response body:
 ```json
@@ -1602,7 +1602,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.
 - Response body:
 ```json
 {
@@ -1646,7 +1646,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.
 - Response body:
 ```json
 {
@@ -1765,9 +1765,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/promotional-offers`
 
-- Summary: List Promotional Offers
+- Summary: List promotional offers
 - Allowed role/access: SUPER_ADMIN or ADMIN with promotionalOffers.read
-- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission. By default returns all non-deleted promotional offers. Use status to filter ACTIVE, INACTIVE, SCHEDULED, EXPIRED, PENDING, or REJECTED offers.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3445,10 +3445,10 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export social reporting rules
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.export
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. By default exports all non-deleted rules. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `format` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the export includes all non-deleted social reporting rules. Use true for active only or false for inactive only.
 - Response body:
 ```json
 {
@@ -3462,12 +3462,12 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List social reporting rules
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. By default returns all non-deleted rules. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the list returns all non-deleted social reporting rules. Use true for active only or false for inactive only.
   - `reportCategory` (query, optional, string)
   - `sortBy` (query, optional, string)
   - `sortOrder` (query, optional, string)
@@ -6076,7 +6076,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List provider inventory items
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus manually managed item status and not deleted.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. By default returns all non-deleted inventory items for the authenticated provider. Use status to filter ACTIVE, INACTIVE, PENDING, or REJECTED items.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -6360,9 +6360,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/provider/offers`
 
-- Summary: List Provider Offers
+- Summary: List own provider promotional offers
 - Allowed role/access: PROVIDER
-- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages.
+- Notes: Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. By default returns all non-deleted offers for the authenticated provider. Use status to filter ACTIVE, INACTIVE, SCHEDULED, EXPIRED, PENDING, or REJECTED offers.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -7262,12 +7262,12 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List gift categories
 - Allowed role/access: SUPER_ADMIN or ADMIN with giftCategories.read
-- Notes: Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.
+- Notes: Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.
   - `sortBy` (query, optional, string)
   - `sortOrder` (query, optional, string)
 - Response body:
@@ -10693,9 +10693,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/subscription-plans`
 
-- Summary: List Subscription Plans
+- Summary: List subscription plans
 - Allowed role/access: SUPER_ADMIN or ADMIN with subscriptionPlans.read
-- Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission. By default returns all non-deleted plans. Use status to filter ACTIVE, INACTIVE, or ARCHIVED plans.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -10872,14 +10872,14 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/plan-features`
 
-- Summary: List Plan Features
+- Summary: List plan features
 - Allowed role/access: SUPER_ADMIN or ADMIN with planFeatures.read
-- Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission. By default returns all non-deleted plan features. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
   - `search` (query, optional, string)
-  - `isActive` (query, optional, boolean)
+  - `isActive` (query, optional, boolean) When omitted, the list returns all non-deleted plan features. Use true for active only or false for inactive only.
 - Response body:
 ```json
 {
@@ -10982,9 +10982,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### GET `/api/v1/coupons`
 
-- Summary: List Coupons
+- Summary: List coupons
 - Allowed role/access: SUPER_ADMIN or ADMIN with coupons.read
-- Notes: Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission. By default returns all non-deleted coupons. Use status to filter ACTIVE, INACTIVE, or EXPIRED coupons.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)

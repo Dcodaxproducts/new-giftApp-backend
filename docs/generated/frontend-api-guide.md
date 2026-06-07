@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 09:00 UTC
+Generated at: 2026-06-07 09:17 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 09:00 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 09:17 UTC.
 
 ## Frontend Integration Flows
 
@@ -150,7 +150,7 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 09:00 UTC.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/promotional-offers` | List Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.read |
+| GET | `/api/v1/promotional-offers` | List promotional offers | SUPER_ADMIN or ADMIN with promotionalOffers.read |
 | POST | `/api/v1/promotional-offers` | Create Promotional Offers | SUPER_ADMIN or ADMIN with promotionalOffers.create |
 | GET | `/api/v1/promotional-offers/export` | List Promotional Offers Export | SUPER_ADMIN or ADMIN with promotionalOffers.export |
 | GET | `/api/v1/promotional-offers/stats` | List Promotional Offers Stats | SUPER_ADMIN or ADMIN with promotionalOffers.read |
@@ -498,18 +498,18 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 09:00 UTC.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/coupons` | List Coupons | SUPER_ADMIN or ADMIN with coupons.read |
+| GET | `/api/v1/coupons` | List coupons | SUPER_ADMIN or ADMIN with coupons.read |
 | POST | `/api/v1/coupons` | Create Coupons | SUPER_ADMIN or ADMIN with coupons.create |
 | GET | `/api/v1/coupons/{id}` | Fetch Coupons details | SUPER_ADMIN or ADMIN with coupons.read |
 | PATCH | `/api/v1/coupons/{id}` | Update coupon details or lifecycle status | SUPER_ADMIN or ADMIN with coupon-specific update permission |
 | DELETE | `/api/v1/coupons/{id}` | Delete Coupons | SUPER_ADMIN or ADMIN with coupons.delete |
-| GET | `/api/v1/plan-features` | List Plan Features | SUPER_ADMIN or ADMIN with planFeatures.read |
+| GET | `/api/v1/plan-features` | List plan features | SUPER_ADMIN or ADMIN with planFeatures.read |
 | POST | `/api/v1/plan-features` | Create Plan Features | SUPER_ADMIN or ADMIN with planFeatures.create |
 | GET | `/api/v1/plan-features/catalog` | List Plan Features Catalog | SUPER_ADMIN or ADMIN with planFeatures.read |
 | GET | `/api/v1/plan-features/{id}` | Fetch Plan Features details | SUPER_ADMIN or ADMIN with planFeatures.read |
 | PATCH | `/api/v1/plan-features/{id}` | Update Plan Features | SUPER_ADMIN or ADMIN with planFeatures.update |
 | DELETE | `/api/v1/plan-features/{id}` | Delete Plan Features | SUPER_ADMIN or ADMIN with planFeatures.delete |
-| GET | `/api/v1/subscription-plans` | List Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.read |
+| GET | `/api/v1/subscription-plans` | List subscription plans | SUPER_ADMIN or ADMIN with subscriptionPlans.read |
 | POST | `/api/v1/subscription-plans` | Create Subscription Plans | SUPER_ADMIN or ADMIN with subscriptionPlans.create |
 | GET | `/api/v1/subscription-plans/stats` | List Subscription Plans Stats | SUPER_ADMIN or ADMIN with subscriptionPlans.analytics.read |
 | GET | `/api/v1/subscription-plans/{id}` | Fetch Subscription Plans details | SUPER_ADMIN or ADMIN with subscriptionPlans.read |
@@ -904,7 +904,7 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 09:00 UTC.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/provider/offers` | List Provider Offers | PROVIDER |
+| GET | `/api/v1/provider/offers` | List own provider promotional offers | PROVIDER |
 | POST | `/api/v1/provider/offers` | Create Provider Offers | PROVIDER |
 | GET | `/api/v1/provider/offers/{id}` | Fetch Provider Offers details | PROVIDER |
 | PATCH | `/api/v1/provider/offers/{id}` | Update own provider promotional offer | PROVIDER |

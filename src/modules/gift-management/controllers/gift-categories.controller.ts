@@ -27,7 +27,7 @@ export class GiftCategoriesController {
 
   @Get()
   @Permissions('giftCategories.read')
-  @ApiOperation({ summary: 'List gift categories', description: 'RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.' })
+  @ApiOperation({ summary: 'List gift categories', description: 'RBAC permission: giftCategories.read. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.' })
   @ApiResponse({ status: 200, description: 'Gift categories fetched successfully' })
   list(@Query() query: ListGiftCategoriesDto) { return this.gifts.listCategories(query); }
 

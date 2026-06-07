@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -19,7 +19,7 @@ export class PlanFeaturesController {
   constructor(private readonly service: SubscriptionPlansService) {}
 
   @Get('catalog') @Permissions('planFeatures.read') catalog() { return this.service.featureCatalog(); }
-  @Get() @Permissions('planFeatures.read') list(@Query() query: ListPlanFeaturesDto) { return this.service.listFeatures(query); }
+  @Get() @Permissions('planFeatures.read') @ApiOperation({ summary: 'List plan features', description: 'By default returns all non-deleted plan features. Use isActive=true or isActive=false to filter by active state.' }) list(@Query() query: ListPlanFeaturesDto) { return this.service.listFeatures(query); }
   @Post() @Permissions('planFeatures.create') create(@CurrentUser() user: AuthUserContext, @Body() dto: CreatePlanFeatureDto) { return this.service.createFeature(user, dto); }
   @Get(':id') @Permissions('planFeatures.read') details(@Param('id') id: string) { return this.service.featureDetails(id); }
   @Patch(':id') @Permissions('planFeatures.update') update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdatePlanFeatureDto) { return this.service.updateFeature(user, id, dto); }

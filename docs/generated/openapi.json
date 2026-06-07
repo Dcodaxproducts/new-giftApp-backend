@@ -9614,7 +9614,7 @@
     },
     "/api/v1/admin-roles": {
       "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions. By default returns all non-deleted roles. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "AdminRolesController_list",
         "parameters": [
           {
@@ -9637,6 +9637,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the list returns all non-deleted roles. Use true for active only or false for inactive only.",
             "schema": {
               "type": "boolean"
             }
@@ -10170,6 +10171,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "Lookup defaults to active providers only for dropdowns. Use false only for admin-managed inactive lookups.",
             "schema": {
               "type": "boolean"
             }
@@ -10667,6 +10669,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.",
             "schema": {
               "type": "boolean"
             }
@@ -10752,6 +10755,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.",
             "schema": {
               "type": "boolean"
             }
@@ -11817,7 +11821,7 @@
     },
     "/api/v1/provider/inventory": {
       "get": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. Provider inventory items do not require separate admin approval; visibility depends on approved/active provider plus manually managed item status and not deleted.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Pending providers cannot access inventory. By default returns all non-deleted inventory items for the authenticated provider. Use status to filter ACTIVE, INACTIVE, PENDING, or REJECTED items.",
         "operationId": "ProviderInventoryController_list",
         "parameters": [
           {
@@ -13663,6 +13667,7 @@
     },
     "/api/v1/provider/offers": {
       "get": {
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. By default returns all non-deleted offers for the authenticated provider. Use status to filter ACTIVE, INACTIVE, SCHEDULED, EXPIRED, PENDING, or REJECTED offers.",
         "operationId": "ProviderPromotionalOffersController_list",
         "parameters": [
           {
@@ -13753,13 +13758,12 @@
             "bearer": []
           }
         ],
+        "summary": "List own provider promotional offers",
         "tags": [
           "03 Provider - Promotional Offers"
         ],
-        "summary": "List Provider Offers",
         "x-allowed-roles": "PROVIDER",
-        "x-access": "PROVIDER",
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages."
+        "x-access": "PROVIDER"
       },
       "post": {
         "operationId": "ProviderPromotionalOffersController_create",
@@ -14115,6 +14119,7 @@
     },
     "/api/v1/promotional-offers": {
       "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission. By default returns all non-deleted promotional offers. Use status to filter ACTIVE, INACTIVE, SCHEDULED, EXPIRED, PENDING, or REJECTED offers.",
         "operationId": "PromotionalOffersManagementController_list",
         "parameters": [
           {
@@ -14255,13 +14260,12 @@
             "bearer": []
           }
         ],
+        "summary": "List promotional offers",
         "tags": [
           "02 Admin - Promotional Offers Management"
         ],
-        "summary": "List Promotional Offers",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
-        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with promotionalOffers.read. SUPER_ADMIN or ADMIN with promotionalOffers.read permission."
+        "x-access": "SUPER_ADMIN or ADMIN with promotionalOffers.read"
       },
       "post": {
         "operationId": "PromotionalOffersManagementController_create",
@@ -19597,7 +19601,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with giftCategories.create"
       },
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. Returns soft-delete-filtered categories with gift counts and category media fields.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "GiftCategoriesController_list",
         "parameters": [
           {
@@ -19630,6 +19634,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.",
             "schema": {
               "type": "boolean"
             }
@@ -20602,6 +20607,7 @@
     },
     "/api/v1/subscription-plans": {
       "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission. By default returns all non-deleted plans. Use status to filter ACTIVE, INACTIVE, or ARCHIVED plans.",
         "operationId": "SubscriptionPlansController_list",
         "parameters": [
           {
@@ -20708,13 +20714,12 @@
             "bearer": []
           }
         ],
+        "summary": "List subscription plans",
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "List Subscription Plans",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
-        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with subscriptionPlans.read. SUPER_ADMIN or ADMIN with subscriptionPlans.read permission."
+        "x-access": "SUPER_ADMIN or ADMIN with subscriptionPlans.read"
       },
       "post": {
         "operationId": "SubscriptionPlansController_create",
@@ -20930,6 +20935,7 @@
     },
     "/api/v1/plan-features": {
       "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission. By default returns all non-deleted plan features. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "PlanFeaturesController_list",
         "parameters": [
           {
@@ -20964,6 +20970,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the list returns all non-deleted plan features. Use true for active only or false for inactive only.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -20980,13 +20987,12 @@
             "bearer": []
           }
         ],
+        "summary": "List plan features",
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "List Plan Features",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with planFeatures.read",
-        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.read. SUPER_ADMIN or ADMIN with planFeatures.read permission."
+        "x-access": "SUPER_ADMIN or ADMIN with planFeatures.read"
       },
       "post": {
         "operationId": "PlanFeaturesController_create",
@@ -21124,6 +21130,7 @@
     },
     "/api/v1/coupons": {
       "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission. By default returns all non-deleted coupons. Use status to filter ACTIVE, INACTIVE, or EXPIRED coupons.",
         "operationId": "CouponsController_list",
         "parameters": [
           {
@@ -21188,13 +21195,12 @@
             "bearer": []
           }
         ],
+        "summary": "List coupons",
         "tags": [
           "07 Plans & Coupons"
         ],
-        "summary": "List Coupons",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with coupons.read",
-        "x-access": "SUPER_ADMIN or ADMIN with coupons.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with coupons.read. SUPER_ADMIN or ADMIN with coupons.read permission."
+        "x-access": "SUPER_ADMIN or ADMIN with coupons.read"
       },
       "post": {
         "operationId": "CouponsController_create",
@@ -24122,7 +24128,7 @@
     },
     "/api/v1/admin/social-reporting-rules/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. By default exports all non-deleted rules. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "SocialReportingRulesController_exportRules",
         "parameters": [
           {
@@ -24141,6 +24147,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the export includes all non-deleted social reporting rules. Use true for active only or false for inactive only.",
             "schema": {
               "type": "boolean"
             }
@@ -24166,7 +24173,7 @@
     },
     "/api/v1/admin/social-reporting-rules": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. By default returns all non-deleted rules. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "SocialReportingRulesController_rules",
         "parameters": [
           {
@@ -24200,6 +24207,7 @@
             "name": "isActive",
             "required": false,
             "in": "query",
+            "description": "When omitted, the list returns all non-deleted social reporting rules. Use true for active only or false for inactive only.",
             "schema": {
               "type": "boolean"
             }

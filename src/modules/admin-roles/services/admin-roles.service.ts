@@ -22,8 +22,8 @@ export class AdminRolesService {
   async list(_user: AuthUserContext, query: ListAdminRolesDto) {
     const where: Prisma.AdminRoleWhereInput = {
       deletedAt: null,
-      isSystem: query.isSystem,
-      isActive: query.isActive,
+      ...(query.isSystem === undefined ? {} : { isSystem: query.isSystem }),
+      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
       ...(query.search
         ? {
             OR: [

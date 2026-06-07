@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GiftModerationStatus, GiftStatus } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -15,6 +15,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum ExportFormat { CSV = 'CSV', XLSX = 'XLSX' }
@@ -52,7 +53,7 @@ export class ListGiftCategoriesDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional({ description: 'When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.' }) @IsOptional() @Transform(({ value }: { value: unknown }) => optionalBoolean(value)) @IsBoolean() isActive?: boolean;
   @ApiPropertyOptional({ enum: GiftCategorySortBy }) @IsOptional() @IsEnum(GiftCategorySortBy) sortBy?: GiftCategorySortBy;
   @ApiPropertyOptional({ enum: SortOrder }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }

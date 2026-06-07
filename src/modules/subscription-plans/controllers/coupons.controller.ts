@@ -18,7 +18,7 @@ import { SubscriptionPlansService } from '../services/subscription-plans.service
 export class CouponsController {
   constructor(private readonly service: SubscriptionPlansService) {}
 
-  @Get() @Permissions('coupons.read') list(@Query() query: ListCouponsDto) { return this.service.listCoupons(query); }
+  @Get() @Permissions('coupons.read') @ApiOperation({ summary: 'List coupons', description: 'By default returns all non-deleted coupons. Use status to filter ACTIVE, INACTIVE, or EXPIRED coupons.' }) list(@Query() query: ListCouponsDto) { return this.service.listCoupons(query); }
   @Post() @Permissions('coupons.create') create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateCouponDto) { return this.service.createCoupon(user, dto); }
   @Get(':id') @Permissions('coupons.read') details(@Param('id') id: string) { return this.service.couponDetails(id); }
   @Patch(':id')

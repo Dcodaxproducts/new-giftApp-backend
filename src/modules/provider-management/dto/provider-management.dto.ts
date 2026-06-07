@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProviderApprovalStatus } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
@@ -18,6 +18,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum ProviderStatusFilter {
   ALL = 'ALL',
@@ -445,9 +446,9 @@ export class ProviderLookupDto {
   @IsEnum(ProviderApprovalStatus)
   approvalStatus?: ProviderApprovalStatus;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Lookup defaults to active providers only for dropdowns. Use false only for admin-managed inactive lookups.' })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }: { value: unknown }) => optionalBoolean(value))
   @IsBoolean()
   isActive?: boolean;
 

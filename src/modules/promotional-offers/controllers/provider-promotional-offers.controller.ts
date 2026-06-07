@@ -16,7 +16,9 @@ import { PromotionalOffersService } from '../services/promotional-offers.service
 export class ProviderPromotionalOffersController {
   constructor(private readonly service: PromotionalOffersService) {}
 
-  @Get() list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderOffersDto) { return this.service.listProvider(user, query); }
+  @Get()
+  @ApiOperation({ summary: 'List own provider promotional offers', description: 'By default returns all non-deleted offers for the authenticated provider. Use status to filter ACTIVE, INACTIVE, SCHEDULED, EXPIRED, PENDING, or REJECTED offers.' })
+  list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderOffersDto) { return this.service.listProvider(user, query); }
   @Post() create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateProviderOfferDto) { return this.service.createProvider(user, dto); }
   @Get(':id') details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.providerDetails(user, id); }
   @Patch(':id')

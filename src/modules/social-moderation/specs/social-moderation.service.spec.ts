@@ -78,6 +78,19 @@ describe('SocialModerationService', () => {
     expect((prisma.socialReportingRule as { findMany: jest.Mock }).findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ orderBy: { autoFlagThreshold: 'asc' } }));
   });
 
+  it('lists all non-deleted social reporting rules when isActive is omitted and filters explicit active state', async () => {
+    const { service, prisma } = createService();
+    const findMany = (prisma.socialReportingRule as { findMany: jest.Mock }).findMany;
+
+    await service.rules({});
+    await service.rules({ isActive: true });
+    await service.rules({ isActive: false });
+
+    expect(findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({ where: { deletedAt: null, reportCategory: undefined } }));
+    expect(findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: true }) }));
+    expect(findMany).toHaveBeenNthCalledWith(3, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: false }) }));
+  });
+
   it('exports social moderation logs', async () => {
     const { service } = createService();
     const file = await service.exportReports({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, { format: 'CSV' as never });

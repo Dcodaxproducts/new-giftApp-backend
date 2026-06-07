@@ -22,7 +22,7 @@ export class AdminRolesController {
   constructor(private readonly adminRolesService: AdminRolesService) {}
 
   @Get()
-  @ApiOperation({ description: 'Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions.' })
+  @ApiOperation({ description: 'Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions. By default returns all non-deleted roles. Use isActive=true or isActive=false to filter by active state.' })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListAdminRolesDto) {
     return this.adminRolesService.list(user, query);
   }

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsInt, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
+import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export class ListProviderBusinessCategoriesDto {
   @ApiPropertyOptional({ example: 1 })
@@ -23,15 +24,9 @@ export class ListProviderBusinessCategoriesDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.' })
   @IsOptional()
-  @Transform(({ value }: { value: unknown }) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    if (typeof value === 'boolean') return value;
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    return value;
-  })
+  @Transform(({ value }: { value: unknown }) => optionalBoolean(value))
   @IsBoolean()
   isActive?: boolean;
 }

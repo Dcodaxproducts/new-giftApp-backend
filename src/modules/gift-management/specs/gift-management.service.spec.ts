@@ -63,6 +63,18 @@ describe('GiftManagementService', () => {
     expect(prisma.giftCategory.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ orderBy: { name: 'asc' } }));
   });
 
+  it('lists all non-deleted gift categories when isActive is omitted and filters explicit active state', async () => {
+    const { service, prisma } = createService();
+
+    await service.listCategories({});
+    await service.listCategories({ isActive: true });
+    await service.listCategories({ isActive: false });
+
+    expect(prisma.giftCategory.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({ where: { deletedAt: null } }));
+    expect(prisma.giftCategory.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: true }) }));
+    expect(prisma.giftCategory.findMany).toHaveBeenNthCalledWith(3, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: false }) }));
+  });
+
   it('uses logged-in provider id and optional moderation defaults when provider creates a gift', async () => {
     const { service, prisma } = createService();
     await service.createGift({ uid: 'provider_1', role: UserRole.PROVIDER }, { name: 'Gift', categoryId: 'cat_1', providerId: 'other_provider', price: 10 });

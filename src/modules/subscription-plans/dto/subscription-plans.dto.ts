@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BillingCycle, CouponDiscountType, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum PlanStatusFilter { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', ARCHIVED = 'ARCHIVED' }
@@ -57,7 +58,7 @@ export class ListSubscriptionPlansDto {
   @ApiPropertyOptional({ enum: PlanSortBy }) @IsOptional() @IsEnum(PlanSortBy) sortBy?: PlanSortBy;
   @ApiPropertyOptional({ enum: SortOrder }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }
-export class ListPlanFeaturesDto { @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number; @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional({ example: 'priority' }) @IsOptional() @IsString() search?: string; @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean; }
+export class ListPlanFeaturesDto { @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number; @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional({ example: 'priority' }) @IsOptional() @IsString() search?: string; @ApiPropertyOptional({ example: true, description: 'When omitted, the list returns all non-deleted plan features. Use true for active only or false for inactive only.' }) @IsOptional() @Transform(({ value }: { value: unknown }) => optionalBoolean(value)) @IsBoolean() isActive?: boolean; }
 export class CreatePlanFeatureDto { @ApiProperty() @IsString() @MinLength(2) key!: string; @ApiProperty() @IsString() @MinLength(2) label!: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiProperty({ enum: PlanFeatureType }) @IsEnum(PlanFeatureType) type!: PlanFeatureType; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortOrder?: number; }
 export class UpdatePlanFeatureDto { @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) key?: string; @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) label?: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiPropertyOptional({ enum: PlanFeatureType }) @IsOptional() @IsEnum(PlanFeatureType) type?: PlanFeatureType; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortOrder?: number; }
 
