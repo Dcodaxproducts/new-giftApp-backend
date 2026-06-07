@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 11:43 UTC
+Generated at: 2026-06-07 12:03 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -73,7 +73,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 05 Customer - Payment Methods (9 APIs)
 - 06 Payments (7 APIs)
 - 06 Notifications (9 APIs)
-- 06 Broadcast Notifications (10 APIs)
+- 06 Broadcast Notifications (7 APIs)
 - 07 Plans & Coupons (18 APIs)
 - 07 Storage (5 APIs)
 - 08 Chat - Threads (9 APIs)
@@ -10473,22 +10473,213 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/broadcasts`
 
-- Summary: Create Broadcasts
-- Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.create
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission.
+- Summary: Create or estimate broadcast wizard
+- Allowed role/access: SUPER_ADMIN or ADMIN with broadcast action permission
+- Notes: Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'.
 - Request payload(s):
-  - payload:
+  - estimateReach:
 ```json
 {
-  "title": "<string>",
-  "message": "<string>",
-  "imageUrl": "<string>",
-  "ctaLabel": "<string>",
-  "ctaUrl": "<string>",
+  "action": "ESTIMATE_REACH",
+  "content": {
+    "title": "Maintenance Notice",
+    "message": "Type your message here...",
+    "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+    "ctaLabel": "View Details",
+    "ctaUrl": "https://gift.dcodax.net/notice"
+  },
   "channels": [
+    "IN_APP",
+    "PUSH",
     "EMAIL"
   ],
-  "priority": "LOW"
+  "priority": "NORMAL",
+  "targeting": {
+    "mode": "SPECIFIC_ROLES",
+    "roles": [
+      "ADMIN",
+      "PROVIDER",
+      "REGISTERED_USER"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true
+    }
+  },
+  "schedule": {
+    "type": "SEND_NOW",
+    "sendAt": null,
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": false,
+      "frequency": null
+    }
+  }
+}
+```
+  - saveDraft:
+```json
+{
+  "action": "SAVE_DRAFT",
+  "content": {
+    "title": "Maintenance Notice",
+    "message": "Type your message here...",
+    "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+    "ctaLabel": "View Details",
+    "ctaUrl": "https://gift.dcodax.net/notice"
+  },
+  "channels": [
+    "IN_APP",
+    "PUSH",
+    "EMAIL"
+  ],
+  "priority": "NORMAL",
+  "targeting": {
+    "mode": "SPECIFIC_ROLES",
+    "roles": [
+      "ADMIN",
+      "PROVIDER",
+      "REGISTERED_USER"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true
+    }
+  },
+  "schedule": {
+    "type": "SEND_NOW",
+    "sendAt": null,
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": false,
+      "frequency": null
+    }
+  }
+}
+```
+  - sendNow:
+```json
+{
+  "action": "SEND_NOW",
+  "content": {
+    "title": "Maintenance Notice",
+    "message": "Type your message here...",
+    "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+    "ctaLabel": "View Details",
+    "ctaUrl": "https://gift.dcodax.net/notice"
+  },
+  "channels": [
+    "IN_APP",
+    "PUSH",
+    "EMAIL"
+  ],
+  "priority": "NORMAL",
+  "targeting": {
+    "mode": "SPECIFIC_ROLES",
+    "roles": [
+      "ADMIN",
+      "PROVIDER",
+      "REGISTERED_USER"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true
+    }
+  },
+  "schedule": {
+    "type": "SEND_NOW",
+    "sendAt": null,
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": false,
+      "frequency": null
+    }
+  }
+}
+```
+  - scheduleLater:
+```json
+{
+  "action": "SCHEDULE",
+  "content": {
+    "title": "Maintenance Notice",
+    "message": "Type your message here...",
+    "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+    "ctaLabel": "View Details",
+    "ctaUrl": "https://gift.dcodax.net/notice"
+  },
+  "channels": [
+    "IN_APP",
+    "PUSH",
+    "EMAIL"
+  ],
+  "priority": "NORMAL",
+  "targeting": {
+    "mode": "SPECIFIC_ROLES",
+    "roles": [
+      "ADMIN",
+      "PROVIDER",
+      "REGISTERED_USER"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true
+    }
+  },
+  "schedule": {
+    "type": "SCHEDULED",
+    "sendAt": "2027-11-24T09:00:00.000Z",
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": false,
+      "frequency": null
+    }
+  }
+}
+```
+  - recurringDaily:
+```json
+{
+  "action": "SCHEDULE",
+  "content": {
+    "title": "Maintenance Notice",
+    "message": "Type your message here...",
+    "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+    "ctaLabel": "View Details",
+    "ctaUrl": "https://gift.dcodax.net/notice"
+  },
+  "channels": [
+    "IN_APP",
+    "PUSH",
+    "EMAIL"
+  ],
+  "priority": "NORMAL",
+  "targeting": {
+    "mode": "SPECIFIC_ROLES",
+    "roles": [
+      "ADMIN",
+      "PROVIDER",
+      "REGISTERED_USER"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true
+    }
+  },
+  "schedule": {
+    "type": "SCHEDULED",
+    "sendAt": "2027-11-24T09:00:00.000Z",
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": true,
+      "frequency": "DAILY"
+    }
+  }
 }
 ```
 - Response body:
@@ -10518,89 +10709,40 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/broadcasts/{id}`
 
-- Summary: Update Broadcasts
+- Summary: Update draft or scheduled broadcast
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.update
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.
+- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission. Edit draft or scheduled broadcast content, targeting, channels, priority, and schedule in one request. Targeting changes recalculate estimated reach.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - updateDraft:
 ```json
 {
-  "title": "<string>",
-  "message": "<string>",
-  "imageUrl": "<string>",
-  "ctaLabel": "<string>",
-  "ctaUrl": "<string>",
-  "channels": [
-    "EMAIL"
-  ],
-  "priority": "LOW"
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/broadcasts/{id}/targeting`
-
-- Summary: Update Broadcasts Targeting
-- Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.update
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "mode": "ALL_USERS",
-  "roles": [
-    "ADMIN"
-  ],
-  "filters": {
-    "location": "<string>",
-    "onlyVerifiedEmails": true,
-    "excludeUnsubscribed": true,
-    "excludeSuspended": true
-  }
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/broadcasts/estimate-reach`
-
-- Summary: Create Broadcasts Estimate Reach
-- Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.
-- Request payload(s):
-  - payload:
-```json
-{
-  "channels": [
-    "EMAIL"
-  ],
+  "content": {
+    "title": "Updated Notice",
+    "message": "Updated message text."
+  },
+  "priority": "HIGH",
   "targeting": {
-    "mode": "ALL_USERS",
+    "mode": "SPECIFIC_ROLES",
     "roles": [
-      "ADMIN"
+      "ADMIN",
+      "PROVIDER",
+      "REGISTERED_USER"
     ],
     "filters": {
-      "location": "<string>",
       "onlyVerifiedEmails": true,
       "excludeUnsubscribed": true,
       "excludeSuspended": true
+    }
+  },
+  "schedule": {
+    "type": "SEND_NOW",
+    "sendAt": null,
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": false,
+      "frequency": null
     }
   }
 }
@@ -10614,45 +10756,19 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### PATCH `/api/v1/broadcasts/{id}/schedule`
+### POST `/api/v1/broadcasts/{id}/action`
 
-- Summary: Update Broadcasts Schedule
-- Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.schedule
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission.
+- Summary: Run broadcast action
+- Allowed role/access: SUPER_ADMIN or ADMIN with broadcast action permission
+- Notes: Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.cancel for CANCEL or broadcasts.send for SEND_NOW. ARCHIVE is not persisted until archive support exists. Run a supported broadcast action such as CANCEL with 'broadcasts.cancel' or SEND_NOW with 'broadcasts.send'. ARCHIVE is accepted by the request schema but returns a clear unsupported error unless archive persistence is added later.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
-  - payload:
+  - cancelBroadcast:
 ```json
 {
-  "sendMode": "NOW",
-  "scheduledAt": "<string>",
-  "timezone": "<string>",
-  "isRecurring": true,
-  "recurrence": {}
-}
-```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### POST `/api/v1/broadcasts/{id}/cancel`
-
-- Summary: Create Broadcasts Cancel
-- Allowed role/access: SUPER_ADMIN or ADMIN with broadcasts.cancel
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission.
-- Parameters:
-  - `id` (path, required, string)
-- Request payload(s):
-  - payload:
-```json
-{
-  "reason": "<string>"
+  "action": "CANCEL",
+  "reason": "Campaign no longer needed."
 }
 ```
 - Response body:

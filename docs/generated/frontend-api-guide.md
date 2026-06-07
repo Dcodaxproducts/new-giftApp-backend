@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 11:43 UTC
+Generated at: 2026-06-07 12:03 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 11:43 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 12:03 UTC.
 
 ## Frontend Integration Flows
 
@@ -434,20 +434,17 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 11:43 UTC.
 | GET | `/api/v1/login-attempts/export` | List Login Attempts Export | SUPER_ADMIN or ADMIN with loginAttempts.export |
 | GET | `/api/v1/login-attempts/stats` | List Login Attempts Stats | SUPER_ADMIN or ADMIN with loginAttempts.read |
 
-### Broadcast Notifications (10 APIs)
+### Broadcast Notifications (7 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/broadcasts` | List Broadcasts | SUPER_ADMIN or ADMIN with broadcasts.read |
-| POST | `/api/v1/broadcasts` | Create Broadcasts | SUPER_ADMIN or ADMIN with broadcasts.create |
-| POST | `/api/v1/broadcasts/estimate-reach` | Create Broadcasts Estimate Reach | SUPER_ADMIN or ADMIN with broadcasts.read |
+| POST | `/api/v1/broadcasts` | Create or estimate broadcast wizard | SUPER_ADMIN or ADMIN with broadcast action permission |
 | GET | `/api/v1/broadcasts/{id}` | Fetch Broadcasts details | SUPER_ADMIN or ADMIN with broadcasts.read |
-| PATCH | `/api/v1/broadcasts/{id}` | Update Broadcasts | SUPER_ADMIN or ADMIN with broadcasts.update |
-| POST | `/api/v1/broadcasts/{id}/cancel` | Create Broadcasts Cancel | SUPER_ADMIN or ADMIN with broadcasts.cancel |
+| PATCH | `/api/v1/broadcasts/{id}` | Update draft or scheduled broadcast | SUPER_ADMIN or ADMIN with broadcasts.update |
+| POST | `/api/v1/broadcasts/{id}/action` | Run broadcast action | SUPER_ADMIN or ADMIN with broadcast action permission |
 | GET | `/api/v1/broadcasts/{id}/recipients` | Fetch Broadcasts Recipients details | SUPER_ADMIN or ADMIN with broadcasts.report.read |
 | GET | `/api/v1/broadcasts/{id}/report` | Fetch Broadcasts Report details | SUPER_ADMIN or ADMIN with broadcasts.report.read |
-| PATCH | `/api/v1/broadcasts/{id}/schedule` | Update Broadcasts Schedule | SUPER_ADMIN or ADMIN with broadcasts.schedule |
-| PATCH | `/api/v1/broadcasts/{id}/targeting` | Update Broadcasts Targeting | SUPER_ADMIN or ADMIN with broadcasts.update |
 
 ### Gifts - Categories (6 APIs)
 

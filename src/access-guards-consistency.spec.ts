@@ -85,7 +85,7 @@ describe('Access guard consistency', () => {
       'giftCategories.create', 'giftCategories.read', 'giftCategories.update', 'giftCategories.delete',
       'gifts.create', 'gifts.read', 'gifts.export', 'gifts.update', 'gifts.delete', 'gifts.status.update',
       'giftModeration.read', 'giftModeration.approve', 'giftModeration.reject', 'giftModeration.flag',
-      'broadcasts.create', 'broadcasts.read', 'broadcasts.update', 'broadcasts.schedule', 'broadcasts.cancel', 'broadcasts.report.read',
+      'broadcasts.create', 'broadcasts.read', 'broadcasts.update', 'broadcasts.cancel', 'broadcasts.report.read',
       'subscriptionPlans.read', 'subscriptionPlans.create', 'subscriptionPlans.update', 'subscriptionPlans.delete',
     ]) {
       expect(joined).toContain(`'${permission}'`);

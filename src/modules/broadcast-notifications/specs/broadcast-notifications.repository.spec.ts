@@ -20,7 +20,7 @@ describe('Broadcast notifications repository cleanup', () => {
   });
 
   it('moves broadcast and recipient persistence into repositories', () => {
-    ['createBroadcast', 'findBroadcastsAndCount', 'findBroadcastById', 'updateBroadcast', 'updateBroadcastTargeting', 'scheduleBroadcast', 'cancelBroadcast'].forEach((method) => expect(repository).toContain(method));
+    ['createBroadcast', 'findBroadcastsAndCount', 'findBroadcastById', 'updateBroadcast'].forEach((method) => expect(repository).toContain(method));
     ['findBroadcastDeliveries', 'findDeliveriesAndCount', 'countReachByRole'].forEach((method) => expect(recipientsRepository).toContain(method));
   });
 
@@ -48,8 +48,12 @@ describe('Broadcast notifications repository cleanup', () => {
     expect(moduleFile).toContain('BroadcastQueueRepository');
     expect(controller).toContain("@ApiTags('06 Broadcast Notifications')");
     expect(controller).toContain("@Controller('broadcasts')");
-    expect(controller).toContain("@Permissions('broadcasts.create')");
-    expect(controller).toContain("@Permissions('broadcasts.schedule')");
+    expect(controller).toContain('@Post()');
+    expect(controller).toContain("@Post(':id/action')");
+    expect(controller).not.toContain("@Post('estimate-reach')");
+    expect(controller).not.toContain("@Patch(':id/targeting')");
+    expect(controller).not.toContain("@Patch(':id/schedule')");
+    expect(controller).not.toContain("@Post(':id/cancel')");
     expect(controller).toContain("@Permissions('broadcasts.report.read')");
   });
 });

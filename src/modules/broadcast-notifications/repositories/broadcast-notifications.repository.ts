@@ -33,15 +33,4 @@ export class BroadcastNotificationsRepository {
     return this.prisma.broadcast.update({ where: { id }, data });
   }
 
-  updateBroadcastTargeting(id: string, data: Prisma.BroadcastUncheckedUpdateInput) {
-    return this.updateBroadcast(id, data);
-  }
-
-  scheduleBroadcast(id: string, data: Prisma.BroadcastUncheckedUpdateInput) {
-    return this.updateBroadcast(id, data);
-  }
-
-  cancelBroadcast(id: string, data: Prisma.BroadcastUncheckedUpdateInput) {
-    return this.updateBroadcast(id, data);
-  }
 }

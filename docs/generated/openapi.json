@@ -1363,6 +1363,7 @@
     },
     "/api/v1/broadcasts": {
       "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'.",
         "operationId": "BroadcastsController_create",
         "parameters": [],
         "requestBody": {
@@ -1371,6 +1372,208 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateBroadcastDto"
+              },
+              "examples": {
+                "estimateReach": {
+                  "value": {
+                    "action": "ESTIMATE_REACH",
+                    "content": {
+                      "title": "Maintenance Notice",
+                      "message": "Type your message here...",
+                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+                      "ctaLabel": "View Details",
+                      "ctaUrl": "https://gift.dcodax.net/notice"
+                    },
+                    "channels": [
+                      "IN_APP",
+                      "PUSH",
+                      "EMAIL"
+                    ],
+                    "priority": "NORMAL",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "ADMIN",
+                        "PROVIDER",
+                        "REGISTERED_USER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true
+                      }
+                    },
+                    "schedule": {
+                      "type": "SEND_NOW",
+                      "sendAt": null,
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": false,
+                        "frequency": null
+                      }
+                    }
+                  }
+                },
+                "saveDraft": {
+                  "value": {
+                    "action": "SAVE_DRAFT",
+                    "content": {
+                      "title": "Maintenance Notice",
+                      "message": "Type your message here...",
+                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+                      "ctaLabel": "View Details",
+                      "ctaUrl": "https://gift.dcodax.net/notice"
+                    },
+                    "channels": [
+                      "IN_APP",
+                      "PUSH",
+                      "EMAIL"
+                    ],
+                    "priority": "NORMAL",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "ADMIN",
+                        "PROVIDER",
+                        "REGISTERED_USER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true
+                      }
+                    },
+                    "schedule": {
+                      "type": "SEND_NOW",
+                      "sendAt": null,
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": false,
+                        "frequency": null
+                      }
+                    }
+                  }
+                },
+                "sendNow": {
+                  "value": {
+                    "action": "SEND_NOW",
+                    "content": {
+                      "title": "Maintenance Notice",
+                      "message": "Type your message here...",
+                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+                      "ctaLabel": "View Details",
+                      "ctaUrl": "https://gift.dcodax.net/notice"
+                    },
+                    "channels": [
+                      "IN_APP",
+                      "PUSH",
+                      "EMAIL"
+                    ],
+                    "priority": "NORMAL",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "ADMIN",
+                        "PROVIDER",
+                        "REGISTERED_USER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true
+                      }
+                    },
+                    "schedule": {
+                      "type": "SEND_NOW",
+                      "sendAt": null,
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": false,
+                        "frequency": null
+                      }
+                    }
+                  }
+                },
+                "scheduleLater": {
+                  "value": {
+                    "action": "SCHEDULE",
+                    "content": {
+                      "title": "Maintenance Notice",
+                      "message": "Type your message here...",
+                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+                      "ctaLabel": "View Details",
+                      "ctaUrl": "https://gift.dcodax.net/notice"
+                    },
+                    "channels": [
+                      "IN_APP",
+                      "PUSH",
+                      "EMAIL"
+                    ],
+                    "priority": "NORMAL",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "ADMIN",
+                        "PROVIDER",
+                        "REGISTERED_USER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true
+                      }
+                    },
+                    "schedule": {
+                      "type": "SCHEDULED",
+                      "sendAt": "2027-11-24T09:00:00.000Z",
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": false,
+                        "frequency": null
+                      }
+                    }
+                  }
+                },
+                "recurringDaily": {
+                  "value": {
+                    "action": "SCHEDULE",
+                    "content": {
+                      "title": "Maintenance Notice",
+                      "message": "Type your message here...",
+                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+                      "ctaLabel": "View Details",
+                      "ctaUrl": "https://gift.dcodax.net/notice"
+                    },
+                    "channels": [
+                      "IN_APP",
+                      "PUSH",
+                      "EMAIL"
+                    ],
+                    "priority": "NORMAL",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "ADMIN",
+                        "PROVIDER",
+                        "REGISTERED_USER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true
+                      }
+                    },
+                    "schedule": {
+                      "type": "SCHEDULED",
+                      "sendAt": "2027-11-24T09:00:00.000Z",
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": true,
+                        "frequency": "DAILY"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -1385,13 +1588,12 @@
             "bearer": []
           }
         ],
+        "summary": "Create or estimate broadcast wizard",
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "Create Broadcasts",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.create",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.create",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcast action permission",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcast action permission"
       },
       "get": {
         "operationId": "BroadcastsController_list",
@@ -1576,6 +1778,7 @@
         "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
       },
       "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission. Edit draft or scheduled broadcast content, targeting, channels, priority, and schedule in one request. Targeting changes recalculate estimated reach.",
         "operationId": "BroadcastsController_update",
         "parameters": [
           {
@@ -1593,6 +1796,39 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateBroadcastDto"
+              },
+              "examples": {
+                "updateDraft": {
+                  "value": {
+                    "content": {
+                      "title": "Updated Notice",
+                      "message": "Updated message text."
+                    },
+                    "priority": "HIGH",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "ADMIN",
+                        "PROVIDER",
+                        "REGISTERED_USER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true
+                      }
+                    },
+                    "schedule": {
+                      "type": "SEND_NOW",
+                      "sendAt": null,
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": false,
+                        "frequency": null
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -1607,18 +1843,18 @@
             "bearer": []
           }
         ],
+        "summary": "Update draft or scheduled broadcast",
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "Update Broadcasts",
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update"
       }
     },
-    "/api/v1/broadcasts/{id}/targeting": {
-      "patch": {
-        "operationId": "BroadcastsController_targeting",
+    "/api/v1/broadcasts/{id}/action": {
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.cancel for CANCEL or broadcasts.send for SEND_NOW. ARCHIVE is not persisted until archive support exists. Run a supported broadcast action such as CANCEL with 'broadcasts.cancel' or SEND_NOW with 'broadcasts.send'. ARCHIVE is accepted by the request schema but returns a clear unsupported error unless archive persistence is added later.",
+        "operationId": "BroadcastsController_action",
         "parameters": [
           {
             "name": "id",
@@ -1634,40 +1870,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BroadcastTargetingDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Update Broadcasts Targeting",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission."
-      }
-    },
-    "/api/v1/broadcasts/estimate-reach": {
-      "post": {
-        "operationId": "BroadcastsController_estimate",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EstimateReachDto"
+                "$ref": "#/components/schemas/BroadcastActionDto"
+              },
+              "examples": {
+                "cancelBroadcast": {
+                  "value": {
+                    "action": "CANCEL",
+                    "reason": "Campaign no longer needed."
+                  }
+                }
               }
             }
           }
@@ -1682,97 +1893,12 @@
             "bearer": []
           }
         ],
+        "summary": "Run broadcast action",
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "summary": "Create Broadcasts Estimate Reach",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/schedule": {
-      "patch": {
-        "operationId": "BroadcastsController_schedule",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScheduleBroadcastDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Update Broadcasts Schedule",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.schedule",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/cancel": {
-      "post": {
-        "operationId": "BroadcastsController_cancel",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelBroadcastDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Create Broadcasts Cancel",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.cancel",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcast action permission",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcast action permission"
       }
     },
     "/api/v1/broadcasts/{id}/report": {
@@ -26008,97 +26134,39 @@
           "redeemTo"
         ]
       },
-      "CreateBroadcastDto": {
+      "BroadcastContentDto": {
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "example": "Maintenance Notice",
+            "maxLength": 50
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "example": "Type your message here..."
           },
           "imageUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://cdn.yourdomain.com/broadcast-images/notice.png"
           },
           "ctaLabel": {
-            "type": "string"
+            "type": "string",
+            "example": "View Details"
           },
           "ctaUrl": {
-            "type": "string"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "priority": {
             "type": "string",
-            "enum": [
-              "LOW",
-              "NORMAL",
-              "HIGH",
-              "URGENT"
-            ]
+            "example": "https://gift.dcodax.net/notice"
           }
         },
         "required": [
           "title",
-          "message",
-          "channels"
+          "message"
         ]
-      },
-      "UpdateBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "ctaLabel": {
-            "type": "string"
-          },
-          "ctaUrl": {
-            "type": "string"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "NORMAL",
-              "HIGH",
-              "URGENT"
-            ]
-          }
-        }
       },
       "TargetingFiltersDto": {
         "type": "object",
         "properties": {
-          "location": {
-            "type": "string"
-          },
           "onlyVerifiedEmails": {
             "type": "boolean"
           },
@@ -26140,9 +26208,70 @@
           "mode"
         ]
       },
-      "EstimateReachDto": {
+      "BroadcastRecurringDto": {
         "type": "object",
         "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "BroadcastScheduleDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "SEND_NOW",
+              "SCHEDULED"
+            ],
+            "example": "SEND_NOW"
+          },
+          "sendAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string",
+            "example": "UTC"
+          },
+          "recurring": {
+            "$ref": "#/components/schemas/BroadcastRecurringDto"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "CreateBroadcastDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "ESTIMATE_REACH",
+              "SAVE_DRAFT",
+              "SEND_NOW",
+              "SCHEDULE"
+            ],
+            "example": "SEND_NOW"
+          },
+          "content": {
+            "$ref": "#/components/schemas/BroadcastContentDto"
+          },
           "channels": {
             "type": "array",
             "items": {
@@ -26154,49 +26283,84 @@
               ]
             }
           },
-          "targeting": {
-            "$ref": "#/components/schemas/BroadcastTargetingDto"
-          }
-        },
-        "required": [
-          "channels",
-          "targeting"
-        ]
-      },
-      "ScheduleBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "sendMode": {
+          "priority": {
             "type": "string",
             "enum": [
-              "NOW",
-              "SCHEDULED"
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "URGENT"
             ]
           },
-          "scheduledAt": {
-            "type": "string"
+          "targeting": {
+            "$ref": "#/components/schemas/BroadcastTargetingDto"
           },
-          "timezone": {
-            "type": "string"
-          },
-          "isRecurring": {
-            "type": "boolean"
-          },
-          "recurrence": {
-            "type": "object"
+          "schedule": {
+            "$ref": "#/components/schemas/BroadcastScheduleDto"
           }
         },
         "required": [
-          "sendMode"
+          "action",
+          "content",
+          "channels",
+          "targeting",
+          "schedule"
         ]
       },
-      "CancelBroadcastDto": {
+      "UpdateBroadcastDto": {
         "type": "object",
         "properties": {
-          "reason": {
-            "type": "string"
+          "content": {
+            "$ref": "#/components/schemas/BroadcastContentDto"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EMAIL",
+                "PUSH",
+                "IN_APP"
+              ]
+            }
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "targeting": {
+            "$ref": "#/components/schemas/BroadcastTargetingDto"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/BroadcastScheduleDto"
           }
         }
+      },
+      "BroadcastActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "CANCEL",
+              "SEND_NOW",
+              "ARCHIVE"
+            ],
+            "example": "CANCEL"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Campaign no longer needed."
+          }
+        },
+        "required": [
+          "action"
+        ]
       },
       "UpdateNotificationPreferencesDto": {
         "type": "object",

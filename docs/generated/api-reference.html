@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-06-07 11:43 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-06-07 11:43 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-06-07 12:03 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-06-07 12:03 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;name&quot;: &quot;Cake Owner&quot;,
@@ -4621,16 +4621,191 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/broadcasts</code></div><div><span class="label">Summary:</span> Create Broadcasts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.create</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;title&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;message&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;imageUrl&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;ctaLabel&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;ctaUrl&quot;: &quot;&lt;string&gt;&quot;,
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/broadcasts</code></div><div><span class="label">Summary:</span> Create or estimate broadcast wizard</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcast action permission</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with &#x27;broadcasts.read&#x27; to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with &#x27;broadcasts.create&#x27;.</div><div class="label">Request payload(s):</div><div class="small">estimateReach</div><pre>{
+  &quot;action&quot;: &quot;ESTIMATE_REACH&quot;,
+  &quot;content&quot;: {
+    &quot;title&quot;: &quot;Maintenance Notice&quot;,
+    &quot;message&quot;: &quot;Type your message here...&quot;,
+    &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/broadcast-images/notice.png&quot;,
+    &quot;ctaLabel&quot;: &quot;View Details&quot;,
+    &quot;ctaUrl&quot;: &quot;https://gift.dcodax.net/notice&quot;
+  },
   &quot;channels&quot;: [
+    &quot;IN_APP&quot;,
+    &quot;PUSH&quot;,
     &quot;EMAIL&quot;
   ],
-  &quot;priority&quot;: &quot;LOW&quot;
+  &quot;priority&quot;: &quot;NORMAL&quot;,
+  &quot;targeting&quot;: {
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
+    &quot;roles&quot;: [
+      &quot;ADMIN&quot;,
+      &quot;PROVIDER&quot;,
+      &quot;REGISTERED_USER&quot;
+    ],
+    &quot;filters&quot;: {
+      &quot;onlyVerifiedEmails&quot;: true,
+      &quot;excludeUnsubscribed&quot;: true,
+      &quot;excludeSuspended&quot;: true
+    }
+  },
+  &quot;schedule&quot;: {
+    &quot;type&quot;: &quot;SEND_NOW&quot;,
+    &quot;sendAt&quot;: null,
+    &quot;timezone&quot;: &quot;UTC&quot;,
+    &quot;recurring&quot;: {
+      &quot;enabled&quot;: false,
+      &quot;frequency&quot;: null
+    }
+  }
+}</pre><div class="small">saveDraft</div><pre>{
+  &quot;action&quot;: &quot;SAVE_DRAFT&quot;,
+  &quot;content&quot;: {
+    &quot;title&quot;: &quot;Maintenance Notice&quot;,
+    &quot;message&quot;: &quot;Type your message here...&quot;,
+    &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/broadcast-images/notice.png&quot;,
+    &quot;ctaLabel&quot;: &quot;View Details&quot;,
+    &quot;ctaUrl&quot;: &quot;https://gift.dcodax.net/notice&quot;
+  },
+  &quot;channels&quot;: [
+    &quot;IN_APP&quot;,
+    &quot;PUSH&quot;,
+    &quot;EMAIL&quot;
+  ],
+  &quot;priority&quot;: &quot;NORMAL&quot;,
+  &quot;targeting&quot;: {
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
+    &quot;roles&quot;: [
+      &quot;ADMIN&quot;,
+      &quot;PROVIDER&quot;,
+      &quot;REGISTERED_USER&quot;
+    ],
+    &quot;filters&quot;: {
+      &quot;onlyVerifiedEmails&quot;: true,
+      &quot;excludeUnsubscribed&quot;: true,
+      &quot;excludeSuspended&quot;: true
+    }
+  },
+  &quot;schedule&quot;: {
+    &quot;type&quot;: &quot;SEND_NOW&quot;,
+    &quot;sendAt&quot;: null,
+    &quot;timezone&quot;: &quot;UTC&quot;,
+    &quot;recurring&quot;: {
+      &quot;enabled&quot;: false,
+      &quot;frequency&quot;: null
+    }
+  }
+}</pre><div class="small">sendNow</div><pre>{
+  &quot;action&quot;: &quot;SEND_NOW&quot;,
+  &quot;content&quot;: {
+    &quot;title&quot;: &quot;Maintenance Notice&quot;,
+    &quot;message&quot;: &quot;Type your message here...&quot;,
+    &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/broadcast-images/notice.png&quot;,
+    &quot;ctaLabel&quot;: &quot;View Details&quot;,
+    &quot;ctaUrl&quot;: &quot;https://gift.dcodax.net/notice&quot;
+  },
+  &quot;channels&quot;: [
+    &quot;IN_APP&quot;,
+    &quot;PUSH&quot;,
+    &quot;EMAIL&quot;
+  ],
+  &quot;priority&quot;: &quot;NORMAL&quot;,
+  &quot;targeting&quot;: {
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
+    &quot;roles&quot;: [
+      &quot;ADMIN&quot;,
+      &quot;PROVIDER&quot;,
+      &quot;REGISTERED_USER&quot;
+    ],
+    &quot;filters&quot;: {
+      &quot;onlyVerifiedEmails&quot;: true,
+      &quot;excludeUnsubscribed&quot;: true,
+      &quot;excludeSuspended&quot;: true
+    }
+  },
+  &quot;schedule&quot;: {
+    &quot;type&quot;: &quot;SEND_NOW&quot;,
+    &quot;sendAt&quot;: null,
+    &quot;timezone&quot;: &quot;UTC&quot;,
+    &quot;recurring&quot;: {
+      &quot;enabled&quot;: false,
+      &quot;frequency&quot;: null
+    }
+  }
+}</pre><div class="small">scheduleLater</div><pre>{
+  &quot;action&quot;: &quot;SCHEDULE&quot;,
+  &quot;content&quot;: {
+    &quot;title&quot;: &quot;Maintenance Notice&quot;,
+    &quot;message&quot;: &quot;Type your message here...&quot;,
+    &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/broadcast-images/notice.png&quot;,
+    &quot;ctaLabel&quot;: &quot;View Details&quot;,
+    &quot;ctaUrl&quot;: &quot;https://gift.dcodax.net/notice&quot;
+  },
+  &quot;channels&quot;: [
+    &quot;IN_APP&quot;,
+    &quot;PUSH&quot;,
+    &quot;EMAIL&quot;
+  ],
+  &quot;priority&quot;: &quot;NORMAL&quot;,
+  &quot;targeting&quot;: {
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
+    &quot;roles&quot;: [
+      &quot;ADMIN&quot;,
+      &quot;PROVIDER&quot;,
+      &quot;REGISTERED_USER&quot;
+    ],
+    &quot;filters&quot;: {
+      &quot;onlyVerifiedEmails&quot;: true,
+      &quot;excludeUnsubscribed&quot;: true,
+      &quot;excludeSuspended&quot;: true
+    }
+  },
+  &quot;schedule&quot;: {
+    &quot;type&quot;: &quot;SCHEDULED&quot;,
+    &quot;sendAt&quot;: &quot;2027-11-24T09:00:00.000Z&quot;,
+    &quot;timezone&quot;: &quot;UTC&quot;,
+    &quot;recurring&quot;: {
+      &quot;enabled&quot;: false,
+      &quot;frequency&quot;: null
+    }
+  }
+}</pre><div class="small">recurringDaily</div><pre>{
+  &quot;action&quot;: &quot;SCHEDULE&quot;,
+  &quot;content&quot;: {
+    &quot;title&quot;: &quot;Maintenance Notice&quot;,
+    &quot;message&quot;: &quot;Type your message here...&quot;,
+    &quot;imageUrl&quot;: &quot;https://cdn.yourdomain.com/broadcast-images/notice.png&quot;,
+    &quot;ctaLabel&quot;: &quot;View Details&quot;,
+    &quot;ctaUrl&quot;: &quot;https://gift.dcodax.net/notice&quot;
+  },
+  &quot;channels&quot;: [
+    &quot;IN_APP&quot;,
+    &quot;PUSH&quot;,
+    &quot;EMAIL&quot;
+  ],
+  &quot;priority&quot;: &quot;NORMAL&quot;,
+  &quot;targeting&quot;: {
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
+    &quot;roles&quot;: [
+      &quot;ADMIN&quot;,
+      &quot;PROVIDER&quot;,
+      &quot;REGISTERED_USER&quot;
+    ],
+    &quot;filters&quot;: {
+      &quot;onlyVerifiedEmails&quot;: true,
+      &quot;excludeUnsubscribed&quot;: true,
+      &quot;excludeSuspended&quot;: true
+    }
+  },
+  &quot;schedule&quot;: {
+    &quot;type&quot;: &quot;SCHEDULED&quot;,
+    &quot;sendAt&quot;: &quot;2027-11-24T09:00:00.000Z&quot;,
+    &quot;timezone&quot;: &quot;UTC&quot;,
+    &quot;recurring&quot;: {
+      &quot;enabled&quot;: true,
+      &quot;frequency&quot;: &quot;DAILY&quot;
+    }
+  }
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
@@ -4639,67 +4814,41 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/broadcasts/{id}</code></div><div><span class="label">Summary:</span> Update Broadcasts</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;title&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;message&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;imageUrl&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;ctaLabel&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;ctaUrl&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;channels&quot;: [
-    &quot;EMAIL&quot;
-  ],
-  &quot;priority&quot;: &quot;LOW&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/broadcasts/{id}/targeting</code></div><div><span class="label">Summary:</span> Update Broadcasts Targeting</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;mode&quot;: &quot;ALL_USERS&quot;,
-  &quot;roles&quot;: [
-    &quot;ADMIN&quot;
-  ],
-  &quot;filters&quot;: {
-    &quot;location&quot;: &quot;&lt;string&gt;&quot;,
-    &quot;onlyVerifiedEmails&quot;: true,
-    &quot;excludeUnsubscribed&quot;: true,
-    &quot;excludeSuspended&quot;: true
-  }
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/broadcasts/estimate-reach</code></div><div><span class="label">Summary:</span> Create Broadcasts Estimate Reach</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;channels&quot;: [
-    &quot;EMAIL&quot;
-  ],
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/broadcasts/{id}</code></div><div><span class="label">Summary:</span> Update draft or scheduled broadcast</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.update</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission. Edit draft or scheduled broadcast content, targeting, channels, priority, and schedule in one request. Targeting changes recalculate estimated reach.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">updateDraft</div><pre>{
+  &quot;content&quot;: {
+    &quot;title&quot;: &quot;Updated Notice&quot;,
+    &quot;message&quot;: &quot;Updated message text.&quot;
+  },
+  &quot;priority&quot;: &quot;HIGH&quot;,
   &quot;targeting&quot;: {
-    &quot;mode&quot;: &quot;ALL_USERS&quot;,
+    &quot;mode&quot;: &quot;SPECIFIC_ROLES&quot;,
     &quot;roles&quot;: [
-      &quot;ADMIN&quot;
+      &quot;ADMIN&quot;,
+      &quot;PROVIDER&quot;,
+      &quot;REGISTERED_USER&quot;
     ],
     &quot;filters&quot;: {
-      &quot;location&quot;: &quot;&lt;string&gt;&quot;,
       &quot;onlyVerifiedEmails&quot;: true,
       &quot;excludeUnsubscribed&quot;: true,
       &quot;excludeSuspended&quot;: true
+    }
+  },
+  &quot;schedule&quot;: {
+    &quot;type&quot;: &quot;SEND_NOW&quot;,
+    &quot;sendAt&quot;: null,
+    &quot;timezone&quot;: &quot;UTC&quot;,
+    &quot;recurring&quot;: {
+      &quot;enabled&quot;: false,
+      &quot;frequency&quot;: null
     }
   }
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/broadcasts/{id}/schedule</code></div><div><span class="label">Summary:</span> Update Broadcasts Schedule</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.schedule</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.schedule. SUPER_ADMIN or ADMIN with broadcasts.schedule permission.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;sendMode&quot;: &quot;NOW&quot;,
-  &quot;scheduledAt&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;timezone&quot;: &quot;&lt;string&gt;&quot;,
-  &quot;isRecurring&quot;: true,
-  &quot;recurrence&quot;: {}
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/broadcasts/{id}/cancel</code></div><div><span class="label">Summary:</span> Create Broadcasts Cancel</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcasts.cancel</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcasts.cancel. SUPER_ADMIN or ADMIN with broadcasts.cancel permission.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
-  &quot;reason&quot;: &quot;&lt;string&gt;&quot;
+}</pre></div><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/broadcasts/{id}/action</code></div><div><span class="label">Summary:</span> Run broadcast action</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with broadcast action permission</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.cancel for CANCEL or broadcasts.send for SEND_NOW. ARCHIVE is not persisted until archive support exists. Run a supported broadcast action such as CANCEL with &#x27;broadcasts.cancel&#x27; or SEND_NOW with &#x27;broadcasts.send&#x27;. ARCHIVE is accepted by the request schema but returns a clear unsupported error unless archive persistence is added later.</div><div class="label">Parameters:</div><ul><li><code>id</code> (path, required, string) </li></ul><div class="label">Request payload(s):</div><div class="small">cancelBroadcast</div><pre>{
+  &quot;action&quot;: &quot;CANCEL&quot;,
+  &quot;reason&quot;: &quot;Campaign no longer needed.&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
