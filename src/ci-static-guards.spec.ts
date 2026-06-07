@@ -94,7 +94,11 @@ describe('CI static production guards', () => {
   it('keeps docs guard scripts wired in package scripts', () => {
     const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
     expect(pkg.scripts?.['docs:generate']).toEqual(expect.any(String));
+    expect(pkg.scripts?.['docs:generate']).not.toContain('--pdf');
+    expect(pkg.scripts?.['docs:pdf']).toContain('--pdf');
     expect(pkg.scripts?.['docs:assert']).toContain('assert-generated-docs-current');
     expect(existsSync(join(root, 'scripts/docs/assert-generated-docs-current.js'))).toBe(true);
+    expect(existsSync(join(root, 'scripts/docs/requirements.txt'))).toBe(true);
+    expect(readFileSync(join(root, 'scripts/docs/assert-generated-docs-current.js'), 'utf8')).toContain('DOCS_REQUIRE_PDF');
   });
 });

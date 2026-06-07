@@ -3,15 +3,19 @@ const path = require('path');
 
 const root = process.cwd();
 const generatedDir = path.join(root, 'docs', 'generated');
-const requiredFiles = [
+const requirePdf = process.env.DOCS_REQUIRE_PDF === 'true';
+const baseRequiredFiles = [
   'openapi.json',
   'api-reference.md',
   'api-reference.html',
-  'api-reference.pdf',
   'frontend-api-guide.md',
   'frontend-api-guide.html',
+];
+const pdfFiles = [
+  'api-reference.pdf',
   'frontend-api-guide.pdf',
 ];
+const requiredFiles = requirePdf ? [...baseRequiredFiles, ...pdfFiles] : baseRequiredFiles;
 const staleFiles = [
   'gift-app-api-record.html',
   'gift-app-api-record.md',
@@ -45,9 +49,10 @@ for (const file of staleFiles) {
 if (fs.existsSync(path.join(root, 'gift-app-api-record.pdf'))) fail('Root gift-app-api-record.pdf must not exist');
 
 const actualFiles = fs.readdirSync(generatedDir).filter((file) => fs.statSync(path.join(generatedDir, file)).isFile()).sort();
-const allowedFiles = [...requiredFiles].sort();
-if (JSON.stringify(actualFiles) !== JSON.stringify(allowedFiles)) {
-  fail(`docs/generated must contain only canonical outputs. Found: ${actualFiles.join(', ')}`);
+const allowedFiles = [...baseRequiredFiles, ...pdfFiles].sort();
+const unexpectedFiles = actualFiles.filter((file) => !allowedFiles.includes(file));
+if (unexpectedFiles.length) {
+  fail(`docs/generated must contain only canonical outputs. Found unexpected: ${unexpectedFiles.join(', ')}. All files: ${actualFiles.join(', ')}`);
 }
 
 const openapiPath = path.join(generatedDir, 'openapi.json');

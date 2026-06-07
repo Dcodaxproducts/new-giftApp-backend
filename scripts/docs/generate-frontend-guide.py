@@ -1,5 +1,7 @@
 import json
 import re
+import argparse
+import sys
 from collections import defaultdict
 from datetime import datetime
 from html import escape
@@ -7,6 +9,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 generated_dir = ROOT / "docs/generated"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Generate frontend API guide markdown/HTML, and PDF when requested.")
+    parser.add_argument("--pdf", action="store_true", help="Also generate docs/generated/frontend-api-guide.pdf. Requires WeasyPrint.")
+    return parser.parse_args()
+
+
+def write_pdf(html_text, destination):
+    try:
+        from weasyprint import HTML
+    except ModuleNotFoundError:
+        print("PDF generation requires WeasyPrint. Run pip install -r scripts/docs/requirements.txt", file=sys.stderr)
+        raise SystemExit(1)
+    HTML(string=html_text, base_url=str(ROOT)).write_pdf(str(destination))
+
+
+args = parse_args()
 openapi = json.loads((generated_dir / "openapi.json").read_text())
 paths = openapi.get("paths", {})
 
@@ -286,7 +306,9 @@ md.append("- Use REST list/detail endpoints to hydrate initial state and backfil
 md.append("- Fallback REST endpoints: unified `/api/v1/chats...`.\n")
 md_path.write_text("".join(md))
 
-from weasyprint import HTML
-HTML(string=html_text, base_url=str(ROOT)).write_pdf(str(pdf_path))
-print(pdf_path)
+if args.pdf:
+    write_pdf(html_text, pdf_path)
+    print(pdf_path)
+else:
+    print(html_path)
 print(f"sections={sum(len(sec['modules']) for sec in sections.values())} modules_with_duplicates ops={ops_count}")

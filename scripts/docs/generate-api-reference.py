@@ -1,9 +1,9 @@
 from datetime import datetime
 import html
 import json
+import argparse
+import sys
 from pathlib import Path
-
-from weasyprint import HTML
 
 ROOT = Path(__file__).resolve().parents[2]
 openapi_path = ROOT / 'docs/generated/openapi.json'
@@ -11,6 +11,24 @@ out_dir = ROOT / 'docs/generated'
 md_path = out_dir / 'api-reference.md'
 html_path = out_dir / 'api-reference.html'
 pdf_path = out_dir / 'api-reference.pdf'
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Generate API reference markdown/HTML, and PDF when requested.')
+    parser.add_argument('--pdf', action='store_true', help='Also generate docs/generated/api-reference.pdf. Requires WeasyPrint.')
+    return parser.parse_args()
+
+
+def write_pdf(html_text, destination):
+    try:
+        from weasyprint import HTML
+    except ModuleNotFoundError:
+        print('PDF generation requires WeasyPrint. Run pip install -r scripts/docs/requirements.txt', file=sys.stderr)
+        raise SystemExit(1)
+    HTML(string=html_text, base_url=str(ROOT)).write_pdf(str(destination))
+
+
+args = parse_args()
 
 spec = json.loads(openapi_path.read_text())
 components = spec.get('components', {}).get('schemas', {})
@@ -267,6 +285,10 @@ for tag_name, ops in sections:
 
 md_path.write_text('\n'.join(md))
 html_parts.append('</body></html>')
-html_path.write_text(''.join(html_parts))
-HTML(string=''.join(html_parts), base_url=str(ROOT)).write_pdf(str(pdf_path))
-print(pdf_path)
+html_text = ''.join(html_parts)
+html_path.write_text(html_text)
+if args.pdf:
+    write_pdf(html_text, pdf_path)
+    print(pdf_path)
+else:
+    print(html_path)
