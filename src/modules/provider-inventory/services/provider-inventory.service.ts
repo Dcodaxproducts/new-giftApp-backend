@@ -53,7 +53,7 @@ export class ProviderInventoryService {
       isPublished: true,
       variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
     });
-    await this.audit(user.uid, gift.id, 'PROVIDER_INVENTORY_ITEM_CREATED', null, this.toDetailItem(gift));
+    await this.audit(user, gift.id, 'PROVIDER_INVENTORY_ITEM_CREATED', null, this.toDetailItem(gift));
     return { data: this.toDetailItem(gift), message: 'Inventory item created successfully' };
   }
 
@@ -92,9 +92,9 @@ export class ProviderInventoryService {
       incomingIds,
       clearDefault: Boolean(normalizedVariants?.some((variant) => variant.isDefault)),
     });
-    await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_UPDATED', before, this.toDetailItem(updated));
+    await this.audit(user, id, 'PROVIDER_INVENTORY_ITEM_UPDATED', before, this.toDetailItem(updated));
     if (materialChange) {
-      await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_MATERIAL_UPDATED', before, this.toDetailItem(updated));
+      await this.audit(user, id, 'PROVIDER_INVENTORY_ITEM_MATERIAL_UPDATED', before, this.toDetailItem(updated));
     }
     return { data: this.toDetailItem(updated), message: 'Inventory item updated successfully' };
   }
@@ -102,7 +102,7 @@ export class ProviderInventoryService {
   async delete(user: AuthUserContext, id: string) {
     const item = await this.getOwnGift(user.uid, id);
     await this.repository.deleteItem(id);
-    await this.audit(user.uid, id, 'PROVIDER_INVENTORY_ITEM_DELETED', this.toDetailItem(item), null);
+    await this.audit(user, id, 'PROVIDER_INVENTORY_ITEM_DELETED', this.toDetailItem(item), null);
     return { data: null, message: 'Inventory item deleted successfully' };
   }
 
@@ -237,7 +237,7 @@ export class ProviderInventoryService {
   private hasMaterialVariantChange(variants?: ProviderInventoryVariantDto[]): boolean { return (variants ?? []).some((variant) => variant.name !== undefined || variant.price !== undefined || variant.originalPrice !== undefined); }
   private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
 
-  private async audit(actorId: string, targetId: string, action: string, beforeJson: unknown, afterJson: unknown) {
-    await this.auditLog.write({ actorId, targetId, targetType: 'GIFT', action, beforeJson, afterJson });
+  private async audit(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown) {
+    await this.auditLog.write({ actorId: actor.uid, actorType: actor.role, targetId, targetType: 'GIFT', action, beforeJson, afterJson });
   }
 }

@@ -56,6 +56,12 @@ describe('AuditLogsService', () => {
     expect(result.data[0]).toEqual(expect.objectContaining({ id: 'log_1', action: 'PROVIDER_APPROVED' }));
   });
 
+  it('lists audit logs newest first by default', async () => {
+    const { service, prisma } = createAuditService();
+    await service.list({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, {});
+    expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
+  });
+
   it('filters work by action type, actor/user, date range, and status', async () => {
     const { service, prisma } = createAuditService();
     await service.list({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, { actionType: 'PROVIDER_APPROVED', actorId: 'admin_1', fromDate: '2026-05-01T00:00:00.000Z', toDate: '2026-05-31T23:59:59.999Z', status: AuditLogStatusFilter.SUCCESS });

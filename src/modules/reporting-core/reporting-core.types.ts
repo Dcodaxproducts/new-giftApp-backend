@@ -27,6 +27,7 @@ export type ReportingDomain = 'providerReports' | 'userSafety' | 'socialModerati
 
 export type ReportAuditInput = {
   actorId: string | null;
+  actorType?: string | null;
   targetId: string | null;
   targetType: string;
   action: string;

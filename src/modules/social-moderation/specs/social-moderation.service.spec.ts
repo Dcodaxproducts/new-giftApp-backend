@@ -5,6 +5,7 @@ import { SocialModerationAction, SocialPostStatus, SocialPostVisibility, SocialR
 import { SocialModerationRepository } from '../repositories/social-moderation.repository';
 import { SocialModerationService } from '../services/social-moderation.service';
 import { SocialReportingRulesRepository } from '../repositories/social-reporting-rules.repository';
+import { RuleSortBy, SortOrder } from '../dto/social-moderation.dto';
 
 const now = new Date('2026-05-14T10:00:00.000Z');
 const user = { id: 'user_1', firstName: 'Sarah', lastName: 'Jenkins', avatarUrl: 'avatar.png', createdAt: new Date('2022-12-01T00:00:00.000Z') };
@@ -65,6 +66,16 @@ describe('SocialModerationService', () => {
     const file = await service.exportRules(actor, { format: 'CSV' as never });
     expect(file.content).toContain('SPAM_ADVERTISING');
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'SOCIAL_REPORTING_RULE_EXPORT_GENERATED' }));
+  });
+
+  it('lists social reporting rules newest first by default and respects explicit sort', async () => {
+    const { service, prisma } = createService();
+
+    await service.rules({});
+    await service.rules({ sortBy: RuleSortBy.AUTO_FLAG_THRESHOLD, sortOrder: SortOrder.ASC });
+
+    expect((prisma.socialReportingRule as { findMany: jest.Mock }).findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
+    expect((prisma.socialReportingRule as { findMany: jest.Mock }).findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ orderBy: { autoFlagThreshold: 'asc' } }));
   });
 
   it('exports social moderation logs', async () => {

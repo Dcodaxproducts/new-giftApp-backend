@@ -3,7 +3,7 @@ import { CouponDiscountType, SubscriptionPlanStatus, SubscriptionPlanVisibility,
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { CouponsRepository } from '../repositories/coupons.repository';
-import { CouponStatus, PlanFeatureType } from '../dto/subscription-plans.dto';
+import { CouponStatus, PlanFeatureType, PlanSortBy, SortOrder } from '../dto/subscription-plans.dto';
 import { PlanFeaturesRepository } from '../repositories/plan-features.repository';
 import { SubscriptionPlansRepository } from '../repositories/subscription-plans.repository';
 import { SubscriptionPlansService } from '../services/subscription-plans.service';
@@ -45,7 +45,15 @@ describe('SubscriptionPlansService', () => {
     expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null }) }));
   });
 
+  it('lists newly created plans first by default and respects explicit sort', async () => {
+    const { service, prisma } = createService();
 
+    await service.listPlans({});
+    await service.listPlans({ sortBy: PlanSortBy.NAME, sortOrder: SortOrder.ASC });
+
+    expect(prisma.subscriptionPlan.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
+    expect(prisma.subscriptionPlan.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ orderBy: { name: 'asc' } }));
+  });
 
   it('normal update works through main PATCH service path', async () => {
     const { service, prisma, audit } = createService();
@@ -94,7 +102,15 @@ describe('SubscriptionPlansService', () => {
     const { service, prisma, audit } = createService();
     await service.createCoupon({ uid: 'admin_1', role: UserRole.ADMIN }, { code: 'summer25', discountType: CouponDiscountType.PERCENTAGE, discountValue: 25 });
     expect(prisma.coupon.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ code: 'SUMMER25' }) }));
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'COUPON_CREATED' }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.ADMIN, action: 'COUPON_CREATED' }));
+  });
+
+  it('lists newly created coupons first by default', async () => {
+    const { service, prisma } = createService();
+
+    await service.listCoupons({});
+
+    expect(prisma.coupon.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
   });
 
   it('normal coupon update works through main PATCH service path', async () => {

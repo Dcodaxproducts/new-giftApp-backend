@@ -51,7 +51,7 @@ export class GiftManagementService {
       sortOrder: dto.sortOrder ?? 0,
       isActive: dto.isActive ?? true,
     });
-    await this.audit(user.uid, category.id, 'GIFT_CATEGORY_CREATED', undefined, this.toCategory(category, 0));
+    await this.audit(user, category.id, 'GIFT_CATEGORY_CREATED', undefined, this.toCategory(category, 0));
     return { data: this.toCategory(category, 0), message: 'Gift category created successfully' };
   }
 
@@ -110,7 +110,7 @@ export class GiftManagementService {
       sortOrder: dto.sortOrder,
       isActive: dto.isActive,
     });
-    await this.audit(user.uid, id, 'GIFT_CATEGORY_UPDATED', before, this.toCategory(updated, before.totalGifts));
+    await this.audit(user, id, 'GIFT_CATEGORY_UPDATED', before, this.toCategory(updated, before.totalGifts));
     return { data: this.toCategory(updated, before.totalGifts), message: 'Gift category updated successfully' };
   }
 
@@ -119,7 +119,7 @@ export class GiftManagementService {
     const gifts = await this.giftManagementRepository.countGiftsByCategory(id);
     if (gifts > 0) throw new BadRequestException('Category has attached gifts and cannot be deleted');
     await this.giftManagementRepository.deleteGiftCategory(id);
-    await this.audit(user.uid, id, 'GIFT_CATEGORY_DELETED', this.toCategory(category, 0), null);
+    await this.audit(user, id, 'GIFT_CATEGORY_DELETED', this.toCategory(category, 0), null);
     return { data: null, message: 'Gift category deleted successfully' };
   }
 
@@ -158,7 +158,7 @@ export class GiftManagementService {
       variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
     });
     const data = this.toGiftDetail(gift, this.emptyRatingSummary());
-    await this.audit(user.uid, gift.id, 'GIFT_CREATED', undefined, data);
+    await this.audit(user, gift.id, 'GIFT_CREATED', undefined, data);
     return { data, message: 'Gift created successfully' };
   }
 
@@ -220,7 +220,7 @@ export class GiftManagementService {
     const before = this.toGiftDetail(gift, beforeRating);
     const after = this.toGiftDetail(updated, afterRating);
     const auditReason = dto.reason?.trim();
-    await this.audit(user.uid, id, dto.status === undefined ? 'GIFT_UPDATED' : 'GIFT_STATUS_CHANGED', auditReason ? { ...before, reason: auditReason } : before, auditReason ? { ...after, reason: auditReason } : after);
+    await this.audit(user, id, dto.status === undefined ? 'GIFT_UPDATED' : 'GIFT_STATUS_CHANGED', auditReason ? { ...before, reason: auditReason } : before, auditReason ? { ...after, reason: auditReason } : after);
     return { data: after, message: 'Gift updated successfully' };
   }
 
@@ -228,7 +228,7 @@ export class GiftManagementService {
     const gift = await this.getGift(id);
     this.assertCanManageGift(user, gift);
     await this.giftManagementRepository.deleteGift(id);
-    await this.audit(user.uid, id, 'GIFT_DELETED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), null);
+    await this.audit(user, id, 'GIFT_DELETED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), null);
     return { data: null, message: 'Gift deleted successfully' };
   }
 
@@ -274,7 +274,7 @@ export class GiftManagementService {
     const canRestore = this.canPublishAfterApproval(gift);
     const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.APPROVED, requiresManualReview: false, hiddenByModeration: false, manualReviewReason: null, moderationResolvedAt: new Date(), status: canRestore ? GiftStatus.ACTIVE : gift.status, isPublished: canRestore ? true : gift.isPublished, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null });
     const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, approvedAt: updated.approvedAt, approvedBy: updated.approvedBy };
-    await this.audit(user.uid, gift.id, 'GIFT_APPROVED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, comment: dto.comment, notifyProvider: dto.notifyProvider });
+    await this.audit(user, gift.id, 'GIFT_APPROVED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, comment: dto.comment, notifyProvider: dto.notifyProvider });
     if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift approved', dto.comment?.trim() ?? 'Your gift passed moderation review.', 'GIFT_APPROVED');
     return { data, message: 'Gift approved successfully' };
   }
@@ -282,7 +282,7 @@ export class GiftManagementService {
   private async rejectGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
     const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.REJECTED, requiresManualReview: false, hiddenByModeration: true, isPublished: false, status: GiftStatus.INACTIVE, moderationResolvedAt: new Date(), rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment?.trim() });
     const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, rejectedAt: updated.rejectedAt, rejectedBy: updated.rejectedBy, rejectionReason: updated.rejectionReason, rejectionComment: updated.rejectionComment };
-    await this.audit(user.uid, gift.id, 'GIFT_REJECTED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, notifyProvider: dto.notifyProvider });
+    await this.audit(user, gift.id, 'GIFT_REJECTED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, notifyProvider: dto.notifyProvider });
     if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift rejected', dto.comment?.trim() ?? 'Your gift was rejected by moderation.', 'GIFT_REJECTED');
     return { data, message: 'Gift rejected successfully' };
   }
@@ -291,7 +291,7 @@ export class GiftManagementService {
     const hide = dto.hideFromMarketplace ?? false;
     const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, manualReviewReason: dto.reason, hiddenByModeration: hide, isPublished: hide ? false : gift.isPublished, flaggedAt: new Date(), flaggedById: user.uid, flagReason: dto.reason, flagComment: dto.comment?.trim(), moderationResolvedAt: null });
     const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, requiresManualReview: updated.requiresManualReview, hiddenByModeration: updated.hiddenByModeration, flaggedAt: updated.flaggedAt, flaggedById: updated.flaggedById, flagReason: updated.flagReason, flagComment: updated.flagComment };
-    await this.audit(user.uid, gift.id, 'GIFT_FLAGGED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
+    await this.audit(user, gift.id, 'GIFT_FLAGGED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
     if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift flagged for review', dto.comment?.trim() ?? 'Your gift requires manual moderation review.', 'GIFT_FLAGGED');
     return { data, message: 'Gift flagged successfully' };
   }
@@ -416,9 +416,10 @@ export class GiftManagementService {
   private async uniqueCategorySlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftCategoryBySlug(slug, exceptId)); }
   private async uniqueGiftSlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftBySlug(slug, exceptId)); }
   private async uniqueSlug(name: string, exists: (slug: string) => Promise<unknown>): Promise<string> { const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'; let slug = base; let i = 1; while (await exists(slug)) slug = `${base}-${i++}`; return slug; }
-  private async audit(actorId: string, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> {
+  private async audit(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> {
     await this.auditLog.write({
-      actorId,
+      actorId: actor.uid,
+      actorType: actor.role,
       targetId,
       targetType: action.startsWith('GIFT_CATEGORY') ? 'GIFT_CATEGORY' : 'GIFT',
       action,

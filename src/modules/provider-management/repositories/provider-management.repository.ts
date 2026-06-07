@@ -32,6 +32,7 @@ export interface ProviderAggregateStats {
 export interface ProviderListedItem {
   id: string;
   name: string;
+  createdAt: Date;
   price: number;
   currency: string;
   salesCount: number;
@@ -318,6 +319,7 @@ export class ProviderManagementRepository {
         return {
           id: gift.id,
           name: gift.name,
+          createdAt: gift.createdAt,
           price: Number(gift.price),
           currency: gift.currency,
           salesCount,
@@ -607,7 +609,7 @@ export class ProviderManagementRepository {
         return (left.salesCount - right.salesCount) * direction;
       case ProviderItemSortBy.CREATED_AT:
       default:
-        return left.name.localeCompare(right.name);
+        return (left.createdAt.getTime() - right.createdAt.getTime()) * direction;
     }
   }
 }

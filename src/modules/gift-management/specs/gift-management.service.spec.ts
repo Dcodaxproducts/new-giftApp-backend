@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GiftModerationStatus, GiftStatus, UserRole } from '@prisma/client';
-import { GiftFlagReason, GiftModerationAction, GiftRejectReason } from '../dto/gift-management.dto';
+import { GiftCategorySortBy, GiftFlagReason, GiftModerationAction, GiftRejectReason, SortOrder } from '../dto/gift-management.dto';
 import { GiftManagementRepository } from '../repositories/gift-management.repository';
 import { GiftManagementService } from '../services/gift-management.service';
 
@@ -53,6 +53,16 @@ describe('GiftManagementService', () => {
     expect(prisma.gift.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null }) }));
   });
 
+  it('lists newly created gift categories first by default and respects explicit sort', async () => {
+    const { service, prisma } = createService();
+
+    await service.listCategories({});
+    await service.listCategories({ sortBy: GiftCategorySortBy.NAME, sortOrder: SortOrder.ASC });
+
+    expect(prisma.giftCategory.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
+    expect(prisma.giftCategory.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({ orderBy: { name: 'asc' } }));
+  });
+
   it('uses logged-in provider id and optional moderation defaults when provider creates a gift', async () => {
     const { service, prisma } = createService();
     await service.createGift({ uid: 'provider_1', role: UserRole.PROVIDER }, { name: 'Gift', categoryId: 'cat_1', providerId: 'other_provider', price: 10 });
@@ -87,7 +97,7 @@ describe('GiftManagementService', () => {
   it('writes audit log when creating gift', async () => {
     const { service, audit } = createService();
     await service.createGift({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['create'] } }, { name: 'Gift', categoryId: 'cat_1', providerId: 'provider_1', price: 10 });
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_CREATED', targetType: 'GIFT' }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.ADMIN, action: 'GIFT_CREATED', targetType: 'GIFT' }));
   });
 
   it('PATCH /gifts/:id updates normal gift fields through the unified endpoint', async () => {

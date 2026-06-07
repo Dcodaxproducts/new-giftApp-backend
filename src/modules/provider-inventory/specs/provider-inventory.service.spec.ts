@@ -4,6 +4,7 @@ import { GiftModerationStatus, GiftStatus, Prisma, UserRole } from '@prisma/clie
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { ProviderInventoryRepository } from '../repositories/provider-inventory.repository';
 import { ProviderInventoryService } from '../services/provider-inventory.service';
+import { ProviderInventorySortBy, SortOrder } from '../dto/provider-inventory.dto';
 
 const providerGift = {
   id: 'gift_1',
@@ -134,6 +135,16 @@ describe('ProviderInventoryService pagination', () => {
 
     expect(response.meta.limit).toBe(10);
     expect(repository.findManyForProviderList).toHaveBeenCalledWith(expect.objectContaining({ take: 10, skip: 0 }));
+  });
+
+  it('lists newly created provider items first by default and respects explicit sort', async () => {
+    const { service, repository } = createService();
+
+    await service.list({ uid: 'provider_1', role: UserRole.PROVIDER }, {});
+    await service.list({ uid: 'provider_1', role: UserRole.PROVIDER }, { sortBy: ProviderInventorySortBy.NAME, sortOrder: SortOrder.ASC });
+
+    expect(repository.findManyForProviderList).toHaveBeenNthCalledWith(1, expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
+    expect(repository.findManyForProviderList).toHaveBeenNthCalledWith(2, expect.objectContaining({ orderBy: { name: 'asc' } }));
   });
 
   it('uses provided list limit and clamps above max limit', async () => {

@@ -23,10 +23,10 @@ describe('ProviderBusinessCategoriesService', () => {
     expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null } }));
   });
 
-  it('orders new categories first when sortOrder ties', async () => {
+  it('orders newly created categories first by default', async () => {
     const { service, prisma } = createService();
     await service.list({ page: 1, limit: 10 });
-    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { name: 'asc' }] }));
+    expect(prisma.providerBusinessCategory.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] }));
   });
 
   it('filters active categories when isActive=true', async () => {
@@ -56,7 +56,7 @@ describe('ProviderBusinessCategoriesService', () => {
   it('creates category and writes audit log', async () => {
     const { service, auditLog } = createService();
     await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Florist' });
-    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PROVIDER_BUSINESS_CATEGORY_CREATED' }));
+    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.ADMIN, action: 'PROVIDER_BUSINESS_CATEGORY_CREATED' }));
   });
 
   it('blocks delete when active providers are attached', async () => {

@@ -9,6 +9,7 @@ export class ReportAuditService {
   write(input: ReportAuditInput) {
     return this.auditLog.write({
       actorId: input.actorId,
+      actorType: input.actorType ?? null,
       targetId: input.targetId,
       targetType: input.targetType,
       action: input.action,

@@ -61,7 +61,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
     });
-    await this.audit(user.uid, category.id, 'PROVIDER_BUSINESS_CATEGORY_CREATED', undefined, this.toCategory(category));
+    await this.audit(user, category.id, 'PROVIDER_BUSINESS_CATEGORY_CREATED', undefined, this.toCategory(category));
     return { data: this.toCategory(category), message: 'Provider business category created successfully' };
   }
 
@@ -76,7 +76,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
         sortOrder: dto.sortOrder,
         isActive: dto.isActive,
     });
-    await this.audit(user.uid, id, 'PROVIDER_BUSINESS_CATEGORY_UPDATED', this.toCategory(category), this.toCategory(updated));
+    await this.audit(user, id, 'PROVIDER_BUSINESS_CATEGORY_UPDATED', this.toCategory(category), this.toCategory(updated));
     return { data: this.toCategory(updated), message: 'Provider business category updated successfully' };
   }
 
@@ -85,7 +85,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     const activeProviders = await this.repository.countActiveProviders(id);
     if (activeProviders > 0) throw new BadRequestException('Category has active providers and cannot be deleted');
     await this.repository.delete(id);
-    await this.audit(user.uid, id, 'PROVIDER_BUSINESS_CATEGORY_DELETED', this.toCategory(category), null);
+    await this.audit(user, id, 'PROVIDER_BUSINESS_CATEGORY_DELETED', this.toCategory(category), null);
     return { data: null, message: 'Provider business category deleted successfully' };
   }
 
@@ -113,7 +113,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, sortOrder: category.sortOrder, isActive: category.isActive, createdAt: category.createdAt, updatedAt: category.updatedAt };
   }
 
-  private async audit(actorId: string, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> {
-    await this.auditLog.write({ actorId, targetId, targetType: 'PROVIDER_BUSINESS_CATEGORY', action, beforeJson, afterJson });
+  private async audit(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> {
+    await this.auditLog.write({ actorId: actor.uid, actorType: actor.role, targetId, targetType: 'PROVIDER_BUSINESS_CATEGORY', action, beforeJson, afterJson });
   }
 }

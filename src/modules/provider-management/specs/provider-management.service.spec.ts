@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { GiftStatus, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderFulfillmentMethodDto, ExportFormat, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderSortBy, ProviderStatusUpdate, SortOrder } from '../dto/provider-management.dto';
+import { AdminProviderFulfillmentMethodDto, ExportFormat, ProviderItemSortBy, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderSortBy, ProviderStatusUpdate, SortOrder } from '../dto/provider-management.dto';
 import { ProviderManagementRepository } from '../repositories/provider-management.repository';
 import { ProviderManagementService } from '../services/provider-management.service';
 
@@ -13,6 +13,8 @@ const providerLifecycleAdmin = {
   role: UserRole.ADMIN,
   permissions: { providers: ['approve', 'reject', 'suspend', 'updateStatus'] },
 };
+
+const now = new Date('2026-05-14T10:00:00.000Z');
 
 const provider: Record<string, unknown> = {
   id: 'provider_1',
@@ -63,9 +65,10 @@ function createService(overrides: Record<string, unknown> = {}) {
     uploadedFile: { deleteMany: jest.fn() },
     loginAttempt: { updateMany: jest.fn() },
     providerOrder: { count: jest.fn().mockResolvedValue(0) },
+    providerOrderItem: { groupBy: jest.fn().mockResolvedValue([]) },
     providerBusinessCategory: { findUnique: jest.fn().mockResolvedValue({ id: 'provider_business_category_id', isActive: true }) },
     promotionalOffer: { updateMany: jest.fn(), deleteMany: jest.fn() },
-    gift: { updateMany: jest.fn(), deleteMany: jest.fn() },
+    gift: { findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn(), deleteMany: jest.fn() },
     adminAuditLog: { create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'provider_new', ...data })), findMany: jest.fn().mockResolvedValue([]) },
   };
   const mailer = {
@@ -156,14 +159,44 @@ describe('ProviderManagementService', () => {
   it('provider items returns real listed item rows from repository aggregates', async () => {
     const { service, repository } = createService();
     jest.spyOn(repository, 'findProviderListedItems').mockResolvedValue({ total: 2, items: [
-      { id: 'gift_1', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', salesCount: 15, salesPercentage: 75, status: ProviderItemStatus.ACTIVE, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png' },
-      { id: 'gift_2', name: 'Gift Basket', price: 49.99, currency: 'PKR', salesCount: 5, salesPercentage: 25, status: ProviderItemStatus.OUT_OF_STOCK, imageUrl: null },
+      { id: 'gift_1', name: 'Luxury Perfume', createdAt: now, price: 99.99, currency: 'PKR', salesCount: 15, salesPercentage: 75, status: ProviderItemStatus.ACTIVE, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png' },
+      { id: 'gift_2', name: 'Gift Basket', createdAt: now, price: 49.99, currency: 'PKR', salesCount: 5, salesPercentage: 25, status: ProviderItemStatus.OUT_OF_STOCK, imageUrl: null },
     ] });
 
     const result = await service.items('provider_1', { page: 1, limit: 10 });
 
     expect(result.data[0]).toEqual(expect.objectContaining({ id: 'gift_1', salesCount: 15, salesPercentage: 75, status: ProviderItemStatus.ACTIVE }));
     expect(result.meta.total).toBe(2);
+  });
+
+  it('provider items repository lists newly created items first and respects explicit sort', async () => {
+    const { repository, prisma } = createService();
+    const olderGift = {
+      id: 'gift_old',
+      name: 'A Hamper',
+      createdAt: new Date('2026-05-01T00:00:00.000Z'),
+      price: 20,
+      currency: 'PKR',
+      status: GiftStatus.ACTIVE,
+      isPublished: true,
+      stockQuantity: 10,
+      variants: [],
+      imageUrls: [],
+    };
+    const newerGift = {
+      ...olderGift,
+      id: 'gift_new',
+      name: 'Z Bouquet',
+      createdAt: new Date('2026-05-02T00:00:00.000Z'),
+      price: 30,
+    };
+    prisma.gift.findMany.mockResolvedValue([olderGift, newerGift]);
+
+    const newestFirst = await repository.findProviderListedItems('provider_1', {});
+    const explicitNameSort = await repository.findProviderListedItems('provider_1', { sortBy: ProviderItemSortBy.NAME, sortOrder: SortOrder.ASC });
+
+    expect(newestFirst.items.map((item) => item.id)).toEqual(['gift_new', 'gift_old']);
+    expect(explicitNameSort.items.map((item) => item.id)).toEqual(['gift_old', 'gift_new']);
   });
 
   it('provider export includes real aggregate fields', async () => {
