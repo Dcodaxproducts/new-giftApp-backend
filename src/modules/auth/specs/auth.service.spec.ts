@@ -1,4 +1,4 @@
-import { BadRequestException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { readFileSync } from 'fs';
@@ -69,28 +69,30 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
 }
 
 describe('AuthService forgot/reset password', () => {
-  it('forgot-password returns success only when account exists and email sends', async () => {
+  it('forgot-password returns generic message when account is eligible and email sends', async () => {
     const { service, mailer } = createResetService();
 
     await expect(service.forgotPassword({ email: 'user@example.com' })).resolves.toEqual({
-      message: 'Password reset OTP has been sent to your email.',
+      message: 'If the account is eligible, reset instructions have been sent.',
     });
     expect(mailer.sendPasswordResetEmail).toHaveBeenCalledWith('user@example.com', expect.any(String));
   });
 
-  it('forgot-password returns clear error when account does not exist', async () => {
+  it('forgot-password returns generic message when account does not exist', async () => {
     const { service, mailer } = createResetService(null);
 
-    await expect(service.forgotPassword({ email: 'missing@example.com' })).rejects.toThrow(BadRequestException);
-    await expect(service.forgotPassword({ email: 'missing@example.com' })).rejects.toThrow('No account found with this email address.');
+    await expect(service.forgotPassword({ email: 'missing@example.com' })).resolves.toEqual({
+      message: 'If the account is eligible, reset instructions have been sent.',
+    });
     expect(mailer.sendPasswordResetEmail).not.toHaveBeenCalled();
   });
 
-  it('forgot-password returns clear error when email sending fails', async () => {
+  it('forgot-password returns generic message when email sending fails', async () => {
     const { service, prisma } = createResetService(resetUser, true);
 
-    await expect(service.forgotPassword({ email: 'user@example.com' })).rejects.toThrow(ServiceUnavailableException);
-    await expect(service.forgotPassword({ email: 'user@example.com' })).rejects.toThrow('Unable to send password reset email. Please try again later.');
+    await expect(service.forgotPassword({ email: 'user@example.com' })).resolves.toEqual({
+      message: 'If the account is eligible, reset instructions have been sent.',
+    });
     const calls = prisma.user.update.mock.calls as UserUpdateCall[];
     expect(calls.some(([call]) => call.data?.resetPasswordOtp === null)).toBe(true);
   });
@@ -153,10 +155,10 @@ describe('AuthService forgot/reset password', () => {
     await expect(service.resetPassword({ email: 'user@example.com', otp: '334018', newPassword: 'NewPassword@123' })).rejects.toThrow('Invalid or expired OTP');
   });
 
-  it('reset-password rejects unknown email', async () => {
+  it('reset-password rejects unknown email without revealing account existence', async () => {
     const { service } = createResetService(null);
 
-    await expect(service.resetPassword({ email: 'missing@example.com', otp: '334018', newPassword: 'NewPassword@123' })).rejects.toThrow('No account found with this email address.');
+    await expect(service.resetPassword({ email: 'missing@example.com', otp: '334018', newPassword: 'NewPassword@123' })).rejects.toThrow('Invalid or expired OTP');
   });
 
   it('reset-password rejects weak password with clear message', async () => {
@@ -169,6 +171,19 @@ describe('AuthService forgot/reset password', () => {
     const dtoSource = readFileSync('src/modules/auth/dto/auth.dto.ts', 'utf8');
 
     expect(dtoSource).not.toContain('resetToken');
+  });
+
+  it('auth Swagger wording uses clear enumeration-safe descriptions', () => {
+    const controllerSource = readFileSync('src/modules/auth/controllers/auth.controller.ts', 'utf8');
+    const accessSource = readFileSync('src/swagger-access.ts', 'utf8');
+    const combined = `${controllerSource}\n${accessSource}`;
+
+    expect(controllerSource).toContain('If the account is eligible, reset instructions have been sent.');
+    expect(controllerSource).toContain('If the account is eligible and unverified, a verification email has been sent.');
+    expect(controllerSource).toContain('Verify OTP for password reset or unverified email flow.');
+    expect(combined).not.toMatch(/if account exists/i);
+    expect(combined).not.toContain('PUBLIC. PUBLIC');
+    expect(combined).not.toMatch(/No account found with this email address/i);
   });
 });
 
@@ -417,7 +432,7 @@ describe('AuthService sensitive auth behavior', () => {
     expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'EMAIL_NOT_VERIFIED', userId: 'user_1' }));
   });
 
-  it('resend verification email sends only for existing unverified users and returns clear public success guidance', async () => {
+  it('resend verification email sends only for existing unverified users and returns generic public success guidance', async () => {
     const user = authUser({ isVerified: false });
     const { service, prisma, mailerService, resendLimiter } = createSensitiveAuthService({ user });
 
@@ -426,7 +441,7 @@ describe('AuthService sensitive auth behavior', () => {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
+      message: 'If the account is eligible and unverified, a verification email has been sent.',
     });
 
     expect(resendLimiter.assertAllowed).toHaveBeenCalledWith('USER@example.com', '127.0.0.1');
@@ -442,7 +457,7 @@ describe('AuthService sensitive auth behavior', () => {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
+      message: 'If the account is eligible and unverified, a verification email has been sent.',
     });
     expect(missingMailer.sendVerificationEmail).not.toHaveBeenCalled();
 
@@ -452,7 +467,7 @@ describe('AuthService sensitive auth behavior', () => {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
+      message: 'If the account is eligible and unverified, a verification email has been sent.',
     });
     expect(verifiedMailer.sendVerificationEmail).not.toHaveBeenCalled();
   });

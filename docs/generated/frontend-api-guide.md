@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 07:56 UTC
+Generated at: 2026-06-07 08:41 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 07:56 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 08:41 UTC.
 
 ## Frontend Integration Flows
 
@@ -412,20 +412,20 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 07:56 UTC.
 | DELETE | `/api/v1/auth/account` | Delete Auth Account | Authenticated |
 | POST | `/api/v1/auth/cancel-deletion` | Create Auth Cancel Deletion | Authenticated |
 | PATCH | `/api/v1/auth/change-password` | Update Auth Change Password | Authenticated |
-| POST | `/api/v1/auth/forgot-password` | Create Auth Forgot Password | PUBLIC |
+| POST | `/api/v1/auth/forgot-password` | Request password reset instructions | PUBLIC |
 | POST | `/api/v1/auth/login` | Create Auth Login | PUBLIC |
 | POST | `/api/v1/auth/logout` | Create Auth Logout | Authenticated |
 | GET | `/api/v1/auth/me` | List Auth Me | Authenticated |
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
-| POST | `/api/v1/auth/resend-otp` | Create Auth Resend Otp | Authenticated |
-| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for unverified login | PUBLIC |
-| POST | `/api/v1/auth/reset-password` | Create Auth Reset Password | PUBLIC |
+| POST | `/api/v1/auth/resend-otp` | Resend authenticated email verification OTP | Authenticated |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for eligible unverified account | PUBLIC |
+| POST | `/api/v1/auth/reset-password` | Reset account password with OTP | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
 | DELETE | `/api/v1/auth/sessions/{id}` | Delete Auth Sessions | Authenticated |
-| POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
-| POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
+| POST | `/api/v1/auth/verify-email` | Verify authenticated account email | Authenticated |
+| POST | `/api/v1/auth/verify-reset-otp` | Verify reset or verification OTP | PUBLIC |
 
 ### Auth - Login Attempts (3 APIs)
 
@@ -536,22 +536,22 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 07:56 UTC.
 | DELETE | `/api/v1/auth/account` | Delete Auth Account | Authenticated |
 | POST | `/api/v1/auth/cancel-deletion` | Create Auth Cancel Deletion | Authenticated |
 | PATCH | `/api/v1/auth/change-password` | Update Auth Change Password | Authenticated |
-| POST | `/api/v1/auth/forgot-password` | Create Auth Forgot Password | PUBLIC |
+| POST | `/api/v1/auth/forgot-password` | Request password reset instructions | PUBLIC |
 | POST | `/api/v1/auth/guest/session` | Create guest browsing session | PUBLIC |
 | POST | `/api/v1/auth/login` | Create Auth Login | PUBLIC |
 | POST | `/api/v1/auth/logout` | Create Auth Logout | Authenticated |
 | GET | `/api/v1/auth/me` | List Auth Me | Authenticated |
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
-| POST | `/api/v1/auth/resend-otp` | Create Auth Resend Otp | Authenticated |
-| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for unverified login | PUBLIC |
-| POST | `/api/v1/auth/reset-password` | Create Auth Reset Password | PUBLIC |
+| POST | `/api/v1/auth/resend-otp` | Resend authenticated email verification OTP | Authenticated |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for eligible unverified account | PUBLIC |
+| POST | `/api/v1/auth/reset-password` | Reset account password with OTP | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
 | DELETE | `/api/v1/auth/sessions/{id}` | Delete Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/users/register` | Create Auth Users Register | PUBLIC |
-| POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
-| POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
+| POST | `/api/v1/auth/verify-email` | Verify authenticated account email | Authenticated |
+| POST | `/api/v1/auth/verify-reset-otp` | Verify reset or verification OTP | PUBLIC |
 
 ### Chat - Threads (9 APIs)
 
@@ -781,21 +781,21 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 07:56 UTC.
 | DELETE | `/api/v1/auth/account` | Delete Auth Account | Authenticated |
 | POST | `/api/v1/auth/cancel-deletion` | Create Auth Cancel Deletion | Authenticated |
 | PATCH | `/api/v1/auth/change-password` | Update Auth Change Password | Authenticated |
-| POST | `/api/v1/auth/forgot-password` | Create Auth Forgot Password | PUBLIC |
+| POST | `/api/v1/auth/forgot-password` | Request password reset instructions | PUBLIC |
 | POST | `/api/v1/auth/login` | Create Auth Login | PUBLIC |
 | POST | `/api/v1/auth/logout` | Create Auth Logout | Authenticated |
 | GET | `/api/v1/auth/me` | List Auth Me | Authenticated |
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/providers/register` | Create Auth Providers Register | PUBLIC |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
-| POST | `/api/v1/auth/resend-otp` | Create Auth Resend Otp | Authenticated |
-| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for unverified login | PUBLIC |
-| POST | `/api/v1/auth/reset-password` | Create Auth Reset Password | PUBLIC |
+| POST | `/api/v1/auth/resend-otp` | Resend authenticated email verification OTP | Authenticated |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for eligible unverified account | PUBLIC |
+| POST | `/api/v1/auth/reset-password` | Reset account password with OTP | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
 | DELETE | `/api/v1/auth/sessions/{id}` | Delete Auth Sessions | Authenticated |
-| POST | `/api/v1/auth/verify-email` | Create Auth Verify Email | Authenticated |
-| POST | `/api/v1/auth/verify-reset-otp` | Verify public OTP for password reset or unverified email flow | PUBLIC |
+| POST | `/api/v1/auth/verify-email` | Verify authenticated account email | Authenticated |
+| POST | `/api/v1/auth/verify-reset-otp` | Verify reset or verification OTP | PUBLIC |
 
 ### Customer - Provider Reports (4 APIs)
 

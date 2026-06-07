@@ -26,7 +26,7 @@
         "summary": "Create Auth Users Register",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "description": "Access: PUBLIC."
       }
     },
     "/api/v1/auth/providers/register": {
@@ -54,12 +54,12 @@
         "summary": "Create Auth Providers Register",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "description": "Access: PUBLIC."
       }
     },
     "/api/v1/auth/guest/session": {
       "post": {
-        "description": "Access: PUBLIC. PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only. PUBLIC. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.",
+        "description": "Access: PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.",
         "operationId": "AuthController_guestSession",
         "parameters": [],
         "requestBody": {
@@ -177,7 +177,7 @@
         "summary": "Create Auth Login",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "description": "Access: PUBLIC."
       }
     },
     "/api/v1/auth/refresh": {
@@ -205,7 +205,7 @@
         "summary": "Create Auth Refresh",
         "x-allowed-roles": "PUBLIC",
         "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "description": "Access: PUBLIC."
       }
     },
     "/api/v1/auth/logout": {
@@ -233,6 +233,7 @@
     },
     "/api/v1/auth/verify-email": {
       "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. Verify the authenticated account email with the latest verification OTP.",
         "operationId": "AuthController_verifyEmail",
         "parameters": [],
         "requestBody": {
@@ -247,7 +248,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "user_id",
+                      "email": "user@example.com",
+                      "isVerified": true
+                    },
+                    "message": "Email verified successfully"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -255,22 +271,33 @@
             "bearer": []
           }
         ],
+        "summary": "Verify authenticated account email",
         "tags": [
           "01 Auth"
         ],
-        "summary": "Create Auth Verify Email",
         "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/auth/resend-otp": {
       "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. Send a new verification OTP for the authenticated account when it is still unverified.",
         "operationId": "AuthController_resendRegistrationOtp",
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": null,
+                    "message": "Verification OTP sent"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -278,18 +305,17 @@
             "bearer": []
           }
         ],
+        "summary": "Resend authenticated email verification OTP",
         "tags": [
           "01 Auth"
         ],
-        "summary": "Create Auth Resend Otp",
         "x-allowed-roles": "Authenticated",
-        "x-access": "Authenticated",
-        "description": "Access: Authenticated. Authenticated JWT required."
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/auth/resend-verification-email": {
       "post": {
-        "description": "Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.",
+        "description": "Access: PUBLIC. Public endpoint. Always returns the same success envelope to avoid account enumeration. Sends a verification email only when the account is eligible and unverified.",
         "operationId": "AuthController_resendVerificationEmail",
         "parameters": [],
         "requestBody": {
@@ -314,14 +340,14 @@
                       "delivery": "OTP_SENT_IF_ELIGIBLE",
                       "nextStep": "Use the 6-digit verification OTP to complete email verification."
                     },
-                    "message": "If the email is registered and unverified, a 6-digit verification OTP has been sent."
+                    "message": "If the account is eligible and unverified, a verification email has been sent."
                   }
                 }
               }
             }
           }
         },
-        "summary": "Resend verification email for unverified login",
+        "summary": "Resend verification email for eligible unverified account",
         "tags": [
           "01 Auth"
         ],
@@ -331,6 +357,7 @@
     },
     "/api/v1/auth/forgot-password": {
       "post": {
+        "description": "Access: PUBLIC. Public endpoint. Always returns a generic success message to avoid account enumeration.",
         "operationId": "AuthController_forgotPassword",
         "parameters": [],
         "requestBody": {
@@ -345,21 +372,30 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "message": "If the account is eligible, reset instructions have been sent."
+                  }
+                }
+              }
+            }
           }
         },
+        "summary": "Request password reset instructions",
         "tags": [
           "01 Auth"
         ],
-        "summary": "Create Auth Forgot Password",
         "x-allowed-roles": "PUBLIC",
-        "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/auth/verify-reset-otp": {
       "post": {
-        "description": "Access: PUBLIC. PUBLIC. PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.",
+        "description": "Access: PUBLIC. Verify OTP for password reset or unverified email flow.",
         "operationId": "AuthController_verifyResetOtp",
         "parameters": [],
         "requestBody": {
@@ -391,7 +427,7 @@
             }
           }
         },
-        "summary": "Verify public OTP for password reset or unverified email flow",
+        "summary": "Verify reset or verification OTP",
         "tags": [
           "01 Auth"
         ],
@@ -401,6 +437,7 @@
     },
     "/api/v1/auth/reset-password": {
       "post": {
+        "description": "Access: PUBLIC. Public endpoint. Resets the password only when the supplied email and OTP are valid, without exposing whether the account exists.",
         "operationId": "AuthController_resetPassword",
         "parameters": [],
         "requestBody": {
@@ -415,16 +452,25 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "message": "Password has been reset successfully."
+                  }
+                }
+              }
+            }
           }
         },
+        "summary": "Reset account password with OTP",
         "tags": [
           "01 Auth"
         ],
-        "summary": "Create Auth Reset Password",
         "x-allowed-roles": "PUBLIC",
-        "x-access": "PUBLIC",
-        "description": "Access: PUBLIC. PUBLIC."
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/auth/change-password": {
@@ -1818,7 +1864,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.",
         "operationId": "NotificationsController_list",
         "parameters": [
           {
@@ -1956,7 +2002,7 @@
     },
     "/api/v1/notifications/summary": {
       "get": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.",
         "operationId": "NotificationsController_summary",
         "parameters": [],
         "responses": {
@@ -1998,7 +2044,7 @@
     },
     "/api/v1/notifications/preferences": {
       "get": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.",
         "operationId": "NotificationsController_preferences",
         "parameters": [],
         "responses": {
@@ -2019,7 +2065,7 @@
         "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.",
         "operationId": "NotificationsController_updatePreferences",
         "parameters": [],
         "requestBody": {
@@ -2052,7 +2098,7 @@
     },
     "/api/v1/notifications/read-all": {
       "patch": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.",
         "operationId": "NotificationsController_markAllRead",
         "parameters": [],
         "responses": {
@@ -2075,7 +2121,7 @@
     },
     "/api/v1/notifications/{id}/read": {
       "patch": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.",
         "operationId": "NotificationsController_markRead",
         "parameters": [
           {
@@ -2107,7 +2153,7 @@
     },
     "/api/v1/notifications/{id}/action": {
       "post": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.",
         "operationId": "NotificationsController_action",
         "parameters": [
           {
@@ -2156,7 +2202,7 @@
     },
     "/api/v1/notifications/device-tokens": {
       "post": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.",
         "operationId": "NotificationsController_saveDeviceToken",
         "parameters": [],
         "requestBody": {
@@ -2189,7 +2235,7 @@
     },
     "/api/v1/notifications/device-tokens/{id}": {
       "delete": {
-        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.",
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.",
         "operationId": "NotificationsController_deleteDeviceToken",
         "parameters": [
           {
@@ -2732,7 +2778,7 @@
     },
     "/api/v1/referral-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.",
+        "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.",
         "operationId": "ReferralSettingsController_get",
         "parameters": [],
         "responses": {
@@ -2869,7 +2915,7 @@
     },
     "/api/v1/referral-settings/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission.",
         "operationId": "ReferralSettingsController_stats",
         "parameters": [],
         "responses": {
@@ -2953,7 +2999,7 @@
     },
     "/api/v1/admin/guest-access-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.",
         "operationId": "GuestAccessSettingsController_get",
         "parameters": [],
         "responses": {
@@ -2974,7 +3020,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. SUPER_ADMIN or ADMIN with guestAccessSettings.update. Creates audit logs.",
+        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. Creates audit logs.",
         "operationId": "GuestAccessSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -3007,7 +3053,7 @@
     },
     "/api/v1/admin/guest-access-settings/audit-logs": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.",
         "operationId": "GuestAccessSettingsController_auditLogs",
         "parameters": [],
         "responses": {
@@ -3030,7 +3076,7 @@
     },
     "/api/v1/admin/dashboard": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only merged dashboard overview, trends, gift/payment distribution, provider performance, and recent disputes. SUPER_ADMIN or ADMIN with dashboard.read. Returns overview metrics, revenue trends, gift/payment distribution, provider performance, and recent disputes from real records only. Payment secrets, card data, provider bank data, dispute evidence, and private internal notes are never selected or returned.",
+        "description": "Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only merged dashboard overview, trends, gift/payment distribution, provider performance, and recent disputes. Returns overview metrics, revenue trends, gift/payment distribution, provider performance, and recent disputes from real records only. Payment secrets, card data, provider bank data, dispute evidence, and private internal notes are never selected or returned.",
         "operationId": "AdminDashboardController_get",
         "parameters": [
           {
@@ -3146,7 +3192,7 @@
     },
     "/api/v1/admin/disputes/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.",
         "operationId": "AdminDisputesController_stats",
         "parameters": [
           {
@@ -3219,7 +3265,7 @@
     },
     "/api/v1/admin/disputes/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.export. SUPER_ADMIN or ADMIN with disputes.export permission. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.export. SUPER_ADMIN or ADMIN with disputes.export permission. Sensitive card/payment secrets are never exported.",
         "operationId": "AdminDisputesController_export",
         "parameters": [
           {
@@ -3301,7 +3347,7 @@
     },
     "/api/v1/admin/disputes": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Used by Dispute & Refund Cases queue with filters and sorting.",
         "operationId": "AdminDisputesController_list",
         "parameters": [
           {
@@ -3439,7 +3485,7 @@
     },
     "/api/v1/admin/disputes/{id}/decision-summary": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. Summarizes customer, transaction, refund eligibility, and case history before final decision.",
         "operationId": "AdminDisputesController_decisionSummary",
         "parameters": [
           {
@@ -3538,7 +3584,7 @@
     },
     "/api/v1/admin/disputes/{id}/confirmation": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. Returns refund, processor, protocol, and customer notification confirmation.",
         "operationId": "AdminDisputesController_confirmation",
         "parameters": [
           {
@@ -3570,7 +3616,7 @@
     },
     "/api/v1/admin/disputes/{id}/tracking-log/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.tracking.export. SUPER_ADMIN or ADMIN with disputes.tracking.export permission. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.tracking.export. SUPER_ADMIN or ADMIN with disputes.tracking.export permission. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.",
         "operationId": "AdminDisputesController_exportTrackingLog",
         "parameters": [
           {
@@ -3615,7 +3661,7 @@
     },
     "/api/v1/admin/disputes/{id}/tracking-log": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.tracking.read. SUPER_ADMIN or ADMIN with disputes.tracking.read permission. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.tracking.read. SUPER_ADMIN or ADMIN with disputes.tracking.read permission. Returns secure audit timeline, customer notifications, and internal notes.",
         "operationId": "AdminDisputesController_trackingLog",
         "parameters": [
           {
@@ -3647,7 +3693,7 @@
     },
     "/api/v1/admin/disputes/{id}/follow-up-notes": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. Adds internal note, tracking timeline entry, and notifies assigned admin when present.",
         "operationId": "AdminDisputesController_followUpNote",
         "parameters": [
           {
@@ -3697,7 +3743,7 @@
     },
     "/api/v1/admin/disputes/{id}/linkage": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Shows dispute summary, linked transaction, and current refund selection without card secrets.",
         "operationId": "AdminDisputesController_linkage",
         "parameters": [
           {
@@ -3770,7 +3816,7 @@
     },
     "/api/v1/admin/disputes/{id}/transaction-search": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Search is scoped to the dispute customer where possible and never exposes card secrets.",
         "operationId": "AdminDisputesController_transactionSearch",
         "parameters": [
           {
@@ -3829,7 +3875,7 @@
     },
     "/api/v1/admin/disputes/{id}/link-transaction": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.linkTransaction. SUPER_ADMIN or ADMIN with disputes.linkTransaction permission. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.linkTransaction. SUPER_ADMIN or ADMIN with disputes.linkTransaction permission. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.",
         "operationId": "AdminDisputesController_linkTransaction",
         "parameters": [
           {
@@ -3888,7 +3934,7 @@
     },
     "/api/v1/admin/disputes/{id}/refund-preview": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.",
         "operationId": "AdminDisputesController_refundPreview",
         "parameters": [
           {
@@ -4036,7 +4082,7 @@
     },
     "/api/v1/admin/disputes/{id}/internal-data": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.",
         "operationId": "AdminDisputesController_internalData",
         "parameters": [
           {
@@ -4068,7 +4114,7 @@
     },
     "/api/v1/admin/disputes/{id}/notes": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. Notes are internal-only and create audit/timeline entries.",
         "operationId": "AdminDisputesController_addNote",
         "parameters": [
           {
@@ -4116,7 +4162,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with disputes.notes.create"
       },
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Returns internal notes only.",
         "operationId": "AdminDisputesController_notes",
         "parameters": [
           {
@@ -4148,7 +4194,7 @@
     },
     "/api/v1/admin/disputes/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.",
+        "description": "Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.",
         "operationId": "AdminDisputesController_details",
         "parameters": [
           {
@@ -4225,7 +4271,7 @@
     },
     "/api/v1/admin/provider-disputes/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.",
         "operationId": "AdminProviderDisputesController_stats",
         "parameters": [
           {
@@ -4308,7 +4354,7 @@
     },
     "/api/v1/admin/provider-disputes/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.export. SUPER_ADMIN or ADMIN with providerDisputes.export permission. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.export. SUPER_ADMIN or ADMIN with providerDisputes.export permission. Does not expose card secrets or unrelated uploads.",
         "operationId": "AdminProviderDisputesController_export",
         "parameters": [
           {
@@ -4406,7 +4452,7 @@
     },
     "/api/v1/admin/provider-disputes": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Used by Provider Dispute Case Queue with filters and sorting.",
         "operationId": "AdminProviderDisputesController_list",
         "parameters": [
           {
@@ -4570,7 +4616,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/finalize": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.",
         "operationId": "AdminProviderDisputesController_finalize",
         "parameters": [
           {
@@ -4622,7 +4668,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/resolution": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. Returns final ruling, financial execution, notification status, refund timing, and appeal window.",
         "operationId": "AdminProviderDisputesController_resolution",
         "parameters": [
           {
@@ -4654,7 +4700,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/resolution-log/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export. SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export. SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.",
         "operationId": "AdminProviderDisputesController_exportResolutionLog",
         "parameters": [
           {
@@ -4699,7 +4745,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/resolution-log": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read. SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read. SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.",
         "operationId": "AdminProviderDisputesController_resolutionLog",
         "parameters": [
           {
@@ -4731,7 +4777,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/notify-again": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.notify. SUPER_ADMIN or ADMIN with providerDisputes.notify permission. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.notify. SUPER_ADMIN or ADMIN with providerDisputes.notify permission. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.",
         "operationId": "AdminProviderDisputesController_notifyAgain",
         "parameters": [
           {
@@ -4785,7 +4831,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/ruling-summary": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission. Shows ruling options, evidence summary, and financial starting point.",
         "operationId": "AdminProviderDisputesController_rulingSummary",
         "parameters": [
           {
@@ -4817,7 +4863,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/ruling": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.",
         "operationId": "AdminProviderDisputesController_ruling",
         "parameters": [
           {
@@ -4872,7 +4918,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/financial-impact": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read. SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read. SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission. Server calculates provider share, fee reversal, refund, and penalty impact.",
         "operationId": "AdminProviderDisputesController_financialImpact",
         "parameters": [
           {
@@ -4904,7 +4950,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/payout-penalty-linkage": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link. SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link. SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission. Creates provider financial adjustment ledgers; final financial execution is still deferred.",
         "operationId": "AdminProviderDisputesController_payoutPenaltyLinkage",
         "parameters": [
           {
@@ -4955,7 +5001,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/final-attestation": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission. Confirms line items and marks case ready for final status update.",
         "operationId": "AdminProviderDisputesController_finalAttestation",
         "parameters": [
           {
@@ -5006,7 +5052,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/evidence": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.",
         "operationId": "AdminProviderDisputesController_evidence",
         "parameters": [
           {
@@ -5038,7 +5084,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/evidence/request": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission. Creates timeline and optional notifications without changing final ruling.",
         "operationId": "AdminProviderDisputesController_requestEvidence",
         "parameters": [
           {
@@ -5090,7 +5136,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/evidence/mark-reviewed": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.update. SUPER_ADMIN or ADMIN with providerDisputes.update permission. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.update. SUPER_ADMIN or ADMIN with providerDisputes.update permission. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.",
         "operationId": "AdminProviderDisputesController_markReviewed",
         "parameters": [
           {
@@ -5140,7 +5186,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/timeline": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Includes provider dispute creation, evidence submission, requests, and review actions.",
         "operationId": "AdminProviderDisputesController_timeline",
         "parameters": [
           {
@@ -5172,7 +5218,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}/notes": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Returns internal reviewer notes only.",
         "operationId": "AdminProviderDisputesController_notes",
         "parameters": [
           {
@@ -5202,7 +5248,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerDisputes.read"
       },
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create. SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create. SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission. Creates internal note, timeline entry, and audit log.",
         "operationId": "AdminProviderDisputesController_addNote",
         "parameters": [
           {
@@ -5252,7 +5298,7 @@
     },
     "/api/v1/admin/provider-disputes/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.",
         "operationId": "AdminProviderDisputesController_details",
         "parameters": [
           {
@@ -5338,7 +5384,7 @@
     },
     "/api/v1/admin/provider-payouts/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Aggregates from provider payout records only; no frontend totals are trusted.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Aggregates from provider payout records only; no frontend totals are trusted.",
         "operationId": "AdminProviderPayoutsController_stats",
         "parameters": [],
         "responses": {
@@ -5382,7 +5428,7 @@
     },
     "/api/v1/admin/provider-payouts/trends": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.",
         "operationId": "AdminProviderPayoutsController_trends",
         "parameters": [
           {
@@ -5443,7 +5489,7 @@
     },
     "/api/v1/admin/provider-payouts/earning-distribution": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Uses provider earnings ledger totals and active commission tier thresholds.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Uses provider earnings ledger totals and active commission tier thresholds.",
         "operationId": "AdminProviderPayoutsController_earningDistribution",
         "parameters": [],
         "responses": {
@@ -5485,7 +5531,7 @@
     },
     "/api/v1/admin/provider-payouts/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. Applies the same filters as list and never exports full bank account numbers.",
         "operationId": "AdminProviderPayoutsController_export",
         "parameters": [
           {
@@ -5711,7 +5757,7 @@
     },
     "/api/v1/admin/provider-payouts": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Supports status/provider/date/search filters and sorting. Bank account data is masked only.",
         "operationId": "AdminProviderPayoutsController_list",
         "parameters": [
           {
@@ -5865,7 +5911,7 @@
     },
     "/api/v1/admin/provider-payouts/{id}/breakdown": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.",
         "operationId": "AdminProviderPayoutsController_breakdown",
         "parameters": [
           {
@@ -5928,7 +5974,7 @@
     },
     "/api/v1/admin/provider-payouts/{id}/action": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve, HOLD requires providerPayouts.hold, REJECT requires providerPayouts.reject. SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.",
+        "description": "Access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve, HOLD requires providerPayouts.hold, REJECT requires providerPayouts.reject. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.",
         "operationId": "AdminProviderPayoutsController_action",
         "parameters": [
           {
@@ -6009,7 +6055,7 @@
     },
     "/api/v1/admin/provider-payouts/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. Returns payout details, provider display data, and masked payout destination only.",
         "operationId": "AdminProviderPayoutsController_details",
         "parameters": [
           {
@@ -6074,7 +6120,7 @@
     },
     "/api/v1/admin/platform-analytics/summary": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. SUPER_ADMIN or ADMIN with analytics.read. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.",
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.",
         "operationId": "AdminPlatformAnalyticsController_summary",
         "parameters": [
           {
@@ -6187,7 +6233,7 @@
     },
     "/api/v1/admin/platform-analytics/revenue-transactions": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned. SUPER_ADMIN or ADMIN with analytics.read. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.",
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.",
         "operationId": "AdminPlatformAnalyticsController_revenueTransactions",
         "parameters": [
           {
@@ -6377,7 +6423,7 @@
     },
     "/api/v1/admin/platform-analytics/filter-options": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. SUPER_ADMIN or ADMIN with analytics.read. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.",
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.",
         "operationId": "AdminPlatformAnalyticsController_filterOptions",
         "parameters": [],
         "responses": {
@@ -6435,7 +6481,7 @@
     },
     "/api/v1/admin/platform-analytics/report": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with analytics.export. SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets. SUPER_ADMIN or ADMIN with analytics.export. Streams a CSV report using the same transaction filters and excludes card numbers, CVV, Stripe secrets, payment client secrets, and bank details.",
+        "description": "Access: SUPER_ADMIN or ADMIN with analytics.export. SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets. Streams a CSV report using the same transaction filters and excludes card numbers, CVV, Stripe secrets, payment client secrets, and bank details.",
         "operationId": "AdminPlatformAnalyticsController_report",
         "parameters": [
           {
@@ -6550,7 +6596,7 @@
     },
     "/api/v1/admin/transactions/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.",
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Stats are calculated from real payment/transaction records and return zeros when no records match.",
         "operationId": "AdminTransactionsController_stats",
         "parameters": [
           {
@@ -6663,7 +6709,7 @@
     },
     "/api/v1/admin/transactions/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. SUPER_ADMIN or ADMIN with transactions.export. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.",
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.",
         "operationId": "AdminTransactionsController_export",
         "parameters": [
           {
@@ -6877,7 +6923,7 @@
     },
     "/api/v1/admin/transactions": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.",
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.",
         "operationId": "AdminTransactionsController_list",
         "parameters": [
           {
@@ -7111,7 +7157,7 @@
     },
     "/api/v1/admin/transactions/{id}/timeline": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.",
         "operationId": "AdminTransactionsController_timeline",
         "parameters": [
           {
@@ -7169,7 +7215,7 @@
     },
     "/api/v1/admin/transactions/{id}/receipt": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. SUPER_ADMIN or ADMIN with transactions.receipt.download. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.",
         "operationId": "AdminTransactionsController_receipt",
         "parameters": [
           {
@@ -7290,7 +7336,7 @@
     },
     "/api/v1/admin/transactions/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. SUPER_ADMIN or ADMIN with transactions.read. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.",
+        "description": "Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.",
         "operationId": "AdminTransactionsController_details",
         "parameters": [
           {
@@ -7374,7 +7420,7 @@
     },
     "/api/v1/admin/refund-policy-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.",
+        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.",
         "operationId": "RefundPolicySettingsController_get",
         "parameters": [],
         "responses": {
@@ -8009,7 +8055,7 @@
     },
     "/api/v1/admin/payout-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.",
         "operationId": "AdminPayoutSettingsController_get",
         "parameters": [],
         "responses": {
@@ -8067,7 +8113,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. SUPER_ADMIN or ADMIN with payoutSettings.update. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.",
         "operationId": "AdminPayoutSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -8131,7 +8177,7 @@
     },
     "/api/v1/admin/payout-settings/commission-tiers": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns active commission tiers ordered by sort order and threshold.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns active commission tiers ordered by sort order and threshold.",
         "operationId": "AdminPayoutSettingsController_tiers",
         "parameters": [],
         "responses": {
@@ -8172,7 +8218,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.read"
       },
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. SUPER_ADMIN or ADMIN with payoutSettings.update. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.",
         "operationId": "AdminPayoutSettingsController_createTier",
         "parameters": [],
         "requestBody": {
@@ -8234,7 +8280,7 @@
     },
     "/api/v1/admin/payout-settings/commission-tiers/{id}": {
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. SUPER_ADMIN or ADMIN with payoutSettings.update. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.",
         "operationId": "AdminPayoutSettingsController_updateTier",
         "parameters": [
           {
@@ -8303,7 +8349,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record. SUPER_ADMIN or ADMIN with payoutSettings.update. Permanently deletes the tier record.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record. Permanently deletes the tier record.",
         "operationId": "AdminPayoutSettingsController_deleteTier",
         "parameters": [
           {
@@ -8349,7 +8395,7 @@
     },
     "/api/v1/admin/payout-settings/audit-logs": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.",
         "operationId": "AdminPayoutSettingsController_auditLogs",
         "parameters": [
           {
@@ -8444,7 +8490,7 @@
     },
     "/api/v1/admin/reviews/dashboard": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. SUPER_ADMIN or ADMIN with reviews.read. Review records are shared with provider review module.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. Review records are shared with provider review module.",
         "operationId": "AdminReviewsController_dashboard",
         "parameters": [],
         "responses": {
@@ -8552,7 +8598,7 @@
     },
     "/api/v1/admin/reviews/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with reviews.export. SUPER_ADMIN or ADMIN with reviews.export permission. SUPER_ADMIN or ADMIN with reviews.export. Applies the same filters as GET /admin/reviews, supports CSV/PDF, and exports dashboard-safe fields only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.export. SUPER_ADMIN or ADMIN with reviews.export permission. Applies the same filters as GET /admin/reviews, supports CSV/PDF, and exports dashboard-safe fields only.",
         "operationId": "AdminReviewsController_export",
         "parameters": [
           {
@@ -9024,7 +9070,7 @@
     },
     "/api/v1/admin/reviews": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. SUPER_ADMIN or ADMIN with reviews.read. Supports search, rating/source/status, reportedOnly, date range, and sort filters for the Reviews Moderation table.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. Supports search, rating/source/status, reportedOnly, date range, and sort filters for the Reviews Moderation table.",
         "operationId": "AdminReviewsController_list",
         "parameters": [
           {
@@ -9270,7 +9316,7 @@
     },
     "/api/v1/admin/reviews/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. SUPER_ADMIN or ADMIN with reviews.read. Returns review details, flags, linked transaction, and moderation history for the details drawer/modal.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviews.read. SUPER_ADMIN or ADMIN with reviews.read permission. Returns review details, flags, linked transaction, and moderation history for the details drawer/modal.",
         "operationId": "AdminReviewsController_details",
         "parameters": [
           {
@@ -9411,7 +9457,7 @@
     },
     "/api/v1/admin/review-policies": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.read. SUPER_ADMIN or ADMIN with reviewPolicies.read permission. SUPER_ADMIN or ADMIN with reviewPolicies.read. AI moderation fields are config-only until external AI is configured.",
+        "description": "Access: SUPER_ADMIN or ADMIN with reviewPolicies.read. SUPER_ADMIN or ADMIN with reviewPolicies.read permission. AI moderation fields are config-only until external AI is configured.",
         "operationId": "ReviewPoliciesController_policies",
         "parameters": [],
         "responses": {
@@ -10553,7 +10599,7 @@
     },
     "/api/v1/provider-business-categories": {
       "get": {
-        "description": "Access: PUBLIC. PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.",
+        "description": "Access: PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.",
         "operationId": "ProviderBusinessCategoriesController_list",
         "parameters": [
           {
@@ -10638,7 +10684,7 @@
     },
     "/api/v1/provider-business-categories/lookup": {
       "get": {
-        "description": "Access: PUBLIC. PUBLIC. Provider signup dropdown. Returns active provider business categories only. Public/provider-signup dropdown. Returns active provider business categories only.",
+        "description": "Access: PUBLIC. Provider signup dropdown. Returns active provider business categories only. Public/provider-signup dropdown. Returns active provider business categories only.",
         "operationId": "ProviderBusinessCategoriesController_lookup",
         "parameters": [
           {
@@ -16345,7 +16391,7 @@
     },
     "/api/v1/customer/home": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\".",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\".",
         "operationId": "CustomerMarketplaceController_home",
         "parameters": [],
         "responses": {
@@ -16368,7 +16414,7 @@
     },
     "/api/v1/customer/categories": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.",
         "operationId": "CustomerMarketplaceController_categories",
         "parameters": [],
         "responses": {
@@ -16391,7 +16437,7 @@
     },
     "/api/v1/customer/gifts/discounted": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.",
         "operationId": "CustomerMarketplaceController_discountedGifts",
         "parameters": [
           {
@@ -16546,7 +16592,7 @@
     },
     "/api/v1/customer/gifts/filter-options": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.",
         "operationId": "CustomerMarketplaceController_filterOptions",
         "parameters": [],
         "responses": {
@@ -16569,7 +16615,7 @@
     },
     "/api/v1/customer/gifts": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.",
         "operationId": "CustomerMarketplaceController_gifts",
         "parameters": [
           {
@@ -16771,7 +16817,7 @@
     },
     "/api/v1/customer/gifts/{id}": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.",
+        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.",
         "operationId": "CustomerMarketplaceController_giftDetails",
         "parameters": [
           {
@@ -19455,7 +19501,7 @@
     },
     "/api/v1/gift-categories/lookup": {
       "get": {
-        "description": "Access: PUBLIC. PUBLIC. Active gift category lookup. Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.",
+        "description": "Access: PUBLIC. Active gift category lookup. Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.",
         "operationId": "GiftCategoriesLookupController_lookup",
         "parameters": [],
         "responses": {
@@ -21295,7 +21341,7 @@
     },
     "/api/v1/media-upload-policy": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.",
+        "description": "Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. uploads/presigned-url enforces this policy before issuing upload URLs.",
         "operationId": "MediaUploadPolicyController_get",
         "parameters": [],
         "responses": {
@@ -21443,7 +21489,7 @@
     },
     "/api/v1/admin/message-moderation/conversations": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.",
         "operationId": "MessageModerationController_list",
         "parameters": [
           {
@@ -21710,7 +21756,7 @@
     },
     "/api/v1/admin/message-moderation/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Calculated from real moderation records.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Calculated from real moderation records.",
         "operationId": "MessageModerationController_stats",
         "parameters": [],
         "responses": {
@@ -21733,7 +21779,7 @@
     },
     "/api/v1/admin/message-moderation/filter-options": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission.",
         "operationId": "MessageModerationController_filterOptions",
         "parameters": [],
         "responses": {
@@ -21756,7 +21802,7 @@
     },
     "/api/v1/admin/message-moderation/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export contains moderation-safe redacted fields only, not full private conversation history.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. Export contains moderation-safe redacted fields only, not full private conversation history.",
         "operationId": "MessageModerationController_export",
         "parameters": [
           {
@@ -21977,7 +22023,7 @@
     },
     "/api/v1/admin/message-moderation/audit-logs": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission.",
         "operationId": "MessageModerationController_auditLogs",
         "parameters": [
           {
@@ -22093,7 +22139,7 @@
     },
     "/api/v1/admin/message-moderation/conversations/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. SUPER_ADMIN or ADMIN with messageModeration.read. Returns participants, flagged messages, internal notes, and action history.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. Returns participants, flagged messages, internal notes, and action history.",
         "operationId": "MessageModerationController_detail",
         "parameters": [
           {
@@ -22125,7 +22171,7 @@
     },
     "/api/v1/admin/message-moderation/conversations/{id}/history": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.",
         "operationId": "MessageModerationController_history",
         "parameters": [
           {
@@ -22312,7 +22358,7 @@
     },
     "/api/v1/admin/messaging-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. SUPER_ADMIN or ADMIN with messagingSettings.read. Settings apply to future messages only; retention jobs must preserve compliance-sensitive order, dispute, and support records.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. Settings apply to future messages only; retention jobs must preserve compliance-sensitive order, dispute, and support records.",
         "operationId": "MessagingSettingsController_get",
         "parameters": [],
         "responses": {
@@ -22340,7 +22386,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.update. SUPER_ADMIN or ADMIN with messagingSettings.update permission. Settings apply to future messages only. SUPER_ADMIN or ADMIN with messagingSettings.update. Creates an admin audit log for every update.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.update. SUPER_ADMIN or ADMIN with messagingSettings.update permission. Settings apply to future messages only. Creates an admin audit log for every update.",
         "operationId": "MessagingSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -22373,7 +22419,7 @@
     },
     "/api/v1/admin/messaging-settings/audit-logs": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. SUPER_ADMIN or ADMIN with messagingSettings.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission.",
         "operationId": "MessagingSettingsController_auditLogs",
         "parameters": [
           {
@@ -22762,7 +22808,7 @@
     },
     "/api/v1/payments/stripe/webhook": {
       "post": {
-        "description": "Access: PUBLIC. PUBLIC. Verifies Stripe-Signature using the configured webhook secret before processing events.",
+        "description": "Access: PUBLIC. Verifies Stripe-Signature using the configured webhook secret before processing events.",
         "operationId": "StripeWebhookController_webhook",
         "parameters": [],
         "responses": {
@@ -23546,7 +23592,7 @@
     },
     "/api/v1/admin/social-moderation/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission.",
         "operationId": "SocialModerationController_stats",
         "parameters": [
           {
@@ -23618,7 +23664,7 @@
     },
     "/api/v1/admin/social-moderation/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. SUPER_ADMIN or ADMIN with socialModeration.export. Exports moderation-safe fields only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. Exports moderation-safe fields only.",
         "operationId": "SocialModerationController_export",
         "parameters": [
           {
@@ -23771,7 +23817,7 @@
     },
     "/api/v1/admin/social-moderation/reports": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Search supports post content, user name, username, report ID, and post ID.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. Search supports post content, user name, username, report ID, and post ID.",
         "operationId": "SocialModerationController_list",
         "parameters": [
           {
@@ -23912,7 +23958,7 @@
     },
     "/api/v1/admin/social-moderation/reports/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Returns post inspection drawer data and report history.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. Returns post inspection drawer data and report history.",
         "operationId": "SocialModerationController_details",
         "parameters": [
           {
@@ -23944,7 +23990,7 @@
     },
     "/api/v1/admin/social-moderation/reports/{id}/action": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. SUPER_ADMIN or ADMIN with socialModeration.moderate. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.",
         "operationId": "SocialModerationController_action",
         "parameters": [
           {
@@ -24019,7 +24065,7 @@
     },
     "/api/v1/admin/social-reporting-rules/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.",
         "operationId": "SocialReportingRulesController_stats",
         "parameters": [],
         "responses": {
@@ -24042,7 +24088,7 @@
     },
     "/api/v1/admin/social-reporting-rules/export": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. SUPER_ADMIN or ADMIN with socialReportingRules.export.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission.",
         "operationId": "SocialReportingRulesController_exportRules",
         "parameters": [
           {
@@ -24086,7 +24132,7 @@
     },
     "/api/v1/admin/social-reporting-rules": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.",
         "operationId": "SocialReportingRulesController_rules",
         "parameters": [
           {
@@ -24176,7 +24222,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.read"
       },
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission. SUPER_ADMIN or ADMIN with socialReportingRules.create.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission.",
         "operationId": "SocialReportingRulesController_create",
         "parameters": [],
         "requestBody": {
@@ -24209,7 +24255,7 @@
     },
     "/api/v1/admin/social-reporting-rules/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.",
         "operationId": "SocialReportingRulesController_detail",
         "parameters": [
           {
@@ -24239,7 +24285,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update. Standard rule fields and isActive status changes both go through this endpoint.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. Standard rule fields and isActive status changes both go through this endpoint.",
         "operationId": "SocialReportingRulesController_update",
         "parameters": [
           {
@@ -24321,7 +24367,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with socialReportingRules.update"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Permanently deletes the rule record.",
+        "description": "Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. Permanently deletes the rule record.",
         "operationId": "SocialReportingRulesController_remove",
         "parameters": [
           {
@@ -24590,7 +24636,7 @@
     },
     "/api/v1/admin/system-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SUPER_ADMIN or ADMIN with systemSettings.read. SMTP secrets are never returned.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SMTP secrets are never returned.",
         "operationId": "SystemSettingsController_get",
         "parameters": [],
         "responses": {
@@ -24648,7 +24694,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. SUPER_ADMIN or ADMIN with systemSettings.update. Session timeout and payment fee changes apply to future sessions/transactions only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Session timeout and payment fee changes apply to future sessions/transactions only.",
         "operationId": "SystemSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -24681,7 +24727,7 @@
     },
     "/api/v1/admin/system-settings/logo": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. SUPER_ADMIN or ADMIN with systemSettings.update. Provide a completed Storage upload reference when available; only URL/reference is stored.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. Provide a completed Storage upload reference when available; only URL/reference is stored.",
         "operationId": "SystemSettingsController_logo",
         "parameters": [],
         "requestBody": {
@@ -24714,7 +24760,7 @@
     },
     "/api/v1/admin/system-settings/smtp/test": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. SUPER_ADMIN or ADMIN with systemSettings.update. Uses configured mailer and does not expose SMTP password or secrets.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. Uses configured mailer and does not expose SMTP password or secrets.",
         "operationId": "SystemSettingsController_smtpTest",
         "parameters": [],
         "requestBody": {
@@ -24747,7 +24793,7 @@
     },
     "/api/v1/admin/system-settings/audit-logs": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SUPER_ADMIN or ADMIN with systemSettings.read.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission.",
         "operationId": "SystemSettingsController_auditLogs",
         "parameters": [
           {

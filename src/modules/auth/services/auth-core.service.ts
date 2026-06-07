@@ -53,6 +53,9 @@ interface TokenPayload {
   sessionId?: string;
 }
 
+const PASSWORD_RESET_ELIGIBLE_MESSAGE = 'If the account is eligible, reset instructions have been sent.';
+const VERIFICATION_EMAIL_ELIGIBLE_MESSAGE = 'If the account is eligible and unverified, a verification email has been sent.';
+
 @Injectable()
 export class AuthCoreService implements OnModuleInit {
   constructor(
@@ -379,7 +382,7 @@ export class AuthCoreService implements OnModuleInit {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.',
+      message: VERIFICATION_EMAIL_ELIGIBLE_MESSAGE,
     };
   }
 
@@ -387,7 +390,7 @@ export class AuthCoreService implements OnModuleInit {
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || user.deletedAt) {
-      throw new BadRequestException('No account found with this email address.');
+      return { message: PASSWORD_RESET_ELIGIBLE_MESSAGE };
     }
 
     const otp = this.generateOtp();
@@ -397,11 +400,11 @@ export class AuthCoreService implements OnModuleInit {
       await this.mailerService.sendPasswordResetEmail(user.email, otp);
     } catch {
       await this.authPasswordRepository.clearResetPasswordOtp(user.id);
-      throw new ServiceUnavailableException('Unable to send password reset email. Please try again later.');
+      return { message: PASSWORD_RESET_ELIGIBLE_MESSAGE };
     }
 
     return {
-      message: 'Password reset OTP has been sent to your email.',
+      message: PASSWORD_RESET_ELIGIBLE_MESSAGE,
     };
   }
 
@@ -720,7 +723,7 @@ export class AuthCoreService implements OnModuleInit {
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || user.deletedAt) {
-      throw new BadRequestException('No account found with this email address.');
+      throw new BadRequestException('Invalid or expired OTP');
     }
 
     if (user.resetPasswordOtpAttempts >= 5) {

@@ -37,7 +37,7 @@ export class AuthController {
   @Post('guest/session')
   @ApiOperation({
     summary: 'Create guest browsing session',
-    description: 'PUBLIC. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.',
+    description: 'Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.',
   })
   @ApiBody({
     required: false,
@@ -99,6 +99,8 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('verify-email')
+  @ApiOperation({ summary: 'Verify authenticated account email', description: 'Verify the authenticated account email with the latest verification OTP.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'user_id', email: 'user@example.com', isVerified: true }, message: 'Email verified successfully' } } })
   verifyEmail(
     @CurrentUser() user: AuthUserContext,
     @Body() dto: VerifyEmailDto,
@@ -109,30 +111,36 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('resend-otp')
+  @ApiOperation({ summary: 'Resend authenticated email verification OTP', description: 'Send a new verification OTP for the authenticated account when it is still unverified.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: null, message: 'Verification OTP sent' } } })
   resendRegistrationOtp(@CurrentUser() user: AuthUserContext) {
     return this.authService.resendVerification(user);
   }
 
   @Post('resend-verification-email')
-  @ApiOperation({ summary: 'Resend verification email for unverified login', description: 'Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'OTP_SENT_IF_ELIGIBLE', nextStep: 'Use the 6-digit verification OTP to complete email verification.' }, message: 'If the email is registered and unverified, a 6-digit verification OTP has been sent.' } } })
+  @ApiOperation({ summary: 'Resend verification email for eligible unverified account', description: 'Public endpoint. Always returns the same success envelope to avoid account enumeration. Sends a verification email only when the account is eligible and unverified.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'OTP_SENT_IF_ELIGIBLE', nextStep: 'Use the 6-digit verification OTP to complete email verification.' }, message: 'If the account is eligible and unverified, a verification email has been sent.' } } })
   resendVerificationEmail(@Body() dto: ResendVerificationEmailDto, @Req() request: Request) {
     return this.authService.resendVerificationEmail(dto, request.ip);
   }
 
   @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset instructions', description: 'Public endpoint. Always returns a generic success message to avoid account enumeration.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, message: 'If the account is eligible, reset instructions have been sent.' } } })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
   @Post('verify-reset-otp')
-  @ApiOperation({ summary: 'Verify public OTP for password reset or unverified email flow', description: 'PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.' })
+  @ApiOperation({ summary: 'Verify reset or verification OTP', description: 'Verify OTP for password reset or unverified email flow.' })
   @ApiResponse({ status: 201, schema: { example: { success: true, data: { purpose: 'EMAIL_VERIFICATION', emailVerified: true }, message: 'Email verified successfully' } } })
   verifyResetOtp(@Body() dto: VerifyResetOtpDto) {
     return this.authService.verifyResetOtp(dto);
   }
 
   @Post('reset-password')
+  @ApiOperation({ summary: 'Reset account password with OTP', description: 'Public endpoint. Resets the password only when the supplied email and OTP are valid, without exposing whether the account exists.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, message: 'Password has been reset successfully.' } } })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }

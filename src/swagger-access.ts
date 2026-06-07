@@ -6,7 +6,7 @@ export interface SwaggerAccessRule {
 }
 
 export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
-  'POST /api/v1/auth/guest/session': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.' },
+  'POST /api/v1/auth/guest/session': { allowedRoles: 'PUBLIC', description: 'Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.' },
 
   'GET /api/v1/admin-roles': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions.' },
   'POST /api/v1/admin-roles': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. ADMIN staff cannot create roles.' },
@@ -334,7 +334,7 @@ export function applySwaggerAccessMetadata(document: OpenAPIObject): void {
 
       const rule = getSwaggerAccessRule(method, path) ?? {
         allowedRoles: operation.security ? 'Authenticated' : 'PUBLIC',
-        description: operation.security ? 'Authenticated JWT required.' : 'PUBLIC.',
+        description: operation.security ? 'Authenticated JWT required.' : '',
       };
 
       const operationWithExtensions = operation as unknown as { 'x-allowed-roles'?: string; 'x-access'?: string; security?: unknown; description?: string };
@@ -347,12 +347,29 @@ export function applySwaggerAccessMetadata(document: OpenAPIObject): void {
 
       const currentDescription = operationWithExtensions.description?.trim();
       const accessDescription = `Access: ${rule.allowedRoles}.`;
-      const ruleDescription = `${accessDescription} ${rule.description}`;
+      const ruleDetail = deduplicateAccessText(rule.description, rule.allowedRoles);
+      const currentDetail = currentDescription ? deduplicateAccessText(currentDescription, rule.allowedRoles) : undefined;
+      const ruleDescription = ruleDetail ? `${accessDescription} ${ruleDetail}` : accessDescription;
       operationWithExtensions.description = currentDescription && currentDescription.includes(accessDescription)
         ? currentDescription
-        : currentDescription
-          ? `${ruleDescription} ${currentDescription}`
+        : currentDetail
+          ? `${ruleDescription} ${currentDetail}`
           : ruleDescription;
     }
   }
+}
+
+function deduplicateAccessText(description: string | undefined, allowedRoles: string): string {
+  if (!description) return '';
+  let result = description.trim();
+  const prefixes = [
+    `Access: ${allowedRoles}.`,
+    `${allowedRoles}.`,
+  ];
+  for (const prefix of prefixes) {
+    while (result.startsWith(prefix)) {
+      result = result.slice(prefix.length).trim();
+    }
+  }
+  return result;
 }

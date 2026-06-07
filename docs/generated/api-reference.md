@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 07:55 UTC
+Generated at: 2026-06-07 08:40 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -84,7 +84,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create Auth Users Register
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC.
 - Request payload(s):
   - payload:
 ```json
@@ -110,7 +110,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create Auth Providers Register
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC.
 - Request payload(s):
   - payload:
 ```json
@@ -144,7 +144,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create guest browsing session
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only. PUBLIC. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.
+- Notes: Access: PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.
 - Request payload(s):
   - metadata:
 ```json
@@ -197,7 +197,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create Auth Login
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC.
 - Request payload(s):
   - payload:
 ```json
@@ -226,7 +226,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create Auth Refresh
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC.
 - Request payload(s):
   - payload:
 ```json
@@ -264,9 +264,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/verify-email`
 
-- Summary: Create Auth Verify Email
+- Summary: Verify authenticated account email
 - Allowed role/access: Authenticated
-- Notes: Access: Authenticated. Authenticated JWT required.
+- Notes: Access: Authenticated. Authenticated JWT required. Verify the authenticated account email with the latest verification OTP.
 - Request payload(s):
   - payload:
 ```json
@@ -278,16 +278,20 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "isVerified": true
+  },
+  "message": "Email verified successfully"
 }
 ```
 
 ### POST `/api/v1/auth/resend-otp`
 
-- Summary: Create Auth Resend Otp
+- Summary: Resend authenticated email verification OTP
 - Allowed role/access: Authenticated
-- Notes: Access: Authenticated. Authenticated JWT required.
+- Notes: Access: Authenticated. Authenticated JWT required. Send a new verification OTP for the authenticated account when it is still unverified.
 - Request payload(s):
   - payload:
 ```json
@@ -297,16 +301,16 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "data": null,
+  "message": "Verification OTP sent"
 }
 ```
 
 ### POST `/api/v1/auth/resend-verification-email`
 
-- Summary: Resend verification email for unverified login
+- Summary: Resend verification email for eligible unverified account
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Public endpoint. Always returns the same success envelope to avoid user enumeration. Sends verification OTP only when the email exists and is not verified.
+- Notes: Access: PUBLIC. Public endpoint. Always returns the same success envelope to avoid account enumeration. Sends a verification email only when the account is eligible and unverified.
 - Request payload(s):
   - payload:
 ```json
@@ -322,15 +326,15 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "delivery": "OTP_SENT_IF_ELIGIBLE",
     "nextStep": "Use the 6-digit verification OTP to complete email verification."
   },
-  "message": "If the email is registered and unverified, a 6-digit verification OTP has been sent."
+  "message": "If the account is eligible and unverified, a verification email has been sent."
 }
 ```
 
 ### POST `/api/v1/auth/forgot-password`
 
-- Summary: Create Auth Forgot Password
+- Summary: Request password reset instructions
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC. Public endpoint. Always returns a generic success message to avoid account enumeration.
 - Request payload(s):
   - payload:
 ```json
@@ -342,16 +346,15 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "message": "If the account is eligible, reset instructions have been sent."
 }
 ```
 
 ### POST `/api/v1/auth/verify-reset-otp`
 
-- Summary: Verify public OTP for password reset or unverified email flow
+- Summary: Verify reset or verification OTP
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. PUBLIC. For verified accounts this validates password reset OTP. For unverified accounts this accepts the latest verification OTP and marks the email as verified.
+- Notes: Access: PUBLIC. Verify OTP for password reset or unverified email flow.
 - Request payload(s):
   - payload:
 ```json
@@ -374,9 +377,9 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### POST `/api/v1/auth/reset-password`
 
-- Summary: Create Auth Reset Password
+- Summary: Reset account password with OTP
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC.
+- Notes: Access: PUBLIC. Public endpoint. Resets the password only when the supplied email and OTP are valid, without exposing whether the account exists.
 - Request payload(s):
   - payload:
 ```json
@@ -390,8 +393,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
+  "message": "Password has been reset successfully."
 }
 ```
 
@@ -1595,7 +1597,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List provider business categories
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.
+- Notes: Access: PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -1639,7 +1641,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Lookup active provider business categories
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Provider signup dropdown. Returns active provider business categories only. Public/provider-signup dropdown. Returns active provider business categories only.
+- Notes: Access: PUBLIC. Provider signup dropdown. Returns active provider business categories only. Public/provider-signup dropdown. Returns active provider business categories only.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -1950,7 +1952,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch Super Admin dashboard data
 - Allowed role/access: SUPER_ADMIN or ADMIN with dashboard.read
-- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only merged dashboard overview, trends, gift/payment distribution, provider performance, and recent disputes. SUPER_ADMIN or ADMIN with dashboard.read. Returns overview metrics, revenue trends, gift/payment distribution, provider performance, and recent disputes from real records only. Payment secrets, card data, provider bank data, dispute evidence, and private internal notes are never selected or returned.
+- Notes: Access: SUPER_ADMIN or ADMIN with dashboard.read. SUPER_ADMIN or ADMIN with dashboard.read permission. Read-only merged dashboard overview, trends, gift/payment distribution, provider performance, and recent disputes. Returns overview metrics, revenue trends, gift/payment distribution, provider performance, and recent disputes from real records only. Payment secrets, card data, provider bank data, dispute evidence, and private internal notes are never selected or returned.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2015,7 +2017,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch platform analytics summary
 - Allowed role/access: SUPER_ADMIN or ADMIN with analytics.read
-- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. SUPER_ADMIN or ADMIN with analytics.read. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2053,7 +2055,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List recent revenue transactions
 - Allowed role/access: SUPER_ADMIN or ADMIN with analytics.read
-- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned. SUPER_ADMIN or ADMIN with analytics.read. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Card/payment secrets are not returned. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2104,7 +2106,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch platform analytics filter options
 - Allowed role/access: SUPER_ADMIN or ADMIN with analytics.read
-- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. SUPER_ADMIN or ADMIN with analytics.read. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.
 - Response body:
 ```json
 {
@@ -2142,7 +2144,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Generate platform analytics report
 - Allowed role/access: SUPER_ADMIN or ADMIN with analytics.export
-- Notes: Access: SUPER_ADMIN or ADMIN with analytics.export. SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets. SUPER_ADMIN or ADMIN with analytics.export. Streams a CSV report using the same transaction filters and excludes card numbers, CVV, Stripe secrets, payment client secrets, and bank details.
+- Notes: Access: SUPER_ADMIN or ADMIN with analytics.export. SUPER_ADMIN or ADMIN with analytics.export permission. Export excludes payment/card/bank secrets. Streams a CSV report using the same transaction filters and excludes card numbers, CVV, Stripe secrets, payment client secrets, and bank details.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2167,7 +2169,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch commission and payout settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.
 - Response body:
 ```json
 {
@@ -2207,7 +2209,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update commission and payout settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. SUPER_ADMIN or ADMIN with payoutSettings.update. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.
 - Request payload(s):
   - update:
 ```json
@@ -2241,7 +2243,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List commission tiers
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns active commission tiers ordered by sort order and threshold.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns active commission tiers ordered by sort order and threshold.
 - Response body:
 ```json
 {
@@ -2264,7 +2266,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create commission tier
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. SUPER_ADMIN or ADMIN with payoutSettings.update. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Creates a provider commission tier for future billing/payout cycles only. Thresholds must be unique among active tiers.
 - Request payload(s):
   - create:
 ```json
@@ -2296,7 +2298,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update commission tier
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. SUPER_ADMIN or ADMIN with payoutSettings.update. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies next billing/payout cycle. Tier changes take effect at the start of the next billing/payout cycle and do not rewrite historical payouts.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -2330,7 +2332,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Delete commission tier
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record. SUPER_ADMIN or ADMIN with payoutSettings.update. Permanently deletes the tier record.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Permanently deletes the tier record. Permanently deletes the tier record.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -2354,7 +2356,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List payout settings audit logs
 - Allowed role/access: SUPER_ADMIN or ADMIN with payoutSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. SUPER_ADMIN or ADMIN with payoutSettings.read. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.
+- Notes: Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns audit logs for payout settings and commission tier changes, including sanitized before/after JSON.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -2398,7 +2400,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider payout dashboard stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Aggregates from provider payout records only; no frontend totals are trusted.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Aggregates from provider payout records only; no frontend totals are trusted.
 - Response body:
 ```json
 {
@@ -2422,7 +2424,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch monthly provider payout trend
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Returns monthly payout totals for the selected 3, 6, or 12 month range from provider payout records.
 - Parameters:
   - `range` (query, optional, string)
 - Response body:
@@ -2451,7 +2453,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch earning distribution by provider tier
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Uses provider earnings ledger totals and active commission tier thresholds.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Uses provider earnings ledger totals and active commission tier thresholds.
 - Response body:
 ```json
 {
@@ -2473,7 +2475,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export provider payouts
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.export
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. SUPER_ADMIN or ADMIN with providerPayouts.export. Applies the same filters as list and never exports full bank account numbers.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.export. SUPER_ADMIN or ADMIN with providerPayouts.export permission. Uses list filters and excludes full bank account numbers. Applies the same filters as list and never exports full bank account numbers.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -2563,7 +2565,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List provider payouts
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Supports status/provider/date/search filters and sorting. Bank account data is masked only.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Supports status/provider/date/search filters and sorting. Bank account data is masked only.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -2608,7 +2610,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch pending payout transaction breakdown
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. SUPER_ADMIN or ADMIN with providerPayouts.read. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Shows gross amount, platform fee, processing fee, net payout, and recent ledger transactions without full bank details.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -2644,7 +2646,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Run provider payout action
 - Allowed role/access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission
-- Notes: Access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve, HOLD requires providerPayouts.hold, REJECT requires providerPayouts.reject. SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.
+- Notes: Access: SUPER_ADMIN or ADMIN with action-specific providerPayouts permission. APPROVE requires providerPayouts.approve, HOLD requires providerPayouts.hold, REJECT requires providerPayouts.reject. APPROVE requires providerPayouts.approve and moves PENDING/ON_HOLD payouts to PROCESSING. HOLD requires providerPayouts.hold, is allowed from PENDING, keeps ledger balance locked, and requires reason. REJECT requires providerPayouts.reject, is allowed from PENDING/ON_HOLD, requires reason, and releases locked PAYOUT_PENDING ledger balance back to AVAILABLE.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -2690,7 +2692,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider payout details
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerPayouts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. SUPER_ADMIN or ADMIN with providerPayouts.read. Returns payout details, provider display data, and masked payout destination only.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerPayouts.read. SUPER_ADMIN or ADMIN with providerPayouts.read permission. Payout destination is masked. Returns payout details, provider display data, and masked payout destination only.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -2730,7 +2732,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch transaction monitoring stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Stats are calculated from real payment/transaction records and return zeros when no records match.
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Stats are calculated from real payment/transaction records and return zeros when no records match.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2759,7 +2761,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export admin transactions
 - Allowed role/access: SUPER_ADMIN or ADMIN with transactions.export
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. SUPER_ADMIN or ADMIN with transactions.export. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.export. SUPER_ADMIN or ADMIN with transactions.export permission. Excludes card and payment secrets. Applies the same filters as the list API and excludes raw card numbers, CVV, client secrets, and Stripe secret fields.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2790,7 +2792,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List admin transactions
 - Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -2842,7 +2844,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch transaction timeline
 - Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. SUPER_ADMIN or ADMIN with transactions.read. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Returns ordered payment, refund, dispute, notification, and audit events without card/payment secrets.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -2873,7 +2875,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Download transaction receipt
 - Allowed role/access: SUPER_ADMIN or ADMIN with transactions.receipt.download
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. SUPER_ADMIN or ADMIN with transactions.receipt.download. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.receipt.download. SUPER_ADMIN or ADMIN with transactions.receipt.download permission. Returns a PDF-compatible receipt file with transaction ID, order ID, customer display info, amount breakdown, gateway provider, and masked payment method only.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -2943,7 +2945,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch transaction details
 - Allowed role/access: SUPER_ADMIN or ADMIN with transactions.read
-- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. SUPER_ADMIN or ADMIN with transactions.read. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.
+- Notes: Access: SUPER_ADMIN or ADMIN with transactions.read. SUPER_ADMIN or ADMIN with transactions.read permission. Card/payment secrets are masked. Shows payment breakdown, gateway information, customer info, related records, and refund state. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -3002,7 +3004,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List flagged message moderation conversations
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. SUPER_ADMIN or ADMIN with messageModeration.read. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3069,7 +3071,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Calculated from real moderation records.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Calculated from real moderation records.
 - Response body:
 ```json
 {
@@ -3083,7 +3085,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation filter options
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission.
 - Response body:
 ```json
 {
@@ -3097,7 +3099,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export message moderation rows
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.export
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. SUPER_ADMIN or ADMIN with messageModeration.export. Export contains moderation-safe redacted fields only, not full private conversation history.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. Export contains moderation-safe redacted fields only, not full private conversation history.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3129,7 +3131,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation audit logs
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read. SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read permission.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3154,7 +3156,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch message moderation conversation detail
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. SUPER_ADMIN or ADMIN with messageModeration.read. Returns participants, flagged messages, internal notes, and action history.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. Returns participants, flagged messages, internal notes, and action history.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -3170,7 +3172,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch paginated message moderation conversation history
 - Allowed role/access: SUPER_ADMIN or ADMIN with messageModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. SUPER_ADMIN or ADMIN with messageModeration.read. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.
+- Notes: Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.
 - Parameters:
   - `id` (path, required, string)
   - `beforeMessageId` (query, optional, string)
@@ -3283,7 +3285,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch social moderation stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -3308,7 +3310,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export social moderation log
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.export
-- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. SUPER_ADMIN or ADMIN with socialModeration.export. Exports moderation-safe fields only.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.export. SUPER_ADMIN or ADMIN with socialModeration.export permission. Exports moderation-safe fields only.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3334,7 +3336,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List social moderation reports
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Search supports post content, user name, username, report ID, and post ID.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. Search supports post content, user name, username, report ID, and post ID.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3359,7 +3361,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch social report inspection details
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. SUPER_ADMIN or ADMIN with socialModeration.read. Returns post inspection drawer data and report history.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.read. SUPER_ADMIN or ADMIN with socialModeration.read permission. Returns post inspection drawer data and report history.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -3375,7 +3377,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Run social moderation action
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialModeration.moderate
-- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. SUPER_ADMIN or ADMIN with socialModeration.moderate. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialModeration.moderate. SUPER_ADMIN or ADMIN with socialModeration.moderate permission. HIDE/REMOVE/WARN_USER create moderation logs and audit logs; posts are not physically deleted.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -3429,7 +3431,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch social reporting rule stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.
 - Response body:
 ```json
 {
@@ -3443,7 +3445,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export social reporting rules
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.export
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission. SUPER_ADMIN or ADMIN with socialReportingRules.export.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.export. SUPER_ADMIN or ADMIN with socialReportingRules.export permission.
 - Parameters:
   - `format` (query, optional, string)
   - `isActive` (query, optional, boolean)
@@ -3460,7 +3462,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List social reporting rules
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -3482,7 +3484,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create social reporting rule
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.create
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission. SUPER_ADMIN or ADMIN with socialReportingRules.create.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.create. SUPER_ADMIN or ADMIN with socialReportingRules.create permission.
 - Request payload(s):
   - payload:
 ```json
@@ -3509,7 +3511,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch social reporting rule details
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.read
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission. SUPER_ADMIN or ADMIN with socialReportingRules.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.read. SUPER_ADMIN or ADMIN with socialReportingRules.read permission.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -3525,7 +3527,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update social reporting rule
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.update
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. SUPER_ADMIN or ADMIN with socialReportingRules.update. Standard rule fields and isActive status changes both go through this endpoint.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.update. SUPER_ADMIN or ADMIN with socialReportingRules.update permission. Standard rule fields and isActive status changes both go through this endpoint.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -3574,7 +3576,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Delete social reporting rule
 - Allowed role/access: SUPER_ADMIN or ADMIN with socialReportingRules.delete
-- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. SUPER_ADMIN or ADMIN with socialReportingRules.delete. Permanently deletes the rule record.
+- Notes: Access: SUPER_ADMIN or ADMIN with socialReportingRules.delete. SUPER_ADMIN or ADMIN with socialReportingRules.delete permission. Permanently deletes the rule record.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -3678,7 +3680,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch referral settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with referralSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.
+- Notes: Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.
 - Response body:
 ```json
 {
@@ -3763,7 +3765,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch referral stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with referralSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission. SUPER_ADMIN or ADMIN with referralSettings.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission.
 - Response body:
 ```json
 {
@@ -3798,7 +3800,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch refund policy settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with refundPolicies.read
-- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.
+- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.
 - Response body:
 ```json
 {
@@ -3954,7 +3956,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch global media upload policy
 - Allowed role/access: SUPER_ADMIN or ADMIN with mediaPolicy.read
-- Notes: Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. SUPER_ADMIN or ADMIN with mediaPolicy.read. uploads/presigned-url enforces this policy before issuing upload URLs.
+- Notes: Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. uploads/presigned-url enforces this policy before issuing upload URLs.
 - Response body:
 ```json
 {
@@ -4047,7 +4049,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch system settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SUPER_ADMIN or ADMIN with systemSettings.read. SMTP secrets are never returned.
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SMTP secrets are never returned.
 - Response body:
 ```json
 {
@@ -4087,7 +4089,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update system settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. SUPER_ADMIN or ADMIN with systemSettings.update. Session timeout and payment fee changes apply to future sessions/transactions only.
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Session timeout and payment fee changes apply to future sessions/transactions only.
 - Request payload(s):
   - payload:
 ```json
@@ -4131,7 +4133,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update system logo URL/reference
 - Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. SUPER_ADMIN or ADMIN with systemSettings.update. Provide a completed Storage upload reference when available; only URL/reference is stored.
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. Provide a completed Storage upload reference when available; only URL/reference is stored.
 - Request payload(s):
   - payload:
 ```json
@@ -4153,7 +4155,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Send SMTP test email
 - Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. SUPER_ADMIN or ADMIN with systemSettings.update. Uses configured mailer and does not expose SMTP password or secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. Uses configured mailer and does not expose SMTP password or secrets.
 - Request payload(s):
   - payload:
 ```json
@@ -4174,7 +4176,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List system settings audit logs
 - Allowed role/access: SUPER_ADMIN or ADMIN with systemSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SUPER_ADMIN or ADMIN with systemSettings.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -4195,7 +4197,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch guest access settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with guestAccessSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.
 - Response body:
 ```json
 {
@@ -4209,7 +4211,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update guest access settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with guestAccessSettings.update
-- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. SUPER_ADMIN or ADMIN with guestAccessSettings.update. Creates audit logs.
+- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. Creates audit logs.
 - Request payload(s):
   - payload:
 ```json
@@ -4243,7 +4245,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List guest access settings audit logs
 - Allowed role/access: SUPER_ADMIN or ADMIN with guestAccessSettings.read
-- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission. SUPER_ADMIN or ADMIN with guestAccessSettings.read.
+- Notes: Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.
 - Response body:
 ```json
 {
@@ -4484,7 +4486,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch dispute dashboard stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Supports TODAY, LAST_7_DAYS, LAST_30_DAYS, and CUSTOM ranges.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -4510,7 +4512,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export dispute cases
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.export
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.export. SUPER_ADMIN or ADMIN with disputes.export permission. SUPER_ADMIN or ADMIN with disputes.export. Sensitive card/payment secrets are never exported.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.export. SUPER_ADMIN or ADMIN with disputes.export permission. Sensitive card/payment secrets are never exported.
 - Parameters:
   - `status` (query, optional, string)
   - `priority` (query, optional, string)
@@ -4530,7 +4532,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List dispute queue
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Used by Dispute & Refund Cases queue with filters and sorting.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Used by Dispute & Refund Cases queue with filters and sorting.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -4609,7 +4611,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch internal transaction data
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Includes payment status, refund eligibility, auth code, and order/provider transaction history without card secrets.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -4625,7 +4627,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch internal dispute notes
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Returns internal notes only.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Returns internal notes only.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -4641,7 +4643,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Add internal dispute note
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.notes.create
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Notes are internal-only and create audit/timeline entries.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. Notes are internal-only and create audit/timeline entries.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -4665,7 +4667,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch dispute details and evidence review summary
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SLA remaining text is computed from slaDeadlineAt; approaching deadline is true within 24 hours.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -4744,7 +4746,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch current dispute transaction linkage state
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Shows dispute summary, linked transaction, and current refund selection without card secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Shows dispute summary, linked transaction, and current refund selection without card secrets.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -4790,7 +4792,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Search original transaction for a dispute
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. SUPER_ADMIN or ADMIN with disputes.read. Search is scoped to the dispute customer where possible and never exposes card secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.read. SUPER_ADMIN or ADMIN with disputes.read permission. Search is scoped to the dispute customer where possible and never exposes card secrets.
 - Parameters:
   - `id` (path, required, string)
   - `query` (query, optional, string)
@@ -4809,7 +4811,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Confirm dispute transaction linkage
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.linkTransaction
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.linkTransaction. SUPER_ADMIN or ADMIN with disputes.linkTransaction permission. SUPER_ADMIN or ADMIN with disputes.linkTransaction. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.linkTransaction. SUPER_ADMIN or ADMIN with disputes.linkTransaction permission. Stores linked transaction/payment/order and refund selection, creates timeline/audit records, and does not process refunds.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -4843,7 +4845,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Preview dispute refund selection
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. SUPER_ADMIN or ADMIN with disputes.refund.evaluate. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -4885,7 +4887,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch dispute decision summary
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.decide
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Summarizes customer, transaction, refund eligibility, and case history before final decision.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. Summarizes customer, transaction, refund eligibility, and case history before final decision.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -4944,7 +4946,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch decision confirmation
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.decide
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. SUPER_ADMIN or ADMIN with disputes.decide. Returns refund, processor, protocol, and customer notification confirmation.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.decide. SUPER_ADMIN or ADMIN with disputes.decide permission. Returns refund, processor, protocol, and customer notification confirmation.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -4962,7 +4964,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export full dispute tracking log
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.tracking.export
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.tracking.export. SUPER_ADMIN or ADMIN with disputes.tracking.export permission. SUPER_ADMIN or ADMIN with disputes.tracking.export. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.tracking.export. SUPER_ADMIN or ADMIN with disputes.tracking.export permission. Includes timeline, decision, refund, notifications, and internal notes without card or Stripe secrets.
 - Parameters:
   - `id` (path, required, string)
   - `format` (query, optional, string)
@@ -4979,7 +4981,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch full dispute tracking log
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.tracking.read
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.tracking.read. SUPER_ADMIN or ADMIN with disputes.tracking.read permission. SUPER_ADMIN or ADMIN with disputes.tracking.read. Returns secure audit timeline, customer notifications, and internal notes.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.tracking.read. SUPER_ADMIN or ADMIN with disputes.tracking.read permission. Returns secure audit timeline, customer notifications, and internal notes.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5029,7 +5031,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Add dispute follow-up note
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.notes.create
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. SUPER_ADMIN or ADMIN with disputes.notes.create. Adds internal note, tracking timeline entry, and notifies assigned admin when present.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.notes.create. SUPER_ADMIN or ADMIN with disputes.notes.create permission. Adds internal note, tracking timeline entry, and notifies assigned admin when present.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5055,7 +5057,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute dashboard stats
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Reuses Provider Orders, Payments, Notifications, Audit Logs, and dispute patterns.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -5090,7 +5092,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export provider dispute queue
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.export
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.export. SUPER_ADMIN or ADMIN with providerDisputes.export permission. SUPER_ADMIN or ADMIN with providerDisputes.export. Does not expose card secrets or unrelated uploads.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.export. SUPER_ADMIN or ADMIN with providerDisputes.export permission. Does not expose card secrets or unrelated uploads.
 - Parameters:
   - `status` (query, optional, string)
   - `severity` (query, optional, string)
@@ -5111,7 +5113,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List provider dispute queue
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Used by Provider Dispute Case Queue with filters and sorting.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Used by Provider Dispute Case Queue with filters and sorting.
 - Parameters:
   - `range` (query, optional, string)
   - `fromDate` (query, optional, string)
@@ -5172,7 +5174,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute timeline
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Includes provider dispute creation, evidence submission, requests, and review actions.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Includes provider dispute creation, evidence submission, requests, and review actions.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5188,7 +5190,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute internal notes
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns internal reviewer notes only.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Returns internal reviewer notes only.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5204,7 +5206,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Add provider dispute internal note
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create. SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission. SUPER_ADMIN or ADMIN with providerDisputes.notes.create. Creates internal note, timeline entry, and audit log.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.notes.create. SUPER_ADMIN or ADMIN with providerDisputes.notes.create permission. Creates internal note, timeline entry, and audit log.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5228,7 +5230,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute details
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Reuses Provider Orders, Customer Orders, Payments, Notifications, Storage, and Audit Logs. No card/payment secrets are exposed.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5289,7 +5291,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute evidence exchange
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. SUPER_ADMIN or ADMIN with providerDisputes.read. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.read. SUPER_ADMIN or ADMIN with providerDisputes.read permission. Returns customer/provider evidence linked to providerDisputeId only, reusing Storage and media policy.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5344,7 +5346,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Request additional provider dispute evidence
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. Creates timeline and optional notifications without changing final ruling.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.evidence.request. SUPER_ADMIN or ADMIN with providerDisputes.evidence.request permission. Creates timeline and optional notifications without changing final ruling.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5370,7 +5372,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Mark provider dispute evidence review complete
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.update
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.update. SUPER_ADMIN or ADMIN with providerDisputes.update permission. SUPER_ADMIN or ADMIN with providerDisputes.update. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.update. SUPER_ADMIN or ADMIN with providerDisputes.update permission. Marks evidence review complete, moves case to RULING_PENDING, creates timeline and audit log.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5396,7 +5398,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute ruling summary
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. Shows ruling options, evidence summary, and financial starting point.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.read. SUPER_ADMIN or ADMIN with providerDisputes.ruling.read permission. Shows ruling options, evidence summary, and financial starting point.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5412,7 +5414,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Save provider dispute ruling
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.create. SUPER_ADMIN or ADMIN with providerDisputes.ruling.create permission. Stores ruling and reason, but final financial execution remains gated behind final status update/attestation.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5443,7 +5445,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute financial impact
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read. SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.read. Server calculates provider share, fee reversal, refund, and penalty impact.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.read. SUPER_ADMIN or ADMIN with providerDisputes.financial.read permission. Server calculates provider share, fee reversal, refund, and penalty impact.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5496,7 +5498,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Link payout and penalty adjustments
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link. SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission. SUPER_ADMIN or ADMIN with providerDisputes.financial.link. Creates provider financial adjustment ledgers; final financial execution is still deferred.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.financial.link. SUPER_ADMIN or ADMIN with providerDisputes.financial.link permission. Creates provider financial adjustment ledgers; final financial execution is still deferred.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5521,7 +5523,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Complete final financial attestation
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. Confirms line items and marks case ready for final status update.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.ruling.update. SUPER_ADMIN or ADMIN with providerDisputes.ruling.update permission. Confirms line items and marks case ready for final status update.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5548,7 +5550,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Finalize provider dispute
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. Executes final refund/deduction application, updates immutable resolution state, creates financial and communication logs, and opens provider appeal window.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5574,7 +5576,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute resolution summary
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.resolve
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. SUPER_ADMIN or ADMIN with providerDisputes.resolve. Returns final ruling, financial execution, notification status, refund timing, and appeal window.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.resolve. SUPER_ADMIN or ADMIN with providerDisputes.resolve permission. Returns final ruling, financial execution, notification status, refund timing, and appeal window.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -5590,7 +5592,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Resend provider dispute notifications
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.notify
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.notify. SUPER_ADMIN or ADMIN with providerDisputes.notify permission. SUPER_ADMIN or ADMIN with providerDisputes.notify. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.notify. SUPER_ADMIN or ADMIN with providerDisputes.notify permission. Resends email/in-app notifications, creates communication log entries, and writes a timeline event.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -5620,7 +5622,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Export provider dispute resolution log
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export. SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.export. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.export. SUPER_ADMIN or ADMIN with providerDisputes.logs.export permission. Includes lifecycle timeline, financial audit log, communication log, ruling, and final status without Stripe/card secrets.
 - Parameters:
   - `id` (path, required, string)
   - `format` (query, optional, string)
@@ -5637,7 +5639,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch provider dispute resolution log
 - Allowed role/access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read
-- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read. SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission. SUPER_ADMIN or ADMIN with providerDisputes.logs.read. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.
+- Notes: Access: SUPER_ADMIN or ADMIN with providerDisputes.logs.read. SUPER_ADMIN or ADMIN with providerDisputes.logs.read permission. Returns lifecycle timeline, financial audit log, communication log, and performance impact snapshot.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -7246,7 +7248,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Lookup active gift categories
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Active gift category lookup. Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.
+- Notes: Access: PUBLIC. Active gift category lookup. Public lookup under Gift Categories. Returns active category identifiers and media fields for lightweight selectors.
 - Response body:
 ```json
 {
@@ -7729,7 +7731,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch customer app home
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode="GUEST".
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode="GUEST".
 - Response body:
 ```json
 {
@@ -7743,7 +7745,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List customer marketplace categories
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.
 - Response body:
 ```json
 {
@@ -7757,7 +7759,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List discounted customer gifts
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -7785,7 +7787,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch marketplace gift filter options
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.
 - Response body:
 ```json
 {
@@ -7799,7 +7801,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List customer marketplace gifts
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -7863,7 +7865,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch customer-safe gift details
 - Allowed role/access: REGISTERED_USER or GUEST_USER
-- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.
+- Notes: Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode="GUEST" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.
 - Parameters:
   - `id` (path, required, string)
 - Response body:
@@ -10129,7 +10131,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Stripe webhook endpoint
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. PUBLIC. Verifies Stripe-Signature using the configured webhook secret before processing events.
+- Notes: Access: PUBLIC. Verifies Stripe-Signature using the configured webhook secret before processing events.
 - Request payload(s):
   - payload:
 ```json
@@ -10208,7 +10210,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: List notifications
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Returns only notifications belonging to the logged-in account. Supports All, Unread, Birthdays, Deliveries, and New Contacts filters. No group gift notifications are supported.
 - Parameters:
   - `page` (query, optional, number)
   - `limit` (query, optional, number)
@@ -10248,7 +10250,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch notification summary
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Counts only notifications belonging to the logged-in account.
 - Response body:
 ```json
 {
@@ -10270,7 +10272,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch notification preferences
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Preferences belong only to the logged-in account.
 - Response body:
 ```json
 {
@@ -10284,7 +10286,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update notification preferences
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Push toggle does not delete device tokens. No group gift preference exists.
 - Request payload(s):
   - payload:
 ```json
@@ -10325,7 +10327,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Mark all own notifications as read
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.
 - Request payload(s):
   - payload:
 ```json
@@ -10344,7 +10346,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Mark notification as read
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Notification must belong to the logged-in account.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -10365,7 +10367,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Process notification action
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Supports SEND_GIFT, REMIND_ME_LATER, VIEW_ORDER, VIEW_CONTACT. Group gift actions are not supported.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
@@ -10388,7 +10390,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Save device token
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Token belongs only to logged-in account. Duplicate deviceId updates existing record.
 - Request payload(s):
   - payload:
 ```json
@@ -10411,7 +10413,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Disable device token
 - Allowed role/access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER
-- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.
+- Notes: Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Users can disable only their own device tokens.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):
