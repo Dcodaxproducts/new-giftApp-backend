@@ -1,12 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayUnique, IsArray, IsBoolean, IsISO8601, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { ArrayUnique, IsArray, IsBoolean, IsISO8601, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
 export class CancellationTierDto {
   @ApiProperty({ example: 5, minimum: 0 }) @Type(() => Number) @IsInt() @Min(0) daysBeforeCheckIn!: number;
   @ApiProperty({ example: 10, minimum: 0, maximum: 100 }) @Type(() => Number) @IsNumber() @Min(0) @Max(100) deductionPercent!: number;
-  @ApiProperty({ example: 'Early', maxLength: 80 }) @IsString() @MaxLength(80) label!: string;
-  @ApiPropertyOptional({ example: 1, minimum: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) sortOrder?: number;
+  @ApiProperty({ example: 'Early', maxLength: 80 }) @IsString() @IsNotEmpty() @MaxLength(80) label!: string;
 }
 
 export class UpdateRefundPolicySettingsDto {
@@ -14,11 +13,7 @@ export class UpdateRefundPolicySettingsDto {
   @ApiPropertyOptional({ example: 'Refunds are processed according to cancellation policy.', maxLength: 1000 }) @IsOptional() @IsString() @MaxLength(1000) noteText?: string;
   @ApiPropertyOptional({ example: 30, minimum: 1, maximum: 365 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(365) refundWindowDays?: number;
   @ApiPropertyOptional({ example: 50, minimum: 0 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) autoRefundThresholdAmount?: number;
-  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() autoApproveSmallRefunds?: boolean;
-  @ApiPropertyOptional({ example: 15, minimum: 0 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) smallRefundAutoApproveAmount?: number;
-  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() refundForAllCategories?: boolean;
-  @ApiPropertyOptional({ example: ['category_electronics', 'category_apparel', 'category_home_decor'], type: [String] }) @IsOptional() @IsArray() @ArrayUnique() @IsString({ each: true }) eligibleCategoryIds?: string[];
-  @ApiPropertyOptional({ type: [CancellationTierDto], example: [{ daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early', sortOrder: 1 }] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => CancellationTierDto) cancellationTiers?: CancellationTierDto[];
+  @ApiPropertyOptional({ type: [CancellationTierDto], example: [{ daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early' }, { daysBeforeCheckIn: 2, deductionPercent: 25, label: 'Late' }] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => CancellationTierDto) cancellationTiers?: CancellationTierDto[];
 }
 
 export class ListRefundPolicyAuditLogsDto {

@@ -20,18 +20,6 @@ export class RefundPolicySettingsRepository {
     return this.prisma.refundPolicySettings.update({ where: { id }, data, include: UPDATED_BY_INCLUDE });
   }
 
-  findActiveCategories(ids: string[]) {
-    return this.prisma.giftCategory.findMany({ where: { id: { in: ids }, isActive: true, deletedAt: null }, select: { id: true, name: true }, orderBy: { sortOrder: 'asc' } });
-  }
-
-  findAllActiveCategories() {
-    return this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null }, select: { id: true, name: true }, orderBy: { sortOrder: 'asc' } });
-  }
-
-  findCategoriesForValidation(ids: string[]) {
-    return this.prisma.giftCategory.findMany({ where: { id: { in: ids }, deletedAt: null }, select: { id: true, isActive: true } });
-  }
-
   findAuditLogsWithCount(params: { where: Prisma.AdminAuditLogWhereInput; skip: number; take: number }) {
     return this.prisma.$transaction([
       this.prisma.adminAuditLog.findMany({ where: params.where, include: { actor: { select: { id: true, firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),

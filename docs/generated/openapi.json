@@ -7354,7 +7354,7 @@
     },
     "/api/v1/admin/refund-policy-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, auto-refund, cancellation deduction tiers, dispute decisions, and provider refund workflows.",
+        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. SUPER_ADMIN or ADMIN with refundPolicies.read. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.",
         "operationId": "RefundPolicySettingsController_get",
         "parameters": [],
         "responses": {
@@ -7370,22 +7370,12 @@
                       "noteText": "Refunds are processed according to cancellation policy.",
                       "refundWindowDays": 30,
                       "autoRefundThresholdAmount": 50,
-                      "autoApproveSmallRefunds": true,
-                      "smallRefundAutoApproveAmount": 15,
-                      "refundForAllCategories": true,
-                      "eligibleCategories": [
-                        {
-                          "id": "category_id",
-                          "name": "Electronics"
-                        }
-                      ],
                       "cancellationTiers": [
                         {
                           "id": "tier_id",
                           "daysBeforeCheckIn": 5,
                           "deductionPercent": 10,
-                          "label": "Early",
-                          "sortOrder": 1
+                          "label": "Early"
                         }
                       ],
                       "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
@@ -7425,45 +7415,17 @@
                 "$ref": "#/components/schemas/UpdateRefundPolicySettingsDto"
               },
               "examples": {
-                "allowRefundForAllCategories": {
+                "enableRefunds": {
                   "value": {
                     "allowRefund": true,
                     "noteText": "Refunds are processed according to cancellation policy.",
                     "refundWindowDays": 30,
                     "autoRefundThresholdAmount": 50,
-                    "autoApproveSmallRefunds": true,
-                    "smallRefundAutoApproveAmount": 15,
-                    "refundForAllCategories": true,
-                    "eligibleCategoryIds": [],
                     "cancellationTiers": [
                       {
                         "daysBeforeCheckIn": 5,
                         "deductionPercent": 10,
-                        "label": "Early",
-                        "sortOrder": 1
-                      }
-                    ]
-                  }
-                },
-                "allowRefundForSelectedCategories": {
-                  "value": {
-                    "allowRefund": true,
-                    "noteText": "Selected categories are eligible for automatic refund review.",
-                    "refundWindowDays": 30,
-                    "autoRefundThresholdAmount": 50,
-                    "autoApproveSmallRefunds": true,
-                    "smallRefundAutoApproveAmount": 15,
-                    "refundForAllCategories": false,
-                    "eligibleCategoryIds": [
-                      "category_electronics",
-                      "category_apparel"
-                    ],
-                    "cancellationTiers": [
-                      {
-                        "daysBeforeCheckIn": 5,
-                        "deductionPercent": 10,
-                        "label": "Early",
-                        "sortOrder": 1
+                        "label": "Early"
                       }
                     ]
                   }
@@ -7471,9 +7433,7 @@
                 "disableRefunds": {
                   "value": {
                     "allowRefund": false,
-                    "noteText": "Refunds are temporarily disabled.",
-                    "refundForAllCategories": true,
-                    "eligibleCategoryIds": []
+                    "noteText": "Refunds are temporarily disabled."
                   }
                 },
                 "updateCancellationTiers": {
@@ -7482,14 +7442,12 @@
                       {
                         "daysBeforeCheckIn": 5,
                         "deductionPercent": 10,
-                        "label": "Early",
-                        "sortOrder": 1
+                        "label": "Early"
                       },
                       {
                         "daysBeforeCheckIn": 2,
                         "deductionPercent": 25,
-                        "label": "Late",
-                        "sortOrder": 2
+                        "label": "Late"
                       }
                     ]
                   }
@@ -7511,22 +7469,12 @@
                       "noteText": "Refunds are processed according to cancellation policy.",
                       "refundWindowDays": 30,
                       "autoRefundThresholdAmount": 50,
-                      "autoApproveSmallRefunds": true,
-                      "smallRefundAutoApproveAmount": 15,
-                      "refundForAllCategories": true,
-                      "eligibleCategories": [
-                        {
-                          "id": "category_id",
-                          "name": "Electronics"
-                        }
-                      ],
                       "cancellationTiers": [
                         {
                           "id": "tier_id",
                           "daysBeforeCheckIn": 5,
                           "deductionPercent": 10,
-                          "label": "Early",
-                          "sortOrder": 1
+                          "label": "Early"
                         }
                       ],
                       "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
@@ -7616,15 +7564,15 @@
                         "before": {
                           "allowRefund": true,
                           "noteText": "Refunds are processed according to cancellation policy.",
-                          "refundForAllCategories": true,
-                          "eligibleCategoryIds": [],
+                          "refundWindowDays": 30,
+                          "autoRefundThresholdAmount": 50,
                           "cancellationTiers": []
                         },
                         "after": {
                           "allowRefund": false,
                           "noteText": "Refunds are temporarily disabled.",
-                          "refundForAllCategories": true,
-                          "eligibleCategoryIds": [],
+                          "refundWindowDays": 30,
+                          "autoRefundThresholdAmount": 50,
                           "cancellationTiers": []
                         },
                         "createdAt": "2026-05-14T10:00:00.000Z"
@@ -26799,11 +26747,6 @@
             "type": "string",
             "example": "Early",
             "maxLength": 80
-          },
-          "sortOrder": {
-            "type": "number",
-            "example": 1,
-            "minimum": 1
           }
         },
         "required": [
@@ -26835,37 +26778,17 @@
             "example": 50,
             "minimum": 0
           },
-          "autoApproveSmallRefunds": {
-            "type": "boolean",
-            "example": true
-          },
-          "smallRefundAutoApproveAmount": {
-            "type": "number",
-            "example": 15,
-            "minimum": 0
-          },
-          "refundForAllCategories": {
-            "type": "boolean",
-            "example": true
-          },
-          "eligibleCategoryIds": {
-            "example": [
-              "category_electronics",
-              "category_apparel",
-              "category_home_decor"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "cancellationTiers": {
             "example": [
               {
                 "daysBeforeCheckIn": 5,
                 "deductionPercent": 10,
-                "label": "Early",
-                "sortOrder": 1
+                "label": "Early"
+              },
+              {
+                "daysBeforeCheckIn": 2,
+                "deductionPercent": 25,
+                "label": "Late"
               }
             ],
             "type": "array",
