@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 08:41 UTC
+Generated at: 2026-06-07 09:00 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 08:41 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 09:00 UTC.
 
 ## Frontend Integration Flows
 
@@ -419,7 +419,7 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 08:41 UTC.
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
 | POST | `/api/v1/auth/resend-otp` | Resend authenticated email verification OTP | Authenticated |
-| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for eligible unverified account | PUBLIC |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email | PUBLIC |
 | POST | `/api/v1/auth/reset-password` | Reset account password with OTP | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
@@ -544,7 +544,7 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 08:41 UTC.
 | PATCH | `/api/v1/auth/me` | Update Auth Me | Authenticated |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
 | POST | `/api/v1/auth/resend-otp` | Resend authenticated email verification OTP | Authenticated |
-| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for eligible unverified account | PUBLIC |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email | PUBLIC |
 | POST | `/api/v1/auth/reset-password` | Reset account password with OTP | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |
@@ -789,7 +789,7 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 08:41 UTC.
 | POST | `/api/v1/auth/providers/register` | Create Auth Providers Register | PUBLIC |
 | POST | `/api/v1/auth/refresh` | Create Auth Refresh | PUBLIC |
 | POST | `/api/v1/auth/resend-otp` | Resend authenticated email verification OTP | Authenticated |
-| POST | `/api/v1/auth/resend-verification-email` | Resend verification email for eligible unverified account | PUBLIC |
+| POST | `/api/v1/auth/resend-verification-email` | Resend verification email | PUBLIC |
 | POST | `/api/v1/auth/reset-password` | Reset account password with OTP | PUBLIC |
 | GET | `/api/v1/auth/sessions` | List Auth Sessions | Authenticated |
 | POST | `/api/v1/auth/sessions/logout-all` | Create Auth Sessions Logout All | Authenticated |

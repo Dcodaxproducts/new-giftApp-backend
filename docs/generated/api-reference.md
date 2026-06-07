@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 08:40 UTC
+Generated at: 2026-06-07 09:00 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -302,15 +302,15 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "success": true,
   "data": null,
-  "message": "Verification OTP sent"
+  "message": "A verification OTP has been sent to your email address."
 }
 ```
 
 ### POST `/api/v1/auth/resend-verification-email`
 
-- Summary: Resend verification email for eligible unverified account
+- Summary: Resend verification email
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. Public endpoint. Always returns the same success envelope to avoid account enumeration. Sends a verification email only when the account is eligible and unverified.
+- Notes: Access: PUBLIC. Public endpoint. Returns the same success envelope for ineligible or missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.
 - Request payload(s):
   - payload:
 ```json
@@ -326,7 +326,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "delivery": "OTP_SENT_IF_ELIGIBLE",
     "nextStep": "Use the 6-digit verification OTP to complete email verification."
   },
-  "message": "If the account is eligible and unverified, a verification email has been sent."
+  "message": "A verification email has been sent to the email address you provided."
 }
 ```
 
@@ -334,7 +334,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Request password reset instructions
 - Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. Public endpoint. Always returns a generic success message to avoid account enumeration.
+- Notes: Access: PUBLIC. Public endpoint. Returns the same success envelope for missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.
 - Request payload(s):
   - payload:
 ```json
@@ -346,7 +346,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 ```json
 {
   "success": true,
-  "message": "If the account is eligible, reset instructions have been sent."
+  "message": "Reset instructions have been sent to the email address you provided."
 }
 ```
 

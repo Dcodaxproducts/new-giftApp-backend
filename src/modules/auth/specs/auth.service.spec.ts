@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { readFileSync } from 'fs';
@@ -69,29 +69,30 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
 }
 
 describe('AuthService forgot/reset password', () => {
-  it('forgot-password returns generic message when account is eligible and email sends', async () => {
+  it('forgot-password returns safe sent-to-provided-email message when account is eligible and email sends', async () => {
     const { service, mailer } = createResetService();
 
     await expect(service.forgotPassword({ email: 'user@example.com' })).resolves.toEqual({
-      message: 'If the account is eligible, reset instructions have been sent.',
+      message: 'Reset instructions have been sent to the email address you provided.',
     });
     expect(mailer.sendPasswordResetEmail).toHaveBeenCalledWith('user@example.com', expect.any(String));
   });
 
-  it('forgot-password returns generic message when account does not exist', async () => {
+  it('forgot-password returns the same safe sent message when account does not exist', async () => {
     const { service, mailer } = createResetService(null);
 
     await expect(service.forgotPassword({ email: 'missing@example.com' })).resolves.toEqual({
-      message: 'If the account is eligible, reset instructions have been sent.',
+      message: 'Reset instructions have been sent to the email address you provided.',
     });
     expect(mailer.sendPasswordResetEmail).not.toHaveBeenCalled();
   });
 
-  it('forgot-password returns generic message when email sending fails', async () => {
+  it('forgot-password returns retry-later message when email sending fails for eligible account', async () => {
     const { service, prisma } = createResetService(resetUser, true);
 
-    await expect(service.forgotPassword({ email: 'user@example.com' })).resolves.toEqual({
-      message: 'If the account is eligible, reset instructions have been sent.',
+    await expect(service.forgotPassword({ email: 'user@example.com' })).rejects.toMatchObject({
+      constructor: ServiceUnavailableException,
+      message: 'We could not send the reset instructions right now. Please try again later.',
     });
     const calls = prisma.user.update.mock.calls as UserUpdateCall[];
     expect(calls.some(([call]) => call.data?.resetPasswordOtp === null)).toBe(true);
@@ -178,10 +179,12 @@ describe('AuthService forgot/reset password', () => {
     const accessSource = readFileSync('src/swagger-access.ts', 'utf8');
     const combined = `${controllerSource}\n${accessSource}`;
 
-    expect(controllerSource).toContain('If the account is eligible, reset instructions have been sent.');
-    expect(controllerSource).toContain('If the account is eligible and unverified, a verification email has been sent.');
+    expect(controllerSource).toContain('Reset instructions have been sent to the email address you provided.');
+    expect(controllerSource).toContain('A verification email has been sent to the email address you provided.');
+    expect(controllerSource).toContain('A verification OTP has been sent to your email address.');
     expect(controllerSource).toContain('Verify OTP for password reset or unverified email flow.');
     expect(combined).not.toMatch(/if account exists/i);
+    expect(combined).not.toMatch(/If the account is eligible/i);
     expect(combined).not.toContain('PUBLIC. PUBLIC');
     expect(combined).not.toMatch(/No account found with this email address/i);
   });
@@ -432,7 +435,7 @@ describe('AuthService sensitive auth behavior', () => {
     expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'EMAIL_NOT_VERIFIED', userId: 'user_1' }));
   });
 
-  it('resend verification email sends only for existing unverified users and returns generic public success guidance', async () => {
+  it('resend verification email sends only for existing unverified users and returns safe public success guidance', async () => {
     const user = authUser({ isVerified: false });
     const { service, prisma, mailerService, resendLimiter } = createSensitiveAuthService({ user });
 
@@ -441,7 +444,7 @@ describe('AuthService sensitive auth behavior', () => {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the account is eligible and unverified, a verification email has been sent.',
+      message: 'A verification email has been sent to the email address you provided.',
     });
 
     expect(resendLimiter.assertAllowed).toHaveBeenCalledWith('USER@example.com', '127.0.0.1');
@@ -457,7 +460,7 @@ describe('AuthService sensitive auth behavior', () => {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the account is eligible and unverified, a verification email has been sent.',
+      message: 'A verification email has been sent to the email address you provided.',
     });
     expect(missingMailer.sendVerificationEmail).not.toHaveBeenCalled();
 
@@ -467,9 +470,20 @@ describe('AuthService sensitive auth behavior', () => {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: 'If the account is eligible and unverified, a verification email has been sent.',
+      message: 'A verification email has been sent to the email address you provided.',
     });
     expect(verifiedMailer.sendVerificationEmail).not.toHaveBeenCalled();
+  });
+
+  it('resend verification email returns retry-later message when delivery fails for eligible account', async () => {
+    const user = authUser({ isVerified: false });
+    const { service, mailerService } = createSensitiveAuthService({ user });
+    mailerService.sendVerificationEmail.mockRejectedValueOnce(new Error('smtp down'));
+
+    await expect(service.resendVerificationEmail({ email: 'user@example.com' })).rejects.toMatchObject({
+      constructor: ServiceUnavailableException,
+      message: 'We could not send the verification email right now. Please try again later.',
+    });
   });
 
   it('refresh behavior unchanged', async () => {

@@ -53,8 +53,11 @@ interface TokenPayload {
   sessionId?: string;
 }
 
-const PASSWORD_RESET_ELIGIBLE_MESSAGE = 'If the account is eligible, reset instructions have been sent.';
-const VERIFICATION_EMAIL_ELIGIBLE_MESSAGE = 'If the account is eligible and unverified, a verification email has been sent.';
+const PASSWORD_RESET_SENT_MESSAGE = 'Reset instructions have been sent to the email address you provided.';
+const PASSWORD_RESET_SEND_FAILED_MESSAGE = 'We could not send the reset instructions right now. Please try again later.';
+const VERIFICATION_EMAIL_SENT_MESSAGE = 'A verification email has been sent to the email address you provided.';
+const VERIFICATION_EMAIL_SEND_FAILED_MESSAGE = 'We could not send the verification email right now. Please try again later.';
+const AUTHENTICATED_VERIFICATION_OTP_SENT_MESSAGE = 'A verification OTP has been sent to your email address.';
 
 @Injectable()
 export class AuthCoreService implements OnModuleInit {
@@ -359,11 +362,15 @@ export class AuthCoreService implements OnModuleInit {
 
     const otp = this.generateOtp();
     await this.authPasswordRepository.storeVerificationOtp(dbUser.id, otp, this.generateOtpExpiry());
-    await this.mailerService.sendVerificationEmail(dbUser.email, otp);
+    try {
+      await this.mailerService.sendVerificationEmail(dbUser.email, otp);
+    } catch {
+      throw new ServiceUnavailableException(VERIFICATION_EMAIL_SEND_FAILED_MESSAGE);
+    }
 
     return {
       data: null,
-      message: 'Verification OTP sent',
+      message: AUTHENTICATED_VERIFICATION_OTP_SENT_MESSAGE,
     };
   }
 
@@ -374,7 +381,11 @@ export class AuthCoreService implements OnModuleInit {
     if (user && !user.deletedAt && !user.isVerified) {
       const otp = this.generateOtp();
       await this.authPasswordRepository.storeVerificationOtp(user.id, otp, this.generateOtpExpiry());
-      await this.mailerService.sendVerificationEmail(user.email, otp);
+      try {
+        await this.mailerService.sendVerificationEmail(user.email, otp);
+      } catch {
+        throw new ServiceUnavailableException(VERIFICATION_EMAIL_SEND_FAILED_MESSAGE);
+      }
     }
 
     return {
@@ -382,7 +393,7 @@ export class AuthCoreService implements OnModuleInit {
         delivery: 'OTP_SENT_IF_ELIGIBLE',
         nextStep: 'Use the 6-digit verification OTP to complete email verification.',
       },
-      message: VERIFICATION_EMAIL_ELIGIBLE_MESSAGE,
+      message: VERIFICATION_EMAIL_SENT_MESSAGE,
     };
   }
 
@@ -390,7 +401,7 @@ export class AuthCoreService implements OnModuleInit {
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || user.deletedAt) {
-      return { message: PASSWORD_RESET_ELIGIBLE_MESSAGE };
+      return { message: PASSWORD_RESET_SENT_MESSAGE };
     }
 
     const otp = this.generateOtp();
@@ -400,11 +411,11 @@ export class AuthCoreService implements OnModuleInit {
       await this.mailerService.sendPasswordResetEmail(user.email, otp);
     } catch {
       await this.authPasswordRepository.clearResetPasswordOtp(user.id);
-      return { message: PASSWORD_RESET_ELIGIBLE_MESSAGE };
+      throw new ServiceUnavailableException(PASSWORD_RESET_SEND_FAILED_MESSAGE);
     }
 
     return {
-      message: PASSWORD_RESET_ELIGIBLE_MESSAGE,
+      message: PASSWORD_RESET_SENT_MESSAGE,
     };
   }
 

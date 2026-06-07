@@ -112,21 +112,23 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('resend-otp')
   @ApiOperation({ summary: 'Resend authenticated email verification OTP', description: 'Send a new verification OTP for the authenticated account when it is still unverified.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: null, message: 'Verification OTP sent' } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: null, message: 'A verification OTP has been sent to your email address.' } } })
   resendRegistrationOtp(@CurrentUser() user: AuthUserContext) {
     return this.authService.resendVerification(user);
   }
 
   @Post('resend-verification-email')
-  @ApiOperation({ summary: 'Resend verification email for eligible unverified account', description: 'Public endpoint. Always returns the same success envelope to avoid account enumeration. Sends a verification email only when the account is eligible and unverified.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'OTP_SENT_IF_ELIGIBLE', nextStep: 'Use the 6-digit verification OTP to complete email verification.' }, message: 'If the account is eligible and unverified, a verification email has been sent.' } } })
+  @ApiOperation({ summary: 'Resend verification email', description: 'Public endpoint. Returns the same success envelope for ineligible or missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'OTP_SENT_IF_ELIGIBLE', nextStep: 'Use the 6-digit verification OTP to complete email verification.' }, message: 'A verification email has been sent to the email address you provided.' } } })
+  @ApiResponse({ status: 503, schema: { example: { success: false, error: { code: 'SERVICE_UNAVAILABLE', message: 'We could not send the verification email right now. Please try again later.' }, meta: {} } } })
   resendVerificationEmail(@Body() dto: ResendVerificationEmailDto, @Req() request: Request) {
     return this.authService.resendVerificationEmail(dto, request.ip);
   }
 
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Request password reset instructions', description: 'Public endpoint. Always returns a generic success message to avoid account enumeration.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, message: 'If the account is eligible, reset instructions have been sent.' } } })
+  @ApiOperation({ summary: 'Request password reset instructions', description: 'Public endpoint. Returns the same success envelope for missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, message: 'Reset instructions have been sent to the email address you provided.' } } })
+  @ApiResponse({ status: 503, schema: { example: { success: false, error: { code: 'SERVICE_UNAVAILABLE', message: 'We could not send the reset instructions right now. Please try again later.' }, meta: {} } } })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }

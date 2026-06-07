@@ -293,7 +293,7 @@
                   "example": {
                     "success": true,
                     "data": null,
-                    "message": "Verification OTP sent"
+                    "message": "A verification OTP has been sent to your email address."
                   }
                 }
               }
@@ -315,7 +315,7 @@
     },
     "/api/v1/auth/resend-verification-email": {
       "post": {
-        "description": "Access: PUBLIC. Public endpoint. Always returns the same success envelope to avoid account enumeration. Sends a verification email only when the account is eligible and unverified.",
+        "description": "Access: PUBLIC. Public endpoint. Returns the same success envelope for ineligible or missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.",
         "operationId": "AuthController_resendVerificationEmail",
         "parameters": [],
         "requestBody": {
@@ -340,14 +340,31 @@
                       "delivery": "OTP_SENT_IF_ELIGIBLE",
                       "nextStep": "Use the 6-digit verification OTP to complete email verification."
                     },
-                    "message": "If the account is eligible and unverified, a verification email has been sent."
+                    "message": "A verification email has been sent to the email address you provided."
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": false,
+                    "error": {
+                      "code": "SERVICE_UNAVAILABLE",
+                      "message": "We could not send the verification email right now. Please try again later."
+                    },
+                    "meta": {}
                   }
                 }
               }
             }
           }
         },
-        "summary": "Resend verification email for eligible unverified account",
+        "summary": "Resend verification email",
         "tags": [
           "01 Auth"
         ],
@@ -357,7 +374,7 @@
     },
     "/api/v1/auth/forgot-password": {
       "post": {
-        "description": "Access: PUBLIC. Public endpoint. Always returns a generic success message to avoid account enumeration.",
+        "description": "Access: PUBLIC. Public endpoint. Returns the same success envelope for missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.",
         "operationId": "AuthController_forgotPassword",
         "parameters": [],
         "requestBody": {
@@ -378,7 +395,24 @@
                 "schema": {
                   "example": {
                     "success": true,
-                    "message": "If the account is eligible, reset instructions have been sent."
+                    "message": "Reset instructions have been sent to the email address you provided."
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": false,
+                    "error": {
+                      "code": "SERVICE_UNAVAILABLE",
+                      "message": "We could not send the reset instructions right now. Please try again later."
+                    },
+                    "meta": {}
                   }
                 }
               }
