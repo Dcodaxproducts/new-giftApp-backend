@@ -73,7 +73,51 @@ export class ProviderManagementController {
   @Permissions('providers.create')
   @ApiOperation({
     summary: 'Create provider from admin dashboard',
-    description: 'SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.',
+    description: 'SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.',
+  })
+  @ApiBody({
+    type: CreateProviderDto,
+    examples: {
+      createAdminProvider: {
+        summary: 'Admin creates provider',
+        value: {
+          name: 'Ali Raza',
+          username: 'gifts-blooms-admin',
+          email: 'contact@giftsandblooms.com',
+          contact: '+15551234567',
+          password: 'Provider@123456',
+          generateTemporaryPassword: false,
+          mustChangePassword: true,
+          sendInviteEmail: true,
+          businessName: 'Gifts & Blooms Co. Ltd',
+          businessCategoryId: 'provider_business_category_id',
+          taxId: 'TAX-12345',
+          businessAddress: '123 Gift Street',
+          businessBio: 'Short customer-facing business summary.',
+          companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
+          coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
+          location: { lat: 31.5, lng: 74.3 },
+          approvalStatus: 'PENDING',
+          isActive: true,
+        },
+      },
+      generatedPassword: {
+        summary: 'Generate temporary password',
+        value: {
+          name: 'Ali Raza',
+          email: 'contact@giftsandblooms.com',
+          contact: '+15551234567',
+          generateTemporaryPassword: true,
+          mustChangePassword: true,
+          sendInviteEmail: true,
+          businessName: 'Gifts & Blooms Co. Ltd',
+          businessCategoryId: 'provider_business_category_id',
+          businessAddress: '123 Gift Street',
+          approvalStatus: 'PENDING',
+          isActive: true,
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 201,
@@ -84,8 +128,12 @@ export class ProviderManagementController {
         data: {
           id: 'provider_id',
           userId: 'provider_id',
+          name: 'Ali Raza',
           email: 'contact@giftsandblooms.com',
+          contact: '+15551234567',
           businessName: 'Gifts & Blooms Co. Ltd',
+          companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
+          coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
           approvalStatus: 'PENDING',
           isActive: true,
           inviteEmailSent: true,

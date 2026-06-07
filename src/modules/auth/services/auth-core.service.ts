@@ -79,11 +79,12 @@ export class AuthCoreService implements OnModuleInit {
 
   async registerUser(dto: RegisterUserDto) {
     await this.customerReferralsService?.assertValidReferralCode(dto.referralCode);
+    const name = this.nameParts(dto);
     const user = await this.createUser({
       email: dto.email,
       password: dto.password,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
+      firstName: name.firstName,
+      lastName: name.lastName,
       phone: dto.phone,
       role: UserRole.REGISTERED_USER,
       isApproved: true,
@@ -107,11 +108,12 @@ export class AuthCoreService implements OnModuleInit {
 
   async registerProvider(dto: RegisterProviderDto) {
     await this.getProviderBusinessCategory(dto.businessCategoryId);
+    const name = this.nameParts(dto);
     const user = await this.createUser({
       email: dto.email,
       password: dto.password,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
+      firstName: name.firstName,
+      lastName: name.lastName,
       phone: dto.phone,
       role: UserRole.PROVIDER,
       isApproved: false,
@@ -598,6 +600,20 @@ export class AuthCoreService implements OnModuleInit {
         verificationOtp: otp,
         verificationOtpExpiresAt: this.generateOtpExpiry(),
       });
+  }
+
+  private nameParts(dto: { name?: string; firstName?: string; lastName?: string }): { firstName: string; lastName: string } {
+    if (dto.name?.trim()) {
+      const trimmed = dto.name.trim();
+      const [firstName, ...rest] = trimmed.split(/\s+/);
+      return { firstName, lastName: rest.join(' ') };
+    }
+
+    if (!dto.firstName?.trim()) {
+      throw new BadRequestException('Name is required');
+    }
+
+    return { firstName: dto.firstName.trim(), lastName: dto.lastName?.trim() ?? '' };
   }
 
   private async getActiveUser(userId: string): Promise<User> {

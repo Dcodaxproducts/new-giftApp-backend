@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountType, GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UserRole } from '@prisma/client';
+import { AccountType, GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { getPagination } from '../../../common/pagination/pagination.util';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
@@ -392,6 +392,17 @@ export class ProviderManagementRepository {
 
   findProviderBusinessCategory(categoryId: string) {
     return this.prisma.providerBusinessCategory.findUnique({ where: { id: categoryId } });
+  }
+
+  findCompletedUploadsByUrls(urls: string[]) {
+    return this.prisma.uploadedFile.findMany({
+      where: {
+        fileUrl: { in: urls },
+        deletedAt: null,
+        status: UploadedFileStatus.COMPLETED,
+      },
+      select: { fileUrl: true, folder: true, sizeBytes: true },
+    });
   }
 
   createProviderWithUser(data: Prisma.UserUncheckedCreateInput) {

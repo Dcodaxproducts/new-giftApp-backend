@@ -7,6 +7,7 @@ export enum UploadFolder {
   USER_AVATARS = 'user-avatars',
   PROVIDER_AVATARS = 'provider-avatars',
   PROVIDER_LOGOS = 'provider-logos',
+  PROVIDER_COVERS = 'provider-covers',
   PROVIDER_DOCUMENTS = 'provider-documents',
   PROVIDER_ITEM_IMAGES = 'provider-item-images',
   GIFT_IMAGES = 'gift-images',

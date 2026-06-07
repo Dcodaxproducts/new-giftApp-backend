@@ -29,15 +29,22 @@ export class RegisterUserDto {
   @MinLength(8)
   password!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ example: 'Cake Owner', maxLength: 120, description: 'Preferred full-name field. Provider self-registration may send this instead of firstName/lastName.' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  firstName!: string;
+  @MaxLength(120)
+  name?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Deprecated for provider self-registration; send name instead. Kept for backward compatibility.' })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  lastName!: string;
+  firstName?: string;
+
+  @ApiPropertyOptional({ description: 'Deprecated for provider self-registration; send name instead. Kept for backward compatibility.' })
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -71,11 +78,12 @@ export class RegisterProviderDto extends RegisterUserDto {
   @IsNotEmpty()
   businessAddress!: string;
 
-  @ApiProperty({ enum: ProviderFulfillmentMethodDto, isArray: true })
+  @ApiPropertyOptional({ enum: ProviderFulfillmentMethodDto, isArray: true, description: 'Optional public provider onboarding fulfillment preferences.' })
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @IsEnum(ProviderFulfillmentMethodDto, { each: true })
-  fulfillmentMethods!: ProviderFulfillmentMethodDto[];
+  fulfillmentMethods?: ProviderFulfillmentMethodDto[];
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()

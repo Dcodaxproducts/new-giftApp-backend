@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 10:16 UTC
+Generated at: 2026-06-07 10:39 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -91,6 +91,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "email": "<string>",
   "password": "<string>",
+  "name": "Cake Owner",
   "firstName": "<string>",
   "lastName": "<string>",
   "phone": "<string>",
@@ -117,6 +118,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 {
   "email": "<string>",
   "password": "<string>",
+  "name": "Cake Owner",
   "firstName": "<string>",
   "lastName": "<string>",
   "phone": "<string>",
@@ -1322,33 +1324,46 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create provider from admin dashboard
 - Allowed role/access: SUPER_ADMIN or ADMIN with providers.create
-- Notes: Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.
+- Notes: Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.
 - Request payload(s):
-  - payload:
+  - createAdminProvider:
 ```json
 {
+  "name": "Ali Raza",
+  "username": "gifts-blooms-admin",
   "email": "contact@giftsandblooms.com",
-  "firstName": "Ali",
-  "lastName": "Raza",
-  "phone": "+15551234567",
+  "contact": "+15551234567",
+  "password": "Provider@123456",
+  "generateTemporaryPassword": false,
+  "mustChangePassword": true,
+  "sendInviteEmail": true,
   "businessName": "Gifts & Blooms Co. Ltd",
   "businessCategoryId": "provider_business_category_id",
   "taxId": "TAX-12345",
   "businessAddress": "123 Gift Street",
-  "serviceArea": "New York, USA",
-  "headquarters": "New York, USA",
-  "fulfillmentMethods": [
-    "PICKUP",
-    "DELIVERY"
-  ],
-  "autoAcceptOrders": false,
-  "documentUrls": [
-    "https://cdn.yourdomain.com/provider-documents/license.pdf"
-  ],
+  "businessBio": "Short customer-facing business summary.",
+  "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
+  "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
+  "location": {
+    "lat": 31.5,
+    "lng": 74.3
+  },
+  "approvalStatus": "PENDING",
+  "isActive": true
+}
+```
+  - generatedPassword:
+```json
+{
+  "name": "Ali Raza",
+  "email": "contact@giftsandblooms.com",
+  "contact": "+15551234567",
   "generateTemporaryPassword": true,
-  "temporaryPassword": "Provider@123456",
   "mustChangePassword": true,
   "sendInviteEmail": true,
+  "businessName": "Gifts & Blooms Co. Ltd",
+  "businessCategoryId": "provider_business_category_id",
+  "businessAddress": "123 Gift Street",
   "approvalStatus": "PENDING",
   "isActive": true
 }
@@ -1360,8 +1375,12 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "data": {
     "id": "provider_id",
     "userId": "provider_id",
+    "name": "Ali Raza",
     "email": "contact@giftsandblooms.com",
+    "contact": "+15551234567",
     "businessName": "Gifts & Blooms Co. Ltd",
+    "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
+    "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
     "approvalStatus": "PENDING",
     "isActive": true,
     "inviteEmailSent": true

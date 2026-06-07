@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { NotificationRecipientType, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
@@ -39,6 +39,11 @@ interface ProviderActivityItem {
   title: string;
   description: string;
   createdAt: Date;
+}
+
+interface ProviderAssetMetadata {
+  businessBio?: string;
+  coverImageUrl?: string;
 }
 
 @Injectable()
@@ -130,45 +135,48 @@ export class ProviderManagementService {
       throw new ConflictException('Email already exists');
     }
     await this.getProviderBusinessCategory(dto.businessCategoryId);
+    await this.validateBrandingUploads(dto);
 
     const shouldGeneratePassword = dto.generateTemporaryPassword ?? true;
-    if (!shouldGeneratePassword && !dto.temporaryPassword) {
-      throw new BadRequestException('Temporary password is required when generateTemporaryPassword is false');
+    if (!shouldGeneratePassword && !dto.password) {
+      throw new BadRequestException('Password is required when generateTemporaryPassword is false');
     }
-    const temporaryPassword = shouldGeneratePassword ? this.generateTemporaryPassword() : dto.temporaryPassword;
-    if (!temporaryPassword) {
-      throw new BadRequestException('Temporary password is required');
+    const password = shouldGeneratePassword ? this.generateTemporaryPassword() : dto.password;
+    if (!password) {
+      throw new BadRequestException('Password is required');
     }
-    this.assertPasswordMeetsSecurity(temporaryPassword);
+    this.assertPasswordMeetsSecurity(password);
 
     const approvalStatus = dto.approvalStatus ?? ProviderApprovalStatus.PENDING;
     const provider = await this.repository.createProviderWithUser({
         email,
-        password: await bcrypt.hash(temporaryPassword, 10),
-        firstName: dto.firstName.trim(),
-        lastName: dto.lastName.trim(),
-        phone: dto.phone.trim(),
+        password: await bcrypt.hash(password, 10),
+        firstName: dto.name.trim(),
+        lastName: '',
+        phone: dto.contact.trim(),
+        avatarUrl: dto.companyLogoUrl?.trim(),
         role: UserRole.PROVIDER,
         isActive: dto.isActive ?? true,
         isApproved: approvalStatus === ProviderApprovalStatus.APPROVED,
         isVerified: true,
         mustChangePassword: dto.mustChangePassword ?? true,
-        location: dto.headquarters?.trim(),
+        location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
+        providerLegalName: dto.businessName.trim(),
+        providerBusinessEmail: email,
+        providerBusinessPhone: dto.contact.trim(),
         providerBusinessName: dto.businessName.trim(),
         providerBusinessCategoryId: dto.businessCategoryId,
         providerTaxId: dto.taxId?.trim(),
         providerBusinessAddress: dto.businessAddress.trim(),
-        providerServiceArea: dto.serviceArea?.trim(),
-        providerFulfillmentMethods: dto.fulfillmentMethods,
-        providerAutoAcceptOrders: dto.autoAcceptOrders ?? false,
-        providerDocuments: dto.documentUrls ?? [],
+        providerStoreAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
+        providerDocuments: this.providerAssetMetadata(dto),
         providerApprovalStatus: approvalStatus,
         providerApprovedAt: approvalStatus === ProviderApprovalStatus.APPROVED ? new Date() : null,
         providerApprovedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
     });
 
     const inviteEmailSent = dto.sendInviteEmail ?? true
-      ? await this.sendProviderInvite(provider, temporaryPassword, approvalStatus)
+      ? await this.sendProviderInvite(provider, password, approvalStatus)
       : false;
 
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_CREATED_BY_ADMIN', null, {
@@ -183,8 +191,12 @@ export class ProviderManagementService {
       data: {
         id: provider.id,
         userId: provider.id,
+        name: this.name(provider),
         email: provider.email,
+        contact: provider.phone,
         businessName: this.businessName(provider),
+        companyLogoUrl: provider.avatarUrl,
+        coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
         approvalStatus: provider.providerApprovalStatus,
         isActive: provider.isActive,
         inviteEmailSent,
@@ -394,6 +406,9 @@ export class ProviderManagementService {
       email: provider.email,
       phone: provider.phone,
       avatarUrl: provider.avatarUrl,
+      name: this.name(provider),
+      companyLogoUrl: provider.avatarUrl,
+      coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
       status: this.toStatus(provider),
       isActive: provider.isActive,
       approvalStatus: provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
@@ -409,7 +424,9 @@ export class ProviderManagementService {
     return {
       ...this.toListItem(provider, stats),
       headquarters: provider.location,
+      location: this.providerLocation(provider),
       serviceArea: provider.providerServiceArea,
+      businessBio: this.providerAssets(provider).businessBio ?? null,
       verification: {
         status: provider.isVerified ? 'TIER_2_VERIFIED' : 'UNVERIFIED',
         label: provider.isVerified ? 'Tier 2 Verified Provider' : 'Unverified Provider',
@@ -620,15 +637,79 @@ export class ProviderManagementService {
 
   private assertPasswordMeetsSecurity(password: string): void {
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
-      throw new BadRequestException('Temporary password does not meet security requirements.');
+      throw new BadRequestException('Password does not meet security requirements.');
     }
   }
 
   private async getProviderBusinessCategory(categoryId: string): Promise<void> {
     const category = await this.repository.findProviderBusinessCategory(categoryId);
-    if (!category || !category.isActive) {
+    if (!category) {
       throw new NotFoundException('Provider business category not found');
     }
+  }
+
+  private async validateBrandingUploads(dto: CreateProviderDto): Promise<void> {
+    const requested = [
+      ...(dto.companyLogoUrl ? [{ kind: 'company logo', url: dto.companyLogoUrl.trim(), allowedFolders: ['provider-logos'] }] : []),
+      ...(dto.coverImageUrl ? [{ kind: 'cover image', url: dto.coverImageUrl.trim(), allowedFolders: ['provider-covers', 'provider-cover'] }] : []),
+    ];
+
+    if (!requested.length) {
+      return;
+    }
+
+    const uploads = await this.repository.findCompletedUploadsByUrls(requested.map((item) => item.url));
+    const uploadByUrl = new Map(uploads.map((upload) => [upload.fileUrl, upload]));
+
+    for (const item of requested) {
+      const upload = uploadByUrl.get(item.url);
+      if (!upload) {
+        continue;
+      }
+
+      if (!item.allowedFolders.includes(upload.folder)) {
+        throw new BadRequestException(`${this.titleCase(item.kind)} must use ${item.allowedFolders.join(' or ')} uploads.`);
+      }
+
+      if (upload.sizeBytes !== null && upload.sizeBytes > 5 * 1024 * 1024) {
+        throw new BadRequestException(`${this.titleCase(item.kind)} must be 5MB or smaller.`);
+      }
+    }
+  }
+
+  private providerAssetMetadata(dto: CreateProviderDto): Prisma.InputJsonObject | undefined {
+    const metadata: Record<string, string> = {};
+    if (dto.businessBio?.trim()) {
+      metadata.businessBio = dto.businessBio.trim();
+    }
+    if (dto.coverImageUrl?.trim()) {
+      metadata.coverImageUrl = dto.coverImageUrl.trim();
+    }
+    return Object.keys(metadata).length ? metadata : undefined;
+  }
+
+  private providerAssets(provider: User): ProviderAssetMetadata {
+    const value = provider.providerDocuments;
+    if (!value || Array.isArray(value) || typeof value !== 'object') {
+      return {};
+    }
+
+    return {
+      businessBio: typeof value.businessBio === 'string' ? value.businessBio : undefined,
+      coverImageUrl: typeof value.coverImageUrl === 'string' ? value.coverImageUrl : undefined,
+    };
+  }
+
+  private providerLocation(provider: User): { lat: number; lng: number } | null {
+    const value = provider.providerStoreAddress;
+    if (value && !Array.isArray(value) && typeof value === 'object') {
+      const lat = value.lat;
+      const lng = value.lng;
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        return { lat, lng };
+      }
+    }
+    return null;
   }
 
   private validateLifecycleAction(provider: User, dto: UpdateProviderStatusDto): void {
@@ -869,6 +950,10 @@ export class ProviderManagementService {
 
   private businessName(provider: User): string {
     return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim();
+  }
+
+  private name(provider: User): string {
+    return `${provider.firstName} ${provider.lastName}`.trim();
   }
 
   private providerCode(id: string): string {

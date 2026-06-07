@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, ValidationPipe } from '@nestjs/common';
 import { GiftStatus, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { AdminProviderFulfillmentMethodDto, ExportFormat, ProviderItemSortBy, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderSortBy, ProviderStatusUpdate, SortOrder } from '../dto/provider-management.dto';
+import { CreateProviderDto, ExportFormat, ProviderItemSortBy, ProviderItemStatus, ProviderLifecycleAction, ProviderLifecycleReason, ProviderSortBy, ProviderStatusUpdate, SortOrder } from '../dto/provider-management.dto';
 import { ProviderManagementRepository } from '../repositories/provider-management.repository';
 import { ProviderManagementService } from '../services/provider-management.service';
 
@@ -33,6 +33,8 @@ const provider: Record<string, unknown> = {
   providerRejectedBy: null,
   providerRejectionReason: null,
   providerRejectionComment: null,
+  providerDocuments: null,
+  providerStoreAddress: null,
   suspendedAt: null,
   suspensionReason: null,
   suspensionComment: null,
@@ -62,7 +64,7 @@ function createService(overrides: Record<string, unknown> = {}) {
     authSession: { deleteMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
-    uploadedFile: { deleteMany: jest.fn() },
+    uploadedFile: { deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     loginAttempt: { updateMany: jest.fn() },
     providerOrder: { count: jest.fn().mockResolvedValue(0) },
     providerOrderItem: { groupBy: jest.fn().mockResolvedValue([]) },
@@ -217,25 +219,28 @@ describe('ProviderManagementService', () => {
 
 
 
-  it('admin provider creation supports self-registration business fields and invite flow', async () => {
+  it('admin provider creation accepts name and current frontend fields', async () => {
     const { service, prisma, mailer } = createService();
+    prisma.uploadedFile.findMany.mockResolvedValue([
+      { fileUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png', folder: 'provider-logos', sizeBytes: 1024 * 1024 },
+      { fileUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png', folder: 'provider-covers', sizeBytes: 2 * 1024 * 1024 },
+    ]);
 
     const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      name: 'Ali Raza',
+      username: 'gifts-blooms-admin',
       email: 'contact@giftsandblooms.com',
-      firstName: 'Ali',
-      lastName: 'Raza',
-      phone: '+15551234567',
+      contact: '+15551234567',
       businessName: 'Gifts & Blooms Co. Ltd',
       businessCategoryId: 'provider_business_category_id',
       taxId: 'TAX-12345',
       businessAddress: '123 Gift Street',
-      serviceArea: 'New York, USA',
-      headquarters: 'New York, USA',
-      fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP, AdminProviderFulfillmentMethodDto.DELIVERY],
-      autoAcceptOrders: false,
-      documentUrls: ['https://cdn.yourdomain.com/provider-documents/license.pdf'],
+      businessBio: 'Short customer-facing business summary.',
+      companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
+      coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
+      location: { lat: 31.5, lng: 74.3 },
       generateTemporaryPassword: false,
-      temporaryPassword: 'Provider@123456',
+      password: 'Provider@123456',
       mustChangePassword: true,
       sendInviteEmail: true,
       approvalStatus: ProviderApprovalStatus.PENDING,
@@ -246,18 +251,21 @@ describe('ProviderManagementService', () => {
     expect(prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         email: 'contact@giftsandblooms.com',
-        firstName: 'Ali',
-        lastName: 'Raza',
+        firstName: 'Ali Raza',
+        lastName: '',
         phone: '+15551234567',
+        avatarUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
         role: UserRole.PROVIDER,
+        providerLegalName: 'Gifts & Blooms Co. Ltd',
+        providerBusinessEmail: 'contact@giftsandblooms.com',
+        providerBusinessPhone: '+15551234567',
         providerBusinessName: 'Gifts & Blooms Co. Ltd',
         providerBusinessCategoryId: 'provider_business_category_id',
         providerTaxId: 'TAX-12345',
         providerBusinessAddress: '123 Gift Street',
-        providerServiceArea: 'New York, USA',
-        providerFulfillmentMethods: ['PICKUP', 'DELIVERY'],
-        providerAutoAcceptOrders: false,
-        providerDocuments: ['https://cdn.yourdomain.com/provider-documents/license.pdf'],
+        location: '31.5,74.3',
+        providerStoreAddress: { lat: 31.5, lng: 74.3 },
+        providerDocuments: { businessBio: 'Short customer-facing business summary.', coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png' },
       }),
     }));
     expect(mailer.sendProviderInviteEmail).toHaveBeenCalledWith(expect.objectContaining({
@@ -271,7 +279,7 @@ describe('ProviderManagementService', () => {
     expect(JSON.stringify(prisma.adminAuditLog.create.mock.calls)).not.toContain('Provider@123456');
     expect(JSON.stringify(result)).not.toContain('Provider@123456');
     expect(result).toEqual(expect.objectContaining({
-      data: expect.objectContaining({ email: 'contact@giftsandblooms.com', businessName: 'Gifts & Blooms Co. Ltd', inviteEmailSent: true }),
+      data: expect.objectContaining({ name: 'Ali Raza', email: 'contact@giftsandblooms.com', contact: '+15551234567', businessName: 'Gifts & Blooms Co. Ltd', companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png', coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png', inviteEmailSent: true }),
       message: 'Provider created successfully and invite email sent.',
     }));
   });
@@ -282,13 +290,11 @@ describe('ProviderManagementService', () => {
 
     const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
       email: 'provider@example.com',
-      firstName: 'Ali',
-      lastName: 'Raza',
-      phone: '+15551234567',
+      name: 'Ali Raza',
+      contact: '+15551234567',
       businessName: 'Premium Gifts Co',
       businessCategoryId: 'provider_business_category_id',
       businessAddress: '123 Gift Street',
-      fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP],
       generateTemporaryPassword: true,
       sendInviteEmail: true,
     });
@@ -299,19 +305,62 @@ describe('ProviderManagementService', () => {
     expect(JSON.stringify(result)).not.toContain('Gift-');
   });
 
-  it('admin provider creation requires temporaryPassword when generation is disabled', async () => {
+  it('admin provider creation requires password when generation is disabled', async () => {
     const { service } = createService();
     await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
       email: 'provider@example.com',
-      firstName: 'Ali',
-      lastName: 'Raza',
-      phone: '+15551234567',
+      name: 'Ali Raza',
+      contact: '+15551234567',
       businessName: 'Premium Gifts Co',
       businessCategoryId: 'provider_business_category_id',
       businessAddress: '123 Gift Street',
-      fulfillmentMethods: [AdminProviderFulfillmentMethodDto.PICKUP],
       generateTemporaryPassword: false,
     })).rejects.toThrow(BadRequestException);
+  });
+
+  it('admin provider creation rejects missing categories and oversized completed branding uploads', async () => {
+    const { service, prisma } = createService();
+    prisma.providerBusinessCategory.findUnique.mockResolvedValueOnce(null);
+    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      email: 'provider@example.com',
+      name: 'Ali Raza',
+      contact: '+15551234567',
+      businessName: 'Premium Gifts Co',
+      businessCategoryId: 'missing_category',
+      businessAddress: '123 Gift Street',
+      generateTemporaryPassword: true,
+    })).rejects.toThrow('Provider business category not found');
+
+    prisma.providerBusinessCategory.findUnique.mockResolvedValueOnce({ id: 'provider_business_category_id', isActive: false });
+    prisma.uploadedFile.findMany.mockResolvedValueOnce([{ fileUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png', folder: 'provider-logos', sizeBytes: 6 * 1024 * 1024 }]);
+    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+      email: 'provider@example.com',
+      name: 'Ali Raza',
+      contact: '+15551234567',
+      businessName: 'Premium Gifts Co',
+      businessCategoryId: 'provider_business_category_id',
+      businessAddress: '123 Gift Street',
+      companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
+      generateTemporaryPassword: true,
+    })).rejects.toThrow('Company Logo must be 5MB or smaller.');
+  });
+
+  it('admin create provider DTO blocks old admin fields and enforces businessBio max length', async () => {
+    const pipe = new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true });
+    const basePayload = {
+      name: 'Ali Raza',
+      email: 'contact@giftsandblooms.com',
+      contact: '+15551234567',
+      businessName: 'Gifts & Blooms Co. Ltd',
+      businessCategoryId: 'provider_business_category_id',
+      businessAddress: '123 Gift Street',
+      generateTemporaryPassword: true,
+    };
+
+    await expect(pipe.transform({ ...basePayload, fulfillmentMethods: ['DELIVERY'] }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, firstName: 'Ali', lastName: 'Raza' }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, businessBio: 'x'.repeat(501) }, { type: 'body', metatype: CreateProviderDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...basePayload, businessBio: 'x'.repeat(500) }, { type: 'body', metatype: CreateProviderDto })).resolves.toBeInstanceOf(CreateProviderDto);
   });
 
   it('provider-management.service.ts no longer imports PrismaService or uses this.prisma', () => {
@@ -330,15 +379,24 @@ describe('ProviderManagementService', () => {
   it('Swagger shows consistent admin provider create payload and self-registration remains unchanged', () => {
     const controller = readFileSync(join(__dirname, '../controllers/provider-management.controller.ts'), 'utf8');
     const dto = readFileSync(join(__dirname, '../dto/provider-management.dto.ts'), 'utf8');
+    const createProviderDto = dto.slice(dto.indexOf('export class CreateProviderDto'), dto.indexOf('export class UpdateProviderDto'));
     const authDto = readFileSync(join(__dirname, '../../auth/dto/auth.dto.ts'), 'utf8');
     expect(controller).toContain('Create provider from admin dashboard');
-    expect(dto).toContain('firstName!: string');
-    expect(dto).toContain('businessCategoryId!: string');
-    expect(dto).toContain('taxId?: string');
-    expect(dto).toContain('businessAddress!: string');
-    expect(dto).toContain('fulfillmentMethods!: AdminProviderFulfillmentMethodDto[]');
-    expect(dto).toContain('autoAcceptOrders?: boolean');
+    expect(createProviderDto).toContain('name!: string');
+    expect(createProviderDto).toContain('businessCategoryId!: string');
+    expect(createProviderDto).toContain('taxId?: string');
+    expect(createProviderDto).toContain('businessAddress!: string');
+    expect(createProviderDto).toContain('businessBio?: string');
+    expect(createProviderDto).toContain('companyLogoUrl?: string');
+    expect(createProviderDto).toContain('coverImageUrl?: string');
+    expect(createProviderDto).not.toContain('firstName');
+    expect(createProviderDto).not.toContain('lastName');
+    expect(createProviderDto).not.toContain('fulfillmentMethods');
+    expect(createProviderDto).not.toContain('autoAcceptOrders');
+    expect(createProviderDto).not.toContain('documentUrls');
     expect(authDto).toContain('export class RegisterProviderDto extends RegisterUserDto');
+    expect(authDto).toContain('name?: string');
+    expect(authDto).toContain('fulfillmentMethods?: ProviderFulfillmentMethodDto[]');
     expect(authDto).toContain('password!: string');
   });
 

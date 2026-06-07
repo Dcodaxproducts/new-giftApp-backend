@@ -2,21 +2,23 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProviderApprovalStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
-  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   ValidateIf,
   IsString,
   IsUrl,
   Matches,
   Max,
+  MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
@@ -40,11 +42,6 @@ export enum SortOrder {
   DESC = 'DESC',
 }
 
-
-export enum AdminProviderFulfillmentMethodDto {
-  PICKUP = 'PICKUP',
-  DELIVERY = 'DELIVERY',
-}
 
 export enum ProviderStatusUpdate {
   ACTIVE = 'ACTIVE',
@@ -149,25 +146,66 @@ export class ListProvidersDto {
   sortOrder?: SortOrder;
 }
 
+export class ProviderLocationDto {
+  @ApiProperty({ example: 31.5 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  lat!: number;
+
+  @ApiProperty({ example: 74.3 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  lng!: number;
+}
+
 export class CreateProviderDto {
+  @ApiProperty({ example: 'Ali Raza', maxLength: 120 })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(120)
+  name!: string;
+
+  @ApiPropertyOptional({ example: 'gifts-blooms-admin', description: 'Optional display username from the admin form. Stored only if the schema supports usernames.' })
+  @IsOptional()
+  @IsString()
+  username?: string;
+
   @ApiProperty({ example: 'contact@giftsandblooms.com' })
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ example: 'Ali' })
-  @IsString()
-  @IsNotEmpty()
-  firstName!: string;
-
-  @ApiProperty({ example: 'Raza' })
-  @IsString()
-  @IsNotEmpty()
-  lastName!: string;
-
   @ApiProperty({ example: '+15551234567' })
   @IsString()
   @IsNotEmpty()
-  phone!: string;
+  contact!: string;
+
+  @ApiPropertyOptional({ example: 'Provider@123456' })
+  @ValidateIf((dto: CreateProviderDto) => dto.generateTemporaryPassword === false)
+  @IsString()
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
+    message: 'Password does not meet security requirements.',
+  })
+  password?: string;
+
+  @ApiPropertyOptional({ example: false, default: true })
+  @IsOptional()
+  @IsBoolean()
+  generateTemporaryPassword?: boolean;
+
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  @IsBoolean()
+  mustChangePassword?: boolean;
+
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  @IsBoolean()
+  sendInviteEmail?: boolean;
 
   @ApiProperty({ example: 'Gifts & Blooms Co. Ltd' })
   @IsString()
@@ -189,56 +227,30 @@ export class CreateProviderDto {
   @IsNotEmpty()
   businessAddress!: string;
 
-  @ApiPropertyOptional({ example: 'New York, USA' })
+  @ApiPropertyOptional({ example: 'Short customer-facing business summary.', maxLength: 500 })
   @IsOptional()
   @IsString()
-  serviceArea?: string;
+  @MaxLength(500)
+  businessBio?: string;
 
-  @ApiPropertyOptional({ example: 'New York, USA' })
+  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-logos/logo.png', description: 'Provider logo URL. If completed upload metadata exists, it must be a provider-logo asset no larger than 5MB.' })
   @IsOptional()
-  @IsString()
-  headquarters?: string;
+  @IsUrl({ require_tld: false })
+  companyLogoUrl?: string;
 
-  @ApiProperty({ enum: AdminProviderFulfillmentMethodDto, isArray: true, example: [AdminProviderFulfillmentMethodDto.PICKUP, AdminProviderFulfillmentMethodDto.DELIVERY] })
-  @IsArray()
-  @ArrayMinSize(1)
-  @IsEnum(AdminProviderFulfillmentMethodDto, { each: true })
-  fulfillmentMethods!: AdminProviderFulfillmentMethodDto[];
-
-  @ApiPropertyOptional({ example: false, default: false })
+  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-covers/cover.png', description: 'Provider cover image URL. If completed upload metadata exists, it must be a provider-cover asset no larger than 5MB.' })
   @IsOptional()
-  @IsBoolean()
-  autoAcceptOrders?: boolean;
+  @IsUrl({ require_tld: false })
+  coverImageUrl?: string;
 
-  @ApiPropertyOptional({ type: [String], example: ['https://cdn.yourdomain.com/provider-documents/license.pdf'] })
-  @IsOptional()
-  @IsArray()
-  @IsUrl({ require_tld: false }, { each: true })
-  documentUrls?: string[];
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  generateTemporaryPassword?: boolean;
-
-  @ApiPropertyOptional({ example: 'Provider@123456' })
-  @ValidateIf((dto: CreateProviderDto) => dto.generateTemporaryPassword === false)
-  @IsString()
-  @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
-    message: 'Temporary password does not meet security requirements.',
+  @ApiPropertyOptional({
+    example: { lat: 31.5, lng: 74.3 },
+    description: 'Optional provider coordinates for future routing, proximity, delivery availability, distance sorting, and order assignment.',
   })
-  temporaryPassword?: string;
-
-  @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
-  @IsBoolean()
-  mustChangePassword?: boolean;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  sendInviteEmail?: boolean;
+  @ValidateNested()
+  @Type(() => ProviderLocationDto)
+  location?: ProviderLocationDto;
 
   @ApiPropertyOptional({ enum: ProviderApprovalStatus, default: ProviderApprovalStatus.PENDING })
   @IsOptional()

@@ -529,7 +529,7 @@ describe('AuthService sensitive auth behavior', () => {
     expect(registerUserCall[0].data.providerApprovalStatus).toBeNull();
   });
 
-  it('provider registration unchanged', async () => {
+  it('provider registration supports legacy names and fulfillment methods', async () => {
     const user = authUser({ email: 'provider@example.com', role: UserRole.PROVIDER, isApproved: false, providerApprovalStatus: 'PENDING', verificationOtp: '123456', providerBusinessName: 'Cake Shop' });
     const { service, mailerService, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
@@ -544,6 +544,19 @@ describe('AuthService sensitive auth behavior', () => {
     expect(registerProviderCall[0].data.providerApprovalStatus).toBe('PENDING');
     expect(registerProviderCall[0].data.providerBusinessName).toBe('Cake Shop');
     expect(registerProviderCall[0].data.providerBusinessCategoryId).toBe('cat_1');
+  });
+
+  it('provider registration accepts name and optional fulfillment methods', async () => {
+    const user = authUser({ email: 'provider-name@example.com', role: UserRole.PROVIDER, firstName: 'Cake', lastName: 'Owner', isApproved: false, providerApprovalStatus: 'PENDING', verificationOtp: '123456', providerBusinessName: 'Cake Shop' });
+    const { service, prisma } = createSensitiveAuthService({ user });
+    prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
+
+    await service.registerProvider({ email: 'provider-name@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street' });
+
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { firstName: string; lastName: string; providerFulfillmentMethods?: string[] } }];
+    expect(registerProviderCall[0].data.firstName).toBe('Cake');
+    expect(registerProviderCall[0].data.lastName).toBe('Owner');
+    expect(registerProviderCall[0].data.providerFulfillmentMethods).toBeUndefined();
   });
 
   it('guest session fallback remains server-issued', () => {

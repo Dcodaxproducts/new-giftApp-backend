@@ -109,15 +109,13 @@ describe('Production critical flow E2E smoke', () => {
   it('creates and approves provider through admin lifecycle endpoint', async () => {
     const created = await http.post('/api/v1/providers').set('Authorization', auth(admin())).send({
       email: seed.providerEmail,
-      firstName: 'Smoke',
-      lastName: 'Provider',
-      phone: '+15550001001',
+      name: 'Smoke Provider',
+      contact: '+15550001001',
       businessName: `Smoke Provider ${stamp}`,
       businessCategoryId: seed.providerBusinessCategoryId,
       businessAddress: '123 Smoke Street',
-      fulfillmentMethods: ['DELIVERY'],
       generateTemporaryPassword: false,
-      temporaryPassword: seed.providerPassword,
+      password: seed.providerPassword,
       sendInviteEmail: false,
       approvalStatus: 'PENDING',
       isActive: true,

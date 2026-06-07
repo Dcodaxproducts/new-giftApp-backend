@@ -106,7 +106,7 @@ export class StorageService {
     }
     if (user.role === UserRole.PROVIDER) {
       if (targetAccountId) throw new ForbiddenException('targetAccountId is not allowed for this account.');
-      const allowed = [UploadFolder.PROVIDER_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_DOCUMENTS, UploadFolder.PROVIDER_ITEM_IMAGES, UploadFolder.GIFT_IMAGES, UploadFolder.CHAT_ATTACHMENTS, UploadFolder.PROVIDER_SUPPORT_ATTACHMENTS, UploadFolder.SUPPORT_CHAT_ATTACHMENTS];
+      const allowed = [UploadFolder.PROVIDER_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_COVERS, UploadFolder.PROVIDER_DOCUMENTS, UploadFolder.PROVIDER_ITEM_IMAGES, UploadFolder.GIFT_IMAGES, UploadFolder.CHAT_ATTACHMENTS, UploadFolder.PROVIDER_SUPPORT_ATTACHMENTS, UploadFolder.SUPPORT_CHAT_ATTACHMENTS];
       if (!allowed.includes(dto.folder)) throw new ForbiddenException('Providers can upload only their own provider assets');
       return;
     }
@@ -148,14 +148,14 @@ export class StorageService {
   }
 
   private folderAllowsTargetRole(folder: UploadFolder, role: UserRole): boolean {
-    if (folder === UploadFolder.PROVIDER_AVATARS || folder === UploadFolder.PROVIDER_LOGOS || folder === UploadFolder.PROVIDER_DOCUMENTS || folder === UploadFolder.PROVIDER_ITEM_IMAGES || folder === UploadFolder.GIFT_IMAGES) return role === UserRole.PROVIDER;
+    if (folder === UploadFolder.PROVIDER_AVATARS || folder === UploadFolder.PROVIDER_LOGOS || folder === UploadFolder.PROVIDER_COVERS || folder === UploadFolder.PROVIDER_DOCUMENTS || folder === UploadFolder.PROVIDER_ITEM_IMAGES || folder === UploadFolder.GIFT_IMAGES) return role === UserRole.PROVIDER;
     if (folder === UploadFolder.ADMIN_AVATARS) return role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
     if (folder === UploadFolder.USER_AVATARS) return role === UserRole.REGISTERED_USER;
     return false;
   }
 
   private adminCanUploadOnBehalf(user: AuthUserContext, folder: UploadFolder): boolean {
-    if (folder === UploadFolder.PROVIDER_AVATARS || folder === UploadFolder.PROVIDER_LOGOS || folder === UploadFolder.PROVIDER_DOCUMENTS) return this.hasAnyPermission(user, ['providers.update']);
+    if (folder === UploadFolder.PROVIDER_AVATARS || folder === UploadFolder.PROVIDER_LOGOS || folder === UploadFolder.PROVIDER_COVERS || folder === UploadFolder.PROVIDER_DOCUMENTS) return this.hasAnyPermission(user, ['providers.update']);
     if (folder === UploadFolder.GIFT_IMAGES || folder === UploadFolder.PROVIDER_ITEM_IMAGES) return this.hasAnyPermission(user, ['gifts.create', 'gifts.update']);
     if (folder === UploadFolder.USER_AVATARS) return this.hasAnyPermission(user, ['users.update']);
     if (folder === UploadFolder.ADMIN_AVATARS) return this.hasAnyPermission(user, ['admins.update']);
@@ -170,7 +170,7 @@ export class StorageService {
       if (dto.sizeBytes && dto.sizeBytes > maxBytes) throw new ForbiddenException(dto.contentType === 'video/mp4' ? 'Video exceeds maximum allowed size' : 'Image exceeds maximum allowed size');
       return;
     }
-    const fiveMbImageFolders = [UploadFolder.GIFT_CATEGORY_IMAGES, UploadFolder.CUSTOMER_CONTACT_AVATARS];
+    const fiveMbImageFolders = [UploadFolder.GIFT_CATEGORY_IMAGES, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_COVERS];
     if (!fiveMbImageFolders.includes(dto.folder)) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Images must be JPEG, PNG, or WEBP');
     if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Image exceeds maximum allowed size');

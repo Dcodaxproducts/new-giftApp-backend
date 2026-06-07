@@ -10092,7 +10092,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with providers.read"
       },
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Creates a PROVIDER account and provider business profile. Supports same business fields as provider self-registration, plus temporary password and invite email flow.",
+        "description": "Access: SUPER_ADMIN or ADMIN with providers.create. SUPER_ADMIN or ADMIN with providers.create permission. SUPER_ADMIN or ADMIN with providers.create permission. Admin-created providers use the admin dashboard payload with name/contact/branding fields. This is separate from public provider self-registration, which may still include onboarding fulfillment fields.",
         "operationId": "ProviderManagementController_create",
         "parameters": [],
         "requestBody": {
@@ -10101,6 +10101,50 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateProviderDto"
+              },
+              "examples": {
+                "createAdminProvider": {
+                  "summary": "Admin creates provider",
+                  "value": {
+                    "name": "Ali Raza",
+                    "username": "gifts-blooms-admin",
+                    "email": "contact@giftsandblooms.com",
+                    "contact": "+15551234567",
+                    "password": "Provider@123456",
+                    "generateTemporaryPassword": false,
+                    "mustChangePassword": true,
+                    "sendInviteEmail": true,
+                    "businessName": "Gifts & Blooms Co. Ltd",
+                    "businessCategoryId": "provider_business_category_id",
+                    "taxId": "TAX-12345",
+                    "businessAddress": "123 Gift Street",
+                    "businessBio": "Short customer-facing business summary.",
+                    "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
+                    "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
+                    "location": {
+                      "lat": 31.5,
+                      "lng": 74.3
+                    },
+                    "approvalStatus": "PENDING",
+                    "isActive": true
+                  }
+                },
+                "generatedPassword": {
+                  "summary": "Generate temporary password",
+                  "value": {
+                    "name": "Ali Raza",
+                    "email": "contact@giftsandblooms.com",
+                    "contact": "+15551234567",
+                    "generateTemporaryPassword": true,
+                    "mustChangePassword": true,
+                    "sendInviteEmail": true,
+                    "businessName": "Gifts & Blooms Co. Ltd",
+                    "businessCategoryId": "provider_business_category_id",
+                    "businessAddress": "123 Gift Street",
+                    "approvalStatus": "PENDING",
+                    "isActive": true
+                  }
+                }
               }
             }
           }
@@ -10116,8 +10160,12 @@
                     "data": {
                       "id": "provider_id",
                       "userId": "provider_id",
+                      "name": "Ali Raza",
                       "email": "contact@giftsandblooms.com",
+                      "contact": "+15551234567",
                       "businessName": "Gifts & Blooms Co. Ltd",
+                      "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
+                      "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
                       "approvalStatus": "PENDING",
                       "isActive": true,
                       "inviteEmailSent": true
@@ -24570,6 +24618,7 @@
                 "user-avatars",
                 "provider-avatars",
                 "provider-logos",
+                "provider-covers",
                 "provider-documents",
                 "provider-item-images",
                 "gift-images",
@@ -25645,11 +25694,19 @@
           "password": {
             "type": "string"
           },
+          "name": {
+            "type": "string",
+            "example": "Cake Owner",
+            "maxLength": 120,
+            "description": "Preferred full-name field. Provider self-registration may send this instead of firstName/lastName."
+          },
           "firstName": {
-            "type": "string"
+            "type": "string",
+            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
           },
           "lastName": {
-            "type": "string"
+            "type": "string",
+            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
           },
           "phone": {
             "type": "string"
@@ -25661,9 +25718,7 @@
         },
         "required": [
           "email",
-          "password",
-          "firstName",
-          "lastName"
+          "password"
         ]
       },
       "RegisterProviderDto": {
@@ -25675,11 +25730,19 @@
           "password": {
             "type": "string"
           },
+          "name": {
+            "type": "string",
+            "example": "Cake Owner",
+            "maxLength": 120,
+            "description": "Preferred full-name field. Provider self-registration may send this instead of firstName/lastName."
+          },
           "firstName": {
-            "type": "string"
+            "type": "string",
+            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
           },
           "lastName": {
-            "type": "string"
+            "type": "string",
+            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
           },
           "phone": {
             "type": "string"
@@ -25702,6 +25765,7 @@
           },
           "fulfillmentMethods": {
             "type": "array",
+            "description": "Optional public provider onboarding fulfillment preferences.",
             "items": {
               "type": "string",
               "enum": [
@@ -25718,12 +25782,9 @@
         "required": [
           "email",
           "password",
-          "firstName",
-          "lastName",
           "businessName",
           "businessCategoryId",
-          "businessAddress",
-          "fulfillmentMethods"
+          "businessAddress"
         ]
       },
       "CreateGuestSessionDto": {
@@ -27374,24 +27435,62 @@
           "permissions"
         ]
       },
+      "ProviderLocationDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 31.5
+          },
+          "lng": {
+            "type": "number",
+            "example": 74.3
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
       "CreateProviderDto": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ali Raza",
+            "maxLength": 120
+          },
+          "username": {
+            "type": "string",
+            "example": "gifts-blooms-admin",
+            "description": "Optional display username from the admin form. Stored only if the schema supports usernames."
+          },
           "email": {
             "type": "string",
             "example": "contact@giftsandblooms.com"
           },
-          "firstName": {
-            "type": "string",
-            "example": "Ali"
-          },
-          "lastName": {
-            "type": "string",
-            "example": "Raza"
-          },
-          "phone": {
+          "contact": {
             "type": "string",
             "example": "+15551234567"
+          },
+          "password": {
+            "type": "string",
+            "example": "Provider@123456"
+          },
+          "generateTemporaryPassword": {
+            "type": "boolean",
+            "example": false,
+            "default": true
+          },
+          "mustChangePassword": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "sendInviteEmail": {
+            "type": "boolean",
+            "example": true,
+            "default": true
           },
           "businessName": {
             "type": "string",
@@ -27409,60 +27508,32 @@
             "type": "string",
             "example": "123 Gift Street"
           },
-          "serviceArea": {
+          "businessBio": {
             "type": "string",
-            "example": "New York, USA"
+            "example": "Short customer-facing business summary.",
+            "maxLength": 500
           },
-          "headquarters": {
+          "companyLogoUrl": {
             "type": "string",
-            "example": "New York, USA"
+            "example": "https://cdn.yourdomain.com/provider-logos/logo.png",
+            "description": "Provider logo URL. If completed upload metadata exists, it must be a provider-logo asset no larger than 5MB."
           },
-          "fulfillmentMethods": {
-            "type": "array",
-            "example": [
-              "PICKUP",
-              "DELIVERY"
-            ],
-            "items": {
-              "type": "string",
-              "enum": [
-                "PICKUP",
-                "DELIVERY"
-              ]
-            }
-          },
-          "autoAcceptOrders": {
-            "type": "boolean",
-            "example": false,
-            "default": false
-          },
-          "documentUrls": {
-            "example": [
-              "https://cdn.yourdomain.com/provider-documents/license.pdf"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "generateTemporaryPassword": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          },
-          "temporaryPassword": {
+          "coverImageUrl": {
             "type": "string",
-            "example": "Provider@123456"
+            "example": "https://cdn.yourdomain.com/provider-covers/cover.png",
+            "description": "Provider cover image URL. If completed upload metadata exists, it must be a provider-cover asset no larger than 5MB."
           },
-          "mustChangePassword": {
-            "type": "boolean",
-            "example": true,
-            "default": true
-          },
-          "sendInviteEmail": {
-            "type": "boolean",
-            "example": true,
-            "default": true
+          "location": {
+            "example": {
+              "lat": 31.5,
+              "lng": 74.3
+            },
+            "description": "Optional provider coordinates for future routing, proximity, delivery availability, distance sorting, and order assignment.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderLocationDto"
+              }
+            ]
           },
           "approvalStatus": {
             "type": "string",
@@ -27480,14 +27551,12 @@
           }
         },
         "required": [
+          "name",
           "email",
-          "firstName",
-          "lastName",
-          "phone",
+          "contact",
           "businessName",
           "businessCategoryId",
-          "businessAddress",
-          "fulfillmentMethods"
+          "businessAddress"
         ]
       },
       "UpdateProviderDto": {
@@ -30632,6 +30701,7 @@
               "user-avatars",
               "provider-avatars",
               "provider-logos",
+              "provider-covers",
               "provider-documents",
               "provider-item-images",
               "gift-images",
