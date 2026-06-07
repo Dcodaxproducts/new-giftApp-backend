@@ -24,6 +24,7 @@
     "docs:frontend": "python3 scripts/docs/generate-frontend-guide.py",
     "docs:pdf": "python3 scripts/docs/generate-api-reference.py --pdf && python3 scripts/docs/generate-frontend-guide.py --pdf",
     "docs:assert": "node scripts/docs/assert-generated-docs-current.js",
+    "docs:compare-live": "node scripts/docs/compare-live-openapi.js",
     "db:smoke:migration-schema": "node scripts/smoke-migration-schema.js"
   },
   "dependencies": {

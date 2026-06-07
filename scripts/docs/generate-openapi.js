@@ -3,7 +3,7 @@ require('ts-node/register');
 const { RequestMethod, ValidationPipe } = require('@nestjs/common');
 const { NestFactory } = require('@nestjs/core');
 const { DocumentBuilder, SwaggerModule } = require('@nestjs/swagger');
-const { writeFileSync } = require('fs');
+const { readFileSync, writeFileSync } = require('fs');
 const helmet = require('helmet');
 const { AppModule } = require('../../src/app.module');
 const { HttpExceptionFilter } = require('../../src/common/filters/http-exception.filter');
@@ -35,11 +35,16 @@ async function main() {
       .addBearerAuth(),
   ).build();
 
+  const openapiGeneratedAt = new Date().toISOString();
+  const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+  const packageVersion = typeof packageJson.version === 'string' ? packageJson.version : '0.0.0';
   const document = SwaggerModule.createDocument(app, config, { autoTagControllers: false });
   fillMissingOperationSummaries(document);
   applySwaggerAccessMetadata(document);
   document.tags = SWAGGER_TAG_ORDER.map((name) => ({ name }));
+  document.info['x-openapi-generated-at'] = openapiGeneratedAt;
   writeFileSync('docs/generated/openapi.json', JSON.stringify(document, null, 2));
+  writeFileSync('src/generated/build-info.ts', `export const PACKAGE_VERSION = '${packageVersion}';\nexport const OPENAPI_GENERATED_AT = '${openapiGeneratedAt}';\n`);
   await app.close();
 }
 

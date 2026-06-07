@@ -1,11 +1,11 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 13:59 UTC
+Generated at: 2026-06-07 14:33 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
 # Gift App Backend — Frontend Developer API Guide
 
-Generated from `docs/generated/openapi.json` on 2026-06-07 13:59 UTC.
+Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 
 ## Frontend Integration Flows
 
@@ -767,6 +767,12 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 13:59 UTC.
 | POST | `/api/v1/uploads/presigned-url` | Create presigned upload URL | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 | GET | `/api/v1/uploads/{id}` | Fetch upload details | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 | DELETE | `/api/v1/uploads/{id}` | Delete upload | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
+
+### System (1 APIs)
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+| GET | `/api/v1/system/build-info` | Fetch build and generated-doc metadata | PUBLIC |
 
 ## Provider APIs
 

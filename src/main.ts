@@ -9,6 +9,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { applySwaggerAccessMetadata } from './swagger-access';
 
 export const SWAGGER_TAG_ORDER = [
+  '00 System',
   '01 Auth',
   '01 Auth - Login Attempts',
   '02 Admin - Staff Management',

@@ -51,6 +51,7 @@ import { SocialModerationModule } from './modules/social-moderation/social-moder
 import { StorageModule } from './modules/storage/storage.module';
 import { SubscriptionPlansModule } from './modules/subscription-plans/subscription-plans.module';
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
+import { SystemBuildInfoModule } from './modules/system-build-info/system-build-info.module';
 import { UserManagementModule } from './modules/user-management/user-management.module';
 import { UserSafetyModule } from './modules/user-safety/user-safety.module';
 import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-metadata.module';
@@ -107,6 +108,7 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     AuditLogsModule,
     SocialModerationModule,
     StorageModule,
+    SystemBuildInfoModule,
     SystemSettingsModule,
     ChatsModule,
   ],

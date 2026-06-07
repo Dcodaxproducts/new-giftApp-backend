@@ -32,6 +32,19 @@ const removedChatGroups = [
   '03 Provider - Buyer Chat',
   '02 Admin - Support Chat',
 ];
+const removedRoutes = [
+  'POST /api/v1/broadcasts/estimate-reach',
+  'PATCH /api/v1/broadcasts/{id}/targeting',
+  'PATCH /api/v1/broadcasts/{id}/schedule',
+  'POST /api/v1/broadcasts/{id}/cancel',
+  'POST /api/v1/provider/payouts/{id}/cancel',
+  'PATCH /api/v1/provider/offers/{id}/status',
+  'PATCH /api/v1/provider/inventory/{id}/status',
+  'PATCH /api/v1/coupons/{id}/status',
+  'PATCH /api/v1/admin/social-reporting-rules/{id}/status',
+  'PATCH /api/v1/admins/{id}/active-status',
+  'PATCH /api/v1/referral-settings/status',
+];
 const allowedMultiTagOperations = new Set();
 
 function fail(message) {
@@ -69,6 +82,12 @@ for (const [routePath, pathItem] of Object.entries(openapi.paths || {})) {
     if (tags.length > 1 && !allowedMultiTagOperations.has(key)) fail(`Operation has multiple Swagger tags: ${key} -> ${tags.join(', ')}`);
   }
 }
+for (const route of removedRoutes) {
+  const [method, routePath] = route.split(' ');
+  if (openapi.paths?.[routePath]?.[method.toLowerCase()]) fail(`Removed route still present in OpenAPI: ${route}`);
+}
+if (!openapi.paths?.['/api/v1/system/build-info']?.get) fail('Expected build info endpoint missing: GET /api/v1/system/build-info');
+if (typeof openapi.info?.['x-openapi-generated-at'] !== 'string') fail('OpenAPI generated timestamp missing: info.x-openapi-generated-at');
 
 const tagNames = new Set((openapi.tags || []).map((tag) => tag.name));
 for (const removed of removedChatGroups) {

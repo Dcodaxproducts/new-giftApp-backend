@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 13:59 UTC
+Generated at: 2026-06-07 14:33 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -8,6 +8,7 @@ Run: npm run docs:generate
 This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.
 
 ## Contents
+- 00 System (1 APIs)
 - 01 Auth (20 APIs)
 - 01 Auth - Login Attempts (3 APIs)
 - 02 Admin - Staff Management (6 APIs)
@@ -77,6 +78,28 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 07 Plans & Coupons (18 APIs)
 - 07 Storage (5 APIs)
 - 08 Chat - Threads (9 APIs)
+
+## 00 System
+
+### GET `/api/v1/system/build-info`
+
+- Summary: Fetch build and generated-doc metadata
+- Allowed role/access: PUBLIC
+- Notes: Access: PUBLIC. Safe deployment guard for comparing live build/OpenAPI metadata with committed generated docs. Does not expose secrets. Safe deployment guard for comparing the live server build and Swagger/OpenAPI generation timestamp with the committed generated docs. Does not expose secrets.
+- Response body:
+```json
+{
+  "success": true,
+  "data": {
+    "appName": "Gift App Backend",
+    "version": "0.1.0",
+    "commitSha": "git_sha",
+    "buildTime": "2026-05-25T10:00:00.000Z",
+    "openapiGeneratedAt": "2026-05-25T10:00:00.000Z"
+  },
+  "message": "Build info fetched successfully."
+}
+```
 
 ## 01 Auth
 

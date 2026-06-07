@@ -1,0 +1,2 @@
+export const PACKAGE_VERSION = '0.1.0';
+export const OPENAPI_GENERATED_AT = '2026-06-07T14:33:26.315Z';
