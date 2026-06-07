@@ -8,7 +8,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ListReferralSettingsAuditLogsDto, ReferralSettingsStatusDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
+import { ListReferralSettingsAuditLogsDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
 import { ReferralSettingsService } from '../services/referral-settings.service';
 
 @ApiTags('02 Admin - Referral Settings')
@@ -27,15 +27,10 @@ export class ReferralSettingsController {
 
   @Patch()
   @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update referral settings', description: 'SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.' })
+  @ApiOperation({ summary: 'Update referral settings or status', description: 'SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards. Use isActive/statusReason on this same endpoint to activate or deactivate the referral program.' })
+  @ApiBody({ type: UpdateReferralSettingsDto, examples: { update: { value: { referrerRewardAmount: 25, newUserRewardAmount: 10, rewardCurrency: 'USD', minimumTransactionAmount: 50, referralExpirationValue: 30, referralExpirationUnit: 'DAYS', allowSelfReferrals: false, qualificationRule: 'FIRST_SUCCESSFUL_PURCHASE' } }, activate: { value: { isActive: true, statusReason: 'Seasonal referral campaign enabled.' } }, deactivate: { value: { isActive: false, statusReason: 'Referral campaign paused for budget review.' } } } })
+  @ApiResponse({ status: 200, description: 'Referral settings updated successfully', schema: { example: { success: true, data: { isActive: true, referrerRewardAmount: 25, newUserRewardAmount: 10, rewardCurrency: 'USD', minimumTransactionAmount: 50, referralExpirationValue: 30, referralExpirationUnit: 'DAYS', allowSelfReferrals: false }, message: 'Referral settings updated successfully.' } } })
   update(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateReferralSettingsDto, @Req() request: Request) { return this.settings.update(user, dto, request.ip, request.headers['user-agent']); }
-
-  @Patch('status')
-  @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update referral program status', description: 'SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.' })
-  @ApiBody({ type: ReferralSettingsStatusDto, examples: { activate: { value: { isActive: true, reason: 'Seasonal referral campaign enabled.' } }, deactivate: { value: { isActive: false, reason: 'Referral campaign paused for budget review.' } } } })
-  @ApiResponse({ status: 200, description: 'Referral program status updated successfully', schema: { example: { success: true, data: { isActive: true, updatedAt: '2026-05-25T10:00:00.000Z' }, message: 'Referral program status updated successfully.' } } })
-  updateStatus(@CurrentUser() user: AuthUserContext, @Body() dto: ReferralSettingsStatusDto, @Req() request: Request) { return this.settings.updateStatus(user, dto, request.ip, request.headers['user-agent']); }
 
   @Get('stats')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

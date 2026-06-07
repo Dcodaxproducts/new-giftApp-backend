@@ -1,22 +1,19 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ReferralExpirationUnit, ReferralQualificationRule } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO4217CurrencyCode, IsISO8601, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateReferralSettingsDto {
-  @ApiProperty({ example: 25 }) @Type(() => Number) @IsNumber() @Min(0) referrerRewardAmount!: number;
-  @ApiProperty({ example: 10 }) @Type(() => Number) @IsNumber() @Min(0) newUserRewardAmount!: number;
-  @ApiProperty({ example: 'USD' }) @IsISO4217CurrencyCode() rewardCurrency!: string;
-  @ApiProperty({ example: 50 }) @Type(() => Number) @IsNumber() @Min(0) minimumTransactionAmount!: number;
-  @ApiProperty({ example: 30 }) @Type(() => Number) @IsInt() @Min(1) @Max(3650) referralExpirationValue!: number;
-  @ApiProperty({ enum: ReferralExpirationUnit, example: ReferralExpirationUnit.DAYS }) @IsEnum(ReferralExpirationUnit) referralExpirationUnit!: ReferralExpirationUnit;
-  @ApiProperty({ example: false }) @IsBoolean() allowSelfReferrals!: boolean;
-  @ApiProperty({ enum: ReferralQualificationRule, example: ReferralQualificationRule.FIRST_SUCCESSFUL_PURCHASE }) @IsEnum(ReferralQualificationRule) qualificationRule!: ReferralQualificationRule;
-}
-
-export class ReferralSettingsStatusDto {
-  @ApiProperty({ example: true }) @IsBoolean() isActive!: boolean;
-  @ApiPropertyOptional({ example: 'Seasonal referral campaign enabled.' }) @IsOptional() @IsString() reason?: string;
+  @ApiPropertyOptional({ example: 25 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) referrerRewardAmount?: number;
+  @ApiPropertyOptional({ example: 10 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) newUserRewardAmount?: number;
+  @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsISO4217CurrencyCode() rewardCurrency?: string;
+  @ApiPropertyOptional({ example: 50 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) minimumTransactionAmount?: number;
+  @ApiPropertyOptional({ example: 30 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(3650) referralExpirationValue?: number;
+  @ApiPropertyOptional({ enum: ReferralExpirationUnit, example: ReferralExpirationUnit.DAYS }) @IsOptional() @IsEnum(ReferralExpirationUnit) referralExpirationUnit?: ReferralExpirationUnit;
+  @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() allowSelfReferrals?: boolean;
+  @ApiPropertyOptional({ enum: ReferralQualificationRule, example: ReferralQualificationRule.FIRST_SUCCESSFUL_PURCHASE }) @IsOptional() @IsEnum(ReferralQualificationRule) qualificationRule?: ReferralQualificationRule;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional({ example: 'Seasonal referral campaign enabled.' }) @IsOptional() @IsString() statusReason?: string;
 }
 
 export class ListReferralSettingsAuditLogsDto {

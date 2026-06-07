@@ -60,7 +60,7 @@ describe('Access guard consistency', () => {
     const mediaPolicy = source('modules/media-upload-policy/controllers/media-upload-policy.controller.ts');
 
     expect(referralSettings).toContain("@Patch()\n  @Roles(UserRole.SUPER_ADMIN)");
-    expect(referralSettings).toContain("@Patch('status')\n  @Roles(UserRole.SUPER_ADMIN)");
+    expect(referralSettings).not.toContain("@Patch('status')");
     expect(referralSettings).not.toContain("@Post('activate')");
     expect(referralSettings).not.toContain("@Post('deactivate')");
     expect(referralSettings).toContain("@Get('audit-logs')\n  @Roles(UserRole.SUPER_ADMIN)");

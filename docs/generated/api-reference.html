@@ -1,4 +1,4 @@
-<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-06-07 11:11 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-06-07 11:11 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.45;color:#111;padding:24px;} h1,h2,h3{color:#0f172a;} h1{font-size:24px;} h2{font-size:18px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:28px;} h3{font-size:14px;margin-top:20px;} .meta{color:#555;margin-bottom:16px;} .generated-notice{background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;color:#475569;font-size:10px;margin-bottom:16px;padding:8px 10px;} .endpoint{background:#f8fafc;border:1px solid #cbd5e1;padding:10px;border-radius:6px;margin:12px 0;} .method{font-weight:bold;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;} .GET{background:#0ea5e9;} .POST{background:#22c55e;} .PUT{background:#f59e0b;} .PATCH{background:#8b5cf6;} .DELETE{background:#ef4444;} pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5eefc;padding:10px;border-radius:6px;border:1px solid #1f2a44;} .small{font-size:10px;color:#555;} ul{padding-left:18px;} .label{font-weight:bold;} @page { size: A4; margin: 12mm; }</style></head><body><div class="generated-notice">Generated from docs/generated/openapi.json<br>Generated at: 2026-06-07 11:27 UTC<br>Do not edit manually.<br>Run: npm run docs:generate</div><h1>Gift App Backend — Full API Reference</h1><div class="meta">Generated: 2026-06-07 11:27 UTC</div><p>This document is generated from the current OpenAPI for the Gift App backend. For each API, it includes allowed role/access, request payloads for write endpoints, and response bodies for read/write endpoints.</p><h2>01 Auth</h2><div class="endpoint"><div><span class="method POST">POST</span> <code>/api/v1/auth/users/register</code></div><div><span class="label">Summary:</span> Create Auth Users Register</div><div><span class="label">Allowed role/access:</span> PUBLIC</div><div><span class="label">Notes:</span> Access: PUBLIC.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
   &quot;email&quot;: &quot;&lt;string&gt;&quot;,
   &quot;password&quot;: &quot;&lt;string&gt;&quot;,
   &quot;name&quot;: &quot;Cake Owner&quot;,
@@ -1536,7 +1536,7 @@
     &quot;updatedAt&quot;: &quot;2026-05-09T10:00:00.000Z&quot;
   },
   &quot;message&quot;: &quot;Referral settings fetched successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/referral-settings</code></div><div><span class="label">Summary:</span> Update referral settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.</div><div class="label">Request payload(s):</div><div class="small">payload</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/referral-settings</code></div><div><span class="label">Summary:</span> Update referral settings or status</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards. Use isActive/statusReason on this same endpoint to activate or deactivate the referral program.</div><div class="label">Request payload(s):</div><div class="small">update</div><pre>{
   &quot;referrerRewardAmount&quot;: 25,
   &quot;newUserRewardAmount&quot;: 10,
   &quot;rewardCurrency&quot;: &quot;USD&quot;,
@@ -1545,23 +1545,25 @@
   &quot;referralExpirationUnit&quot;: &quot;DAYS&quot;,
   &quot;allowSelfReferrals&quot;: false,
   &quot;qualificationRule&quot;: &quot;FIRST_SUCCESSFUL_PURCHASE&quot;
-}</pre><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
-  &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/referral-settings/status</code></div><div><span class="label">Summary:</span> Update referral program status</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.</div><div class="label">Request payload(s):</div><div class="small">activate</div><pre>{
+}</pre><div class="small">activate</div><pre>{
   &quot;isActive&quot;: true,
-  &quot;reason&quot;: &quot;Seasonal referral campaign enabled.&quot;
+  &quot;statusReason&quot;: &quot;Seasonal referral campaign enabled.&quot;
 }</pre><div class="small">deactivate</div><pre>{
   &quot;isActive&quot;: false,
-  &quot;reason&quot;: &quot;Referral campaign paused for budget review.&quot;
+  &quot;statusReason&quot;: &quot;Referral campaign paused for budget review.&quot;
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;isActive&quot;: true,
-    &quot;updatedAt&quot;: &quot;2026-05-25T10:00:00.000Z&quot;
+    &quot;referrerRewardAmount&quot;: 25,
+    &quot;newUserRewardAmount&quot;: 10,
+    &quot;rewardCurrency&quot;: &quot;USD&quot;,
+    &quot;minimumTransactionAmount&quot;: 50,
+    &quot;referralExpirationValue&quot;: 30,
+    &quot;referralExpirationUnit&quot;: &quot;DAYS&quot;,
+    &quot;allowSelfReferrals&quot;: false
   },
-  &quot;message&quot;: &quot;Referral program status updated successfully.&quot;
+  &quot;message&quot;: &quot;Referral settings updated successfully.&quot;
 }</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/referral-settings/stats</code></div><div><span class="label">Summary:</span> Fetch referral stats</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with referralSettings.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with referralSettings.read. SUPER_ADMIN or ADMIN with referralSettings.read permission.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,

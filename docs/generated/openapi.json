@@ -2855,7 +2855,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with referralSettings.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards. Use isActive/statusReason on this same endpoint to activate or deactivate the referral program.",
         "operationId": "ReferralSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -2864,51 +2864,30 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateReferralSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update referral settings",
-        "tags": [
-          "02 Admin - Referral Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/referral-settings/status": {
-      "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.",
-        "operationId": "ReferralSettingsController_updateStatus",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReferralSettingsStatusDto"
               },
               "examples": {
+                "update": {
+                  "value": {
+                    "referrerRewardAmount": 25,
+                    "newUserRewardAmount": 10,
+                    "rewardCurrency": "USD",
+                    "minimumTransactionAmount": 50,
+                    "referralExpirationValue": 30,
+                    "referralExpirationUnit": "DAYS",
+                    "allowSelfReferrals": false,
+                    "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE"
+                  }
+                },
                 "activate": {
                   "value": {
                     "isActive": true,
-                    "reason": "Seasonal referral campaign enabled."
+                    "statusReason": "Seasonal referral campaign enabled."
                   }
                 },
                 "deactivate": {
                   "value": {
                     "isActive": false,
-                    "reason": "Referral campaign paused for budget review."
+                    "statusReason": "Referral campaign paused for budget review."
                   }
                 }
               }
@@ -2917,7 +2896,7 @@
         },
         "responses": {
           "200": {
-            "description": "Referral program status updated successfully",
+            "description": "Referral settings updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -2925,9 +2904,15 @@
                     "success": true,
                     "data": {
                       "isActive": true,
-                      "updatedAt": "2026-05-25T10:00:00.000Z"
+                      "referrerRewardAmount": 25,
+                      "newUserRewardAmount": 10,
+                      "rewardCurrency": "USD",
+                      "minimumTransactionAmount": 50,
+                      "referralExpirationValue": 30,
+                      "referralExpirationUnit": "DAYS",
+                      "allowSelfReferrals": false
                     },
-                    "message": "Referral program status updated successfully."
+                    "message": "Referral settings updated successfully."
                   }
                 }
               }
@@ -2939,7 +2924,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update referral program status",
+        "summary": "Update referral settings or status",
         "tags": [
           "02 Admin - Referral Settings"
         ],
@@ -26386,34 +26371,16 @@
               "FIRST_SUCCESSFUL_PURCHASE"
             ],
             "example": "FIRST_SUCCESSFUL_PURCHASE"
-          }
-        },
-        "required": [
-          "referrerRewardAmount",
-          "newUserRewardAmount",
-          "rewardCurrency",
-          "minimumTransactionAmount",
-          "referralExpirationValue",
-          "referralExpirationUnit",
-          "allowSelfReferrals",
-          "qualificationRule"
-        ]
-      },
-      "ReferralSettingsStatusDto": {
-        "type": "object",
-        "properties": {
+          },
           "isActive": {
             "type": "boolean",
             "example": true
           },
-          "reason": {
+          "statusReason": {
             "type": "string",
             "example": "Seasonal referral campaign enabled."
           }
-        },
-        "required": [
-          "isActive"
-        ]
+        }
       },
       "UpdateGuestAccessSettingsDto": {
         "type": "object",

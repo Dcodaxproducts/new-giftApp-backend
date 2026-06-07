@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 11:11 UTC
+Generated at: 2026-06-07 11:27 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -25,7 +25,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 - 02 Admin - Social Moderation (5 APIs)
 - 02 Admin - Social Reporting Rules (7 APIs)
 - 02 Admin - Notification Delivery Monitoring (4 APIs)
-- 02 Admin - Referral Settings (5 APIs)
+- 02 Admin - Referral Settings (4 APIs)
 - 02 Admin - Refund Policy Settings (3 APIs)
 - 02 Admin - Media Upload Policy (3 APIs)
 - 02 Admin - System Settings (5 APIs)
@@ -3716,11 +3716,11 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ### PATCH `/api/v1/referral-settings`
 
-- Summary: Update referral settings
+- Summary: Update referral settings or status
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Changes apply to future referral snapshots. SUPER_ADMIN only. Changes apply to future referral snapshots and do not recalculate already-earned rewards. Use isActive/statusReason on this same endpoint to activate or deactivate the referral program.
 - Request payload(s):
-  - payload:
+  - update:
 ```json
 {
   "referrerRewardAmount": 25,
@@ -3733,33 +3733,18 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "qualificationRule": "FIRST_SUCCESSFUL_PURCHASE"
 }
 ```
-- Response body:
-```json
-{
-  "success": true,
-  "data": "<response returned by endpoint>",
-  "message": "Request completed successfully."
-}
-```
-
-### PATCH `/api/v1/referral-settings/status`
-
-- Summary: Update referral program status
-- Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it. This status endpoint is restricted to Super Admin, and earned rewards remain redeemable.
-- Request payload(s):
   - activate:
 ```json
 {
   "isActive": true,
-  "reason": "Seasonal referral campaign enabled."
+  "statusReason": "Seasonal referral campaign enabled."
 }
 ```
   - deactivate:
 ```json
 {
   "isActive": false,
-  "reason": "Referral campaign paused for budget review."
+  "statusReason": "Referral campaign paused for budget review."
 }
 ```
 - Response body:
@@ -3768,9 +3753,15 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": {
     "isActive": true,
-    "updatedAt": "2026-05-25T10:00:00.000Z"
+    "referrerRewardAmount": 25,
+    "newUserRewardAmount": 10,
+    "rewardCurrency": "USD",
+    "minimumTransactionAmount": 50,
+    "referralExpirationValue": 30,
+    "referralExpirationUnit": "DAYS",
+    "allowSelfReferrals": false
   },
-  "message": "Referral program status updated successfully."
+  "message": "Referral settings updated successfully."
 }
 ```
 

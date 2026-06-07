@@ -3,7 +3,7 @@ import { Prisma, ReferralExpirationUnit, ReferralSettings } from '@prisma/client
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { ReferralSettingsRepository } from '../repositories/referral-settings.repository';
-import { ListReferralSettingsAuditLogsDto, ReferralSettingsStatusDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
+import { ListReferralSettingsAuditLogsDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
 type SettingsWithUpdater = ReferralSettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
@@ -17,20 +17,25 @@ export class ReferralSettingsService {
   async update(user: AuthUserContext, dto: UpdateReferralSettingsDto, ipAddress?: string, userAgent?: string | string[]) {
     const current = await this.getOrCreate();
     const before = this.toView(current);
-    const updated = await this.repository.updateSettings(current.id, { referrerRewardAmount: new Prisma.Decimal(dto.referrerRewardAmount), newUserRewardAmount: new Prisma.Decimal(dto.newUserRewardAmount), rewardCurrency: dto.rewardCurrency.toUpperCase(), minimumTransactionAmount: new Prisma.Decimal(dto.minimumTransactionAmount), referralExpirationValue: dto.referralExpirationValue, referralExpirationUnit: dto.referralExpirationUnit, allowSelfReferrals: dto.allowSelfReferrals, qualificationRule: dto.qualificationRule, updatedById: user.uid });
+    const updated = await this.repository.updateSettings(current.id, {
+      referrerRewardAmount: dto.referrerRewardAmount === undefined ? undefined : new Prisma.Decimal(dto.referrerRewardAmount),
+      newUserRewardAmount: dto.newUserRewardAmount === undefined ? undefined : new Prisma.Decimal(dto.newUserRewardAmount),
+      rewardCurrency: dto.rewardCurrency?.toUpperCase(),
+      minimumTransactionAmount: dto.minimumTransactionAmount === undefined ? undefined : new Prisma.Decimal(dto.minimumTransactionAmount),
+      referralExpirationValue: dto.referralExpirationValue,
+      referralExpirationUnit: dto.referralExpirationUnit,
+      allowSelfReferrals: dto.allowSelfReferrals,
+      qualificationRule: dto.qualificationRule,
+      isActive: dto.isActive,
+      updatedById: user.uid,
+    });
     const after = this.toView(updated);
-    await this.writeAudit(user, 'REFERRAL_SETTINGS_UPDATED', current.id, before, after, ipAddress, userAgent);
-    return { data: { isActive: after.isActive, referrerRewardAmount: after.referrerRewardAmount, newUserRewardAmount: after.newUserRewardAmount, rewardCurrency: after.rewardCurrency, minimumTransactionAmount: after.minimumTransactionAmount, referralExpirationValue: after.referralExpirationValue, referralExpirationUnit: after.referralExpirationUnit, allowSelfReferrals: after.allowSelfReferrals }, message: 'Referral settings updated successfully.' };
-  }
-
-  async updateStatus(user: AuthUserContext, dto: ReferralSettingsStatusDto, ipAddress?: string, userAgent?: string | string[]) {
-    const current = await this.getOrCreate();
-    const before = this.toView(current);
-    const updated = await this.repository.updateSettings(current.id, { isActive: dto.isActive, updatedById: user.uid });
-    const action = dto.isActive ? 'REFERRAL_PROGRAM_ACTIVATED' : 'REFERRAL_PROGRAM_DEACTIVATED';
-    const after = dto.reason ? { ...this.toView(updated), reason: dto.reason } : this.toView(updated);
-    await this.writeAudit(user, action, current.id, before, after, ipAddress, userAgent);
-    return { data: { isActive: updated.isActive }, message: updated.isActive ? 'Referral program activated successfully.' : 'Referral program deactivated successfully.' };
+    const action = dto.isActive === true ? 'REFERRAL_PROGRAM_ACTIVATED' : dto.isActive === false ? 'REFERRAL_PROGRAM_DEACTIVATED' : 'REFERRAL_SETTINGS_UPDATED';
+    await this.writeAudit(user, action, current.id, this.withStatusReason(before, dto.statusReason), this.withStatusReason(after, dto.statusReason), ipAddress, userAgent);
+    return {
+      data: { isActive: after.isActive, referrerRewardAmount: after.referrerRewardAmount, newUserRewardAmount: after.newUserRewardAmount, rewardCurrency: after.rewardCurrency, minimumTransactionAmount: after.minimumTransactionAmount, referralExpirationValue: after.referralExpirationValue, referralExpirationUnit: after.referralExpirationUnit, allowSelfReferrals: after.allowSelfReferrals },
+      message: this.updateMessage(dto),
+    };
   }
 
   async stats() {
@@ -65,4 +70,6 @@ export class ReferralSettingsService {
   private toView(settings: SettingsWithUpdater) { return { isActive: settings.isActive, referrerRewardAmount: Number(settings.referrerRewardAmount), newUserRewardAmount: Number(settings.newUserRewardAmount), rewardCurrency: settings.rewardCurrency, minimumTransactionAmount: Number(settings.minimumTransactionAmount), referralExpirationValue: settings.referralExpirationValue, referralExpirationUnit: settings.referralExpirationUnit, allowSelfReferrals: settings.allowSelfReferrals, qualificationRule: settings.qualificationRule, updatedAt: settings.updatedAt, updatedBy: settings.updatedBy ? { id: settings.updatedBy.id, name: `${settings.updatedBy.firstName} ${settings.updatedBy.lastName}`.trim() } : null }; }
   private async writeAudit(user: AuthUserContext, action: string, targetId: string, beforeJson: unknown, afterJson: unknown, ipAddress?: string, userAgent?: string | string[]) { await this.auditLog.write({ actorId: user.uid, targetId, targetType: 'REFERRAL_SETTINGS', action, beforeJson, afterJson, ipAddress, userAgent: Array.isArray(userAgent) ? userAgent.join(', ') : userAgent }); }
   private money(value: number): number { return Number(value.toFixed(2)); }
+  private withStatusReason<T extends Record<string, unknown>>(value: T, statusReason?: string): T | (T & { statusReason: string }) { return statusReason ? { ...value, statusReason } : value; }
+  private updateMessage(dto: UpdateReferralSettingsDto): string { if (dto.isActive === true) return 'Referral program activated successfully.'; if (dto.isActive === false) return 'Referral program deactivated successfully.'; return 'Referral settings updated successfully.'; }
 }
