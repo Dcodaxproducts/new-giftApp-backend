@@ -65,6 +65,6 @@ export class AdminPayoutSettingsController {
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
   @ApiQuery({ name: 'toDate', required: false })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'audit_log_id', action: 'PAYOUT_SETTINGS_UPDATED', actor: { id: 'admin_id', name: 'Alex Rivera' }, targetType: 'PAYOUT_SETTINGS', before: { platformRatePercent: 5 }, after: { platformRatePercent: 6 }, createdAt: '2026-05-16T10:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Payout settings audit logs fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'audit_log_id', action: 'PAYOUT_SETTINGS_UPDATED', actor: { id: 'admin_id', name: 'Alex Rivera' }, targetType: 'PAYOUT_SETTINGS', before: { platformRatePercent: 5 }, after: { platformRatePercent: 6 }, createdAt: '2026-05-16T10:00:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Payout settings audit logs fetched successfully.' } } })
   auditLogs(@Query() query: ListPayoutSettingsAuditLogsDto) { return this.payoutSettings.auditLogs(query); }
 }

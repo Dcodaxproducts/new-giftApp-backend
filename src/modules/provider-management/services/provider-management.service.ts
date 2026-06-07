@@ -31,6 +31,7 @@ import {
   UpdateProviderStatusDto,
 } from '../dto/provider-management.dto';
 import { ProviderAggregateStats, ProviderManagementRepository } from '../repositories/provider-management.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 interface ProviderActivityItem {
   id: string;
@@ -50,8 +51,7 @@ export class ProviderManagementService {
   ) {}
 
   async list(query: ListProvidersDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
 
     if (query.sortBy === ProviderSortBy.REVENUE) {
       const providers = await this.repository.findManyProviders(query, { skip: 0, take: 10000 });
@@ -62,7 +62,7 @@ export class ProviderManagementService {
         const rightRevenue = aggregateMap.get(right.id)?.revenue ?? 0;
         return ((leftRevenue - rightRevenue) * direction) || (right.createdAt.getTime() - left.createdAt.getTime());
       });
-      const paged = sorted.slice((page - 1) * limit, page * limit);
+      const paged = sorted.slice(skip, skip + take);
 
       return {
         data: paged.map((provider) => this.toListItem(provider, aggregateMap.get(provider.id) ?? this.zeroStats())),
@@ -72,7 +72,7 @@ export class ProviderManagementService {
     }
 
     const [items, total] = await Promise.all([
-      this.repository.findManyProviders(query, { skip: (page - 1) * limit, take: limit }),
+      this.repository.findManyProviders(query, { skip, take }),
       this.repository.countProviders(query),
     ]);
     const aggregateMap = await this.repository.findProviderAggregateMap(items.map((provider) => provider.id));
@@ -327,13 +327,11 @@ export class ProviderManagementService {
 
   async items(id: string, query: ListProviderItemsDto) {
     await this.getProvider(id);
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const { items, total } = await this.repository.findProviderListedItems(id, query);
-    const start = (page - 1) * limit;
 
     return {
-      data: items.slice(start, start + limit),
+      data: items.slice(skip, skip + take),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       message: 'Provider items fetched successfully',
     };
@@ -341,17 +339,15 @@ export class ProviderManagementService {
 
   async activity(id: string, query: ListProviderActivityDto) {
     const provider = await this.getProvider(id);
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const requestedType = query.type ?? ProviderActivityType.ALL;
     const logs = await this.repository.findProviderActivity(provider.id);
     const activities = logs
       .map((log): ProviderActivityItem => this.toAuditActivity(log))
       .filter((activity) => requestedType === ProviderActivityType.ALL || activity.type === requestedType);
-    const start = (page - 1) * limit;
 
     return {
-      data: activities.slice(start, start + limit),
+      data: activities.slice(skip, skip + take),
       meta: { page, limit, total: activities.length, totalPages: Math.ceil(activities.length / limit) },
       message: 'Provider activity fetched successfully',
     };

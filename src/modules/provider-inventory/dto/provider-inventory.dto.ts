@@ -10,7 +10,7 @@ export enum ProviderInventoryManualStatus { ACTIVE = 'ACTIVE', INACTIVE = 'INACT
 
 export class ListProviderInventoryDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: ProviderInventoryStatusFilter }) @IsOptional() @IsString() status?: ProviderInventoryStatusFilter;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;

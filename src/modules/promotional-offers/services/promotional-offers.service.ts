@@ -6,6 +6,7 @@ import { NotificationDispatchService } from '../../broadcast-notifications/servi
 import { OfferWithRelations, PromotionalOffersRepository, promotionalOfferInclude } from '../repositories/promotional-offers.repository';
 import { ProviderOffersRepository } from '../repositories/provider-offers.repository';
 import { AdminPromotionalOfferAction, AdminPromotionalOfferActionDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, SortOrder, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class PromotionalOffersService {
@@ -135,12 +136,11 @@ export class PromotionalOffersService {
   }
 
   private async list(query: ListPromotionalOffersDto | (ListProviderOffersDto & { providerId: string })) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(query);
     const [items, total] = 'providerId' in query && query.providerId
-      ? await this.providerOffersRepository.findProviderOffersAndCount({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit })
-      : await this.promotionalOffersRepository.findOffersAndCount({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+      ? await this.providerOffersRepository.findProviderOffersAndCount({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip, take })
+      : await this.promotionalOffersRepository.findOffersAndCount({ where, include: this.include(), orderBy: this.order(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((offer) => this.toListItem(offer)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Promotional offers fetched successfully' };
   }
 

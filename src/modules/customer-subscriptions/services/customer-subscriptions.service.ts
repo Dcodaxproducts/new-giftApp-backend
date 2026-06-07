@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { ApplyCouponDto, ConfirmSubscriptionDto, CustomerSubscriptionAction, CustomerSubscriptionActionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
 import { CustomerSubscriptionsRepository } from '../repositories/customer-subscriptions.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type PlanFeature = { key: string; label: string; description?: string | null; enabled: boolean };
 type StripeSubscriptionLike = { id: string; status: string; customer?: string | { id: string } | null; current_period_start?: number; current_period_end?: number; cancel_at_period_end?: boolean; latest_invoice?: string | { payment_intent?: string | { client_secret?: string | null; id?: string } | null } | null; items?: { data?: { price?: { id?: string } }[] } };
@@ -63,7 +64,7 @@ export class CustomerSubscriptionsService {
     return this.reactivateAction(user.uid, sub);
   }
 
-  async invoices(user: AuthUserContext, query: ListSubscriptionInvoicesDto) { const page = query.page ?? 1; const limit = query.limit ?? 20; const where: Prisma.CustomerSubscriptionInvoiceWhereInput = { userId: user.uid, ...(query.status && query.status !== InvoiceStatusFilter.ALL ? { status: query.status } : {}) }; const [items, total] = await this.repository.findSubscriptionInvoicesAndCountForUser(where, { skip: (page - 1) * limit, take: limit }); return { data: items.map((item) => this.invoiceItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Subscription invoices fetched successfully.' }; }
+  async invoices(user: AuthUserContext, query: ListSubscriptionInvoicesDto) { const { page, limit, skip, take } = getPagination(query); const where: Prisma.CustomerSubscriptionInvoiceWhereInput = { userId: user.uid, ...(query.status && query.status !== InvoiceStatusFilter.ALL ? { status: query.status } : {}) }; const [items, total] = await this.repository.findSubscriptionInvoicesAndCountForUser(where, { skip, take }); return { data: items.map((item) => this.invoiceItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Subscription invoices fetched successfully.' }; }
   async invoiceDetails(user: AuthUserContext, id: string) { const invoice = await this.repository.findSubscriptionInvoiceForUser(user.uid, id); if (!invoice) throw new NotFoundException('Subscription invoice not found'); return { data: this.invoiceItem(invoice), message: 'Subscription invoice fetched successfully.' }; }
 
   async applyCoupon(_user: AuthUserContext, dto: ApplyCouponDto) { const plan = await this.publicPlan(dto.planId); const coupon = await this.validCoupon(dto.planId, dto.couponCode); const result = this.finalPrice(plan, dto.billingCycle, coupon); return { data: { planPrice: result.planPrice, discountAmount: result.discountAmount, finalPrice: result.finalPrice, currency: plan.currency, coupon: { code: coupon.code, discountType: coupon.discountType, discountValue: Number(coupon.discountValue) } }, message: 'Coupon applied successfully.' }; }

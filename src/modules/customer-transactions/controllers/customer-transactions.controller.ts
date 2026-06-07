@@ -23,7 +23,7 @@ export class CustomerTransactionsController {
   @ApiQuery({ name: 'paymentMethod', enum: CustomerTransactionPaymentMethod, required: false })
   @ApiQuery({ name: 'sortBy', enum: CustomerTransactionSortBy, required: false })
   @ApiQuery({ name: 'sortOrder', enum: CustomerTransactionSortOrder, required: false })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'payment_id', transactionId: 'TXN-2026-001234', title: 'Monthly Flowers', description: 'Recurring payment', recipient: { id: 'contact_id', name: 'Sarah Johnson', avatarUrl: 'https://cdn.yourdomain.com/customer-contact-avatars/sarah.png' }, amount: 50, currency: 'PKR', type: 'RECURRING_PAYMENT', status: 'SUCCESS', paymentMethod: 'STRIPE_CARD', createdAt: '2026-03-01T14:34:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Transactions fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'payment_id', transactionId: 'TXN-2026-001234', title: 'Monthly Flowers', description: 'Recurring payment', recipient: { id: 'contact_id', name: 'Sarah Johnson', avatarUrl: 'https://cdn.yourdomain.com/customer-contact-avatars/sarah.png' }, amount: 50, currency: 'PKR', type: 'RECURRING_PAYMENT', status: 'SUCCESS', paymentMethod: 'STRIPE_CARD', createdAt: '2026-03-01T14:34:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Transactions fetched successfully.' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListCustomerTransactionsDto) { return this.transactions.list(user, query); }
 
   @Get('summary')

@@ -8,7 +8,7 @@ export enum AuditLogStatusFilter { ALL = 'ALL', SUCCESS = 'SUCCESS', FAILED = 'F
 
 export class ListAuditLogsDto {
   @ApiPropertyOptional({ default: 1 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ default: 20, maximum: 100 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ default: 10, maximum: 100 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() actorId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() userId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() targetId?: string;
@@ -35,5 +35,5 @@ export class AuditLogStatsDto {
 export class AuditLogUsersDto {
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() role?: string;
-  @ApiPropertyOptional({ default: 20, maximum: 100 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ default: 10, maximum: 100 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) @Max(100) limit?: number;
 }

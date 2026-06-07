@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CustomerRecurringPaymentsRepository } from '../repositories/customer-recurring-payments.repository';
 import { CreateRecurringPaymentDto, CustomerRecurringPaymentAction, HistoryStatusFilter, ListRecurringPaymentsDto, ListRecurringPaymentsSortBy, ListRecurringPaymentsStatus, RecurringPaymentActionDto, RecurringPaymentScheduleDto, SortOrder, UpdateRecurringPaymentDto, Weekday } from '../dto/customer-recurring-payments.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type RecurringWithContact = CustomerRecurringPayment & { recipientContact: { id: string; name: string; email: string | null; avatarUrl: string | null } };
 type StripeSetupIntentLike = { id: string; client_secret: string | null };
@@ -17,12 +18,11 @@ export class CustomerRecurringPaymentsService {
   constructor(private readonly repository: CustomerRecurringPaymentsRepository) {}
 
   async list(user: AuthUserContext, query: ListRecurringPaymentsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.listWhere(user.uid, query);
     const sortBy = query.sortBy ?? ListRecurringPaymentsSortBy.CREATED_AT;
     const [items, total] = await Promise.all([
-      this.repository.findManyForCustomer({ where, include: { recipientContact: true }, orderBy: { [sortBy]: (query.sortOrder ?? SortOrder.DESC).toLowerCase() as Prisma.SortOrder }, skip: (page - 1) * limit, take: limit }),
+      this.repository.findManyForCustomer({ where, include: { recipientContact: true }, orderBy: { [sortBy]: (query.sortOrder ?? SortOrder.DESC).toLowerCase() as Prisma.SortOrder }, skip, take }),
       this.repository.countForCustomer(where),
     ]);
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Recurring payments fetched successfully.' };
@@ -69,12 +69,11 @@ export class CustomerRecurringPaymentsService {
 
   async history(user: AuthUserContext, id: string, query: { page?: number; limit?: number; status?: HistoryStatusFilter }) {
     await this.getOwned(user.uid, id);
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const status = query.status && query.status !== HistoryStatusFilter.ALL ? query.status : undefined;
     const where: Prisma.CustomerRecurringPaymentOccurrenceWhereInput = { recurringPaymentId: id, userId: user.uid, status };
     const [items, total] = await Promise.all([
-      this.repository.findBillingHistory({ where, orderBy: { scheduledFor: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.repository.findBillingHistory({ where, orderBy: { scheduledFor: 'desc' }, skip, take }),
       this.repository.countBillingHistory(where),
     ]);
     return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Recurring payment history fetched successfully.' };

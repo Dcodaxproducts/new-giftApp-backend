@@ -17,7 +17,7 @@ export enum MessageModerationMessageAction { HIDE_MESSAGE = 'HIDE_MESSAGE', REST
 
 export class ListMessageModerationDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: MessageModerationChatType }) @IsOptional() @IsEnum(MessageModerationChatType) chatType?: MessageModerationChatType;
   @ApiPropertyOptional({ enum: MessageModerationQueueStatus }) @IsOptional() @IsEnum(MessageModerationQueueStatus) status?: MessageModerationQueueStatus;
@@ -37,7 +37,7 @@ export class ListMessageModerationDto {
 
 export class ListMessageModerationAuditLogsDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() conversationId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() messageId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() actorAdminId?: string;
@@ -52,7 +52,7 @@ export class MessageModerationHistoryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() beforeMessageId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() afterMessageId?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
 }
 
 export class BlockMessageDto { @ApiProperty() @IsString() reason!: string; @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) comment?: string; @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) internalNote?: string; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyParticipants?: boolean; @ApiPropertyOptional() @IsOptional() @IsBoolean() notifyUser?: boolean; }

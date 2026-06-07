@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { MediaUploadPolicyService } from '../../media-upload-policy/services/media-upload-policy.service';
 import { ListMessagingSettingsAuditLogsDto, UpdateMessagingSettingsDto } from '../dto/messaging-settings.dto';
 import { MessagingSettingsRepository } from '../repositories/messaging-settings.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type SettingsWithUpdater = MessagingSettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
 
@@ -32,10 +33,9 @@ export class MessagingSettingsService {
   }
 
   async auditLogs(query: ListMessagingSettingsAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.AdminAuditLogWhereInput = { module: 'messagingSettings' };
-    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip, take });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: `${item.actor.firstName} ${item.actor.lastName}`.trim() } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Messaging settings audit logs fetched successfully.' };
   }
 

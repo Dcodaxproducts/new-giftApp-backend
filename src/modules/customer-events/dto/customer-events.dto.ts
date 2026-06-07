@@ -10,7 +10,7 @@ export enum ReminderChannelDto { PUSH = 'PUSH', EMAIL = 'EMAIL', SMS = 'SMS' }
 
 export class ListCustomerEventsDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ example: 'birthday' }) @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: EventTypeFilter, example: EventTypeFilter.BIRTHDAY }) @IsOptional() @IsEnum(EventTypeFilter) eventType?: EventTypeFilter;
   @ApiPropertyOptional({ example: '2026-01-01T00:00:00.000Z' }) @IsOptional() @IsDateString() fromDate?: string;
@@ -20,7 +20,7 @@ export class ListCustomerEventsDto {
   @ApiPropertyOptional({ enum: SortOrder, example: SortOrder.ASC }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }
 export class CalendarEventsDto { @ApiProperty({ example: 1 }) @Type(() => Number) @IsInt() @Min(1) month!: number; @ApiProperty({ example: 2026 }) @Type(() => Number) @IsInt() @Min(1970) year!: number; @ApiPropertyOptional({ enum: EventTypeFilter, example: EventTypeFilter.BIRTHDAY }) @IsOptional() @IsEnum(EventTypeFilter) eventType?: EventTypeFilter; }
-export class UpcomingEventsDto { @ApiPropertyOptional({ example: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional({ example: 30 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) daysAhead?: number; @ApiPropertyOptional({ enum: EventTypeFilter, example: EventTypeFilter.ANNIVERSARY }) @IsOptional() @IsEnum(EventTypeFilter) eventType?: EventTypeFilter; }
+export class UpcomingEventsDto { @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional({ example: 30 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) daysAhead?: number; @ApiPropertyOptional({ enum: EventTypeFilter, example: EventTypeFilter.ANNIVERSARY }) @IsOptional() @IsEnum(EventTypeFilter) eventType?: EventTypeFilter; }
 export class CreateCustomerEventDto {
   @ApiProperty({ enum: CustomerEventType, example: CustomerEventType.BIRTHDAY }) @IsEnum(CustomerEventType) eventType!: CustomerEventType;
   @ApiProperty({ example: "Sarah's Birthday" }) @IsString() @MinLength(2) title!: string;

@@ -3,6 +3,7 @@ import { PaymentMethod, PaymentStatus, Prisma, RefundRejectReason, RefundRequest
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { PROVIDER_REFUND_REQUEST_INCLUDE, ProviderRefundRequestsRepository } from '../repositories/provider-refund-requests.repository';
 import { ListProviderRefundRequestsDto, ProviderRefundRequestAction, ProviderRefundRequestActionDto, ProviderRefundRequestSortBy, ProviderRefundRequestSortOrder, ProviderRefundRequestStatusFilter } from '../dto/provider-refund-requests.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type RefundRequestView = Prisma.RefundRequestGetPayload<{ include: typeof PROVIDER_REFUND_REQUEST_INCLUDE }>;
 
@@ -11,10 +12,9 @@ export class ProviderRefundRequestsService {
   constructor(private readonly repository: ProviderRefundRequestsRepository) {}
 
   async list(user: AuthUserContext, query: ListProviderRefundRequestsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(user.uid, query);
-    const [items, total] = await this.repository.findManyForProviderList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findManyForProviderList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider refund requests fetched successfully.' };
   }
 

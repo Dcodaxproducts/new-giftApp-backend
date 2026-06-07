@@ -19,7 +19,7 @@ export class ProviderDisputeDateRangeDto {
 
 export class ListProviderDisputesDto extends ProviderDisputeDateRangeDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() providerId?: string;
   @ApiPropertyOptional({ enum: ProviderDisputeCategoryFilter }) @IsOptional() @IsEnum(ProviderDisputeCategoryFilter) category?: ProviderDisputeCategoryFilter;

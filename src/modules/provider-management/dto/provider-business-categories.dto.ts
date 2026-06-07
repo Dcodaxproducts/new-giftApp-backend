@@ -3,14 +3,14 @@ import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsInt, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
 
 export class ListProviderBusinessCategoriesDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 10, default: 10 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

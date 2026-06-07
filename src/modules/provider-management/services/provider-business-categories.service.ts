@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { ProviderBusinessCategoriesRepository } from '../repositories/provider-business-categories.repository';
 import { CreateProviderBusinessCategoryDto, ListProviderBusinessCategoriesDto, UpdateProviderBusinessCategoryDto } from '../dto/provider-business-categories.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 const DEFAULT_PROVIDER_BUSINESS_CATEGORIES = [
   { name: 'Logistics', slug: 'logistics' },
@@ -26,14 +27,13 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
   }
 
   async list(query: ListProviderBusinessCategoriesDto = {}) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 100;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ProviderBusinessCategoryWhereInput = {
       deletedAt: null,
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
       ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
     };
-    const [items, total] = await this.repository.findManyForList({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findManyForList({ where, skip, take });
 
     return {
       data: items.map((category) => this.toCategory(category)),

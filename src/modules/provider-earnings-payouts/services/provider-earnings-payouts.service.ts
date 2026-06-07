@@ -3,6 +3,7 @@ import { NotificationRecipientType, PaymentStatus, Prisma, ProviderApprovalStatu
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CancelProviderPayoutDto, EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, RequestProviderPayoutDto, SortOrder } from '../dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from '../repositories/provider-earnings-payouts.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class ProviderEarningsPayoutsService {
@@ -36,12 +37,12 @@ export class ProviderEarningsPayoutsService {
 
   async earningsLedger(user: AuthUserContext, query: EarningsLedgerQueryDto) {
     await this.getApprovedActiveProvider(user.uid);
-    const page = query.page ?? 1; const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ProviderEarningsLedgerWhereInput = { providerId: user.uid };
     if (query.type && query.type !== EarningsLedgerTypeFilter.ALL) where.type = query.type;
     if (query.status && query.status !== EarningsLedgerStatusFilter.ALL) where.status = query.status;
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
-    const [items, total] = await this.repository.findLedgerEntriesAndCountForProvider(where, { skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findLedgerEntriesAndCountForProvider(where, { skip, take });
     return { data: items.map((item) => ({ id: item.id, type: item.type, description: item.description, amount: Number(item.amount), currency: item.currency, status: item.status, orderNumber: item.providerOrder?.orderNumber ?? null, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider earnings ledger fetched successfully.' };
   }
 
@@ -53,10 +54,10 @@ export class ProviderEarningsPayoutsService {
 
   async payoutHistory(user: AuthUserContext, query: PayoutHistoryQueryDto) {
     await this.getApprovedActiveProvider(user.uid);
-    const page = query.page ?? 1; const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const range = this.dateRange(query.range ?? PayoutHistoryRange.ALL_TIME, query.fromDate, query.toDate);
     const where: Prisma.ProviderPayoutWhereInput = { providerId: user.uid, ...(query.status && query.status !== PayoutStatusFilter.ALL ? { status: query.status } : {}), ...(range.from || range.to ? { createdAt: { gte: range.from, lte: range.to } } : {}) };
-    const [items, total] = await this.repository.findPayoutsAndCountForProvider(where, { orderBy: { [query.sortBy ?? PayoutSortBy.createdAt]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findPayoutsAndCountForProvider(where, { orderBy: { [query.sortBy ?? PayoutSortBy.createdAt]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip, take });
     return { data: items.map((item) => this.toPayoutListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider payouts fetched successfully.' };
   }
 

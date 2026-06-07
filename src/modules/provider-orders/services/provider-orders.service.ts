@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, ProviderOrderAction, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from '../dto/provider-orders.dto';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from '../repositories/provider-orders.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type ProviderOrderView = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true; refundRequests: true } }>;
 type ProviderOrderDetail = ProviderOrderView;
@@ -16,25 +17,23 @@ export class ProviderOrdersService {
   ) {}
 
   async list(user: AuthUserContext, query: ListProviderOrdersDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(user.uid, query);
     const orderBy = this.orderBy(query.sortBy, query.sortOrder);
-    const [items, total] = await this.providerOrdersRepository.findManyAndCountProviderOrders({ where, include: this.listInclude(), orderBy, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.providerOrdersRepository.findManyAndCountProviderOrders({ where, include: this.listInclude(), orderBy, skip, take });
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider orders fetched successfully.' };
   }
 
 
   async history(user: AuthUserContext, query: ProviderOrderHistoryDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.historyWhere(user.uid, query);
-    const [items, total] = await this.providerOrdersRepository.findManyAndCountProviderOrders({ where, include: this.listInclude(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.providerOrdersRepository.findManyAndCountProviderOrders({ where, include: this.listInclude(), orderBy: this.orderBy(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider order history fetched successfully.' };
   }
 
   async recent(user: AuthUserContext, query: ProviderRecentOrdersDto) {
-    const limit = Math.min(query.limit ?? 5, 50);
+    const { limit } = getPagination(query);
     const items = await this.providerOrdersRepository.findRecentProviderOrders(user.uid, limit);
     return { data: items.map((item) => ({ id: item.id, orderNumber: item.orderNumber ?? item.id, status: item.status, amount: Number(item.totalPayout ?? item.total), currency: item.currency, createdAt: item.createdAt })), message: 'Recent provider orders fetched successfully.' };
   }

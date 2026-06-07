@@ -9,6 +9,7 @@ import { ChatReadReceiptService } from './chat-read-receipt.service';
 import { CHAT_THREAD_INCLUDE, ChatThreadRepository } from '../repositories/chat-thread.repository';
 import { ChatAuditLogRepository } from '../repositories/chat-audit-log.repository';
 import { ChatSortBy, ChatSortOrder, ChatSourceKind, ChatStatus, ChatThreadKind, CreateChatThreadDto, ListChatsDto, ListThreadMessagesDto, SendChatThreadMessageDto, UpdateChatThreadStatusDto } from '../dto/chats.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type Thread = Prisma.ChatThreadGetPayload<{ include: typeof CHAT_THREAD_INCLUDE }>;
 type Envelope<T> = { data: T; meta?: unknown; message: string };
@@ -26,11 +27,10 @@ export class ChatThreadService {
   ) {}
 
   async list(user: AuthUserContext, query: ListChatsDto): Promise<Envelope<unknown>> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.listWhere(user, query);
     const [items, total] = await Promise.all([
-      this.threads.findMany({ where, include: CHAT_THREAD_INCLUDE, orderBy: this.orderBy(query), skip: (page - 1) * limit, take: limit }),
+      this.threads.findMany({ where, include: CHAT_THREAD_INCLUDE, orderBy: this.orderBy(query), skip, take }),
       this.threads.count(where),
     ]);
     const data = await Promise.all(items.map((thread) => this.threadItem(thread, user.uid)));

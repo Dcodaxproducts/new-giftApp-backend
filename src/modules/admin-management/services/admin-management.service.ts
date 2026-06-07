@@ -15,6 +15,7 @@ import {
   UpdateAdminDto,
 } from '../dto/admin-management.dto';
 import { AdminManagementRepository } from '../repositories/admin-management.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class AdminManagementService {
@@ -90,8 +91,7 @@ export class AdminManagementService {
   }
 
   async list(_user: AuthUserContext, query: ListAdminsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.UserWhereInput = {
       role: UserRole.ADMIN,
       deletedAt: null,
@@ -116,8 +116,7 @@ export class AdminManagementService {
         where,
         include: { adminRole: true },
         orderBy: { [sortBy]: sortOrder },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip, take,
       }),
       this.repository.countAdmins(where),
     ]);

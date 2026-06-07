@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 06:58 UTC
+Generated at: 2026-06-07 07:31 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -1027,7 +1027,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -1308,7 +1308,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -2384,7 +2384,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -2596,7 +2596,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -2830,7 +2830,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -3057,7 +3057,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -3940,7 +3940,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -4423,7 +4423,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -4569,7 +4569,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -5160,7 +5160,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -5958,7 +5958,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -6111,7 +6111,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -7851,7 +7851,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -8958,7 +8958,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -9198,7 +9198,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -9251,7 +9251,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -9700,7 +9700,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -10236,7 +10236,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },
@@ -11219,7 +11219,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   ],
   "meta": {
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "total": 1,
     "totalPages": 1
   },

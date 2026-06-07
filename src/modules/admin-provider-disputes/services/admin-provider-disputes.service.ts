@@ -9,6 +9,7 @@ import { ProviderDisputeLogsRepository } from '../repositories/provider-dispute-
 import { ProviderDisputeResolutionRepository } from '../repositories/provider-dispute-resolution.repository';
 import { ProviderDisputeRulingsRepository } from '../repositories/provider-dispute-rulings.repository';
 import { AddProviderDisputeNoteDto, ExportFormat, ExportProviderDisputeResolutionLogDto, ExportProviderDisputesDto, FinalProviderDisputeAttestationDto, FinalizeProviderDisputeDto, LinkProviderDisputePayoutDto, ListProviderDisputesDto, MarkProviderDisputeEvidenceReviewedDto, ProviderDisputeCategoryFilter, ProviderDisputeDateRangeDto, ProviderDisputeRange, ProviderDisputeSeverityFilter, ProviderDisputeSortBy, ProviderDisputeStatusFilter, RequestProviderDisputeEvidenceDto, ResendProviderDisputeNotificationDto, SaveProviderDisputeRulingDto, SortOrder } from '../dto/admin-provider-disputes.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 export const PROVIDER_DISPUTE_TIMELINE_TYPES = ['PROVIDER_DISPUTE_CREATED', 'CUSTOMER_EVIDENCE_SUBMITTED', 'PROVIDER_EVIDENCE_SUBMITTED', 'ADDITIONAL_EVIDENCE_REQUESTED', 'EVIDENCE_REVIEW_STARTED', 'EVIDENCE_REVIEW_COMPLETED'] as const;
 
@@ -43,10 +44,9 @@ export class AdminProviderDisputesService {
   }
 
   async list(query: ListProviderDisputesDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(query);
-    const [items, total] = await this.disputesRepository.findDisputesAndCount({ where, include: this.include(), orderBy: this.orderBy(query), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.disputesRepository.findDisputesAndCount({ where, include: this.include(), orderBy: this.orderBy(query), skip, take });
     return { data: items.map((item) => this.listItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider disputes fetched successfully.' };
   }
 

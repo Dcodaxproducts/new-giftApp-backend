@@ -26,7 +26,7 @@ export class ListLoginAttemptsDto {
   @Min(1)
   page?: number;
 
-  @ApiPropertyOptional({ default: 20, maximum: 100 })
+  @ApiPropertyOptional({ default: 10, maximum: 100 })
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsInt()

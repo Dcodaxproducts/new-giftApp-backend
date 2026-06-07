@@ -6,6 +6,7 @@ import { AuditLogWriterService } from '../../../common/services/audit-log.servic
 import { ListPayoutSettingsAuditLogsDto, UpdateAdminPayoutSettingsDto, UpsertCommissionTierDto } from '../dto/admin-payout-settings.dto';
 import { AdminPayoutSettingsRepository } from '../repositories/admin-payout-settings.repository';
 import { CommissionTiersRepository } from '../repositories/commission-tiers.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type SettingsWithUpdater = AdminPayoutSettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
 type TierWithUpdater = CommissionTier & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
@@ -74,10 +75,9 @@ export class AdminPayoutSettingsService {
   }
 
   async auditLogs(query: ListPayoutSettingsAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.AdminAuditLogWhereInput = { action: { in: ['PAYOUT_SETTINGS_UPDATED', 'COMMISSION_TIER_CREATED', 'COMMISSION_TIER_UPDATED', 'COMMISSION_TIER_DELETED'] }, createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } };
-    const [items, total] = await this.settingsRepository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.settingsRepository.findAuditLogsWithCount({ where, skip, take });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: this.name(item.actor) } : null, targetType: item.targetType, before: item.beforeJson ?? null, after: item.afterJson ?? null, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Payout settings audit logs fetched successfully.' };
   }
 

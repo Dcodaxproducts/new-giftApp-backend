@@ -33,7 +33,7 @@ describe('Provider order history and performance source safety', () => {
   });
 
   it('recent orders returns latest own orders with default limit', () => {
-    expect(service).toContain('query.limit ?? 5');
+    expect(service).toContain('getPagination(query)');
     expect(repository).toContain("orderBy: { createdAt: 'desc' }");
     expect(service).toContain('Recent provider orders fetched successfully.');
   });

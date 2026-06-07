@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { LoginAttemptStatus, Prisma, UserRole } from '@prisma/client';
 import { LoginAttemptsRepository } from '../repositories/login-attempts.repository';
 import { ListLoginAttemptsDto } from '../dto/list-login-attempts.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 interface RecordLoginAttemptInput {
   email: string;
@@ -35,10 +36,9 @@ export class LoginAttemptsService {
   }
 
   async list(query: ListLoginAttemptsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(query);
-    const [items, total] = await this.repository.findManyWithCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findManyWithCount({ where, skip, take });
     return { data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Login attempts fetched' };
   }
 

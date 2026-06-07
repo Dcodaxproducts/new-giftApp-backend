@@ -36,6 +36,7 @@ import {
   UpdateCustomerAddressDto,
   UpdateCustomerReminderDto,
 } from '../dto/customer-marketplace.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type CategoryView = { id: string; name: string; slug: string; color: string | null; backgroundColor: string | null; imageUrl: string | null };
 type ProviderView = { id: string; providerBusinessName: string | null; firstName: string; lastName: string; providerFulfillmentMethods: Prisma.JsonValue };
@@ -90,10 +91,9 @@ export class CustomerMarketplaceService {
 
   async gifts(user: AuthUserContext, query: CustomerGiftListDto) {
     await this.assertMarketplace(user, query.offerOnly ? 'discounted' : 'browse');
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.customerGiftWhere(query);
-    const [items, total] = await this.customerMarketplaceRepository.findMarketplaceGiftsAndCount({ where, include: this.giftInclude(), orderBy: this.giftOrderBy(query.sortBy), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.customerMarketplaceRepository.findMarketplaceGiftsAndCount({ where, include: this.giftInclude(), orderBy: this.giftOrderBy(query.sortBy), skip, take });
     const wishlist = this.isGuest(user) ? new Set<string>() : await this.wishlistGiftIds(user.uid, items.map((gift) => gift.id));
     const ratings = await this.ratingSummaries(items);
     const data = items.map((gift) => this.toGiftListItem(gift, wishlist, ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user));
@@ -272,10 +272,9 @@ export class CustomerMarketplaceService {
   }
 
   async orders(user: AuthUserContext, query: ListCustomerOrdersDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.OrderWhereInput = { userId: user.uid, status: query.status, createdAt: query.fromDate || query.toDate ? { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } : undefined };
-    const [orders, total] = await this.customerOrdersRepository.findManyAndCountForCustomerOrders({ where, skip: (page - 1) * limit, take: limit });
+    const [orders, total] = await this.customerOrdersRepository.findManyAndCountForCustomerOrders({ where, skip, take });
     const data = orders.map((order) => this.toOrderListItem(order, query.type));
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Orders fetched successfully' };
   }

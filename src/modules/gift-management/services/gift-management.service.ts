@@ -23,6 +23,7 @@ import {
   UpdateGiftCategoryDto,
   UpdateGiftDto,
 } from '../dto/gift-management.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type GiftWithRelations = Gift & {
   category: Pick<GiftCategory, 'id' | 'name' | 'isActive' | 'deletedAt'>;
@@ -55,14 +56,13 @@ export class GiftManagementService {
   }
 
   async listCategories(query: ListGiftCategoriesDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.GiftCategoryWhereInput = {
       deletedAt: null,
       isActive: query.isActive,
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
     };
-    const [items, total] = await this.giftManagementRepository.findGiftCategoriesAndCount({ where, orderBy: this.categoryOrderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.giftManagementRepository.findGiftCategoriesAndCount({ where, orderBy: this.categoryOrderBy(query.sortBy, query.sortOrder), skip, take });
     return {
       data: items.map((item) => this.toCategory(item, item._count.gifts)),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
@@ -163,10 +163,9 @@ export class GiftManagementService {
   }
 
   async listGifts(query: ListGiftsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.giftWhere(query);
-    const [items, total] = await this.giftManagementRepository.findGiftsAndCountForAdmin({ where, orderBy: this.giftOrderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.giftManagementRepository.findGiftsAndCountForAdmin({ where, orderBy: this.giftOrderBy(query.sortBy, query.sortOrder), skip, take });
     const ratings = await this.ratingSummaries(items);
     return { data: items.map((gift) => this.toGiftListItem(gift, ratings.get(gift.providerId) ?? this.emptyRatingSummary())), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gifts fetched successfully' };
   }
@@ -241,10 +240,9 @@ export class GiftManagementService {
   }
 
   async moderationQueue(query: ListGiftModerationDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.GiftWhereInput = { deletedAt: null, providerId: query.providerId, ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}), ...this.moderationQueueWhere(query) };
-    const [items, total] = await this.giftManagementRepository.findGiftModerationQueue({ where, orderBy: query.sortBy === ModerationSortBy.NAME ? { name: this.dir(query.sortOrder) } : { createdAt: this.dir(query.sortOrder) }, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.giftManagementRepository.findGiftModerationQueue({ where, orderBy: query.sortBy === ModerationSortBy.NAME ? { name: this.dir(query.sortOrder) } : { createdAt: this.dir(query.sortOrder) }, skip, take });
     return { data: items.map((gift) => ({ id: gift.id, name: gift.name, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, imageUrl: this.firstImage(gift), submittedAt: gift.createdAt, moderationStatus: gift.moderationStatus, status: gift.moderationStatus })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gift moderation queue fetched successfully' };
   }
 

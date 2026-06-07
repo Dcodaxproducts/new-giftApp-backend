@@ -13,6 +13,7 @@ import {
   PlatformAnalyticsTransactionStatus,
   PlatformAnalyticsTransactionsQueryDto,
 } from './dto/platform-analytics-query.dto';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 type DateRange = { fromDate: Date; toDate: Date };
 type FileResult = { content: string; filename: string; contentType: string };
@@ -63,10 +64,9 @@ export class AdminPlatformAnalyticsService {
   }
 
   async revenueTransactions(query: PlatformAnalyticsTransactionsQueryDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 10, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const items = this.sort(await this.filteredTransactions(query), query.sortBy ?? PlatformAnalyticsSortBy.CREATED_AT, query.sortOrder ?? PlatformAnalyticsSortOrder.DESC);
-    const paged = items.slice((page - 1) * limit, page * limit);
+    const paged = items.slice(skip, skip + take);
 
     return {
       data: paged.map((item) => this.transactionItem(item)),

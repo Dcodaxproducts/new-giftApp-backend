@@ -6,6 +6,7 @@ import { SOCIAL_REPORT_INCLUDE, SocialModerationRepository } from '../repositori
 import { SocialReportingRulesRepository } from '../repositories/social-reporting-rules.repository';
 import { AllSocialReportReason, AllSocialReportStatus, AllSocialSeverity, CreateSocialReportingRuleDto, ExportFormat, ExportSocialReportsDto, ExportSocialRulesDto, ListSocialReportingRulesDto, ListSocialReportsDto, RuleSortBy, SocialModerationActionDto, SocialModerationStatsDto, SocialRange, SocialSortBy, SortOrder, UpdateSocialReportingRuleDto } from '../dto/social-moderation.dto';
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type ReportView = Prisma.SocialReportGetPayload<{ include: typeof SOCIAL_REPORT_INCLUDE }>;
 type RuleView = Prisma.SocialReportingRuleGetPayload<object>;
@@ -22,8 +23,8 @@ export class SocialModerationService {
   }
 
   async reports(query: ListSocialReportsDto) {
-    const page = query.page ?? 1; const limit = Math.min(query.limit ?? 20, 100); const where = this.reportWhere(query);
-    const [items, total] = await this.socialModerationRepository.findReportsAndCount({ where, orderBy: this.reportOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const { page, limit, skip, take } = getPagination(query); const where = this.reportWhere(query);
+    const [items, total] = await this.socialModerationRepository.findReportsAndCount({ where, orderBy: this.reportOrder(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((item) => this.reportListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Social reports fetched successfully.' };
   }
 
@@ -64,7 +65,7 @@ export class SocialModerationService {
     return { data: { activeRules, activeRulesDeltaText: `+${createdThisMonth} this month`, autoFlaggedToday, accuracyScore: 84, averageEscalationTimeMinutes: avg, averageEscalationDeltaText: '-4m from last week' }, message: 'Social reporting rule stats fetched successfully.' };
   }
 
-  async rules(query: ListSocialReportingRulesDto) { const page = query.page ?? 1; const limit = Math.min(query.limit ?? 20, 100); const where = this.ruleWhere(query); const [items, total] = await this.socialReportingRulesRepository.findRulesAndCount({ where, orderBy: this.ruleOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }); return { data: items.map((item) => this.ruleItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Social reporting rules fetched successfully.' }; }
+  async rules(query: ListSocialReportingRulesDto) { const { page, limit, skip, take } = getPagination(query); const where = this.ruleWhere(query); const [items, total] = await this.socialReportingRulesRepository.findRulesAndCount({ where, orderBy: this.ruleOrder(query.sortBy, query.sortOrder), skip, take }); return { data: items.map((item) => this.ruleItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Social reporting rules fetched successfully.' }; }
   async createRule(user: AuthUserContext, dto: CreateSocialReportingRuleDto) { const created = await this.socialReportingRulesRepository.createRule({ reportCategory: dto.reportCategory.trim(), label: dto.label.trim(), description: dto.description?.trim(), iconKey: dto.iconKey?.trim(), autoFlagThreshold: dto.autoFlagThreshold, escalationRule: dto.escalationRule, isActive: dto.isActive ?? true }); await this.auditLog.write({ actorId: user.uid, targetId: created.id, targetType: 'SOCIAL_REPORTING_RULE', action: 'SOCIAL_REPORTING_RULE_CREATED', module: 'Social Reporting Rules', afterJson: this.ruleItem(created) }); return { data: this.ruleItem(created), message: 'Social reporting rule created successfully.' }; }
   async ruleDetails(id: string) { return { data: this.ruleItem(await this.findRule(id)), message: 'Social reporting rule fetched successfully.' }; }
   async updateRule(user: AuthUserContext, id: string, dto: UpdateSocialReportingRuleDto) { const current = await this.findRule(id); const updated = await this.socialReportingRulesRepository.updateRule(id, { label: dto.label?.trim(), description: dto.description?.trim(), iconKey: dto.iconKey?.trim(), autoFlagThreshold: dto.autoFlagThreshold, escalationRule: dto.escalationRule, isActive: dto.isActive }); await this.auditLog.write({ actorId: user.uid, targetId: id, targetType: 'SOCIAL_REPORTING_RULE', action: 'SOCIAL_REPORTING_RULE_UPDATED', module: 'Social Reporting Rules', beforeJson: { ...this.ruleItem(current), reason: dto.reason }, afterJson: { ...this.ruleItem(updated), reason: dto.reason } }); return { data: this.ruleItem(updated), message: 'Social reporting rule updated successfully.' }; }

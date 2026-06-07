@@ -40,7 +40,7 @@ export class AuditLogsController {
 
   @Get()
   @ApiOperation({ summary: 'List audit logs', description: 'SUPER_ADMIN only. Supports filtering by action type, actor, status, date range, module, and source IP.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'audit_log_id', eventId: 'EV-90210', logReference: '789042', timestamp: '2023-10-27T14:32:01.000Z', actor: { id: 'admin_id', name: 'Sarah Chen', role: 'Compliance Officer', avatarInitials: 'SC' }, action: 'PROVIDER_APPROVED', actionLabel: 'Provider Approved', module: 'Provider Management', sourceIp: '192.168.1.45', environment: 'Production-Cluster-A', status: 'SUCCESS', target: { id: 'provider_id', type: 'PROVIDER' }, createdAt: '2023-10-27T14:32:01.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Audit logs fetched successfully' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'audit_log_id', eventId: 'EV-90210', logReference: '789042', timestamp: '2023-10-27T14:32:01.000Z', actor: { id: 'admin_id', name: 'Sarah Chen', role: 'Compliance Officer', avatarInitials: 'SC' }, action: 'PROVIDER_APPROVED', actionLabel: 'Provider Approved', module: 'Provider Management', sourceIp: '192.168.1.45', environment: 'Production-Cluster-A', status: 'SUCCESS', target: { id: 'provider_id', type: 'PROVIDER' }, createdAt: '2023-10-27T14:32:01.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Audit logs fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListAuditLogsDto) {
     return this.auditLogsService.list(user, query);
   }

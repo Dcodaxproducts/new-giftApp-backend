@@ -26,7 +26,7 @@ export class AdminTransactionStatsDto {
 
 export class ListAdminTransactionsDto extends AdminTransactionStatsDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional({ example: 'TXN-882194' }) @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: AdminGatewayProvider, example: AdminGatewayProvider.ALL }) @IsOptional() @IsEnum(AdminGatewayProvider) gatewayProvider?: AdminGatewayProvider;
   @ApiPropertyOptional({ example: 'user_id' }) @IsOptional() @IsString() userId?: string;

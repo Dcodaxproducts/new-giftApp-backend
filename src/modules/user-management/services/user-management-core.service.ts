@@ -28,6 +28,7 @@ import {
   UserStats,
   UserSubscriptionSnapshot,
 } from '../repositories/user-management.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 interface UserActivityItem {
   id: string;
@@ -46,8 +47,7 @@ export class UserManagementCoreService {
   ) {}
 
   async list(query: ListRegisteredUsersDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.buildRegisteredUserWhere(query);
     const usesAggregateSort = query.sortBy === RegisteredUserSortBy.TOTAL_SPENT || query.sortBy === RegisteredUserSortBy.ORDERS_COUNT;
 
@@ -55,7 +55,7 @@ export class UserManagementCoreService {
       const allUsers = await this.userManagementRepository.findManyUsers({ where, orderBy: { createdAt: 'desc' }, take: 10000 });
       const aggregateMap = await this.userManagementRepository.findUserAggregateMap(allUsers.map((user) => user.id));
       const sorted = [...allUsers].sort((left, right) => this.compareAggregateUsers(left, right, aggregateMap, query.sortBy, query.sortOrder));
-      const paged = sorted.slice((page - 1) * limit, page * limit);
+      const paged = sorted.slice(skip, skip + take);
       return {
         data: paged.map((user) => this.toListItem(user, aggregateMap.get(user.id) ?? this.zeroStats())),
         meta: { page, limit, total: sorted.length, totalPages: Math.ceil(sorted.length / limit) },
@@ -66,8 +66,7 @@ export class UserManagementCoreService {
     const [items, total] = await this.userManagementRepository.findUsersAndCount({
       where,
       orderBy: this.toOrderBy(query.sortBy, query.sortOrder),
-      skip: (page - 1) * limit,
-      take: limit,
+      skip, take,
     });
     const aggregateMap = await this.userManagementRepository.findUserAggregateMap(items.map((user) => user.id));
 
@@ -333,8 +332,7 @@ export class UserManagementCoreService {
 
   async activity(id: string, query: ListUserActivityDto) {
     const user = await this.getRegisteredUser(id);
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const requestedType = query.type ?? UserActivityType.ALL;
     const { loginAttempts, auditLogs, orders, payments, providerOrderTimelines } = await this.userManagementRepository.findUserActivity(user.id);
     const activities = [
@@ -352,8 +350,7 @@ export class UserManagementCoreService {
     ]
       .filter((activity) => requestedType === UserActivityType.ALL || activity.type === requestedType)
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime());
-    const start = (page - 1) * limit;
-    const paged = activities.slice(start, start + limit);
+    const paged = activities.slice(skip, skip + take);
 
     return {
       data: paged,

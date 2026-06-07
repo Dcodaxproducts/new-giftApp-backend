@@ -32,7 +32,7 @@ export class AdminTransactionsController {
   @Get()
   @Permissions('transactions.read')
   @ApiOperation({ summary: 'List admin transactions', description: 'SUPER_ADMIN or ADMIN with transactions.read. Admin-side financial monitoring endpoint; customer transaction history remains under /api/v1/customer/transactions. Search supports transaction ID, order number, customer name/email, gateway reference, and provider business name.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'transaction_id', transactionId: 'TXN-882194', user: { id: 'user_id', name: 'Sarah Jenkins', avatarUrl: 'https://cdn.yourdomain.com/user-avatars/sarah.png' }, gatewayProvider: 'STRIPE', type: 'PAYMENT', amount: 1250, currency: 'PKR', status: 'SUCCESS', createdAt: '2026-10-24T14:20:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Transactions fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'transaction_id', transactionId: 'TXN-882194', user: { id: 'user_id', name: 'Sarah Jenkins', avatarUrl: 'https://cdn.yourdomain.com/user-avatars/sarah.png' }, gatewayProvider: 'STRIPE', type: 'PAYMENT', amount: 1250, currency: 'PKR', status: 'SUCCESS', createdAt: '2026-10-24T14:20:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Transactions fetched successfully.' } } })
   list(@Query() query: ListAdminTransactionsDto) { return this.transactions.list(query); }
 
   @Get(':id/timeline')

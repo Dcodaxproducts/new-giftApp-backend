@@ -8,6 +8,7 @@ import { AdminDisputeLinkageRepository } from '../repositories/admin-dispute-lin
 import { AdminDisputeTrackingRepository } from '../repositories/admin-dispute-tracking.repository';
 import { AdminDisputesRepository } from '../repositories/admin-disputes.repository';
 import { AddDisputeNoteDto, DisputeDateRangeDto, DisputePriorityFilter, DisputeRange, DisputeSortBy, DisputeStatusFilter, ExportDisputesDto, ExportFormat, LinkTransactionDto, ListDisputesDto, RefundPreviewDto, SortOrder, SubmitDisputeDecisionDto, TrackingLogExportDto, TransactionSearchDto } from '../dto/admin-disputes.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type PaymentWithOrder = Payment & {
   user: { id: string; firstName: string; lastName: string; email: string };
@@ -41,10 +42,9 @@ export class AdminDisputesService {
   }
 
   async list(query: ListDisputesDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.disputeWhere(query);
-    const [items, total] = await this.adminDisputesRepository.findDisputesAndCount({ where, include: this.disputeInclude(), orderBy: this.orderBy(query), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.adminDisputesRepository.findDisputesAndCount({ where, include: this.disputeInclude(), orderBy: this.orderBy(query), skip, take });
     return { data: items.map((item) => this.listItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Disputes fetched successfully.' };
   }
 
@@ -67,8 +67,9 @@ export class AdminDisputesService {
 
   async transactionSearch(id: string, query: TransactionSearchDto) {
     const dispute = await this.findDispute(id);
+    const { take } = getPagination(query);
     const where: Prisma.PaymentWhereInput = { userId: dispute.userId, ...(query.recentOnly ? { createdAt: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) } } : {}), ...(query.query ? { OR: [{ id: { contains: query.query, mode: 'insensitive' } }, { providerPaymentIntentId: { contains: query.query, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.query, mode: 'insensitive' } } }, { user: { email: { contains: query.query, mode: 'insensitive' } } }] } : {}) };
-    const payments = await this.linkageRepository.findPayments({ where, include: this.paymentInclude(), orderBy: { createdAt: 'desc' }, take: query.limit ?? 10 });
+    const payments = await this.linkageRepository.findPayments({ where, include: this.paymentInclude(), orderBy: { createdAt: 'desc' }, take });
     const items = await Promise.all(payments.map(async (payment) => { const eligibility = await this.refundEligibility(payment); return this.transactionSearchItem(payment, eligibility.eligible, eligibility.eligibilityText); }));
     return { data: items, message: 'Dispute transactions fetched successfully.' };
   }

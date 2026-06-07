@@ -39,7 +39,7 @@ export class CompleteUploadDto {
 
 export class ListUploadsDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional({ enum: UploadFolder }) @IsOptional() @IsEnum(UploadFolder) folder?: UploadFolder;
   @ApiPropertyOptional() @IsOptional() @IsString() ownerId?: string;
 }

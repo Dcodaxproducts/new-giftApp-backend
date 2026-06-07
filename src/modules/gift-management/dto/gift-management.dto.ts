@@ -50,7 +50,7 @@ export class UpdateGiftCategoryDto {
 
 export class ListGiftCategoriesDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
   @ApiPropertyOptional({ enum: GiftCategorySortBy }) @IsOptional() @IsEnum(GiftCategorySortBy) sortBy?: GiftCategorySortBy;
@@ -105,7 +105,7 @@ export class UpdateGiftDto {
 
 export class ListGiftsDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() providerId?: string;
@@ -119,7 +119,7 @@ export class ExportGiftsDto extends ListGiftsDto { @ApiPropertyOptional({ enum: 
 
 export class ListGiftModerationDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ enum: GiftModerationStatus }) @IsOptional() @IsEnum(GiftModerationStatus) status?: GiftModerationStatus;
   @ApiPropertyOptional({ description: 'When true, includes resolved/normal statuses such as APPROVED and NOT_REQUIRED. Default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true.' }) @IsOptional() @Type(() => Boolean) @IsBoolean() includeResolved?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;

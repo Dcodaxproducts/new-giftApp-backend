@@ -5,6 +5,7 @@ import { AuditLogWriterService } from '../../../common/services/audit-log.servic
 import { AdminTransactionsRepository } from '../repositories/admin-transactions.repository';
 import { RefundPolicySettingsService } from '../../refund-policy-settings/services/refund-policy-settings.service';
 import { AdminGatewayProvider, AdminNotificationChannel, AdminRefundReason, AdminRefundType, AdminTransactionAction, AdminTransactionActionDto, AdminTransactionExportFormat, AdminTransactionRange, AdminTransactionSortBy, AdminTransactionSortOrder, AdminTransactionStatus, AdminTransactionStatsDto, AdminTransactionType, ExportAdminTransactionsDto, ListAdminTransactionsDto, NotifyTransactionUserDto, OpenTransactionDisputeDto, RefundAdminTransactionDto } from '../dto/admin-transactions.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type PaymentRecord = Prisma.PaymentGetPayload<{ include: ReturnType<AdminTransactionsService['paymentInclude']> }>;
 type NormalizedAdminTransaction = { id: string; transactionId: string; paymentId: string; orderId: string | null; orderNumber: string | null; userId: string; user: { id: string; name: string; email: string; avatarUrl: string | null; location: string | null }; providerId: string | null; providerBusinessName: string | null; gatewayProvider: AdminGatewayProvider; type: AdminTransactionType; amount: number; currency: string; status: AdminTransactionStatus; paymentStatus: PaymentStatus; paymentMethod: PaymentMethod; gatewayReference: string | null; metadata: Record<string, unknown>; subtotal: number; discount: number; deliveryFee: number; tax: number; createdAt: Date; };
@@ -30,10 +31,9 @@ export class AdminTransactionsService {
   }
 
   async list(query: ListAdminTransactionsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const items = this.sort(await this.transactions(query), query.sortBy ?? AdminTransactionSortBy.CREATED_AT, query.sortOrder ?? AdminTransactionSortOrder.DESC);
-    return { data: items.slice((page - 1) * limit, page * limit).map((item) => this.toListItem(item)), meta: { page, limit, total: items.length, totalPages: Math.ceil(items.length / limit) }, message: 'Transactions fetched successfully.' };
+    return { data: items.slice(skip, skip + take).map((item) => this.toListItem(item)), meta: { page, limit, total: items.length, totalPages: Math.ceil(items.length / limit) }, message: 'Transactions fetched successfully.' };
   }
 
   async details(id: string) {

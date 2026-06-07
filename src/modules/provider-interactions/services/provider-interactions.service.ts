@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { ProviderReviewResponsesRepository } from '../repositories/provider-review-responses.repository';
 import { ProviderReviewsRepository } from '../repositories/provider-reviews.repository';
 import { ListProviderReviewsDto, ProviderReviewSortBy, SortOrder, ReviewResponseDto } from '../dto/provider-interactions.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type CustomerView = { id: string; firstName: string; lastName: string; avatarUrl: string | null; isActive?: boolean };
 type ReviewWithRelations = { id: string; orderId: string; rating: number; comment: string; createdAt: Date; likesCount: number; userId: string; response: { id: string; body: string; createdAt: Date; deletedAt: Date | null } | null; customer: { id: string; firstName: string; lastName: string; avatarUrl: string | null }; order: { id: string; orderNumber: string; createdAt: Date } };
@@ -22,10 +23,9 @@ export class ProviderInteractionsService {
   }
 
   async reviews(user: AuthUserContext, query: ListProviderReviewsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ReviewWhereInput = { ...this.publicReviewWhere(user.uid), rating: query.rating, ...(query.hasResponse !== undefined ? { response: query.hasResponse ? { is: { deletedAt: null } } : { is: null } } : {}), ...(query.search ? { OR: [{ comment: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }] } : {}) };
-    const [items, total] = await Promise.all([this.reviewsRepository.findReviewsForProvider({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit }), this.reviewsRepository.countReviewsForProvider(where)]);
+    const [items, total] = await Promise.all([this.reviewsRepository.findReviewsForProvider({ where, include: this.reviewInclude(), orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip, take }), this.reviewsRepository.countReviewsForProvider(where)]);
     return { data: items.map((item) => this.reviewItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reviews fetched successfully.' };
   }
 

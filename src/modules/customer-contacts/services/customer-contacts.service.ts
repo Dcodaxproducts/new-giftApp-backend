@@ -3,14 +3,14 @@ import { CustomerContact, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CustomerContactsRepository } from '../repositories/customer-contacts.repository';
 import { CreateCustomerContactDto, CustomerContactSortBy, ListCustomerContactsDto, SortOrder, UpdateCustomerContactDto } from '../dto/customer-contacts.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class CustomerContactsService {
   constructor(private readonly repository: CustomerContactsRepository) {}
 
   async list(user: AuthUserContext, query: ListCustomerContactsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.CustomerContactWhereInput = {
       userId: user.uid,
       deletedAt: null,
@@ -22,7 +22,7 @@ export class CustomerContactsService {
         { relationship: { contains: query.search, mode: 'insensitive' } },
       ] } : {}),
     };
-    const [items, total] = await this.repository.findManyForList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findManyForList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((contact) => this.toListItem(contact)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Contacts fetched successfully' };
   }
 

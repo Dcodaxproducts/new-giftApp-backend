@@ -5,6 +5,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from '../dto/customer-wallet.dto';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import { CustomerWalletRepository } from '../repositories/customer-wallet.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type StripeIntentCreateResult = { id: string; client_secret: string | null; status: string };
 
@@ -46,13 +47,12 @@ export class CustomerWalletService {
   }
 
   async history(user: AuthUserContext, query: ListWalletHistoryDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.CustomerWalletLedgerWhereInput = { userId: user.uid };
     if (query.type && query.type !== WalletHistoryType.ALL) where.type = query.type;
     if (query.status && query.status !== WalletHistoryStatus.ALL) where.status = query.status;
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
-    const [items, total] = await this.repository.findWalletHistoryRows({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findWalletHistoryRows({ where, skip, take });
     return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Wallet history fetched successfully.' };
   }
 

@@ -7,6 +7,7 @@ import { NotificationPreferencesRepository } from '../repositories/notification-
 import { NotificationsRepository } from '../repositories/notifications.repository';
 import { DeviceTokenDto, ListNotificationsDto, NotificationActionDto, NotificationActionRequestDto, NotificationFilterDto, NotificationTypeDto, SortOrder, UpdateNotificationPreferencesDto } from '../dto/broadcast-notifications.dto';
 import { NotificationDispatchService } from './notification-dispatch.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type NotificationMetadata = { eventId?: string; contactId?: string; giftId?: string; orderId?: string; snoozedUntil?: string };
 type NotificationAction = { key: NotificationActionDto; label: string; style: 'PRIMARY' | 'SECONDARY' };
@@ -22,10 +23,9 @@ export class NotificationsService {
   ) {}
 
   async list(user: AuthUserContext, query: ListNotificationsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(user.uid, query);
-    const [items, total] = await this.notificationsRepository.findNotificationsAndCount({ where, orderBy: { createdAt: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.notificationsRepository.findNotificationsAndCount({ where, orderBy: { createdAt: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip, take });
     const mapped = items.map((item) => this.toItem(item));
     const meta = { page, limit, total, totalPages: Math.ceil(total / limit) };
     if (query.groupByDate) {

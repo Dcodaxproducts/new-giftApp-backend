@@ -8,6 +8,7 @@ import { CustomerRewardsRepository } from '../repositories/customer-rewards.repo
 import { CustomerWalletService } from '../../customer-wallet/services/customer-wallet.service';
 import { ReferralSettingsService } from '../../referral-settings/services/referral-settings.service';
 import { ListReferralHistoryDto, ListRewardLedgerDto, RedeemRewardDto, ReferralHistoryStatus, RewardLedgerTypeFilter } from '../dto/customer-referrals.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type ReferralWithReferred = Referral & { referred: Pick<User, 'firstName' | 'lastName' | 'avatarUrl'> };
 
@@ -62,12 +63,11 @@ export class CustomerReferralsService {
   }
 
   async history(user: AuthUserContext, query: ListReferralHistoryDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ReferralWhereInput = { referrerUserId: user.uid };
     if (query.status && query.status !== ReferralHistoryStatus.ALL) where.status = query.status;
     const [items, total] = await Promise.all([
-      this.referralsRepository.findReferralHistoryForUser({ where, include: { referred: { select: { firstName: true, lastName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.referralsRepository.findReferralHistoryForUser({ where, include: { referred: { select: { firstName: true, lastName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' }, skip, take }),
       this.referralsRepository.countReferralHistoryForUser(where),
     ]);
     return { data: items.map((item) => this.toReferralHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Referral history fetched successfully.' };
@@ -88,12 +88,11 @@ export class CustomerReferralsService {
   }
 
   async ledger(user: AuthUserContext, query: ListRewardLedgerDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.RewardLedgerWhereInput = { userId: user.uid };
     if (query.type && query.type !== RewardLedgerTypeFilter.ALL) where.type = query.type;
     const [items, total] = await Promise.all([
-      this.rewardsRepository.findRewardLedgerPageForUser({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.rewardsRepository.findRewardLedgerPageForUser({ where, orderBy: { createdAt: 'desc' }, skip, take }),
       this.rewardsRepository.countRewardLedgerForUser(where),
     ]);
     return { data: items.map((item) => ({ id: item.id, type: item.type, amount: Number(item.amount), currency: item.currency, source: item.source, description: item.description, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reward ledger fetched successfully.' };

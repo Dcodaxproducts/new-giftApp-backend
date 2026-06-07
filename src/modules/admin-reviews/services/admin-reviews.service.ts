@@ -5,6 +5,7 @@ import { AuditLogWriterService } from '../../../common/services/audit-log.servic
 import { AdminReviewPoliciesRepository } from '../repositories/admin-review-policies.repository';
 import { ADMIN_REVIEW_INCLUDE, AdminReviewsRepository } from '../repositories/admin-reviews.repository';
 import { AllReviewSeverity, AllReviewSource, AllReviewStatus, ExportReviewsDto, FlaggedSummaryDto, FlaggedWindow, ListReviewsDto, ModerateReviewDto, ModerationLogsDto, ModerationQueueDto, ReviewExportFormat, ReviewSortBy, ReviewStatsDto, ReviewStatsRange, SortOrder, TestReviewPolicyDto, UpdateReviewPoliciesDto } from '../dto/admin-reviews.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type ReviewWithRelations = Review & {
   customer: { id: string; firstName: string; lastName: string; email: string; avatarUrl: string | null };
@@ -43,10 +44,9 @@ export class AdminReviewsService {
   }
 
   async list(query: ListReviewsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.reviewWhere(query);
-    const [items, total] = await this.reviewsRepository.findReviewsAndCount({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.reviewsRepository.findReviewsAndCount({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((item) => this.reviewListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reviews fetched successfully.' };
   }
 
@@ -65,10 +65,9 @@ export class AdminReviewsService {
   }
 
   async moderationQueue(query: ModerationQueueDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ReviewWhereInput = { deletedAt: null, status: query.status ?? { in: [ReviewStatus.FLAGGED, ReviewStatus.PENDING] }, ...(query.severity && query.severity !== AllReviewSeverity.ALL ? { severity: query.severity } : {}), ...(query.reason ? { flagReason: query.reason } : {}) };
-    const [items, total] = await this.reviewsRepository.findReviewsAndCount({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.reviewsRepository.findReviewsAndCount({ where, orderBy: this.reviewOrder(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((item) => ({ id: item.id, reviewCode: item.reviewCode, rating: item.rating, comment: item.comment, severity: item.severity, flagReason: item.flagReason, status: item.status, createdAt: item.createdAt, slaDueAt: this.slaDueAt(item), customer: { name: this.name(item.customer) }, provider: { businessName: this.providerName(item.provider) } })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Review moderation queue fetched successfully.' };
   }
 
@@ -85,10 +84,9 @@ export class AdminReviewsService {
   }
 
   async moderationLogs(query: ModerationLogsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ReviewModerationLogWhereInput = { reviewId: query.reviewId, action: query.action, actorId: query.actorId, ...(query.fromDate || query.toDate ? { createdAt: { ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } } : {}) };
-    const [items, total] = await this.reviewsRepository.findModerationLogsAndCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.reviewsRepository.findModerationLogsAndCount({ where, skip, take });
     return { data: items.map((item) => ({ id: item.id, reviewId: item.reviewId, reviewCode: item.review.reviewCode, action: item.action, outcome: item.outcome, reason: item.reason, actor: item.actor ? { id: item.actor.id, name: this.name(item.actor) } : { id: 'system', name: 'System Auto Moderator' }, autoModerated: item.autoModerated, confidence: item.confidence, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Review moderation logs fetched successfully.' };
   }
 

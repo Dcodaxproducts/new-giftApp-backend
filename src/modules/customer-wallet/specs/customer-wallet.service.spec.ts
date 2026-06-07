@@ -205,7 +205,7 @@ describe('CustomerWalletService read APIs', () => {
       where: expect.objectContaining({ userId: 'customer_1', type: WalletHistoryType.TOP_UP, status: WalletHistoryStatus.SUCCESS, createdAt: { gte: new Date('2026-01-01T00:00:00.000Z'), lte: new Date('2026-01-31T23:59:59.999Z') } }),
       orderBy: { createdAt: 'desc' },
       skip: 0,
-      take: 20,
+      take: 10,
     }));
   });
 

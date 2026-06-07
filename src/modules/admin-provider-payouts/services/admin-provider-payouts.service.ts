@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { AdminProviderPayoutAction, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkProviderPayoutActionDto, HoldProviderPayoutDto, ProviderPayoutActionDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from '../dto/admin-provider-payouts.dto';
 import { ADMIN_PROVIDER_PAYOUT_INCLUDE, AdminProviderPayoutsRepository } from '../repositories/admin-provider-payouts.repository';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type PayoutWithRelations = Prisma.ProviderPayoutGetPayload<{ include: typeof ADMIN_PROVIDER_PAYOUT_INCLUDE }>;
 type LedgerWithProvider = Awaited<ReturnType<AdminProviderPayoutsRepository['findLedgerEntries']>>[number];
@@ -55,10 +56,9 @@ export class AdminProviderPayoutsService {
   }
 
   async list(query: ListAdminProviderPayoutsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const items = await this.filteredPayouts(query);
-    const paged = items.slice((page - 1) * limit, page * limit);
+    const paged = items.slice(skip, skip + take);
     const data = await Promise.all(paged.map((item) => this.toListItem(item)));
     return { data, meta: { page, limit, total: items.length, totalPages: Math.ceil(items.length / limit) }, message: 'Provider payouts fetched successfully.' };
   }

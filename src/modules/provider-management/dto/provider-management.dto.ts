@@ -451,7 +451,7 @@ export class ProviderLookupDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ example: 20 })
+  @ApiPropertyOptional({ example: 10, default: 10 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -459,4 +459,3 @@ export class ProviderLookupDto {
   @Max(100)
   limit?: number;
 }
-

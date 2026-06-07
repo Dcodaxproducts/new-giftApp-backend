@@ -9,6 +9,7 @@ import { ListThreadMessagesDto, SendChatThreadMessageDto } from '../dto/chats.dt
 import { ChatAttachmentPolicyService } from './chat-attachment-policy.service';
 import { ChatModerationBridgeService } from './chat-moderation-bridge.service';
 import { ChatNotificationService } from './chat-notification.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type Thread = Prisma.ChatThreadGetPayload<{ include: typeof CHAT_THREAD_INCLUDE }>;
 type Envelope<T> = { data: T; meta?: unknown; message: string };
@@ -25,10 +26,9 @@ export class ChatMessageService {
   ) {}
 
   async list(user: AuthUserContext, threadId: string, query: ListThreadMessagesDto): Promise<Envelope<unknown>> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 30;
-    const rows = await this.messages.findMany({ threadId, before: query.before, skip: (page - 1) * limit, take: limit });
-    return { data: { threadId, messages: rows.reverse().map((message) => this.messageItem(message, user.uid)) }, message: 'Chat messages fetched successfully.' };
+    const { page, limit, skip, take } = getPagination(query);
+    const rows = await this.messages.findMany({ threadId, before: query.before, skip, take });
+    return { data: { threadId, messages: rows.reverse().map((message) => this.messageItem(message, user.uid)) }, meta: { page, limit }, message: 'Chat messages fetched successfully.' };
   }
 
   async send(user: AuthUserContext, thread: Thread, dto: SendChatThreadMessageDto): Promise<Envelope<unknown>> {

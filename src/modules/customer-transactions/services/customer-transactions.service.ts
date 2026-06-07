@@ -3,6 +3,7 @@ import { Payment, PaymentMethod, PaymentStatus, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CUSTOMER_TRANSACTION_INCLUDE, CustomerTransactionsRepository } from '../repositories/customer-transactions.repository';
 import { CustomerTransactionExportFormat, CustomerTransactionPaymentMethod, CustomerTransactionSortBy, CustomerTransactionSortOrder, CustomerTransactionStatus, CustomerTransactionSummaryDto, CustomerTransactionType, ExportCustomerTransactionsDto, ListCustomerTransactionsDto } from '../dto/customer-transactions.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type PaymentWithRelations = Prisma.PaymentGetPayload<{ include: typeof CUSTOMER_TRANSACTION_INCLUDE }>;
 type NormalizedTransaction = { id: string; userId: string; transactionId: string; paymentId: string; orderId: string | null; moneyGiftId: string | null; recurringPaymentId: string | null; type: CustomerTransactionType; status: CustomerTransactionStatus; amount: number; currency: string; paymentMethod: PaymentMethod; gatewayReference: string | null; description: string; recipientContactId: string | null; recipient: { id: string; name: string; avatarUrl: string | null } | null; giftName: string | null; orderReference: string | null; billingAddress: string | null; subtotal: number; discount: number; deliveryFee: number; tax: number; total: number; createdAt: Date; failureReason: string | null };
@@ -12,11 +13,10 @@ export class CustomerTransactionsService {
   constructor(private readonly repository: CustomerTransactionsRepository) {}
 
   async list(user: AuthUserContext, query: ListCustomerTransactionsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const all = await this.transactions(user.uid, query);
     const sorted = this.sort(all, query.sortBy ?? CustomerTransactionSortBy.CREATED_AT, query.sortOrder ?? CustomerTransactionSortOrder.DESC);
-    const data = sorted.slice((page - 1) * limit, page * limit).map((item) => this.toListItem(item));
+    const data = sorted.slice(skip, skip + take).map((item) => this.toListItem(item));
     return { data, meta: { page, limit, total: sorted.length, totalPages: Math.ceil(sorted.length / limit) }, message: 'Transactions fetched successfully.' };
   }
 

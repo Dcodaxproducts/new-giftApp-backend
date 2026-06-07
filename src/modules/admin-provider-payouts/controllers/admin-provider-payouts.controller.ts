@@ -60,7 +60,7 @@ export class AdminProviderPayoutsController {
   @ApiQuery({ name: 'toDate', required: false })
   @ApiQuery({ name: 'sortBy', required: false, enum: ['createdAt', 'amount', 'status', 'nextPayoutDate'] })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'] })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'payout_id', provider: { id: 'provider_id', businessName: 'TechSolutions Inc.', providerCode: 'PRV-90210', avatarUrl: 'https://cdn.example.com/provider.png' }, pendingAmount: 3420, currency: 'USD', lastPayoutDate: '2023-10-12T00:00:00.000Z', nextPayoutDate: '2023-11-12T00:00:00.000Z', status: 'COMPLETED' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Provider payouts fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'payout_id', provider: { id: 'provider_id', businessName: 'TechSolutions Inc.', providerCode: 'PRV-90210', avatarUrl: 'https://cdn.example.com/provider.png' }, pendingAmount: 3420, currency: 'USD', lastPayoutDate: '2023-10-12T00:00:00.000Z', nextPayoutDate: '2023-11-12T00:00:00.000Z', status: 'COMPLETED' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Provider payouts fetched successfully.' } } })
   list(@Query() query: ListAdminProviderPayoutsDto) { return this.payouts.list(query); }
 
   @Get(':id/breakdown')

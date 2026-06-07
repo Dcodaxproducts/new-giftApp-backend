@@ -18,7 +18,7 @@ export class DisputeDateRangeDto {
 
 export class ListDisputesDto extends DisputeDateRangeDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: DisputeStatusFilter }) @IsOptional() @IsEnum(DisputeStatusFilter) status?: DisputeStatusFilter;
   @ApiPropertyOptional({ enum: DisputePriorityFilter }) @IsOptional() @IsEnum(DisputePriorityFilter) priority?: DisputePriorityFilter;

@@ -13,7 +13,7 @@ const payment = {
   moneyGift: null, customerSubscription: null, recurringPaymentOccurrences: [], refundRequests: [],
 };
 
-function createService(overrides: Partial<{ refundRequests: unknown[]; disputes: unknown[]; categories: string[] }> = {}) {
+function createService(overrides: Partial<{ payments: typeof payment[]; refundRequests: unknown[]; disputes: unknown[]; categories: string[] }> = {}) {
   const providerOrder = { id: 'provider_order_1', providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, fulfilledAt: createdAt, items: [] };
   const prisma: {
     payment: { findMany: jest.Mock; findFirst: jest.Mock; update: jest.Mock };
@@ -28,7 +28,7 @@ function createService(overrides: Partial<{ refundRequests: unknown[]; disputes:
     disputeTimeline: { create: jest.Mock };
     $transaction: jest.Mock;
   } = {
-    payment: { findMany: jest.fn().mockResolvedValue([payment]), findFirst: jest.fn().mockResolvedValue(payment), update: jest.fn().mockResolvedValue({ ...payment, status: PaymentStatus.REFUNDED }) },
+    payment: { findMany: jest.fn().mockResolvedValue(overrides.payments ?? [payment]), findFirst: jest.fn().mockResolvedValue(payment), update: jest.fn().mockResolvedValue({ ...payment, status: PaymentStatus.REFUNDED }) },
     refundRequest: { findMany: jest.fn().mockResolvedValue(overrides.refundRequests ?? []), create: jest.fn().mockResolvedValue({ id: 'refund_1' }) },
     disputeCase: { findMany: jest.fn().mockResolvedValue([]), findFirst: jest.fn().mockResolvedValue((overrides.disputes ?? [])[0] ?? null), create: jest.fn().mockResolvedValue({ id: 'dispute_1', caseId: 'DSP-1024', status: 'OPEN' }) },
     adminAuditLog: { findMany: jest.fn().mockResolvedValue([]) },
@@ -49,6 +49,41 @@ function createService(overrides: Partial<{ refundRequests: unknown[]; disputes:
 }
 
 describe('AdminTransactionsService', () => {
+  it('defaults list pagination to 10 and reports the effective limit', async () => {
+    const payments = Array.from({ length: 12 }, (_, index) => ({
+      ...payment,
+      id: `payment_${index + 1}`,
+      providerPaymentIntentId: `TRX-${index + 1}`,
+      createdAt: new Date(createdAt.getTime() + index),
+      updatedAt: new Date(createdAt.getTime() + index),
+    }));
+    const { service } = createService({ payments });
+
+    const response = await service.list({});
+
+    expect(response.data).toHaveLength(10);
+    expect(response.meta.limit).toBe(10);
+  });
+
+  it('uses provided list limit and clamps above max limit', async () => {
+    const payments = Array.from({ length: 12 }, (_, index) => ({
+      ...payment,
+      id: `payment_${index + 1}`,
+      providerPaymentIntentId: `TRX-${index + 1}`,
+      createdAt: new Date(createdAt.getTime() + index),
+      updatedAt: new Date(createdAt.getTime() + index),
+    }));
+    const { service } = createService({ payments });
+
+    const five = await service.list({ limit: 5 });
+    const clamped = await service.list({ limit: 150 });
+
+    expect(five.data).toHaveLength(5);
+    expect(five.meta.limit).toBe(5);
+    expect(clamped.data).toHaveLength(12);
+    expect(clamped.meta.limit).toBe(100);
+  });
+
   it('admin with transactions.read can list transactions and filters work by type/status/date', async () => {
     const { service, prisma } = createService();
     const response = await service.list({ transactionType: AdminTransactionType.PAYMENT, status: AdminTransactionStatus.SUCCESS, fromDate: '2026-10-01T00:00:00.000Z', toDate: '2026-10-31T23:59:59.999Z' });

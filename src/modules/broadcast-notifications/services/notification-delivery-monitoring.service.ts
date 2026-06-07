@@ -3,6 +3,7 @@ import { NotificationDeliveryStatus, Prisma } from '@prisma/client';
 import { NotificationDeliveryLogRepository } from '../repositories/notification-delivery-log.repository';
 import { ListNotificationDeliveryLogsDto } from '../dto/notification-delivery.dto';
 import { NotificationDispatchService } from './notification-dispatch.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class NotificationDeliveryMonitoringService {
@@ -16,15 +17,14 @@ export class NotificationDeliveryMonitoringService {
   }
 
   async logsList(query: ListNotificationDeliveryLogsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.NotificationDeliveryLogWhereInput = {
       recipientId: query.recipientId,
       recipientType: query.recipientType,
       notificationType: query.notificationType,
     };
     if (query.status) where.OR = [{ inAppStatus: query.status }, { socketStatus: query.status }, { pushStatus: query.status }, { emailStatus: query.status }];
-    const [rows, total] = await this.logs.findLogsAndCount({ where, skip: (page - 1) * limit, take: limit });
+    const [rows, total] = await this.logs.findLogsAndCount({ where, skip, take });
     return { data: rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Notification delivery logs fetched successfully.' };
   }
 

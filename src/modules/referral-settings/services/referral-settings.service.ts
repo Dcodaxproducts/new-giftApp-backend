@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { ReferralSettingsRepository } from '../repositories/referral-settings.repository';
 import { ListReferralSettingsAuditLogsDto, ReferralSettingsStatusDto, UpdateReferralSettingsDto } from '../dto/referral-settings.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type SettingsWithUpdater = ReferralSettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
 
@@ -39,10 +40,9 @@ export class ReferralSettingsService {
   }
 
   async auditLogs(query: ListReferralSettingsAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.AdminAuditLogWhereInput = { action: { in: ['REFERRAL_SETTINGS_UPDATED', 'REFERRAL_PROGRAM_ACTIVATED', 'REFERRAL_PROGRAM_DEACTIVATED'] }, createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } };
-    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip, take });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: `${item.actor.firstName} ${item.actor.lastName}`.trim() } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Referral settings audit logs fetched successfully.' };
   }
 

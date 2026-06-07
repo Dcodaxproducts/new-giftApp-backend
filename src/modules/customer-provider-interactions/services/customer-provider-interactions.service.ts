@@ -7,6 +7,7 @@ import { CustomerProviderReportsRepository } from '../repositories/customer-prov
 import { CustomerProviderInteractionsRepository } from '../repositories/customer-provider-interactions.repository';
 import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositories/customer-reviews.repository';
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type ProviderView = { id: string; providerBusinessName: string | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
@@ -35,10 +36,9 @@ export class CustomerProviderInteractionsService {
   }
 
   async reviews(user: AuthUserContext, query: ListCustomerReviewsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ReviewWhereInput = { userId: user.uid, deletedAt: null, rating: query.rating, providerId: query.providerId, ...(query.status && query.status !== CustomerReviewStatusFilter.ALL ? { status: query.status } : {}) };
-    const [items, total] = await this.customerReviewsRepository.findReviewsAndCountForUser({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.customerReviewsRepository.findReviewsAndCountForUser({ where, skip, take });
     return { data: items.map((item) => this.reviewItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Reviews fetched successfully.' };
   }
 
@@ -86,10 +86,9 @@ export class CustomerProviderInteractionsService {
   }
 
   async providerReports(user: AuthUserContext, query: ListProviderReportsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ProviderReportWhereInput = { reporterUserId: user.uid, ...(query.status && query.status !== ProviderReportStatusFilter.ALL ? { status: query.status } : {}) };
-    const [items, total] = await this.customerProviderReportsRepository.findProviderReportsAndCount({ where, include: this.reportInclude(), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.customerProviderReportsRepository.findProviderReportsAndCount({ where, include: this.reportInclude(), skip, take });
     return { data: items.map((item) => this.reportItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider reports fetched successfully.' };
   }
 

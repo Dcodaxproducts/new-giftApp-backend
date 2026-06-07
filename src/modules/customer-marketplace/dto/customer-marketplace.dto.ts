@@ -14,7 +14,7 @@ export enum CustomerGiftSortBy {
 
 export class CustomerGiftListDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ example: 'perfume' }) @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ example: 'cmf0giftcatperfumes001' }) @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional({ example: 'perfumes' }) @IsOptional() @IsString() categorySlug?: string;
@@ -118,7 +118,7 @@ export class CreateOrderDto {
 
 export class ListCustomerOrdersDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ enum: OrderHistoryType, example: OrderHistoryType.ALL }) @IsOptional() @IsEnum(OrderHistoryType) type?: OrderHistoryType;
   @ApiPropertyOptional({ enum: OrderStatus, example: OrderStatus.CONFIRMED }) @IsOptional() @IsEnum(OrderStatus) status?: OrderStatus;
   @ApiPropertyOptional({ example: '2026-01-01T00:00:00.000Z' }) @IsOptional() @IsDateString() fromDate?: string;

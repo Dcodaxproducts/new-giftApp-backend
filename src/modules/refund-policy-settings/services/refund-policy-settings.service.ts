@@ -6,6 +6,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { RefundPolicySettingsRepository } from '../repositories/refund-policy-settings.repository';
 import { CancellationTierDto, ListRefundPolicyAuditLogsDto, UpdateRefundPolicySettingsDto } from '../dto/refund-policy-settings.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type SettingsWithUpdater = RefundPolicySettings & { updatedBy?: { id: string; firstName: string; lastName: string } | null };
 type CancellationTier = { id: string; daysBeforeCheckIn: number; deductionPercent: number; label: string };
@@ -61,10 +62,9 @@ export class RefundPolicySettingsService {
   }
 
   async auditLogs(query: ListRefundPolicyAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.AdminAuditLogWhereInput = { action: 'REFUND_POLICY_SETTINGS_UPDATED', createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } };
-    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip, take });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: this.name(item.actor) } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Refund policy audit logs fetched successfully.' };
   }
 

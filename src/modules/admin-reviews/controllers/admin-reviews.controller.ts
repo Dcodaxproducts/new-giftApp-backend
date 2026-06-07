@@ -54,7 +54,7 @@ export class AdminReviewsController {
   @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
   @ApiOperation({ summary: 'List reviews for moderation dashboard', description: 'SUPER_ADMIN or ADMIN with reviews.read. Supports search, rating/source/status, reportedOnly, date range, and sort filters for the Reviews Moderation table.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'review_id', reviewCode: 'RV-92841', reviewer: { id: 'user_id', name: 'Sarah Miller', avatarInitials: 'SM' }, source: 'TRUSTPILOT', rating: 1, contentPreview: 'The service was absolutely terrible, I want a refund...', fullContent: 'The service was absolutely terrible...', flags: { reportCount: 12, label: '12 reports' }, status: 'PENDING', transactionId: 'TXN-49201-B', reviewDate: '2023-10-24T00:00:00.000Z' }], meta: { page: 1, limit: 20, total: 1, totalPages: 1 }, message: 'Reviews fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'review_id', reviewCode: 'RV-92841', reviewer: { id: 'user_id', name: 'Sarah Miller', avatarInitials: 'SM' }, source: 'TRUSTPILOT', rating: 1, contentPreview: 'The service was absolutely terrible, I want a refund...', fullContent: 'The service was absolutely terrible...', flags: { reportCount: 12, label: '12 reports' }, status: 'PENDING', transactionId: 'TXN-49201-B', reviewDate: '2023-10-24T00:00:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Reviews fetched successfully.' } } })
   list(@Query() query: ListReviewsDto) { return this.reviews.list(query); }
 
   @Get(':id')

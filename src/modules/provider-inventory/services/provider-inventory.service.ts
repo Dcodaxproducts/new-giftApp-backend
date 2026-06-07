@@ -4,6 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { PROVIDER_INVENTORY_INCLUDE, ProviderInventoryRepository } from '../repositories/provider-inventory.repository';
 import { CreateProviderInventoryItemDto, ListProviderInventoryDto, ProviderInventoryManualStatus, ProviderInventorySortBy, ProviderInventoryStatusFilter, ProviderInventoryVariantDto, SortOrder, UpdateProviderInventoryItemDto } from '../dto/provider-inventory.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type ProviderGift = Prisma.GiftGetPayload<{ include: typeof PROVIDER_INVENTORY_INCLUDE }>;
 
@@ -15,10 +16,9 @@ export class ProviderInventoryService {
   ) {}
 
   async list(user: AuthUserContext, query: ListProviderInventoryDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(user.uid, query);
-    const [items, total] = await this.repository.findManyForProviderList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findManyForProviderList({ where, orderBy: this.orderBy(query.sortBy, query.sortOrder), skip, take });
     return { data: items.map((item) => this.toListItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider inventory fetched successfully' };
   }
 

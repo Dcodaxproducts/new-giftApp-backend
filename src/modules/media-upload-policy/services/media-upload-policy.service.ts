@@ -5,6 +5,7 @@ import { AuditLogWriterService } from '../../../common/services/audit-log.servic
 import { MediaUploadPolicyRepository } from '../repositories/media-upload-policy.repository';
 import { CreatePresignedUploadDto, UploadFolder } from '../../storage/dto/create-presigned-upload.dto';
 import { ListMediaUploadPolicyAuditLogsDto, UpdateMediaUploadPolicyDto } from '../dto/media-upload-policy.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type AllowedFileType = 'jpeg' | 'jpg' | 'png' | 'gif' | 'mp4' | 'mov' | 'mp3' | 'wav' | 'svg' | 'webp';
 type AllowedFileTypes = Record<AllowedFileType, boolean>;
@@ -44,10 +45,9 @@ export class MediaUploadPolicyService {
   }
 
   async auditLogs(query: ListMediaUploadPolicyAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, 100);
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.AdminAuditLogWhereInput = { action: 'MEDIA_UPLOAD_POLICY_UPDATED', createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } };
-    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.repository.findAuditLogsWithCount({ where, skip, take });
     return { data: items.map((item) => ({ id: item.id, action: item.action, actor: item.actor ? { id: item.actor.id, name: `${item.actor.firstName} ${item.actor.lastName}`.trim() } : null, before: item.beforeJson ?? {}, after: item.afterJson ?? {}, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Media upload policy audit logs fetched successfully.' };
   }
 

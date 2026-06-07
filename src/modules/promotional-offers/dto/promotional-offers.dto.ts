@@ -10,7 +10,7 @@ export enum PromotionalOfferSortBy { CREATED_AT = 'createdAt', START_DATE = 'sta
 
 export class ListProviderOffersDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: PromotionalOfferStatusFilter }) @IsOptional() @IsEnum(PromotionalOfferStatusFilter) status?: PromotionalOfferStatusFilter;
   @ApiPropertyOptional() @IsOptional() @IsString() itemId?: string;

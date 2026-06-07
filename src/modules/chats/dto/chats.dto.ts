@@ -37,7 +37,7 @@ export enum ChatSortOrder {
 
 export class ListChatsDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional({ example: 'order support' }) @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ enum: ChatThreadKind }) @IsOptional() @IsEnum(ChatThreadKind) threadType?: ChatThreadKind;
   @ApiPropertyOptional({ enum: ChatStatus }) @IsOptional() @IsEnum(ChatStatus) status?: ChatStatus;
@@ -67,7 +67,7 @@ export class CreateChatThreadDto {
 
 export class ListThreadMessagesDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 30 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
   @ApiPropertyOptional({ example: '2026-05-18T10:00:00.000Z' }) @IsOptional() @IsISO8601() before?: string;
 }
 

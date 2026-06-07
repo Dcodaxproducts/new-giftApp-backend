@@ -16,7 +16,7 @@ export class AddWalletFundsDto {
 
 export class ListWalletHistoryDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ enum: WalletHistoryType }) @IsOptional() @IsEnum(WalletHistoryType) type?: WalletHistoryType;
   @ApiPropertyOptional({ enum: WalletHistoryStatus }) @IsOptional() @IsEnum(WalletHistoryStatus) status?: WalletHistoryStatus;
   @ApiPropertyOptional({ example: '2026-03-01T00:00:00.000Z' }) @IsOptional() @IsISO8601() fromDate?: string;

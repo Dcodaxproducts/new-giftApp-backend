@@ -15,7 +15,7 @@ export enum SortOrder {
 
 export class ListCustomerContactsDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
-  @ApiPropertyOptional({ example: 20 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
+  @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ example: 'Mary' }) @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional({ example: 'Mother' }) @IsOptional() @IsString() relationship?: string;
   @ApiPropertyOptional({ enum: CustomerContactSortBy }) @IsOptional() @IsEnum(CustomerContactSortBy) sortBy?: CustomerContactSortBy;

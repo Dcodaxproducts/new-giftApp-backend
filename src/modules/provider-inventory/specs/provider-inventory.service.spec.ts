@@ -1,5 +1,25 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { GiftModerationStatus, GiftStatus, Prisma, UserRole } from '@prisma/client';
+import { AuditLogWriterService } from '../../../common/services/audit-log.service';
+import { ProviderInventoryRepository } from '../repositories/provider-inventory.repository';
+import { ProviderInventoryService } from '../services/provider-inventory.service';
+
+const providerGift = {
+  id: 'gift_1',
+  name: 'Birthday Box',
+  description: 'Premium gift',
+  shortDescription: 'Premium',
+  imageUrls: ['https://cdn.example.com/gift.png'],
+  price: new Prisma.Decimal(25),
+  currency: 'USD',
+  category: { id: 'category_1', name: 'Gifts' },
+  status: GiftStatus.ACTIVE,
+  moderationStatus: GiftModerationStatus.NOT_REQUIRED,
+  isPublished: true,
+  createdAt: new Date('2026-05-08T10:00:00.000Z'),
+  variants: [],
+};
 
 describe('ProviderInventoryService ownership rules', () => {
   const source = readFileSync(join(__dirname, '../services/provider-inventory.service.ts'), 'utf8');
@@ -91,5 +111,40 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(source).toContain('isAvailable: item.status === GiftStatus.ACTIVE');
     expect(source).not.toContain('dto.status !== undefined &&');
     expect(source).not.toContain('dto.isAvailable !== undefined &&');
+  });
+});
+
+describe('ProviderInventoryService pagination', () => {
+  function createService() {
+    const repository = {
+      findManyForProviderList: jest.fn().mockResolvedValue([[providerGift], 125]),
+    };
+    const auditLog = { write: jest.fn() };
+    const service = new ProviderInventoryService(
+      repository as unknown as ProviderInventoryRepository,
+      auditLog as unknown as AuditLogWriterService,
+    );
+    return { service, repository };
+  }
+
+  it('defaults missing list limit to 10', async () => {
+    const { service, repository } = createService();
+
+    const response = await service.list({ uid: 'provider_1', role: UserRole.PROVIDER }, {});
+
+    expect(response.meta.limit).toBe(10);
+    expect(repository.findManyForProviderList).toHaveBeenCalledWith(expect.objectContaining({ take: 10, skip: 0 }));
+  });
+
+  it('uses provided list limit and clamps above max limit', async () => {
+    const { service, repository } = createService();
+
+    const five = await service.list({ uid: 'provider_1', role: UserRole.PROVIDER }, { limit: 5 });
+    const clamped = await service.list({ uid: 'provider_1', role: UserRole.PROVIDER }, { limit: 150 });
+
+    expect(five.meta.limit).toBe(5);
+    expect(clamped.meta.limit).toBe(100);
+    expect(repository.findManyForProviderList).toHaveBeenNthCalledWith(1, expect.objectContaining({ take: 5 }));
+    expect(repository.findManyForProviderList).toHaveBeenNthCalledWith(2, expect.objectContaining({ take: 100 }));
   });
 });

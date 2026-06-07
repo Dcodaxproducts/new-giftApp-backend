@@ -3,6 +3,7 @@ import { AuditLogStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogsRepository } from '../repositories/audit-logs.repository';
 import { AuditLogSortBy, AuditLogStatsDto, AuditLogStatusFilter, AuditLogUsersDto, ListAuditLogsDto, SortOrder } from '../dto/audit-logs.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class AuditLogsService {
@@ -24,22 +25,20 @@ export class AuditLogsService {
   }
 
   async users(query: AuditLogUsersDto) {
-    const limit = query.limit ?? 20;
+    const { limit } = getPagination(query);
     const where: Prisma.UserWhereInput = { role: query.role as UserRole | undefined, ...(query.search ? { OR: [{ email: { contains: query.search, mode: 'insensitive' } }, { firstName: { contains: query.search, mode: 'insensitive' } }, { lastName: { contains: query.search, mode: 'insensitive' } }] } : {}) };
     const users = await this.repository.findUsers({ where, take: limit });
     return { data: [{ id: 'system', name: 'System', email: null, role: 'SYSTEM', label: 'System Automated Action' }, ...users.map((user) => ({ id: user.id, name: this.name(user), email: user.email, role: user.role, label: `${this.name(user)}${user.adminTitle ? ` — ${user.adminTitle}` : ''}` }))], message: 'Audit log users fetched successfully.' };
   }
 
   async list(_user: AuthUserContext, query: ListAuditLogsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where = this.where(query);
     const [items, total] = await this.repository.findManyWithCount({
       where,
       include: { actor: { select: { id: true, email: true, firstName: true, lastName: true, adminTitle: true, role: true } } },
       orderBy: { [query.sortBy ?? AuditLogSortBy.CREATED_AT]: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip, take,
     });
     return { data: items.map((item) => this.listItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Audit logs fetched successfully' };
   }

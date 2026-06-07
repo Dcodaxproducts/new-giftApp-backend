@@ -40,7 +40,7 @@ function createService(foundContact: typeof contact | null = contact) {
 
 const user = { uid: 'user_1', role: UserRole.REGISTERED_USER };
 type ContactWriteCall = [{ where?: { id?: string }; data?: Record<string, unknown> }];
-type ContactFindCall = [{ where?: Record<string, unknown> }];
+type ContactFindCall = [{ where?: Record<string, unknown>; take?: number }];
 
 describe('CustomerContactsService', () => {
   it('registered user can create contact', async () => {
@@ -57,11 +57,25 @@ describe('CustomerContactsService', () => {
   it('registered user can list only own contacts', async () => {
     const { service, prisma } = createService();
 
-    await service.list(user, { page: 1, limit: 20 });
+    await service.list(user, { page: 1, limit: 5 });
 
     const calls = prisma.customerContact.findMany.mock.calls as ContactFindCall[];
     expect(calls[0][0].where?.userId).toBe('user_1');
     expect(calls[0][0].where?.deletedAt).toBeNull();
+    expect(calls[0][0].take).toBe(5);
+  });
+
+  it('defaults missing list limit to 10 and clamps above max limit', async () => {
+    const { service, prisma } = createService();
+
+    const defaulted = await service.list(user, {});
+    const clamped = await service.list(user, { limit: 150 });
+
+    const calls = prisma.customerContact.findMany.mock.calls as ContactFindCall[];
+    expect(defaulted.meta.limit).toBe(10);
+    expect(calls[0][0].take).toBe(10);
+    expect(clamped.meta.limit).toBe(100);
+    expect(calls[1][0].take).toBe(100);
   });
 
   it('registered user can get own contact', async () => {

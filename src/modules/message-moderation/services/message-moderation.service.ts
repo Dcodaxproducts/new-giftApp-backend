@@ -7,6 +7,7 @@ import { ListMessageModerationAuditLogsDto, ListMessageModerationDto, MessageMod
 import { MessageModerationRepository } from '../repositories/message-moderation.repository';
 import { MessageModerationScanner } from './message-moderation-scanner.service';
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 type SourceMessageInput = { source: MessageModerationSource; conversationId: string; messageId: string; participantId: string; participantRole: string; participantName?: string | null; participantAvatarUrl?: string | null; externalReference?: string | null; senderId: string; senderRole: string; body?: string | null; createdAt?: Date; moderationHint?: ScanResult };
 type ScanResult = { isFlagged: boolean; flagTypes: MessageModerationFlagType[]; severity: MessageModerationSeverity; confidence: number; redactedBody: string; keywords: string[] };
@@ -53,8 +54,8 @@ export class MessageModerationService {
   }
 
   async list(dto: ListMessageModerationDto) {
-    const page = dto.page ?? 1; const limit = dto.limit ?? 20;
-    const [rows, total] = await this.repository.findCasesAndCount({ where: this.buildWhere(dto), skip: (page - 1) * limit, take: limit, orderBy: this.orderBy(dto) });
+    const { page, limit, skip, take } = getPagination(dto);
+    const [rows, total] = await this.repository.findCasesAndCount({ where: this.buildWhere(dto), skip, take, orderBy: this.orderBy(dto) });
     return { data: rows.map((row) => this.toListItem(row)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Flagged message conversations fetched successfully.' };
   }
 
@@ -62,8 +63,8 @@ export class MessageModerationService {
 
   async history(id: string, dto: MessageModerationHistoryDto) {
     const found = await this.repository.findCase(id); if (!found) throw new NotFoundException('Message moderation conversation not found');
-    const page = dto.page ?? 1; const limit = dto.limit ?? 20;
-    const [rows, total] = await Promise.all([this.repository.findConversationCases(found.conversationId, { skip: (page - 1) * limit, take: limit }), this.repository.countConversationCases(found.conversationId)]);
+    const { page, limit, skip, take } = getPagination(dto);
+    const [rows, total] = await Promise.all([this.repository.findConversationCases(found.conversationId, { skip, take }), this.repository.countConversationCases(found.conversationId)]);
     return { data: rows.map((row) => ({ messageId: row.messageId, body: this.maskSensitive(row.redactedBody), isFlagged: true, flagReasons: this.stringArray(row.flagTypesJson), severity: row.severity, status: this.queueStatus(row.status), createdAt: row.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Message moderation history fetched successfully.' };
   }
 
@@ -72,9 +73,9 @@ export class MessageModerationService {
   async export(dto: ListMessageModerationDto) { const rows = await this.repository.exportRows(this.buildWhere(dto)); return { data: rows.map((row) => ({ id: row.id, messageId: row.messageId, conversationId: row.conversationId, chatType: this.chatType(row.source), status: this.queueStatus(row.status), severity: row.severity, flagReasons: this.stringArray(row.flagTypesJson), preview: this.maskSensitive(row.redactedBody), senderRole: row.senderRole, lastFlaggedAt: row.lastMessageAt })), message: 'Message moderation export fetched successfully.' }; }
 
   async auditLogs(dto: ListMessageModerationAuditLogsDto) {
-    const page = dto.page ?? 1; const limit = dto.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(dto);
     const where = this.auditWhere(dto);
-    const [rows, total] = await this.repository.auditLogs({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: dto.sortOrder === SortOrder.ASC ? 'asc' : 'desc' } });
+    const [rows, total] = await this.repository.auditLogs({ where, skip, take, orderBy: { createdAt: dto.sortOrder === SortOrder.ASC ? 'asc' : 'desc' } });
     return { data: rows.map((row) => this.toAuditLog(row)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Message moderation audit logs fetched successfully.' };
   }
 

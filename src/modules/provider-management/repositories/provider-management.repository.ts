@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AccountType, GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { getPagination } from '../../../common/pagination/pagination.util';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
 import {
   ExportProvidersDto,
@@ -82,6 +83,7 @@ export class ProviderManagementRepository {
   }
 
   findProviderLookup(query: ProviderLookupDto) {
+    const { take } = getPagination(query);
     return this.prisma.user.findMany({
       where: {
         role: UserRole.PROVIDER,
@@ -98,7 +100,7 @@ export class ProviderManagementRepository {
           : {}),
       },
       orderBy: { providerBusinessName: 'asc' },
-      take: query.limit ?? 20,
+      take,
     });
   }
 

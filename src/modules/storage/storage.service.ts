@@ -10,6 +10,7 @@ import { StorageRepository } from './storage.repository';
 import { UploadsRepository } from './uploads.repository';
 import { MediaUploadPolicyService } from '../media-upload-policy/services/media-upload-policy.service';
 import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto, UploadFolder } from './dto/create-presigned-upload.dto';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 type UploadOwnership = {
   ownerId: string;
@@ -56,10 +57,9 @@ export class StorageService {
   }
 
   async list(user: AuthUserContext, query: ListUploadsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.UploadedFileWhereInput = { deletedAt: null, folder: query.folder, ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? query.ownerId : user.uid };
-    const [items, total] = await this.uploadsRepository.findUploadsAndCount({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.uploadsRepository.findUploadsAndCount({ where, orderBy: { createdAt: 'desc' }, skip, take });
     return { data: items.map((item) => this.toFile(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Uploads fetched successfully' };
   }
 

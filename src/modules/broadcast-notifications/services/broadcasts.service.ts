@@ -20,6 +20,7 @@ import {
   TargetingMode,
   UpdateBroadcastDto,
 } from '../dto/broadcast-notifications.dto';
+import { getPagination } from '../../../common/pagination/pagination.util';
 
 @Injectable()
 export class BroadcastsService {
@@ -39,8 +40,7 @@ export class BroadcastsService {
   }
 
   async list(query: ListBroadcastsDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.BroadcastWhereInput = {
       ...(query.search ? { OR: [{ title: { contains: query.search, mode: 'insensitive' } }, { message: { contains: query.search, mode: 'insensitive' } }] } : {}),
       ...(query.status && query.status !== BroadcastStatusFilter.ALL ? { status: query.status } : {}),
@@ -49,7 +49,7 @@ export class BroadcastsService {
       ...(query.createdFrom || query.createdTo ? { createdAt: { ...(query.createdFrom ? { gte: new Date(query.createdFrom) } : {}), ...(query.createdTo ? { lte: new Date(query.createdTo) } : {}) } } : {}),
       ...(query.scheduledFrom || query.scheduledTo ? { scheduledAt: { ...(query.scheduledFrom ? { gte: new Date(query.scheduledFrom) } : {}), ...(query.scheduledTo ? { lte: new Date(query.scheduledTo) } : {}) } } : {}),
     };
-    const [items, total] = await this.broadcastNotificationsRepository.findBroadcastsAndCount({ where, orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.broadcastNotificationsRepository.findBroadcastsAndCount({ where, orderBy: { [query.sortBy ?? 'createdAt']: query.sortOrder === SortOrder.ASC ? 'asc' : 'desc' }, skip, take });
     return { data: items.map((item) => this.toDetail(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Broadcasts fetched successfully' };
   }
 
@@ -132,10 +132,9 @@ export class BroadcastsService {
 
   async recipients(id: string, query: ListRecipientsDto) {
     await this.getBroadcast(id);
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.BroadcastDeliveryWhereInput = { broadcastId: id, channel: query.channel, status: query.status, ...(query.search ? { email: { contains: query.search, mode: 'insensitive' } } : {}) };
-    const [items, total] = await this.broadcastRecipientsRepository.findDeliveriesAndCount({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit });
+    const [items, total] = await this.broadcastRecipientsRepository.findDeliveriesAndCount({ where, orderBy: { createdAt: 'desc' }, skip, take });
     return { data: items.map((item) => ({ id: item.id, recipientId: item.recipientId, recipientType: item.recipientType, recipientEmail: item.email, channel: item.channel, status: item.status, failureReason: item.failureReason, sentAt: item.sentAt, deliveredAt: item.deliveredAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Broadcast recipients fetched successfully' };
   }
 
