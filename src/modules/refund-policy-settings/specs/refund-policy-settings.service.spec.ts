@@ -92,17 +92,17 @@ describe('RefundPolicySettingsService', () => {
 
   it('refund eligibility uses refundWindowDays and all categories when refunds are allowed', () => {
     const { service } = createService();
-    const expired = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-04-01T10:00:00.000Z'), categoryIds: ['category_electronics'], requestedAmount: 10, remainingRefundableAmount: 20, paymentRefundable: true, now });
+    const expired = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-04-01T10:00:00.000Z'), requestedAmount: 10, remainingRefundableAmount: 20, paymentRefundable: true, now });
     expect(expired.eligible).toBe(false);
     expect(expired.reasons).toContain('REFUND_WINDOW_EXPIRED');
-    const otherCategory = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), categoryIds: ['category_home_decor'], requestedAmount: 10, remainingRefundableAmount: 20, paymentRefundable: true, now });
-    expect(otherCategory.eligible).toBe(true);
-    expect(otherCategory.reasons).not.toContain('CATEGORY_MANUAL_REVIEW_REQUIRED');
+    const allCategories = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), requestedAmount: 10, remainingRefundableAmount: 20, paymentRefundable: true, now });
+    expect(allCategories.eligible).toBe(true);
+    expect(allCategories.reasons).not.toContain('CATEGORY_MANUAL_REVIEW_REQUIRED');
   });
 
   it('allowRefund=false makes refund eligibility return disabled reason', () => {
     const { service } = createService();
-    const result = service.evaluateWithPolicy({ ...settings, allowRefund: false }, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), categoryIds: ['category_electronics'], requestedAmount: 10, remainingRefundableAmount: 20, paymentRefundable: true, now });
+    const result = service.evaluateWithPolicy({ ...settings, allowRefund: false }, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), requestedAmount: 10, remainingRefundableAmount: 20, paymentRefundable: true, now });
     expect(result.eligible).toBe(false);
     expect(result.manualReviewRequired).toBe(false);
     expect(result.reasons).toContain('REFUNDS_DISABLED_BY_POLICY');
@@ -110,10 +110,10 @@ describe('RefundPolicySettingsService', () => {
 
   it('threshold review uses policy settings without small-refund auto approval', () => {
     const { service } = createService();
-    const withinThreshold = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), categoryIds: ['category_electronics'], requestedAmount: 15, remainingRefundableAmount: 20, paymentRefundable: true, now });
+    const withinThreshold = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), requestedAmount: 15, remainingRefundableAmount: 20, paymentRefundable: true, now });
     expect(withinThreshold).not.toHaveProperty('autoApproveSmallRefund');
     expect(withinThreshold.canProcessWithoutSeniorReview).toBe(true);
-    const seniorReview = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), categoryIds: ['category_electronics'], requestedAmount: 75, remainingRefundableAmount: 100, paymentRefundable: true, now });
+    const seniorReview = service.evaluateWithPolicy(settings, { deliveredAt: new Date('2026-05-10T10:00:00.000Z'), requestedAmount: 75, remainingRefundableAmount: 100, paymentRefundable: true, now });
     expect(seniorReview.manualReviewRequired).toBe(true);
     expect(seniorReview.canProcessWithoutSeniorReview).toBe(false);
   });
@@ -156,11 +156,15 @@ describe('Refund policy settings source safety', () => {
   });
 
   it('removes category and small-refund fields from Swagger examples', () => {
+    const dto = readFileSync(join(__dirname, '../dto/refund-policy-settings.dto.ts'), 'utf8');
+    const service = readFileSync(join(__dirname, '../services/refund-policy-settings.service.ts'), 'utf8');
     expect(controller).not.toContain('refundForAllCategories');
     expect(controller).not.toContain('eligibleCategoryIds');
     expect(controller).not.toContain('eligibleCategories');
     expect(controller).not.toContain('autoApproveSmallRefunds');
     expect(controller).not.toContain('smallRefundAutoApproveAmount');
     expect(controller).not.toContain('sortOrder');
+    expect(dto).not.toContain('categoryIds');
+    expect(service).not.toContain('categoryIds');
   });
 });

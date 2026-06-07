@@ -20,13 +20,13 @@ describe('Admin transactions repository cleanup', () => {
       'findTransactionTimeline',
       'findRefundRequestsForPayment',
       'findProviderOrderForRefund',
-      'findOrderItemCategories',
       'processRefund',
       'findOpenDispute',
       'findProviderOrderForDispute',
       'openDispute',
       'createTransactionNotification',
     ].forEach((method) => expect(repository).toContain(method));
+    expect(repository).not.toContain('findOrderItemCategories');
   });
 
   it('preserves module wiring, RBAC routes, and secret-safety docs', () => {

@@ -9,6 +9,7 @@ import { AdminDisputeTrackingRepository } from '../repositories/admin-dispute-tr
 import { AdminDisputesRepository } from '../repositories/admin-disputes.repository';
 import { AddDisputeNoteDto, DisputeDateRangeDto, DisputePriorityFilter, DisputeRange, DisputeSortBy, DisputeStatusFilter, ExportDisputesDto, ExportFormat, LinkTransactionDto, ListDisputesDto, RefundPreviewDto, SortOrder, SubmitDisputeDecisionDto, TrackingLogExportDto, TransactionSearchDto } from '../dto/admin-disputes.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
+import { RefundPolicySettingsService } from '../../refund-policy-settings/services/refund-policy-settings.service';
 
 type PaymentWithOrder = Payment & {
   user: { id: string; firstName: string; lastName: string; email: string };
@@ -18,7 +19,7 @@ type PaymentWithOrder = Payment & {
 type DisputeWithDetails = DisputeCase & {
   user: { id: string; firstName: string; lastName: string; email: string };
   order: { id: string; orderNumber: string; status: string; paymentStatus: PaymentStatus; createdAt: Date; updatedAt: Date; total: Prisma.Decimal; currency: string; providerOrders: { id: string; status: string; orderNumber: string | null; createdAt: Date; updatedAt: Date; timeline: { status: string; title: string; createdAt: Date }[] }[] };
-  payment: { id: string; status: PaymentStatus; amount: Prisma.Decimal; currency: string; providerPaymentIntentId: string | null; paymentMethod: string; metadataJson: Prisma.JsonValue } | null;
+  payment: { id: string; status: PaymentStatus; amount: Prisma.Decimal; currency: string; providerPaymentIntentId: string | null; paymentMethod: string; metadataJson: Prisma.JsonValue; createdAt: Date } | null;
 };
 
 @Injectable()
@@ -30,6 +31,7 @@ export class AdminDisputesService {
     private readonly decisionsRepository: AdminDisputeDecisionsRepository,
     private readonly trackingRepository: AdminDisputeTrackingRepository,
     private readonly auditLog: AuditLogWriterService,
+    private readonly refundPolicy: RefundPolicySettingsService,
   ) {}
 
   async stats(query: DisputeDateRangeDto) {
@@ -50,7 +52,8 @@ export class AdminDisputesService {
 
   async details(id: string) {
     const dispute = await this.findDispute(id);
-    return { data: { id: dispute.id, caseId: dispute.caseId, status: dispute.status, priority: dispute.priority, reason: dispute.reason, amount: this.money(dispute.amount), currency: dispute.currency, sla: this.sla(dispute), customer: { id: dispute.user.id, name: this.name(dispute.user), email: dispute.user.email }, transaction: this.transaction(dispute), refund: this.refund(dispute), claimDetails: dispute.claimDetails, createdAt: dispute.createdAt, lastUpdatedAt: dispute.updatedAt }, message: 'Dispute details fetched successfully.' };
+    const refund = await this.refund(dispute);
+    return { data: { id: dispute.id, caseId: dispute.caseId, status: dispute.status, priority: dispute.priority, reason: dispute.reason, amount: this.money(dispute.amount), currency: dispute.currency, sla: this.sla(dispute), customer: { id: dispute.user.id, name: this.name(dispute.user), email: dispute.user.email }, transaction: this.transaction(dispute), refund, claimDetails: dispute.claimDetails, createdAt: dispute.createdAt, lastUpdatedAt: dispute.updatedAt }, message: 'Dispute details fetched successfully.' };
   }
 
 
@@ -78,8 +81,9 @@ export class AdminDisputesService {
     const dispute = await this.findDispute(id);
     const payment = await this.findPayment(dto.transactionId);
     this.assertSameCustomer(dispute, payment);
-    const eligibility = await this.refundEligibility(payment);
-    const requestedRefundAmount = this.requestedRefundAmount(dto, eligibility.maxRefundAmount);
+    const baseEligibility = await this.refundEligibility(payment);
+    const requestedRefundAmount = this.requestedRefundAmount(dto, baseEligibility.maxRefundAmount);
+    const eligibility = dto.refundType === DisputeRefundType.NONE ? baseEligibility : await this.refundEligibility(payment, requestedRefundAmount);
     const warnings = [...eligibility.warnings];
     if (dto.refundType !== DisputeRefundType.NONE && requestedRefundAmount > eligibility.maxRefundAmount) throw new BadRequestException('Requested refund exceeds max refundable amount.');
     const eligible = dto.refundType === DisputeRefundType.NONE || eligibility.eligible;
@@ -184,7 +188,8 @@ export class AdminDisputesService {
   async internalData(id: string) {
     const dispute = await this.findDispute(id);
     const paymentMetadata = this.object(dispute.payment?.metadataJson);
-    return { data: { paymentStatus: dispute.payment?.status ?? dispute.order.paymentStatus, refundEligible: this.refund(dispute).eligible, processorAuthCode: this.stringValue(paymentMetadata.processorAuthCode) ?? this.stringValue(paymentMetadata.authCode) ?? null, transactionHistory: this.transactionHistory(dispute) }, message: 'Internal dispute data fetched successfully.' };
+    const refund = await this.refund(dispute);
+    return { data: { paymentStatus: dispute.payment?.status ?? dispute.order.paymentStatus, refundEligible: refund.eligible, processorAuthCode: this.stringValue(paymentMetadata.processorAuthCode) ?? this.stringValue(paymentMetadata.authCode) ?? null, transactionHistory: this.transactionHistory(dispute) }, message: 'Internal dispute data fetched successfully.' };
   }
 
   async timeline(id: string) {
@@ -233,7 +238,37 @@ export class AdminDisputesService {
 
   private paymentInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true } }, order: { select: { id: true, orderNumber: true, createdAt: true, total: true, currency: true } } } satisfies Prisma.PaymentInclude; }
   private assertSameCustomer(dispute: DisputeCase, payment: PaymentWithOrder): void { if (dispute.userId !== payment.userId) throw new BadRequestException('Transaction does not belong to the dispute customer'); }
-  private async refundEligibility(payment: PaymentWithOrder) { const paid = payment.status === PaymentStatus.SUCCEEDED; const ageDays = Math.floor((Date.now() - payment.createdAt.getTime()) / 86_400_000); const previous = await this.linkageRepository.aggregateRefundedAmount(payment.id); const refunded = this.money(previous._sum.approvedAmount ?? previous._sum.requestedAmount ?? 0); const maxRefundAmount = Math.max(0, this.money(payment.amount) - refunded); const warnings: string[] = []; if (!paid) warnings.push('Payment is not settled.'); if (ageDays > 30) warnings.push('Refund window expired.'); if (maxRefundAmount <= 0) warnings.push('No refundable amount remains.'); const eligible = paid && ageDays <= 30 && maxRefundAmount > 0; return { eligible, maxRefundAmount, eligibilityText: eligible ? 'Eligible within 30-day window' : warnings[0] ?? 'Refund is not currently eligible', warnings }; }
+  private async refundEligibility(payment: PaymentWithOrder, requestedAmount?: number) {
+    const paid = payment.status === PaymentStatus.SUCCEEDED;
+    const previous = await this.linkageRepository.aggregateRefundedAmount(payment.id);
+    const refunded = this.money(previous._sum.approvedAmount ?? previous._sum.requestedAmount ?? 0);
+    const maxRefundAmount = Math.max(0, this.money(payment.amount) - refunded);
+    const policyResult = await this.refundPolicy.evaluateRefundEligibility({
+      deliveredAt: payment.createdAt,
+      requestedAmount: requestedAmount ?? maxRefundAmount,
+      remainingRefundableAmount: maxRefundAmount,
+      paymentRefundable: paid,
+    });
+    const warnings = this.refundEligibilityWarnings(policyResult.reasons, policyResult.policy.refundWindowDays);
+    if (maxRefundAmount <= 0) warnings.push('No refundable amount remains.');
+    const eligible = policyResult.eligible && maxRefundAmount > 0;
+    return {
+      eligible,
+      maxRefundAmount,
+      eligibilityText: eligible ? `Eligible within ${policyResult.policy.refundWindowDays}-day refund window` : warnings[0] ?? 'Refund is not currently eligible',
+      warnings,
+    };
+  }
+  private refundEligibilityWarnings(reasons: string[], refundWindowDays: number): string[] {
+    return reasons.map((reason) => {
+      if (reason === 'REFUNDS_DISABLED_BY_POLICY') return 'REFUNDS_DISABLED_BY_POLICY';
+      if (reason === 'REFUND_WINDOW_EXPIRED') return `Refund window expired after ${refundWindowDays} days.`;
+      if (reason === 'PAYMENT_NOT_REFUNDABLE') return 'Payment is not settled.';
+      if (reason === 'REQUESTED_AMOUNT_EXCEEDS_REMAINING_REFUNDABLE_AMOUNT') return 'Requested refund exceeds remaining refundable amount.';
+      if (reason === 'RISK_REVIEW_REQUIRED') return 'Risk review is required.';
+      return reason;
+    });
+  }
   private requestedRefundAmount(dto: RefundPreviewDto, maxRefundAmount: number): number { if (dto.refundType === DisputeRefundType.NONE) return 0; if (dto.refundType === DisputeRefundType.FULL) return maxRefundAmount; const amount = dto.refundAmount ?? 0; if (amount <= 0) throw new BadRequestException('Partial refund amount must be greater than 0'); return amount; }
   private transactionSearchItem(payment: PaymentWithOrder, refundEligible: boolean, eligibilityText: string) { return { id: payment.id, transactionId: payment.providerPaymentIntentId ?? payment.id, orderId: payment.orderId, orderNumber: payment.order?.orderNumber ?? null, customerName: this.name(payment.user), paymentMethod: this.paymentMethod(payment), amount: this.money(payment.amount), currency: payment.currency, status: this.paymentStatus(payment.status), orderDate: payment.order?.createdAt ?? payment.createdAt, refundEligible, eligibilityText }; }
   private paymentMethod(payment: Pick<Payment, 'paymentMethod' | 'metadataJson'>): string { const metadata = this.object(payment.metadataJson); const brand = this.stringValue(metadata.cardBrand) ?? (payment.paymentMethod === 'STRIPE_CARD' ? 'CARD' : payment.paymentMethod); const last4 = this.stringValue(metadata.cardLast4); return last4 ? `${brand.toUpperCase()} **** ${last4}` : brand.replaceAll('_', ' '); }
@@ -246,13 +281,32 @@ export class AdminDisputesService {
   }
 
   private async ensureDispute(id: string): Promise<void> { await this.findDispute(id); }
-  private disputeInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true } }, order: { select: { id: true, orderNumber: true, status: true, paymentStatus: true, createdAt: true, updatedAt: true, total: true, currency: true, providerOrders: { select: { id: true, status: true, orderNumber: true, createdAt: true, updatedAt: true, timeline: { select: { status: true, title: true, createdAt: true }, orderBy: { createdAt: 'asc' } } } } } }, payment: { select: { id: true, status: true, amount: true, currency: true, providerPaymentIntentId: true, paymentMethod: true, metadataJson: true } } } satisfies Prisma.DisputeCaseInclude; }
+  private disputeInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true } }, order: { select: { id: true, orderNumber: true, status: true, paymentStatus: true, createdAt: true, updatedAt: true, total: true, currency: true, providerOrders: { select: { id: true, status: true, orderNumber: true, createdAt: true, updatedAt: true, timeline: { select: { status: true, title: true, createdAt: true }, orderBy: { createdAt: 'asc' } } } } } }, payment: { select: { id: true, status: true, amount: true, currency: true, providerPaymentIntentId: true, paymentMethod: true, metadataJson: true, createdAt: true } } } satisfies Prisma.DisputeCaseInclude; }
   private disputeWhere(query: ListDisputesDto): Prisma.DisputeCaseWhereInput { return { ...this.dateWhere(query), ...(query.status && query.status !== DisputeStatusFilter.ALL ? { status: query.status } : {}), ...(query.priority && query.priority !== DisputePriorityFilter.ALL ? { priority: query.priority } : {}), ...(query.search ? { OR: [{ caseId: { contains: query.search, mode: 'insensitive' } }, { transactionId: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { user: { email: { contains: query.search, mode: 'insensitive' } } }, { user: { firstName: { contains: query.search, mode: 'insensitive' } } }, { user: { lastName: { contains: query.search, mode: 'insensitive' } } }] } : {}) }; }
   private dateWhere(query: DisputeDateRangeDto): Prisma.DisputeCaseWhereInput { const now = new Date(); const range = query.range ?? DisputeRange.LAST_30_DAYS; const start = range === DisputeRange.TODAY ? new Date(now.toISOString().slice(0, 10)) : range === DisputeRange.LAST_7_DAYS ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) : range === DisputeRange.LAST_30_DAYS ? new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) : query.fromDate ? new Date(query.fromDate) : undefined; return { createdAt: { ...(start ? { gte: start } : {}), ...(query.toDate ? { lte: new Date(query.toDate) } : {}) } }; }
   private orderBy(query: ListDisputesDto): Prisma.DisputeCaseOrderByWithRelationInput { const order = query.sortOrder === SortOrder.ASC ? 'asc' : 'desc'; if (query.sortBy === DisputeSortBy.AMOUNT) return { amount: order }; if (query.sortBy === DisputeSortBy.PRIORITY) return { priority: order }; if (query.sortBy === DisputeSortBy.DAYS_OPEN) return { createdAt: order === 'asc' ? 'desc' : 'asc' }; return { createdAt: order }; }
   private listItem(item: DisputeWithDetails) { return { id: item.id, caseId: item.caseId, customer: { id: item.user.id, name: this.name(item.user), email: item.user.email }, transactionId: item.transactionId, orderId: item.orderId, orderNumber: item.order.orderNumber, amount: this.money(item.amount), currency: item.currency, priority: item.priority, status: item.status, daysOpen: this.daysOpen(item), reason: item.reason, createdAt: item.createdAt }; }
   private transaction(item: DisputeWithDetails) { const metadata = this.object(item.payment?.metadataJson); return { id: item.payment?.id ?? item.transactionId, transactionId: item.transactionId ?? item.payment?.providerPaymentIntentId ?? item.payment?.id ?? null, paymentStatus: item.payment?.status ?? item.order.paymentStatus, processorAuthCode: this.stringValue(metadata.processorAuthCode) ?? this.stringValue(metadata.authCode) ?? null, amount: this.money(item.payment?.amount ?? item.amount), currency: item.payment?.currency ?? item.currency }; }
-  private refund(item: DisputeWithDetails) { const resolvedStatuses: DisputeStatus[] = [DisputeStatus.RESOLVED, DisputeStatus.REJECTED, DisputeStatus.APPROVED]; const resolved = resolvedStatuses.includes(item.status); const paid = item.order.paymentStatus === PaymentStatus.SUCCEEDED; return { eligible: paid && !resolved, eligibleReason: paid && !resolved ? 'Within refund window' : 'Refund is not currently eligible', maxRefundAmount: this.money(item.amount) }; }
+  private async refund(item: DisputeWithDetails) {
+    const policy = await this.refundPolicy.getActivePolicy();
+    const resolvedStatuses: DisputeStatus[] = [DisputeStatus.RESOLVED, DisputeStatus.REJECTED, DisputeStatus.APPROVED];
+    const resolved = resolvedStatuses.includes(item.status);
+    const paid = item.order.paymentStatus === PaymentStatus.SUCCEEDED;
+    const refundClockStartedAt = item.payment?.createdAt ?? item.order.createdAt;
+    const daysSincePayment = Math.floor((Date.now() - refundClockStartedAt.getTime()) / 86_400_000);
+    const withinWindow = daysSincePayment <= policy.refundWindowDays;
+    const eligible = policy.allowRefund && paid && !resolved && withinWindow;
+    const eligibleReason = !policy.allowRefund
+      ? 'REFUNDS_DISABLED_BY_POLICY'
+      : !paid
+        ? 'Payment is not settled.'
+        : resolved
+          ? 'Dispute is already resolved.'
+          : withinWindow
+            ? `Eligible within ${policy.refundWindowDays}-day refund window`
+            : `Refund window expired after ${policy.refundWindowDays} days.`;
+    return { eligible, eligibleReason, maxRefundAmount: this.money(item.amount) };
+  }
   private transactionHistory(item: DisputeWithDetails) { const orderEvents = [{ status: 'ORDER_PLACED', label: 'Order placed', timestamp: item.order.createdAt }, { status: item.order.status, label: this.humanize(item.order.status), timestamp: item.order.updatedAt }]; const providerEvents = item.order.providerOrders.flatMap((order) => order.timeline.map((event) => ({ status: event.status, label: event.title, timestamp: event.createdAt }))); return [...orderEvents, ...providerEvents].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()); }
   private sla(item: DisputeCase) { const ms = item.slaDeadlineAt.getTime() - Date.now(); const hours = Math.floor(Math.max(0, ms) / 3_600_000); const minutes = Math.floor((Math.max(0, ms) % 3_600_000) / 60_000); return { deadlineAt: item.slaDeadlineAt, remainingText: ms > 0 ? `${hours}h ${minutes}m remaining` : 'SLA overdue', isApproachingDeadline: ms > 0 && ms <= 24 * 3_600_000 }; }
   private noteItem(note: { id: string; note: string; visibility: string; createdAt: Date; author: { id: string; firstName: string; lastName: string } }) { return { id: note.id, note: note.note, visibility: note.visibility, author: { id: note.author.id, name: this.name(note.author) }, createdAt: note.createdAt }; }

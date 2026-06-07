@@ -70,8 +70,7 @@ export class AdminTransactionsService {
     if (refundAmount > remainingRefundableAmount) throw new BadRequestException('Refund amount cannot exceed remaining refundable amount');
     const providerOrder = item.orderId ? await this.adminTransactionsRepository.findProviderOrderForRefund(item.orderId) : null;
     if (!item.orderId || !providerOrder) throw new BadRequestException('Order/provider order is required to refund this transaction');
-    const categoryIds = await this.categoryIdsForOrder(item.orderId);
-    const policyResult = await this.refundPolicy.evaluateRefundEligibility({ deliveredAt: this.deliveredAt(providerOrder.fulfilledAt, item.createdAt), categoryIds, requestedAmount: refundAmount, remainingRefundableAmount, paymentRefundable: true });
+    const policyResult = await this.refundPolicy.evaluateRefundEligibility({ deliveredAt: this.deliveredAt(providerOrder.fulfilledAt, item.createdAt), requestedAmount: refundAmount, remainingRefundableAmount, paymentRefundable: true });
     if (!policyResult.eligible && !policyResult.manualReviewRequired) throw new BadRequestException(policyResult.reasons[0] ?? 'Refund is not eligible');
     const refundId = this.refundId(item.paymentId);
     const newStatus = refundAmount >= remainingRefundableAmount ? AdminTransactionStatus.REFUNDED : AdminTransactionStatus.PARTIALLY_REFUNDED;
@@ -131,7 +130,7 @@ export class AdminTransactionsService {
     return where;
   }
 
-  private paymentInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, location: true } }, order: { include: { providerOrders: { include: { provider: { select: { id: true, providerBusinessName: true } } }, orderBy: { createdAt: 'asc' } }, items: { include: { gift: { select: { categoryId: true, name: true } } } } } }, moneyGift: true, customerSubscription: true, recurringPaymentOccurrences: { include: { recurringPayment: true } }, refundRequests: true } satisfies Prisma.PaymentInclude; }
+  private paymentInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, location: true } }, order: { include: { providerOrders: { include: { provider: { select: { id: true, providerBusinessName: true } } }, orderBy: { createdAt: 'asc' } } } }, moneyGift: true, customerSubscription: true, recurringPaymentOccurrences: { include: { recurringPayment: true } }, refundRequests: true } satisfies Prisma.PaymentInclude; }
 
   private normalize(payment: PaymentRecord): NormalizedAdminTransaction {
     const metadata = this.object(payment.metadataJson);
@@ -188,7 +187,6 @@ export class AdminTransactionsService {
   private settlementStatus(item: NormalizedAdminTransaction): string { if (item.status === AdminTransactionStatus.SUCCESS || item.status === AdminTransactionStatus.REFUNDED || item.status === AdminTransactionStatus.PARTIALLY_REFUNDED) return 'CLEARED'; if (item.status === AdminTransactionStatus.FAILED) return 'FAILED'; return 'PENDING'; }
   private isPaymentRefundable(item: NormalizedAdminTransaction): boolean { return item.paymentStatus === PaymentStatus.SUCCEEDED && item.status !== AdminTransactionStatus.REFUNDED; }
   private async refundedAmount(paymentId: string): Promise<number> { const rows = await this.adminTransactionsRepository.findRefundRequestsForPayment(paymentId); return this.money(rows.reduce((sum, row) => sum + Number(row.approvedAmount ?? row.requestedAmount), 0)); }
-  private async categoryIdsForOrder(orderId: string): Promise<string[]> { const items = await this.adminTransactionsRepository.findOrderItemCategories(orderId); return [...new Set(items.map((item) => item.gift.categoryId))]; }
   private deliveredAt(fulfilledAt: Date | null, fallback: Date): Date { return fulfilledAt ?? fallback; }
   private safeExportFilters(query: ExportAdminTransactionsDto): Record<string, unknown> { const { search, fromDate, toDate, transactionType, status, gatewayProvider, userId, providerId, format } = query; return { search, fromDate, toDate, transactionType, status, gatewayProvider, userId, providerId, format }; }
   private timelineDescription(item: NormalizedAdminTransaction): string { if (item.status === AdminTransactionStatus.SUCCESS) return 'Funds successfully transferred to the merchant escrow account.'; if (item.status === AdminTransactionStatus.FAILED) return 'Gateway or system marked the transaction as failed.'; if (item.status === AdminTransactionStatus.PENDING) return 'Transaction is pending settlement or review.'; return 'Refund state updated for this transaction.'; }

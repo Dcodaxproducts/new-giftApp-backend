@@ -31,10 +31,6 @@ export class AdminTransactionsRepository {
     return this.prisma.providerOrder.findFirst({ where: { orderId }, include: { items: true }, orderBy: { createdAt: 'asc' } });
   }
 
-  findOrderItemCategories(orderId: string) {
-    return this.prisma.orderItem.findMany({ where: { orderId }, include: { gift: { select: { categoryId: true } } } });
-  }
-
   processRefund(params: {
     actorId: string;
     orderId: string;

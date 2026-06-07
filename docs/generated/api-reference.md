@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 12:03 UTC
+Generated at: 2026-06-07 13:22 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -4714,7 +4714,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     },
     "refund": {
       "eligible": true,
-      "eligibleReason": "Within refund window",
+      "eligibleReason": "Eligible within configured refund window",
       "maxRefundAmount": 129.99
     },
     "claimDetails": "Item never arrived. Tracking shows delivered but not at my address.",
@@ -4788,7 +4788,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "currency": "PKR",
       "status": "SETTLED",
       "refundEligible": true,
-      "eligibilityText": "Eligible within 30-day window"
+      "eligibilityText": "Eligible within configured refund window"
     },
     "refundSelection": {
       "type": "FULL",
@@ -4857,7 +4857,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Preview dispute refund selection
 - Allowed role/access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate
-- Notes: Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. Validates requested refunds against paid amount, prior refunds, and refund window without processing a refund.
+- Notes: Access: SUPER_ADMIN or ADMIN with disputes.refund.evaluate. SUPER_ADMIN or ADMIN with disputes.refund.evaluate permission. Validates requested refunds against payment status, prior refunds, and active refund policy settings without processing a refund.
 - Parameters:
   - `id` (path, required, string)
 - Request payload(s):

@@ -9,11 +9,11 @@ const createdAt = new Date('2026-10-24T14:20:00.000Z');
 const payment = {
   id: 'payment_1', userId: 'user_1', orderId: 'order_1', moneyGiftId: null, customerSubscriptionId: null, provider: PaymentProvider.STRIPE, providerPaymentIntentId: 'TRX-982341', amount: new Prisma.Decimal(1281.25), currency: 'PKR', status: PaymentStatus.SUCCEEDED, paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, metadataJson: { cardBrand: 'Visa', cardLast4: '4242', clientSecret: 'should_not_leak', processorAuthCode: 'AUTH-9921-X' }, createdAt, updatedAt: createdAt,
   user: { id: 'user_1', firstName: 'Julianne', lastName: 'Doe', email: 'julianne.doe@example.com', avatarUrl: 'avatar.png', location: 'San Francisco, CA, USA' },
-  order: { id: 'order_1', orderNumber: 'ORD-88421', subtotal: new Prisma.Decimal(1250), discountTotal: new Prisma.Decimal(0), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(31.25), currency: 'PKR', providerOrders: [{ id: 'provider_order_1', providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, fulfilledAt: createdAt, provider: { id: 'provider_1', providerBusinessName: 'Gift Shop' } }], items: [{ gift: { categoryId: 'category_electronics', name: 'Headphones' } }] },
+  order: { id: 'order_1', orderNumber: 'ORD-88421', subtotal: new Prisma.Decimal(1250), discountTotal: new Prisma.Decimal(0), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(31.25), currency: 'PKR', providerOrders: [{ id: 'provider_order_1', providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, fulfilledAt: createdAt, provider: { id: 'provider_1', providerBusinessName: 'Gift Shop' } }] },
   moneyGift: null, customerSubscription: null, recurringPaymentOccurrences: [], refundRequests: [],
 };
 
-function createService(overrides: Partial<{ payments: typeof payment[]; refundRequests: unknown[]; disputes: unknown[]; categories: string[] }> = {}) {
+function createService(overrides: Partial<{ payments: typeof payment[]; refundRequests: unknown[]; disputes: unknown[] }> = {}) {
   const providerOrder = { id: 'provider_order_1', providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, fulfilledAt: createdAt, items: [] };
   const prisma: {
     payment: { findMany: jest.Mock; findFirst: jest.Mock; update: jest.Mock };
@@ -21,7 +21,6 @@ function createService(overrides: Partial<{ payments: typeof payment[]; refundRe
     disputeCase: { findMany: jest.Mock; findFirst: jest.Mock; create: jest.Mock };
     adminAuditLog: { findMany: jest.Mock };
     providerOrder: { findFirst: jest.Mock };
-    orderItem: { findMany: jest.Mock };
     order: { update: jest.Mock };
     providerOrderTimeline: { create: jest.Mock };
     notification: { create: jest.Mock };
@@ -33,7 +32,6 @@ function createService(overrides: Partial<{ payments: typeof payment[]; refundRe
     disputeCase: { findMany: jest.fn().mockResolvedValue([]), findFirst: jest.fn().mockResolvedValue((overrides.disputes ?? [])[0] ?? null), create: jest.fn().mockResolvedValue({ id: 'dispute_1', caseId: 'DSP-1024', status: 'OPEN' }) },
     adminAuditLog: { findMany: jest.fn().mockResolvedValue([]) },
     providerOrder: { findFirst: jest.fn().mockResolvedValue(providerOrder) },
-    orderItem: { findMany: jest.fn().mockResolvedValue((overrides.categories ?? ['category_electronics']).map((categoryId) => ({ gift: { categoryId } }))) },
     order: { update: jest.fn().mockResolvedValue({}) },
     providerOrderTimeline: { create: jest.fn().mockResolvedValue({}) },
     notification: { create: jest.fn().mockResolvedValue({}) },
@@ -113,11 +111,15 @@ describe('AdminTransactionsService', () => {
   });
 
   it('REFUND action creates refund transaction record and updates original transaction status', async () => {
-    const { service, prisma, auditLog } = createService();
+    const { service, prisma, auditLog, refundPolicy } = createService();
     const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST, notifyUser: true });
     expect(response.data).toMatchObject({ status: 'REFUNDED' });
     expect(prisma.refundRequest.create).toHaveBeenCalled();
     expect(prisma.payment.update).toHaveBeenCalled();
+    const eligibilityCalls = refundPolicy.evaluateRefundEligibility.mock.calls as Array<[Record<string, unknown>]>;
+    const eligibilityInput = eligibilityCalls[0][0];
+    expect(eligibilityInput).not.toHaveProperty('categoryIds');
+    expect(eligibilityInput).toMatchObject({ requestedAmount: 1281.25, remainingRefundableAmount: 1281.25, paymentRefundable: true });
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'TRANSACTION_REFUNDED_BY_ADMIN' }));
   });
 
@@ -185,6 +187,8 @@ describe('Admin transaction monitoring source safety', () => {
     expect(service).toContain('safeExportFilters');
     expect(service).toContain('AdminTransactionsRepository');
     expect(dto).toContain('AdminTransactionType');
+    expect(service).not.toContain('categoryIdsForOrder');
+    expect(service).not.toContain('findOrderItemCategories');
   });
 
   it('removes old transaction action routes from controller and generated Swagger', () => {

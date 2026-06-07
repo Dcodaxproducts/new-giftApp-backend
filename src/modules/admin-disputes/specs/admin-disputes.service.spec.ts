@@ -29,6 +29,7 @@ describe('Admin Dispute Manager Core module', () => {
   it('registers module and swagger groups', () => {
     expect(appModule).toContain('AdminDisputesModule');
     expect(moduleFile).toContain('AdminDisputesController');
+    expect(moduleFile).toContain('RefundPolicySettingsModule');
     expect(controller).toContain("@ApiTags('02 Admin - Dispute Manager')");
     expect(controller).toContain("@ApiTags('02 Admin - Dispute Evidence')");
     expect(controller).toContain('SLA remaining text is computed from slaDeadlineAt');
@@ -109,6 +110,16 @@ describe('Admin Dispute Manager Core module', () => {
     expect(service).toContain('DisputeRefundType.NONE');
     expect(service).toContain('Partial refund amount must be greater than 0');
     expect(service).toContain('Requested refund exceeds max refundable amount');
+  });
+
+  it('refund preview uses active refund policy settings instead of hardcoded category or 30-day logic', () => {
+    expect(service).toContain('RefundPolicySettingsService');
+    expect(service).toContain('evaluateRefundEligibility');
+    expect(service).toContain('REFUNDS_DISABLED_BY_POLICY');
+    expect(service).toContain('policyResult.policy.refundWindowDays');
+    expect(service).not.toContain('ageDays > 30');
+    expect(service).not.toContain('Eligible within 30-day window');
+    expect(controller).not.toContain('Eligible within 30-day window');
   });
 
   it('link transaction requires confirmation flag and stores refund selection', () => {

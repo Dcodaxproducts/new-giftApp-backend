@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayUnique, IsArray, IsBoolean, IsISO8601, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsISO8601, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
 export class CancellationTierDto {
   @ApiProperty({ example: 5, minimum: 0 }) @Type(() => Number) @IsInt() @Min(0) daysBeforeCheckIn!: number;
@@ -27,7 +27,6 @@ export class RefundEligibilityInputDto {
   @ApiProperty({ example: '2026-05-01T10:00:00.000Z' }) @IsISO8601() deliveredAt!: string;
   @ApiProperty({ example: 15, minimum: 0 }) @Type(() => Number) @IsNumber() @Min(0) requestedAmount!: number;
   @ApiProperty({ example: 50, minimum: 0 }) @Type(() => Number) @IsNumber() @Min(0) remainingRefundableAmount!: number;
-  @ApiProperty({ example: ['category_electronics'], type: [String] }) @IsArray() @ArrayUnique() @IsString({ each: true }) categoryIds!: string[];
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() paymentRefundable?: boolean;
   @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() riskFlagged?: boolean;
 }

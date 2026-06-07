@@ -14,7 +14,6 @@ type StoredCancellationTier = CancellationTier & { createdAt: string };
 
 export interface RefundEligibilityInput {
   deliveredAt: Date;
-  categoryIds: string[];
   requestedAmount: number;
   remainingRefundableAmount: number;
   paymentRefundable: boolean;
