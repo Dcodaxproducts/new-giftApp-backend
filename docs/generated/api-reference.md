@@ -1,5 +1,5 @@
 Generated from docs/generated/openapi.json
-Generated at: 2026-06-07 13:39 UTC
+Generated at: 2026-06-07 13:59 UTC
 Do not edit manually.
 Run: npm run docs:generate
 
@@ -10476,7 +10476,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Create or estimate broadcast wizard
 - Allowed role/access: SUPER_ADMIN or ADMIN with broadcast action permission
-- Notes: Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'.
+- Notes: Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'. Location targeting currently applies to PROVIDER audiences only.
 - Request payload(s):
   - estimateReach:
 ```json
@@ -10679,6 +10679,50 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "recurring": {
       "enabled": true,
       "frequency": "DAILY"
+    }
+  }
+}
+```
+  - providerLocationSegment:
+```json
+{
+  "action": "ESTIMATE_REACH",
+  "content": {
+    "title": "Maintenance Notice",
+    "message": "Type your message here...",
+    "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+    "ctaLabel": "View Details",
+    "ctaUrl": "https://gift.dcodax.net/notice"
+  },
+  "channels": [
+    "IN_APP",
+    "PUSH",
+    "EMAIL"
+  ],
+  "priority": "NORMAL",
+  "targeting": {
+    "mode": "SPECIFIC_ROLES",
+    "roles": [
+      "PROVIDER"
+    ],
+    "filters": {
+      "onlyVerifiedEmails": true,
+      "excludeUnsubscribed": true,
+      "excludeSuspended": true,
+      "location": {
+        "lat": 31.5,
+        "lng": 74.3,
+        "radiusKm": 25
+      }
+    }
+  },
+  "schedule": {
+    "type": "SEND_NOW",
+    "sendAt": null,
+    "timezone": "UTC",
+    "recurring": {
+      "enabled": false,
+      "frequency": null
     }
   }
 }

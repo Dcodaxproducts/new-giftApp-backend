@@ -34,4 +34,17 @@ export class BroadcastRecipientsRepository {
     ]);
     return { admins, providers, registeredUsers, pushTokens };
   }
+
+  findProviderLocationCandidates(where: Prisma.UserWhereInput) {
+    return this.prisma.user.findMany({
+      where: { ...where, role: UserRole.PROVIDER, providerStoreAddress: { not: Prisma.JsonNull } },
+      select: { id: true, providerStoreAddress: true },
+      take: 10000,
+    });
+  }
+
+  countActivePushTokensForUsers(userIds: string[]) {
+    if (userIds.length === 0) return Promise.resolve(0);
+    return this.prisma.notificationDeviceToken.count({ where: { isActive: true, userId: { in: userIds } } });
+  }
 }

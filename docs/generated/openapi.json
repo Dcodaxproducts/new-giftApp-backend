@@ -1363,7 +1363,7 @@
     },
     "/api/v1/broadcasts": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'.",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'. Location targeting currently applies to PROVIDER audiences only.",
         "operationId": "BroadcastsController_create",
         "parameters": [],
         "requestBody": {
@@ -1570,6 +1570,49 @@
                       "recurring": {
                         "enabled": true,
                         "frequency": "DAILY"
+                      }
+                    }
+                  }
+                },
+                "providerLocationSegment": {
+                  "value": {
+                    "action": "ESTIMATE_REACH",
+                    "content": {
+                      "title": "Maintenance Notice",
+                      "message": "Type your message here...",
+                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
+                      "ctaLabel": "View Details",
+                      "ctaUrl": "https://gift.dcodax.net/notice"
+                    },
+                    "channels": [
+                      "IN_APP",
+                      "PUSH",
+                      "EMAIL"
+                    ],
+                    "priority": "NORMAL",
+                    "targeting": {
+                      "mode": "SPECIFIC_ROLES",
+                      "roles": [
+                        "PROVIDER"
+                      ],
+                      "filters": {
+                        "onlyVerifiedEmails": true,
+                        "excludeUnsubscribed": true,
+                        "excludeSuspended": true,
+                        "location": {
+                          "lat": 31.5,
+                          "lng": 74.3,
+                          "radiusKm": 25
+                        }
+                      }
+                    },
+                    "schedule": {
+                      "type": "SEND_NOW",
+                      "sendAt": null,
+                      "timezone": "UTC",
+                      "recurring": {
+                        "enabled": false,
+                        "frequency": null
                       }
                     }
                   }
@@ -26173,6 +26216,29 @@
           "message"
         ]
       },
+      "BroadcastLocationFilterDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 31.5
+          },
+          "lng": {
+            "type": "number",
+            "example": 74.3
+          },
+          "radiusKm": {
+            "type": "number",
+            "example": 25,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "lat",
+          "lng",
+          "radiusKm"
+        ]
+      },
       "TargetingFiltersDto": {
         "type": "object",
         "properties": {
@@ -26184,6 +26250,14 @@
           },
           "excludeSuspended": {
             "type": "boolean"
+          },
+          "location": {
+            "description": "Location targeting currently applies to PROVIDER audiences only.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BroadcastLocationFilterDto"
+              }
+            ]
           }
         }
       },

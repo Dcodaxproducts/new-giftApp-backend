@@ -1,4 +1,4 @@
-import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BroadcastChannel, BroadcastPriority, NotificationDevicePlatform } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString, IsUrl, Max, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
@@ -20,13 +20,13 @@ export enum NotificationActionDto { SEND_GIFT = 'SEND_GIFT', REMIND_ME_LATER = '
 export class BroadcastLocationFilterDto {
   @ApiProperty({ example: 31.5 }) @IsNumber() @Min(-90) @Max(90) lat!: number;
   @ApiProperty({ example: 74.3 }) @IsNumber() @Min(-180) @Max(180) lng!: number;
-  @ApiProperty({ example: 25 }) @IsNumber() @Min(1) radiusKm!: number;
+  @ApiProperty({ example: 25, maximum: 500 }) @IsNumber() @Min(1) @Max(500) radiusKm!: number;
 }
 export class TargetingFiltersDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() onlyVerifiedEmails?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() excludeUnsubscribed?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() excludeSuspended?: boolean;
-  @ApiHideProperty() @IsOptional() @ValidateNested() @Type(() => BroadcastLocationFilterDto) location?: BroadcastLocationFilterDto;
+  @ApiPropertyOptional({ type: BroadcastLocationFilterDto, description: 'Location targeting currently applies to PROVIDER audiences only.' }) @IsOptional() @ValidateNested() @Type(() => BroadcastLocationFilterDto) location?: BroadcastLocationFilterDto;
 }
 export class BroadcastTargetingDto {
   @ApiProperty({ enum: TargetingMode }) @IsEnum(TargetingMode) mode!: TargetingMode;

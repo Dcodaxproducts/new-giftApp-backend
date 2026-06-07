@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Broadcast, BroadcastChannel, BroadcastPriority, BroadcastStatus, Prisma, UserRole } from '@prisma/client';
+import { Broadcast, BroadcastChannel, BroadcastPriority, BroadcastStatus, Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { getPagination } from '../../../common/pagination/pagination.util';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
@@ -16,6 +16,7 @@ import {
   ListRecipientsDto,
   RecurrenceFrequency,
   SortOrder,
+  TargetRole,
   TargetingMode,
   UpdateBroadcastDto,
 } from '../dto/broadcast-notifications.dto';
@@ -32,6 +33,8 @@ interface BroadcastReach {
   breakdown: { admins: number; providers: number; registeredUsers: number };
   excluded: { unsubscribed: number; unverifiedEmail: number; inactiveOrSuspended: number };
 }
+
+type ProviderLocationCandidate = { id: string; providerStoreAddress: Prisma.JsonValue };
 
 @Injectable()
 export class BroadcastsService {
@@ -220,10 +223,38 @@ export class BroadcastsService {
 
   private async calculateReach(channels: BroadcastChannel[], targeting: BroadcastTargetingDto) {
     const roles = targeting.mode === TargetingMode.SPECIFIC_ROLES && targeting.roles?.length ? targeting.roles : ['ADMIN', 'PROVIDER', 'REGISTERED_USER'];
-    const where: Prisma.UserWhereInput = { role: { in: roles as UserRole[] }, deletedAt: null, deleteAfter: null, isActive: true, suspendedAt: null, ...(targeting.filters?.onlyVerifiedEmails ? { isVerified: true } : {}) };
+    const where: Prisma.UserWhereInput = {
+      role: { in: roles as UserRole[] },
+      deletedAt: null,
+      deleteAfter: null,
+      isActive: true,
+      suspendedAt: null,
+      ...(targeting.filters?.onlyVerifiedEmails ? { isVerified: true } : {}),
+      ...(targeting.filters?.excludeUnsubscribed ? { OR: [{ notificationPreference: { is: null } }, { notificationPreference: { is: { emailEnabled: true } } }, { notificationPreference: { is: { pushEnabled: true } } }] } : {}),
+    };
+    if (targeting.filters?.location) return this.calculateProviderLocationReach(channels, where, targeting.filters.location);
     const { admins, providers, registeredUsers, pushTokens } = await this.broadcastRecipientsRepository.countReachByRole(where);
     const total = admins + providers + registeredUsers;
     return { total, email: channels.includes(BroadcastChannel.EMAIL) ? total : 0, push: channels.includes(BroadcastChannel.PUSH) ? pushTokens : 0, inApp: channels.includes(BroadcastChannel.IN_APP) ? total : 0, breakdown: { admins, providers, registeredUsers }, excluded: { unsubscribed: 0, unverifiedEmail: 0, inactiveOrSuspended: 0 } };
+  }
+
+  private async calculateProviderLocationReach(channels: BroadcastChannel[], baseWhere: Prisma.UserWhereInput, location: { lat: number; lng: number; radiusKm: number }): Promise<BroadcastReach> {
+    const candidates = await this.broadcastRecipientsRepository.findProviderLocationCandidates({
+      ...baseWhere,
+      role: UserRole.PROVIDER,
+      providerApprovalStatus: ProviderApprovalStatus.APPROVED,
+    });
+    const providerIds = candidates.filter((candidate) => this.isProviderInsideRadius(candidate, location)).map((candidate) => candidate.id);
+    const pushTokens = channels.includes(BroadcastChannel.PUSH) ? await this.broadcastRecipientsRepository.countActivePushTokensForUsers(providerIds) : 0;
+    const total = providerIds.length;
+    return {
+      total,
+      email: channels.includes(BroadcastChannel.EMAIL) ? total : 0,
+      push: channels.includes(BroadcastChannel.PUSH) ? pushTokens : 0,
+      inApp: channels.includes(BroadcastChannel.IN_APP) ? total : 0,
+      breakdown: { admins: 0, providers: total, registeredUsers: 0 },
+      excluded: { unsubscribed: 0, unverifiedEmail: 0, inactiveOrSuspended: 0 },
+    };
   }
 
   private async getBroadcast(id: string): Promise<Broadcast> {
@@ -243,7 +274,18 @@ export class BroadcastsService {
 
   private assertTargeting(targeting: BroadcastTargetingDto): void {
     if (targeting.mode === TargetingMode.SPECIFIC_ROLES && !targeting.roles?.length) throw new BadRequestException('roles are required for SPECIFIC_ROLES targeting');
-    if (targeting.filters?.location) throw new BadRequestException('LOCATION_FILTER_NOT_SUPPORTED');
+    if (targeting.filters?.location) this.assertProviderLocationTargeting(targeting);
+  }
+
+  private assertProviderLocationTargeting(targeting: BroadcastTargetingDto): void {
+    if (targeting.mode !== TargetingMode.CUSTOM_SEGMENT && targeting.mode !== TargetingMode.SPECIFIC_ROLES) {
+      throw new BadRequestException('LOCATION_FILTER_UNSUPPORTED_FOR_SELECTED_ROLES');
+    }
+    const roles = targeting.roles ?? [];
+    const unsupportedRoles = roles.filter((role) => role === TargetRole.ADMIN || role === TargetRole.REGISTERED_USER);
+    if (!roles.includes(TargetRole.PROVIDER) || unsupportedRoles.length > 0) {
+      throw new BadRequestException('LOCATION_FILTER_UNSUPPORTED_FOR_SELECTED_ROLES');
+    }
   }
 
   private assertSchedule(action: BroadcastWizardAction, schedule: BroadcastScheduleDto): void {
@@ -306,6 +348,43 @@ export class BroadcastsService {
 
   private toJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
+  private isProviderInsideRadius(candidate: ProviderLocationCandidate, center: { lat: number; lng: number; radiusKm: number }): boolean {
+    const providerLocation = this.providerLocation(candidate.providerStoreAddress);
+    if (!providerLocation) return false;
+    return this.distanceKm(center, providerLocation) <= center.radiusKm;
+  }
+
+  private providerLocation(value: Prisma.JsonValue): { lat: number; lng: number } | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const record = value as Record<string, unknown>;
+    const lat = this.numericCoordinate(record.lat ?? record.latitude);
+    const lng = this.numericCoordinate(record.lng ?? record.longitude);
+    return lat === null || lng === null ? null : { lat, lng };
+  }
+
+  private numericCoordinate(value: unknown): number | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
+
+  private distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+    const earthRadiusKm = 6371;
+    const dLat = this.radians(b.lat - a.lat);
+    const dLng = this.radians(b.lng - a.lng);
+    const lat1 = this.radians(a.lat);
+    const lat2 = this.radians(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * earthRadiusKm * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+
+  private radians(value: number): number {
+    return (value * Math.PI) / 180;
   }
 
   private assertCreatePermission(user: AuthUserContext, action: BroadcastWizardAction): void {

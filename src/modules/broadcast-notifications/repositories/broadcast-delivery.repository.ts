@@ -30,7 +30,7 @@ export class BroadcastDeliveryRepository {
     return this.prisma.broadcastDelivery.update({ where: { id: params.deliveryId }, data: { status: BroadcastDeliveryStatus.FAILED, failureReason: params.failureReason } });
   }
 
-  findBroadcastRecipients(params: { roles: UserRole[]; onlyVerified: boolean }) {
+  findBroadcastRecipients(params: { roles: UserRole[]; onlyVerified: boolean; excludeUnsubscribed: boolean }) {
     return this.prisma.user.findMany({
       where: {
         role: { in: params.roles },
@@ -39,6 +39,7 @@ export class BroadcastDeliveryRepository {
         isActive: true,
         suspendedAt: null,
         ...(params.onlyVerified ? { isVerified: true } : {}),
+        ...(params.excludeUnsubscribed ? { OR: [{ notificationPreference: { is: null } }, { notificationPreference: { is: { emailEnabled: true } } }, { notificationPreference: { is: { pushEnabled: true } } }] } : {}),
       },
       take: 10000,
     });

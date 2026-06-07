@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, ValidationPipe } from '@nestjs/common';
 import { BroadcastChannel, BroadcastPriority, BroadcastStatus, UserRole } from '@prisma/client';
 import { BroadcastNotificationsRepository } from '../repositories/broadcast-notifications.repository';
 import { BroadcastRecipientsRepository } from '../repositories/broadcast-recipients.repository';
@@ -60,7 +60,7 @@ function createService(overrides: Partial<Record<string, unknown>> = {}) {
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
     },
-    user: { count: jest.fn().mockResolvedValueOnce(1).mockResolvedValueOnce(2).mockResolvedValueOnce(3) },
+    user: { count: jest.fn().mockResolvedValueOnce(1).mockResolvedValueOnce(2).mockResolvedValueOnce(3), findMany: jest.fn().mockResolvedValue([]) },
     notificationDeviceToken: { count: jest.fn().mockResolvedValue(2) },
     broadcastDelivery: { findMany: jest.fn().mockResolvedValue([]), count: jest.fn().mockResolvedValue(0) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
@@ -132,12 +132,53 @@ describe('BroadcastsService', () => {
     await expect(service.create(createUser, dto)).rejects.toThrow(BadRequestException);
   });
 
-  it('rejects unsupported location filters clearly', async () => {
+  it('provider-only location targeting works and uses real provider coordinates', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findMany.mockResolvedValue([
+      { id: 'provider_near', providerStoreAddress: { lat: 31.51, lng: 74.31 } },
+      { id: 'provider_far', providerStoreAddress: { lat: 33.7, lng: 73.1 } },
+      { id: 'provider_missing_location', providerStoreAddress: null },
+    ]);
+    const dto = wizardDto(BroadcastWizardAction.ESTIMATE_REACH);
+    dto.targeting = { mode: TargetingMode.SPECIFIC_ROLES, roles: [TargetRole.PROVIDER], filters: { location: { lat: 31.5, lng: 74.3, radiusKm: 25 } } };
+
+    const result = await service.create(readUser, dto);
+
+    expect(result.data).toEqual({ estimatedReach: 1 });
+    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ role: UserRole.PROVIDER, providerApprovalStatus: 'APPROVED' }),
+      select: { id: true, providerStoreAddress: true },
+    }));
+    expect(prisma.notificationDeviceToken.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ userId: { in: ['provider_near'] } }) }));
+  });
+
+  it('valid provider-only location targeting returns zero when no providers have matching location', async () => {
+    const { service, prisma } = createService();
+    prisma.user.findMany.mockResolvedValue([{ id: 'provider_missing_location', providerStoreAddress: null }]);
+    const dto = wizardDto(BroadcastWizardAction.ESTIMATE_REACH);
+    dto.targeting = { mode: TargetingMode.SPECIFIC_ROLES, roles: [TargetRole.PROVIDER], filters: { location: { lat: 31.5, lng: 74.3, radiusKm: 25 } } };
+
+    const result = await service.create(readUser, dto);
+
+    expect(result.data).toEqual({ estimatedReach: 0 });
+  });
+
+  it('rejects mixed provider/user/admin location targeting clearly', async () => {
     const { service } = createService();
     const dto = wizardDto(BroadcastWizardAction.ESTIMATE_REACH);
     dto.targeting.filters = { location: { lat: 31.5, lng: 74.3, radiusKm: 25 } };
 
-    await expect(service.create(readUser, dto)).rejects.toThrow('LOCATION_FILTER_NOT_SUPPORTED');
+    await expect(service.create(readUser, dto)).rejects.toThrow('LOCATION_FILTER_UNSUPPORTED_FOR_SELECTED_ROLES');
+  });
+
+  it('rejects invalid location filter coordinates and radius', async () => {
+    const pipe = new ValidationPipe({ transform: true, whitelist: true });
+    const dto = wizardDto(BroadcastWizardAction.ESTIMATE_REACH);
+
+    await expect(pipe.transform({ ...dto, targeting: { mode: TargetingMode.SPECIFIC_ROLES, roles: [TargetRole.PROVIDER], filters: { location: { lat: 91, lng: 74.3, radiusKm: 25 } } } }, { type: 'body', metatype: CreateBroadcastDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...dto, targeting: { mode: TargetingMode.SPECIFIC_ROLES, roles: [TargetRole.PROVIDER], filters: { location: { lat: 31.5, lng: -181, radiusKm: 25 } } } }, { type: 'body', metatype: CreateBroadcastDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...dto, targeting: { mode: TargetingMode.SPECIFIC_ROLES, roles: [TargetRole.PROVIDER], filters: { location: { lat: 31.5, lng: 74.3, radiusKm: 501 } } } }, { type: 'body', metatype: CreateBroadcastDto })).rejects.toThrow();
+    await expect(pipe.transform({ ...dto, targeting: { mode: TargetingMode.SPECIFIC_ROLES, roles: [TargetRole.PROVIDER], filters: { location: { lat: 31.5, lng: 74.3, radiusKm: 25 } } } }, { type: 'body', metatype: CreateBroadcastDto })).resolves.toBeInstanceOf(CreateBroadcastDto);
   });
 
   it('PATCH updates content, targeting, schedule and recalculates reach', async () => {

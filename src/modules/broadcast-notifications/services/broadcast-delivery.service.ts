@@ -68,7 +68,10 @@ export class BroadcastDeliveryService {
 
   private async resolveRecipients(targeting: Prisma.JsonObject | null) {
     const roles = this.targetRoles(targeting);
-    return this.repository.findBroadcastRecipients({ roles, onlyVerified: this.onlyVerified(targeting) });
+    const recipients = await this.repository.findBroadcastRecipients({ roles, onlyVerified: this.onlyVerified(targeting), excludeUnsubscribed: this.excludeUnsubscribed(targeting) });
+    const location = this.locationFilter(targeting);
+    if (!location) return recipients;
+    return recipients.filter((recipient) => recipient.role === UserRole.PROVIDER && this.isProviderInsideRadius(recipient.providerStoreAddress, location));
   }
 
   private targetRoles(targeting: Prisma.JsonObject | null): UserRole[] {
@@ -84,8 +87,62 @@ export class BroadcastDeliveryService {
     return typeof filters === 'object' && filters !== null && !Array.isArray(filters) && filters.onlyVerifiedEmails === true;
   }
 
+  private excludeUnsubscribed(targeting: Prisma.JsonObject | null): boolean {
+    const filters = targeting?.filters;
+    return typeof filters === 'object' && filters !== null && !Array.isArray(filters) && filters.excludeUnsubscribed === true;
+  }
+
   private channels(value: Prisma.JsonValue): BroadcastChannel[] {
     return Array.isArray(value) ? value.filter((channel): channel is BroadcastChannel => Object.values(BroadcastChannel).includes(channel as BroadcastChannel)) : [];
+  }
+
+  private locationFilter(targeting: Prisma.JsonObject | null): { lat: number; lng: number; radiusKm: number } | null {
+    const filters = targeting?.filters;
+    if (!filters || typeof filters !== 'object' || Array.isArray(filters)) return null;
+    const location = (filters as Record<string, unknown>).location;
+    if (!location || typeof location !== 'object' || Array.isArray(location)) return null;
+    const record = location as Record<string, unknown>;
+    const lat = this.numericCoordinate(record.lat);
+    const lng = this.numericCoordinate(record.lng);
+    const radiusKm = this.numericCoordinate(record.radiusKm);
+    return lat === null || lng === null || radiusKm === null ? null : { lat, lng, radiusKm };
+  }
+
+  private isProviderInsideRadius(value: Prisma.JsonValue, center: { lat: number; lng: number; radiusKm: number }): boolean {
+    const providerLocation = this.providerLocation(value);
+    if (!providerLocation) return false;
+    return this.distanceKm(center, providerLocation) <= center.radiusKm;
+  }
+
+  private providerLocation(value: Prisma.JsonValue): { lat: number; lng: number } | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const record = value as Record<string, unknown>;
+    const lat = this.numericCoordinate(record.lat ?? record.latitude);
+    const lng = this.numericCoordinate(record.lng ?? record.longitude);
+    return lat === null || lng === null ? null : { lat, lng };
+  }
+
+  private numericCoordinate(value: unknown): number | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
+
+  private distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+    const earthRadiusKm = 6371;
+    const dLat = this.radians(b.lat - a.lat);
+    const dLng = this.radians(b.lng - a.lng);
+    const lat1 = this.radians(a.lat);
+    const lat2 = this.radians(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * earthRadiusKm * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+
+  private radians(value: number): number {
+    return (value * Math.PI) / 180;
   }
 
   private recipientType(role: UserRole): NotificationRecipientType {

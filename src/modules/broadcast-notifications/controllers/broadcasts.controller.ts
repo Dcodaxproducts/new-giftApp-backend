@@ -42,7 +42,7 @@ export class BroadcastsController {
   @Post()
   @ApiOperation({
     summary: 'Create or estimate broadcast wizard',
-    description: "Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'.",
+    description: "Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'. Location targeting currently applies to PROVIDER audiences only.",
   })
   @ApiBody({
     type: CreateBroadcastDto,
@@ -52,6 +52,18 @@ export class BroadcastsController {
       sendNow: { value: { action: 'SEND_NOW', ...baseBroadcastPayload, schedule: { type: 'SEND_NOW', sendAt: null, timezone: 'UTC', recurring: { enabled: false, frequency: null } } } },
       scheduleLater: { value: { action: 'SCHEDULE', ...baseBroadcastPayload, schedule: { type: 'SCHEDULED', sendAt: '2027-11-24T09:00:00.000Z', timezone: 'UTC', recurring: { enabled: false, frequency: null } } } },
       recurringDaily: { value: { action: 'SCHEDULE', ...baseBroadcastPayload, schedule: { type: 'SCHEDULED', sendAt: '2027-11-24T09:00:00.000Z', timezone: 'UTC', recurring: { enabled: true, frequency: 'DAILY' } } } },
+      providerLocationSegment: {
+        value: {
+          action: 'ESTIMATE_REACH',
+          ...baseBroadcastPayload,
+          targeting: {
+            mode: 'SPECIFIC_ROLES',
+            roles: ['PROVIDER'],
+            filters: { onlyVerifiedEmails: true, excludeUnsubscribed: true, excludeSuspended: true, location: { lat: 31.5, lng: 74.3, radiusKm: 25 } },
+          },
+          schedule: { type: 'SEND_NOW', sendAt: null, timezone: 'UTC', recurring: { enabled: false, frequency: null } },
+        },
+      },
     },
   })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateBroadcastDto) { return this.broadcasts.create(user, dto); }
