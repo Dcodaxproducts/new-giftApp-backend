@@ -1590,112 +1590,43 @@
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><h2>02 Admin - Refund Policy Settings</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/refund-policy-settings</code></div><div><span class="label">Summary:</span> Fetch refund policy settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with refundPolicies.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.</div><div class="label">Response body:</div><pre>{
+}</pre></div><h2>02 Admin - Refund Policy Settings</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/refund-policy-settings</code></div><div><span class="label">Summary:</span> Fetch refund policy settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with refundPolicies.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. Returns refund enablement status and cancellation deduction tiers used by refund policy settings.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;allowRefund&quot;: true,
-    &quot;noteText&quot;: &quot;Refunds are processed according to cancellation policy.&quot;,
-    &quot;refundWindowDays&quot;: 30,
-    &quot;autoRefundThresholdAmount&quot;: 50,
     &quot;cancellationTiers&quot;: [
       {
-        &quot;id&quot;: &quot;tier_id&quot;,
-        &quot;daysBeforeCheckIn&quot;: 5,
-        &quot;deductionPercent&quot;: 10,
-        &quot;label&quot;: &quot;Early&quot;
+        &quot;daysBeforeDelivery&quot;: 30,
+        &quot;deductionPercent&quot;: 50,
+        &quot;label&quot;: &quot;Early Cancellation&quot;
       }
     ],
-    &quot;lastUpdatedAt&quot;: &quot;2026-05-25T10:00:00.000Z&quot;,
-    &quot;lastUpdatedBy&quot;: {
-      &quot;id&quot;: &quot;admin_id&quot;,
-      &quot;name&quot;: &quot;Super Admin&quot;
-    }
+    &quot;lastUpdatedAt&quot;: &quot;2026-05-25T10:00:00.000Z&quot;
   },
   &quot;message&quot;: &quot;Refund policy settings fetched successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/refund-policy-settings</code></div><div><span class="label">Summary:</span> Update refund policy settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.</div><div class="label">Request payload(s):</div><div class="small">enableRefunds</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method PATCH">PATCH</span> <code>/api/v1/admin/refund-policy-settings</code></div><div><span class="label">Summary:</span> Update refund policy settings</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates refund enablement status and cancellation deduction tiers used by refund policy settings.</div><div class="label">Request payload(s):</div><div class="small">updateRefundPolicy</div><pre>{
   &quot;allowRefund&quot;: true,
-  &quot;noteText&quot;: &quot;Refunds are processed according to cancellation policy.&quot;,
-  &quot;refundWindowDays&quot;: 30,
-  &quot;autoRefundThresholdAmount&quot;: 50,
   &quot;cancellationTiers&quot;: [
     {
-      &quot;daysBeforeCheckIn&quot;: 5,
-      &quot;deductionPercent&quot;: 10,
-      &quot;label&quot;: &quot;Early&quot;
-    }
-  ]
-}</pre><div class="small">disableRefunds</div><pre>{
-  &quot;allowRefund&quot;: false,
-  &quot;noteText&quot;: &quot;Refunds are temporarily disabled.&quot;
-}</pre><div class="small">updateCancellationTiers</div><pre>{
-  &quot;cancellationTiers&quot;: [
-    {
-      &quot;daysBeforeCheckIn&quot;: 5,
-      &quot;deductionPercent&quot;: 10,
-      &quot;label&quot;: &quot;Early&quot;
-    },
-    {
-      &quot;daysBeforeCheckIn&quot;: 2,
-      &quot;deductionPercent&quot;: 25,
-      &quot;label&quot;: &quot;Late&quot;
+      &quot;daysBeforeDelivery&quot;: 30,
+      &quot;deductionPercent&quot;: 50,
+      &quot;label&quot;: &quot;Early Cancellation&quot;
     }
   ]
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
     &quot;allowRefund&quot;: true,
-    &quot;noteText&quot;: &quot;Refunds are processed according to cancellation policy.&quot;,
-    &quot;refundWindowDays&quot;: 30,
-    &quot;autoRefundThresholdAmount&quot;: 50,
     &quot;cancellationTiers&quot;: [
       {
-        &quot;id&quot;: &quot;tier_id&quot;,
-        &quot;daysBeforeCheckIn&quot;: 5,
-        &quot;deductionPercent&quot;: 10,
-        &quot;label&quot;: &quot;Early&quot;
+        &quot;daysBeforeDelivery&quot;: 30,
+        &quot;deductionPercent&quot;: 50,
+        &quot;label&quot;: &quot;Early Cancellation&quot;
       }
     ],
-    &quot;lastUpdatedAt&quot;: &quot;2026-05-25T10:00:00.000Z&quot;,
-    &quot;lastUpdatedBy&quot;: {
-      &quot;id&quot;: &quot;admin_id&quot;,
-      &quot;name&quot;: &quot;Super Admin&quot;
-    }
+    &quot;lastUpdatedAt&quot;: &quot;2026-05-25T10:00:00.000Z&quot;
   },
   &quot;message&quot;: &quot;Refund policy settings updated successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/admin/refund-policy-settings/logs</code></div><div><span class="label">Summary:</span> List refund policy audit logs</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: [
-    {
-      &quot;id&quot;: &quot;audit_log_id&quot;,
-      &quot;action&quot;: &quot;REFUND_POLICY_SETTINGS_UPDATED&quot;,
-      &quot;actor&quot;: {
-        &quot;id&quot;: &quot;admin_id&quot;,
-        &quot;name&quot;: &quot;Alex Rivera&quot;
-      },
-      &quot;before&quot;: {
-        &quot;allowRefund&quot;: true,
-        &quot;noteText&quot;: &quot;Refunds are processed according to cancellation policy.&quot;,
-        &quot;refundWindowDays&quot;: 30,
-        &quot;autoRefundThresholdAmount&quot;: 50,
-        &quot;cancellationTiers&quot;: []
-      },
-      &quot;after&quot;: {
-        &quot;allowRefund&quot;: false,
-        &quot;noteText&quot;: &quot;Refunds are temporarily disabled.&quot;,
-        &quot;refundWindowDays&quot;: 30,
-        &quot;autoRefundThresholdAmount&quot;: 50,
-        &quot;cancellationTiers&quot;: []
-      },
-      &quot;createdAt&quot;: &quot;2026-05-14T10:00:00.000Z&quot;
-    }
-  ],
-  &quot;meta&quot;: {
-    &quot;page&quot;: 1,
-    &quot;limit&quot;: 10,
-    &quot;total&quot;: 1,
-    &quot;totalPages&quot;: 1
-  },
-  &quot;message&quot;: &quot;Refund policy audit logs fetched successfully.&quot;
 }</pre></div><h2>02 Admin - Media Upload Policy</h2><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/media-upload-policy</code></div><div><span class="label">Summary:</span> Fetch global media upload policy</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN or ADMIN with mediaPolicy.read</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. uploads/presigned-url enforces this policy before issuing upload URLs.</div><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: {
@@ -4929,9 +4860,7 @@
   &quot;features&quot;: {},
   &quot;limits&quot;: {
     &quot;maxGiftsPerMonth&quot;: 1.0,
-    &quot;maxGroupGiftingEvents&quot;: 1.0,
-    &quot;maxTeamMembers&quot;: 1.0,
-    &quot;storageGb&quot;: 1.0
+    &quot;maxGroupGiftingEvents&quot;: 1.0
   }
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
@@ -4959,9 +4888,7 @@
   &quot;features&quot;: {},
   &quot;limits&quot;: {
     &quot;maxGiftsPerMonth&quot;: 1.0,
-    &quot;maxGroupGiftingEvents&quot;: 1.0,
-    &quot;maxTeamMembers&quot;: 1.0,
-    &quot;storageGb&quot;: 1.0
+    &quot;maxGroupGiftingEvents&quot;: 1.0
   }
 }</pre><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,

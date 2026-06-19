@@ -4,7 +4,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { CouponsRepository } from '../repositories/coupons.repository';
 import { PlanFeaturesRepository } from '../repositories/plan-features.repository';
-import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
+import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanLimitsDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
 import { SubscriptionPlansRepository } from '../repositories/subscription-plans.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -41,8 +41,9 @@ export class SubscriptionPlansService implements OnModuleInit {
 
   async createPlan(user: AuthUserContext, dto: CreateSubscriptionPlanDto) {
     const slug = await this.uniqueSlug(dto.name);
+    const pricing = this.createPricing(dto);
     if (dto.isPopular) await this.clearPopular();
-    const plan = await this.subscriptionPlansRepository.createPlan( { name: dto.name.trim(), slug, description: dto.description?.trim(), monthlyPrice: new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: new Prisma.Decimal(dto.yearlyPrice ?? dto.monthlyPrice * 10), currency: dto.currency ?? 'USD', visibility: dto.visibility ?? SubscriptionPlanVisibility.PUBLIC, status: dto.status ?? SubscriptionPlanStatus.ACTIVE, isPopular: dto.isPopular ?? false, featuresJson: this.toJson(dto.features ?? {}), limitsJson: this.toJson(dto.limits ?? this.defaultLimits()), createdBy: user.uid });
+    const plan = await this.subscriptionPlansRepository.createPlan( { name: dto.name.trim(), slug, description: dto.description?.trim(), monthlyPrice: new Prisma.Decimal(pricing.monthlyPrice), yearlyPrice: new Prisma.Decimal(pricing.yearlyPrice), currency: dto.currency ?? 'USD', visibility: dto.visibility ?? SubscriptionPlanVisibility.PUBLIC, status: dto.status ?? SubscriptionPlanStatus.ACTIVE, isPopular: dto.isPopular ?? false, featuresJson: this.toJson(dto.features ?? {}), limitsJson: this.toJson(this.sanitizeLimits(dto.limits)), createdBy: user.uid });
     await this.audit(user, plan.id, 'SUBSCRIPTION_PLAN_CREATED', undefined, this.toPlanListItem(plan));
     return { data: await this.toPlanDetail(plan), message: 'Subscription plan created successfully' };
   }
@@ -53,7 +54,7 @@ export class SubscriptionPlansService implements OnModuleInit {
     const before = await this.toPlanDetail(plan);
     const visibility = this.visibilityFromDto(dto);
     if (dto.isPopular) await this.clearPopular(id);
-    const updated = await this.subscriptionPlansRepository.updatePlan(id, { name: dto.name?.trim(), slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined, description: dto.description?.trim(), monthlyPrice: dto.monthlyPrice === undefined ? undefined : new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: dto.yearlyPrice === undefined ? undefined : new Prisma.Decimal(dto.yearlyPrice), currency: dto.currency, visibility, status: dto.status, isPopular: dto.isPopular, featuresJson: dto.features === undefined ? undefined : this.toJson(dto.features), limitsJson: dto.limits === undefined ? undefined : this.toJson(dto.limits), updatedBy: user.uid });
+    const updated = await this.subscriptionPlansRepository.updatePlan(id, { name: dto.name?.trim(), slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined, description: dto.description?.trim(), monthlyPrice: dto.monthlyPrice === undefined ? undefined : new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: dto.yearlyPrice === undefined ? undefined : new Prisma.Decimal(dto.yearlyPrice), currency: dto.currency, visibility, status: dto.status, isPopular: dto.isPopular, featuresJson: dto.features === undefined ? undefined : this.toJson(dto.features), limitsJson: dto.limits === undefined ? undefined : this.toJson(this.sanitizeLimits(dto.limits)), updatedBy: user.uid });
     const after = await this.toPlanDetail(updated);
     await this.audit(user, id, 'SUBSCRIPTION_PLAN_UPDATED', this.changedFields(before, after, dto.reason), this.changedFields(after, before, dto.reason));
     return { data: after, message: 'Subscription plan updated successfully' };
@@ -172,14 +173,25 @@ export class SubscriptionPlansService implements OnModuleInit {
     if (permission === 'visibility.update') return 'updateVisibility';
     return permission;
   }
+  private createPricing(dto: CreateSubscriptionPlanDto): { monthlyPrice: number; yearlyPrice: number } {
+    if (dto.monthlyPrice === undefined && dto.yearlyPrice === undefined) throw new BadRequestException('Either monthlyPrice or yearlyPrice is required');
+    return { monthlyPrice: dto.monthlyPrice ?? 0, yearlyPrice: dto.yearlyPrice ?? 0 };
+  }
   private toPlanListItem(plan: SubscriptionPlan) { return { id: plan.id, name: plan.name, slug: plan.slug, description: plan.description, badge: plan.isPopular ? 'MOST_POPULAR' : null, monthlyPrice: Number(plan.monthlyPrice), yearlyPrice: Number(plan.yearlyPrice), currency: plan.currency, status: plan.status, visibility: plan.visibility, activeSubscribers: plan.activeSubscribersPlaceholder, features: Object.entries(this.boolMap(plan.featuresJson)).filter(([, enabled]) => enabled).map(([key]) => key), limits: this.limits(plan.limitsJson), isPopular: plan.isPopular, createdAt: plan.createdAt }; }
   private async toPlanDetail(plan: SubscriptionPlan) { const catalog = await this.planFeaturesRepository.findManyFeatures({ where: { isActive: true } }); const features = this.boolMap(plan.featuresJson); return { ...this.toPlanListItem(plan), activeSubscribersChangePercent: 0, features: catalog.map((item) => ({ key: item.key, label: item.label, description: item.description, enabled: features[item.key] ?? false })), updatedAt: plan.updatedAt }; }
   private toFeature(item: PlanFeatureCatalog) { return { id: item.id, key: item.key, label: item.label, description: item.description, type: item.type, isActive: item.isActive, sortOrder: item.sortOrder, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
   private toCoupon(coupon: Coupon) { return { id: coupon.id, code: coupon.code, description: coupon.description, discountType: coupon.discountType, discountValue: Number(coupon.discountValue), planIds: this.stringArray(coupon.planIdsJson), startsAt: coupon.startsAt, expiresAt: coupon.expiresAt, maxRedemptions: coupon.maxRedemptions, redemptionCount: coupon.redemptionCount, isActive: coupon.isActive, status: this.couponStatus(coupon), createdAt: coupon.createdAt }; }
   private couponStatus(coupon: Coupon): CouponStatus { if (coupon.expiresAt && coupon.expiresAt.getTime() <= Date.now()) return CouponStatus.EXPIRED; return coupon.isActive ? CouponStatus.ACTIVE : CouponStatus.INACTIVE; }
   private boolMap(value: Prisma.JsonValue): Record<string, boolean> { return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean')) : {}; }
-  private limits(value: Prisma.JsonValue) { return typeof value === 'object' && value !== null && !Array.isArray(value) ? value : this.defaultLimits(); }
-  private defaultLimits() { return { maxGiftsPerMonth: -1, maxGroupGiftingEvents: -1, maxTeamMembers: -1, storageGb: -1 }; }
+  private limits(value: Prisma.JsonValue) { return this.sanitizeLimits(typeof value === 'object' && value !== null && !Array.isArray(value) ? value : undefined); }
+  private sanitizeLimits(value?: PlanLimitsDto | Record<string, unknown>) {
+    return {
+      ...this.defaultLimits(),
+      ...(typeof value?.maxGiftsPerMonth === 'number' ? { maxGiftsPerMonth: value.maxGiftsPerMonth } : {}),
+      ...(typeof value?.maxGroupGiftingEvents === 'number' ? { maxGroupGiftingEvents: value.maxGroupGiftingEvents } : {}),
+    };
+  }
+  private defaultLimits() { return { maxGiftsPerMonth: -1, maxGroupGiftingEvents: -1 }; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
   private async uniqueSlug(name: string, exceptId?: string): Promise<string> { const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'plan'; let slug = base; let i = 1; while (await this.subscriptionPlansRepository.findPlanBySlug(slug, exceptId)) slug = `${base}-${i++}`; return slug; }
   private toJson(value: unknown): Prisma.InputJsonValue { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }

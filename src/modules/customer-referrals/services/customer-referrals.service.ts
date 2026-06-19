@@ -5,8 +5,8 @@ import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CustomerReferralsRepository } from '../repositories/customer-referrals.repository';
 import { CustomerRewardsRepository } from '../repositories/customer-rewards.repository';
-import { CustomerWalletService } from '../../customer-wallet/services/customer-wallet.service';
-import { ReferralSettingsService } from '../../referral-settings/services/referral-settings.service';
+import { CustomerWalletService } from '../../customer-wallet/customer-wallet.service';
+import { ReferralSettingsService } from '../../referral-settings/referral-settings.service';
 import { ListReferralHistoryDto, ListRewardLedgerDto, RedeemRewardDto, ReferralHistoryStatus, RewardLedgerTypeFilter } from '../dto/customer-referrals.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
 

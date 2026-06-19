@@ -5,7 +5,7 @@ import { AuthUserContext } from '../../../common/decorators/current-user.decorat
 import { MoneyGiftsRepository } from '../repositories/money-gifts.repository';
 import { StripeWebhookEventsRepository } from '../repositories/stripe-webhook-events.repository';
 import { CustomerReferralsService } from '../../customer-referrals/services/customer-referrals.service';
-import { CustomerWalletService } from '../../customer-wallet/services/customer-wallet.service';
+import { CustomerWalletService } from '../../customer-wallet/customer-wallet.service';
 import { CustomerSubscriptionsService } from '../../customer-subscriptions/services/customer-subscriptions.service';
 import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from '../dto/payments.dto';
 import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';

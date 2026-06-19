@@ -260,13 +260,12 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 | GET | `/api/v1/referral-settings/audit-logs` | List referral settings audit logs | SUPER_ADMIN |
 | GET | `/api/v1/referral-settings/stats` | Fetch referral stats | SUPER_ADMIN or ADMIN with referralSettings.read |
 
-### Admin - Refund Policy Settings (3 APIs)
+### Admin - Refund Policy Settings (2 APIs)
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/admin/refund-policy-settings` | Fetch refund policy settings | SUPER_ADMIN or ADMIN with refundPolicies.read |
 | PATCH | `/api/v1/admin/refund-policy-settings` | Update refund policy settings | SUPER_ADMIN |
-| GET | `/api/v1/admin/refund-policy-settings/logs` | List refund policy audit logs | SUPER_ADMIN |
 
 ### Admin - Review Moderation (4 APIs)
 

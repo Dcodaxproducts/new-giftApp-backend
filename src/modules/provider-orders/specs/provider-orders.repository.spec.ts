@@ -2,9 +2,9 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Provider orders repository cleanup', () => {
-  const service = readFileSync(join(__dirname, '../services/provider-orders.service.ts'), 'utf8');
-  const repository = readFileSync(join(__dirname, '../repositories/provider-orders.repository.ts'), 'utf8');
-  const controller = readFileSync(join(__dirname, '../controllers/provider-orders.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../provider-orders.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, '../provider-orders.repository.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../provider-orders.controller.ts'), 'utf8');
   const moduleFile = readFileSync(join(__dirname, '../provider-orders.module.ts'), 'utf8');
 
   it('keeps provider order read and analytics API routes stable', () => {

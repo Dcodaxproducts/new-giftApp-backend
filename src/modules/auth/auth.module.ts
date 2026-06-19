@@ -7,7 +7,7 @@ import { MailerModule } from '../mailer/mailer.module';
 import { CustomerReferralsModule } from '../customer-referrals/customer-referrals.module';
 import { GuestAccessModule } from '../guest-access/guest-access.module';
 import { JwtAuthRepository } from '../../common/repositories/jwt-auth.repository';
-import { AuthController } from './controllers/auth.controller';
+import { AuthController } from './auth.controller';
 import { AuthPasswordRepository } from './repositories/auth-password.repository';
 import { AuthRepository } from './repositories/auth.repository';
 import { AuthService } from './services/auth.service';

@@ -1,8 +1,8 @@
 import { ChatThreadType, CustomerWalletLedgerStatus, NotificationRecipientType, PaymentStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
 import { ChatNotificationService } from '../../chats/services/chat-notification.service';
-import { CustomerWalletService } from '../../customer-wallet/services/customer-wallet.service';
+import { CustomerWalletService } from '../../customer-wallet/customer-wallet.service';
 import { PaymentsService } from '../../payments/services/payments.service';
-import { ProviderOrdersService } from '../../provider-orders/services/provider-orders.service';
+import { ProviderOrdersService } from '../../provider-orders/provider-orders.service';
 
 describe('real-time notification integration paths', () => {
   it('payment success notification emits in real time', async () => {

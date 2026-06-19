@@ -2,11 +2,11 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Provider order fulfillment source safety', () => {
-  const service = readFileSync(join(__dirname, '../services/provider-orders.service.ts'), 'utf8');
-  const controller = readFileSync(join(__dirname, '../controllers/provider-orders.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../provider-orders.service.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../provider-orders.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/provider-orders.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
-  const repository = readFileSync(join(__dirname, '../repositories/provider-orders.repository.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, '../provider-orders.repository.ts'), 'utf8');
 
   it('adds provider fulfillment APIs under Provider Orders', () => {
     expect(controller).toContain("@Post(':id/action')");

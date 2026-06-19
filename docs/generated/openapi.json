@@ -4459,7 +4459,7 @@
     },
     "/api/v1/admin/refund-policy-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.",
+        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. Returns refund enablement status and cancellation deduction tiers used by refund policy settings.",
         "operationId": "RefundPolicySettingsController_get",
         "parameters": [],
         "responses": {
@@ -4472,22 +4472,14 @@
                     "success": true,
                     "data": {
                       "allowRefund": true,
-                      "noteText": "Refunds are processed according to cancellation policy.",
-                      "refundWindowDays": 30,
-                      "autoRefundThresholdAmount": 50,
                       "cancellationTiers": [
                         {
-                          "id": "tier_id",
-                          "daysBeforeCheckIn": 5,
-                          "deductionPercent": 10,
-                          "label": "Early"
+                          "daysBeforeDelivery": 30,
+                          "deductionPercent": 50,
+                          "label": "Early Cancellation"
                         }
                       ],
-                      "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
-                      "lastUpdatedBy": {
-                        "id": "admin_id",
-                        "name": "Super Admin"
-                      }
+                      "lastUpdatedAt": "2026-05-25T10:00:00.000Z"
                     },
                     "message": "Refund policy settings fetched successfully."
                   }
@@ -4509,7 +4501,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with refundPolicies.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates refund enablement status and cancellation deduction tiers used by refund policy settings.",
         "operationId": "RefundPolicySettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -4520,39 +4512,14 @@
                 "$ref": "#/components/schemas/UpdateRefundPolicySettingsDto"
               },
               "examples": {
-                "enableRefunds": {
+                "updateRefundPolicy": {
                   "value": {
                     "allowRefund": true,
-                    "noteText": "Refunds are processed according to cancellation policy.",
-                    "refundWindowDays": 30,
-                    "autoRefundThresholdAmount": 50,
                     "cancellationTiers": [
                       {
-                        "daysBeforeCheckIn": 5,
-                        "deductionPercent": 10,
-                        "label": "Early"
-                      }
-                    ]
-                  }
-                },
-                "disableRefunds": {
-                  "value": {
-                    "allowRefund": false,
-                    "noteText": "Refunds are temporarily disabled."
-                  }
-                },
-                "updateCancellationTiers": {
-                  "value": {
-                    "cancellationTiers": [
-                      {
-                        "daysBeforeCheckIn": 5,
-                        "deductionPercent": 10,
-                        "label": "Early"
-                      },
-                      {
-                        "daysBeforeCheckIn": 2,
-                        "deductionPercent": 25,
-                        "label": "Late"
+                        "daysBeforeDelivery": 30,
+                        "deductionPercent": 50,
+                        "label": "Early Cancellation"
                       }
                     ]
                   }
@@ -4571,22 +4538,14 @@
                     "success": true,
                     "data": {
                       "allowRefund": true,
-                      "noteText": "Refunds are processed according to cancellation policy.",
-                      "refundWindowDays": 30,
-                      "autoRefundThresholdAmount": 50,
                       "cancellationTiers": [
                         {
-                          "id": "tier_id",
-                          "daysBeforeCheckIn": 5,
-                          "deductionPercent": 10,
-                          "label": "Early"
+                          "daysBeforeDelivery": 30,
+                          "deductionPercent": 50,
+                          "label": "Early Cancellation"
                         }
                       ],
-                      "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
-                      "lastUpdatedBy": {
-                        "id": "admin_id",
-                        "name": "Super Admin"
-                      }
+                      "lastUpdatedAt": "2026-05-25T10:00:00.000Z"
                     },
                     "message": "Refund policy settings updated successfully."
                   }
@@ -4601,108 +4560,6 @@
           }
         ],
         "summary": "Update refund policy settings",
-        "tags": [
-          "02 Admin - Refund Policy Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/admin/refund-policy-settings/logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.",
-        "operationId": "RefundPolicySettingsController_logs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-01T00:00:00.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-31T23:59:59.999Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "audit_log_id",
-                        "action": "REFUND_POLICY_SETTINGS_UPDATED",
-                        "actor": {
-                          "id": "admin_id",
-                          "name": "Alex Rivera"
-                        },
-                        "before": {
-                          "allowRefund": true,
-                          "noteText": "Refunds are processed according to cancellation policy.",
-                          "refundWindowDays": 30,
-                          "autoRefundThresholdAmount": 50,
-                          "cancellationTiers": []
-                        },
-                        "after": {
-                          "allowRefund": false,
-                          "noteText": "Refunds are temporarily disabled.",
-                          "refundWindowDays": 30,
-                          "autoRefundThresholdAmount": 50,
-                          "cancellationTiers": []
-                        },
-                        "createdAt": "2026-05-14T10:00:00.000Z"
-                      }
-                    ],
-                    "meta": {
-                      "page": 1,
-                      "limit": 10,
-                      "total": 1,
-                      "totalPages": 1
-                    },
-                    "message": "Refund policy audit logs fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List refund policy audit logs",
         "tags": [
           "02 Admin - Refund Policy Settings"
         ],
@@ -26877,9 +26734,9 @@
       "CancellationTierDto": {
         "type": "object",
         "properties": {
-          "daysBeforeCheckIn": {
+          "daysBeforeDelivery": {
             "type": "number",
-            "example": 5,
+            "example": 30,
             "minimum": 0
           },
           "deductionPercent": {
@@ -26890,12 +26747,12 @@
           },
           "label": {
             "type": "string",
-            "example": "Early",
+            "example": "Early Cancellation",
             "maxLength": 80
           }
         },
         "required": [
-          "daysBeforeCheckIn",
+          "daysBeforeDelivery",
           "deductionPercent",
           "label"
         ]
@@ -26907,33 +26764,12 @@
             "type": "boolean",
             "example": true
           },
-          "noteText": {
-            "type": "string",
-            "example": "Refunds are processed according to cancellation policy.",
-            "maxLength": 1000
-          },
-          "refundWindowDays": {
-            "type": "number",
-            "example": 30,
-            "minimum": 1,
-            "maximum": 365
-          },
-          "autoRefundThresholdAmount": {
-            "type": "number",
-            "example": 50,
-            "minimum": 0
-          },
           "cancellationTiers": {
             "example": [
               {
-                "daysBeforeCheckIn": 5,
-                "deductionPercent": 10,
-                "label": "Early"
-              },
-              {
-                "daysBeforeCheckIn": 2,
-                "deductionPercent": 25,
-                "label": "Late"
+                "daysBeforeDelivery": 30,
+                "deductionPercent": 50,
+                "label": "Early Cancellation"
               }
             ],
             "type": "array",
@@ -27824,31 +27660,58 @@
       "UpdateProviderDto": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ali Raza",
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "example": "contact@giftsandblooms.com"
+          },
+          "contact": {
+            "type": "string",
+            "example": "+15551234567"
+          },
           "businessName": {
             "type": "string",
             "example": "Gifts & Blooms Co. Ltd"
           },
-          "phone": {
+          "businessCategoryId": {
             "type": "string",
-            "example": "+15551234567"
+            "example": "provider_business_category_id"
           },
-          "serviceArea": {
+          "taxId": {
             "type": "string",
-            "example": "New York, USA"
+            "example": "TAX-12345"
           },
-          "headquarters": {
+          "businessAddress": {
             "type": "string",
-            "example": "New York, USA"
+            "example": "123 Gift Street"
           },
-          "avatarUrl": {
+          "businessBio": {
             "type": "string",
-            "example": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png"
+            "example": "Short customer-facing business summary.",
+            "maxLength": 500
           },
-          "documentUrls": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "companyLogoUrl": {
+            "type": "string",
+            "example": "https://cdn.yourdomain.com/provider-logos/logo.png"
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "example": "https://cdn.yourdomain.com/provider-covers/cover.png"
+          },
+          "location": {
+            "example": {
+              "lat": 31.5,
+              "lng": 74.3
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProviderLocationDto"
+              }
+            ]
           }
         }
       },
@@ -30153,12 +30016,6 @@
           },
           "maxGroupGiftingEvents": {
             "type": "number"
-          },
-          "maxTeamMembers": {
-            "type": "number"
-          },
-          "storageGb": {
-            "type": "number"
           }
         }
       },
@@ -30213,8 +30070,7 @@
           }
         },
         "required": [
-          "name",
-          "monthlyPrice"
+          "name"
         ]
       },
       "UpdateSubscriptionPlanDto": {

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { MessagingSettings, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { MediaUploadPolicyService } from '../../media-upload-policy/services/media-upload-policy.service';
+import { MediaUploadPolicyService } from '../../media-upload-policy/media-upload-policy.service';
 import { ListMessagingSettingsAuditLogsDto, UpdateMessagingSettingsDto } from '../dto/messaging-settings.dto';
 import { MessagingSettingsRepository } from '../repositories/messaging-settings.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';

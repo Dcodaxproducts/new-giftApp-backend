@@ -3835,29 +3835,21 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Fetch refund policy settings
 - Allowed role/access: SUPER_ADMIN or ADMIN with refundPolicies.read
-- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. These global settings are used by refund eligibility, cancellation deduction tiers, dispute decisions, and provider refund workflows.
+- Notes: Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. Returns refund enablement status and cancellation deduction tiers used by refund policy settings.
 - Response body:
 ```json
 {
   "success": true,
   "data": {
     "allowRefund": true,
-    "noteText": "Refunds are processed according to cancellation policy.",
-    "refundWindowDays": 30,
-    "autoRefundThresholdAmount": 50,
     "cancellationTiers": [
       {
-        "id": "tier_id",
-        "daysBeforeCheckIn": 5,
-        "deductionPercent": 10,
-        "label": "Early"
+        "daysBeforeDelivery": 30,
+        "deductionPercent": 50,
+        "label": "Early Cancellation"
       }
     ],
-    "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
-    "lastUpdatedBy": {
-      "id": "admin_id",
-      "name": "Super Admin"
-    }
+    "lastUpdatedAt": "2026-05-25T10:00:00.000Z"
   },
   "message": "Refund policy settings fetched successfully."
 }
@@ -3867,44 +3859,17 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 - Summary: Update refund policy settings
 - Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.
+- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates refund enablement status and cancellation deduction tiers used by refund policy settings.
 - Request payload(s):
-  - enableRefunds:
+  - updateRefundPolicy:
 ```json
 {
   "allowRefund": true,
-  "noteText": "Refunds are processed according to cancellation policy.",
-  "refundWindowDays": 30,
-  "autoRefundThresholdAmount": 50,
   "cancellationTiers": [
     {
-      "daysBeforeCheckIn": 5,
-      "deductionPercent": 10,
-      "label": "Early"
-    }
-  ]
-}
-```
-  - disableRefunds:
-```json
-{
-  "allowRefund": false,
-  "noteText": "Refunds are temporarily disabled."
-}
-```
-  - updateCancellationTiers:
-```json
-{
-  "cancellationTiers": [
-    {
-      "daysBeforeCheckIn": 5,
-      "deductionPercent": 10,
-      "label": "Early"
-    },
-    {
-      "daysBeforeCheckIn": 2,
-      "deductionPercent": 25,
-      "label": "Late"
+      "daysBeforeDelivery": 30,
+      "deductionPercent": 50,
+      "label": "Early Cancellation"
     }
   ]
 }
@@ -3915,73 +3880,16 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "success": true,
   "data": {
     "allowRefund": true,
-    "noteText": "Refunds are processed according to cancellation policy.",
-    "refundWindowDays": 30,
-    "autoRefundThresholdAmount": 50,
     "cancellationTiers": [
       {
-        "id": "tier_id",
-        "daysBeforeCheckIn": 5,
-        "deductionPercent": 10,
-        "label": "Early"
+        "daysBeforeDelivery": 30,
+        "deductionPercent": 50,
+        "label": "Early Cancellation"
       }
     ],
-    "lastUpdatedAt": "2026-05-25T10:00:00.000Z",
-    "lastUpdatedBy": {
-      "id": "admin_id",
-      "name": "Super Admin"
-    }
+    "lastUpdatedAt": "2026-05-25T10:00:00.000Z"
   },
   "message": "Refund policy settings updated successfully."
-}
-```
-
-### GET `/api/v1/admin/refund-policy-settings/logs`
-
-- Summary: List refund policy audit logs
-- Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Refund policy settings audit logs. SUPER_ADMIN only. Returns compliance logs for REFUND_POLICY_SETTINGS_UPDATED changes, including before/after policy JSON.
-- Parameters:
-  - `page` (query, optional, number)
-  - `limit` (query, optional, number)
-  - `fromDate` (query, optional, string)
-  - `toDate` (query, optional, string)
-- Response body:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "audit_log_id",
-      "action": "REFUND_POLICY_SETTINGS_UPDATED",
-      "actor": {
-        "id": "admin_id",
-        "name": "Alex Rivera"
-      },
-      "before": {
-        "allowRefund": true,
-        "noteText": "Refunds are processed according to cancellation policy.",
-        "refundWindowDays": 30,
-        "autoRefundThresholdAmount": 50,
-        "cancellationTiers": []
-      },
-      "after": {
-        "allowRefund": false,
-        "noteText": "Refunds are temporarily disabled.",
-        "refundWindowDays": 30,
-        "autoRefundThresholdAmount": 50,
-        "cancellationTiers": []
-      },
-      "createdAt": "2026-05-14T10:00:00.000Z"
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 10,
-    "total": 1,
-    "totalPages": 1
-  },
-  "message": "Refund policy audit logs fetched successfully."
 }
 ```
 
@@ -10931,9 +10839,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "features": {},
   "limits": {
     "maxGiftsPerMonth": 1.0,
-    "maxGroupGiftingEvents": 1.0,
-    "maxTeamMembers": 1.0,
-    "storageGb": 1.0
+    "maxGroupGiftingEvents": 1.0
   }
 }
 ```
@@ -11000,9 +10906,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "features": {},
   "limits": {
     "maxGiftsPerMonth": 1.0,
-    "maxGroupGiftingEvents": 1.0,
-    "maxTeamMembers": 1.0,
-    "storageGb": 1.0
+    "maxGroupGiftingEvents": 1.0
   }
 }
 ```

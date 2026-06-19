@@ -15,14 +15,12 @@ export enum PlanFeatureType { BOOLEAN = 'BOOLEAN', NUMBER = 'NUMBER', TEXT = 'TE
 export class PlanLimitsDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() maxGiftsPerMonth?: number;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() maxGroupGiftingEvents?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() maxTeamMembers?: number;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() storageGb?: number;
 }
 
 export class CreateSubscriptionPlanDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiProperty() @Type(() => Number) @IsNumber() @Min(0) monthlyPrice!: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) monthlyPrice?: number;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) yearlyPrice?: number;
   @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional({ enum: SubscriptionPlanVisibility }) @IsOptional() @IsEnum(SubscriptionPlanVisibility) visibility?: SubscriptionPlanVisibility;

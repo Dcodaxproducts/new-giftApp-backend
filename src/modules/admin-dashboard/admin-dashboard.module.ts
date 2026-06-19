@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { AdminDashboardController } from './controllers/admin-dashboard.controller';
-import { AdminDashboardRepository } from './repositories/admin-dashboard.repository';
-import { AdminDashboardService } from './services/admin-dashboard.service';
+import { AdminDashboardController } from './admin-dashboard.controller';
+import { AdminDashboardRepository } from './admin-dashboard.repository';
+import { AdminDashboardService } from './admin-dashboard.service';
 
 @Module({
   imports: [DatabaseModule],

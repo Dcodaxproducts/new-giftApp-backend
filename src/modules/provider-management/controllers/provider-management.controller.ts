@@ -152,6 +152,7 @@ export class ProviderManagementController {
 
   @Patch(':id')
   @Permissions('providers.update')
+  @ApiBody({ type: UpdateProviderDto })
   update(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,

@@ -3,9 +3,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { RefundPolicySettingsModule } from '../refund-policy-settings/refund-policy-settings.module';
-import { AdminTransactionsController } from './controllers/admin-transactions.controller';
-import { AdminTransactionsRepository } from './repositories/admin-transactions.repository';
-import { AdminTransactionsService } from './services/admin-transactions.service';
+import { AdminTransactionsController } from './admin-transactions.controller';
+import { AdminTransactionsRepository } from './admin-transactions.repository';
+import { AdminTransactionsService } from './admin-transactions.service';
 import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
 
 @Module({

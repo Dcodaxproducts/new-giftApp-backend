@@ -284,7 +284,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/referral-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Referral settings audit logs.' },
   'GET /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with refundPolicies.read', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows.' },
   'PATCH /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.' },
-  'GET /api/v1/admin/refund-policy-settings/logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Refund policy settings audit logs.' },
   'GET /api/v1/media-upload-policy': { allowedRoles: 'SUPER_ADMIN or ADMIN with mediaPolicy.read', description: 'SUPER_ADMIN or ADMIN with mediaPolicy.read permission.' },
   'PATCH /api/v1/media-upload-policy': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates global media upload policy.' },
   'GET /api/v1/media-upload-policy/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Media upload policy audit logs.' },

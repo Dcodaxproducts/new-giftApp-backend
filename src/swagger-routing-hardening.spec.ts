@@ -41,7 +41,7 @@ describe('Swagger and static route hardening', () => {
   });
 
   it('customer transaction static routes do not resolve as transaction id', () => {
-    const source = readFileSync(join(root, 'src/modules/customer-transactions/controllers/customer-transactions.controller.ts'), 'utf8');
+    const source = readFileSync(join(root, 'src/modules/customer-transactions/customer-transactions.controller.ts'), 'utf8');
     expectBefore(source, "@Get('summary')", "@Get(':id')");
     expectBefore(source, "@Get('export')", "@Get(':id')");
   });

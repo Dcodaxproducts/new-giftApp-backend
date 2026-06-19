@@ -27,7 +27,7 @@ import { AuthRepository } from '../repositories/auth.repository';
 import { AuthSessionsRepository } from '../repositories/auth-sessions.repository';
 import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exception';
 import { AuthResendVerificationRateLimiterService } from './auth-resend-verification-rate-limiter.service';
-import { LoginAttemptsService } from '../../login-attempts/services/login-attempts.service';
+import { LoginAttemptsService } from '../../login-attempts/login-attempts.service';
 import { MailerService } from '../../mailer/mailer.service';
 import { CustomerReferralsService } from '../../customer-referrals/services/customer-referrals.service';
 import { SUPER_ADMIN_PERMISSIONS } from '../../admin-roles/constants/permission-catalog';

@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProviderApprovalStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
-  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -244,36 +243,63 @@ export class CreateProviderDto {
 }
 
 export class UpdateProviderDto {
+  @ApiPropertyOptional({ example: 'Ali Raza', maxLength: 120 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  name?: string;
+
+  @ApiPropertyOptional({ example: 'contact@giftsandblooms.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ example: '+15551234567' })
+  @IsOptional()
+  @IsString()
+  contact?: string;
+
   @ApiPropertyOptional({ example: 'Gifts & Blooms Co. Ltd' })
   @IsOptional()
   @IsString()
   businessName?: string;
 
-  @ApiPropertyOptional({ example: '+15551234567' })
+  @ApiPropertyOptional({ example: 'provider_business_category_id' })
   @IsOptional()
   @IsString()
-  phone?: string;
+  businessCategoryId?: string;
 
-  @ApiPropertyOptional({ example: 'New York, USA' })
+  @ApiPropertyOptional({ example: 'TAX-12345' })
   @IsOptional()
   @IsString()
-  serviceArea?: string;
+  taxId?: string;
 
-  @ApiPropertyOptional({ example: 'New York, USA' })
+  @ApiPropertyOptional({ example: '123 Gift Street' })
   @IsOptional()
   @IsString()
-  headquarters?: string;
+  businessAddress?: string;
 
-  @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/provider-logos/logo.png' })
+  @ApiPropertyOptional({ example: 'Short customer-facing business summary.', maxLength: 500 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  businessBio?: string;
+
+  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-logos/logo.png' })
   @IsOptional()
   @IsUrl({ require_tld: false })
-  avatarUrl?: string;
+  companyLogoUrl?: string;
 
-  @ApiPropertyOptional({ type: [String] })
+  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-covers/cover.png' })
   @IsOptional()
-  @IsArray()
-  @IsUrl({ require_tld: false }, { each: true })
-  documentUrls?: string[];
+  @IsUrl({ require_tld: false })
+  coverImageUrl?: string;
+
+  @ApiPropertyOptional({ example: { lat: 31.5, lng: 74.3 } })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ProviderLocationDto)
+  location?: ProviderLocationDto;
 }
 
 export class ApproveProviderDto {

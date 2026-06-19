@@ -181,20 +181,7 @@ export class ProviderManagementService {
     });
 
     return {
-      data: {
-        id: provider.id,
-        userId: provider.id,
-        name: this.name(provider),
-        email: provider.email,
-        contact: provider.phone,
-        businessName: this.businessName(provider),
-        companyLogoUrl: provider.avatarUrl,
-        coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
-        location: this.providerLocation(provider),
-        approvalStatus: provider.providerApprovalStatus,
-        isActive: provider.isActive,
-        inviteEmailSent,
-      },
+      data: this.toCreateView(provider, inviteEmailSent),
       message: inviteEmailSent
         ? 'Provider created successfully and invite email sent.'
         : 'Provider created successfully, but invite email could not be sent.',
@@ -205,15 +192,35 @@ export class ProviderManagementService {
     const provider = await this.getProvider(id);
     const stats = await this.repository.findSingleProviderAggregate(id);
     const before = this.toDetail(provider, stats);
+
+    if (dto.businessCategoryId) {
+      await this.getProviderBusinessCategory(dto.businessCategoryId);
+    }
+    await this.validateBrandingUploads(dto);
+
+    const email = dto.email?.trim().toLowerCase();
+    if (email && email !== provider.email) {
+      const existing = await this.repository.findProviderByEmail(email);
+      if (existing && existing.id !== provider.id && !existing.deletedAt) {
+        throw new ConflictException('Email already exists');
+      }
+    }
+
     const updated = await this.repository.updateProvider(provider.id, {
-        firstName: dto.businessName?.trim(),
-        lastName: dto.businessName ? 'Provider' : undefined,
-        phone: dto.phone?.trim(),
-        avatarUrl: dto.avatarUrl?.trim(),
-        location: dto.headquarters?.trim(),
+        firstName: dto.name?.trim(),
+        email,
+        phone: dto.contact?.trim(),
+        avatarUrl: dto.companyLogoUrl?.trim(),
+        location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
+        providerLegalName: dto.businessName?.trim(),
+        providerBusinessEmail: email,
+        providerBusinessPhone: dto.contact?.trim(),
         providerBusinessName: dto.businessName?.trim(),
-        providerServiceArea: dto.serviceArea?.trim(),
-        providerDocuments: dto.documentUrls,
+        providerBusinessCategoryId: dto.businessCategoryId,
+        providerTaxId: dto.taxId?.trim(),
+        providerBusinessAddress: dto.businessAddress?.trim(),
+        providerStoreAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
+        providerDocuments: this.updatedProviderAssetMetadata(provider, dto),
     });
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, stats));
 
@@ -415,6 +422,10 @@ export class ProviderManagementService {
   private toDetail(provider: User, stats: ProviderAggregateStats) {
     return {
       ...this.toListItem(provider, stats),
+      contact: provider.phone,
+      businessCategoryId: provider.providerBusinessCategoryId,
+      taxId: provider.providerTaxId,
+      businessAddress: provider.providerBusinessAddress,
       headquarters: provider.location,
       location: this.providerLocation(provider),
       serviceArea: provider.providerServiceArea,
@@ -436,6 +447,27 @@ export class ProviderManagementService {
         reviewCount: stats.reviewCount,
       },
       suspension: this.toSuspension(provider),
+    };
+  }
+
+  private toCreateView(provider: User, inviteEmailSent: boolean | null) {
+    return {
+      id: provider.id,
+      userId: provider.id,
+      name: this.name(provider),
+      email: provider.email,
+      contact: provider.phone,
+      businessName: this.businessName(provider),
+      businessCategoryId: provider.providerBusinessCategoryId,
+      taxId: provider.providerTaxId,
+      businessAddress: provider.providerBusinessAddress,
+      businessBio: this.providerAssets(provider).businessBio ?? null,
+      companyLogoUrl: provider.avatarUrl,
+      coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
+      location: this.providerLocation(provider),
+      approvalStatus: provider.providerApprovalStatus,
+      isActive: provider.isActive,
+      inviteEmailSent,
     };
   }
 
@@ -640,7 +672,7 @@ export class ProviderManagementService {
     }
   }
 
-  private async validateBrandingUploads(dto: CreateProviderDto): Promise<void> {
+  private async validateBrandingUploads(dto: Pick<CreateProviderDto, 'companyLogoUrl' | 'coverImageUrl'>): Promise<void> {
     const requested = [
       ...(dto.companyLogoUrl ? [{ kind: 'company logo', url: dto.companyLogoUrl.trim(), allowedFolders: ['provider-logos'] }] : []),
       ...(dto.coverImageUrl ? [{ kind: 'cover image', url: dto.coverImageUrl.trim(), allowedFolders: ['provider-covers', 'provider-cover'] }] : []),
@@ -678,6 +710,26 @@ export class ProviderManagementService {
       metadata.coverImageUrl = dto.coverImageUrl.trim();
     }
     return Object.keys(metadata).length ? metadata : undefined;
+  }
+
+  private updatedProviderAssetMetadata(provider: User, dto: UpdateProviderDto): Prisma.InputJsonObject | undefined {
+    if (dto.businessBio === undefined && dto.coverImageUrl === undefined) {
+      return undefined;
+    }
+
+    const current = this.providerAssets(provider);
+    const metadata: Record<string, string> = {};
+    const businessBio = dto.businessBio === undefined ? current.businessBio : dto.businessBio.trim();
+    const coverImageUrl = dto.coverImageUrl === undefined ? current.coverImageUrl : dto.coverImageUrl.trim();
+
+    if (businessBio) {
+      metadata.businessBio = businessBio;
+    }
+    if (coverImageUrl) {
+      metadata.coverImageUrl = coverImageUrl;
+    }
+
+    return metadata;
   }
 
   private providerAssets(provider: User): ProviderAssetMetadata {

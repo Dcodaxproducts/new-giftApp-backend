@@ -17,11 +17,50 @@ import { SubscriptionPlansService } from '../services/subscription-plans.service
 @Controller('subscription-plans')
 export class SubscriptionPlansController {
   constructor(private readonly service: SubscriptionPlansService) {}
-  @Get() @Permissions('subscriptionPlans.read') @ApiOperation({ summary: 'List subscription plans', description: 'By default returns all non-deleted plans. Use status to filter ACTIVE, INACTIVE, or ARCHIVED plans.' }) list(@Query() query: ListSubscriptionPlansDto) { return this.service.listPlans(query); }
-  @Get('stats') @Permissions('subscriptionPlans.analytics.read') stats() { return this.service.stats(); }
-  @Post() @Permissions('subscriptionPlans.create') create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateSubscriptionPlanDto) { return this.service.createPlan(user, dto); }
-  @Get(':id') @Permissions('subscriptionPlans.read') details(@Param('id') id: string) { return this.service.planDetails(id); }
-  @Patch(':id') @Permissions('subscriptionPlans.update') update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateSubscriptionPlanDto) { return this.service.updatePlan(user, id, dto); }
-  @Delete(':id') @Permissions('subscriptionPlans.delete') delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.deletePlan(user, id); }
-  @Get(':id/analytics') @Permissions('subscriptionPlans.analytics.read') analytics(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.analytics(user, id); }
+
+  @Get()
+  @Permissions('subscriptionPlans.read')
+  @ApiOperation({
+    summary: 'List subscription plans',
+    description: 'By default returns all non-deleted plans. Use status to filter ACTIVE, INACTIVE, or ARCHIVED plans.',
+  })
+  list(@Query() query: ListSubscriptionPlansDto) {
+    return this.service.listPlans(query);
+  }
+
+  @Get('stats')
+  @Permissions('subscriptionPlans.analytics.read')
+  stats() {
+    return this.service.stats();
+  }
+
+  @Post()
+  @Permissions('subscriptionPlans.create')
+  create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateSubscriptionPlanDto) {
+    return this.service.createPlan(user, dto);
+  }
+
+  @Get(':id')
+  @Permissions('subscriptionPlans.read')
+  details(@Param('id') id: string) {
+    return this.service.planDetails(id);
+  }
+
+  @Patch(':id')
+  @Permissions('subscriptionPlans.update')
+  update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateSubscriptionPlanDto) {
+    return this.service.updatePlan(user, id, dto);
+  }
+
+  @Delete(':id')
+  @Permissions('subscriptionPlans.delete')
+  delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
+    return this.service.deletePlan(user, id);
+  }
+
+  @Get(':id/analytics')
+  @Permissions('subscriptionPlans.analytics.read')
+  analytics(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
+    return this.service.analytics(user, id);
+  }
 }

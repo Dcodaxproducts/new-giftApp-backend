@@ -24,7 +24,7 @@ describe('Swagger professional tag grouping', () => {
   });
 
   it('admin reviews swagger sections exist and provider support section is currently omitted', () => {
-    const reviews = readFileSync(join(__dirname, 'modules/admin-reviews/controllers/admin-reviews.controller.ts'), 'utf8') + readFileSync(join(__dirname, 'modules/admin-reviews/controllers/review-policies.controller.ts'), 'utf8');
+    const reviews = readFileSync(join(__dirname, 'modules/admin-reviews/admin-reviews.controller.ts'), 'utf8') + readFileSync(join(__dirname, 'modules/admin-reviews/review-policies.controller.ts'), 'utf8');
     expect(reviews).toContain("02 Admin - Reviews Management");
     expect(reviews).toContain("02 Admin - Review Moderation");
     expect(reviews).toContain("02 Admin - Review Policies");
@@ -35,14 +35,14 @@ describe('Swagger professional tag grouping', () => {
   it('old unnumbered tag names are not used by controllers', () => {
     const root = join(__dirname, 'modules');
     const files = [
-      'auth/controllers/auth.controller.ts',
+      'auth/auth.controller.ts',
       'user-management/controllers/user-management.controller.ts',
       'provider-management/controllers/provider-management.controller.ts',
       'provider-management/controllers/provider-business-categories.controller.ts',
-      'provider-business-info/controllers/provider-business-info.controller.ts',
-      'provider-orders/controllers/provider-orders.controller.ts',
-      'provider-refund-requests/controllers/provider-refund-requests.controller.ts',
-      'customer-wallet/controllers/customer-wallet.controller.ts',
+      'provider-business-info/provider-business-info.controller.ts',
+      'provider-orders/provider-orders.controller.ts',
+      'provider-refund-requests/provider-refund-requests.controller.ts',
+      'customer-wallet/customer-wallet.controller.ts',
     ];
     const source = files.map((file) => readFileSync(join(root, file), 'utf8')).join('\n');
     expect(source).not.toContain("@ApiTags('Auth')");

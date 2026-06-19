@@ -2,13 +2,13 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Provider assigned orders source safety', () => {
-  const service = readFileSync(join(__dirname, '../services/provider-orders.service.ts'), 'utf8');
-  const controller = readFileSync(join(__dirname, '../controllers/provider-orders.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../provider-orders.service.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../provider-orders.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/provider-orders.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
   const customerMarketplace = readFileSync(join(__dirname, '../../customer-marketplace/services/customer-marketplace.service.ts'), 'utf8');
   const customerOrdersRepository = readFileSync(join(__dirname, '../../customer-marketplace/repositories/customer-orders.repository.ts'), 'utf8');
-  const providerOrdersRepository = readFileSync(join(__dirname, '../repositories/provider-orders.repository.ts'), 'utf8');
+  const providerOrdersRepository = readFileSync(join(__dirname, '../provider-orders.repository.ts'), 'utf8');
 
   it('exposes provider-only Provider Orders APIs with static routes before :id', () => {
     expect(controller).toContain("@ApiTags('03 Provider - Orders')");

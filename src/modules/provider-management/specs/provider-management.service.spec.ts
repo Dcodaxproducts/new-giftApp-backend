@@ -22,6 +22,12 @@ const provider: Record<string, unknown> = {
   firstName: 'Premium',
   lastName: 'Provider',
   providerBusinessName: 'Premium Gifts Co',
+  providerLegalName: 'Premium Gifts Co. Ltd',
+  providerBusinessEmail: 'business@example.com',
+  providerBusinessPhone: '+15550001111',
+  providerBusinessCategoryId: 'provider_business_category_id',
+  providerTaxId: 'TAX-12345',
+  providerBusinessAddress: '123 Gift Street',
   role: UserRole.PROVIDER,
   deletedAt: null,
   isActive: false,
@@ -139,14 +145,48 @@ describe('ProviderManagementService', () => {
     expect(result.meta).toEqual({ page: 1, limit: 1, total: 2, totalPages: 2 });
   });
 
-  it('provider details returns real aggregate stats', async () => {
-    const { service, repository } = createService();
+  it('provider details keeps stats and exposes only admin provider payload profile fields', async () => {
+    const { service, repository } = createService({
+      phone: '+15551234567',
+      avatarUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
+      providerStoreAddress: { lat: 31.5, lng: 74.3 },
+      providerDocuments: {
+        businessBio: 'Short customer-facing business summary.',
+        coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
+      },
+    });
     jest.spyOn(repository, 'findSingleProviderAggregate').mockResolvedValue({ revenue: 4200, performanceStats: 92.15, performanceChangePercent: 12.5, listedItems: 8, listedItemsChange: 1, orderFulfillment: 95.2, orderFulfillmentChangePercent: 4.2, disputeCount: 2, disputeChangePercent: -33.33, averageRating: 4.9, reviewCount: 22 });
 
     const result = await service.details('provider_1');
 
-    expect(result.data.stats).toEqual(expect.objectContaining({ listedItems: 8, disputeCount: 2, averageRating: 4.9, reviewCount: 22, performanceStats: 92.15 }));
-    expect(result.data).toEqual(expect.objectContaining({ revenue: 4200 }));
+    expect(result.data).toEqual(expect.objectContaining({
+      id: 'provider_1',
+      name: 'Premium Provider',
+      email: 'provider@example.com',
+      contact: '+15551234567',
+      businessName: 'Premium Gifts Co',
+      businessCategoryId: 'provider_business_category_id',
+      taxId: 'TAX-12345',
+      businessAddress: '123 Gift Street',
+      businessBio: 'Short customer-facing business summary.',
+      companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
+      coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
+      location: { lat: 31.5, lng: 74.3 },
+      approvalStatus: ProviderApprovalStatus.PENDING,
+      isActive: false,
+      revenue: 4200,
+      stats: expect.objectContaining({ listedItems: 8, disputeCount: 2, averageRating: 4.9, reviewCount: 22, performanceStats: 92.15 }),
+      verification: expect.any(Object),
+      suspension: expect.any(Object),
+    }));
+    expect(result.data).not.toHaveProperty('legalName');
+    expect(result.data).not.toHaveProperty('businessEmail');
+    expect(result.data).not.toHaveProperty('businessPhone');
+    expect(result.data).not.toHaveProperty('storeAddress');
+    expect(result.data).not.toHaveProperty('providerDocuments');
+    expect(result.data).not.toHaveProperty('documentUrls');
+    expect(JSON.stringify(result.data)).not.toContain('password');
+    expect(JSON.stringify(result.data)).not.toContain('refresh_hash');
   });
 
   it('provider stats returns real active revenue and 30-day change values', async () => {

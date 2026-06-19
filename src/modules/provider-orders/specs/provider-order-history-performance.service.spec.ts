@@ -2,10 +2,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Provider order history and performance source safety', () => {
-  const service = readFileSync(join(__dirname, '../services/provider-orders.service.ts'), 'utf8');
-  const controller = readFileSync(join(__dirname, '../controllers/provider-orders.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../provider-orders.service.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../provider-orders.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/provider-orders.dto.ts'), 'utf8');
-  const repository = readFileSync(join(__dirname, '../repositories/provider-orders.repository.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, '../provider-orders.repository.ts'), 'utf8');
 
   it('adds provider history/performance static routes before :id', () => {
     for (const route of ["@Get('history')", "@Get('performance')", "@Get('analytics/revenue')", "@Get('analytics/ratings')", "@Get('recent')", "@Get('export')"]) {
