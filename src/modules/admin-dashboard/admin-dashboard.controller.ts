@@ -1,13 +1,13 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { Permissions } from '../../../common/decorators/permissions.decorator';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../../common/guards/permissions.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { AdminDashboardQueryDto } from '../dto/admin-dashboard-query.dto';
-import { AdminDashboardService } from '../services/admin-dashboard.service';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { AdminDashboardQueryDto } from './dto/admin-dashboard-query.dto';
+import { AdminDashboardService } from './admin-dashboard.service';
 
 @ApiTags('02 Admin - Dashboard Overview')
 @ApiBearerAuth()

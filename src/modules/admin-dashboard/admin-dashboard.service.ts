@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DisputePriority, PaymentStatus, Prisma, ProviderDisputeSeverity, UserRole } from '@prisma/client';
-import { AdminDashboardQueryDto, AdminDashboardRange } from '../dto/admin-dashboard-query.dto';
-import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository';
+import { AdminDashboardQueryDto, AdminDashboardRange } from './dto/admin-dashboard-query.dto';
+import { AdminDashboardRepository } from './admin-dashboard.repository';
 
 type CustomerDispute = Awaited<ReturnType<AdminDashboardRepository['findRecentCustomerDisputes']>>[number];
 type ProviderDispute = Awaited<ReturnType<AdminDashboardRepository['findRecentProviderDisputes']>>[number];
