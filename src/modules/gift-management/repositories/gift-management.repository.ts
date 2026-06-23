@@ -101,6 +101,8 @@ export class GiftManagementRepository {
 
   findGiftVariantForGift(tx: GiftTx, giftId: string, variantId: string) { return tx.giftVariant.findFirst({ where: { id: variantId, giftId, deletedAt: null } }); }
 
+  findGiftVariantById(tx: GiftTx, variantId: string) { return tx.giftVariant.findFirst({ where: { id: variantId }, select: { id: true, giftId: true, deletedAt: true } }); }
+
   updateGiftVariant(tx: GiftTx, id: string, data: GiftVariantUpdateData) { return tx.giftVariant.update({ where: { id }, data }); }
 
   createGiftVariant(tx: GiftTx, data: GiftVariantCreateData) { return tx.giftVariant.create({ data }); }

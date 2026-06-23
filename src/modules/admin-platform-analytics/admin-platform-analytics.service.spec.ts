@@ -66,9 +66,6 @@ function createService() {
     countActiveRegisteredUsers: jest.fn(),
     findPayments: jest.fn(),
     countPayments: jest.fn(),
-    findFilterCategories: jest.fn().mockResolvedValue([{ id: 'cat_1', name: 'Flowers' }]),
-    findFilterProviders: jest.fn().mockResolvedValue([{ id: 'provider_1', providerBusinessName: 'Gift Provider', firstName: 'Gift', lastName: 'Provider' }]),
-    findFilterPlans: jest.fn().mockResolvedValue([{ name: 'Pro' }, { name: 'Enterprise' }]),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
   const service = new AdminPlatformAnalyticsService(repository as unknown as AdminPlatformAnalyticsRepository, auditLog as never);
@@ -129,7 +126,9 @@ describe('AdminPlatformAnalyticsService', () => {
     const result = await service.revenueTransactions({ page: 1, limit: 1 });
 
     expect(result.meta).toEqual({ page: 1, limit: 1, total: 2, totalPages: 2 });
-    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'TXN-pay_1', userEmail: 'alex.rivera@gmail.com', plan: 'Pro', amount: 150, status: PlatformAnalyticsTransactionStatus.COMPLETED, currency: 'PKR' }));
+    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'TXN-pay_1', userEmail: 'alex.rivera@gmail.com', amount: 150, currency: 'PKR' }));
+    expect(result.data[0]).not.toHaveProperty('plan');
+    expect(result.data[0]).not.toHaveProperty('status');
     expect(JSON.stringify(result.data[0])).not.toContain('card');
   });
 
@@ -159,18 +158,6 @@ describe('AdminPlatformAnalyticsService', () => {
     }));
   });
 
-  it('filter options come from active categories, approved providers, plans, and fixed statuses', async () => {
-    const { service } = createService();
-    const result = await service.filterOptions();
-
-    expect(result.data).toEqual({
-      categories: [{ id: 'cat_1', name: 'Flowers' }],
-      providers: [{ id: 'provider_1', businessName: 'Gift Provider' }],
-      plans: ['Pro', 'Enterprise'],
-      statuses: ['COMPLETED', 'PENDING', 'FAILED', 'REFUNDED'],
-    });
-  });
-
   it('report endpoint streams CSV, audits generation, and excludes sensitive payment fields', async () => {
     const { service, repository, auditLog } = createService();
     repository.findPayments.mockResolvedValue([payment({ id: 'pay_1', email: 'alex.rivera@gmail.com', amount: 150, plan: 'Pro' })]);
@@ -184,9 +171,11 @@ describe('AdminPlatformAnalyticsService', () => {
   });
 
   it('analytics.read and analytics.export permissions are enforced in controller metadata', () => {
-    const controller = readFileSync(join(__dirname, '../admin-platform-analytics.controller.ts'), 'utf8');
-    expect(controller.match(/@Permissions\('analytics\.read'\)/g)).toHaveLength(3);
+    const controller = readFileSync(join(__dirname, './admin-platform-analytics.controller.ts'), 'utf8');
+    expect(controller.match(/@Permissions\('analytics\.read'\)/g)).toHaveLength(2);
     expect(controller).toContain("@Permissions('analytics.export')");
+    expect(controller).toContain("@Get('stats')");
+    expect(controller).not.toContain("@Get('filter-options')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
   });
 });

@@ -394,8 +394,8 @@ export class AuthCoreService implements OnModuleInit {
 
     return {
       data: {
-        delivery: 'OTP_SENT_IF_ELIGIBLE',
-        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+        delivery: 'EMAIL',
+        nextStep: 'Check your inbox for a 6-digit verification code.',
       },
       message: VERIFICATION_EMAIL_SENT_MESSAGE,
     };

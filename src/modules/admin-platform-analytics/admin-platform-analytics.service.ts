@@ -75,30 +75,6 @@ export class AdminPlatformAnalyticsService {
     };
   }
 
-  async filterOptions() {
-    const [categories, providers, plans] = await Promise.all([
-      this.repository.findFilterCategories(),
-      this.repository.findFilterProviders(),
-      this.repository.findFilterPlans(),
-    ]);
-    const planNames = [...new Set(plans.map((plan) => plan.name))];
-
-    return {
-      data: {
-        categories,
-        providers: providers.map((provider) => ({ id: provider.id, businessName: this.providerName(provider) })),
-        plans: planNames,
-        statuses: [
-          PlatformAnalyticsTransactionStatus.COMPLETED,
-          PlatformAnalyticsTransactionStatus.PENDING,
-          PlatformAnalyticsTransactionStatus.FAILED,
-          PlatformAnalyticsTransactionStatus.REFUNDED,
-        ],
-      },
-      message: 'Platform analytics filter options fetched successfully.',
-    };
-  }
-
   async report(user: AuthUserContext, query: PlatformAnalyticsReportQueryDto): Promise<FileResult> {
     const items = await this.filteredTransactions({ ...query, limit: 100, sortBy: PlatformAnalyticsSortBy.CREATED_AT, sortOrder: PlatformAnalyticsSortOrder.DESC });
     const rows = [
@@ -241,9 +217,7 @@ export class AdminPlatformAnalyticsService {
       id: item.id,
       date: item.date,
       userEmail: item.userEmail,
-      plan: item.plan,
       amount: item.amount,
-      status: item.status,
       currency: item.currency,
       provider: item.provider,
       category: item.category,

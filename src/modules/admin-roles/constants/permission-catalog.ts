@@ -282,6 +282,13 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'systemHealth',
+    label: 'System Health Monitoring',
+    permissions: [
+      { key: 'read', label: 'View System Health', description: 'View server resource usage and API reliability metrics.' },
+    ],
+  },
+  {
     module: 'guestAccessSettings',
     label: 'Guest Access Settings',
     permissions: [

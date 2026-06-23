@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ValidationPipe } from '@nestjs/common';
 import { GiftModerationStatus, GiftStatus, UserRole } from '@prisma/client';
-import { GiftCategorySortBy, GiftFlagReason, GiftModerationAction, GiftRejectReason, SortOrder } from '../dto/gift-management.dto';
+import { GiftCategorySortBy, GiftFlagReason, GiftModerationAction, GiftRejectReason, SortOrder, UpdateGiftDto } from '../dto/gift-management.dto';
 import { GiftManagementRepository } from '../repositories/gift-management.repository';
 import { GiftManagementService } from '../services/gift-management.service';
 
@@ -123,6 +124,38 @@ describe('GiftManagementService', () => {
     expect(result.data.shortDescription).toBe('Updated short copy.');
     expect(prisma.gift.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ shortDescription: 'Updated short copy.' }) }));
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'GIFT_UPDATED' }));
+  });
+
+  it('PATCH /gifts/:id updates existing variants with partial variant fields', async () => {
+    const { service, prisma } = createService();
+    const existingVariant = { id: 'variant_1', giftId: 'gift_1', name: '50ml', price: { toString: () => '129.99' }, originalPrice: null, isPopular: false, isDefault: true, sortOrder: 1, isActive: true, createdAt: now, updatedAt: now, deletedAt: null };
+    prisma.gift.findFirst.mockResolvedValue({ ...gift, variants: [existingVariant] });
+    prisma.giftVariant.findFirst.mockResolvedValue(existingVariant);
+    prisma.gift.findUniqueOrThrow.mockResolvedValue({ ...gift, variants: [{ ...existingVariant, price: { toString: () => '149.99' } }] });
+
+    const result = await service.updateGift({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['update'] } }, 'gift_1', { variants: [{ id: 'variant_1', price: 149.99 }] });
+
+    expect(result.data.variants[0]).toMatchObject({ id: 'variant_1', price: 149.99 });
+    expect(prisma.giftVariant.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'variant_1' }, data: expect.objectContaining({ price: expect.any(Object) }) }));
+  });
+
+  it('PATCH /gifts/:id creates variants when the incoming variant id is only a client temp id', async () => {
+    const { service, prisma } = createService();
+    prisma.gift.findFirst.mockResolvedValue(gift);
+    prisma.giftVariant.findFirst.mockResolvedValue(undefined);
+    prisma.gift.findUniqueOrThrow.mockResolvedValue({ ...gift, variants: [{ id: 'variant_2', name: '100ml', price: { toString: () => '199.99' }, originalPrice: null, isPopular: false, isDefault: true, sortOrder: 0, isActive: true }] });
+
+    const result = await service.updateGift({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['update'] } }, 'gift_1', { variants: [{ id: 'temp-row-1', name: '100ml', price: 199.99 }] });
+
+    expect(result.data.variants[0]).toMatchObject({ id: 'variant_2', name: '100ml', price: 199.99 });
+    expect(prisma.giftVariant.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ giftId: 'gift_1', name: '100ml' }) }));
+    expect(prisma.giftVariant.update).not.toHaveBeenCalled();
+  });
+
+  it('PATCH /gifts/:id accepts partial update variant DTOs', async () => {
+    const pipe = new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true });
+
+    await expect(pipe.transform({ variants: [{ id: 'variant_1', price: 149.99 }] }, { type: 'body', metatype: UpdateGiftDto })).resolves.toBeInstanceOf(UpdateGiftDto);
   });
 
   it('PATCH /gifts/:id updates operational status and audits the reason', async () => {

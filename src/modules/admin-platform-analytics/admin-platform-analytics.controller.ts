@@ -18,28 +18,20 @@ import { PlatformAnalyticsReportQueryDto, PlatformAnalyticsSummaryQueryDto, Plat
 export class AdminPlatformAnalyticsController {
   constructor(private readonly analytics: AdminPlatformAnalyticsService) {}
 
-  @Get('summary')
+  @Get('stats')
   @Permissions('analytics.read')
   @ApiOperation({ summary: 'Fetch platform analytics summary', description: 'SUPER_ADMIN or ADMIN with analytics.read. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.' })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { totalRevenue: { value: 154320, changePercent: 8.1 }, newSubscriptions: { value: 215, changePercent: 5.3 }, churnRate: { value: 2.9, changePercent: 0.1 }, activeUsers: { value: 5120, changePercent: -2.1 } }, message: 'Platform analytics summary fetched successfully.' } } })
-  summary(@Query() query: PlatformAnalyticsSummaryQueryDto) {
+  stats(@Query() query: PlatformAnalyticsSummaryQueryDto) {
     return this.analytics.summary(query);
   }
 
   @Get('revenue-transactions')
   @Permissions('analytics.read')
   @ApiOperation({ summary: 'List recent revenue transactions', description: 'SUPER_ADMIN or ADMIN with analytics.read. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'transaction_id', date: '2023-09-17T00:00:00.000Z', userEmail: 'alex.rivera@gmail.com', plan: 'Pro', amount: 150, status: 'COMPLETED', currency: 'PKR', provider: { id: 'provider_id', businessName: 'Gift Provider' }, category: { id: 'category_id', name: 'Flowers' } }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Revenue transactions fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'transaction_id', date: '2023-09-17T00:00:00.000Z', userEmail: 'alex.rivera@gmail.com', amount: 150, currency: 'PKR', provider: { id: 'provider_id', businessName: 'Gift Provider' }, category: { id: 'category_id', name: 'Flowers' } }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Revenue transactions fetched successfully.' } } })
   revenueTransactions(@Query() query: PlatformAnalyticsTransactionsQueryDto) {
     return this.analytics.revenueTransactions(query);
-  }
-
-  @Get('filter-options')
-  @Permissions('analytics.read')
-  @ApiOperation({ summary: 'Fetch platform analytics filter options', description: 'SUPER_ADMIN or ADMIN with analytics.read. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { categories: [{ id: 'category_id', name: 'Flowers' }], providers: [{ id: 'provider_id', businessName: 'Gift Provider' }], plans: ['Free', 'Pro', 'Enterprise'], statuses: ['COMPLETED', 'PENDING', 'FAILED', 'REFUNDED'] }, message: 'Platform analytics filter options fetched successfully.' } } })
-  filterOptions() {
-    return this.analytics.filterOptions();
   }
 
   @Get('report')

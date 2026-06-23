@@ -22,6 +22,7 @@ import {
   SortOrder,
   UpdateGiftCategoryDto,
   UpdateGiftDto,
+  UpdateGiftVariantDto,
 } from '../dto/gift-management.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -189,8 +190,7 @@ export class GiftManagementService {
     this.assertGiftUpdatePermission(user, dto);
     if (dto.categoryId) await this.assertCategory(dto.categoryId);
     if (dto.providerId) await this.assertProvider(dto.providerId);
-    this.assertSingleDefaultVariant(dto.variants);
-    const normalizedVariants = dto.variants ? this.normalizeVariants(dto.variants) : undefined;
+    const normalizedVariants = dto.variants ? this.normalizeUpdateVariants(dto.variants) : undefined;
     const providerId = user.role === UserRole.PROVIDER ? gift.providerId : dto.providerId;
     const nextModeration = user.role === UserRole.PROVIDER && gift.moderationStatus === GiftModerationStatus.APPROVED
       ? GiftModerationStatus.PENDING
@@ -361,23 +361,41 @@ export class GiftManagementService {
     if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true;
     return normalized;
   }
-  private assertSingleDefaultVariant(variants?: GiftVariantDto[]): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
-  private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true }; }
+  private normalizeUpdateVariants(variants: UpdateGiftVariantDto[]): UpdateGiftVariantDto[] {
+    this.assertSingleDefaultVariant(variants);
+    for (const variant of variants) {
+      if (!variant.id && (variant.name === undefined || variant.price === undefined)) {
+        throw new BadRequestException('New variants must include name and price');
+      }
+    }
+    return variants.map((variant) => ({ ...variant }));
+  }
+  private assertSingleDefaultVariant(variants?: Array<{ isDefault?: boolean }>): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
+  private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return this.variantCreateDataFromUpdate(variant); }
+  private variantCreateDataFromUpdate(variant: UpdateGiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput {
+    if (variant.name === undefined || variant.price === undefined) throw new BadRequestException('New variants must include name and price');
+    return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true };
+  }
   private canPublishAfterApproval(gift: GiftWithRelations): boolean { return gift.status === GiftStatus.ACTIVE && gift.deletedAt === null && gift.category.isActive && gift.category.deletedAt === null && (gift.provider.isActive ?? true) && gift.provider.deletedAt === null && gift.provider.suspendedAt === null; }
   private async notifyProvider(providerId: string, giftId: string, title: string, message: string, type: string): Promise<void> { await this.giftManagementRepository.createProviderNotification({ providerId, giftId, title, message, type }); }
-  private variantUpdateData(variant: GiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
-  private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: GiftVariantDto[], replaceVariants: boolean): Promise<void> {
-    const normalized = this.normalizeVariants(variants);
+  private variantUpdateData(variant: UpdateGiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: UpdateGiftVariantDto[], replaceVariants: boolean): Promise<void> {
+    const normalized = this.normalizeUpdateVariants(variants);
     const incomingIds = normalized.map((variant) => variant.id).filter((id): id is string => Boolean(id));
     if (replaceVariants) await this.giftManagementRepository.softDeleteVariantsForGift(tx, giftId, incomingIds);
     if (normalized.some((variant) => variant.isDefault)) await this.giftManagementRepository.clearDefaultVariantsForGift(tx, giftId);
     for (const variant of normalized) {
       if (variant.id) {
         const existing = await this.giftManagementRepository.findGiftVariantForGift(tx, giftId, variant.id);
-        if (!existing) throw new BadRequestException('Variant does not belong to gift');
-        await this.giftManagementRepository.updateGiftVariant(tx, variant.id, this.variantUpdateData(variant));
+        if (existing) {
+          await this.giftManagementRepository.updateGiftVariant(tx, variant.id, this.variantUpdateData(variant));
+          continue;
+        }
+        const variantById = await this.giftManagementRepository.findGiftVariantById(tx, variant.id);
+        if (variantById && variantById.giftId !== giftId) throw new BadRequestException('Variant does not belong to gift');
+        await this.giftManagementRepository.createGiftVariant(tx, { giftId, ...this.variantCreateDataFromUpdate(variant) });
       } else {
-        await this.giftManagementRepository.createGiftVariant(tx, { giftId, ...this.variantCreateData(variant) });
+        await this.giftManagementRepository.createGiftVariant(tx, { giftId, ...this.variantCreateDataFromUpdate(variant) });
       }
     }
   }

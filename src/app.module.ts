@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { RequestMetricsModule } from './common/request-metrics.module';
 import { JwtAuthModule } from './common/auth/jwt-auth.module';
 import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
@@ -14,6 +15,7 @@ import { AdminManagementModule } from './modules/admin-management/admin-manageme
 import { AdminPayoutSettingsModule } from './modules/admin-payout-settings/admin-payout-settings.module';
 import { AdminReviewsModule } from './modules/admin-reviews/admin-reviews.module';
 import { AdminRolesModule } from './modules/admin-roles/admin-roles.module';
+import { AdminSystemHealthModule } from './modules/admin-system-health/admin-system-health.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BroadcastNotificationsModule } from './modules/broadcast-notifications/broadcast-notifications.module';
@@ -59,6 +61,7 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    RequestMetricsModule,
     JwtAuthModule,
     AuthModule,
     AdminDashboardModule,
@@ -71,6 +74,7 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     AdminPayoutSettingsModule,
     AdminReviewsModule,
     AdminRolesModule,
+    AdminSystemHealthModule,
     ProviderManagementModule,
     ProviderDashboardModule,
     ProviderEarningsPayoutsModule,

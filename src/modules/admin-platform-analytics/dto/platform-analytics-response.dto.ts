@@ -48,14 +48,8 @@ export class PlatformAnalyticsRevenueTransactionDto {
   @ApiProperty({ example: 'alex.rivera@gmail.com' })
   userEmail!: string;
 
-  @ApiProperty({ example: 'Pro', nullable: true })
-  plan!: string | null;
-
   @ApiProperty({ example: 150 })
   amount!: number;
-
-  @ApiProperty({ example: 'COMPLETED' })
-  status!: string;
 
   @ApiProperty({ example: 'PKR' })
   currency!: string;

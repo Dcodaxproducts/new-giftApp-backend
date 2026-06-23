@@ -31,6 +31,7 @@ export const SWAGGER_TAG_ORDER = [
   '02 Admin - Refund Policy Settings',
   '02 Admin - Media Upload Policy',
   '02 Admin - System Settings',
+  '02 Admin - System Health Monitoring',
   '02 Admin - Guest Access Settings',
   '02 Admin - System Logs & Audit Trail',
   '02 Admin - Dispute Manager',

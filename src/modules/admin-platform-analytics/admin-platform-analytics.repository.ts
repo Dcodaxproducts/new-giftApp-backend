@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CustomerSubscriptionStatus, PaymentStatus, Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { CustomerSubscriptionStatus, PaymentStatus, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export const PLATFORM_ANALYTICS_PAYMENT_INCLUDE = Prisma.validator<Prisma.PaymentInclude>()({
@@ -79,30 +79,4 @@ export class AdminPlatformAnalyticsRepository {
     });
   }
 
-  findFilterCategories() {
-    return this.prisma.giftCategory.findMany({
-      where: { isActive: true, deletedAt: null },
-      select: { id: true, name: true },
-      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      take: 500,
-    });
-  }
-
-  findFilterProviders() {
-    return this.prisma.user.findMany({
-      where: { role: UserRole.PROVIDER, isActive: true, isApproved: true, providerApprovalStatus: ProviderApprovalStatus.APPROVED, deletedAt: null },
-      select: { id: true, providerBusinessName: true, firstName: true, lastName: true },
-      orderBy: { providerBusinessName: 'asc' },
-      take: 500,
-    });
-  }
-
-  findFilterPlans() {
-    return this.prisma.subscriptionPlan.findMany({
-      where: { deletedAt: null },
-      select: { name: true },
-      orderBy: { name: 'asc' },
-      take: 500,
-    });
-  }
 }

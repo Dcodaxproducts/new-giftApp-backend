@@ -69,6 +69,17 @@ export class GiftVariantDto {
   @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
+export class UpdateGiftVariantDto {
+  @ApiPropertyOptional({ example: 'variant_id' }) @IsOptional() @IsString() id?: string;
+  @ApiPropertyOptional({ example: '50ml' }) @IsOptional() @IsString() @MinLength(1) name?: string;
+  @ApiPropertyOptional({ example: 129.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) price?: number;
+  @ApiPropertyOptional({ example: 159.99 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) originalPrice?: number;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isPopular?: boolean;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isDefault?: boolean;
+  @ApiPropertyOptional({ example: 2 }) @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
+  @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
 export class CreateGiftDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
@@ -99,7 +110,7 @@ export class UpdateGiftDto {
   @ApiPropertyOptional({ enum: GiftStatus, description: 'Operational/admin catalog status. Moderation decisions stay under /gift-moderation/:id/action.' }) @IsOptional() @IsEnum(GiftStatus) status?: GiftStatus;
   @ApiPropertyOptional({ example: 'Back in stock and approved by admin.', description: 'Audit reason for operational status changes.' }) @IsOptional() @IsString() reason?: string;
   @ApiPropertyOptional({ example: false }) @IsOptional() @IsBoolean() replaceVariants?: boolean;
-  @ApiPropertyOptional({ type: [GiftVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => GiftVariantDto) variants?: GiftVariantDto[];
+  @ApiPropertyOptional({ type: [UpdateGiftVariantDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => UpdateGiftVariantDto) variants?: UpdateGiftVariantDto[];
 }
 
 
