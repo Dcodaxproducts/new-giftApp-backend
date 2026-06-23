@@ -1363,8 +1363,8 @@
     },
     "/api/v1/broadcasts": {
       "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE. Three-step frontend flow: Step 1 Notification Content, Step 2 Targeting, Step 3 Schedule. Use action=ESTIMATE_REACH with 'broadcasts.read' to calculate reach without creating a broadcast. Use SAVE_DRAFT, SEND_NOW, or SCHEDULE with 'broadcasts.create'. Location targeting currently applies to PROVIDER audiences only.",
-        "operationId": "BroadcastsController_create",
+        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.create. SUPER_ADMIN or ADMIN with broadcasts.create permission. Creates a broadcast notification record. Request body accepts only title, message, and audience.",
+        "operationId": "BroadcastNotificationsController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1374,247 +1374,25 @@
                 "$ref": "#/components/schemas/CreateBroadcastDto"
               },
               "examples": {
-                "estimateReach": {
+                "allUsers": {
                   "value": {
-                    "action": "ESTIMATE_REACH",
-                    "content": {
-                      "title": "Maintenance Notice",
-                      "message": "Type your message here...",
-                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
-                      "ctaLabel": "View Details",
-                      "ctaUrl": "https://gift.dcodax.net/notice"
-                    },
-                    "channels": [
-                      "IN_APP",
-                      "PUSH",
-                      "EMAIL"
-                    ],
-                    "priority": "NORMAL",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "ADMIN",
-                        "PROVIDER",
-                        "REGISTERED_USER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true
-                      }
-                    },
-                    "schedule": {
-                      "type": "SEND_NOW",
-                      "sendAt": null,
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": false,
-                        "frequency": null
-                      }
-                    }
+                    "title": "Maintenance Notice",
+                    "message": "Type your message here...",
+                    "audience": "ALL_USERS"
                   }
                 },
-                "saveDraft": {
+                "providers": {
                   "value": {
-                    "action": "SAVE_DRAFT",
-                    "content": {
-                      "title": "Maintenance Notice",
-                      "message": "Type your message here...",
-                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
-                      "ctaLabel": "View Details",
-                      "ctaUrl": "https://gift.dcodax.net/notice"
-                    },
-                    "channels": [
-                      "IN_APP",
-                      "PUSH",
-                      "EMAIL"
-                    ],
-                    "priority": "NORMAL",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "ADMIN",
-                        "PROVIDER",
-                        "REGISTERED_USER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true
-                      }
-                    },
-                    "schedule": {
-                      "type": "SEND_NOW",
-                      "sendAt": null,
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": false,
-                        "frequency": null
-                      }
-                    }
+                    "title": "Maintenance Notice",
+                    "message": "Type your message here...",
+                    "audience": "PROVIDER"
                   }
                 },
-                "sendNow": {
+                "users": {
                   "value": {
-                    "action": "SEND_NOW",
-                    "content": {
-                      "title": "Maintenance Notice",
-                      "message": "Type your message here...",
-                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
-                      "ctaLabel": "View Details",
-                      "ctaUrl": "https://gift.dcodax.net/notice"
-                    },
-                    "channels": [
-                      "IN_APP",
-                      "PUSH",
-                      "EMAIL"
-                    ],
-                    "priority": "NORMAL",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "ADMIN",
-                        "PROVIDER",
-                        "REGISTERED_USER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true
-                      }
-                    },
-                    "schedule": {
-                      "type": "SEND_NOW",
-                      "sendAt": null,
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": false,
-                        "frequency": null
-                      }
-                    }
-                  }
-                },
-                "scheduleLater": {
-                  "value": {
-                    "action": "SCHEDULE",
-                    "content": {
-                      "title": "Maintenance Notice",
-                      "message": "Type your message here...",
-                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
-                      "ctaLabel": "View Details",
-                      "ctaUrl": "https://gift.dcodax.net/notice"
-                    },
-                    "channels": [
-                      "IN_APP",
-                      "PUSH",
-                      "EMAIL"
-                    ],
-                    "priority": "NORMAL",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "ADMIN",
-                        "PROVIDER",
-                        "REGISTERED_USER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true
-                      }
-                    },
-                    "schedule": {
-                      "type": "SCHEDULED",
-                      "sendAt": "2027-11-24T09:00:00.000Z",
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": false,
-                        "frequency": null
-                      }
-                    }
-                  }
-                },
-                "recurringDaily": {
-                  "value": {
-                    "action": "SCHEDULE",
-                    "content": {
-                      "title": "Maintenance Notice",
-                      "message": "Type your message here...",
-                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
-                      "ctaLabel": "View Details",
-                      "ctaUrl": "https://gift.dcodax.net/notice"
-                    },
-                    "channels": [
-                      "IN_APP",
-                      "PUSH",
-                      "EMAIL"
-                    ],
-                    "priority": "NORMAL",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "ADMIN",
-                        "PROVIDER",
-                        "REGISTERED_USER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true
-                      }
-                    },
-                    "schedule": {
-                      "type": "SCHEDULED",
-                      "sendAt": "2027-11-24T09:00:00.000Z",
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": true,
-                        "frequency": "DAILY"
-                      }
-                    }
-                  }
-                },
-                "providerLocationSegment": {
-                  "value": {
-                    "action": "ESTIMATE_REACH",
-                    "content": {
-                      "title": "Maintenance Notice",
-                      "message": "Type your message here...",
-                      "imageUrl": "https://cdn.yourdomain.com/broadcast-images/notice.png",
-                      "ctaLabel": "View Details",
-                      "ctaUrl": "https://gift.dcodax.net/notice"
-                    },
-                    "channels": [
-                      "IN_APP",
-                      "PUSH",
-                      "EMAIL"
-                    ],
-                    "priority": "NORMAL",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "PROVIDER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true,
-                        "location": {
-                          "lat": 31.5,
-                          "lng": 74.3,
-                          "radiusKm": 25
-                        }
-                      }
-                    },
-                    "schedule": {
-                      "type": "SEND_NOW",
-                      "sendAt": null,
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": false,
-                        "frequency": null
-                      }
-                    }
+                    "title": "Maintenance Notice",
+                    "message": "Type your message here...",
+                    "audience": "USER"
                   }
                 }
               }
@@ -1631,438 +1409,12 @@
             "bearer": []
           }
         ],
-        "summary": "Create or estimate broadcast wizard",
+        "summary": "Create broadcast notification",
         "tags": [
           "06 Broadcast Notifications"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcast action permission",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcast action permission"
-      },
-      "get": {
-        "operationId": "BroadcastsController_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ALL",
-                "DRAFT",
-                "SCHEDULED",
-                "PROCESSING",
-                "SENT",
-                "CANCELLED",
-                "FAILED"
-              ]
-            }
-          },
-          {
-            "name": "channel",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          {
-            "name": "priority",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOW",
-                "NORMAL",
-                "HIGH",
-                "URGENT"
-              ]
-            }
-          },
-          {
-            "name": "createdFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "createdTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scheduledFrom",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scheduledTo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "scheduledAt",
-                "title",
-                "status"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "List Broadcasts",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}": {
-      "get": {
-        "operationId": "BroadcastsController_details",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Fetch Broadcasts details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.read. SUPER_ADMIN or ADMIN with broadcasts.read permission."
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.update. SUPER_ADMIN or ADMIN with broadcasts.update permission. Edit draft or scheduled broadcast content, targeting, channels, priority, and schedule in one request. Targeting changes recalculate estimated reach.",
-        "operationId": "BroadcastsController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateBroadcastDto"
-              },
-              "examples": {
-                "updateDraft": {
-                  "value": {
-                    "content": {
-                      "title": "Updated Notice",
-                      "message": "Updated message text."
-                    },
-                    "priority": "HIGH",
-                    "targeting": {
-                      "mode": "SPECIFIC_ROLES",
-                      "roles": [
-                        "ADMIN",
-                        "PROVIDER",
-                        "REGISTERED_USER"
-                      ],
-                      "filters": {
-                        "onlyVerifiedEmails": true,
-                        "excludeUnsubscribed": true,
-                        "excludeSuspended": true
-                      }
-                    },
-                    "schedule": {
-                      "type": "SEND_NOW",
-                      "sendAt": null,
-                      "timezone": "UTC",
-                      "recurring": {
-                        "enabled": false,
-                        "frequency": null
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update draft or scheduled broadcast",
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.update",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.update"
-      }
-    },
-    "/api/v1/broadcasts/{id}/action": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcast action permission. SUPER_ADMIN or ADMIN with broadcasts.cancel for CANCEL or broadcasts.send for SEND_NOW. ARCHIVE is not persisted until archive support exists. Run a supported broadcast action such as CANCEL with 'broadcasts.cancel' or SEND_NOW with 'broadcasts.send'. ARCHIVE is accepted by the request schema but returns a clear unsupported error unless archive persistence is added later.",
-        "operationId": "BroadcastsController_action",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BroadcastActionDto"
-              },
-              "examples": {
-                "cancelBroadcast": {
-                  "value": {
-                    "action": "CANCEL",
-                    "reason": "Campaign no longer needed."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Run broadcast action",
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcast action permission",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcast action permission"
-      }
-    },
-    "/api/v1/broadcasts/{id}/report": {
-      "get": {
-        "operationId": "BroadcastsController_report",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Fetch Broadcasts Report details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
-      }
-    },
-    "/api/v1/broadcasts/{id}/recipients": {
-      "get": {
-        "operationId": "BroadcastsController_recipients",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "channel",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "QUEUED",
-                "SENT",
-                "DELIVERED",
-                "FAILED",
-                "OPENED",
-                "CLICKED"
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "alex",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "06 Broadcast Notifications"
-        ],
-        "summary": "Fetch Broadcasts Recipients details",
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.report.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with broadcasts.report.read. SUPER_ADMIN or ADMIN with broadcasts.report.read permission."
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with broadcasts.create",
+        "x-access": "SUPER_ADMIN or ADMIN with broadcasts.create"
       }
     },
     "/api/v1/notifications": {
@@ -6416,10 +5768,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with providerPayouts.read"
       }
     },
-    "/api/v1/admin/platform-analytics/summary": {
+    "/api/v1/admin/platform-analytics/stats": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Uses real payment/subscription/user records. Calculates revenue from successful payments only and compares the selected range with the previous equivalent period.",
-        "operationId": "AdminPlatformAnalyticsController_summary",
+        "operationId": "AdminPlatformAnalyticsController_stats",
         "parameters": [
           {
             "name": "range",
@@ -6679,9 +6031,7 @@
                         "id": "transaction_id",
                         "date": "2023-09-17T00:00:00.000Z",
                         "userEmail": "alex.rivera@gmail.com",
-                        "plan": "Pro",
                         "amount": 150,
-                        "status": "COMPLETED",
                         "currency": "PKR",
                         "provider": {
                           "id": "provider_id",
@@ -6712,64 +6062,6 @@
           }
         ],
         "summary": "List recent revenue transactions",
-        "tags": [
-          "02 Admin - Platform Analytics"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with analytics.read",
-        "x-access": "SUPER_ADMIN or ADMIN with analytics.read"
-      }
-    },
-    "/api/v1/admin/platform-analytics/filter-options": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with analytics.read. SUPER_ADMIN or ADMIN with analytics.read permission. Categories are active/non-deleted, providers are active approved providers, and plans come from subscription plans.",
-        "operationId": "AdminPlatformAnalyticsController_filterOptions",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "categories": [
-                        {
-                          "id": "category_id",
-                          "name": "Flowers"
-                        }
-                      ],
-                      "providers": [
-                        {
-                          "id": "provider_id",
-                          "businessName": "Gift Provider"
-                        }
-                      ],
-                      "plans": [
-                        "Free",
-                        "Pro",
-                        "Enterprise"
-                      ],
-                      "statuses": [
-                        "COMPLETED",
-                        "PENDING",
-                        "FAILED",
-                        "REFUNDED"
-                      ]
-                    },
-                    "message": "Platform analytics filter options fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch platform analytics filter options",
         "tags": [
           "02 Admin - Platform Analytics"
         ],
@@ -9868,6 +9160,127 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/admin/system-health/stats": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemHealth.read. SUPER_ADMIN or ADMIN with systemHealth.read permission. Runtime server resource and API reliability cards. Returns server resource usage and API reliability metrics from the current runtime.",
+        "operationId": "AdminSystemHealthController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "serverHealth": {
+                        "cpuUsagePercent": 6.5,
+                        "cpuStatus": "HEALTHY",
+                        "memory": {
+                          "usedGb": 2.6,
+                          "totalGb": 3.8,
+                          "usagePercent": 68.4,
+                          "status": "HEALTHY"
+                        },
+                        "disk": {
+                          "usedGb": 28.3,
+                          "totalGb": 33.7,
+                          "usagePercent": 83.9,
+                          "status": "WARNING"
+                        },
+                        "uptimeHours": 3500,
+                        "uptimeStatus": "HEALTHY"
+                      },
+                      "apiHealth": {
+                        "successRatePercent": 100,
+                        "failureRatePercent": 0,
+                        "totalRequests": 177,
+                        "averageLatencyMs": 245.59,
+                        "p95LatencyMs": 606,
+                        "latencyStatus": "HEALTHY"
+                      }
+                    },
+                    "message": "System health stats fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch system health summary cards",
+        "tags": [
+          "02 Admin - System Health Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemHealth.read",
+        "x-access": "SUPER_ADMIN or ADMIN with systemHealth.read"
+      }
+    },
+    "/api/v1/admin/system-health/latency-graph": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with systemHealth.read. SUPER_ADMIN or ADMIN with systemHealth.read permission. Supports DAILY, WEEKLY, and MONTHLY graph ranges. range=DAILY returns the last 7 days, WEEKLY returns the last 8 weeks, and MONTHLY returns the last 12 months.",
+        "operationId": "AdminSystemHealthController_latencyGraph",
+        "parameters": [
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DAILY",
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "range": "DAILY",
+                      "points": [
+                        {
+                          "label": "Tue",
+                          "averageLatencyMs": 20,
+                          "p95LatencyMs": 80,
+                          "totalRequests": 12,
+                          "failureRatePercent": 0
+                        }
+                      ]
+                    },
+                    "message": "System health latency graph fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch API latency graph",
+        "tags": [
+          "02 Admin - System Health Monitoring"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemHealth.read",
+        "x-access": "SUPER_ADMIN or ADMIN with systemHealth.read"
       }
     },
     "/api/v1/providers/export": {
@@ -25518,7 +24931,7 @@
     "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
     "version": "0.1.0",
     "contact": {},
-    "x-openapi-generated-at": "2026-06-07T14:33:26.315Z"
+    "x-openapi-generated-at": "2026-06-23T07:41:09.326Z"
   },
   "tags": [
     {
@@ -25586,6 +24999,9 @@
     },
     {
       "name": "02 Admin - System Settings"
+    },
+    {
+      "name": "02 Admin - System Health Monitoring"
     },
     {
       "name": "02 Admin - Guest Access Settings"
@@ -26082,7 +25498,7 @@
           "redeemTo"
         ]
       },
-      "BroadcastContentDto": {
+      "CreateBroadcastDto": {
         "type": "object",
         "properties": {
           "title": {
@@ -26094,251 +25510,20 @@
             "type": "string",
             "example": "Type your message here..."
           },
-          "imageUrl": {
+          "audience": {
             "type": "string",
-            "example": "https://cdn.yourdomain.com/broadcast-images/notice.png"
-          },
-          "ctaLabel": {
-            "type": "string",
-            "example": "View Details"
-          },
-          "ctaUrl": {
-            "type": "string",
-            "example": "https://gift.dcodax.net/notice"
+            "enum": [
+              "ALL_USERS",
+              "PROVIDER",
+              "USER"
+            ],
+            "example": "ALL_USERS"
           }
         },
         "required": [
           "title",
-          "message"
-        ]
-      },
-      "BroadcastLocationFilterDto": {
-        "type": "object",
-        "properties": {
-          "lat": {
-            "type": "number",
-            "example": 31.5
-          },
-          "lng": {
-            "type": "number",
-            "example": 74.3
-          },
-          "radiusKm": {
-            "type": "number",
-            "example": 25,
-            "maximum": 500
-          }
-        },
-        "required": [
-          "lat",
-          "lng",
-          "radiusKm"
-        ]
-      },
-      "TargetingFiltersDto": {
-        "type": "object",
-        "properties": {
-          "onlyVerifiedEmails": {
-            "type": "boolean"
-          },
-          "excludeUnsubscribed": {
-            "type": "boolean"
-          },
-          "excludeSuspended": {
-            "type": "boolean"
-          },
-          "location": {
-            "description": "Location targeting currently applies to PROVIDER audiences only.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BroadcastLocationFilterDto"
-              }
-            ]
-          }
-        }
-      },
-      "BroadcastTargetingDto": {
-        "type": "object",
-        "properties": {
-          "mode": {
-            "type": "string",
-            "enum": [
-              "ALL_USERS",
-              "SPECIFIC_ROLES",
-              "CUSTOM_SEGMENT"
-            ]
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "PROVIDER",
-                "REGISTERED_USER"
-              ]
-            }
-          },
-          "filters": {
-            "$ref": "#/components/schemas/TargetingFiltersDto"
-          }
-        },
-        "required": [
-          "mode"
-        ]
-      },
-      "BroadcastRecurringDto": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean",
-            "example": false
-          },
-          "frequency": {
-            "type": "string",
-            "enum": [
-              "DAILY",
-              "WEEKLY",
-              "MONTHLY"
-            ],
-            "nullable": true
-          }
-        },
-        "required": [
-          "enabled"
-        ]
-      },
-      "BroadcastScheduleDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "SEND_NOW",
-              "SCHEDULED"
-            ],
-            "example": "SEND_NOW"
-          },
-          "sendAt": {
-            "type": "object",
-            "nullable": true
-          },
-          "timezone": {
-            "type": "string",
-            "example": "UTC"
-          },
-          "recurring": {
-            "$ref": "#/components/schemas/BroadcastRecurringDto"
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
-      "CreateBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "ESTIMATE_REACH",
-              "SAVE_DRAFT",
-              "SEND_NOW",
-              "SCHEDULE"
-            ],
-            "example": "SEND_NOW"
-          },
-          "content": {
-            "$ref": "#/components/schemas/BroadcastContentDto"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "NORMAL",
-              "HIGH",
-              "URGENT"
-            ]
-          },
-          "targeting": {
-            "$ref": "#/components/schemas/BroadcastTargetingDto"
-          },
-          "schedule": {
-            "$ref": "#/components/schemas/BroadcastScheduleDto"
-          }
-        },
-        "required": [
-          "action",
-          "content",
-          "channels",
-          "targeting",
-          "schedule"
-        ]
-      },
-      "UpdateBroadcastDto": {
-        "type": "object",
-        "properties": {
-          "content": {
-            "$ref": "#/components/schemas/BroadcastContentDto"
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EMAIL",
-                "PUSH",
-                "IN_APP"
-              ]
-            }
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "NORMAL",
-              "HIGH",
-              "URGENT"
-            ]
-          },
-          "targeting": {
-            "$ref": "#/components/schemas/BroadcastTargetingDto"
-          },
-          "schedule": {
-            "$ref": "#/components/schemas/BroadcastScheduleDto"
-          }
-        }
-      },
-      "BroadcastActionDto": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "CANCEL",
-              "SEND_NOW",
-              "ARCHIVE"
-            ],
-            "example": "CANCEL"
-          },
-          "reason": {
-            "type": "string",
-            "example": "Campaign no longer needed."
-          }
-        },
-        "required": [
-          "action"
+          "message",
+          "audience"
         ]
       },
       "UpdateNotificationPreferencesDto": {
@@ -29896,6 +29081,43 @@
           "price"
         ]
       },
+      "UpdateGiftVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "variant_id"
+          },
+          "name": {
+            "type": "string",
+            "example": "50ml"
+          },
+          "price": {
+            "type": "number",
+            "example": 129.99
+          },
+          "originalPrice": {
+            "type": "number",
+            "example": 159.99
+          },
+          "isPopular": {
+            "type": "boolean",
+            "example": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 2
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
       "UpdateGiftDto": {
         "type": "object",
         "properties": {
@@ -29960,7 +29182,7 @@
           "variants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/GiftVariantDto"
+              "$ref": "#/components/schemas/UpdateGiftVariantDto"
             }
           }
         }

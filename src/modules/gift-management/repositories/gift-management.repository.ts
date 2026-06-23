@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GiftModerationStatus, GiftStatus, NotificationRecipientType, OrderStatus, Prisma, ReviewStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const GIFT_MANAGEMENT_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
   category: { select: { id: true, name: true, isActive: true, deletedAt: true } },

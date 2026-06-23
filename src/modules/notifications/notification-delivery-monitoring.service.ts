@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { NotificationDeliveryStatus, Prisma } from '@prisma/client';
-import { NotificationDeliveryLogRepository } from '../repositories/notification-delivery-log.repository';
-import { ListNotificationDeliveryLogsDto } from '../dto/notification-delivery.dto';
+import { NotificationDeliveryLogRepository } from './repositories/notification-delivery-log.repository';
+import { ListNotificationDeliveryLogsDto } from './dto/notification-delivery.dto';
 import { NotificationDispatchService } from './notification-dispatch.service';
-import { getPagination } from '../../../common/pagination/pagination.util';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 @Injectable()
 export class NotificationDeliveryMonitoringService {

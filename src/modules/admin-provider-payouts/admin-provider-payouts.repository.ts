@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, ProviderEarningsLedgerStatus, ProviderPayoutStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const ADMIN_PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInclude>()({
   provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, avatarUrl: true } },

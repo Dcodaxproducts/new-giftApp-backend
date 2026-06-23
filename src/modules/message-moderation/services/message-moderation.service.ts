@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { AccountType, MessageModerationAction, MessageModerationCase, MessageModerationEscalation, MessageModerationFlagType, MessageModerationLog, MessageModerationSeverity, MessageModerationSource, MessageModerationStatus, NotificationRecipientType, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AccountLifecycleService } from '../../../common/services/account-lifecycle.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { ListMessageModerationAuditLogsDto, ListMessageModerationDto, MessageModerationActionDto, MessageModerationChatType, MessageModerationHistoryDto, MessageModerationMessageAction, MessageModerationQueueStatus, ModerationAll, ModerationSortBy, ScannerMode, SortOrder } from '../dto/message-moderation.dto';
 import { MessageModerationRepository } from '../repositories/message-moderation.repository';
 import { MessageModerationScanner } from './message-moderation-scanner.service';

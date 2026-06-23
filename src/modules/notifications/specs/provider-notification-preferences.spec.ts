@@ -2,10 +2,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Provider notification preferences source safety', () => {
-  const controller = readFileSync(join(__dirname, '../controllers/notifications.controller.ts'), 'utf8');
-  const service = readFileSync(join(__dirname, '../services/notifications.service.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../notifications.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../notifications.service.ts'), 'utf8');
   const preferencesRepository = readFileSync(join(__dirname, '../repositories/notification-preferences.repository.ts'), 'utf8');
-  const dto = readFileSync(join(__dirname, '../dto/broadcast-notifications.dto.ts'), 'utf8');
+  const dto = readFileSync(join(__dirname, '../dto/notifications.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
 
   it('reuses generic notifications preferences endpoints', () => {

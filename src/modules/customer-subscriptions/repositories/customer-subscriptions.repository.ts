@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CustomerSubscriptionStatus, NotificationRecipientType, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const CUSTOMER_SUBSCRIPTION_WITH_PLAN = Prisma.validator<Prisma.CustomerSubscriptionInclude>()({ plan: true });
 

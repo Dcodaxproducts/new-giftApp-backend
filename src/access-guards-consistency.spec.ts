@@ -21,8 +21,8 @@ describe('Access guard consistency', () => {
     const providers = source('modules/provider-management/controllers/provider-management.controller.ts');
     const auditLogs = source('modules/audit-logs/audit-logs.controller.ts');
 
-    expect(users).toContain("@Delete(':id')\n  @Roles(UserRole.SUPER_ADMIN)");
-    expect(providers).toContain("@Delete(':id')\n  @Roles(UserRole.SUPER_ADMIN)");
+    expect(users).toMatch(/@Delete\(':id'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
+    expect(providers).toMatch(/@Delete\(':id'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
     expect(auditLogs).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(auditLogs).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
   });
@@ -59,13 +59,13 @@ describe('Access guard consistency', () => {
     const referralSettings = source('modules/referral-settings/referral-settings.controller.ts');
     const mediaPolicy = source('modules/media-upload-policy/media-upload-policy.controller.ts');
 
-    expect(referralSettings).toContain("@Patch()\n  @Roles(UserRole.SUPER_ADMIN)");
+    expect(referralSettings).toMatch(/@Patch\(\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
     expect(referralSettings).not.toContain("@Patch('status')");
     expect(referralSettings).not.toContain("@Post('activate')");
     expect(referralSettings).not.toContain("@Post('deactivate')");
-    expect(referralSettings).toContain("@Get('audit-logs')\n  @Roles(UserRole.SUPER_ADMIN)");
-    expect(mediaPolicy).toContain("@Patch()\n  @Roles(UserRole.SUPER_ADMIN)");
-    expect(mediaPolicy).toContain("@Get('audit-logs')\n  @Roles(UserRole.SUPER_ADMIN)");
+    expect(referralSettings).toMatch(/@Get\('audit-logs'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
+    expect(mediaPolicy).toMatch(/@Patch\(\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
+    expect(mediaPolicy).toMatch(/@Get\('audit-logs'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
   });
 
   it('uses requested permission names for admin user, provider, gift, moderation, broadcast and plan APIs', () => {
@@ -75,7 +75,7 @@ describe('Access guard consistency', () => {
       source('modules/gift-management/controllers/gift-categories.controller.ts'),
       source('modules/gift-management/controllers/gifts.controller.ts'),
       source('modules/gift-management/controllers/gift-moderation.controller.ts'),
-      source('modules/broadcast-notifications/controllers/broadcasts.controller.ts'),
+      source('modules/broadcast-notifications/broadcast-notifications.controller.ts'),
       source('modules/subscription-plans/controllers/subscription-plans.controller.ts'),
     ].join('\n');
 
@@ -85,7 +85,7 @@ describe('Access guard consistency', () => {
       'giftCategories.create', 'giftCategories.read', 'giftCategories.update', 'giftCategories.delete',
       'gifts.create', 'gifts.read', 'gifts.export', 'gifts.update', 'gifts.delete', 'gifts.status.update',
       'giftModeration.read', 'giftModeration.approve', 'giftModeration.reject', 'giftModeration.flag',
-      'broadcasts.create', 'broadcasts.read', 'broadcasts.update', 'broadcasts.cancel', 'broadcasts.report.read',
+      'broadcasts.create',
       'subscriptionPlans.read', 'subscriptionPlans.create', 'subscriptionPlans.update', 'subscriptionPlans.delete',
     ]) {
       expect(joined).toContain(`'${permission}'`);

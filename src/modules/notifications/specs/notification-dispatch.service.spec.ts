@@ -3,7 +3,7 @@ import { NotificationDeliveryStatus, NotificationRecipientType } from '@prisma/c
 import { NotificationDeliveryLogRepository } from '../repositories/notification-delivery-log.repository';
 import { NotificationPreferencesRepository } from '../repositories/notification-preferences.repository';
 import { NotificationsRepository } from '../repositories/notifications.repository';
-import { NotificationDispatchService } from '../services/notification-dispatch.service';
+import { NotificationDispatchService } from '../notification-dispatch.service';
 
 function createService(options: { pushFails?: boolean; emailFails?: boolean; preferences?: Record<string, boolean> } = {}) {
   const createdAt = new Date('2026-05-18T10:00:00.000Z');

@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Notification, NotificationPreference, Prisma } from '@prisma/client';
-import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { DeviceTokensRepository } from '../repositories/device-tokens.repository';
-import { NotificationPreferencesRepository } from '../repositories/notification-preferences.repository';
-import { NotificationsRepository } from '../repositories/notifications.repository';
-import { DeviceTokenDto, ListNotificationsDto, NotificationActionDto, NotificationActionRequestDto, NotificationFilterDto, NotificationTypeDto, SortOrder, UpdateNotificationPreferencesDto } from '../dto/broadcast-notifications.dto';
+import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AuditLogWriterService } from '../../common/services/audit-log.service';
+import { DeviceTokensRepository } from './repositories/device-tokens.repository';
+import { NotificationPreferencesRepository } from './repositories/notification-preferences.repository';
+import { NotificationsRepository } from './repositories/notifications.repository';
+import { DeviceTokenDto, ListNotificationsDto, NotificationActionDto, NotificationActionRequestDto, NotificationFilterDto, NotificationTypeDto, SortOrder, UpdateNotificationPreferencesDto } from './dto/notifications.dto';
 import { NotificationDispatchService } from './notification-dispatch.service';
-import { getPagination } from '../../../common/pagination/pagination.util';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 type NotificationMetadata = { eventId?: string; contactId?: string; giftId?: string; orderId?: string; snoozedUntil?: string };
 type NotificationAction = { key: NotificationActionDto; label: string; style: 'PRIMARY' | 'SECONDARY' };

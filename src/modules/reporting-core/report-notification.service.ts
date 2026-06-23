@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationRecipientType, Prisma } from '@prisma/client';
-import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import { ReportNotificationInput } from './reporting-core.types';
 
 @Injectable()

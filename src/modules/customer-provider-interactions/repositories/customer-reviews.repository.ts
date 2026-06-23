@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ReviewStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const CUSTOMER_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
   provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } },

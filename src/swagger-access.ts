@@ -81,13 +81,7 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/gift-moderation': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftModeration.read', description: 'SUPER_ADMIN or ADMIN with giftModeration.read permission. Gift moderation is optional/exception-based; default queue returns only PENDING, FLAGGED, REJECTED, or requiresManualReview=true. Provider-created inventory does not require separate Super Admin approval by default.' },
   'POST /api/v1/gift-moderation/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with gift moderation action permission (APPROVE=>giftModeration.approve, REJECT=>giftModeration.reject, FLAG=>giftModeration.flag)', description: 'SUPER_ADMIN or ADMIN with action-specific gift moderation permission. APPROVE requires giftModeration.approve; REJECT requires giftModeration.reject; FLAG requires giftModeration.flag.' },
 
-  'POST /api/v1/broadcasts': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcast action permission', description: 'SUPER_ADMIN or ADMIN with broadcasts.read for ESTIMATE_REACH; broadcasts.create for SAVE_DRAFT, SEND_NOW, and SCHEDULE.' },
-  'GET /api/v1/broadcasts': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.read', description: 'SUPER_ADMIN or ADMIN with broadcasts.read permission.' },
-  'GET /api/v1/broadcasts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.read', description: 'SUPER_ADMIN or ADMIN with broadcasts.read permission.' },
-  'PATCH /api/v1/broadcasts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.update', description: 'SUPER_ADMIN or ADMIN with broadcasts.update permission.' },
-  'POST /api/v1/broadcasts/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcast action permission', description: 'SUPER_ADMIN or ADMIN with broadcasts.cancel for CANCEL or broadcasts.send for SEND_NOW. ARCHIVE is not persisted until archive support exists.' },
-  'GET /api/v1/broadcasts/{id}/report': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.report.read', description: 'SUPER_ADMIN or ADMIN with broadcasts.report.read permission.' },
-  'GET /api/v1/broadcasts/{id}/recipients': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.report.read', description: 'SUPER_ADMIN or ADMIN with broadcasts.report.read permission.' },
+  'POST /api/v1/broadcasts': { allowedRoles: 'SUPER_ADMIN or ADMIN with broadcasts.create', description: 'SUPER_ADMIN or ADMIN with broadcasts.create permission.' },
 
 
   'GET /api/v1/promotional-offers/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.read', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.read permission.' },

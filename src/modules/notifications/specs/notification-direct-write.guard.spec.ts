@@ -4,8 +4,8 @@ import { join, relative } from 'path';
 describe('notification direct-write guard', () => {
   const root = join(__dirname, '../../..');
   const allowed = new Set([
-    'modules/broadcast-notifications/repositories/notifications.repository.ts',
-    'modules/broadcast-notifications/services/notification-dispatch.service.ts',
+    'modules/notifications/repositories/notifications.repository.ts',
+    'modules/notifications/notification-dispatch.service.ts',
   ]);
 
   function files(dir: string): string[] {
@@ -18,12 +18,12 @@ describe('notification direct-write guard', () => {
 
   it('blocks notification creates outside the dispatcher/repository layer', () => {
     const offenders = files(root).filter((path) => {
-      const modulePath = relative(root, path);
+      const modulePath = relative(root, path).replace(/\\/g, '/');
       if (allowed.has(modulePath)) return false;
       const source = readFileSync(path, 'utf8');
       return /(?:prisma|tx)\.notification\.create(?:Many)?\s*\(/.test(source);
     });
 
-    expect(offenders.map((path) => relative(root, path))).toEqual([]);
+    expect(offenders.map((path) => relative(root, path).replace(/\\/g, '/'))).toEqual([]);
   });
 });

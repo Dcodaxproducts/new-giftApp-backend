@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const PROVIDER_REFUND_REQUEST_INCLUDE = Prisma.validator<Prisma.RefundRequestInclude>()({
   user: true,

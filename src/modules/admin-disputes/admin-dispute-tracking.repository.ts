@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeActorType, DisputeNoteVisibility, NotificationRecipientType } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 @Injectable()
 export class AdminDisputeTrackingRepository {

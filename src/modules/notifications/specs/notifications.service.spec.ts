@@ -1,9 +1,9 @@
 import { NotificationDevicePlatform, UserRole } from '@prisma/client';
-import { NotificationActionDto, NotificationFilterDto, NotificationTypeDto } from '../dto/broadcast-notifications.dto';
+import { NotificationActionDto, NotificationFilterDto, NotificationTypeDto } from '../dto/notifications.dto';
 import { DeviceTokensRepository } from '../repositories/device-tokens.repository';
 import { NotificationPreferencesRepository } from '../repositories/notification-preferences.repository';
 import { NotificationsRepository } from '../repositories/notifications.repository';
-import { NotificationsService } from '../services/notifications.service';
+import { NotificationsService } from '../notifications.service';
 
 function createService() {
   const notification = { id: 'notif_1', recipientId: 'user_1', recipientType: 'REGISTERED_USER', title: "Sarah's Birthday Tomorrow", message: 'Send a gift', type: NotificationTypeDto.BIRTHDAY_REMINDER, imageUrl: null, iconKey: 'birthday', ctaUrl: null, metadataJson: { eventId: 'event_1', contactId: 'contact_1' }, actionsJson: null, isRead: false, readAt: null, createdAt: new Date(), deletedAt: null, broadcastId: null };

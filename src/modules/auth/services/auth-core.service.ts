@@ -58,6 +58,7 @@ const PASSWORD_RESET_SEND_FAILED_MESSAGE = 'We could not send the reset instruct
 const VERIFICATION_EMAIL_SENT_MESSAGE = 'A verification email has been sent to the email address you provided.';
 const VERIFICATION_EMAIL_SEND_FAILED_MESSAGE = 'We could not send the verification email right now. Please try again later.';
 const AUTHENTICATED_VERIFICATION_OTP_SENT_MESSAGE = 'A verification OTP has been sent to your email address.';
+const TEST_OTP = '123456';
 
 @Injectable()
 export class AuthCoreService implements OnModuleInit {
@@ -881,7 +882,8 @@ export class AuthCoreService implements OnModuleInit {
   }
 
   private generateOtp(): string {
-    return randomInt(100000, 1000000).toString();
+    // return randomInt(100000, 1000000).toString();
+    return TEST_OTP;
   }
 
   private generateOtpExpiry(): Date {

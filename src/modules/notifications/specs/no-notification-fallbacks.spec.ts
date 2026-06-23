@@ -4,8 +4,8 @@ import { join, relative } from 'path';
 describe('notification dispatch hardening guard', () => {
   const root = join(__dirname, '../../..');
   const allowedDirectCreate = new Set([
-    'modules/broadcast-notifications/repositories/notifications.repository.ts',
-    'modules/broadcast-notifications/services/notification-dispatch.service.ts',
+    'modules/notifications/repositories/notifications.repository.ts',
+    'modules/notifications/notification-dispatch.service.ts',
   ]);
 
   function files(dir: string): string[] {
@@ -19,7 +19,7 @@ describe('notification dispatch hardening guard', () => {
   it('contains no notification fallbacks or direct business notification writes', () => {
     const offenders: string[] = [];
     for (const filePath of files(root)) {
-      const rel = relative(root, filePath);
+      const rel = relative(root, filePath).replace(/\\/g, '/');
       const source = readFileSync(filePath, 'utf8');
       if (source.includes('notificationDispatch ??') || source.includes('notification?.create(')) {
         offenders.push(rel);

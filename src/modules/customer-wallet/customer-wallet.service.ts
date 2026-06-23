@@ -3,7 +3,7 @@ import { CustomerBankAccount, CustomerPaymentMethod, CustomerWallet, CustomerWal
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
-import { NotificationDispatchService } from '../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import { CustomerWalletRepository } from './customer-wallet.repository';
 import { getPagination } from '../../common/pagination/pagination.util';
 

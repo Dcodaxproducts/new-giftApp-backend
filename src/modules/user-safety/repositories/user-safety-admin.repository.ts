@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AccountType, Prisma, UserSafetyAdminAction, UserSafetyReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { USER_SAFETY_REPORT_INCLUDE } from './user-safety.repository';
 
 @Injectable()

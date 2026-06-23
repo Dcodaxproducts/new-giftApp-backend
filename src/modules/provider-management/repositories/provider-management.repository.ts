@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AccountType, GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { getPagination } from '../../../common/pagination/pagination.util';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import {
   ExportProvidersDto,
   ListProviderItemsDto,

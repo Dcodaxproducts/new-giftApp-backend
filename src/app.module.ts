@@ -35,6 +35,7 @@ import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.mod
 import { MessageModerationModule } from './modules/message-moderation/message-moderation.module';
 import { MessagingSettingsModule } from './modules/messaging-settings/messaging-settings.module';
 import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upload-policy.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderBusinessInfoModule } from './modules/provider-business-info/provider-business-info.module';
 import { ProviderDashboardModule } from './modules/provider-dashboard/provider-dashboard.module';
@@ -99,6 +100,7 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     CustomerWalletModule,
     GiftManagementModule,
     GuestAccessModule,
+    NotificationsModule,
     BroadcastNotificationsModule,
     SubscriptionPlansModule,
     MediaUploadPolicyModule,

@@ -2,12 +2,12 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('Notifications repository cleanup', () => {
-  const service = readFileSync(join(__dirname, '../services/notifications.service.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, '../notifications.service.ts'), 'utf8');
   const notificationsRepository = readFileSync(join(__dirname, '../repositories/notifications.repository.ts'), 'utf8');
   const preferencesRepository = readFileSync(join(__dirname, '../repositories/notification-preferences.repository.ts'), 'utf8');
   const tokensRepository = readFileSync(join(__dirname, '../repositories/device-tokens.repository.ts'), 'utf8');
-  const moduleFile = readFileSync(join(__dirname, '../broadcast-notifications.module.ts'), 'utf8');
-  const controller = readFileSync(join(__dirname, '../controllers/notifications.controller.ts'), 'utf8');
+  const moduleFile = readFileSync(join(__dirname, '../notifications.module.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, '../notifications.controller.ts'), 'utf8');
 
   it('keeps notification service free of direct Prisma access', () => {
     expect(service).not.toContain('PrismaService');

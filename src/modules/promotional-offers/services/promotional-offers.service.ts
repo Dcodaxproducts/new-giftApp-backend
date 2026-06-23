@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Gift, NotificationRecipientType, Prisma, PromotionalOffer, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { OfferWithRelations, PromotionalOffersRepository, promotionalOfferInclude } from '../repositories/promotional-offers.repository';
 import { ProviderOffersRepository } from '../repositories/provider-offers.repository';
 import { AdminPromotionalOfferAction, AdminPromotionalOfferActionDto, CreateAdminOfferDto, CreateProviderOfferDto, ListPromotionalOffersDto, ListProviderOffersDto, PromotionalOfferApprovalFilter, PromotionalOfferSortBy, PromotionalOfferStatusFilter, SortOrder, UpdatePromotionalOfferDto } from '../dto/promotional-offers.dto';

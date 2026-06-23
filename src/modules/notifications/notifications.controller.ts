@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { DeviceTokenDto, ListNotificationsDto, NotificationActionRequestDto, UpdateNotificationPreferencesDto } from '../dto/broadcast-notifications.dto';
-import { NotificationsService } from '../services/notifications.service';
+import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { DeviceTokenDto, ListNotificationsDto, NotificationActionRequestDto, UpdateNotificationPreferencesDto } from './dto/notifications.dto';
+import { NotificationsService } from './notifications.service';
 
 @ApiTags('06 Notifications')
 @ApiBearerAuth()

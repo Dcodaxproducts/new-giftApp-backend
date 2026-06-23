@@ -2,8 +2,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { NotificationDeliveryStatus, NotificationRecipientType } from '@prisma/client';
-import { NotificationDeliveryMonitoringController } from '../controllers/notification-delivery-monitoring.controller';
-import { NotificationDeliveryMonitoringService } from '../services/notification-delivery-monitoring.service';
+import { NotificationDeliveryMonitoringController } from '../notification-delivery-monitoring.controller';
+import { NotificationDeliveryMonitoringService } from '../notification-delivery-monitoring.service';
 
 describe('Admin notification delivery monitoring', () => {
   const log = { id: 'log_1', notificationId: 'notification_1', recipientId: 'user_1', recipientType: NotificationRecipientType.REGISTERED_USER, notificationType: 'PAYMENT_SUCCEEDED', channelsJson: ['IN_APP', 'SOCKET'], idempotencyKey: 'payment_1', inAppStatus: NotificationDeliveryStatus.DELIVERED, socketStatus: NotificationDeliveryStatus.FAILED, pushStatus: NotificationDeliveryStatus.SKIPPED, emailStatus: NotificationDeliveryStatus.SKIPPED, lastError: 'socket down', retryCount: 0, createdAt: new Date(), updatedAt: new Date() };
@@ -17,7 +17,7 @@ describe('Admin notification delivery monitoring', () => {
   const service = new NotificationDeliveryMonitoringService(repository as never, dispatcher as never);
 
   it('controller exposes required admin routes, permissions, and swagger tag', () => {
-    const source = readFileSync(join(__dirname, '../controllers/notification-delivery-monitoring.controller.ts'), 'utf8');
+    const source = readFileSync(join(__dirname, '../notification-delivery-monitoring.controller.ts'), 'utf8');
     expect(source).toContain("@ApiTags('02 Admin - Notification Delivery Monitoring')");
     expect(source).toContain("@Controller('admin/notification-delivery')");
     expect(source).toContain("@Get('stats')");

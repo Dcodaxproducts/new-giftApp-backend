@@ -114,7 +114,6 @@ export class StorageService {
     if (user.role === UserRole.ADMIN) {
       if (targetAccountId) return;
       if (dto.folder === UploadFolder.ADMIN_AVATARS || dto.folder === UploadFolder.SUPPORT_CHAT_ATTACHMENTS) return;
-      if (dto.folder === UploadFolder.BROADCAST_IMAGES && this.hasAnyPermission(user, ['broadcasts.create', 'broadcasts.update'])) return;
       if (dto.folder === UploadFolder.GIFT_CATEGORY_IMAGES && this.hasAnyPermission(user, ['giftCategories.create', 'giftCategories.update'])) return;
       if (dto.folder === UploadFolder.GIFT_IMAGES && this.hasAnyPermission(user, ['gifts.create', 'gifts.update'])) return;
       throw new ForbiddenException('Admin role cannot upload to this folder');

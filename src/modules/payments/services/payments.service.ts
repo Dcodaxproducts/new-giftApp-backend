@@ -8,7 +8,7 @@ import { CustomerReferralsService } from '../../customer-referrals/services/cust
 import { CustomerWalletService } from '../../customer-wallet/customer-wallet.service';
 import { CustomerSubscriptionsService } from '../../customer-subscriptions/services/customer-subscriptions.service';
 import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from '../dto/payments.dto';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { PaymentsRepository } from '../repositories/payments.repository';
 
 type CartWithItems = Prisma.CartGetPayload<{ include: { items: true } }>;

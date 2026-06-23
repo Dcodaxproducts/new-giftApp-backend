@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, SocialPostStatus, SocialPostVisibility, SocialReportSeverity, SocialReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const SOCIAL_REPORT_INCLUDE = Prisma.validator<Prisma.SocialReportInclude>()({
   post: { include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, createdAt: true } }, reports: { select: { id: true } } } },

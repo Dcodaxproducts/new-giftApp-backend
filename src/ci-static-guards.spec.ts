@@ -63,13 +63,13 @@ describe('CI static production guards', () => {
 
   it('blocks direct notification writes outside notification infrastructure', () => {
     const allowed = new Set([
-      'modules/broadcast-notifications/repositories/notifications.repository.ts',
-      'modules/broadcast-notifications/repositories/notification-delivery-log.repository.ts',
-      'modules/broadcast-notifications/services/notification-dispatch.service.ts',
+      'modules/notifications/repositories/notifications.repository.ts',
+      'modules/notifications/repositories/notification-delivery-log.repository.ts',
+      'modules/notifications/notification-dispatch.service.ts',
     ]);
     const offenders = walk(srcRoot).filter((path) => {
       if (!path.endsWith('.ts') || path.endsWith('.spec.ts')) return false;
-      const modulePath = relative(srcRoot, path);
+      const modulePath = relative(srcRoot, path).replace(/\\/g, '/');
       if (allowed.has(modulePath)) return false;
       const source = readFileSync(path, 'utf8');
       return /(?:prisma|tx)\.notification(?:DeliveryLog)?\.create(?:Many)?\s*\(/.test(source);

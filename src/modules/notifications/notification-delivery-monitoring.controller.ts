@@ -1,13 +1,13 @@
 import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { Permissions } from '../../../common/decorators/permissions.decorator';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../../common/guards/permissions.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ListNotificationDeliveryLogsDto } from '../dto/notification-delivery.dto';
-import { NotificationDeliveryMonitoringService } from '../services/notification-delivery-monitoring.service';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { ListNotificationDeliveryLogsDto } from './dto/notification-delivery.dto';
+import { NotificationDeliveryMonitoringService } from './notification-delivery-monitoring.service';
 
 @ApiTags('02 Admin - Notification Delivery Monitoring')
 @ApiBearerAuth()

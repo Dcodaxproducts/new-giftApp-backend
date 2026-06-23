@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Notification, NotificationDeliveryLog, NotificationDeliveryStatus, NotificationRecipientType, Prisma } from '@prisma/client';
-import { MailerService } from '../../mailer/mailer.service';
-import { NotificationsGateway } from '../notifications.gateway';
-import { NotificationDeliveryLogRepository } from '../repositories/notification-delivery-log.repository';
-import { NotificationPreferencesRepository } from '../repositories/notification-preferences.repository';
-import { NotificationsRepository } from '../repositories/notifications.repository';
+import { MailerService } from '../mailer/mailer.service';
+import { NotificationsGateway } from './notifications.gateway';
+import { NotificationDeliveryLogRepository } from './repositories/notification-delivery-log.repository';
+import { NotificationPreferencesRepository } from './repositories/notification-preferences.repository';
+import { NotificationsRepository } from './repositories/notifications.repository';
 
 type NotificationChannel = 'IN_APP' | 'SOCKET' | 'PUSH' | 'EMAIL';
 type NotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';

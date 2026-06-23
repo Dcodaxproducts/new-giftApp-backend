@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, UserRole, UserSafetyReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const USER_SAFETY_REPORT_INCLUDE = {
   reported: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true } },

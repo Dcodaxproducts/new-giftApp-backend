@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ChatThreadType, NotificationRecipientType, UserRole } from '@prisma/client';
-import { NotificationDispatchService } from '../../broadcast-notifications/services/notification-dispatch.service';
+import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 @Injectable()
 export class ChatNotificationService {
