@@ -3,7 +3,7 @@ import { BroadcastAudience, BroadcastStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { BroadcastAudienceDto, CreateBroadcastDto } from './dto/broadcast-notifications.dto';
-import { BroadcastNotificationsRepository } from './repositories/broadcast-notifications.repository';
+import { BroadcastNotificationsRepository } from './broadcast-notifications.repository';
 
 @Injectable()
 export class BroadcastNotificationsService {

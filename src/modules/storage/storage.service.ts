@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { Prisma, UploadedFile, UploadedFileStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
+import { MediaUrlSignerService } from '../../common/services/media-url-signer.service';
 import { StorageRepository } from './storage.repository';
 import { UploadsRepository } from './uploads.repository';
 import { MediaUploadPolicyService } from '../media-upload-policy/media-upload-policy.service';
@@ -30,6 +31,7 @@ export class StorageService {
     private readonly storageRepository: StorageRepository,
     private readonly uploadsRepository: UploadsRepository,
     private readonly mediaUploadPolicy: MediaUploadPolicyService,
+    private readonly mediaUrlSigner: MediaUrlSignerService,
   ) {}
 
   async createPresignedUpload(user: AuthUserContext, dto: CreatePresignedUploadDto, ipAddress?: string, userAgent?: string | string[]) {
@@ -53,7 +55,7 @@ export class StorageService {
     const file = await this.getAccessibleFile(user, dto.uploadId);
     const updated = await this.uploadsRepository.completeUpload(file.id, { status: UploadedFileStatus.COMPLETED, sizeBytes: dto.sizeBytes ?? file.sizeBytes, completedAt: new Date() });
     await this.auditLog.write({ actorId: user.uid, targetId: file.id, targetType: 'UPLOAD', action: 'UPLOAD_COMPLETED', beforeJson: this.toFile(file), afterJson: this.toFile(updated) });
-    return { data: this.toFile(updated), message: 'Upload completed successfully' };
+    return { data: await this.mediaUrlSigner.signResponseImages(this.toFile(updated)), message: 'Upload completed successfully' };
   }
 
   async list(user: AuthUserContext, query: ListUploadsDto) {

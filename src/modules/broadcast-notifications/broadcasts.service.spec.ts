@@ -1,8 +1,8 @@
 import { ForbiddenException } from '@nestjs/common';
 import { BroadcastAudience, BroadcastStatus, UserRole } from '@prisma/client';
-import { BroadcastNotificationsRepository } from '../repositories/broadcast-notifications.repository';
-import { BroadcastAudienceDto } from '../dto/broadcast-notifications.dto';
-import { BroadcastNotificationsService } from '../broadcast-notifications.service';
+import { BroadcastNotificationsRepository } from './broadcast-notifications.repository';
+import { BroadcastNotificationsService } from './broadcast-notifications.service';
+import { BroadcastAudienceDto } from './dto/broadcast-notifications.dto';
 
 function createBroadcast(overrides: Partial<Record<string, unknown>> = {}) {
   return {

@@ -10,6 +10,10 @@ describe('MediaUrlSignerService source', () => {
     expect(source).toContain('AWS_PRESIGNED_READ_EXPIRY_SECONDS');
     expect(source).toContain('MEDIA_KEY_PATTERN');
     expect(source).toContain("key === 'url'");
+    expect(source).toContain("'provider-avatars/'");
+    expect(source).toContain("'chat-attachments/'");
+    expect(source).toContain("'support-chat-attachments/'");
+    expect(source).toContain("'user-report-evidence/'");
   });
 
   it('runs only for GET response payloads', () => {

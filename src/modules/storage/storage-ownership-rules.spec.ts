@@ -21,9 +21,10 @@ describe('Storage upload ownership rules', () => {
     giftFindFirst.mockReset();
     const prisma = { user: { findUnique: userFindUnique }, gift: { findFirst: giftFindFirst } } as unknown as PrismaService;
     const mediaPolicy = { assertUploadAllowed: jest.fn() } as unknown as MediaUploadPolicyService;
+    const mediaUrlSigner = { signResponseImages: jest.fn((value: unknown) => Promise.resolve(value)) };
     const storageRepository = new StorageRepository(prisma);
     const uploadsRepository = new UploadsRepository({} as PrismaService);
-    service = new StorageService({} as never, { write: jest.fn() } as never, storageRepository, uploadsRepository, mediaPolicy) as unknown as OwnershipResolver;
+    service = new StorageService({} as never, { write: jest.fn() } as never, storageRepository, uploadsRepository, mediaPolicy, mediaUrlSigner as never) as unknown as OwnershipResolver;
     userFindUnique.mockImplementation(({ where }: { where: { id: string } }) => Promise.resolve({ id: where.id, role: roleFor(where.id), deletedAt: null }));
     giftFindFirst.mockResolvedValue({ id: 'gift_1', providerId: 'provider_1' });
   });

@@ -10,8 +10,8 @@ export class ProviderBusinessCategoriesRepository {
     return this.prisma.providerBusinessCategory.upsert({ where: { slug: data.slug }, create: data, update: { name: data.name, deletedAt: null } });
   }
 
-  findManyForList(params: { where: Prisma.ProviderBusinessCategoryWhereInput; skip: number; take: number }) {
-    return this.prisma.$transaction([
+  async findManyForList(params: { where: Prisma.ProviderBusinessCategoryWhereInput; skip: number; take: number }) {
+    return Promise.all([
       this.prisma.providerBusinessCategory.findMany({ where: params.where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], skip: params.skip, take: params.take }),
       this.prisma.providerBusinessCategory.count({ where: params.where }),
     ]);

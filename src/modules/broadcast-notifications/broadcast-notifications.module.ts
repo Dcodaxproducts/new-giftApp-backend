@@ -6,8 +6,8 @@ import { AuditLogWriterRepository } from '../../common/repositories/audit-log-wr
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { BroadcastNotificationsController } from './broadcast-notifications.controller';
-import { BroadcastNotificationsRepository } from './repositories/broadcast-notifications.repository';
 import { BroadcastNotificationsService } from './broadcast-notifications.service';
+import { BroadcastNotificationsRepository } from './broadcast-notifications.repository';
 
 @Global()
 @Module({

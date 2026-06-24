@@ -7,7 +7,9 @@ const MEDIA_KEY_PATTERN = /(image|images|avatar|logo|photo|photos|media|file|fil
 const SIGNABLE_FOLDER_PREFIXES = [
   'admin-avatars/',
   'user-avatars/',
+  'provider-avatars/',
   'provider-logos/',
+  'provider-covers/',
   'provider-documents/',
   'provider-item-images/',
   'gift-images/',
@@ -15,6 +17,13 @@ const SIGNABLE_FOLDER_PREFIXES = [
   'customer-contact-avatars/',
   'broadcast-images/',
   'gift-message-media/',
+  'chat-attachments/',
+  'provider-report-evidence/',
+  'dispute-evidence/',
+  'provider-dispute-evidence/',
+  'provider-support-attachments/',
+  'support-chat-attachments/',
+  'user-report-evidence/',
 ];
 
 type JsonObject = Record<string, unknown>;

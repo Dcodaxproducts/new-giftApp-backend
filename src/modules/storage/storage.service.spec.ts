@@ -8,6 +8,7 @@ describe('Storage upload metadata flow', () => {
   it('implements complete and soft delete upload flows', () => {
     expect(source).toContain('async complete');
     expect(source).toContain("status: UploadedFileStatus.COMPLETED");
+    expect(source).toContain('mediaUrlSigner.signResponseImages(this.toFile(updated))');
     expect(source).toContain('async delete');
     expect(source).toContain('uploadsRepository.deleteUpload');
     expect(uploadsRepository).toContain('uploadedFile.delete');
