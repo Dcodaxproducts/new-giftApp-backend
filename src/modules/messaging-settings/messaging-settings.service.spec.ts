@@ -17,9 +17,8 @@ const settings = {
 function createSubject(overrides: Partial<typeof settings> = {}) {
   const row = { ...settings, ...overrides };
   const repository = { findFirstSettings: jest.fn().mockResolvedValue(row), createDefaultSettings: jest.fn(), updateSettings: jest.fn().mockImplementation((_id: string, data: object) => Promise.resolve({ ...row, ...data })), createAuditLog: jest.fn().mockResolvedValue({ id: 'audit_1' }), findAuditLogsWithCount: jest.fn().mockResolvedValue([[{ id: 'audit_1', action: 'MESSAGING_SETTINGS_UPDATED', beforeJson: {}, afterJson: {}, createdAt: now, actor: { id: 'admin_1', firstName: 'Alex', lastName: 'Rivera' } }], 1]) };
-  const mediaUploadPolicy = { allowedExtensions: jest.fn().mockResolvedValue(new Set(['jpg', 'jpeg', 'png', 'pdf', 'mp4'])) };
-  const service = new MessagingSettingsService(repository as unknown as MessagingSettingsRepository, mediaUploadPolicy as never);
-  return { service, repository, mediaUploadPolicy };
+  const service = new MessagingSettingsService(repository as unknown as MessagingSettingsRepository);
+  return { service, repository };
 }
 
 describe('MessagingSettingsService', () => {
@@ -40,7 +39,7 @@ describe('MessagingSettingsService', () => {
     await expect(service.auditLogs({ page: 1, limit: 10 })).resolves.toEqual(expect.objectContaining({ data: [expect.objectContaining({ id: 'audit_1', actor: { id: 'admin_1', name: 'Alex Rivera' } })], meta: expect.objectContaining({ total: 1 }) }));
   });
 
-  it('rejects attachment types not enabled in media upload policy', async () => {
+  it('rejects attachment types not allowed for uploads', async () => {
     const { service } = createSubject();
     await expect(service.update({ uid: 'admin_1' } as never, { allowedAttachmentTypes: ['jpg', 'zip'] })).rejects.toBeInstanceOf(BadRequestException);
   });

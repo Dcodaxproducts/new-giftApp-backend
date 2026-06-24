@@ -34,7 +34,6 @@ import { GuestAccessModule } from './modules/guest-access/guest-access.module';
 import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
 import { MessageModerationModule } from './modules/message-moderation/message-moderation.module';
 import { MessagingSettingsModule } from './modules/messaging-settings/messaging-settings.module';
-import { MediaUploadPolicyModule } from './modules/media-upload-policy/media-upload-policy.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderBusinessInfoModule } from './modules/provider-business-info/provider-business-info.module';
@@ -103,7 +102,6 @@ import { WorkflowMetadataModule } from './modules/workflow-metadata/workflow-met
     NotificationsModule,
     BroadcastNotificationsModule,
     SubscriptionPlansModule,
-    MediaUploadPolicyModule,
     ReferralSettingsModule,
     ReportingCoreModule,
     RefundPolicySettingsModule,

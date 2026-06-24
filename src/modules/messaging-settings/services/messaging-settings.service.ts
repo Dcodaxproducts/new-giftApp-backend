@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { MessagingSettings, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { MediaUploadPolicyService } from '../../media-upload-policy/media-upload-policy.service';
 import { ListMessagingSettingsAuditLogsDto, UpdateMessagingSettingsDto } from '../dto/messaging-settings.dto';
 import { MessagingSettingsRepository } from '../repositories/messaging-settings.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
@@ -13,8 +12,9 @@ export class MessagingSettingsService {
   private readonly defaultAttachmentTypes = ['jpg', 'jpeg', 'png', 'pdf', 'mp4'];
   private readonly defaultFlagKeywords = ['refund outside platform', 'bank account', 'whatsapp me'];
   private readonly neverAllowedAttachmentTypes = new Set(['exe', 'bat', 'cmd', 'sh', 'js', 'mjs', 'php', 'py', 'rb', 'jar', 'com', 'scr']);
+  private readonly uploadAllowedAttachmentTypes = new Set(['jpg', 'jpeg', 'png', 'mp4', 'mov', 'mp3', 'webp']);
 
-  constructor(private readonly repository: MessagingSettingsRepository, private readonly mediaUploadPolicy: MediaUploadPolicyService) {}
+  constructor(private readonly repository: MessagingSettingsRepository) {}
 
   async getSettings(): Promise<SettingsWithUpdater> {
     return (await this.repository.findFirstSettings()) ?? this.repository.createDefaultSettings({ allowedAttachmentTypesJson: this.defaultAttachmentTypes, autoFlagKeywordsJson: this.defaultFlagKeywords });
@@ -79,9 +79,8 @@ export class MessagingSettingsService {
     const normalized = [...new Set(values.map((value) => value.trim().toLowerCase()).filter(Boolean))];
     if (!normalized.length) throw new BadRequestException('At least one attachment type must be allowed.');
     for (const value of normalized) if (this.neverAllowedAttachmentTypes.has(value)) throw new BadRequestException('Executable or script file types must never be allowed.');
-    const globallyAllowed = await this.mediaUploadPolicy.allowedExtensions();
-    const blocked = normalized.filter((value) => !globallyAllowed.has(value));
-    if (blocked.length) throw new BadRequestException(`Attachment types must also be enabled in media upload policy: ${blocked.join(', ')}`);
+    const blocked = normalized.filter((value) => !this.uploadAllowedAttachmentTypes.has(value));
+    if (blocked.length) throw new BadRequestException(`Attachment types are not allowed for uploads: ${blocked.join(', ')}`);
     return normalized;
   }
 

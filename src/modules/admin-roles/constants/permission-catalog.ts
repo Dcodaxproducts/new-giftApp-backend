@@ -297,14 +297,6 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
-    module: 'mediaPolicy',
-    label: 'Media Upload Policy',
-    permissions: [
-      { key: 'read', label: 'View Media Upload Policy', description: 'View global media upload rules.' },
-      { key: 'update', label: 'Update Media Upload Policy', description: 'Update global media upload rules.' },
-    ],
-  },
-  {
     module: 'referralSettings',
     label: 'Referral Settings',
     permissions: [

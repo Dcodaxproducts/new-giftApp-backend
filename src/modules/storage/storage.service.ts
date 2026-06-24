@@ -9,9 +9,10 @@ import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { MediaUrlSignerService } from '../../common/services/media-url-signer.service';
 import { StorageRepository } from './storage.repository';
 import { UploadsRepository } from './uploads.repository';
-import { MediaUploadPolicyService } from '../media-upload-policy/media-upload-policy.service';
 import { CompleteUploadDto, CreatePresignedUploadDto, ListUploadsDto, UploadFolder } from './dto/create-presigned-upload.dto';
 import { getPagination } from '../../common/pagination/pagination.util';
+
+type AllowedFileType = 'jpeg' | 'jpg' | 'png' | 'gif' | 'mp4' | 'mov' | 'mp3' | 'wav' | 'svg' | 'webp';
 
 type UploadOwnership = {
   ownerId: string;
@@ -24,19 +25,24 @@ type UploadOwnership = {
 export class StorageService {
   private client?: S3Client;
   private readonly defaultMaxFileBytes = 10 * 1024 * 1024;
+  private readonly executableTypes = new Set(['exe', 'bat', 'cmd', 'sh', 'js', 'mjs', 'php', 'py', 'rb', 'jar', 'com', 'scr']);
+  private readonly allowedFileTypes: Record<AllowedFileType, boolean> = { jpeg: true, jpg: true, png: true, gif: false, mp4: true, mov: true, mp3: true, wav: false, svg: false, webp: true };
+  private readonly mimeByExtension: Record<AllowedFileType, string[]> = {
+    jpeg: ['image/jpeg'], jpg: ['image/jpeg'], png: ['image/png'], gif: ['image/gif'], svg: ['image/svg+xml'], webp: ['image/webp'],
+    mp4: ['video/mp4'], mov: ['video/quicktime'], mp3: ['audio/mpeg'], wav: ['audio/wav', 'audio/x-wav'],
+  };
 
   constructor(
     private readonly configService: ConfigService,
     private readonly auditLog: AuditLogWriterService,
     private readonly storageRepository: StorageRepository,
     private readonly uploadsRepository: UploadsRepository,
-    private readonly mediaUploadPolicy: MediaUploadPolicyService,
     private readonly mediaUrlSigner: MediaUrlSignerService,
   ) {}
 
   async createPresignedUpload(user: AuthUserContext, dto: CreatePresignedUploadDto, ipAddress?: string, userAgent?: string | string[]) {
     const ownership = await this.resolveUploadOwnership(user, dto);
-    await this.mediaUploadPolicy.assertUploadAllowed(dto);
+    this.assertUploadAllowed(dto);
     this.assertFolderFilePolicy(dto);
     if (dto.sizeBytes && dto.sizeBytes > this.defaultMaxFileBytes && dto.folder !== UploadFolder.GIFT_MESSAGE_MEDIA) throw new ForbiddenException('File exceeds maximum allowed size');
     const bucket = this.required('AWS_BUCKET_NAME');
@@ -176,6 +182,31 @@ export class StorageService {
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Images must be JPEG, PNG, or WEBP');
     if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Image exceeds maximum allowed size');
   }
+
+  private assertUploadAllowed(dto: CreatePresignedUploadDto): void {
+    const extension = this.extension(dto.fileName);
+    if (this.executableTypes.has(extension)) throw new ForbiddenException('Executable or script file types are not allowed.');
+    if (!(extension in this.allowedFileTypes)) throw new ForbiddenException(`File type ${extension.toUpperCase()} is not allowed for uploads.`);
+    const typedExtension = extension as AllowedFileType;
+    if (!this.allowedFileTypes[typedExtension]) throw new ForbiddenException(`File type ${extension.toUpperCase()} is not allowed for uploads.`);
+    if (typedExtension === 'svg') throw new ForbiddenException('File type SVG is not allowed for uploads.');
+    if (!this.mimeByExtension[typedExtension].includes(dto.contentType)) throw new ForbiddenException('File content type does not match the requested file extension.');
+    this.assertUploadSize(dto, typedExtension);
+  }
+
+  private assertUploadSize(dto: CreatePresignedUploadDto, extension: AllowedFileType): void {
+    if (!dto.sizeBytes) return;
+    const category = this.fileCategory(extension);
+    const maxMb = category === 'image' ? 10 : category === 'video' ? 500 : 50;
+    const scopedMaxMb = dto.folder === UploadFolder.GIFT_MESSAGE_MEDIA && category === 'image' ? Math.min(maxMb, 5) : dto.folder === UploadFolder.GIFT_MESSAGE_MEDIA && category === 'video' ? Math.min(maxMb, 25) : maxMb;
+    if (dto.sizeBytes <= scopedMaxMb * 1024 * 1024) return;
+    if (category === 'image') throw new ForbiddenException(`Image file exceeds the maximum allowed size of ${scopedMaxMb}MB.`);
+    if (category === 'video') throw new ForbiddenException(`Video file exceeds the maximum allowed size of ${scopedMaxMb}MB.`);
+    throw new ForbiddenException(`Audio file exceeds the maximum allowed size of ${scopedMaxMb}MB.`);
+  }
+
+  private extension(fileName: string): string { return fileName.split('.').pop()?.toLowerCase() ?? ''; }
+  private fileCategory(extension: AllowedFileType): 'image' | 'video' | 'audio' { if (['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp'].includes(extension)) return 'image'; if (['mp4', 'mov'].includes(extension)) return 'video'; return 'audio'; }
 
   private scopedFolder(dto: CreatePresignedUploadDto, ownerId: string): string { return `${dto.folder}/${ownerId}`; }
   private hasAnyPermission(user: AuthUserContext, permissions: string[]): boolean { if (user.role === UserRole.SUPER_ADMIN) return true; if (!user.permissions || typeof user.permissions !== 'object' || Array.isArray(user.permissions)) return false; const granted = new Set<string>(); for (const [module, values] of Object.entries(user.permissions)) if (Array.isArray(values)) for (const value of values) if (typeof value === 'string') granted.add(`${module}.${value}`); return permissions.some((permission) => granted.has(permission)); }

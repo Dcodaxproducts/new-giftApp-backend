@@ -57,15 +57,12 @@ describe('Access guard consistency', () => {
 
   it('keeps super-admin-only settings mutations and audit logs aligned with docs', () => {
     const referralSettings = source('modules/referral-settings/referral-settings.controller.ts');
-    const mediaPolicy = source('modules/media-upload-policy/media-upload-policy.controller.ts');
 
     expect(referralSettings).toMatch(/@Patch\(\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
     expect(referralSettings).not.toContain("@Patch('status')");
     expect(referralSettings).not.toContain("@Post('activate')");
     expect(referralSettings).not.toContain("@Post('deactivate')");
     expect(referralSettings).toMatch(/@Get\('audit-logs'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
-    expect(mediaPolicy).toMatch(/@Patch\(\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
-    expect(mediaPolicy).toMatch(/@Get\('audit-logs'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
   });
 
   it('uses requested permission names for admin user, provider, gift, moderation, broadcast and plan APIs', () => {

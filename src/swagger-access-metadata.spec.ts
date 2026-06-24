@@ -24,8 +24,6 @@ describe('Swagger access metadata', () => {
     ['get', '/api/v1/customer/wallet/history', 'REGISTERED_USER'],
     ['get', '/api/v1/audit-logs', 'SUPER_ADMIN'],
     ['patch', '/api/v1/referral-settings', 'SUPER_ADMIN'],
-    ['get', '/api/v1/media-upload-policy', 'SUPER_ADMIN or ADMIN with mediaPolicy.read'],
-    ['patch', '/api/v1/media-upload-policy', 'SUPER_ADMIN'],
     ['post', '/api/v1/broadcasts', 'SUPER_ADMIN or ADMIN with broadcasts.create'],
     ['get', '/api/v1/admin/disputes', 'SUPER_ADMIN or ADMIN with disputes.read'],
     ['post', '/api/v1/admin/disputes/{id}/link-transaction', 'SUPER_ADMIN or ADMIN with disputes.linkTransaction'],
