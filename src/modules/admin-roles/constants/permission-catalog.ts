@@ -390,14 +390,6 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
-    module: 'loginAttempts',
-    label: 'Login Attempts',
-    permissions: [
-      { key: 'read', label: 'View Login Attempts', description: 'View login attempt security logs.' },
-      { key: 'export', label: 'Export Login Attempts', description: 'Export login attempt security logs.' },
-    ],
-  },
-  {
     module: 'auditLogs',
     label: 'Audit Logs',
     permissions: [

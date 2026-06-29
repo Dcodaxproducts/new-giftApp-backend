@@ -49,7 +49,6 @@ export class AuthRepository {
       await tx.notificationDeviceToken.deleteMany({ where: { userId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: userId } });
       await tx.accountSuspension.deleteMany({ where: { accountId: userId } });
-      await tx.loginAttempt.updateMany({ where: { userId }, data: { userId: null } });
       await tx.customerWishlist.deleteMany({ where: { userId } });
       await tx.cartItem.deleteMany({ where: { cart: { userId } } });
       await tx.cart.deleteMany({ where: { userId } });

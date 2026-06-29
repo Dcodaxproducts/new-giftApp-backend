@@ -426,9 +426,6 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/login-attempts` | List Login Attempts | SUPER_ADMIN or ADMIN with loginAttempts.read |
-| GET | `/api/v1/login-attempts/export` | List Login Attempts Export | SUPER_ADMIN or ADMIN with loginAttempts.export |
-| GET | `/api/v1/login-attempts/stats` | List Login Attempts Stats | SUPER_ADMIN or ADMIN with loginAttempts.read |
 
 ### Broadcast Notifications (7 APIs)
 
@@ -764,7 +761,6 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 | GET | `/api/v1/uploads/{id}` | Fetch upload details | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 | DELETE | `/api/v1/uploads/{id}` | Delete upload | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 
-
 ## Provider APIs
 
 ### Auth (18 APIs)
@@ -976,5 +972,4 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 - On reconnect, re-emit `chat.join` or `support.join` for visible threads.
 - Use REST list/detail endpoints to hydrate initial state and backfill missed messages.
 - Fallback REST endpoints: unified `/api/v1/chats...`.
-
 

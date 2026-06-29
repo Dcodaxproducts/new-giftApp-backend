@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { AuditLogSeverity, AuditLogStatus, LoginAttemptStatus, UserRole } from '@prisma/client';
+import { AuditLogSeverity, AuditLogStatus, UserRole } from '@prisma/client';
 import { AuditLogStatusFilter } from './dto/audit-logs.dto';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AuditLogsRepository } from './audit-logs.repository';
 import { AuditLogsService } from './audit-logs.service';
-import { LoginAttemptsRepository } from '../login-attempts/login-attempts.repository';
-import { LoginAttemptsService } from '../login-attempts/login-attempts.service';
 
 function createAuditService() {
   const log = {
@@ -132,13 +130,5 @@ describe('System logs / audit trail source checks', () => {
     expect(providerService).toContain('PROVIDER_APPROVED');
     expect(userService).toContain('USER_PASSWORD_CHANGED');
     expect(disputeService).toContain('DISPUTE_DECISION_APPROVE');
-  });
-
-  it('login attempts can mirror high-risk events into audit logs', async () => {
-    const prisma = { loginAttempt: { create: jest.fn() }, adminAuditLog: { create: jest.fn() } };
-    const repository = new LoginAttemptsRepository(prisma as never);
-    const loginAttempts = new LoginAttemptsService(repository);
-    await loginAttempts.record({ email: 'x@example.com', status: LoginAttemptStatus.FAILED, reason: 'bad password', ipAddress: '127.0.0.1' });
-    expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'FAILED_LOGIN_ATTEMPT' }) }));
   });
 });

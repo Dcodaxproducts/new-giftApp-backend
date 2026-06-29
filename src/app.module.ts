@@ -31,7 +31,6 @@ import { CustomerWalletModule } from './modules/customer-wallet/customer-wallet.
 import { ChatsModule } from './modules/chats/chats.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
 import { GuestAccessModule } from './modules/guest-access/guest-access.module';
-import { LoginAttemptsModule } from './modules/login-attempts/login-attempts.module';
 import { MessageModerationModule } from './modules/message-moderation/message-moderation.module';
 import { MessagingSettingsModule } from './modules/messaging-settings/messaging-settings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -102,7 +101,6 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     ReferralSettingsModule,
     ReportingCoreModule,
     RefundPolicySettingsModule,
-    LoginAttemptsModule,
     MessageModerationModule,
     MessagingSettingsModule,
     PaymentsModule,

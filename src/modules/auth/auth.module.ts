@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { LoginAttemptsModule } from '../login-attempts/login-attempts.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { CustomerReferralsModule } from '../customer-referrals/customer-referrals.module';
 import { GuestAccessModule } from '../guest-access/guest-access.module';
@@ -21,7 +20,7 @@ import { AuthSessionService } from './services/auth-session.service';
 import { AuthSessionsRepository } from './repositories/auth-sessions.repository';
 
 @Module({
-  imports: [JwtModule.register({}), LoginAttemptsModule, MailerModule, CustomerReferralsModule, GuestAccessModule, DatabaseModule],
+  imports: [JwtModule.register({}), MailerModule, CustomerReferralsModule, GuestAccessModule, DatabaseModule],
   controllers: [AuthController],
   providers: [AuthService, AuthCoreService, AuthRegistrationService, AuthLoginService, AuthPasswordService, AuthSessionService, AuthProfileService, AuthResendVerificationRateLimiterService, AuthRepository, AuthSessionsRepository, AuthPasswordRepository, JwtAuthRepository, JwtAuthGuard],
   exports: [AuthService],

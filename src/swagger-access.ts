@@ -92,9 +92,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'DELETE /api/v1/promotional-offers/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotionalOffers.delete', description: 'SUPER_ADMIN or ADMIN with promotionalOffers.delete permission.' },
   'POST /api/v1/promotional-offers/{id}/action': { allowedRoles: 'SUPER_ADMIN or ADMIN with promotional offer action permission (APPROVE=>promotionalOffers.approve, REJECT=>promotionalOffers.reject, ACTIVATE/DEACTIVATE=>promotionalOffers.status.update)', description: 'SUPER_ADMIN or ADMIN with action-specific promotional offer permission. APPROVE requires promotionalOffers.approve; REJECT requires promotionalOffers.reject; ACTIVATE and DEACTIVATE require promotionalOffers.status.update.' },
 
-  'GET /api/v1/login-attempts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.read', description: 'SUPER_ADMIN or ADMIN with loginAttempts.read permission.' },
-  'GET /api/v1/login-attempts/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.export', description: 'SUPER_ADMIN or ADMIN with loginAttempts.export permission.' },
-  'GET /api/v1/login-attempts': { allowedRoles: 'SUPER_ADMIN or ADMIN with loginAttempts.read', description: 'SUPER_ADMIN or ADMIN with loginAttempts.read permission.' },
 
   'GET /api/v1/admin/reviews': { allowedRoles: 'SUPER_ADMIN or ADMIN with reviews.read', description: 'SUPER_ADMIN or ADMIN with reviews.read permission.' },
   'GET /api/v1/admin/reviews/dashboard': { allowedRoles: 'SUPER_ADMIN or ADMIN with reviews.read', description: 'SUPER_ADMIN or ADMIN with reviews.read permission.' },

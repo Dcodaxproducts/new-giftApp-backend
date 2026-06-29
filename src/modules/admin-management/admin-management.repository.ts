@@ -37,7 +37,6 @@ export class AdminManagementRepository {
   deleteAdminPermanently(adminId: string) {
     return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.authSession.deleteMany({ where: { userId: adminId } });
-      await tx.loginAttempt.updateMany({ where: { userId: adminId }, data: { userId: null } });
       await tx.adminAuditLog.updateMany({ where: { actorId: adminId }, data: { actorId: null } });
       await tx.accountSuspension.deleteMany({ where: { accountId: adminId } });
       await tx.notification.deleteMany({ where: { recipientId: adminId } });

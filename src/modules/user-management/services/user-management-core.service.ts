@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { AccountType, LoginAttemptStatus, Prisma, User, UserRole } from '@prisma/client';
+import { AccountType, Prisma, User, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AccountLifecycleService } from '../../../common/services/account-lifecycle.service';
 import { MailerService } from '../../mailer/mailer.service';
@@ -334,15 +334,8 @@ export class UserManagementCoreService {
     const user = await this.getRegisteredUser(id);
     const { page, limit, skip, take } = getPagination(query);
     const requestedType = query.type ?? UserActivityType.ALL;
-    const { loginAttempts, auditLogs, orders, payments, providerOrderTimelines } = await this.userManagementRepository.findUserActivity(user.id);
+    const { auditLogs, orders, payments, providerOrderTimelines } = await this.userManagementRepository.findUserActivity(user.id);
     const activities = [
-      ...loginAttempts.map((attempt): UserActivityItem => ({
-        id: attempt.id,
-        type: UserActivityType.LOGIN,
-        title: attempt.status === LoginAttemptStatus.SUCCESS ? 'Successful login' : 'Login attempt failed',
-        description: [attempt.ipAddress, attempt.userAgent, attempt.reason].filter(Boolean).join(' • ') || 'Login activity recorded',
-        createdAt: attempt.createdAt,
-      })),
       ...auditLogs.map((log): UserActivityItem => this.toAuditActivity(log)),
       ...orders.flatMap((order): UserActivityItem[] => this.toOrderActivities(order)),
       ...payments.map((payment): UserActivityItem => this.toPaymentActivity(payment)),

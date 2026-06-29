@@ -578,11 +578,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ## 01 Auth - Login Attempts
 
-### GET `/api/v1/login-attempts/stats`
-
 - Summary: List Login Attempts Stats
-- Allowed role/access: SUPER_ADMIN or ADMIN with loginAttempts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission.
 - Parameters:
   - `email` (query, optional, string)
   - `status` (query, optional, string)
@@ -600,12 +596,8 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "message": "Request completed successfully."
 }
 ```
-
-### GET `/api/v1/login-attempts/export`
 
 - Summary: List Login Attempts Export
-- Allowed role/access: SUPER_ADMIN or ADMIN with loginAttempts.export
-- Notes: Access: SUPER_ADMIN or ADMIN with loginAttempts.export. SUPER_ADMIN or ADMIN with loginAttempts.export permission.
 - Parameters:
   - `email` (query, optional, string)
   - `status` (query, optional, string)
@@ -624,11 +616,7 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### GET `/api/v1/login-attempts`
-
 - Summary: List Login Attempts
-- Allowed role/access: SUPER_ADMIN or ADMIN with loginAttempts.read
-- Notes: Access: SUPER_ADMIN or ADMIN with loginAttempts.read. SUPER_ADMIN or ADMIN with loginAttempts.read permission.
 - Parameters:
   - `email` (query, optional, string)
   - `status` (query, optional, string)

@@ -32,7 +32,6 @@ export type UserActivityProviderOrderTimeline = Prisma.ProviderOrderTimelineGetP
 }>;
 
 export interface UserActivityRecords {
-  loginAttempts: Awaited<ReturnType<PrismaService['loginAttempt']['findMany']>>;
   auditLogs: Awaited<ReturnType<PrismaService['adminAuditLog']['findMany']>>;
   orders: UserActivityOrder[];
   payments: UserActivityPayment[];
@@ -252,12 +251,7 @@ export class UserManagementRepository {
   }
 
   async findUserActivity(userId: string): Promise<UserActivityRecords> {
-    const [loginAttempts, auditLogs, orders, payments, providerOrderTimelines] = await this.prisma.$transaction([
-      this.prisma.loginAttempt.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 200,
-      }),
+    const [auditLogs, orders, payments, providerOrderTimelines] = await this.prisma.$transaction([
       this.prisma.adminAuditLog.findMany({
         where: { targetId: userId },
         orderBy: { createdAt: 'desc' },
@@ -283,7 +277,7 @@ export class UserManagementRepository {
       }),
     ]);
 
-    return { loginAttempts, auditLogs, orders, payments, providerOrderTimelines };
+    return { auditLogs, orders, payments, providerOrderTimelines };
   }
 
   createPasswordChangedNotification(userId: string): Promise<unknown> {
@@ -329,7 +323,6 @@ export class UserManagementRepository {
       await tx.notificationDeviceToken.deleteMany({ where: { userId: params.target.id } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: params.target.id } });
       await tx.accountSuspension.deleteMany({ where: { accountId: params.target.id } });
-      await tx.loginAttempt.updateMany({ where: { userId: params.target.id }, data: { userId: null } });
       await tx.customerWishlist.deleteMany({ where: { userId: params.target.id } });
       await tx.cartItem.deleteMany({ where: { cart: { userId: params.target.id } } });
       await tx.cart.deleteMany({ where: { userId: params.target.id } });

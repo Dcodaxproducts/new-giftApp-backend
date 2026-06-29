@@ -44,7 +44,6 @@ function createService() {
     customerRecurringPaymentOccurrence: { updateMany: jest.fn(), deleteMany: jest.fn() },
     customerRecurringPayment: { updateMany: jest.fn(), deleteMany: jest.fn() },
     customerContact: { deleteMany: jest.fn() },
-    loginAttempt: { findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn() },
   };
   const mailer = {
     sendPasswordResetEmail: jest.fn(),
@@ -157,10 +156,9 @@ describe('UserManagementService', () => {
     expect(result.data).toEqual(expect.objectContaining({ successfulPayments: 7, failedPayments: 3 }));
   });
 
-  it('user activity maps login, profile/security, payment, and order events', async () => {
+  it('user activity maps profile/security, payment, and order events', async () => {
     const { service, prisma } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
-    prisma.loginAttempt.findMany.mockResolvedValue([{ id: 'login_1', status: 'SUCCESS', ipAddress: '127.0.0.1', userAgent: 'iOS', reason: null, createdAt: new Date('2026-05-11T10:00:00.000Z') }]);
     prisma.adminAuditLog.findMany.mockResolvedValue([
       { id: 'audit_1', action: 'REGISTERED_USER_UPDATED', createdAt: new Date('2026-05-11T09:00:00.000Z') },
       { id: 'audit_2', action: 'USER_PASSWORD_CHANGED_BY_ADMIN', createdAt: new Date('2026-05-11T08:00:00.000Z') },
@@ -175,7 +173,6 @@ describe('UserManagementService', () => {
     expect(prisma.payment.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'user_1' } }));
     expect(prisma.providerOrderTimeline.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { providerOrder: { order: { userId: 'user_1' } } } }));
     expect(result.data).toEqual(expect.arrayContaining([
-      expect.objectContaining({ type: 'LOGIN', title: 'Successful login' }),
       expect.objectContaining({ type: 'PROFILE_UPDATE', title: 'Profile updated by admin' }),
       expect.objectContaining({ type: 'SECURITY', title: 'Password Changed By Admin' }),
       expect.objectContaining({ type: 'PAYMENT', title: 'Succeeded order payment' }),

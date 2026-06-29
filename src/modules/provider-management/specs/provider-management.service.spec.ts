@@ -71,7 +71,6 @@ function createService(overrides: Record<string, unknown> = {}) {
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
-    loginAttempt: { updateMany: jest.fn() },
     providerOrder: { count: jest.fn().mockResolvedValue(0) },
     providerOrderItem: { groupBy: jest.fn().mockResolvedValue([]) },
     providerBusinessCategory: { findUnique: jest.fn().mockResolvedValue({ id: 'provider_business_category_id', isActive: true }) },

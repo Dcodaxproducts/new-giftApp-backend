@@ -58,8 +58,7 @@ function createResetService(user: unknown = resetUser, mailerRejects = false) {
   const service = new AuthCoreService(
     {} as unknown as ConstructorParameters<typeof AuthCoreService>[0],
     { get: jest.fn() } as unknown as ConstructorParameters<typeof AuthCoreService>[1],
-    {} as unknown as ConstructorParameters<typeof AuthCoreService>[2],
-    mailer as unknown as ConstructorParameters<typeof AuthCoreService>[3],
+    mailer as unknown as ConstructorParameters<typeof AuthCoreService>[2],
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -355,10 +354,6 @@ function createSensitiveAuthService(options?: {
     if (key === 'APP_FRONTEND_URL') return 'https://app.giftapp.com';
     return fallback;
   }) };
-  const loginAttemptsService = {
-    assertLoginAllowed: jest.fn().mockResolvedValue(undefined),
-    record: jest.fn().mockResolvedValue(undefined),
-  };
   const mailerService = {
     sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
   };
@@ -374,8 +369,7 @@ function createSensitiveAuthService(options?: {
   const service = new AuthCoreService(
     jwtService as unknown as ConstructorParameters<typeof AuthCoreService>[0],
     configService as unknown as ConstructorParameters<typeof AuthCoreService>[1],
-    loginAttemptsService as unknown as ConstructorParameters<typeof AuthCoreService>[2],
-    mailerService as unknown as ConstructorParameters<typeof AuthCoreService>[3],
+    mailerService as unknown as ConstructorParameters<typeof AuthCoreService>[2],
     authRepository,
     authSessionsRepository,
     authPasswordRepository,
@@ -383,19 +377,18 @@ function createSensitiveAuthService(options?: {
     referrals as never,
   );
 
-  return { service, prisma, jwtService, loginAttemptsService, mailerService, referrals, resendLimiter };
+  return { service, prisma, jwtService, mailerService, referrals, resendLimiter };
 }
 
 describe('AuthService sensitive auth behavior', () => {
   it('login success unchanged', async () => {
     const user = authUser();
-    const { service, loginAttemptsService, jwtService, prisma } = createSensitiveAuthService({ user });
+    const { service, jwtService, prisma } = createSensitiveAuthService({ user });
 
     const result = await service.login({ email: 'user@example.com', password: 'Password@123' }, '127.0.0.1', 'jest');
 
     expect(result.message).toBe('Login successful');
     expect(result.data).toEqual(expect.objectContaining({ accessToken: 'access_token_1', refreshToken: 'refresh_token_1' }));
-    expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'SUCCESS', userId: 'user_1' }));
     const loginUpdateCalls = prisma.user.update.mock.calls as Array<[{ where: { id: string }; data: Record<string, unknown> }]>;
     const loginUpdateCall = loginUpdateCalls.find((call) => 'lastLoginAt' in call[0].data);
     expect(loginUpdateCall?.[0].where.id).toBe('user_1');
@@ -403,9 +396,9 @@ describe('AuthService sensitive auth behavior', () => {
     expect(jwtService.signAsync).toHaveBeenCalledTimes(2);
   });
 
-  it('login failure unchanged and attempts still recorded', async () => {
+  it('login failure unchanged and does not expose verification state', async () => {
     const user = authUser();
-    const { service, loginAttemptsService } = createSensitiveAuthService({ user });
+    const { service } = createSensitiveAuthService({ user });
 
     await expect(service.login({ email: 'user@example.com', password: 'WrongPass@123' }, '127.0.0.1', 'jest')).rejects.toThrow(UnauthorizedException);
     try {
@@ -414,12 +407,11 @@ describe('AuthService sensitive auth behavior', () => {
       expect(error).toBeInstanceOf(UnauthorizedException);
       expect((error as UnauthorizedException).getResponse()).not.toHaveProperty('user_verified');
     }
-    expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'INVALID_CREDENTIALS', userId: 'user_1' }));
   });
 
   it('login with correct password but unverified email returns EMAIL_NOT_VERIFIED with user_verified=0', async () => {
     const user = authUser({ isVerified: false });
-    const { service, loginAttemptsService } = createSensitiveAuthService({ user });
+    const { service } = createSensitiveAuthService({ user });
 
     try {
       await service.login({ email: 'user@example.com', password: 'Password@123' }, '127.0.0.1', 'jest');
@@ -433,7 +425,6 @@ describe('AuthService sensitive auth behavior', () => {
         user_verified: 0,
       });
     }
-    expect(loginAttemptsService.record).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', reason: 'EMAIL_NOT_VERIFIED', userId: 'user_1' }));
   });
 
   it('resend verification email sends only for existing unverified users and returns safe public success guidance', async () => {

@@ -460,7 +460,6 @@ export class ProviderManagementRepository {
       await tx.notificationDeviceToken.deleteMany({ where: { userId: params.providerId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: params.providerId } });
       await tx.accountSuspension.deleteMany({ where: { accountId: params.providerId } });
-      await tx.loginAttempt.updateMany({ where: { userId: params.providerId }, data: { userId: null } });
       await tx.promotionalOffer.deleteMany({ where: { providerId: params.providerId } });
       await tx.gift.deleteMany({ where: { providerId: params.providerId } });
       await tx.user.delete({ where: { id: params.providerId } });

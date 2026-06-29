@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   Optional,
@@ -12,7 +14,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
-  LoginAttemptStatus,
   AdminRole,
   Prisma,
   ProviderApprovalStatus,
@@ -27,7 +28,6 @@ import { AuthRepository } from '../repositories/auth.repository';
 import { AuthSessionsRepository } from '../repositories/auth-sessions.repository';
 import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exception';
 import { AuthResendVerificationRateLimiterService } from './auth-resend-verification-rate-limiter.service';
-import { LoginAttemptsService } from '../../login-attempts/login-attempts.service';
 import { MailerService } from '../../mailer/mailer.service';
 import { CustomerReferralsService } from '../../customer-referrals/services/customer-referrals.service';
 import { SUPER_ADMIN_PERMISSIONS } from '../../admin-roles/constants/permission-catalog';
@@ -59,13 +59,16 @@ const VERIFICATION_EMAIL_SENT_MESSAGE = 'A verification email has been sent to t
 const VERIFICATION_EMAIL_SEND_FAILED_MESSAGE = 'We could not send the verification email right now. Please try again later.';
 const AUTHENTICATED_VERIFICATION_OTP_SENT_MESSAGE = 'A verification OTP has been sent to your email address.';
 const TEST_OTP = '123456';
+const LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS = 5;
+const LOGIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 
 @Injectable()
 export class AuthCoreService implements OnModuleInit {
+  private readonly loginFailures = new Map<string, { count: number; resetAt: number }>();
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly loginAttemptsService: LoginAttemptsService,
     private readonly mailerService: MailerService,
     private readonly authRepository: AuthRepository,
     private readonly authSessionsRepository: AuthSessionsRepository,
@@ -157,29 +160,12 @@ export class AuthCoreService implements OnModuleInit {
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string | string[]) {
-    await this.loginAttemptsService.assertLoginAllowed(dto.email).catch(async (error) => {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.BLOCKED,
-        reason: 'RATE_LIMITED',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-      });
-      throw error;
-    });
+    this.assertLoginAllowed(dto.email);
 
     const user = await this.authRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.FAILED,
-        reason: 'INVALID_CREDENTIALS',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-        userId: user?.id,
-        role: user?.role,
-      });
+      this.recordFailedLogin(dto.email);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -194,54 +180,22 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     if (!user.isActive || user.deletedAt) {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.FAILED,
-        reason: 'INACTIVE_ACCOUNT',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-        userId: user.id,
-        role: user.role,
-      });
+      this.recordFailedLogin(dto.email);
       throw new UnauthorizedException('Account is inactive');
     }
 
     if (!user.isVerified) {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.FAILED,
-        reason: 'EMAIL_NOT_VERIFIED',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-        userId: user.id,
-        role: user.role,
-      });
+      this.recordFailedLogin(dto.email);
       throw new EmailNotVerifiedException(0);
     }
 
     if (user.role === UserRole.PROVIDER && !user.isApproved) {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.FAILED,
-        reason: 'PROVIDER_PENDING_APPROVAL',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-        userId: user.id,
-        role: user.role,
-      });
+      this.recordFailedLogin(dto.email);
       throw new ForbiddenException('Provider account is pending Super Admin approval');
     }
 
     if (user.role === UserRole.ADMIN && !user.isApproved) {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.FAILED,
-        reason: 'ADMIN_NOT_APPROVED',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-        userId: user.id,
-        role: user.role,
-      });
+      this.recordFailedLogin(dto.email);
       throw new ForbiddenException('Admin account is not approved');
     }
 
@@ -249,28 +203,13 @@ export class AuthCoreService implements OnModuleInit {
       user.role === UserRole.ADMIN &&
       (!user.adminRoleId || !user.adminRole || user.adminRole.deletedAt || !user.adminRole.isActive)
     ) {
-      await this.loginAttemptsService.record({
-        email: dto.email,
-        status: LoginAttemptStatus.FAILED,
-        reason: 'ADMIN_ROLE_INACTIVE',
-        ipAddress,
-        userAgent: this.normalizeUserAgent(userAgent),
-        userId: user.id,
-        role: user.role,
-      });
+      this.recordFailedLogin(dto.email);
       throw new ForbiddenException('Admin role is inactive or missing');
     }
 
     const tokens = await this.issueTokens(user, undefined, ipAddress, this.normalizeUserAgent(userAgent));
     await this.authRepository.updateLastLoginAt(user.id);
-    await this.loginAttemptsService.record({
-      email: dto.email,
-      status: LoginAttemptStatus.SUCCESS,
-      ipAddress,
-      userAgent: this.normalizeUserAgent(userAgent),
-      userId: user.id,
-      role: user.role,
-    });
+    this.clearLoginFailures(dto.email);
 
     return {
       data: {
@@ -807,6 +746,44 @@ export class AuthCoreService implements OnModuleInit {
 
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
+  }
+
+  private assertLoginAllowed(email: string): void {
+    const normalizedEmail = this.normalizeEmail(email);
+    const entry = this.loginFailures.get(normalizedEmail);
+
+    if (!entry) {
+      return;
+    }
+
+    if (entry.resetAt <= Date.now()) {
+      this.loginFailures.delete(normalizedEmail);
+      return;
+    }
+
+    if (entry.count >= LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS) {
+      throw new HttpException('Too many failed login attempts. Please try again later', HttpStatus.TOO_MANY_REQUESTS);
+    }
+  }
+
+  private recordFailedLogin(email: string): void {
+    const normalizedEmail = this.normalizeEmail(email);
+    const now = Date.now();
+    const current = this.loginFailures.get(normalizedEmail);
+
+    if (!current || current.resetAt <= now) {
+      this.loginFailures.set(normalizedEmail, {
+        count: 1,
+        resetAt: now + LOGIN_RATE_LIMIT_WINDOW_MS,
+      });
+      return;
+    }
+
+    current.count += 1;
+  }
+
+  private clearLoginFailures(email: string): void {
+    this.loginFailures.delete(this.normalizeEmail(email));
   }
 
   private normalizeUserAgent(userAgent?: string | string[]): string | undefined {
