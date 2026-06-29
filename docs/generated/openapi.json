@@ -20480,154 +20480,6 @@
         "description": "Access: SUPER_ADMIN or ADMIN with coupons.delete. SUPER_ADMIN or ADMIN with coupons.delete permission."
       }
     },
-    "/api/v1/media-upload-policy": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with mediaPolicy.read. SUPER_ADMIN or ADMIN with mediaPolicy.read permission. uploads/presigned-url enforces this policy before issuing upload URLs.",
-        "operationId": "MediaUploadPolicyController_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "allowedFileTypes": {
-                        "jpeg": true,
-                        "jpg": true,
-                        "png": true,
-                        "gif": false,
-                        "mp4": true,
-                        "mov": true,
-                        "mp3": true,
-                        "wav": false,
-                        "svg": false
-                      },
-                      "maxImageSizeMb": 10,
-                      "maxVideoSizeMb": 500,
-                      "maxAudioSizeMb": 50,
-                      "scanUploads": true,
-                      "blockSvgUploads": true,
-                      "updatedAt": "2026-05-09T10:00:00.000Z",
-                      "updatedBy": {
-                        "id": "admin_id",
-                        "name": "Alex Rivera"
-                      }
-                    },
-                    "message": "Media upload policy fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch global media upload policy",
-        "tags": [
-          "02 Admin - Media Upload Policy"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with mediaPolicy.read",
-        "x-access": "SUPER_ADMIN or ADMIN with mediaPolicy.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global media upload policy. SUPER_ADMIN only. Does not expose AWS secrets or bucket credentials.",
-        "operationId": "MediaUploadPolicyController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMediaUploadPolicyDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update global media upload policy",
-        "tags": [
-          "02 Admin - Media Upload Policy"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/media-upload-policy/audit-logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Media upload policy audit logs. SUPER_ADMIN only.",
-        "operationId": "MediaUploadPolicyController_auditLogs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-01T00:00:00.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-31T23:59:59.999Z",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List media upload policy audit logs",
-        "tags": [
-          "02 Admin - Media Upload Policy"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
     "/api/v1/admin/message-moderation/conversations": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.",
@@ -22067,7 +21919,7 @@
     },
     "/api/v1/audit-logs/stats": {
       "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. System log summary cards are restricted to Super Admin. SUPER_ADMIN only. Returns system log summary cards and security/system metrics.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. System log summary cards are restricted to Super Admin. SUPER_ADMIN only. Returns four numeric card values from admin audit logs.",
         "operationId": "AuditLogsController_stats",
         "parameters": [
           {
@@ -22096,12 +21948,10 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "criticalAlerts24h": 12,
-                      "dailyAverageActions": 4200,
-                      "uptimeStatus": 99.98,
                       "totalLogs": 1240,
                       "successCount": 1100,
-                      "failedCount": 140
+                      "failedCount": 120,
+                      "criticalAlerts24h": 12
                     },
                     "message": "Audit log stats fetched successfully."
                   }
@@ -22116,125 +21966,6 @@
           }
         ],
         "summary": "Fetch audit log stats",
-        "tags": [
-          "02 Admin - System Logs & Audit Trail"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/audit-logs/action-types": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin. SUPER_ADMIN only. Returns action type dropdown options for System Logs filters.",
-        "operationId": "AuditLogsController_actionTypes",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "key": "PROVIDER_APPROVED",
-                        "label": "Provider Approved"
-                      },
-                      {
-                        "key": "FAILED_LOGIN_ATTEMPT",
-                        "label": "Failed Login Attempt"
-                      }
-                    ],
-                    "message": "Audit log action types fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch audit log action types",
-        "tags": [
-          "02 Admin - System Logs & Audit Trail"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/audit-logs/users": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin. SUPER_ADMIN only. Returns actor/user selector options for System Logs filters.",
-        "operationId": "AuditLogsController_users",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "role",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "maximum": 100,
-              "default": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "system",
-                        "name": "System",
-                        "email": null,
-                        "role": "SYSTEM",
-                        "label": "System Automated Action"
-                      },
-                      {
-                        "id": "admin_id",
-                        "name": "Sarah Chen",
-                        "email": "sarah@example.com",
-                        "role": "ADMIN",
-                        "label": "Sarah Chen — Compliance Officer"
-                      }
-                    ],
-                    "message": "Audit log users fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch audit log user selector options",
         "tags": [
           "02 Admin - System Logs & Audit Trail"
         ],
@@ -22335,14 +22066,6 @@
                 "PENDING",
                 "WARNING"
               ]
-            }
-          },
-          {
-            "name": "environment",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -22525,14 +22248,6 @@
             }
           },
           {
-            "name": "environment",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "sourceIp",
             "required": false,
             "in": "query",
@@ -22609,25 +22324,26 @@
                     "data": [
                       {
                         "id": "audit_log_id",
-                        "eventId": "EV-90210",
                         "logReference": "789042",
-                        "timestamp": "2023-10-27T14:32:01.000Z",
-                        "actor": {
+                        "actorId": "admin_id",
+                        "actorType": "SUPER_ADMIN",
+                        "actorSnapshot": {
                           "id": "admin_id",
                           "name": "Sarah Chen",
-                          "role": "Compliance Officer",
-                          "avatarInitials": "SC"
+                          "role": "SUPER_ADMIN"
                         },
+                        "targetId": "provider_id",
+                        "targetType": "PROVIDER",
                         "action": "PROVIDER_APPROVED",
                         "actionLabel": "Provider Approved",
                         "module": "Provider Management",
-                        "sourceIp": "192.168.1.45",
-                        "environment": "Production-Cluster-A",
                         "status": "SUCCESS",
-                        "target": {
-                          "id": "provider_id",
-                          "type": "PROVIDER"
+                        "severity": "LOW",
+                        "beforeJson": null,
+                        "afterJson": {
+                          "status": "approved"
                         },
+                        "ipAddress": "192.168.1.45",
                         "createdAt": "2023-10-27T14:32:01.000Z"
                       }
                     ],
@@ -22659,7 +22375,7 @@
     },
     "/api/v1/audit-logs/{id}": {
       "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin. SUPER_ADMIN only. Returns sanitized raw JSON payloads, system response preview, and technical metadata.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log details are restricted to Super Admin. SUPER_ADMIN only. Returns only AdminAuditLog table fields.",
         "operationId": "AuditLogsController_details",
         "parameters": [
           {
@@ -22682,33 +22398,25 @@
                     "data": {
                       "id": "audit_log_id",
                       "logReference": "789042",
-                      "eventId": "EV-90210",
-                      "timestamp": "2023-10-27T14:32:01.000Z",
-                      "status": "SUCCESS",
-                      "category": "AUDIT_TRAIL",
-                      "actor": {
+                      "actorId": "admin_id",
+                      "actorType": "SUPER_ADMIN",
+                      "actorSnapshot": {
                         "id": "admin_id",
-                        "username": "super_admin_fintech",
-                        "name": "Super Admin",
+                        "name": "Sarah Chen",
                         "role": "SUPER_ADMIN"
                       },
-                      "actionType": "TRANSACTION_AUTHORIZATION",
-                      "module": "Transactions",
-                      "sourceIp": "192.168.1.104",
-                      "environment": "Production-Cluster-A",
-                      "target": {
-                        "id": "transaction_id",
-                        "type": "TRANSACTION"
+                      "targetId": "provider_id",
+                      "targetType": "PROVIDER",
+                      "action": "PROVIDER_APPROVED",
+                      "actionLabel": "Provider Approved",
+                      "module": "Provider Management",
+                      "status": "SUCCESS",
+                      "severity": "LOW",
+                      "beforeJson": null,
+                      "afterJson": {
+                        "status": "approved"
                       },
-                      "requestPayload": {
-                        "authorization": "[REDACTED]",
-                        "request_id": "req_550e8400"
-                      },
-                      "systemResponse": {
-                        "statusCode": 200,
-                        "durationMs": 142,
-                        "message": "Transaction authorized successfully."
-                      },
+                      "ipAddress": "192.168.1.45",
                       "createdAt": "2023-10-27T14:32:01.000Z"
                     },
                     "message": "Audit log details fetched successfully"
@@ -24518,7 +24226,7 @@
     "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
     "version": "0.1.0",
     "contact": {},
-    "x-openapi-generated-at": "2026-06-23T07:41:09.326Z"
+    "x-openapi-generated-at": "2026-06-29T11:19:31.222Z"
   },
   "tags": [
     {
@@ -29090,100 +28798,6 @@
             "type": "string"
           }
         }
-      },
-      "AllowedFileTypesDto": {
-        "type": "object",
-        "properties": {
-          "jpeg": {
-            "type": "boolean",
-            "example": true
-          },
-          "jpg": {
-            "type": "boolean",
-            "example": true
-          },
-          "png": {
-            "type": "boolean",
-            "example": true
-          },
-          "gif": {
-            "type": "boolean",
-            "example": false
-          },
-          "mp4": {
-            "type": "boolean",
-            "example": true
-          },
-          "mov": {
-            "type": "boolean",
-            "example": true
-          },
-          "mp3": {
-            "type": "boolean",
-            "example": true
-          },
-          "wav": {
-            "type": "boolean",
-            "example": false
-          },
-          "svg": {
-            "type": "boolean",
-            "example": false
-          }
-        },
-        "required": [
-          "jpeg",
-          "jpg",
-          "png",
-          "gif",
-          "mp4",
-          "mov",
-          "mp3",
-          "wav",
-          "svg"
-        ]
-      },
-      "UpdateMediaUploadPolicyDto": {
-        "type": "object",
-        "properties": {
-          "allowedFileTypes": {
-            "$ref": "#/components/schemas/AllowedFileTypesDto"
-          },
-          "maxImageSizeMb": {
-            "type": "number",
-            "example": 10,
-            "minimum": 1,
-            "maximum": 50
-          },
-          "maxVideoSizeMb": {
-            "type": "number",
-            "example": 500,
-            "minimum": 1,
-            "maximum": 1024
-          },
-          "maxAudioSizeMb": {
-            "type": "number",
-            "example": 50,
-            "minimum": 1,
-            "maximum": 200
-          },
-          "scanUploads": {
-            "type": "boolean",
-            "example": true
-          },
-          "blockSvgUploads": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "allowedFileTypes",
-          "maxImageSizeMb",
-          "maxVideoSizeMb",
-          "maxAudioSizeMb",
-          "scanUploads",
-          "blockSvgUploads"
-        ]
       },
       "MessageModerationActionDto": {
         "type": "object",

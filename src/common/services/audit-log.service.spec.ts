@@ -13,7 +13,6 @@ describe('AuditLogWriterService', () => {
       targetType: 'USER',
       action: 'USER_UPDATE',
       beforeJson: { password: 'secret', nested: { refreshToken: 'token', safe: 'ok' } },
-      metadataJson: { apiKey: 'key', normal: 'value' },
     });
 
     expect(repository.createAdminAuditLog).toHaveBeenCalledWith(expect.objectContaining({
@@ -26,10 +25,7 @@ describe('AuditLogWriterService', () => {
       status: 'SUCCESS',
       severity: 'MEDIUM',
       beforeJson: { password: '[REDACTED]', nested: { refreshToken: '[REDACTED]', safe: 'ok' } },
-      requestPayloadJson: { password: '[REDACTED]', nested: { refreshToken: '[REDACTED]', safe: 'ok' } },
-      metadataJson: { apiKey: '[REDACTED]', normal: 'value' },
       logReference: expect.any(String),
-      eventId: expect.stringMatching(/^EV-\d{6}$/),
     }));
   });
 

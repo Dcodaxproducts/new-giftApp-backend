@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AccountType, CustomerSubscriptionStatus, NotificationRecipientType, PaymentStatus, Prisma, User, UserRole } from '@prisma/client';
+import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
@@ -291,7 +292,7 @@ export class UserManagementRepository {
     });
   }
 
-  createAuditLog(params: {
+  async createAuditLog(params: {
     actorId: string | null;
     targetId: string | null;
     targetType: string | null;
@@ -299,7 +300,8 @@ export class UserManagementRepository {
     beforeJson?: Prisma.InputJsonValue;
     afterJson?: Prisma.InputJsonValue;
   }): Promise<unknown> {
-    return this.prisma.adminAuditLog.create({ data: params });
+    const actor = params.actorId ? await this.prisma.user.findUnique({ where: { id: params.actorId }, select: ADMIN_AUDIT_ACTOR_SELECT }) : null;
+    return this.prisma.adminAuditLog.create({ data: buildAdminAuditLogData(params, actor) });
   }
 
   async deleteRegisteredUserPermanently(params: {
@@ -307,15 +309,16 @@ export class UserManagementRepository {
     target: Pick<User, 'id' | 'email' | 'role'>;
   }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      const actor = await tx.user.findUnique({ where: { id: params.actorId }, select: ADMIN_AUDIT_ACTOR_SELECT });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditLogData({
           actorId: params.actorId,
           targetId: params.target.id,
           targetType: 'REGISTERED_USER',
           action: 'REGISTERED_USER_PERMANENTLY_DELETED',
           beforeJson: { id: params.target.id, email: params.target.email, role: params.target.role },
           afterJson: { reason: 'Permanent delete requested from user management.', deleteRelatedRecords: true },
-        },
+        }, actor),
       });
 
       await tx.authSession.deleteMany({ where: { userId: params.target.id } });

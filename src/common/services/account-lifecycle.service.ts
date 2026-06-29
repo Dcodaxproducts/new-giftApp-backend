@@ -57,7 +57,6 @@ export class AccountLifecycleService {
       beforeJson: this.toStatusSnapshot(account),
       afterJson: this.toStatusSnapshot(updated),
       ipAddress: input.ipAddress,
-      userAgent: input.userAgent,
     });
     await this.notify(updated, input.notify, input.status, input.comment);
 
@@ -94,7 +93,6 @@ export class AccountLifecycleService {
       beforeJson: this.toStatusSnapshot(account),
       afterJson: this.toStatusSnapshot(updated),
       ipAddress: input.ipAddress,
-      userAgent: input.userAgent,
     });
     await this.notify(updated, input.notify, input.status, input.comment);
 
@@ -119,7 +117,6 @@ export class AccountLifecycleService {
       beforeJson: this.toStatusSnapshot(account),
       afterJson: this.toStatusSnapshot(updated),
       ipAddress: input.ipAddress,
-      userAgent: input.userAgent,
     });
     await this.notify(updated, input.notify, 'ACTIVE', input.comment);
 

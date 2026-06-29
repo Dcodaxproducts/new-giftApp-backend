@@ -4192,62 +4192,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 }
 ```
 
-### GET `/api/v1/audit-logs/action-types`
-
-- Summary: Fetch audit log action types
-- Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin. SUPER_ADMIN only. Returns action type dropdown options for System Logs filters.
-- Response body:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "key": "PROVIDER_APPROVED",
-      "label": "Provider Approved"
-    },
-    {
-      "key": "FAILED_LOGIN_ATTEMPT",
-      "label": "Failed Login Attempt"
-    }
-  ],
-  "message": "Audit log action types fetched successfully."
-}
-```
-
-### GET `/api/v1/audit-logs/users`
-
-- Summary: Fetch audit log user selector options
-- Allowed role/access: SUPER_ADMIN
-- Notes: Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin. SUPER_ADMIN only. Returns actor/user selector options for System Logs filters.
-- Parameters:
-  - `search` (query, optional, string)
-  - `role` (query, optional, string)
-  - `limit` (query, optional, number)
-- Response body:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "system",
-      "name": "System",
-      "email": null,
-      "role": "SYSTEM",
-      "label": "System Automated Action"
-    },
-    {
-      "id": "admin_id",
-      "name": "Sarah Chen",
-      "email": "sarah@example.com",
-      "role": "ADMIN",
-      "label": "Sarah Chen — Compliance Officer"
-    }
-  ],
-  "message": "Audit log users fetched successfully."
-}
-```
-
 ### GET `/api/v1/audit-logs/export`
 
 - Summary: Export audit logs CSV
@@ -4264,7 +4208,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - `targetType` (query, optional, string)
   - `module` (query, optional, string)
   - `status` (query, optional, string)
-  - `environment` (query, optional, string)
   - `sourceIp` (query, optional, string)
   - `from` (query, optional, string)
   - `to` (query, optional, string)
@@ -4297,7 +4240,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   - `targetType` (query, optional, string)
   - `module` (query, optional, string)
   - `status` (query, optional, string)
-  - `environment` (query, optional, string)
   - `sourceIp` (query, optional, string)
   - `from` (query, optional, string)
   - `to` (query, optional, string)
@@ -4312,7 +4254,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "data": [
     {
       "id": "audit_log_id",
-      "eventId": "EV-90210",
       "logReference": "789042",
       "timestamp": "2023-10-27T14:32:01.000Z",
       "actor": {
@@ -4325,7 +4266,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
       "actionLabel": "Provider Approved",
       "module": "Provider Management",
       "sourceIp": "192.168.1.45",
-      "environment": "Production-Cluster-A",
       "status": "SUCCESS",
       "target": {
         "id": "provider_id",
@@ -4358,7 +4298,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "data": {
     "id": "audit_log_id",
     "logReference": "789042",
-    "eventId": "EV-90210",
     "timestamp": "2023-10-27T14:32:01.000Z",
     "status": "SUCCESS",
     "category": "AUDIT_TRAIL",
@@ -4371,7 +4310,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     "actionType": "TRANSACTION_AUTHORIZATION",
     "module": "Transactions",
     "sourceIp": "192.168.1.104",
-    "environment": "Production-Cluster-A",
     "target": {
       "id": "transaction_id",
       "type": "TRANSACTION"
@@ -4382,7 +4320,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
     },
     "systemResponse": {
       "statusCode": 200,
-      "durationMs": 142,
       "message": "Transaction authorized successfully."
     },
     "createdAt": "2023-10-27T14:32:01.000Z"
@@ -11559,3 +11496,4 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
   "message": "Request completed successfully."
 }
 ```
+

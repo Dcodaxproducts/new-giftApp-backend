@@ -1770,48 +1770,15 @@
     &quot;failedCount&quot;: 140
   },
   &quot;message&quot;: &quot;Audit log stats fetched successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/audit-logs/action-types</code></div><div><span class="label">Summary:</span> Fetch audit log action types</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log action filter options are restricted to Super Admin. SUPER_ADMIN only. Returns action type dropdown options for System Logs filters.</div><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: [
-    {
-      &quot;key&quot;: &quot;PROVIDER_APPROVED&quot;,
-      &quot;label&quot;: &quot;Provider Approved&quot;
-    },
-    {
-      &quot;key&quot;: &quot;FAILED_LOGIN_ATTEMPT&quot;,
-      &quot;label&quot;: &quot;Failed Login Attempt&quot;
-    }
-  ],
-  &quot;message&quot;: &quot;Audit log action types fetched successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/audit-logs/users</code></div><div><span class="label">Summary:</span> Fetch audit log user selector options</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log actor selector options are restricted to Super Admin. SUPER_ADMIN only. Returns actor/user selector options for System Logs filters.</div><div class="label">Parameters:</div><ul><li><code>search</code> (query, optional, string) </li><li><code>role</code> (query, optional, string) </li><li><code>limit</code> (query, optional, number) </li></ul><div class="label">Response body:</div><pre>{
-  &quot;success&quot;: true,
-  &quot;data&quot;: [
-    {
-      &quot;id&quot;: &quot;system&quot;,
-      &quot;name&quot;: &quot;System&quot;,
-      &quot;email&quot;: null,
-      &quot;role&quot;: &quot;SYSTEM&quot;,
-      &quot;label&quot;: &quot;System Automated Action&quot;
-    },
-    {
-      &quot;id&quot;: &quot;admin_id&quot;,
-      &quot;name&quot;: &quot;Sarah Chen&quot;,
-      &quot;email&quot;: &quot;sarah@example.com&quot;,
-      &quot;role&quot;: &quot;ADMIN&quot;,
-      &quot;label&quot;: &quot;Sarah Chen — Compliance Officer&quot;
-    }
-  ],
-  &quot;message&quot;: &quot;Audit log users fetched successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/audit-logs/export</code></div><div><span class="label">Summary:</span> Export audit logs CSV</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin. SUPER_ADMIN only. Exports sanitized audit log records using the same filters as the list API.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>actorId</code> (query, optional, string) </li><li><code>userId</code> (query, optional, string) </li><li><code>targetId</code> (query, optional, string) </li><li><code>action</code> (query, optional, string) </li><li><code>actionType</code> (query, optional, string) </li><li><code>targetType</code> (query, optional, string) </li><li><code>module</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>environment</code> (query, optional, string) </li><li><code>sourceIp</code> (query, optional, string) </li><li><code>from</code> (query, optional, string) </li><li><code>to</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/audit-logs/export</code></div><div><span class="label">Summary:</span> Export audit logs CSV</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit log export is restricted to Super Admin. SUPER_ADMIN only. Exports sanitized audit log records using the same filters as the list API.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>actorId</code> (query, optional, string) </li><li><code>userId</code> (query, optional, string) </li><li><code>targetId</code> (query, optional, string) </li><li><code>action</code> (query, optional, string) </li><li><code>actionType</code> (query, optional, string) </li><li><code>targetType</code> (query, optional, string) </li><li><code>module</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>sourceIp</code> (query, optional, string) </li><li><code>from</code> (query, optional, string) </li><li><code>to</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
-}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/audit-logs</code></div><div><span class="label">Summary:</span> List audit logs</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin. SUPER_ADMIN only. Supports filtering by action type, actor, status, date range, module, and source IP.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>actorId</code> (query, optional, string) </li><li><code>userId</code> (query, optional, string) </li><li><code>targetId</code> (query, optional, string) </li><li><code>action</code> (query, optional, string) </li><li><code>actionType</code> (query, optional, string) </li><li><code>targetType</code> (query, optional, string) </li><li><code>module</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>environment</code> (query, optional, string) </li><li><code>sourceIp</code> (query, optional, string) </li><li><code>from</code> (query, optional, string) </li><li><code>to</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
+}</pre></div><div class="endpoint"><div><span class="method GET">GET</span> <code>/api/v1/audit-logs</code></div><div><span class="label">Summary:</span> List audit logs</div><div><span class="label">Allowed role/access:</span> SUPER_ADMIN</div><div><span class="label">Notes:</span> Access: SUPER_ADMIN. SUPER_ADMIN only. Audit logs are restricted to Super Admin. SUPER_ADMIN only. Supports filtering by action type, actor, status, date range, module, and source IP.</div><div class="label">Parameters:</div><ul><li><code>page</code> (query, optional, number) </li><li><code>limit</code> (query, optional, number) </li><li><code>actorId</code> (query, optional, string) </li><li><code>userId</code> (query, optional, string) </li><li><code>targetId</code> (query, optional, string) </li><li><code>action</code> (query, optional, string) </li><li><code>actionType</code> (query, optional, string) </li><li><code>targetType</code> (query, optional, string) </li><li><code>module</code> (query, optional, string) </li><li><code>status</code> (query, optional, string) </li><li><code>sourceIp</code> (query, optional, string) </li><li><code>from</code> (query, optional, string) </li><li><code>to</code> (query, optional, string) </li><li><code>fromDate</code> (query, optional, string) </li><li><code>toDate</code> (query, optional, string) </li><li><code>sortBy</code> (query, optional, string) </li><li><code>sortOrder</code> (query, optional, string) </li></ul><div class="label">Response body:</div><pre>{
   &quot;success&quot;: true,
   &quot;data&quot;: [
     {
       &quot;id&quot;: &quot;audit_log_id&quot;,
-      &quot;eventId&quot;: &quot;EV-90210&quot;,
       &quot;logReference&quot;: &quot;789042&quot;,
       &quot;timestamp&quot;: &quot;2023-10-27T14:32:01.000Z&quot;,
       &quot;actor&quot;: {
@@ -1824,7 +1791,6 @@
       &quot;actionLabel&quot;: &quot;Provider Approved&quot;,
       &quot;module&quot;: &quot;Provider Management&quot;,
       &quot;sourceIp&quot;: &quot;192.168.1.45&quot;,
-      &quot;environment&quot;: &quot;Production-Cluster-A&quot;,
       &quot;status&quot;: &quot;SUCCESS&quot;,
       &quot;target&quot;: {
         &quot;id&quot;: &quot;provider_id&quot;,
@@ -1845,7 +1811,6 @@
   &quot;data&quot;: {
     &quot;id&quot;: &quot;audit_log_id&quot;,
     &quot;logReference&quot;: &quot;789042&quot;,
-    &quot;eventId&quot;: &quot;EV-90210&quot;,
     &quot;timestamp&quot;: &quot;2023-10-27T14:32:01.000Z&quot;,
     &quot;status&quot;: &quot;SUCCESS&quot;,
     &quot;category&quot;: &quot;AUDIT_TRAIL&quot;,
@@ -1858,7 +1823,6 @@
     &quot;actionType&quot;: &quot;TRANSACTION_AUTHORIZATION&quot;,
     &quot;module&quot;: &quot;Transactions&quot;,
     &quot;sourceIp&quot;: &quot;192.168.1.104&quot;,
-    &quot;environment&quot;: &quot;Production-Cluster-A&quot;,
     &quot;target&quot;: {
       &quot;id&quot;: &quot;transaction_id&quot;,
       &quot;type&quot;: &quot;TRANSACTION&quot;
@@ -1869,7 +1833,6 @@
     },
     &quot;systemResponse&quot;: {
       &quot;statusCode&quot;: 200,
-      &quot;durationMs&quot;: 142,
       &quot;message&quot;: &quot;Transaction authorized successfully.&quot;
     },
     &quot;createdAt&quot;: &quot;2023-10-27T14:32:01.000Z&quot;
@@ -5107,3 +5070,5 @@
   &quot;data&quot;: &quot;&lt;response returned by endpoint&gt;&quot;,
   &quot;message&quot;: &quot;Request completed successfully.&quot;
 }</pre></div></body></html>
+
+

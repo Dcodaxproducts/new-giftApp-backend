@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AccountType, GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole } from '@prisma/client';
-import { PrismaService } from '../../../database/prisma.service';
+import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../../common/pagination/pagination.util';
+import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import {
   ExportProvidersDto,
@@ -445,15 +446,16 @@ export class ProviderManagementRepository {
 
   deleteProviderPermanently(params: { actorId: string; providerId: string; providerEmail: string; providerRole: UserRole; reason: string; deleteRelatedRecords: boolean }) {
     return this.prisma.$transaction(async (tx) => {
+      const actor = await tx.user.findUnique({ where: { id: params.actorId }, select: ADMIN_AUDIT_ACTOR_SELECT });
       await tx.adminAuditLog.create({
-        data: {
+        data: buildAdminAuditLogData({
           actorId: params.actorId,
           targetId: params.providerId,
           targetType: 'PROVIDER',
           action: 'PROVIDER_PERMANENTLY_DELETED',
           beforeJson: { id: params.providerId, email: params.providerEmail, role: params.providerRole },
           afterJson: { reason: params.reason, deleteRelatedRecords: params.deleteRelatedRecords },
-        },
+        }, actor),
       });
       await tx.authSession.deleteMany({ where: { userId: params.providerId } });
       await tx.notification.deleteMany({ where: { recipientId: params.providerId } });
@@ -482,8 +484,9 @@ export class ProviderManagementRepository {
     return this.notificationDispatch.createAndEmit(data);
   }
 
-  createAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
-    return this.prisma.adminAuditLog.create({ data });
+  async createAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
+    const actor = data.actorId ? await this.prisma.user.findUnique({ where: { id: data.actorId }, select: ADMIN_AUDIT_ACTOR_SELECT }) : null;
+    return this.prisma.adminAuditLog.create({ data: buildAdminAuditLogData(data, actor) });
   }
 
   private buildProviderWhere(query: ListProvidersDto | ExportProvidersDto): Prisma.UserWhereInput {

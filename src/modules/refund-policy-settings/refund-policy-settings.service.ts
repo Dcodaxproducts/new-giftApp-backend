@@ -121,6 +121,6 @@ export class RefundPolicySettingsService {
   }
   private toView(settings: SettingsWithUpdater) { return { allowRefund: settings.allowRefund, cancellationTiers: this.cancellationTiers(settings.cancellationTiersJson), lastUpdatedAt: settings.updatedAt }; }
   private toAuditView(settings: SettingsWithUpdater) { return { allowRefund: settings.allowRefund, cancellationTiers: this.cancellationTiers(settings.cancellationTiersJson) }; }
-  private async writeAudit(user: AuthUserContext, targetId: string, beforeJson: unknown, afterJson: unknown, ipAddress?: string, userAgent?: string | string[]) { await this.auditLog.write({ actorId: user.uid, targetId, targetType: 'REFUND_POLICY_SETTINGS', action: 'REFUND_POLICY_SETTINGS_UPDATED', module: 'Refund Policy Settings', beforeJson, afterJson, ipAddress, userAgent: Array.isArray(userAgent) ? userAgent.join(', ') : userAgent }); }
+  private async writeAudit(user: AuthUserContext, targetId: string, beforeJson: unknown, afterJson: unknown, ipAddress?: string, _userAgent?: string | string[]) { await this.auditLog.write({ actorId: user.uid, targetId, targetType: 'REFUND_POLICY_SETTINGS', action: 'REFUND_POLICY_SETTINGS_UPDATED', module: 'Refund Policy Settings', beforeJson, afterJson, ipAddress }); }
   private daysBetween(from: Date, to: Date): number { return Math.floor((to.getTime() - from.getTime()) / 86_400_000); }
 }

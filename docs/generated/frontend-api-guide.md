@@ -344,10 +344,8 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
 | GET | `/api/v1/audit-logs` | List audit logs | SUPER_ADMIN |
-| GET | `/api/v1/audit-logs/action-types` | Fetch audit log action types | SUPER_ADMIN |
 | GET | `/api/v1/audit-logs/export` | Export audit logs CSV | SUPER_ADMIN |
 | GET | `/api/v1/audit-logs/stats` | Fetch audit log stats | SUPER_ADMIN |
-| GET | `/api/v1/audit-logs/users` | Fetch audit log user selector options | SUPER_ADMIN |
 | GET | `/api/v1/audit-logs/{id}` | Fetch audit log detail | SUPER_ADMIN |
 
 ### Admin - System Settings (5 APIs)

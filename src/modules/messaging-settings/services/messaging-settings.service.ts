@@ -28,7 +28,7 @@ export class MessagingSettingsService {
     const data = await this.updateInput(dto, user.uid);
     const updated = await this.repository.updateSettings(current.id, data);
     const after = this.toView(updated);
-    await this.repository.createAuditLog({ actorId: user.uid, targetId: updated.id, targetType: 'MESSAGING_SETTINGS', action: 'MESSAGING_SETTINGS_UPDATED', actionLabel: 'Messaging settings updated', module: 'messagingSettings', beforeJson: this.toJson(before), afterJson: this.toJson(after), ipAddress, userAgent: this.normalizeUserAgent(userAgent) });
+    await this.repository.createAuditLog({ actorId: user.uid, targetId: updated.id, targetType: 'MESSAGING_SETTINGS', action: 'MESSAGING_SETTINGS_UPDATED', actionLabel: 'Messaging settings updated', module: 'messagingSettings', beforeJson: this.toJson(before), afterJson: this.toJson(after), ipAddress });
     return { data: after, message: 'Messaging settings updated successfully.' };
   }
 

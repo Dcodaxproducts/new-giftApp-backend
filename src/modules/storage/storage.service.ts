@@ -53,7 +53,7 @@ export class StorageService {
     const uploadUrl = await getSignedUrl(this.getClient(), command, { expiresIn });
     const fileUrl = publicBaseUrl ? `${publicBaseUrl.replace(/\/$/, '')}/${objectKey}` : `https://${bucket}.s3.${this.required('AWS_REGION')}.amazonaws.com/${objectKey}`;
     const file = await this.uploadsRepository.createUpload({ ownerId: ownership.ownerId, ownerRole: user.role, targetAccountId: ownership.targetAccountId, folder: dto.folder, fileName: dto.fileName, contentType: dto.contentType, sizeBytes: dto.sizeBytes, fileUrl, storageKey: objectKey, status: UploadedFileStatus.PENDING, giftId: ownership.giftId });
-    await this.auditLog.write({ actorId: user.uid, targetId: file.id, targetType: 'UPLOAD', action: 'PRESIGNED_UPLOAD_URL_GENERATED', afterJson: { folder: dto.folder, objectKey, contentType: dto.contentType, targetAccountId: ownership.targetAccountId, giftId: ownership.giftId }, ipAddress, userAgent: this.normalizeUserAgent(userAgent) });
+    await this.auditLog.write({ actorId: user.uid, targetId: file.id, targetType: 'UPLOAD', action: 'PRESIGNED_UPLOAD_URL_GENERATED', afterJson: { folder: dto.folder, objectKey, contentType: dto.contentType, targetAccountId: ownership.targetAccountId, giftId: ownership.giftId }, ipAddress });
     return { data: { id: file.id, uploadUrl, fileUrl, objectKey, expiresIn }, message: 'Presigned upload URL generated successfully' };
   }
 

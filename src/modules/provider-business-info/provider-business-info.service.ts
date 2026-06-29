@@ -60,8 +60,7 @@ export class ProviderBusinessInfoService {
         targetType: 'PROVIDER',
         action: 'PROVIDER_BUSINESS_INFO_UPDATED',
         beforeJson: this.toJson(this.auditInfo(provider)),
-        afterJson: this.toJson(this.auditInfo(updated)),
-        metadataJson: { verificationRequired: materialChange },
+        afterJson: this.toJson({ ...this.auditInfo(updated), verificationRequired: materialChange }),
     });
 
     if (materialChange) {

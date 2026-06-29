@@ -17,7 +17,6 @@ export class ListAuditLogsDto {
   @ApiPropertyOptional() @IsOptional() @IsString() targetType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() module?: string;
   @ApiPropertyOptional({ enum: AuditLogStatusFilter }) @IsOptional() @IsEnum(AuditLogStatusFilter) status?: AuditLogStatusFilter;
-  @ApiPropertyOptional() @IsOptional() @IsString() environment?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() sourceIp?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() from?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() to?: string;
@@ -32,8 +31,3 @@ export class AuditLogStatsDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString() toDate?: string;
 }
 
-export class AuditLogUsersDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() role?: string;
-  @ApiPropertyOptional({ default: 10, maximum: 100 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) @Max(100) limit?: number;
-}

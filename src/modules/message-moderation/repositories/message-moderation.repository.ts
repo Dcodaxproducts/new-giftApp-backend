@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MessageModerationAction, MessageModerationStatus, MessageVisibilityStatus, Prisma } from '@prisma/client';
+import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { PrismaService } from '../../../database/prisma.service';
 
 export type MessageModerationTx = Prisma.TransactionClient;
@@ -45,8 +46,18 @@ export class MessageModerationRepository {
     return tx.messageModerationLog.create({ data: { caseId: data.caseId, messageId: data.messageId, action: data.action, reason: data.reason, internalNote: data.internalNote, actorId: data.actorId, metadataJson: data.metadata ?? Prisma.JsonNull } });
   }
 
-  createAuditLog(tx: MessageModerationTx, data: { actorId: string; action: string; entityId: string; metadata?: Prisma.InputJsonValue }) {
-    return tx.adminAuditLog.create({ data: { actorId: data.actorId, actorType: 'ADMIN', action: data.action, module: 'messageModeration', targetType: 'MESSAGE_MODERATION_CASE', targetId: data.entityId, metadataJson: data.metadata ?? Prisma.JsonNull } });
+  async createAuditLog(tx: MessageModerationTx, data: { actorId: string; action: string; entityId: string; metadata?: Prisma.InputJsonValue }) {
+    const actor = await tx.user.findUnique({ where: { id: data.actorId }, select: ADMIN_AUDIT_ACTOR_SELECT });
+    return tx.adminAuditLog.create({
+      data: buildAdminAuditLogData({
+        actorId: data.actorId,
+        action: data.action,
+        module: 'messageModeration',
+        targetType: 'MESSAGE_MODERATION_CASE',
+        targetId: data.entityId,
+        afterJson: data.metadata ?? Prisma.JsonNull,
+      }, actor),
+    });
   }
 
   createEscalation(tx: MessageModerationTx, data: { caseId: string; messageId: string; conversationId: string; escalationType: string; priority: Prisma.MessageModerationEscalationUncheckedCreateInput['priority']; reason: string; assignedToAdminId?: string; createdByAdminId: string }) {

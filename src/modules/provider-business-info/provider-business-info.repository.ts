@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
+import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../common/audit/admin-audit-log.util';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
@@ -23,8 +24,9 @@ export class ProviderBusinessInfoRepository {
     return this.prisma.user.update({ where: { id }, data });
   }
 
-  createAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
-    return this.prisma.adminAuditLog.create({ data });
+  async createAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
+    const actor = data.actorId ? await this.prisma.user.findUnique({ where: { id: data.actorId }, select: ADMIN_AUDIT_ACTOR_SELECT }) : null;
+    return this.prisma.adminAuditLog.create({ data: buildAdminAuditLogData(data, actor) });
   }
 
   findActiveSuperAdmins() {

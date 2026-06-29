@@ -10,26 +10,19 @@ function createAuditService() {
   const log = {
     id: 'log_1',
     logReference: '789042',
-    eventId: 'EV-90210',
     actorId: 'admin_1',
     actorType: 'SUPER_ADMIN',
-    actorNameSnapshot: 'Super Admin',
+    actorSnapshot: { id: 'admin_1', name: 'Super Admin', role: 'SUPER_ADMIN' },
     targetId: 'provider_1',
     targetType: 'PROVIDER',
     action: 'PROVIDER_APPROVED',
     actionLabel: 'Provider Approved',
     module: 'Provider Management',
-    environment: 'Production-Cluster-A',
     status: AuditLogStatus.SUCCESS,
     severity: AuditLogSeverity.HIGH,
     beforeJson: { authorization: '[REDACTED]' },
     afterJson: { status: 'approved' },
-    requestPayloadJson: { authorization: '[REDACTED]' },
-    responsePayloadJson: { status: 'approved' },
-    metadataJson: { version: '2.4.0' },
     ipAddress: '192.168.1.45',
-    userAgent: 'Mozilla',
-    durationMs: 142,
     createdAt: new Date(),
     actor: { id: 'admin_1', email: 'admin@example.com', firstName: 'Sarah', lastName: 'Chen', adminTitle: 'Compliance Officer', role: UserRole.SUPER_ADMIN },
   };
@@ -51,7 +44,10 @@ describe('AuditLogsService', () => {
   it('SUPER_ADMIN can list audit logs', async () => {
     const { service } = createAuditService();
     const result = await service.list({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, {});
-    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'log_1', action: 'PROVIDER_APPROVED' }));
+    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'log_1', actorId: 'admin_1', actorType: 'SUPER_ADMIN', action: 'PROVIDER_APPROVED', severity: AuditLogSeverity.HIGH }));
+    expect(result.data[0]).not.toHaveProperty('actor');
+    expect(result.data[0]).not.toHaveProperty('target');
+    expect(result.data[0]).not.toHaveProperty('timestamp');
   });
 
   it('lists audit logs newest first by default', async () => {
@@ -66,11 +62,20 @@ describe('AuditLogsService', () => {
     expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ actorId: 'admin_1', action: 'PROVIDER_APPROVED', status: 'SUCCESS' }) }));
   });
 
-  it('log details return sanitized raw JSON payload', async () => {
+  it('log details return only AdminAuditLog table fields', async () => {
     const { service } = createAuditService();
     const result = await service.details('log_1');
-    expect((result.data.requestPayload as { authorization: string }).authorization).toBe('[REDACTED]');
-    expect(result.data.systemResponse.durationMs).toBe(142);
+    expect(result.data).toEqual(expect.objectContaining({ id: 'log_1', actorId: 'admin_1', actorType: 'SUPER_ADMIN', action: 'PROVIDER_APPROVED', actionLabel: 'Provider Approved' }));
+    expect(result.data).toHaveProperty('beforeJson');
+    expect(result.data).toHaveProperty('afterJson');
+    expect(result.data).toHaveProperty('ipAddress');
+    expect(result.data).not.toHaveProperty('actor');
+    expect(result.data).not.toHaveProperty('target');
+    expect(result.data).not.toHaveProperty('timestamp');
+    expect(result.data).not.toHaveProperty('requestPayload');
+    expect(result.data).not.toHaveProperty('systemResponse');
+    expect(result.data).not.toHaveProperty('category');
+    expect(result.data).not.toHaveProperty('actionType');
   });
 
   it('export csv applies filters', async () => {
@@ -83,47 +88,34 @@ describe('AuditLogsService', () => {
   it('stats endpoint returns summary counts', async () => {
     const { service } = createAuditService();
     const result = await service.stats({});
-    expect(result.data).toEqual(expect.objectContaining({ totalLogs: 1, successCount: 1, failedCount: 1, criticalAlerts24h: 1 }));
-  });
-
-  it('action types endpoint returns dropdown options', async () => {
-    const { service } = createAuditService();
-    const result = await service.actionTypes();
-    expect(result.data[0]).toEqual(expect.objectContaining({ key: 'PROVIDER_APPROVED' }));
-  });
-
-  it('users endpoint returns selector options', async () => {
-    const { service } = createAuditService();
-    const result = await service.users({ search: 'Sarah' });
-    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'system' }));
-    expect(result.data[1]).toEqual(expect.objectContaining({ id: 'admin_1', role: UserRole.ADMIN }));
+    expect(result.data).toEqual({ totalLogs: 1, successCount: 1, failedCount: 1, criticalAlerts24h: 1 });
   });
 });
 
 describe('System logs / audit trail source checks', () => {
-  const controller = readFileSync(join(__dirname, '../audit-logs.controller.ts'), 'utf8');
-  const service = readFileSync(join(__dirname, '../audit-logs.service.ts'), 'utf8');
-  const providerService = readFileSync(join(__dirname, '../../provider-management/services/provider-management.service.ts'), 'utf8');
-  const userService = readFileSync(join(__dirname, '../../user-management/services/user-management-core.service.ts'), 'utf8');
-  const disputeService = readFileSync(join(__dirname, '../../admin-disputes/services/admin-disputes.service.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, 'audit-logs.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, 'audit-logs.service.ts'), 'utf8');
+  const providerService = readFileSync(join(__dirname, '../provider-management/services/provider-management.service.ts'), 'utf8');
+  const userService = readFileSync(join(__dirname, '../user-management/services/user-management-core.service.ts'), 'utf8');
+  const disputeService = readFileSync(join(__dirname, '../admin-disputes/admin-disputes.service.ts'), 'utf8');
 
   it('is SUPER_ADMIN only and exposes static routes before :id', () => {
     expect(controller).toContain("@Roles(UserRole.SUPER_ADMIN)");
     expect(controller.indexOf("@Get('stats')")).toBeLessThan(controller.indexOf("@Get(':id')"));
-    expect(controller.indexOf("@Get('action-types')")).toBeLessThan(controller.indexOf("@Get(':id')"));
-    expect(controller.indexOf("@Get('users')")).toBeLessThan(controller.indexOf("@Get(':id')"));
+    expect(controller).not.toContain("@Get('action-types')");
+    expect(controller).not.toContain("@Get('users')");
     expect(controller.indexOf("@Get('export')")).toBeLessThan(controller.indexOf("@Get(':id')"));
   });
 
-  it('documents sanitization, csv export behavior, and rich responses', () => {
-    expect(controller).toContain('sanitized raw JSON payloads');
+  it('documents table-field details and csv export behavior', () => {
+    expect(controller).toContain('Returns only AdminAuditLog table fields');
     expect(controller).toContain('Exports sanitized audit log records');
     expect(controller).toContain('02 Admin - System Logs & Audit Trail');
   });
 
-  it('sensitive fields are redacted', () => {
-    expect(service).toContain('[REDACTED]');
-    for (const key of ['password', 'accessToken', 'refreshToken', 'authorization', 'cardNumber', 'apiKey']) expect(service).toContain(key);
+  it('details do not expose raw audit payloads', () => {
+    expect(service).not.toContain('requestPayload');
+    expect(service).not.toContain('systemResponse');
   });
 
   it('provider approval, user password change, and dispute decisions create audit logs', () => {
