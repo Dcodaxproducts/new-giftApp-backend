@@ -81,26 +81,6 @@ This document is generated from the current OpenAPI for the Gift App backend. Fo
 
 ## 00 System
 
-### GET `/api/v1/system/build-info`
-
-- Summary: Fetch build and generated-doc metadata
-- Allowed role/access: PUBLIC
-- Notes: Access: PUBLIC. Safe deployment guard for comparing live build/OpenAPI metadata with committed generated docs. Does not expose secrets. Safe deployment guard for comparing the live server build and Swagger/OpenAPI generation timestamp with the committed generated docs. Does not expose secrets.
-- Response body:
-```json
-{
-  "success": true,
-  "data": {
-    "appName": "Gift App Backend",
-    "version": "0.1.0",
-    "commitSha": "git_sha",
-    "buildTime": "2026-05-25T10:00:00.000Z",
-    "openapiGeneratedAt": "2026-05-25T10:00:00.000Z"
-  },
-  "message": "Build info fetched successfully."
-}
-```
-
 ## 01 Auth
 
 ### POST `/api/v1/auth/users/register`

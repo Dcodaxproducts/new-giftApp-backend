@@ -6,7 +6,6 @@ export interface SwaggerAccessRule {
 }
 
 export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
-  'GET /api/v1/system/build-info': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Safe deployment guard for comparing live build/OpenAPI metadata with committed generated docs. Does not expose secrets.' },
   'POST /api/v1/auth/guest/session': { allowedRoles: 'PUBLIC', description: 'Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.' },
 
   'GET /api/v1/admin-roles': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions.' },

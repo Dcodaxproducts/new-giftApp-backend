@@ -24087,41 +24087,6 @@
         "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
-    "/api/v1/system/build-info": {
-      "get": {
-        "description": "Access: PUBLIC. Safe deployment guard for comparing live build/OpenAPI metadata with committed generated docs. Does not expose secrets. Safe deployment guard for comparing the live server build and Swagger/OpenAPI generation timestamp with the committed generated docs. Does not expose secrets.",
-        "operationId": "SystemBuildInfoController_getBuildInfo",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "appName": "Gift App Backend",
-                      "version": "0.1.0",
-                      "commitSha": "git_sha",
-                      "buildTime": "2026-05-25T10:00:00.000Z",
-                      "openapiGeneratedAt": "2026-05-25T10:00:00.000Z"
-                    },
-                    "message": "Build info fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "summary": "Fetch build and generated-doc metadata",
-        "tags": [
-          "00 System"
-        ],
-        "x-allowed-roles": "PUBLIC",
-        "x-access": "PUBLIC"
-      }
-    },
     "/api/v1/admin/system-settings": {
       "get": {
         "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SMTP secrets are never returned.",

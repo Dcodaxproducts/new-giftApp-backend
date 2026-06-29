@@ -764,11 +764,6 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 | GET | `/api/v1/uploads/{id}` | Fetch upload details | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 | DELETE | `/api/v1/uploads/{id}` | Delete upload | SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER |
 
-### System (1 APIs)
-
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| GET | `/api/v1/system/build-info` | Fetch build and generated-doc metadata | PUBLIC |
 
 ## Provider APIs
 
@@ -981,4 +976,5 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 - On reconnect, re-emit `chat.join` or `support.join` for visible threads.
 - Use REST list/detail endpoints to hydrate initial state and backfill missed messages.
 - Fallback REST endpoints: unified `/api/v1/chats...`.
+
 

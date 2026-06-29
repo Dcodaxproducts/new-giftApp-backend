@@ -86,7 +86,6 @@ for (const route of removedRoutes) {
   const [method, routePath] = route.split(' ');
   if (openapi.paths?.[routePath]?.[method.toLowerCase()]) fail(`Removed route still present in OpenAPI: ${route}`);
 }
-if (!openapi.paths?.['/api/v1/system/build-info']?.get) fail('Expected build info endpoint missing: GET /api/v1/system/build-info');
 if (typeof openapi.info?.['x-openapi-generated-at'] !== 'string') fail('OpenAPI generated timestamp missing: info.x-openapi-generated-at');
 
 const tagNames = new Set((openapi.tags || []).map((tag) => tag.name));
