@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { AuditLogSeverity, AuditLogStatus, UserRole } from '@prisma/client';
-import { AuditLogStatusFilter } from './dto/audit-logs.dto';
+import { AuditLogSeverityFilter, AuditLogStatusFilter } from './dto/audit-logs.dto';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AuditLogsRepository } from './audit-logs.repository';
@@ -56,10 +56,25 @@ describe('AuditLogsService', () => {
     expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
   });
 
-  it('filters work by action type, actor/user, date range, and status', async () => {
+  it('filters work by action type, actor/user, date range, status, and severity', async () => {
     const { service, prisma } = createAuditService();
-    await service.list({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, { actionType: 'PROVIDER_APPROVED', actorId: 'admin_1', fromDate: '2026-05-01T00:00:00.000Z', toDate: '2026-05-31T23:59:59.999Z', status: AuditLogStatusFilter.SUCCESS });
-    expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ actorId: 'admin_1', action: 'PROVIDER_APPROVED', status: 'SUCCESS' }) }));
+    await service.list({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, { actionType: 'PROVIDER_APPROVED', actorId: 'admin_1', fromDate: '2026-05-01T00:00:00.000Z', toDate: '2026-05-31T23:59:59.999Z', status: AuditLogStatusFilter.SUCCESS, severity: AuditLogSeverityFilter.HIGH });
+    expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ actorId: 'admin_1', action: 'PROVIDER_APPROVED', status: 'SUCCESS', severity: 'HIGH' }) }));
+  });
+
+  it('searches audit logs by actor name and email like provider list search', async () => {
+    const { service, prisma } = createAuditService();
+    await service.list({ uid: 'super_1', role: UserRole.SUPER_ADMIN }, { search: 'Sarah Chen' });
+    expect(prisma.adminAuditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([
+          { actor: { is: { firstName: { contains: 'Sarah Chen', mode: 'insensitive' } } } },
+          { actor: { is: { lastName: { contains: 'Sarah Chen', mode: 'insensitive' } } } },
+          { actor: { is: { email: { contains: 'Sarah Chen', mode: 'insensitive' } } } },
+          { actor: { is: { AND: [{ firstName: { contains: 'Sarah', mode: 'insensitive' } }, { lastName: { contains: 'Chen', mode: 'insensitive' } }] } } },
+        ]),
+      }),
+    }));
   });
 
   it('log details return only AdminAuditLog table fields', async () => {

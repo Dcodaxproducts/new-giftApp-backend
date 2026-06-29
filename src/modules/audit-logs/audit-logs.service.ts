@@ -3,7 +3,7 @@ import { AuditLogSeverity, AuditLogStatus, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { getPagination } from '../../common/pagination/pagination.util';
 import { AuditLogsRepository } from './audit-logs.repository';
-import { AuditLogSortBy, AuditLogStatsDto, AuditLogStatusFilter, ListAuditLogsDto, SortOrder } from './dto/audit-logs.dto';
+import { AuditLogSeverityFilter, AuditLogSortBy, AuditLogStatsDto, AuditLogStatusFilter, ListAuditLogsDto, SortOrder } from './dto/audit-logs.dto';
 
 @Injectable()
 export class AuditLogsService {
@@ -70,6 +70,7 @@ export class AuditLogsService {
 
   private where(query: Partial<ListAuditLogsDto>): Prisma.AdminAuditLogWhereInput {
     const status = query.status && query.status !== AuditLogStatusFilter.ALL ? query.status as AuditLogStatus : undefined;
+    const severity = query.severity && query.severity !== AuditLogSeverityFilter.ALL ? query.severity as AuditLogSeverity : undefined;
     const from = query.fromDate ?? query.from;
     const to = query.toDate ?? query.to;
     return {
@@ -79,9 +80,33 @@ export class AuditLogsService {
       action: query.action ?? query.actionType,
       module: query.module,
       status,
+      severity,
       ipAddress: query.sourceIp,
+      ...this.actorSearch(query.search),
       ...(from || to ? { createdAt: { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) } } : {}),
     };
+  }
+
+  private actorSearch(search?: string): Prisma.AdminAuditLogWhereInput {
+    const term = search?.trim();
+    if (!term) return {};
+
+    const [firstToken, ...remainingTokens] = term.split(/\s+/).filter(Boolean);
+    const lastToken = remainingTokens.at(-1);
+    const OR: Prisma.AdminAuditLogWhereInput[] = [
+      { actor: { is: { firstName: { contains: term, mode: 'insensitive' } } } },
+      { actor: { is: { lastName: { contains: term, mode: 'insensitive' } } } },
+      { actor: { is: { email: { contains: term, mode: 'insensitive' } } } },
+    ];
+
+    if (firstToken && lastToken) {
+      OR.push(
+        { actor: { is: { AND: [{ firstName: { contains: firstToken, mode: 'insensitive' } }, { lastName: { contains: lastToken, mode: 'insensitive' } }] } } },
+        { actor: { is: { AND: [{ firstName: { contains: lastToken, mode: 'insensitive' } }, { lastName: { contains: firstToken, mode: 'insensitive' } }] } } },
+      );
+    }
+
+    return { OR };
   }
 
   private tableRow(item: { id: string; logReference: string | null; actorId: string | null; actorType: string | null; actorSnapshot: Prisma.JsonValue | null; targetId: string | null; targetType: string | null; action: string; actionLabel: string | null; module: string | null; status: AuditLogStatus; severity: AuditLogSeverity; beforeJson: Prisma.JsonValue | null; afterJson: Prisma.JsonValue | null; ipAddress: string | null; createdAt: Date }) {

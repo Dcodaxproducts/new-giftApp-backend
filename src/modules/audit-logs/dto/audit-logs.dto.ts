@@ -5,10 +5,12 @@ import { IsDateString, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'cla
 export enum AuditLogSortBy { CREATED_AT = 'createdAt', ACTION = 'action', STATUS = 'status' }
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum AuditLogStatusFilter { ALL = 'ALL', SUCCESS = 'SUCCESS', FAILED = 'FAILED', PENDING = 'PENDING', WARNING = 'WARNING' }
+export enum AuditLogSeverityFilter { ALL = 'ALL', LOW = 'LOW', MEDIUM = 'MEDIUM', HIGH = 'HIGH', CRITICAL = 'CRITICAL' }
 
 export class ListAuditLogsDto {
   @ApiPropertyOptional({ default: 1 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) page?: number;
   @ApiPropertyOptional({ default: 10, maximum: 100 }) @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() @Min(1) @Max(100) limit?: number;
+  @ApiPropertyOptional({ description: 'Searches actor name and email.' }) @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() actorId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() userId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() targetId?: string;
@@ -17,6 +19,7 @@ export class ListAuditLogsDto {
   @ApiPropertyOptional() @IsOptional() @IsString() targetType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() module?: string;
   @ApiPropertyOptional({ enum: AuditLogStatusFilter }) @IsOptional() @IsEnum(AuditLogStatusFilter) status?: AuditLogStatusFilter;
+  @ApiPropertyOptional({ enum: AuditLogSeverityFilter }) @IsOptional() @IsEnum(AuditLogSeverityFilter) severity?: AuditLogSeverityFilter;
   @ApiPropertyOptional() @IsOptional() @IsString() sourceIp?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() from?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() to?: string;
