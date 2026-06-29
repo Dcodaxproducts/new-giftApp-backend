@@ -399,9 +399,6 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 
 | Method | Endpoint | Purpose | Access |
 |---|---|---|---|
-| GET | `/api/v1/admin/workflows/app-flow` | Fetch whole-system workflow app flow metadata | Authenticated |
-| GET | `/api/v1/admin/workflows/state-machines` | Fetch declared system state machines | Authenticated |
-| GET | `/api/v1/admin/workflows/transition-rules` | Fetch workflow transition guardrails and aliases | Authenticated |
 
 ### Auth (17 APIs)
 
@@ -984,3 +981,4 @@ Generated from `docs/generated/openapi.json` on 2026-06-07 14:33 UTC.
 - On reconnect, re-emit `chat.join` or `support.join` for visible threads.
 - Use REST list/detail endpoints to hydrate initial state and backfill missed messages.
 - Fallback REST endpoints: unified `/api/v1/chats...`.
+

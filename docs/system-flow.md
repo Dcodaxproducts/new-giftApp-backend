@@ -1,6 +1,6 @@
 # System Flow Metadata
 
-This document summarizes the platform-level workflows exposed by `GET /api/v1/admin/workflows/app-flow`.
+This document summarizes the platform-level workflows.
 
 1. Super Admin config → provider onboarding → provider approval
 2. Provider inventory/offers → marketplace visibility
@@ -15,4 +15,3 @@ This document summarizes the platform-level workflows exposed by `GET /api/v1/ad
 11. Notification creation → socket/push/email delivery → read/action
 12. Upload presigned URL → completion → usage validation
 
-Transition rules are centralized in `src/modules/workflow-metadata/services/*state-machine.service.ts`.

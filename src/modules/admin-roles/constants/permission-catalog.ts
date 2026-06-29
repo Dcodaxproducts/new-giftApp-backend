@@ -353,13 +353,6 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
-    module: 'workflowMetadata',
-    label: 'Workflow Metadata',
-    permissions: [
-      { key: 'read', label: 'View Workflow Metadata', description: 'View system flow metadata, state machines, aliases, and transition rules.' },
-    ],
-  },
-  {
     module: 'userSafety',
     label: 'User Safety Moderation',
     permissions: [
