@@ -31,6 +31,7 @@ export const SWAGGER_TAG_ORDER = [
   '02 Admin - Refund Policy Settings',
   '02 Admin - Media Upload Policy',
   '02 Admin - System Settings',
+  '02 Admin - Seasonal Themes',
   '02 Admin - System Health Monitoring',
   '02 Admin - Guest Access Settings',
   '02 Admin - System Logs & Audit Trail',
@@ -79,6 +80,7 @@ export const SWAGGER_TAG_ORDER = [
   '06 Broadcast Notifications',
   '07 Plans & Coupons',
   '07 Storage',
+  '10 Public - Seasonal Themes',
   '08 Chat - Threads',
 ] as const;
 

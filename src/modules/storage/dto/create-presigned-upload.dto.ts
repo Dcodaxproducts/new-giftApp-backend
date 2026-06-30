@@ -22,6 +22,7 @@ export enum UploadFolder {
   PROVIDER_SUPPORT_ATTACHMENTS = 'provider-support-attachments',
   SUPPORT_CHAT_ATTACHMENTS = 'support-chat-attachments',
   USER_REPORT_EVIDENCE = 'user-report-evidence',
+  SEASONAL_THEME_ASSETS = 'seasonal-theme-assets',
 }
 
 export class CreatePresignedUploadDto {

@@ -274,6 +274,13 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'GET /api/v1/referral-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Referral settings audit logs.' },
   'GET /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with refundPolicies.read', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows.' },
   'PATCH /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.' },
+
+  'GET /api/v1/admin/seasonal-themes': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.read', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.read permission.' },
+  'POST /api/v1/admin/seasonal-themes': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.create', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.create permission. imageUrl must reference a completed seasonal-theme-assets upload.' },
+  'GET /api/v1/admin/seasonal-themes/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.read', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.read permission.' },
+  'PATCH /api/v1/admin/seasonal-themes/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.update', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.update permission. Active date ranges cannot overlap.' },
+  'DELETE /api/v1/admin/seasonal-themes/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.delete', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.delete permission.' },
+  'GET /api/v1/seasonal-themes/active': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Returns the single active seasonal theme for the current date or null.' },
 };
 
 const providerPrefixes = ['/api/v1/provider/business-info', '/api/v1/provider/earnings', '/api/v1/provider/inventory', '/api/v1/provider/offers', '/api/v1/provider/orders', '/api/v1/provider/payout-methods', '/api/v1/provider/payouts', '/api/v1/provider/refund-requests', '/api/v1/provider/reviews', '/api/v1/provider/support'];

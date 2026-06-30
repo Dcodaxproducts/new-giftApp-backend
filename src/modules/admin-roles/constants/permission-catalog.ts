@@ -274,6 +274,16 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    module: 'seasonalThemes',
+    label: 'Seasonal Themes',
+    permissions: [
+      { key: 'read', label: 'View Seasonal Themes', description: 'View seasonal theme settings.' },
+      { key: 'create', label: 'Create Seasonal Themes', description: 'Create seasonal theme image schedules.' },
+      { key: 'update', label: 'Update Seasonal Themes', description: 'Update seasonal theme image schedules.' },
+      { key: 'delete', label: 'Delete Seasonal Themes', description: 'Delete seasonal theme schedules.' },
+    ],
+  },
+  {
     module: 'systemHealth',
     label: 'System Health Monitoring',
     permissions: [

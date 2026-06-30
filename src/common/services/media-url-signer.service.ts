@@ -24,6 +24,7 @@ const SIGNABLE_FOLDER_PREFIXES = [
   'provider-support-attachments/',
   'support-chat-attachments/',
   'user-report-evidence/',
+  "seasonal-theme-assets/"
 ];
 
 type JsonObject = Record<string, unknown>;

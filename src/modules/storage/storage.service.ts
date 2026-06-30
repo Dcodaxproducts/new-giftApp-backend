@@ -124,6 +124,7 @@ export class StorageService {
       if (dto.folder === UploadFolder.ADMIN_AVATARS || dto.folder === UploadFolder.SUPPORT_CHAT_ATTACHMENTS) return;
       if (dto.folder === UploadFolder.GIFT_CATEGORY_IMAGES && this.hasAnyPermission(user, ['giftCategories.create', 'giftCategories.update'])) return;
       if (dto.folder === UploadFolder.GIFT_IMAGES && this.hasAnyPermission(user, ['gifts.create', 'gifts.update'])) return;
+      if (dto.folder === UploadFolder.SEASONAL_THEME_ASSETS && this.hasAnyPermission(user, ['seasonalThemes.read', 'seasonalThemes.create', 'seasonalThemes.update', 'seasonalThemes.delete'])) return;
       throw new ForbiddenException('Admin role cannot upload to this folder');
     }
 
@@ -177,7 +178,7 @@ export class StorageService {
       if (dto.sizeBytes && dto.sizeBytes > maxBytes) throw new ForbiddenException(dto.contentType === 'video/mp4' ? 'Video exceeds maximum allowed size' : 'Image exceeds maximum allowed size');
       return;
     }
-    const fiveMbImageFolders = [UploadFolder.GIFT_CATEGORY_IMAGES, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_COVERS];
+    const fiveMbImageFolders = [UploadFolder.GIFT_CATEGORY_IMAGES, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_COVERS, UploadFolder.SEASONAL_THEME_ASSETS];
     if (!fiveMbImageFolders.includes(dto.folder)) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(dto.contentType)) throw new ForbiddenException('Images must be JPEG, PNG, or WEBP');
     if (dto.sizeBytes && dto.sizeBytes > 5 * 1024 * 1024) throw new ForbiddenException('Image exceeds maximum allowed size');
