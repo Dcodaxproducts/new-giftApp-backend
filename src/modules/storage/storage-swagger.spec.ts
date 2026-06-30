@@ -9,6 +9,7 @@ describe('Storage upload Swagger docs', () => {
     expect(controller).toContain('Backend derives ownerId/ownerRole from the authenticated JWT');
     expect(controller).toContain('giftUpload');
     expect(controller).toContain('adminOnBehalf');
+    expect(dto).toContain('platform-logos');
     expect(controller).toContain('provider-logos');
     expect(dto).toContain('Normal users/providers must not send this');
   });

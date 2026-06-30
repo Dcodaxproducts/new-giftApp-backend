@@ -1,0 +1,15 @@
+ALTER TABLE "system_settings"
+  ADD COLUMN IF NOT EXISTS "stripe_publishable_key" TEXT,
+  ADD COLUMN IF NOT EXISTS "stripe_secret_key" TEXT,
+  ADD COLUMN IF NOT EXISTS "stripe_webhook_secret" TEXT,
+  ADD COLUMN IF NOT EXISTS "firebase_service_account_json" JSONB,
+  ADD COLUMN IF NOT EXISTS "aws_s3_bucket_name" TEXT,
+  ADD COLUMN IF NOT EXISTS "aws_region" TEXT,
+  ADD COLUMN IF NOT EXISTS "aws_access_key" TEXT,
+  ADD COLUMN IF NOT EXISTS "aws_secret_key" TEXT,
+  ADD COLUMN IF NOT EXISTS "smtp_host" TEXT,
+  ADD COLUMN IF NOT EXISTS "smtp_port" INTEGER,
+  ADD COLUMN IF NOT EXISTS "smtp_username" TEXT,
+  ADD COLUMN IF NOT EXISTS "smtp_password" TEXT,
+  ADD COLUMN IF NOT EXISTS "sender_email" TEXT,
+  ADD COLUMN IF NOT EXISTS "sender_name" TEXT;

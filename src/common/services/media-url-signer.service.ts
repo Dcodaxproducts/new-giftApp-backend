@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 const MEDIA_KEY_PATTERN = /(image|images|avatar|logo|photo|photos|media|file|files|evidence|document|documents|thumbnail|icon).*urls?$/i;
 const SIGNABLE_FOLDER_PREFIXES = [
   'admin-avatars/',
+  'platform-logos/',
   'user-avatars/',
   'provider-avatars/',
   'provider-logos/',
@@ -24,7 +25,7 @@ const SIGNABLE_FOLDER_PREFIXES = [
   'provider-support-attachments/',
   'support-chat-attachments/',
   'user-report-evidence/',
-  "seasonal-theme-assets/"
+  'seasonal-theme-assets/',
 ];
 
 type JsonObject = Record<string, unknown>;

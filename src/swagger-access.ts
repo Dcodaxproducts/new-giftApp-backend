@@ -149,9 +149,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
 
   'GET /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned.' },
   'PATCH /api/v1/admin/system-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission.' },
-  'POST /api/v1/admin/system-settings/logo': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only.' },
-  'POST /api/v1/admin/system-settings/smtp/test': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.update', description: 'SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets.' },
-  'GET /api/v1/admin/system-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with systemSettings.read', description: 'SUPER_ADMIN or ADMIN with systemSettings.read permission.' },
   'GET /api/v1/admin/guest-access-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.' },
   'PATCH /api/v1/admin/guest-access-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.update', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.update permission.' },
   'GET /api/v1/admin/guest-access-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read', description: 'SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.' },

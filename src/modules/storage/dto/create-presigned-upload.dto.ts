@@ -4,6 +4,7 @@ import { IsEnum, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-va
 
 export enum UploadFolder {
   ADMIN_AVATARS = 'admin-avatars',
+  PLATFORM_LOGOS = 'platform-logos',
   USER_AVATARS = 'user-avatars',
   PROVIDER_AVATARS = 'provider-avatars',
   PROVIDER_LOGOS = 'provider-logos',

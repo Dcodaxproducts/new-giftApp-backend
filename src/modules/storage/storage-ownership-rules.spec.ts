@@ -39,6 +39,7 @@ describe('Storage upload ownership rules', () => {
 
   it('derives ADMIN ownerId by default and allows targetAccountId only with permission', async () => {
     await expect(resolve(user('admin_1', UserRole.ADMIN), { folder: UploadFolder.ADMIN_AVATARS })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: null });
+    await expect(resolve(user('admin_1', UserRole.ADMIN, { systemSettings: ['update'] }), { folder: UploadFolder.PLATFORM_LOGOS })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: null });
     await expect(resolve(user('admin_1', UserRole.ADMIN), { folder: UploadFolder.PROVIDER_LOGOS, targetAccountId: 'provider_1' })).rejects.toBeInstanceOf(ForbiddenException);
     await expect(resolve(user('admin_1', UserRole.ADMIN, { providers: ['update'] }), { folder: UploadFolder.PROVIDER_LOGOS, targetAccountId: 'provider_1' })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: 'provider_1', effectiveAccountId: 'provider_1' });
   });
