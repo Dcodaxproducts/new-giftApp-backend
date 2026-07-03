@@ -31,14 +31,6 @@ enum GiftStatus {
   OUT_OF_STOCK
 }
 
-enum GiftModerationStatus {
-  NOT_REQUIRED
-  PENDING
-  APPROVED
-  REJECTED
-  FLAGGED
-}
-
 enum BroadcastStatus {
   DRAFT
   SCHEDULED
@@ -863,18 +855,10 @@ model ProviderProfile {
   businessEmail      String?                 @map("business_email")
   businessPhone      String?                 @map("business_phone")
   businessAddress    String?                 @map("business_address")
-  storeAddress       Json?                   @map("store_address")
-  businessHours      Json?                   @map("business_hours")
-  serviceArea        String?                 @map("service_area")
-  website            String?
   fulfillmentMethods Json?                   @map("fulfillment_methods")
   autoAcceptOrders   Boolean                 @default(false) @map("auto_accept_orders")
   documents          Json?
   approvalStatus     ProviderApprovalStatus? @map("approval_status")
-  approvedAt         DateTime?               @map("approved_at") @db.Timestamptz
-  approvedBy         String?                 @map("approved_by")
-  rejectedAt         DateTime?               @map("rejected_at") @db.Timestamptz
-  rejectedBy         String?                 @map("rejected_by")
   rejectionReason    String?                 @map("rejection_reason")
   rejectionComment   String?                 @map("rejection_comment")
   createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz

@@ -406,10 +406,11 @@ export class ProviderManagementRepository {
     return this.prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id }, data });
       if (profileData) {
+        const safeProfileData = this.sanitizeProviderProfileData(profileData);
         await tx.providerProfile.upsert({
           where: { userId: id },
-          create: { userId: id, ...profileData } as Prisma.ProviderProfileUncheckedCreateInput,
-          update: profileData,
+          create: { userId: id, ...safeProfileData } as Prisma.ProviderProfileUncheckedCreateInput,
+          update: safeProfileData,
         });
       }
       return tx.user.findUniqueOrThrow({ where: { id }, include: { providerProfile: true } });
@@ -418,6 +419,23 @@ export class ProviderManagementRepository {
 
   updateProviderLifecycleStatus(id: string, data: Prisma.UserUpdateInput, profileData?: Prisma.ProviderProfileUncheckedUpdateInput) {
     return this.updateProvider(id, data, profileData);
+  }
+
+  private sanitizeProviderProfileData(profileData: Prisma.ProviderProfileUncheckedUpdateInput): Prisma.ProviderProfileUncheckedUpdateInput {
+    const {
+      approvedAt: _approvedAt,
+      approvedBy: _approvedBy,
+      rejectedAt: _rejectedAt,
+      rejectedBy: _rejectedBy,
+      ...safeProfileData
+    } = profileData as Prisma.ProviderProfileUncheckedUpdateInput & {
+      approvedAt?: unknown;
+      approvedBy?: unknown;
+      rejectedAt?: unknown;
+      rejectedBy?: unknown;
+    };
+
+    return safeProfileData;
   }
 
   countActiveProcessingOrders(providerId: string) {

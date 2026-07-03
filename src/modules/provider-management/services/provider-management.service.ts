@@ -167,11 +167,8 @@ export class ProviderManagementService {
             businessCategoryId: dto.businessCategoryId,
             taxId: dto.taxId?.trim(),
             businessAddress: dto.businessAddress.trim(),
-            storeAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
             documents: this.providerAssetMetadata(dto),
             approvalStatus,
-            approvedAt: approvalStatus === ProviderApprovalStatus.APPROVED ? new Date() : null,
-            approvedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
           },
         },
     });
@@ -226,7 +223,6 @@ export class ProviderManagementService {
         businessCategoryId: dto.businessCategoryId,
         taxId: dto.taxId?.trim(),
         businessAddress: dto.businessAddress?.trim(),
-        storeAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
         documents: this.updatedProviderAssetMetadata(provider, dto),
     });
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, stats));
@@ -437,7 +433,6 @@ export class ProviderManagementService {
       businessAddress: profile.businessAddress,
       headquarters: provider.location,
       location: this.providerLocation(provider),
-      serviceArea: profile.serviceArea,
       businessBio: this.providerAssets(provider).businessBio ?? null,
       verification: {
         status: provider.isVerified ? 'TIER_2_VERIFIED' : 'UNVERIFIED',
@@ -755,13 +750,9 @@ export class ProviderManagementService {
   }
 
   private providerLocation(provider: ProviderUser): { lat: number; lng: number } | null {
-    const value = this.profile(provider).storeAddress;
-    if (value && !Array.isArray(value) && typeof value === 'object') {
-      const lat = value.lat;
-      const lng = value.lng;
-      if (typeof lat === 'number' && typeof lng === 'number') {
-        return { lat, lng };
-      }
+    const [lat, lng] = provider.location?.split(',').map((part) => Number(part)) ?? [];
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return { lat, lng };
     }
     return null;
   }
@@ -805,10 +796,6 @@ export class ProviderManagementService {
         suspendedBy: null,
     }, {
         approvalStatus: ProviderApprovalStatus.APPROVED,
-        approvedAt: new Date(),
-        approvedBy: user.uid,
-        rejectedAt: null,
-        rejectedBy: null,
         rejectionReason: null,
         rejectionComment: null,
     });
@@ -823,8 +810,6 @@ export class ProviderManagementService {
         refreshTokenHash: null,
     }, {
         approvalStatus: ProviderApprovalStatus.REJECTED,
-        rejectedAt: new Date(),
-        rejectedBy: user.uid,
         rejectionReason: dto.reason,
         rejectionComment: dto.comment?.trim(),
     });
@@ -905,8 +890,6 @@ export class ProviderManagementService {
       isActive: provider.isActive,
       rejectionReason: profile.rejectionReason,
       suspensionReason: provider.suspensionReason,
-      approvedAt: profile.approvedAt,
-      rejectedAt: profile.rejectedAt,
       suspendedAt: provider.suspendedAt,
     };
   }

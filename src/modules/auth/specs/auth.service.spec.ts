@@ -551,15 +551,15 @@ describe('AuthService sensitive auth behavior', () => {
   });
 
   it('provider registration optionally stores valid location and validates coordinates', async () => {
-    const user = authUser({ email: 'provider-location@example.com', role: UserRole.PROVIDER, firstName: 'Cake', lastName: 'Owner', isApproved: false, verificationOtp: '123456', location: '31.5,74.3', providerProfile: { approvalStatus: 'PENDING', businessName: 'Cake Shop', storeAddress: { lat: 31.5, lng: 74.3 } } });
+    const user = authUser({ email: 'provider-location@example.com', role: UserRole.PROVIDER, firstName: 'Cake', lastName: 'Owner', isApproved: false, verificationOtp: '123456', location: '31.5,74.3', providerProfile: { approvalStatus: 'PENDING', businessName: 'Cake Shop' } });
     const { service, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
 
     const result = await service.registerProvider({ email: 'provider-location@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', location: { lat: 31.5, lng: 74.3 } });
 
-    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { location?: string; providerProfile?: { create: { storeAddress?: { lat: number; lng: number } } } } }];
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { location?: string; providerProfile?: { create: Record<string, unknown> } } }];
     expect(registerProviderCall[0].data.location).toBe('31.5,74.3');
-    expect(registerProviderCall[0].data.providerProfile?.create.storeAddress).toEqual({ lat: 31.5, lng: 74.3 });
+    expect(registerProviderCall[0].data.providerProfile?.create).not.toHaveProperty('storeAddress');
     const providerUser = result.data.user as { provider: { location: { lat: number; lng: number } } };
     expect(providerUser.provider).toEqual(expect.objectContaining({ location: { lat: 31.5, lng: 74.3 } }));
 

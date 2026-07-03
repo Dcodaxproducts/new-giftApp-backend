@@ -134,7 +134,6 @@ export class AuthCoreService implements OnModuleInit {
         businessCategoryId: dto.businessCategoryId,
         taxId: dto.taxId?.trim(),
         businessAddress: dto.businessAddress.trim(),
-        storeAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
         fulfillmentMethods: dto.fulfillmentMethods,
         autoAcceptOrders: dto.autoAcceptOrders ?? false,
         approvalStatus: ProviderApprovalStatus.PENDING,
@@ -473,8 +472,6 @@ export class AuthCoreService implements OnModuleInit {
       businessCategoryId?: string;
       taxId?: string;
       businessAddress?: string;
-      storeAddress?: Prisma.InputJsonValue;
-      serviceArea?: string;
       fulfillmentMethods?: string[];
       autoAcceptOrders?: boolean;
       documents?: Prisma.InputJsonValue;
@@ -510,8 +507,6 @@ export class AuthCoreService implements OnModuleInit {
                 businessCategoryId: input.providerProfile.businessCategoryId,
                 taxId: input.providerProfile.taxId,
                 businessAddress: input.providerProfile.businessAddress,
-                storeAddress: input.providerProfile.storeAddress,
-                serviceArea: input.providerProfile.serviceArea,
                 fulfillmentMethods: input.providerProfile.fulfillmentMethods ?? undefined,
                 autoAcceptOrders: input.providerProfile.autoAcceptOrders ?? false,
                 documents: input.providerProfile.documents ?? undefined,
@@ -640,7 +635,6 @@ export class AuthCoreService implements OnModuleInit {
           location: this.providerLocation(user),
           fulfillmentMethods: this.stringArray(profile?.fulfillmentMethods),
           autoAcceptOrders: profile?.autoAcceptOrders ?? false,
-          serviceArea: profile?.serviceArea ?? null,
           approvalStatus: profile?.approvalStatus ?? null,
           status: user.isActive ? 'ACTIVE' : 'INACTIVE',
           isActive: user.isActive,
@@ -653,13 +647,9 @@ export class AuthCoreService implements OnModuleInit {
   }
 
   private providerLocation(user: AuthUserWithStaff): { lat: number; lng: number } | null {
-    const value = user.providerProfile?.storeAddress;
-    if (value && !Array.isArray(value) && typeof value === 'object') {
-      const lat = value.lat;
-      const lng = value.lng;
-      if (typeof lat === 'number' && typeof lng === 'number') {
-        return { lat, lng };
-      }
+    const [lat, lng] = user.location?.split(',').map((part) => Number(part)) ?? [];
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return { lat, lng };
     }
 
     return null;
