@@ -13,8 +13,6 @@ type ProviderOrderTransaction = Prisma.TransactionClient;
 type ProviderOrderUpdateData = Prisma.Args<ProviderOrderTransaction['providerOrder'], 'update'>['data'];
 type ProviderOrderTimelineCreateData = Prisma.Args<ProviderOrderTransaction['providerOrderTimeline'], 'create'>['data'];
 type NotificationCreateData = Prisma.Args<ProviderOrderTransaction['notification'], 'create'>['data'];
-type OrderMessageCreateData = Prisma.Args<ProviderOrderTransaction['orderMessage'], 'create'>['data'];
-type ProviderOrderChecklistUpdateData = Prisma.Args<PrismaService['providerOrderChecklist'], 'update'>['data'];
 
 @Injectable()
 export class ProviderOrdersRepository {
@@ -45,10 +43,6 @@ export class ProviderOrdersRepository {
 
   findProviderOrderTimeline(providerOrderId: string) {
     return this.prisma.providerOrderTimeline.findMany({ where: { providerOrderId }, orderBy: { createdAt: 'asc' } });
-  }
-
-  findProviderOrderChecklist(providerOrderId: string) {
-    return this.prisma.providerOrderChecklist.findUnique({ where: { providerOrderId } });
   }
 
   findProviderOrderSummary(params: { base: Prisma.ProviderOrderWhereInput; todayWhere: Prisma.ProviderOrderWhereInput }) {
@@ -138,22 +132,6 @@ export class ProviderOrdersRepository {
 
   findActiveSuperAdminIds(tx: ProviderOrderTransaction) {
     return tx.user.findMany({ where: { role: 'SUPER_ADMIN', status: UserStatus.APPROVED }, select: { id: true } });
-  }
-
-  async getOrCreateChecklistForRead(providerOrderId: string) {
-    return (await this.findProviderOrderChecklist(providerOrderId)) ?? this.prisma.providerOrderChecklist.create({ data: { providerOrderId } });
-  }
-
-  getOrCreateChecklist(providerOrderId: string) {
-    return this.prisma.providerOrderChecklist.upsert({ where: { providerOrderId }, update: {}, create: { providerOrderId } });
-  }
-
-  updateProviderOrderChecklist(providerOrderId: string, data: ProviderOrderChecklistUpdateData) {
-    return this.prisma.providerOrderChecklist.update({ where: { providerOrderId }, data });
-  }
-
-  createOrderBuyerMessage(tx: ProviderOrderTransaction, data: OrderMessageCreateData) {
-    return tx.orderMessage.create({ data });
   }
 
   upsertOrderEarningLedger(tx: ProviderOrderTransaction, params: { providerId: string; providerOrderId: string; amount: Prisma.Decimal; currency: string; description: string; orderId: string }) {

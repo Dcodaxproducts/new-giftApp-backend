@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ProviderApprovalStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -33,7 +32,7 @@ export enum ProviderSortBy {
   CREATED_AT = 'createdAt',
   BUSINESS_NAME = 'businessName',
   REVENUE = 'revenue',
-  APPROVAL_STATUS = 'approvalStatus',
+  STATUS = 'status',
 }
 
 export enum SortOrder {
@@ -128,11 +127,6 @@ export class ListProvidersDto {
   @IsOptional()
   @IsEnum(ProviderStatusFilter)
   status?: ProviderStatusFilter;
-
-  @ApiPropertyOptional({ enum: ['ALL', ...Object.values(ProviderApprovalStatus)] })
-  @IsOptional()
-  @IsEnum({ ALL: 'ALL', ...ProviderApprovalStatus })
-  approvalStatus?: 'ALL' | ProviderApprovalStatus;
 
   @ApiPropertyOptional({ enum: ProviderSortBy })
   @IsOptional()
@@ -230,11 +224,6 @@ export class CreateProviderDto {
   @ValidateNested()
   @Type(() => ProviderLocationDto)
   location?: ProviderLocationDto;
-
-  @ApiPropertyOptional({ enum: ProviderApprovalStatus, default: ProviderApprovalStatus.PENDING })
-  @IsOptional()
-  @IsEnum(ProviderApprovalStatus)
-  approvalStatus?: ProviderApprovalStatus;
 
   @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
@@ -426,11 +415,6 @@ export class ExportProvidersDto {
   @IsEnum(ProviderStatusFilter)
   status?: ProviderStatusFilter;
 
-  @ApiPropertyOptional({ enum: ['ALL', ...Object.values(ProviderApprovalStatus)] })
-  @IsOptional()
-  @IsEnum({ ALL: 'ALL', ...ProviderApprovalStatus })
-  approvalStatus?: 'ALL' | ProviderApprovalStatus;
-
   @ApiPropertyOptional({ enum: ExportFormat })
   @IsOptional()
   @IsEnum(ExportFormat)
@@ -458,11 +442,6 @@ export class ProviderLookupDto {
   @IsOptional()
   @IsString()
   search?: string;
-
-  @ApiPropertyOptional({ enum: ProviderApprovalStatus })
-  @IsOptional()
-  @IsEnum(ProviderApprovalStatus)
-  approvalStatus?: ProviderApprovalStatus;
 
   @ApiPropertyOptional({ description: 'Lookup defaults to active providers only for dropdowns. Use false only for admin-managed inactive lookups.' })
   @IsOptional()

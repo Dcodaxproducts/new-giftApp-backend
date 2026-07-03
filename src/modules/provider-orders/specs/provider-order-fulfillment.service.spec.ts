@@ -12,16 +12,16 @@ describe('Provider order fulfillment source safety', () => {
     expect(controller).toContain("@Post(':id/action')");
     expect(controller).not.toContain("@Patch(':id/status')");
     expect(controller).toContain("@Get(':id/timeline')");
-    expect(controller).toContain("@Get(':id/checklist')");
-    expect(controller).toContain("@Patch(':id/checklist')");
+    expect(controller).not.toContain("@Get(':id/checklist')");
+    expect(controller).not.toContain("@Patch(':id/checklist')");
     expect(controller).not.toContain("@Post(':id/message-buyer')");
     expect(controller).not.toContain("@Post(':id/fulfill')");
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
   });
 
-  it('adds fulfillment models and tracking fields', () => {
-    expect(schema).toContain('model ProviderOrderChecklist');
-    expect(schema).toContain('model OrderMessage');
+  it('keeps fulfillment timeline and tracking fields without checklist/message tables', () => {
+    expect(schema).not.toContain('model ProviderOrderChecklist');
+    expect(schema).not.toContain('model OrderMessage');
     expect(schema).toContain('trackingNumber');
     expect(schema).toContain('dispatchAt');
     expect(schema).toContain('fulfilledAt');
@@ -70,11 +70,11 @@ describe('Provider order fulfillment source safety', () => {
     expect(service).toContain('PROVIDER_ORDER_STATUS_UPDATED');
   });
 
-  it('timeline and checklist are scoped to own provider order', () => {
+  it('timeline is scoped to own provider order', () => {
     expect(service).toContain('async timeline(user: AuthUserContext, id: string)');
-    expect(service).toContain('async checklist(user: AuthUserContext, id: string)');
-    expect(service).toContain('async updateChecklist(user: AuthUserContext, id: string');
-    expect(service).toContain('getOrCreateChecklist(order.id)');
+    expect(service).not.toContain('async checklist(user: AuthUserContext, id: string)');
+    expect(service).not.toContain('async updateChecklist(user: AuthUserContext, id: string');
+    expect(service).not.toContain('getOrCreateChecklist(order.id)');
     expect(service).toContain('providerOrderId: order.id');
   });
 

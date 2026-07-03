@@ -29,7 +29,6 @@ import {
   UserSubscriptionSnapshot,
 } from '../repositories/user-management.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
-import { isUserActiveStatus, isUserSuspendedStatus, isUserVerifiedStatus, legacyUserFlags } from '../../../common/utils/user-status.util';
 
 interface UserActivityItem {
   id: string;
@@ -383,7 +382,7 @@ export class UserManagementCoreService {
 
   private toExportRows(users: User[], aggregateMap: Map<string, UserStats>): string[][] {
     return [
-      ['ID', 'First Name', 'Last Name', 'Full Name', 'Email', 'Phone', 'Status', 'Is Active', 'Is Verified', 'Orders Count', 'Total Spent', 'Successful Payments', 'Failed Payments', 'Last Order At', 'Registration Date'],
+      ['ID', 'First Name', 'Last Name', 'Full Name', 'Email', 'Phone', 'Status', 'Orders Count', 'Total Spent', 'Successful Payments', 'Failed Payments', 'Last Order At', 'Registration Date'],
       ...users.map((user) => {
         const stats = aggregateMap.get(user.id) ?? this.zeroStats();
         return [
@@ -393,9 +392,7 @@ export class UserManagementCoreService {
         this.fullName(user),
         user.email,
         user.phone ?? '',
-        this.toStatus(user),
-        String(isUserActiveStatus(user.status)),
-        String(isUserVerifiedStatus(user.status)),
+        user.status,
         String(stats.ordersCount),
         String(stats.totalSpent),
         String(stats.successfulPayments),
@@ -605,8 +602,7 @@ export class UserManagementCoreService {
       avatarUrl: user.avatarUrl,
       userType: 'Registered User',
       role: user.role,
-      status: this.toStatus(user),
-      ...legacyUserFlags(user.status),
+      status: user.status,
       registrationDate: user.createdAt,
       ordersCount: stats.ordersCount,
       totalSpent: stats.totalSpent,
@@ -634,34 +630,17 @@ export class UserManagementCoreService {
     };
   }
 
-  private toStatusResponse(user: User, status?: string) {
+  private toStatusResponse(user: User) {
     return {
       id: user.id,
-      status: status ?? this.toStatus(user),
-      isActive: isUserActiveStatus(user.status),
+      status: user.status,
       suspension: this.toSuspension(user),
     };
   }
 
-  private toStatus(user: User): RegisteredUserStatusFilter {
-    if (user.status === UserStatus.SUSPENDED) {
-      return RegisteredUserStatusFilter.SUSPENDED;
-    }
-
-    if (user.status === UserStatus.BLOCKED || user.status === UserStatus.REJECTED) {
-      return RegisteredUserStatusFilter.DISABLED;
-    }
-
-    if (user.status === UserStatus.PENDING) {
-      return RegisteredUserStatusFilter.PENDING;
-    }
-
-    return RegisteredUserStatusFilter.ACTIVE;
-  }
-
   private toSuspension(user: User) {
     return {
-      isSuspended: isUserSuspendedStatus(user.status),
+      isSuspended: user.status === UserStatus.SUSPENDED,
       reason: user.suspensionReason,
       comment: user.suspensionComment,
       suspendedAt: null,
@@ -769,7 +748,7 @@ export class UserManagementCoreService {
     );
     await this.notifyStatusChange(updated, notifyUser, RegisteredUserStatusUpdate.SUSPENDED, comment);
 
-    return this.toStatusResponse(updated, RegisteredUserStatusUpdate.SUSPENDED);
+    return this.toStatusResponse(updated);
   }
 
   private toStatusSnapshot(user: User) {

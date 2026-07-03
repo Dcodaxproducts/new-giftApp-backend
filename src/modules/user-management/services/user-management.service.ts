@@ -25,15 +25,76 @@ export class UserManagementService {
     private readonly exportFlow: UserManagementExportService,
   ) {}
 
-  list(query: ListRegisteredUsersDto): Promise<unknown> { return this.listFlow.list(query); }
-  details(id: string): Promise<unknown> { return this.listFlow.details(id); }
-  update(user: AuthUserContext, id: string, dto: UpdateRegisteredUserDto): Promise<unknown> { return this.statusFlow.update(user, id, dto); }
-  updateStatus(user: AuthUserContext, id: string, dto: UpdateRegisteredUserStatusDto): Promise<unknown> { return this.statusFlow.updateStatus(user, id, dto); }
-  suspend(user: AuthUserContext, id: string, dto: SuspendRegisteredUserDto): Promise<unknown> { return this.statusFlow.suspend(user, id, dto); }
-  unsuspend(user: AuthUserContext, id: string, dto: { comment?: string; notifyUser?: boolean }): Promise<unknown> { return this.statusFlow.unsuspend(user, id, dto); }
-  resetPassword(user: AuthUserContext, id: string, dto: ResetRegisteredUserPasswordDto): Promise<unknown> { return this.passwordFlow.resetPassword(user, id, dto); }
-  permanentlyDelete(user: AuthUserContext, id: string): Promise<unknown> { return this.deleteFlow.permanentlyDelete(user, id); }
-  activity(id: string, query: ListUserActivityDto) { return this.listFlow.activity(id, query); }
-  stats(id: string): Promise<unknown> { return this.listFlow.stats(id); }
-  exportRegisteredUsers(query: ExportRegisteredUsersDto): Promise<{ filename: string; contentType: string; content: string | Buffer }> { return this.exportFlow.exportRegisteredUsers(query); }
+  list(query: ListRegisteredUsersDto): Promise<unknown> {
+    return this.listFlow.list(query);
+  }
+
+  details(id: string): Promise<unknown> {
+    return this.listFlow.details(id);
+  }
+
+  update(
+    user: AuthUserContext,
+    id: string,
+    dto: UpdateRegisteredUserDto,
+  ): Promise<unknown> {
+    return this.statusFlow.update(user, id, dto);
+  }
+
+  updateStatus(
+    user: AuthUserContext,
+    id: string,
+    dto: UpdateRegisteredUserStatusDto,
+  ): Promise<unknown> {
+    return this.statusFlow.updateStatus(user, id, dto);
+  }
+
+  suspend(
+    user: AuthUserContext,
+    id: string,
+    dto: SuspendRegisteredUserDto,
+  ): Promise<unknown> {
+    return this.statusFlow.suspend(user, id, dto);
+  }
+
+  unsuspend(
+    user: AuthUserContext,
+    id: string,
+    dto: { comment?: string; notifyUser?: boolean },
+  ): Promise<unknown> {
+    return this.statusFlow.unsuspend(user, id, dto);
+  }
+
+  resetPassword(
+    user: AuthUserContext,
+    id: string,
+    dto: ResetRegisteredUserPasswordDto,
+  ): Promise<unknown> {
+    return this.passwordFlow.resetPassword(user, id, dto);
+  }
+
+  permanentlyDelete(
+    user: AuthUserContext,
+    id: string,
+  ): Promise<unknown> {
+    return this.deleteFlow.permanentlyDelete(user, id);
+  }
+
+  activity(id: string, query: ListUserActivityDto) {
+    return this.listFlow.activity(id, query);
+  }
+
+  stats(id: string): Promise<unknown> {
+    return this.listFlow.stats(id);
+  }
+
+  exportRegisteredUsers(
+    query: ExportRegisteredUsersDto,
+  ): Promise<{
+    filename: string;
+    contentType: string;
+    content: string | Buffer;
+  }> {
+    return this.exportFlow.exportRegisteredUsers(query);
+  }
 }

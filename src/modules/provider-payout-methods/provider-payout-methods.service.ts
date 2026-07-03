@@ -1,10 +1,9 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHmac } from 'crypto';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderPayoutExternalProvider, ProviderPayoutMethod, ProviderPayoutMethodType, ProviderPayoutVerificationStatus } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderPayoutExternalProvider, ProviderPayoutMethod, ProviderPayoutMethodType, ProviderPayoutVerificationStatus, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderPayoutMethodsRepository } from './provider-payout-methods.repository';
 import { CreateProviderBankAccountDto, UpdateProviderPayoutMethodDto, VerifyProviderPayoutMethodDto } from './dto/provider-payout-methods.dto';
-import { isUserActiveStatus, isUserApprovedStatus, isUserSuspendedStatus } from '../../common/utils/user-status.util';
 
 @Injectable()
 export class ProviderPayoutMethodsService {
@@ -85,7 +84,7 @@ export class ProviderPayoutMethodsService {
   private async getApprovedActiveProvider(id: string) {
     const provider = await this.repository.findApprovedProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
-    if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !isUserActiveStatus(provider.status) || !isUserApprovedStatus(provider.status) || isUserSuspendedStatus(provider.status)) throw new ForbiddenException('Only approved active providers can access payout methods');
+    if (provider.status !== UserStatus.APPROVED) throw new ForbiddenException('Only approved active providers can access payout methods');
     return provider;
   }
 

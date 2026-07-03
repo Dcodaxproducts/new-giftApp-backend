@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
+import { GiftStatus, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../../common/pagination/pagination.util';
 import { PrismaService } from '../../../database/prisma.service';
@@ -90,7 +90,6 @@ export class ProviderManagementRepository {
     return this.prisma.user.findMany({
       where: {
         role: UserRole.PROVIDER,
-        providerProfile: { is: { approvalStatus: query.approvalStatus ?? ProviderApprovalStatus.APPROVED } },
         status: query.isActive ?? true ? UserStatus.APPROVED : { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] },
         ...(query.search
           ? {
@@ -110,7 +109,7 @@ export class ProviderManagementRepository {
   async findProviderStats() {
     const [totalProviders, pendingApproval, inactiveProviders] = await this.prisma.$transaction([
       this.prisma.user.count({ where: { role: UserRole.PROVIDER } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.PENDING } } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: UserStatus.PENDING } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] } } }),
     ]);
     return { totalProviders, pendingApproval, inactiveProviders };
@@ -353,7 +352,7 @@ export class ProviderManagementRepository {
       this.prisma.user.count({ where: { role: UserRole.PROVIDER } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.PENDING } } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: UserStatus.PENDING } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
@@ -501,16 +500,13 @@ export class ProviderManagementRepository {
           }
         : {}),
       ...this.statusWhere(query.status),
-      ...(query.approvalStatus && query.approvalStatus !== 'ALL'
-        ? { providerProfile: { is: { approvalStatus: query.approvalStatus } } }
-        : {}),
     };
   }
 
   private statusWhere(status?: ProviderStatusFilter): Prisma.UserWhereInput {
     switch (status) {
       case ProviderStatusFilter.ACTIVE:
-        return { status: UserStatus.APPROVED, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.APPROVED } } };
+        return { status: UserStatus.APPROVED };
       case ProviderStatusFilter.INACTIVE:
       case ProviderStatusFilter.DISABLED:
         return { status: { in: [UserStatus.BLOCKED, UserStatus.REJECTED] } };
@@ -528,8 +524,8 @@ export class ProviderManagementRepository {
       return { providerProfile: { businessName: direction } };
     }
 
-    if (sortBy === ProviderSortBy.APPROVAL_STATUS) {
-      return { providerProfile: { approvalStatus: direction } };
+    if (sortBy === ProviderSortBy.STATUS) {
+      return { status: direction };
     }
 
     return { createdAt: direction };

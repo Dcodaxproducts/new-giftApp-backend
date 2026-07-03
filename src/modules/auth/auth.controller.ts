@@ -55,7 +55,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('verify-email')
   @ApiOperation({ summary: 'Verify authenticated account email', description: 'Verify the authenticated account email with the latest verification OTP.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'user_id', email: 'user@example.com', isVerified: true }, message: 'Email verified successfully' } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'user_id', email: 'user@example.com', status: 'APPROVED' }, message: 'Email verified successfully' } } })
   verifyEmail(
     @CurrentUser() user: AuthUserContext,
     @Body() dto: VerifyEmailDto,

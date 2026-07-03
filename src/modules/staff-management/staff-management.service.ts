@@ -16,7 +16,6 @@ import {
 } from './dto/staff-management.dto';
 import { StaffManagementRepository } from './staff-management.repository';
 import { getPagination } from '../../common/pagination/pagination.util';
-import { isUserActiveStatus, isUserVerifiedStatus } from '../../common/utils/user-status.util';
 
 type StaffUser = User & { staffProfile: (StaffProfile & { staffRole: StaffRole | null }) | null };
 
@@ -81,6 +80,7 @@ export class StaffManagementService {
         email: admin.email,
         role: admin.role,
         roleId: staffRole.id,
+        status: admin.status,
         inviteEmailSent,
       },
       message: dto.sendInviteEmail
@@ -318,8 +318,7 @@ export class StaffManagementService {
       role: staffRole
         ? { id: staffRole.id, name: staffRole.name, slug: staffRole.slug }
         : { id: admin.role, name: this.titleCase(admin.role), slug: admin.role },
-      isActive: isUserActiveStatus(admin.status),
-      isVerified: isUserVerifiedStatus(admin.status),
+      status: admin.status,
       createdAt: admin.createdAt,
       lastLoginAt: admin.lastLoginAt,
     };

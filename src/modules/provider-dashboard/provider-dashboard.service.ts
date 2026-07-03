@@ -1,8 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PaymentStatus, Prisma, ProviderApprovalStatus } from '@prisma/client';
+import { PaymentStatus, Prisma, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderDashboardRepository } from './provider-dashboard.repository';
-import { isUserActiveStatus, isUserApprovedStatus, isUserSuspendedStatus } from '../../common/utils/user-status.util';
 
 type DashboardProvider = Awaited<ReturnType<ProviderDashboardService['getApprovedActiveProvider']>>;
 type RecentProviderOrder = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true } }>;
@@ -33,7 +32,7 @@ export class ProviderDashboardService {
   private async getApprovedActiveProvider(id: string) {
     const provider = await this.repository.findProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
-    if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !isUserActiveStatus(provider.status) || !isUserApprovedStatus(provider.status) || isUserSuspendedStatus(provider.status)) {
+    if (provider.status !== UserStatus.APPROVED) {
       throw new ForbiddenException('Only approved active providers can access dashboard');
     }
     return provider;
@@ -44,8 +43,7 @@ export class ProviderDashboardService {
       id: provider.id,
       businessName: provider.providerProfile?.businessName ?? null,
       avatarUrl: provider.avatarUrl,
-      approvalStatus: provider.providerProfile?.approvalStatus ?? null,
-      status: isUserActiveStatus(provider.status) ? 'ACTIVE' : 'INACTIVE',
+      status: provider.status === UserStatus.APPROVED ? 'ACTIVE' : 'INACTIVE',
     };
   }
 

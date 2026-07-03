@@ -8,7 +8,7 @@ describe('Provider orders repository cleanup', () => {
   const moduleFile = readFileSync(join(__dirname, '../provider-orders.module.ts'), 'utf8');
 
   it('keeps provider order read and analytics API routes stable', () => {
-    for (const route of ["@Get()", "@Get('history')", "@Get('summary')", "@Get('reject-reasons')", "@Get(':id')", "@Get(':id/timeline')", "@Get(':id/checklist')", "@Get('performance')", "@Get('analytics/revenue')", "@Get('analytics/ratings')", "@Get('recent')", "@Get('export')"]) expect(controller).toContain(route);
+    for (const route of ["@Get()", "@Get('history')", "@Get('summary')", "@Get('reject-reasons')", "@Get(':id')", "@Get(':id/timeline')", "@Get('performance')", "@Get('analytics/revenue')", "@Get('analytics/ratings')", "@Get('recent')", "@Get('export')"]) expect(controller).toContain(route);
     expect(controller).toContain("@ApiTags('03 Provider - Orders')");
     expect(controller).toContain("@ApiTags('03 Provider - Order Analytics')");
     expect(controller.indexOf("@Get('summary')")).toBeLessThan(controller.indexOf("@Get(':id')"));
@@ -16,12 +16,12 @@ describe('Provider orders repository cleanup', () => {
   });
 
   it('repository owns read and analytics queries', () => {
-    for (const method of ['findManyProviderOrders', 'countProviderOrders', 'findManyAndCountProviderOrders', 'findProviderOrderById', 'findProviderOrderTimeline', 'findProviderOrderChecklist', 'getOrCreateChecklistForRead', 'findProviderOrderSummary', 'findRecentProviderOrders', 'findPerformanceRows', 'findRevenueAnalyticsRows', 'findRatingAnalyticsRows', 'findProviderOrdersForExport']) expect(repository).toContain(method);
+    for (const method of ['findManyProviderOrders', 'countProviderOrders', 'findManyAndCountProviderOrders', 'findProviderOrderById', 'findProviderOrderTimeline', 'findProviderOrderSummary', 'findRecentProviderOrders', 'findPerformanceRows', 'findRevenueAnalyticsRows', 'findRatingAnalyticsRows', 'findProviderOrdersForExport']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.providerOrder.findMany');
     expect(repository).toContain('this.prisma.providerOrder.count');
     expect(repository).toContain('this.prisma.providerOrder.findFirst');
     expect(repository).toContain('this.prisma.providerOrderTimeline.findMany');
-    expect(repository).toContain('this.prisma.providerOrderChecklist.findUnique');
+    expect(repository).not.toContain('providerOrderChecklist');
     expect(repository).toContain('this.prisma.review.findMany');
     expect(moduleFile).toContain('ProviderOrdersRepository');
   });
@@ -30,7 +30,7 @@ describe('Provider orders repository cleanup', () => {
     expect(service).not.toContain('PrismaService');
     expect(service).not.toContain('this.prisma');
     expect(repository).toContain('constructor(private readonly prisma: PrismaService');
-    expect(repository).toContain('getOrCreateChecklistForRead');
+    expect(repository).not.toContain('getOrCreateChecklistForRead');
   });
 
   it('provider can list only own orders', () => {
@@ -46,11 +46,9 @@ describe('Provider orders repository cleanup', () => {
     expect(service).toContain("throw new NotFoundException('Provider order not found')");
   });
 
-  it('timeline and checklist are provider scoped', () => {
+  it('timeline is provider scoped', () => {
     expect(service).toContain('const order = await this.getOwnedProviderOrderForRead(user.uid, id)');
     expect(service).toContain('findProviderOrderTimeline(order.id)');
-    expect(service).toContain('getOrCreateChecklistForRead(providerOrderId)');
-    expect(repository).toContain('findProviderOrderChecklist(providerOrderId)');
     expect(repository).toContain('where: { providerOrderId }');
   });
 
@@ -83,11 +81,11 @@ describe('Provider orders repository cleanup', () => {
   });
 
   it('repository owns action and write DB calls while service owns decisions', () => {
-    for (const method of ['runActionTransaction', 'findProviderOrderForAction', 'markProviderOrderAccepted', 'markProviderOrderRejected', 'updateProviderOrderStatus', 'fulfillProviderOrder', 'createProviderOrderTimelineEntry', 'createCustomerOrderNotification', 'updateProviderOrderChecklist', 'syncParentOrderStatus', 'upsertOrderEarningLedger']) expect(repository).toContain(method);
+    for (const method of ['runActionTransaction', 'findProviderOrderForAction', 'markProviderOrderAccepted', 'markProviderOrderRejected', 'updateProviderOrderStatus', 'fulfillProviderOrder', 'createProviderOrderTimelineEntry', 'createCustomerOrderNotification', 'syncParentOrderStatus', 'upsertOrderEarningLedger']) expect(repository).toContain(method);
     expect(repository).toContain('tx.providerOrder.update');
     expect(repository).toContain('tx.providerOrderTimeline.create');
     expect(repository).toContain('this.notificationDispatch.createAndEmit');
-    expect(repository).toContain('this.prisma.providerOrderChecklist.update');
+    expect(repository).not.toContain('providerOrderChecklist');
     expect(repository).toContain('tx.order.update');
     expect(repository).toContain('tx.providerEarningsLedger.upsert');
     expect(service).toContain('async action');
@@ -109,8 +107,10 @@ describe('Provider orders repository cleanup', () => {
     expect(service).toContain('createCustomerOrderNotification');
   });
 
-  it('checklist behavior remains unchanged and buyer messaging moves to chats', () => {
-    expect(service).toContain('updateProviderOrderChecklist(order.id');
+  it('checklist and buyer messaging are removed from provider orders', () => {
+    expect(service).not.toContain('updateProviderOrderChecklist(order.id');
+    expect(service).not.toContain('async checklist');
+    expect(service).not.toContain('async updateChecklist');
     expect(service).not.toContain('status: dto.status, itemsPacked');
     expect(service).not.toContain('createOrderBuyerMessage');
     expect(service).not.toContain('PROVIDER_MESSAGE_RECEIVED');

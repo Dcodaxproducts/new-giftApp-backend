@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User, UserStatus } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderProfile, User, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderBusinessInfoRepository } from './provider-business-info.repository';
 import { UpdateProviderBusinessInfoDto } from './dto/provider-business-info.dto';
-import { isUserApprovedStatus } from '../../common/utils/user-status.util';
 
 type ProviderUser = User & { providerProfile?: ProviderProfile | null };
 
@@ -49,7 +48,6 @@ export class ProviderBusinessInfoService {
         businessAddress: dto.businessAddress?.trim(),
         fulfillmentMethods: dto.fulfillmentMethods,
         autoAcceptOrders: dto.autoAcceptOrders,
-        approvalStatus: materialChange ? ProviderApprovalStatus.PENDING : this.profile(provider).approvalStatus,
     });
 
     await this.repository.createAuditLog({
@@ -111,7 +109,7 @@ export class ProviderBusinessInfoService {
       phone: profile.businessPhone ?? provider.phone,
       fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
       autoAcceptOrders: profile.autoAcceptOrders ?? false,
-      verificationRequired: profile.approvalStatus === ProviderApprovalStatus.PENDING || !isUserApprovedStatus(provider.status),
+      verificationRequired: provider.status !== UserStatus.APPROVED,
       businessAddress: profile.businessAddress,
       headquarters: provider.location,
     };
@@ -130,7 +128,6 @@ export class ProviderBusinessInfoService {
       headquarters: provider.location,
       fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
       autoAcceptOrders: profile.autoAcceptOrders ?? false,
-      approvalStatus: profile.approvalStatus,
     };
   }
 

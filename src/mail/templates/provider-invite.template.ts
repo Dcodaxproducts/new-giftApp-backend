@@ -6,7 +6,7 @@ export function providerInviteTemplate(input: EmailTemplateVariables & {
   userEmail: string;
   temporaryPassword?: string;
   mustChangePassword?: boolean;
-  approvalStatus: string;
+  status: string;
 }): EmailTemplateResult {
   const lines = [
     `Provider name: ${input.providerName}`,
@@ -15,7 +15,7 @@ export function providerInviteTemplate(input: EmailTemplateVariables & {
     input.temporaryPassword ? `Temporary password: ${input.temporaryPassword}` : '',
     `Provider portal: ${input.ctaUrl ?? ''}`,
     input.mustChangePassword ? 'You must change your password after first login.' : '',
-    `Approval status: ${input.approvalStatus}`,
+    `Account status: ${input.status}`,
     `Support: ${input.supportEmail ?? 'support@giftapp.com'}`,
   ].filter(Boolean);
   const contentHtml = `<div style="border:1px solid #E5E7EB;border-radius:14px;padding:18px;margin:8px auto 0;text-align:left;max-width:460px;">
@@ -24,7 +24,7 @@ export function providerInviteTemplate(input: EmailTemplateVariables & {
     <p style="margin:0 0 8px;color:#111827;font-size:14px;line-height:1.6;"><strong>Business name:</strong> ${escapeHtml(input.businessName)}</p>
     <p style="margin:0 0 8px;color:#111827;font-size:14px;line-height:1.6;"><strong>Login email:</strong> ${escapeHtml(input.userEmail)}</p>
     ${input.temporaryPassword ? `<p style="margin:0 0 8px;color:#111827;font-size:14px;line-height:1.6;"><strong>Temporary password:</strong> ${escapeHtml(input.temporaryPassword)}</p>` : ''}
-    <p style="margin:0 0 8px;color:#111827;font-size:14px;line-height:1.6;"><strong>Approval status:</strong> ${escapeHtml(input.approvalStatus)}</p>
+    <p style="margin:0 0 8px;color:#111827;font-size:14px;line-height:1.6;"><strong>Account status:</strong> ${escapeHtml(input.status)}</p>
     ${input.mustChangePassword ? '<p style="margin:0 0 8px;color:#6B7280;font-size:14px;line-height:1.6;">You must change your password after first login.</p>' : ''}
     <p style="margin:0;color:#6B7280;font-size:14px;line-height:1.6;">If you need help accessing the provider portal, contact support.</p>
   </div>`;

@@ -26,7 +26,7 @@ export class ProviderDashboardController {
       example: {
         success: true,
         data: {
-          provider: { id: 'provider_id', businessName: 'Global Logistics Solutions', avatarUrl: 'https://cdn.yourdomain.com/provider-avatars/provider.png', approvalStatus: 'APPROVED', status: 'ACTIVE' },
+          provider: { id: 'provider_id', businessName: 'Global Logistics Solutions', avatarUrl: 'https://cdn.yourdomain.com/provider-avatars/provider.png', status: 'ACTIVE' },
           operationalSummary: { todayOrders: 24, pendingOrders: 12, activeOffers: 5, totalItems: 128 },
           performance: { range: 'WEEKLY', labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], values: [120, 180, 150, 110, 190, 260, 220], currency: 'PKR' },
           recentOrders: [{ id: 'provider_order_id', orderNumber: 'ORD-8821', itemName: 'Nike Air Max 270', imageUrl: 'https://cdn.yourdomain.com/gifts/shoe.png', amount: 120, currency: 'PKR', status: 'PAID', createdAgoText: '2m ago' }],

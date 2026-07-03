@@ -58,7 +58,7 @@ export class MailerService {
     await this.sendTemplate(email, providerRejectedTemplate({ ...this.brand(), title: 'Provider account update', message: 'Your provider application needs attention before it can be approved.', businessName, reason, comment, ctaText: 'Review application', ctaUrl: this.frontendUrl() }));
   }
 
-  async sendProviderInviteEmail(input: { email: string; providerName: string; businessName: string; temporaryPassword?: string; mustChangePassword?: boolean; approvalStatus: string; ctaUrl?: string }): Promise<void> {
+  async sendProviderInviteEmail(input: { email: string; providerName: string; businessName: string; temporaryPassword?: string; mustChangePassword?: boolean; status: string; ctaUrl?: string }): Promise<void> {
     await this.sendTemplate(input.email, providerInviteTemplate({
       ...this.brand(),
       providerName: input.providerName,
@@ -66,7 +66,7 @@ export class MailerService {
       userEmail: input.email,
       temporaryPassword: input.temporaryPassword,
       mustChangePassword: input.mustChangePassword,
-      approvalStatus: input.approvalStatus,
+      status: input.status,
       title: 'You have been invited to Gift App Provider Portal',
       message: 'A provider account has been created for you.',
       ctaText: 'Open Provider Portal',

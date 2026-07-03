@@ -3,7 +3,6 @@ import { AccountType, User, UserRole, UserStatus } from '@prisma/client';
 import { AccountStatusRepository } from '../repositories/account-status.repository';
 import { MailerService } from '../../modules/mailer/mailer.service';
 import { AuditLogWriterService } from './audit-log.service';
-import { isUserActiveStatus } from '../utils/user-status.util';
 
 export interface AccountLifecycleInput {
   actorId: string;
@@ -41,7 +40,7 @@ export class AccountLifecycleService {
       status,
       suspensionReason: null,
       suspensionComment: null,
-      refreshTokenHash: isUserActiveStatus(status) ? account.refreshTokenHash : null,
+      refreshTokenHash: status === UserStatus.APPROVED || status === UserStatus.PENDING ? account.refreshTokenHash : null,
     });
 
     await this.auditLog.write({
@@ -55,7 +54,7 @@ export class AccountLifecycleService {
     });
     await this.notify(updated, input.notify, input.status, input.comment);
 
-    return this.toStatusResponse(updated, input.status);
+    return this.toStatusResponse(updated);
   }
 
   async suspend(account: User, input: AccountLifecycleInput) {
@@ -82,7 +81,7 @@ export class AccountLifecycleService {
     });
     await this.notify(updated, input.notify, input.status, input.comment);
 
-    return this.toStatusResponse(updated, input.status);
+    return this.toStatusResponse(updated);
   }
 
   async unsuspend(input: Omit<AccountLifecycleInput, 'status' | 'reason'>) {
@@ -103,7 +102,7 @@ export class AccountLifecycleService {
     });
     await this.notify(updated, input.notify, 'ACTIVE', input.comment);
 
-    return this.toStatusResponse(updated, 'ACTIVE');
+    return this.toStatusResponse(updated);
   }
 
   private async getAccount(accountId: string, accountType: AccountType): Promise<User> {
@@ -138,11 +137,10 @@ export class AccountLifecycleService {
     };
   }
 
-  private toStatusResponse(user: User, status: string) {
+  private toStatusResponse(user: User) {
     return {
       id: user.id,
-      status,
-      isActive: isUserActiveStatus(user.status),
+      status: user.status,
       suspension: {
         reason: user.suspensionReason,
         comment: user.suspensionComment,

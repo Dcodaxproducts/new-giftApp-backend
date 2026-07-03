@@ -1,10 +1,9 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus } from '@prisma/client';
+import { NotificationRecipientType, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, ProviderPayoutAction, ProviderPayoutActionDto, RequestProviderPayoutDto, SortOrder } from '../dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from '../repositories/provider-earnings-payouts.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
-import { isUserActiveStatus, isUserApprovedStatus, isUserSuspendedStatus } from '../../../common/utils/user-status.util';
 
 @Injectable()
 export class ProviderEarningsPayoutsService {
@@ -125,7 +124,7 @@ export class ProviderEarningsPayoutsService {
 
   private async availableBalance(providerId: string): Promise<number> { const items = await this.repository.findLedgerForAvailableBalance(providerId); return this.money(items.reduce((sum, item) => sum + Number(item.amount), 0)); }
   private async lockableLedgerEntries(providerId: string, amount: number) { const entries = await this.repository.findAvailableLedgerEntries(providerId); const selected = []; let total = 0; for (const entry of entries) { selected.push(entry); total += Number(entry.amount); if (total >= amount) break; } if (this.money(total) < amount) throw new BadRequestException('Payout amount exceeds available ledger balance'); return selected; }
-  private async getApprovedActiveProvider(id: string) { const provider = await this.repository.findProviderUserById(id); if (!provider) throw new NotFoundException('Provider not found'); if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !isUserActiveStatus(provider.status) || !isUserApprovedStatus(provider.status) || isUserSuspendedStatus(provider.status)) throw new ForbiddenException('Only approved active providers can access earnings and payouts'); return provider; }
+  private async getApprovedActiveProvider(id: string) { const provider = await this.repository.findProviderUserById(id); if (!provider) throw new NotFoundException('Provider not found'); if (provider.status !== UserStatus.APPROVED) throw new ForbiddenException('Only approved active providers can access earnings and payouts'); return provider; }
   private async getOwnedPayoutMethod(providerId: string, id: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findPayoutMethodForProvider(providerId, id); if (!method) throw new NotFoundException('Provider payout method not found'); return method; }
   private async defaultPayoutMethod(providerId: string): Promise<ProviderPayoutMethod> { const method = await this.repository.findDefaultPayoutMethodForProvider(providerId); if (!method) throw new NotFoundException('Default payout method not found'); return method; }
   private async getOwnedPayout(providerId: string, id: string) { const payout = await this.repository.findPayoutByIdForProvider(providerId, id); if (!payout) throw new NotFoundException('Provider payout not found'); return payout; }

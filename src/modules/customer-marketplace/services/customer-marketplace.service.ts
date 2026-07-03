@@ -14,7 +14,6 @@ import {
   PromotionalOfferApprovalStatus,
   PromotionalOfferDiscountType,
   UserRole,
-  ProviderApprovalStatus,
   UserStatus,
 } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
@@ -283,7 +282,7 @@ export class CustomerMarketplaceService {
   }
 
   private availableGiftWhere(): Prisma.GiftWhereInput { return { status: GiftStatus.ACTIVE, provider: this.approvedProviderWhere() }; }
-  private approvedProviderWhere(): Prisma.UserWhereInput { return { role: UserRole.PROVIDER, status: UserStatus.APPROVED, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.APPROVED } } }; }
+  private approvedProviderWhere(): Prisma.UserWhereInput { return { role: UserRole.PROVIDER, status: UserStatus.APPROVED }; }
   private activeOfferWhere(): Prisma.PromotionalOfferWhereInput { const now = new Date(); return { approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: true, deletedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }], item: this.availableGiftWhere() }; }
   private giftInclude() { return Prisma.validator<Prisma.GiftInclude>()({ category: { select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }, provider: { select: { id: true, providerProfile: { select: { businessName: true, fulfillmentMethods: true } }, firstName: true, lastName: true } }, variants: { orderBy: { name: 'asc' }, select: { id: true, name: true, price: true } }, promotionalOffers: { where: this.activeOfferWhere(), orderBy: { discountValue: 'desc' }, select: { id: true, title: true, discountType: true, discountValue: true, startDate: true, endDate: true } } }); }
   private cartItemInclude() { return Prisma.validator<Prisma.CartItemInclude>()({ gift: { select: { id: true, name: true, imageUrls: true, currency: true } }, variant: { select: { id: true, name: true } } }); }

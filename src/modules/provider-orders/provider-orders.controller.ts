@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { ListProviderOrdersDto, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, UpdateProviderOrderChecklistDto } from './dto/provider-orders.dto';
+import { ListProviderOrdersDto, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto } from './dto/provider-orders.dto';
 import { ProviderOrdersService } from './provider-orders.service';
 
 @ApiBearerAuth()
@@ -75,16 +75,6 @@ export class ProviderOrdersController {
   @ApiTags('03 Provider - Orders')
   @ApiOperation({ summary: 'Fetch own provider order timeline', description: 'PROVIDER only. Timeline is scoped to the authenticated provider order.' })
   timeline(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.providerOrders.timeline(user, id); }
-
-  @Get(':id/checklist')
-  @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Fetch own provider order checklist', description: 'PROVIDER only. Checklist is operational and does not change status automatically.' })
-  checklist(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.providerOrders.checklist(user, id); }
-
-  @Patch(':id/checklist')
-  @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Update own provider order checklist', description: 'PROVIDER only. Checklist updates do not directly change order status.' })
-  updateChecklist(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderChecklistDto) { return this.providerOrders.updateChecklist(user, id, dto); }
 
   @Get(':id')
   @ApiTags('03 Provider - Orders')

@@ -21,12 +21,6 @@ enum UserStatus {
   BLOCKED
 }
 
-enum ProviderApprovalStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 enum AccountType {
   REGISTERED_USER
   PROVIDER
@@ -239,12 +233,6 @@ enum ProviderOrderStatus {
   CANCELLED
   REJECTED
   REFUNDED
-}
-
-enum ProviderOrderMessageChannel {
-  IN_APP
-  EMAIL
-  SMS_PLACEHOLDER
 }
 
 enum ProviderOrderRejectReason {
@@ -796,8 +784,6 @@ model User {
   customerRefundRequests              RefundRequest[]                      @relation("RefundRequestCustomer")
   providerRefundRequests              RefundRequest[]                      @relation("RefundRequestProvider")
   providerOrderTimelines              ProviderOrderTimeline[]
-  sentOrderMessages                   OrderMessage[]                       @relation("OrderMessageSender")
-  receivedOrderMessages               OrderMessage[]                       @relation("OrderMessageRecipient")
   customerReviews                     Review[]                             @relation("ReviewCustomer")
   providerReviews                     Review[]                             @relation("ReviewProvider")
   reviewResponses                     ReviewResponse[]                     @relation("ReviewResponseProvider")
@@ -861,16 +847,12 @@ model ProviderProfile {
   fulfillmentMethods Json?                   @map("fulfillment_methods")
   autoAcceptOrders   Boolean                 @default(false) @map("auto_accept_orders")
   documents          Json?
-  approvalStatus     ProviderApprovalStatus? @map("approval_status")
-  rejectionReason    String?                 @map("rejection_reason")
-  rejectionComment   String?                 @map("rejection_comment")
   createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz
 
   user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessCategory ProviderBusinessCategory? @relation(fields: [businessCategoryId], references: [id])
 
-  @@index([approvalStatus])
   @@index([businessCategoryId])
   @@map("provider_profiles")
 }
@@ -1362,7 +1344,6 @@ model Order {
   items                        OrderItem[]
   providerOrders               ProviderOrder[]
   refundRequests               RefundRequest[]
-  messages                     OrderMessage[]
   payment                      Payment?
   reviews                      Review[]
   chatThreads                  ChatThread[]
@@ -1430,8 +1411,6 @@ model ProviderOrder {
   provider                     User                          @relation(fields: [providerId], references: [id])
   items                        ProviderOrderItem[]
   timeline                     ProviderOrderTimeline[]
-  checklist                    ProviderOrderChecklist?
-  messages                     OrderMessage[]
   refundRequests               RefundRequest[]
   reviews                      Review[]
   chatThread                   ChatThread?
@@ -1481,23 +1460,6 @@ model ProviderOrderTimeline {
   @@map("provider_order_timelines")
 }
 
-model ProviderOrderChecklist {
-  id                     String   @id @default(cuid())
-  providerOrderId        String   @unique @map("provider_order_id")
-  itemsPacked            Boolean  @default(false) @map("items_packed")
-  giftMessageAttached    Boolean  @default(false) @map("gift_message_attached")
-  addressVerified        Boolean  @default(false) @map("address_verified")
-  customerContactChecked Boolean  @default(false) @map("customer_contact_checked")
-  readyForCourier        Boolean  @default(false) @map("ready_for_courier")
-  customItemsJson        Json     @default("[]") @map("custom_items_json")
-  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamptz
-
-  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-
-  @@map("provider_order_checklists")
-}
-
 model RefundRequest {
   id               String              @id @default(cuid())
   orderId          String              @map("order_id")
@@ -1533,27 +1495,6 @@ model RefundRequest {
   @@index([orderId])
   @@index([userId])
   @@map("refund_requests")
-}
-
-model OrderMessage {
-  id              String                      @id @default(cuid())
-  orderId         String                      @map("order_id")
-  providerOrderId String                      @map("provider_order_id")
-  senderId        String                      @map("sender_id")
-  senderRole      UserRole                    @map("sender_role")
-  recipientId     String                      @map("recipient_id")
-  message         String
-  channel         ProviderOrderMessageChannel
-  createdAt       DateTime                    @default(now()) @map("created_at") @db.Timestamptz
-
-  order         Order         @relation(fields: [orderId], references: [id])
-  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-  sender        User          @relation("OrderMessageSender", fields: [senderId], references: [id])
-  recipient     User          @relation("OrderMessageRecipient", fields: [recipientId], references: [id])
-
-  @@index([orderId, createdAt])
-  @@index([providerOrderId, createdAt])
-  @@map("order_messages")
 }
 
 model MoneyGift {

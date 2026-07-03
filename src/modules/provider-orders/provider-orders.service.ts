@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { Notification, NotificationRecipientType, OrderStatus, PaymentMethod, PaymentStatus, Prisma, ProviderOrderRejectReason, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, ProviderOrderAction, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderChecklistDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, ProviderOrderAction, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from './provider-orders.repository';
 import { getPagination } from '../../common/pagination/pagination.util';
@@ -205,19 +205,6 @@ export class ProviderOrdersService {
     return { data, message: 'Order timeline fetched successfully.' };
   }
 
-  async checklist(user: AuthUserContext, id: string) {
-    const order = await this.getOwnedProviderOrderForRead(user.uid, id);
-    const checklist = await this.getOrCreateChecklistForRead(order.id);
-    return { data: this.toChecklist(checklist), message: 'Order checklist fetched successfully.' };
-  }
-
-  async updateChecklist(user: AuthUserContext, id: string, dto: UpdateProviderOrderChecklistDto) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    await this.getOrCreateChecklist(order.id);
-    const updated = await this.providerOrdersRepository.updateProviderOrderChecklist(order.id, { itemsPacked: dto.itemsPacked, giftMessageAttached: dto.giftMessageAttached, addressVerified: dto.addressVerified, customerContactChecked: dto.customerContactChecked, readyForCourier: dto.readyForCourier, customItemsJson: dto.customItems === undefined ? undefined : dto.customItems });
-    return { data: this.toChecklist(updated), message: 'Order checklist updated successfully.' };
-  }
-
   rejectReasons() {
     return { data: [{ key: ProviderOrderRejectReason.OUT_OF_STOCK, label: 'Out of Stock' }, { key: ProviderOrderRejectReason.BUSINESS_CLOSED, label: 'Business Closed' }, { key: ProviderOrderRejectReason.CANNOT_DELIVER_TO_AREA, label: 'Cannot deliver to area' }, { key: ProviderOrderRejectReason.PRICING_ERROR, label: 'Pricing Error' }, { key: ProviderOrderRejectReason.OTHER, label: 'Other' }], message: 'Reject reasons fetched successfully.' };
   }
@@ -331,9 +318,6 @@ export class ProviderOrdersService {
     return OrderStatus.PROCESSING;
   }
 
-  private async getOrCreateChecklistForRead(providerOrderId: string) { return this.providerOrdersRepository.getOrCreateChecklistForRead(providerOrderId); }
-  private async getOrCreateChecklist(providerOrderId: string) { return this.providerOrdersRepository.getOrCreateChecklist(providerOrderId); }
-  private toChecklist(item: { providerOrderId: string; itemsPacked: boolean; giftMessageAttached: boolean; addressVerified: boolean; customerContactChecked: boolean; readyForCourier: boolean; customItemsJson: Prisma.JsonValue }) { return { orderId: item.providerOrderId, itemsPacked: item.itemsPacked, giftMessageAttached: item.giftMessageAttached, addressVerified: item.addressVerified, customerContactChecked: item.customerContactChecked, readyForCourier: item.readyForCourier, customItems: Array.isArray(item.customItemsJson) ? item.customItemsJson : [] }; }
   private rejectReasonLabel(reason: ProviderOrderRejectReason | RefundRejectReason): string { return this.rejectReasons().data.find((item) => item.key === reason)?.label ?? this.statusLabel(reason); }
   private statusTitle(status: ProviderOrderStatus): string { return this.statusLabel(status); }
   private statusDescription(status: ProviderOrderStatus, carrier?: string): string { if (status === ProviderOrderStatus.SHIPPED) return carrier ? `In progress via ${carrier}.` : 'Order has been shipped.'; if (status === ProviderOrderStatus.PACKED) return 'Ready for courier.'; if (status === ProviderOrderStatus.OUT_FOR_DELIVERY) return 'Order is out for delivery.'; if (status === ProviderOrderStatus.DELIVERED) return 'Order has been delivered.'; if (status === ProviderOrderStatus.COMPLETED) return 'Order has been completed.'; return `Order moved to ${this.statusTitle(status)}.`; }

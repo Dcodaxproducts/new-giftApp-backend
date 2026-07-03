@@ -49,7 +49,7 @@ export class StaffManagementController {
 
   @Get()
   @ApiOperation({ summary: 'List staff users', description: 'SUPER_ADMIN only. Returns User.role = STAFF accounts only; SUPER_ADMIN accounts are intentionally excluded.' })
-  @ApiResponse({ status: 200, description: 'Staff fetched successfully', schema: { example: { success: true, data: [{ id: 'staff_id', firstName: 'Operations', lastName: 'Staff', fullName: 'Operations Staff', email: 'staff@example.com', phone: '+15550000002', role: { id: 'STAFF_ROLE_id', name: 'Gift Manager', slug: 'gift-manager' }, isActive: true, isVerified: true, createdAt: '2026-05-09T10:00:00.000Z', lastLoginAt: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Staff fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Staff fetched successfully', schema: { example: { success: true, data: [{ id: 'staff_id', firstName: 'Operations', lastName: 'Staff', fullName: 'Operations Staff', email: 'staff@example.com', phone: '+15550000002', role: { id: 'STAFF_ROLE_id', name: 'Gift Manager', slug: 'gift-manager' }, status: 'APPROVED', createdAt: '2026-05-09T10:00:00.000Z', lastLoginAt: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Staff fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListAdminsDto) {
     return this.staffManagementService.list(user, query);
   }
@@ -62,7 +62,7 @@ export class StaffManagementController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update staff profile or active status', description: 'SUPER_ADMIN only. Updates STAFF profile, role assignment, and active/inactive status in one endpoint. Password updates are handled only by the dedicated password endpoint. SUPER_ADMIN self-disable and SUPER_ADMIN role updates are blocked.' })
   @ApiBody({ type: UpdateAdminDto, examples: { updateStaffProfile: { value: { firstName: 'Operations', lastName: 'Staff', roleId: 'STAFF_ROLE_id' } }, activateStaff: { value: { isActive: true, reason: 'Staff account re-enabled.' } }, deactivateStaff: { value: { isActive: false, reason: 'Staff account disabled after access review.' } } } })
-  @ApiResponse({ status: 200, description: 'Staff updated successfully', schema: { example: { success: true, data: { id: 'staff_id', firstName: 'Operations', lastName: 'Staff', role: { id: 'STAFF_ROLE_id', name: 'Gift Manager' }, isActive: true }, message: 'Staff updated successfully' } } })
+  @ApiResponse({ status: 200, description: 'Staff updated successfully', schema: { example: { success: true, data: { id: 'staff_id', firstName: 'Operations', lastName: 'Staff', role: { id: 'STAFF_ROLE_id', name: 'Gift Manager' }, status: 'APPROVED' }, message: 'Staff updated successfully' } } })
   update(
     @CurrentUser() user: AuthUserContext,
     @Param('id') id: string,

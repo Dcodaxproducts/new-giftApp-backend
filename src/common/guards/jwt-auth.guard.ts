@@ -1,11 +1,10 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { Prisma, UserRole, UserStatus } from '@prisma/client';
 import { Request } from 'express';
 import { AuthUserContext } from '../decorators/current-user.decorator';
 import { JwtAuthRepository } from '../repositories/jwt-auth.repository';
-import { isUserActiveStatus, isUserSuspendedStatus } from '../utils/user-status.util';
 
 interface JwtPayload extends AuthUserContext {
   sub?: string;
@@ -35,7 +34,7 @@ export class JwtAuthGuard implements CanActivate {
       });
       const user = await this.repository.findUserForJwtGuard(payload.uid);
 
-      if (!user || !isUserActiveStatus(user.status)) {
+      if (!user || (user.status !== UserStatus.APPROVED && user.status !== UserStatus.PENDING)) {
         throw new ForbiddenException('Account is inactive');
       }
 
@@ -50,7 +49,7 @@ export class JwtAuthGuard implements CanActivate {
         }
       }
 
-      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && (user.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !isUserActiveStatus(user.status) || isUserSuspendedStatus(user.status))) {
+      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && user.status !== UserStatus.APPROVED) {
         throw new ForbiddenException('Your provider account is pending approval. You cannot access this module yet.');
       }
 
