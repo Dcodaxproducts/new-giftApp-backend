@@ -5,7 +5,7 @@ import { NotificationDispatchService } from '../../notifications/notification-di
 
 export const GIFT_MANAGEMENT_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
   category: { select: { id: true, name: true, isActive: true, deletedAt: true } },
-  provider: { select: { id: true, email: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, isActive: true, isApproved: true, suspendedAt: true } },
+  provider: { select: { id: true, email: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, status: true } },
   variants: { orderBy: { name: 'asc' } },
 });
 

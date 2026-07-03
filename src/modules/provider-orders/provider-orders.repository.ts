@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, Prisma } from '@prisma/client';
+import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
@@ -137,7 +137,7 @@ export class ProviderOrdersRepository {
   }
 
   findActiveSuperAdminIds(tx: ProviderOrderTransaction) {
-    return tx.user.findMany({ where: { role: 'SUPER_ADMIN', isActive: true }, select: { id: true } });
+    return tx.user.findMany({ where: { role: 'SUPER_ADMIN', status: UserStatus.APPROVED }, select: { id: true } });
   }
 
   async getOrCreateChecklistForRead(providerOrderId: string) {

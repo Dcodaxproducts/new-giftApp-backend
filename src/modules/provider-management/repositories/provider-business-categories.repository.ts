@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 @Injectable()
@@ -38,7 +38,7 @@ export class ProviderBusinessCategoriesRepository {
   }
 
   countActiveProviders(categoryId: string) {
-    return this.prisma.user.count({ where: { providerProfile: { is: { businessCategoryId: categoryId } }, isActive: true } });
+    return this.prisma.user.count({ where: { providerProfile: { is: { businessCategoryId: categoryId } }, status: UserStatus.APPROVED } });
   }
 
   delete(id: string) {

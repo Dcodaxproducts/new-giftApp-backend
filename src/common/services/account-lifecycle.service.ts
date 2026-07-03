@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AccountType, User, UserRole } from '@prisma/client';
+import { AccountType, User, UserRole, UserStatus } from '@prisma/client';
 import { AccountStatusRepository } from '../repositories/account-status.repository';
 import { MailerService } from '../../modules/mailer/mailer.service';
 import { AuditLogWriterService } from './audit-log.service';
+import { isUserActiveStatus } from '../utils/user-status.util';
 
 export interface AccountLifecycleInput {
   actorId: string;
@@ -35,14 +36,12 @@ export class AccountLifecycleService {
       return this.suspend(account, input);
     }
 
-    const isActive = input.activeStatuses.includes(input.status);
+    const status = this.toUserStatus(input.status);
     const updated = await this.repository.updateAccountStatus(account.id, {
-      isActive,
+      status,
       suspensionReason: null,
       suspensionComment: null,
-      suspendedAt: null,
-      suspendedBy: null,
-      refreshTokenHash: isActive ? account.refreshTokenHash : null,
+      refreshTokenHash: isUserActiveStatus(status) ? account.refreshTokenHash : null,
     });
 
     await this.auditLog.write({
@@ -65,11 +64,9 @@ export class AccountLifecycleService {
     }
 
     const updated = await this.repository.updateAccountStatus(account.id, {
-      isActive: false,
+      status: UserStatus.SUSPENDED,
       suspensionReason: input.reason,
       suspensionComment: input.comment?.trim(),
-      suspendedAt: new Date(),
-      suspendedBy: input.actorId,
       refreshTokenHash: null,
     });
     await this.repository.invalidateActiveSessions(account.id);
@@ -91,11 +88,9 @@ export class AccountLifecycleService {
   async unsuspend(input: Omit<AccountLifecycleInput, 'status' | 'reason'>) {
     const account = await this.getAccount(input.accountId, input.accountType);
     const updated = await this.repository.updateAccountStatus(account.id, {
-      isActive: true,
+      status: UserStatus.APPROVED,
       suspensionReason: null,
       suspensionComment: null,
-      suspendedAt: null,
-      suspendedBy: null,
     });
     await this.auditLog.write({
       actorId: input.actorId,
@@ -137,11 +132,9 @@ export class AccountLifecycleService {
   private toStatusSnapshot(user: User) {
     return {
       id: user.id,
-      isActive: user.isActive,
+      status: user.status,
       suspensionReason: user.suspensionReason,
       suspensionComment: user.suspensionComment,
-      suspendedAt: user.suspendedAt,
-      suspendedBy: user.suspendedBy,
     };
   }
 
@@ -149,14 +142,38 @@ export class AccountLifecycleService {
     return {
       id: user.id,
       status,
-      isActive: user.isActive,
+      isActive: isUserActiveStatus(user.status),
       suspension: {
         reason: user.suspensionReason,
         comment: user.suspensionComment,
-        suspendedAt: user.suspendedAt,
-        suspendedBy: user.suspendedBy,
+        suspendedAt: null,
+        suspendedBy: null,
       },
     };
+  }
+
+  private toUserStatus(status: string): UserStatus {
+    if (status === 'ACTIVE' || status === UserStatus.APPROVED) {
+      return UserStatus.APPROVED;
+    }
+
+    if (status === 'DISABLED' || status === UserStatus.BLOCKED) {
+      return UserStatus.BLOCKED;
+    }
+
+    if (status === UserStatus.REJECTED) {
+      return UserStatus.REJECTED;
+    }
+
+    if (status === UserStatus.PENDING) {
+      return UserStatus.PENDING;
+    }
+
+    if (status === UserStatus.SUSPENDED) {
+      return UserStatus.SUSPENDED;
+    }
+
+    return UserStatus.BLOCKED;
   }
 
   private async notify(user: User, notify: boolean | undefined, status: string, comment?: string): Promise<void> {

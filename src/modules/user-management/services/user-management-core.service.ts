@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { AccountType, Prisma, User, UserRole } from '@prisma/client';
+import { AccountType, Prisma, User, UserRole, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AccountLifecycleService } from '../../../common/services/account-lifecycle.service';
 import { MailerService } from '../../mailer/mailer.service';
@@ -29,6 +29,7 @@ import {
   UserSubscriptionSnapshot,
 } from '../repositories/user-management.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
+import { isUserActiveStatus, isUserSuspendedStatus, isUserVerifiedStatus, legacyUserFlags } from '../../../common/utils/user-status.util';
 
 interface UserActivityItem {
   id: string;
@@ -393,8 +394,8 @@ export class UserManagementCoreService {
         user.email,
         user.phone ?? '',
         this.toStatus(user),
-        String(user.isActive),
-        String(user.isVerified),
+        String(isUserActiveStatus(user.status)),
+        String(isUserVerifiedStatus(user.status)),
         String(stats.ordersCount),
         String(stats.totalSpent),
         String(stats.successfulPayments),
@@ -555,13 +556,13 @@ export class UserManagementCoreService {
   private statusWhere(status?: RegisteredUserStatusFilter): Prisma.UserWhereInput {
     switch (status) {
       case RegisteredUserStatusFilter.ACTIVE:
-        return { isVerified: true, isActive: true, suspendedAt: null };
+        return { status: UserStatus.APPROVED };
       case RegisteredUserStatusFilter.PENDING:
-        return { isVerified: false, suspendedAt: null };
+        return { status: UserStatus.PENDING };
       case RegisteredUserStatusFilter.SUSPENDED:
-        return { suspendedAt: { not: null } };
+        return { status: UserStatus.SUSPENDED };
       case RegisteredUserStatusFilter.DISABLED:
-        return { isActive: false, suspendedAt: null };
+        return { status: UserStatus.BLOCKED };
       case RegisteredUserStatusFilter.ALL:
       case undefined:
         return {};
@@ -605,8 +606,7 @@ export class UserManagementCoreService {
       userType: 'Registered User',
       role: user.role,
       status: this.toStatus(user),
-      isActive: user.isActive,
-      isVerified: user.isVerified,
+      ...legacyUserFlags(user.status),
       registrationDate: user.createdAt,
       ordersCount: stats.ordersCount,
       totalSpent: stats.totalSpent,
@@ -638,21 +638,21 @@ export class UserManagementCoreService {
     return {
       id: user.id,
       status: status ?? this.toStatus(user),
-      isActive: user.isActive,
+      isActive: isUserActiveStatus(user.status),
       suspension: this.toSuspension(user),
     };
   }
 
   private toStatus(user: User): RegisteredUserStatusFilter {
-    if (user.suspendedAt) {
+    if (user.status === UserStatus.SUSPENDED) {
       return RegisteredUserStatusFilter.SUSPENDED;
     }
 
-    if (!user.isActive) {
+    if (user.status === UserStatus.BLOCKED || user.status === UserStatus.REJECTED) {
       return RegisteredUserStatusFilter.DISABLED;
     }
 
-    if (!user.isVerified) {
+    if (user.status === UserStatus.PENDING) {
       return RegisteredUserStatusFilter.PENDING;
     }
 
@@ -661,11 +661,11 @@ export class UserManagementCoreService {
 
   private toSuspension(user: User) {
     return {
-      isSuspended: !!user.suspendedAt,
+      isSuspended: isUserSuspendedStatus(user.status),
       reason: user.suspensionReason,
       comment: user.suspensionComment,
-      suspendedAt: user.suspendedAt,
-      suspendedBy: user.suspendedBy,
+      suspendedAt: null,
+      suspendedBy: null,
     };
   }
 
@@ -775,11 +775,9 @@ export class UserManagementCoreService {
   private toStatusSnapshot(user: User) {
     return {
       id: user.id,
-      isActive: user.isActive,
+      status: user.status,
       suspensionReason: user.suspensionReason,
       suspensionComment: user.suspensionComment,
-      suspendedAt: user.suspendedAt,
-      suspendedBy: user.suspendedBy,
     };
   }
 

@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { StaffRole, Prisma, StaffProfile, User, UserRole } from '@prisma/client';
+import { StaffRole, Prisma, StaffProfile, User, UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
@@ -16,6 +16,7 @@ import {
 } from './dto/staff-management.dto';
 import { StaffManagementRepository } from './staff-management.repository';
 import { getPagination } from '../../common/pagination/pagination.util';
+import { isUserActiveStatus, isUserVerifiedStatus } from '../../common/utils/user-status.util';
 
 type StaffUser = User & { staffProfile: (StaffProfile & { staffRole: StaffRole | null }) | null };
 
@@ -96,8 +97,8 @@ export class StaffManagementService {
       role: UserRole.STAFF,
       ...(query.roleId ? { staffProfile: { staffRoleId: query.roleId } } : {}),
       ...(query.role ? { staffProfile: { staffRole: { slug: query.role } } } : {}),
-      ...(query.status === AdminStatusFilter.ACTIVE ? { isActive: true } : {}),
-      ...(query.status === AdminStatusFilter.DISABLED ? { isActive: false } : {}),
+      ...(query.status === AdminStatusFilter.ACTIVE ? { status: UserStatus.APPROVED } : {}),
+      ...(query.status === AdminStatusFilter.DISABLED ? { status: UserStatus.BLOCKED } : {}),
       ...(query.search
         ? {
             OR: [
@@ -147,7 +148,7 @@ export class StaffManagementService {
       await this.assertAnotherActiveSuperAdminExists(admin.id);
     }
     const currentStaffRole = this.staffRoleFor(admin);
-    const staffRole = dto.roleId ? await this.getStaffRole(dto.roleId) : currentStaffRole;
+    const targetStaffRole = dto.roleId ? await this.getStaffRole(dto.roleId) : currentStaffRole;
     const email = dto.email ? await this.assertEmailAvailable(dto.email, admin.id) : undefined;
     const before = this.toAdminDetail(admin, currentStaffRole);
     const updated = await this.repository.updateAdminUser(admin.id, {
@@ -157,7 +158,7 @@ export class StaffManagementService {
         lastName: dto.lastName?.trim(),
         phone: dto.phone?.trim(),
         avatarUrl: dto.avatarUrl,
-        isActive: dto.isActive,
+        status: dto.isActive === undefined ? undefined : dto.isActive ? UserStatus.APPROVED : UserStatus.BLOCKED,
         refreshTokenHash: dto.isActive === false ? null : admin.refreshTokenHash,
       },
       staffProfileData: admin.role === UserRole.STAFF
@@ -172,11 +173,11 @@ export class StaffManagementService {
       targetType: 'ADMIN',
       action: 'ADMIN_UPDATED',
       beforeJson: { ...before, reason: dto.reason },
-      afterJson: { ...this.toAdminDetail(updated, this.staffRoleFor(updated)), reason: dto.reason },
+      afterJson: { ...this.toAdminDetail(updated, targetStaffRole), reason: dto.reason },
     });
 
     return {
-      data: this.toAdminDetail(updated, this.staffRoleFor(updated)),
+      data: this.toAdminDetail(updated, targetStaffRole),
       message: 'Staff updated successfully',
     };
   }
@@ -254,9 +255,7 @@ export class StaffManagementService {
       phone: input.phone?.trim(),
       avatarUrl: input.avatarUrl,
       role: UserRole.STAFF,
-      isVerified: true,
-      isActive: input.isActive,
-      isApproved: true,
+      status: input.isActive ? UserStatus.APPROVED : UserStatus.BLOCKED,
       mustChangePassword: input.mustChangePassword,
       staffProfile: {
         create: {
@@ -319,8 +318,8 @@ export class StaffManagementService {
       role: staffRole
         ? { id: staffRole.id, name: staffRole.name, slug: staffRole.slug }
         : { id: admin.role, name: this.titleCase(admin.role), slug: admin.role },
-      isActive: admin.isActive,
-      isVerified: admin.isVerified,
+      isActive: isUserActiveStatus(admin.status),
+      isVerified: isUserVerifiedStatus(admin.status),
       createdAt: admin.createdAt,
       lastLoginAt: admin.lastLoginAt,
     };

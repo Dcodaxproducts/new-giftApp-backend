@@ -9,6 +9,7 @@ import { ChatReadReceiptService } from './chat-read-receipt.service';
 import { CHAT_THREAD_INCLUDE, ChatThreadRepository } from '../repositories/chat-thread.repository';
 import { ChatSortBy, ChatSortOrder, ChatSourceKind, ChatStatus, ChatThreadKind, CreateChatThreadDto, ListChatsDto, ListThreadMessagesDto, SendChatThreadMessageDto, UpdateChatThreadStatusDto } from '../dto/chats.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
+import { isUserActiveStatus } from '../../../common/utils/user-status.util';
 
 type Thread = Prisma.ChatThreadGetPayload<{ include: typeof CHAT_THREAD_INCLUDE }>;
 type Envelope<T> = { data: T; meta?: unknown; message: string };
@@ -220,8 +221,8 @@ export class ChatThreadService {
       orderNumber: thread.order?.orderNumber,
       participants: thread.participants.map((item) => ({ id: item.user.id, role: item.user.role, name: this.participantName(item.user), avatarUrl: item.user.avatarUrl })),
       participant: participant ? { id: participant.id, role: participant.role, name: participant.name, avatarUrl: participant.avatarUrl } : null,
-      provider: thread.provider ? { id: thread.provider.id, businessName: this.participantName(thread.provider), avatarUrl: thread.provider.avatarUrl, isOnline: thread.provider.isActive } : null,
-      customer: thread.customer ? { id: thread.customer.id, name: this.name(thread.customer), avatarUrl: thread.customer.avatarUrl, isOnline: thread.customer.isActive } : null,
+      provider: thread.provider ? { id: thread.provider.id, businessName: this.participantName(thread.provider), avatarUrl: thread.provider.avatarUrl, isOnline: isUserActiveStatus(thread.provider.status) } : null,
+      customer: thread.customer ? { id: thread.customer.id, name: this.name(thread.customer), avatarUrl: thread.customer.avatarUrl, isOnline: isUserActiveStatus(thread.customer.status) } : null,
       lastMessage: thread.lastMessage ? { id: thread.lastMessage.id, bodyPreview: thread.lastMessage.body, createdAt: thread.lastMessage.createdAt } : null,
       lastMessageAt: thread.lastMessageAt,
       unreadCount: await this.messagesService.unreadCount(thread.id, viewerId),

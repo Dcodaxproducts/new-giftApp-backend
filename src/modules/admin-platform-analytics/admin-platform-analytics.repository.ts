@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CustomerSubscriptionStatus, PaymentStatus, Prisma, UserRole } from '@prisma/client';
+import { CustomerSubscriptionStatus, PaymentStatus, Prisma, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export const PLATFORM_ANALYTICS_PAYMENT_INCLUDE = Prisma.validator<Prisma.PaymentInclude>()({
@@ -72,7 +72,7 @@ export class AdminPlatformAnalyticsRepository {
     return this.prisma.user.count({
       where: {
         role: UserRole.REGISTERED_USER,
-        isActive: true,
+        status: UserStatus.APPROVED,
         createdAt: { lte: untilDate },
       },
     });

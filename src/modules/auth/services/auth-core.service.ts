@@ -22,9 +22,9 @@ import {
   StaffProfile,
   User,
   UserRole,
+  UserStatus,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuthPasswordRepository } from '../repositories/auth-password.repository';
 import { AuthRepository } from '../repositories/auth.repository';
@@ -33,6 +33,7 @@ import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exce
 import { AuthResendVerificationRateLimiterService } from './auth-resend-verification-rate-limiter.service';
 import { MailerService } from '../../mailer/mailer.service';
 import { CustomerReferralsService } from '../../customer-referrals/services/customer-referrals.service';
+import { isUserActiveStatus, isUserApprovedStatus, isUserVerifiedStatus, legacyUserFlags } from '../../../common/utils/user-status.util';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -99,7 +100,7 @@ export class AuthCoreService implements OnModuleInit {
       lastName: name.lastName,
       phone: dto.phone,
       role: UserRole.REGISTERED_USER,
-      isApproved: true,
+      status: UserStatus.PENDING,
     });
     await this.customerReferralsService?.captureSignupReferral(user.id, dto.referralCode);
     await this.mailerService.sendVerificationEmail(
@@ -127,7 +128,7 @@ export class AuthCoreService implements OnModuleInit {
       lastName: name.lastName,
       phone: dto.phone,
       role: UserRole.PROVIDER,
-      isApproved: false,
+      status: UserStatus.PENDING,
       location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
       providerProfile: {
         businessName: dto.businessName.trim(),
@@ -164,22 +165,22 @@ export class AuthCoreService implements OnModuleInit {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (!user.isActive) {
+    if (!isUserActiveStatus(user.status)) {
       this.recordFailedLogin(dto.email);
       throw new UnauthorizedException('Account is inactive');
     }
 
-    if (!user.isVerified) {
+    if (!isUserVerifiedStatus(user.status)) {
       this.recordFailedLogin(dto.email);
       throw new EmailNotVerifiedException(0);
     }
 
-    if (user.role === UserRole.PROVIDER && !user.isApproved) {
+    if (user.role === UserRole.PROVIDER && user.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED) {
       this.recordFailedLogin(dto.email);
       throw new ForbiddenException('Provider account is pending Super Admin approval');
     }
 
-    if (user.role === UserRole.STAFF && !user.isApproved) {
+    if (user.role === UserRole.STAFF && !isUserApprovedStatus(user.status)) {
       this.recordFailedLogin(dto.email);
       throw new ForbiddenException('Admin account is not approved');
     }
@@ -227,7 +228,7 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     const user = await this.authRepository.findUserById(payload.uid);
-    if (!user?.refreshTokenHash || !user.isActive) {
+    if (!user?.refreshTokenHash || !isUserActiveStatus(user.status)) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -259,7 +260,7 @@ export class AuthCoreService implements OnModuleInit {
   async verifyEmail(user: AuthUserContext, dto: VerifyEmailDto) {
     const dbUser = await this.getActiveUser(user.uid);
 
-    if (dbUser.isVerified) {
+    if (isUserVerifiedStatus(dbUser.status)) {
       return { data: null, message: 'Email already verified' };
     }
 
@@ -285,7 +286,7 @@ export class AuthCoreService implements OnModuleInit {
   async resendVerification(user: AuthUserContext) {
     const dbUser = await this.getActiveUser(user.uid);
 
-    if (dbUser.isVerified) {
+    if (isUserVerifiedStatus(dbUser.status)) {
       return { data: null, message: 'Email already verified' };
     }
 
@@ -307,7 +308,7 @@ export class AuthCoreService implements OnModuleInit {
     this.resendVerificationRateLimiter.assertAllowed(dto.email, ipAddress);
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
-    if (user && !user.isVerified) {
+    if (user && !isUserVerifiedStatus(user.status)) {
       const otp = this.generateOtp();
       await this.authPasswordRepository.storeVerificationOtp(user.id, otp, this.generateOtpExpiry());
       try {
@@ -355,7 +356,7 @@ export class AuthCoreService implements OnModuleInit {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
-    if (!user.isVerified) {
+    if (!isUserVerifiedStatus(user.status)) {
       if (user.verificationOtpAttempts >= 5) {
         throw new BadRequestException('Too many invalid attempts. Request a new OTP.');
       }
@@ -392,7 +393,7 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     return {
-      data: { purpose: 'PASSWORD_RESET', emailVerified: user.isVerified },
+      data: { purpose: 'PASSWORD_RESET', emailVerified: isUserVerifiedStatus(user.status) },
       message: 'OTP verified successfully',
     };
   }
@@ -462,9 +463,7 @@ export class AuthCoreService implements OnModuleInit {
     lastName: string;
     phone?: string;
     role: UserRole;
-    isApproved: boolean;
-    isVerified?: boolean;
-    isActive?: boolean;
+    status?: UserStatus;
     mustChangePassword?: boolean;
     location?: string;
     providerProfile?: {
@@ -495,9 +494,7 @@ export class AuthCoreService implements OnModuleInit {
         phone: input.phone?.trim(),
         avatarUrl: input.avatarUrl,
         role: input.role,
-        isVerified: input.isVerified ?? false,
-        isActive: input.isActive ?? true,
-        isApproved: input.isApproved,
+        status: input.status ?? UserStatus.PENDING,
         mustChangePassword: input.mustChangePassword ?? false,
         location: input.location,
         providerProfile: input.providerProfile
@@ -541,7 +538,7 @@ export class AuthCoreService implements OnModuleInit {
   private async getActiveUser(userId: string): Promise<User> {
     const user = await this.authRepository.findActiveUserById(userId);
 
-    if (!user || !user.isActive) {
+    if (!user || !isUserActiveStatus(user.status)) {
       throw new NotFoundException('User not found');
     }
 
@@ -597,8 +594,7 @@ export class AuthCoreService implements OnModuleInit {
       phone: user.phone,
       avatarUrl: user.avatarUrl,
       fullName: `${user.firstName} ${user.lastName}`.trim(),
-      isVerified: user.isVerified,
-      isActive: user.isActive,
+      ...legacyUserFlags(user.status),
       mustChangePassword: user.mustChangePassword,
     };
 
@@ -612,7 +608,7 @@ export class AuthCoreService implements OnModuleInit {
         admin: {
           roleId: user.staffProfile?.staffRoleId ?? null,
           permissions: user.staffProfile?.staffRole?.permissions ?? {},
-          isApproved: user.isApproved,
+          isApproved: isUserApprovedStatus(user.status),
         },
       };
     }
@@ -636,8 +632,8 @@ export class AuthCoreService implements OnModuleInit {
           fulfillmentMethods: this.stringArray(profile?.fulfillmentMethods),
           autoAcceptOrders: profile?.autoAcceptOrders ?? false,
           approvalStatus: profile?.approvalStatus ?? null,
-          status: user.isActive ? 'ACTIVE' : 'INACTIVE',
-          isActive: user.isActive,
+          status: isUserActiveStatus(user.status) ? 'ACTIVE' : 'INACTIVE',
+          isActive: isUserActiveStatus(user.status),
           memberSince: user.createdAt,
         },
       };
@@ -777,9 +773,7 @@ export class AuthCoreService implements OnModuleInit {
           role: UserRole.SUPER_ADMIN,
           firstName: 'Gift App',
           lastName: 'Super Admin',
-          isVerified: true,
-          isActive: true,
-          isApproved: true,
+          status: UserStatus.APPROVED,
         })
       : await this.authRepository.createAuthUser({
           email,
@@ -787,9 +781,7 @@ export class AuthCoreService implements OnModuleInit {
           role: UserRole.SUPER_ADMIN,
           firstName: 'Gift App',
           lastName: 'Super Admin',
-          isVerified: true,
-          isActive: true,
-          isApproved: true,
+          status: UserStatus.APPROVED,
         });
 
     await this.authRepository.demoteOtherSuperAdmins(canonicalSuperAdmin.id);

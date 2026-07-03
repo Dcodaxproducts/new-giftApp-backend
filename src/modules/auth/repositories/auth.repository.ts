@@ -1,4 +1,4 @@
-import { CustomerSubscriptionStatus, Prisma, UserRole } from '@prisma/client';
+import { CustomerSubscriptionStatus, Prisma, UserRole, UserStatus } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -83,7 +83,7 @@ export class AuthRepository {
   demoteOtherSuperAdmins(canonicalSuperAdminId: string) {
     return this.prisma.user.updateMany({
       where: { role: UserRole.SUPER_ADMIN, id: { not: canonicalSuperAdminId } },
-      data: { role: UserRole.STAFF, isApproved: false, isActive: false, refreshTokenHash: null },
+      data: { role: UserRole.STAFF, status: UserStatus.BLOCKED, refreshTokenHash: null },
     });
   }
 }

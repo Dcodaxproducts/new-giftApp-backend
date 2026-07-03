@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, UserRole, UserSafetyReportStatus } from '@prisma/client';
+import { Prisma, UserRole, UserSafetyReportStatus, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
@@ -52,7 +52,7 @@ export class UserSafetyRepository {
   }
 
   findActiveAdminRecipients() {
-    return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.STAFF] }, isActive: true }, select: { id: true, role: true } });
+    return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.STAFF] }, status: UserStatus.APPROVED }, select: { id: true, role: true } });
   }
 
   createManyNotifications(data: Prisma.NotificationCreateManyInput[]) {

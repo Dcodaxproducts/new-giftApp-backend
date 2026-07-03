@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Gift, GiftCategory, GiftStatus, GiftVariant, Prisma, UserRole } from '@prisma/client';
+import { Gift, GiftCategory, GiftStatus, GiftVariant, Prisma, UserRole, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from '../repositories/gift-management.repository';
@@ -23,7 +23,7 @@ import { getPagination } from '../../../common/pagination/pagination.util';
 
 type GiftWithRelations = Gift & {
   category: Pick<GiftCategory, 'id' | 'name' | 'isActive' | 'deletedAt'>;
-  provider: { id: string; email: string; providerProfile: { businessName: string | null } | null; firstName: string; lastName: string; isActive?: boolean; isApproved?: boolean; suspendedAt?: Date | null };
+  provider: { id: string; email: string; providerProfile: { businessName: string | null } | null; firstName: string; lastName: string; status: UserStatus };
   variants: GiftVariant[];
 };
 type RatingSummary = { rating: number; reviewCount: number };

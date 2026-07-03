@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderBusinessInfoRepository } from './provider-business-info.repository';
 import { UpdateProviderBusinessInfoDto } from './dto/provider-business-info.dto';
+import { isUserApprovedStatus } from '../../common/utils/user-status.util';
 
 type ProviderUser = User & { providerProfile?: ProviderProfile | null };
 
@@ -37,7 +38,7 @@ export class ProviderBusinessInfoService {
 
     const updated = await this.repository.updateProvider(user.uid, {
         location: dto.headquarters?.trim(),
-        isApproved: materialChange ? false : provider.isApproved,
+        status: materialChange ? UserStatus.PENDING : provider.status,
       }, {
         businessName: dto.businessName?.trim(),
         legalName: dto.legalName?.trim(),
@@ -110,7 +111,7 @@ export class ProviderBusinessInfoService {
       phone: profile.businessPhone ?? provider.phone,
       fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
       autoAcceptOrders: profile.autoAcceptOrders ?? false,
-      verificationRequired: profile.approvalStatus === ProviderApprovalStatus.PENDING || !provider.isApproved,
+      verificationRequired: profile.approvalStatus === ProviderApprovalStatus.PENDING || !isUserApprovedStatus(provider.status),
       businessAddress: profile.businessAddress,
       headquarters: provider.location,
     };

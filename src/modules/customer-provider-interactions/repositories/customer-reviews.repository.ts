@@ -15,7 +15,7 @@ const ORDER_FOR_REVIEW_SELECT = Prisma.validator<Prisma.OrderSelect>()({
   status: true,
   userId: true,
   providerOrders: {
-    select: { id: true, providerId: true, status: true, provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, isActive: true } } },
+    select: { id: true, providerId: true, status: true, provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, status: true } } },
     orderBy: { createdAt: 'asc' },
   },
 });

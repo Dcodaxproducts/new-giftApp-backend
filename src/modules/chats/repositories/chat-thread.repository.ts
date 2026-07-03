@@ -5,12 +5,12 @@ import { PrismaService } from '../../../database/prisma.service';
 export const CHAT_THREAD_INCLUDE = Prisma.validator<Prisma.ChatThreadInclude>()({
   order: { select: { id: true, orderNumber: true, userId: true } },
   providerOrder: { select: { id: true, orderId: true, providerId: true } },
-  provider: { select: { id: true, role: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, avatarUrl: true, isActive: true } },
-  customer: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, isActive: true } },
+  provider: { select: { id: true, role: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, avatarUrl: true, status: true } },
+  customer: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, status: true } },
   assignedAdmin: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true } },
   lastMessage: true,
   participants: {
-    include: { user: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: { select: { businessName: true } }, isActive: true } } },
+    include: { user: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: { select: { businessName: true } }, status: true } } },
   },
 });
 

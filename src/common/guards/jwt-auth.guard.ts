@@ -5,6 +5,7 @@ import { Prisma, ProviderApprovalStatus, UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { AuthUserContext } from '../decorators/current-user.decorator';
 import { JwtAuthRepository } from '../repositories/jwt-auth.repository';
+import { isUserActiveStatus, isUserSuspendedStatus } from '../utils/user-status.util';
 
 interface JwtPayload extends AuthUserContext {
   sub?: string;
@@ -34,7 +35,7 @@ export class JwtAuthGuard implements CanActivate {
       });
       const user = await this.repository.findUserForJwtGuard(payload.uid);
 
-      if (!user || !user.isActive) {
+      if (!user || !isUserActiveStatus(user.status)) {
         throw new ForbiddenException('Account is inactive');
       }
 
@@ -49,7 +50,7 @@ export class JwtAuthGuard implements CanActivate {
         }
       }
 
-      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && (user.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !user.isActive || user.suspendedAt)) {
+      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && (user.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !isUserActiveStatus(user.status) || isUserSuspendedStatus(user.status))) {
         throw new ForbiddenException('Your provider account is pending approval. You cannot access this module yet.');
       }
 

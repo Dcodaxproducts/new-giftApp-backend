@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewSeverity, ReviewStatus } from '@prisma/client';
+import { NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewSeverity, ReviewStatus, UserStatus } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, ListCustomerReviewsDto, ListProviderReportsDto, ProviderReportStatusFilter, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
@@ -8,8 +8,7 @@ import { CustomerProviderInteractionsRepository } from '../repositories/customer
 import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositories/customer-reviews.repository';
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
 import { getPagination } from '../../../common/pagination/pagination.util';
-
-type ProviderView = { id: string; providerProfile: { businessName: string | null } | null; avatarUrl: string | null; firstName: string; lastName: string; isActive: boolean };
+type ProviderView = { id: string; providerProfile: { businessName: string | null } | null; avatarUrl: string | null; firstName: string; lastName: string; status: UserStatus };
 type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
 
 @Injectable()

@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User, UserRole } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User, UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { MailerService } from '../../mailer/mailer.service';
@@ -20,7 +20,6 @@ import {
   MessageProviderDto,
   ProviderActivityType,
   ProviderLifecycleAction,
-  ProviderLifecycleReason,
   ProviderLookupDto,
   ProviderSortBy,
   ProviderStatusFilter,
@@ -31,6 +30,7 @@ import {
 } from '../dto/provider-management.dto';
 import { ProviderAggregateStats, ProviderManagementRepository } from '../repositories/provider-management.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
+import { isUserActiveStatus, isUserSuspendedStatus, isUserVerifiedStatus } from '../../../common/utils/user-status.util';
 
 interface ProviderActivityItem {
   id: string;
@@ -153,9 +153,7 @@ export class ProviderManagementService {
         phone: dto.contact.trim(),
         avatarUrl: dto.companyLogoUrl?.trim(),
         role: UserRole.PROVIDER,
-        isActive: dto.isActive ?? true,
-        isApproved: approvalStatus === ProviderApprovalStatus.APPROVED,
-        isVerified: true,
+        status: approvalStatus === ProviderApprovalStatus.APPROVED && (dto.isActive ?? true) ? UserStatus.APPROVED : UserStatus.PENDING,
         mustChangePassword: true,
         location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
         providerProfile: {
@@ -413,7 +411,7 @@ export class ProviderManagementService {
       companyLogoUrl: provider.avatarUrl,
       coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
       status: this.toStatus(provider),
-      isActive: provider.isActive,
+      isActive: isUserActiveStatus(provider.status),
       approvalStatus: profile.approvalStatus ?? ProviderApprovalStatus.PENDING,
       revenue: stats.revenue,
       listedItems: stats.listedItems,
@@ -435,8 +433,8 @@ export class ProviderManagementService {
       location: this.providerLocation(provider),
       businessBio: this.providerAssets(provider).businessBio ?? null,
       verification: {
-        status: provider.isVerified ? 'TIER_2_VERIFIED' : 'UNVERIFIED',
-        label: provider.isVerified ? 'Tier 2 Verified Provider' : 'Unverified Provider',
+        status: isUserVerifiedStatus(provider.status) ? 'TIER_2_VERIFIED' : 'UNVERIFIED',
+        label: isUserVerifiedStatus(provider.status) ? 'Tier 2 Verified Provider' : 'Unverified Provider',
       },
       stats: {
         performanceStats: stats.performanceStats,
@@ -471,17 +469,17 @@ export class ProviderManagementService {
       coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
       location: this.providerLocation(provider),
       approvalStatus: profile.approvalStatus,
-      isActive: provider.isActive,
+      isActive: isUserActiveStatus(provider.status),
       inviteEmailSent,
     };
   }
 
   private toStatus(provider: ProviderUser): ProviderStatusFilter {
-    if (provider.suspendedAt) {
+    if (provider.status === UserStatus.SUSPENDED) {
       return ProviderStatusFilter.SUSPENDED;
     }
 
-    if (!provider.isActive) {
+    if (provider.status === UserStatus.BLOCKED || provider.status === UserStatus.REJECTED) {
       return ProviderStatusFilter.INACTIVE;
     }
 
@@ -492,11 +490,11 @@ export class ProviderManagementService {
 
   private toSuspension(provider: ProviderUser) {
     return {
-      isSuspended: !!provider.suspendedAt,
+      isSuspended: isUserSuspendedStatus(provider.status),
       reason: provider.suspensionReason,
       comment: provider.suspensionComment,
-      suspendedAt: provider.suspendedAt,
-      suspendedBy: provider.suspendedBy,
+      suspendedAt: null,
+      suspendedBy: null,
     };
   }
 
@@ -779,7 +777,7 @@ export class ProviderManagementService {
         throw new BadRequestException('Only approved providers can be unsuspended');
       }
 
-      if (provider.isActive && !provider.suspendedAt) {
+      if (isUserActiveStatus(provider.status) && !isUserSuspendedStatus(provider.status)) {
         throw new BadRequestException('Provider is not suspended or inactive');
       }
     }
@@ -788,12 +786,9 @@ export class ProviderManagementService {
   private async approveProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
-        isApproved: true,
-        isActive: true,
+        status: UserStatus.APPROVED,
         suspensionReason: null,
         suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
     }, {
         approvalStatus: ProviderApprovalStatus.APPROVED,
         rejectionReason: null,
@@ -805,8 +800,7 @@ export class ProviderManagementService {
   private async rejectProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
-        isApproved: false,
-        isActive: false,
+        status: UserStatus.REJECTED,
         refreshTokenHash: null,
     }, {
         approvalStatus: ProviderApprovalStatus.REJECTED,
@@ -823,11 +817,9 @@ export class ProviderManagementService {
 
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
-        isActive: dto.status === ProviderStatusUpdate.ACTIVE,
+        status: dto.status === ProviderStatusUpdate.ACTIVE ? UserStatus.APPROVED : UserStatus.BLOCKED,
         suspensionReason: null,
         suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
         refreshTokenHash: dto.status === ProviderStatusUpdate.ACTIVE ? provider.refreshTokenHash : null,
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_STATUS_UPDATED', before, updated, dto, 'Provider status updated successfully.');
@@ -836,11 +828,9 @@ export class ProviderManagementService {
   private async suspendProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
-        isActive: false,
+        status: UserStatus.SUSPENDED,
         suspensionReason: dto.reason,
         suspensionComment: dto.comment?.trim(),
-        suspendedAt: new Date(),
-        suspendedBy: user.uid,
         refreshTokenHash: null,
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_SUSPENDED', before, updated, dto, 'Provider suspended successfully.');
@@ -849,11 +839,9 @@ export class ProviderManagementService {
   private async unsuspendProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
-        isActive: true,
+        status: UserStatus.APPROVED,
         suspensionReason: null,
         suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_UNSUSPENDED', before, updated, dto, 'Provider unsuspended successfully.');
   }
@@ -887,10 +875,10 @@ export class ProviderManagementService {
       id: provider.id,
       approvalStatus: profile.approvalStatus ?? ProviderApprovalStatus.PENDING,
       status: this.toStatus(provider),
-      isActive: provider.isActive,
+      isActive: isUserActiveStatus(provider.status),
       rejectionReason: profile.rejectionReason,
       suspensionReason: provider.suspensionReason,
-      suspendedAt: provider.suspendedAt,
+      suspendedAt: null,
     };
   }
 

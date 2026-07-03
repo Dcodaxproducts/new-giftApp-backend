@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountType, CustomerSubscriptionStatus, NotificationRecipientType, PaymentStatus, Prisma, User, UserRole } from '@prisma/client';
+import { AccountType, CustomerSubscriptionStatus, NotificationRecipientType, PaymentStatus, Prisma, User, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
@@ -169,11 +169,9 @@ export class UserManagementRepository {
     return this.prisma.user.update({
       where: { id: params.userId },
       data: {
-        isActive: false,
+        status: UserStatus.SUSPENDED,
         suspensionReason: params.reason,
         suspensionComment: params.comment?.trim(),
-        suspendedAt: new Date(),
-        suspendedBy: params.actorId,
         refreshTokenHash: null,
       },
     });
@@ -183,11 +181,9 @@ export class UserManagementRepository {
     return this.prisma.user.update({
       where: { id: params.userId },
       data: {
-        isActive: true,
+        status: UserStatus.APPROVED,
         suspensionReason: null,
         suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
       },
     });
   }
@@ -195,17 +191,15 @@ export class UserManagementRepository {
   async clearSuspensionAndUpdateStatus(params: {
     userId: string;
     actorId: string;
-    isActive: boolean;
+    status: UserStatus;
     refreshTokenHash: string | null;
   }): Promise<User> {
     return this.prisma.user.update({
       where: { id: params.userId },
       data: {
-        isActive: params.isActive,
+        status: params.status,
         suspensionReason: null,
         suspensionComment: null,
-        suspendedAt: null,
-        suspendedBy: null,
         refreshTokenHash: params.refreshTokenHash,
       },
     });

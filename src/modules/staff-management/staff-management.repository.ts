@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -65,7 +65,7 @@ export class StaffManagementRepository {
   }
 
   countOtherActiveSuperAdmins(currentSuperAdminId: string) {
-    return this.prisma.user.count({ where: { role: 'SUPER_ADMIN', isActive: true, id: { not: currentSuperAdminId } } });
+    return this.prisma.user.count({ where: { role: 'SUPER_ADMIN', status: UserStatus.APPROVED, id: { not: currentSuperAdminId } } });
   }
 
   findStaffRoleById(id: string) {

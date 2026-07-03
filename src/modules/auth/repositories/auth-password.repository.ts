@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class AuthPasswordRepository {
   }
 
   markEmailVerified(userId: string) {
-    return this.prisma.user.update({ where: { id: userId }, data: { isVerified: true, verificationOtp: null, verificationOtpExpiresAt: null, verificationOtpAttempts: 0 } });
+    return this.prisma.user.update({ where: { id: userId }, data: { status: UserStatus.APPROVED, verificationOtp: null, verificationOtpExpiresAt: null, verificationOtpAttempts: 0 } });
   }
 
   storeVerificationOtp(userId: string, otp: string, expiresAt: Date) {

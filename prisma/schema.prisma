@@ -13,6 +13,14 @@ enum UserRole {
   PROVIDER
 }
 
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+  BLOCKED
+}
+
 enum ProviderApprovalStatus {
   PENDING
   APPROVED
@@ -730,14 +738,12 @@ model User {
   email                               String                               @unique
   password                            String
   role                                UserRole                             @default(REGISTERED_USER)
+  status                              UserStatus                           @default(PENDING)
   firstName                           String                               @map("first_name")
   lastName                            String                               @map("last_name")
   phone                               String?
   avatarUrl                           String?                              @map("avatar_url")
   location                            String?
-  isVerified                          Boolean                              @default(false) @map("is_verified")
-  isActive                            Boolean                              @default(true) @map("is_active")
-  isApproved                          Boolean                              @default(true) @map("is_approved")
   mustChangePassword                  Boolean                              @default(false) @map("must_change_password")
   lastLoginAt                         DateTime?                            @map("last_login_at") @db.Timestamptz
   verificationOtp                     String?                              @map("verification_otp")
@@ -748,8 +754,6 @@ model User {
   resetPasswordOtpAttempts            Int                                  @default(0) @map("reset_password_otp_attempts")
   suspensionReason                    String?                              @map("suspension_reason")
   suspensionComment                   String?                              @map("suspension_comment")
-  suspendedAt                         DateTime?                            @map("suspended_at") @db.Timestamptz
-  suspendedBy                         String?                              @map("suspended_by")
   refreshTokenHash                    String?                              @map("refresh_token_hash")
   referralCode                        String?                              @unique @map("referral_code")
   createdAt                           DateTime                             @default(now()) @map("created_at") @db.Timestamptz
@@ -827,8 +831,7 @@ model User {
   socialWarnings                      UserWarning[]                        @relation("WarnedUser")
   issuedSocialWarnings                UserWarning[]                        @relation("WarningIssuer")
 
-  @@index([role, isActive])
-  @@index([role, suspendedAt])
+  @@index([role, status])
   @@index([referralCode])
   @@map("users")
 }

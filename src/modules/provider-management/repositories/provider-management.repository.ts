@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole } from '@prisma/client';
+import { GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../../common/pagination/pagination.util';
 import { PrismaService } from '../../../database/prisma.service';
@@ -91,7 +91,7 @@ export class ProviderManagementRepository {
       where: {
         role: UserRole.PROVIDER,
         providerProfile: { is: { approvalStatus: query.approvalStatus ?? ProviderApprovalStatus.APPROVED } },
-        isActive: query.isActive ?? true,
+        status: query.isActive ?? true ? UserStatus.APPROVED : { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] },
         ...(query.search
           ? {
               OR: [
@@ -111,7 +111,7 @@ export class ProviderManagementRepository {
     const [totalProviders, pendingApproval, inactiveProviders] = await this.prisma.$transaction([
       this.prisma.user.count({ where: { role: UserRole.PROVIDER } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.PENDING } } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] } } }),
     ]);
     return { totalProviders, pendingApproval, inactiveProviders };
   }
@@ -354,9 +354,9 @@ export class ProviderManagementRepository {
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.PENDING } } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
@@ -510,12 +510,12 @@ export class ProviderManagementRepository {
   private statusWhere(status?: ProviderStatusFilter): Prisma.UserWhereInput {
     switch (status) {
       case ProviderStatusFilter.ACTIVE:
-        return { isActive: true, suspendedAt: null, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.APPROVED } } };
+        return { status: UserStatus.APPROVED, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.APPROVED } } };
       case ProviderStatusFilter.INACTIVE:
       case ProviderStatusFilter.DISABLED:
-        return { isActive: false, suspendedAt: null };
+        return { status: { in: [UserStatus.BLOCKED, UserStatus.REJECTED] } };
       case ProviderStatusFilter.SUSPENDED:
-        return { suspendedAt: { not: null } };
+        return { status: UserStatus.SUSPENDED };
       case ProviderStatusFilter.ALL:
       case undefined:
         return {};

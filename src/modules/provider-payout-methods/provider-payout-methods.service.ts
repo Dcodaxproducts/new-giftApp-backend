@@ -4,6 +4,7 @@ import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderPayo
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderPayoutMethodsRepository } from './provider-payout-methods.repository';
 import { CreateProviderBankAccountDto, UpdateProviderPayoutMethodDto, VerifyProviderPayoutMethodDto } from './dto/provider-payout-methods.dto';
+import { isUserActiveStatus, isUserApprovedStatus, isUserSuspendedStatus } from '../../common/utils/user-status.util';
 
 @Injectable()
 export class ProviderPayoutMethodsService {
@@ -84,7 +85,7 @@ export class ProviderPayoutMethodsService {
   private async getApprovedActiveProvider(id: string) {
     const provider = await this.repository.findApprovedProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
-    if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access payout methods');
+    if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !isUserActiveStatus(provider.status) || !isUserApprovedStatus(provider.status) || isUserSuspendedStatus(provider.status)) throw new ForbiddenException('Only approved active providers can access payout methods');
     return provider;
   }
 

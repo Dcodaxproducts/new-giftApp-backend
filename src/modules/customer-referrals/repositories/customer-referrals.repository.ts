@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
@@ -20,7 +20,7 @@ export class CustomerReferralsRepository {
   }
 
   findReferrerByCode(code: string) {
-    return this.prisma.user.findFirst({ where: { referralCode: code, role: UserRole.REGISTERED_USER, isActive: true } });
+    return this.prisma.user.findFirst({ where: { referralCode: code, role: UserRole.REGISTERED_USER, status: UserStatus.APPROVED } });
   }
 
   findReferralByReferredUserId(referredUserId: string) {
