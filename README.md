@@ -1,5 +1,7 @@
 # Gift App Backend
 
+<!-- Backend access check: OpenClaw edited this README on 2026-07-03 for repo verification. -->
+
 NestJS backend for the Personalized Gifting & Payments Application.
 
 This repo is now aligned with the SRD roles: **Super Admin**, **Admin**, **Registered User**, **Guest User**, and **Provider User**.
