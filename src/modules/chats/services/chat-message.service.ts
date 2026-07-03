@@ -89,10 +89,10 @@ export class ChatMessageService {
   }
 
   private senderType(user: AuthUserContext, thread: Thread): ChatSenderType {
-    if (thread.threadType === ChatThreadType.SUPPORT_CHAT) return user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN ? ChatSenderType.ADMIN : ChatSenderType.PARTICIPANT;
+    if (thread.threadType === ChatThreadType.SUPPORT_CHAT) return user.role === UserRole.STAFF || user.role === UserRole.SUPER_ADMIN ? ChatSenderType.ADMIN : ChatSenderType.PARTICIPANT;
     if (user.role === UserRole.REGISTERED_USER) return ChatSenderType.CUSTOMER;
     if (user.role === UserRole.PROVIDER) return ChatSenderType.PROVIDER;
-    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) return ChatSenderType.ADMIN;
+    if (user.role === UserRole.STAFF || user.role === UserRole.SUPER_ADMIN) return ChatSenderType.ADMIN;
     throw new BadRequestException('Unsupported chat sender role');
   }
 
@@ -150,8 +150,8 @@ export class ChatMessageService {
     if (dto.messageType !== ChatMessageType.TEXT && attachments.length === 0) throw new BadRequestException('attachmentUrls are required for attachment messages');
   }
 
-  private participantName(user: { providerBusinessName?: string | null; firstName: string; lastName: string }): string {
-    return user.providerBusinessName ?? `${user.firstName} ${user.lastName}`.trim();
+  private participantName(user: { providerProfile?: { businessName: string | null } | null; firstName: string; lastName: string }): string {
+    return user.providerProfile?.businessName ?? `${user.firstName} ${user.lastName}`.trim();
   }
 
   private stringArray(value: Prisma.JsonValue): string[] {

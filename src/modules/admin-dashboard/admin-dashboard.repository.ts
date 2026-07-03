@@ -54,10 +54,10 @@ export class AdminDashboardRepository {
     const providers = providerIds.length
       ? await this.prisma.user.findMany({
           where: { id: { in: providerIds }, role: UserRole.PROVIDER },
-          select: { id: true, providerBusinessName: true, firstName: true, lastName: true },
+          select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true },
         })
       : [];
-    const providerNames = new Map(providers.map((provider) => [provider.id, provider.providerBusinessName ?? (`${provider.firstName} ${provider.lastName}`.trim() || 'Provider')]));
+    const providerNames = new Map(providers.map((provider) => [provider.id, provider.providerProfile?.businessName ?? (`${provider.firstName} ${provider.lastName}`.trim() || 'Provider')]));
     const aggregateMap = new Map<string, ProviderPerformanceRow>();
 
     for (const row of orderRows) {
@@ -82,16 +82,8 @@ export class AdminDashboardRepository {
   }
 
   findRecentCustomerDisputes() {
-    return this.prisma.disputeCase.findMany({
-      select: { id: true, caseId: true, reason: true, priority: true, status: true, createdAt: true, user: { select: { firstName: true, lastName: true } } },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    });
-  }
-
-  findRecentProviderDisputes() {
-    return this.prisma.providerDisputeCase.findMany({
-      select: { id: true, caseId: true, reason: true, priority: true, status: true, createdAt: true, customer: { select: { firstName: true, lastName: true } } },
+    return this.prisma.dispute.findMany({
+      select: { id: true, reason: true, status: true, createdAt: true, user: { select: { firstName: true, lastName: true } } },
       orderBy: { createdAt: 'desc' },
       take: 10,
     });

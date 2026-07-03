@@ -4,7 +4,7 @@ import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const CUSTOMER_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
-  provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } },
+  provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } },
   order: { select: { id: true, orderNumber: true } },
   response: { where: { deletedAt: null }, select: { id: true, body: true, createdAt: true } },
 });
@@ -15,14 +15,13 @@ const ORDER_FOR_REVIEW_SELECT = Prisma.validator<Prisma.OrderSelect>()({
   status: true,
   userId: true,
   providerOrders: {
-    select: { id: true, providerId: true, status: true, provider: { select: { id: true, providerBusinessName: true, avatarUrl: true, firstName: true, lastName: true, isActive: true } } },
+    select: { id: true, providerId: true, status: true, provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, isActive: true } } },
     orderBy: { createdAt: 'asc' },
   },
 });
 
 type CreateReviewData = Prisma.Args<PrismaService['review'], 'create'>['data'];
 type UpdateReviewData = Prisma.Args<PrismaService['review'], 'update'>['data'];
-type CreateReviewModerationLogData = Prisma.Args<PrismaService['reviewModerationLog'], 'create'>['data'];
 type CreateReviewNotificationData = Prisma.Args<PrismaService['notification'], 'create'>['data'];
 
 @Injectable()
@@ -74,10 +73,6 @@ export class CustomerReviewsRepository {
 
   createReviewNotification(data: CreateReviewNotificationData) {
     return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput);
-  }
-
-  createReviewModerationLog(data: CreateReviewModerationLogData) {
-    return this.prisma.reviewModerationLog.create({ data });
   }
 
   findProviderForOrder(customerId: string, providerId: string, orderId?: string) {

@@ -56,6 +56,10 @@ export class NotificationsRepository {
     return this.prisma.notification.create({ data });
   }
 
+  findRecipientEmail(recipientId: string) {
+    return this.prisma.user.findUnique({ where: { id: recipientId }, select: { email: true } });
+  }
+
   createInAppBroadcastNotification(input: {
     recipientId: string;
     recipientType: NotificationRecipientType;

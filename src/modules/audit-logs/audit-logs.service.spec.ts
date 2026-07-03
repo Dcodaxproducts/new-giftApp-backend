@@ -32,7 +32,7 @@ function createAuditService() {
       count: jest.fn().mockResolvedValue(1),
       findUnique: jest.fn().mockResolvedValue(log),
     },
-    user: { findMany: jest.fn().mockResolvedValue([{ id: 'admin_1', email: 'admin@example.com', role: UserRole.ADMIN, firstName: 'Sarah', lastName: 'Chen', adminTitle: 'Compliance Officer' }]) },
+    user: { findMany: jest.fn().mockResolvedValue([{ id: 'admin_1', email: 'admin@example.com', role: UserRole.STAFF, firstName: 'Sarah', lastName: 'Chen', adminTitle: 'Compliance Officer' }]) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const repository = new AuditLogsRepository(prisma as never);

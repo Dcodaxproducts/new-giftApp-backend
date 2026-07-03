@@ -13,7 +13,7 @@ import { AdminProviderPayoutsService } from './admin-provider-payouts.service';
 @ApiTags('02 Admin - Provider Payouts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/provider-payouts')
 export class AdminProviderPayoutsController {
   constructor(private readonly payouts: AdminProviderPayoutsService) {}

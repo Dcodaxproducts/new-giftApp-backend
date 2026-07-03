@@ -5,12 +5,12 @@ import { PrismaService } from '../../../database/prisma.service';
 export const CHAT_THREAD_INCLUDE = Prisma.validator<Prisma.ChatThreadInclude>()({
   order: { select: { id: true, orderNumber: true, userId: true } },
   providerOrder: { select: { id: true, orderId: true, providerId: true } },
-  provider: { select: { id: true, role: true, providerBusinessName: true, firstName: true, lastName: true, avatarUrl: true, isActive: true } },
+  provider: { select: { id: true, role: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, avatarUrl: true, isActive: true } },
   customer: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, isActive: true } },
   assignedAdmin: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true } },
   lastMessage: true,
   participants: {
-    include: { user: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, providerBusinessName: true, isActive: true } } },
+    include: { user: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: { select: { businessName: true } }, isActive: true } } },
   },
 });
 
@@ -40,7 +40,7 @@ export class ChatThreadRepository {
 
   findSupportParticipantById(id: string) {
     return this.prisma.user.findFirst({
-      where: { id, role: { in: ['REGISTERED_USER', 'PROVIDER'] }, deletedAt: null },
+      where: { id, role: { in: ['REGISTERED_USER', 'PROVIDER'] } },
       select: { id: true, role: true },
     });
   }
@@ -90,7 +90,6 @@ export class ChatThreadRepository {
       if (params.assignedAdminId) {
         await tx.chatParticipant.upsert({ where: { threadId_userId: { threadId: thread.id, userId: params.assignedAdminId } }, update: { leftAt: null, role: 'ADMIN' }, create: { threadId: thread.id, userId: params.assignedAdminId, role: 'ADMIN' } });
       }
-      await tx.chatAuditLog.create({ data: { threadId: thread.id, actorId: params.assignedAdminId ?? params.participantId, action: 'chat.thread.created', metadataJson: { threadType: ChatThreadType.SUPPORT_CHAT } } });
       return tx.chatThread.findUniqueOrThrow({ where: { id: thread.id }, include: CHAT_THREAD_INCLUDE });
     });
   }

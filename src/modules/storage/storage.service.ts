@@ -66,7 +66,7 @@ export class StorageService {
 
   async list(user: AuthUserContext, query: ListUploadsDto) {
     const { page, limit, skip, take } = getPagination(query);
-    const where: Prisma.UploadedFileWhereInput = { deletedAt: null, folder: query.folder, ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? query.ownerId : user.uid };
+    const where: Prisma.UploadedFileWhereInput = { deletedAt: null, folder: query.folder, ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.STAFF ? query.ownerId : user.uid };
     const [items, total] = await this.uploadsRepository.findUploadsAndCount({ where, orderBy: { createdAt: 'desc' }, skip, take });
     return { data: items.map((item) => this.toFile(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Uploads fetched successfully' };
   }
@@ -85,7 +85,7 @@ export class StorageService {
   }
 
   private async getAccessibleFile(user: AuthUserContext, id: string): Promise<UploadedFile> {
-    const file = await this.uploadsRepository.findAccessibleUpload({ id, deletedAt: null, ...(user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? {} : { ownerId: user.uid }) });
+    const file = await this.uploadsRepository.findAccessibleUpload({ id, deletedAt: null, ...(user.role === UserRole.SUPER_ADMIN || user.role === UserRole.STAFF ? {} : { ownerId: user.uid }) });
     if (!file) throw new NotFoundException('Upload not found');
     return file;
   }
@@ -119,7 +119,7 @@ export class StorageService {
       return;
     }
 
-    if (user.role === UserRole.ADMIN) {
+    if (user.role === UserRole.STAFF) {
       if (targetAccountId) return;
       if (dto.folder === UploadFolder.ADMIN_AVATARS || dto.folder === UploadFolder.SUPPORT_CHAT_ATTACHMENTS) return;
       if (dto.folder === UploadFolder.PLATFORM_LOGOS && this.hasAnyPermission(user, ['systemSettings.update'])) return;
@@ -134,18 +134,18 @@ export class StorageService {
   }
 
   private async resolveTargetAccountId(user: AuthUserContext, dto: CreatePresignedUploadDto): Promise<string> {
-    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) throw new ForbiddenException('targetAccountId is not allowed for this account.');
-    if (user.role === UserRole.ADMIN && !this.adminCanUploadOnBehalf(user, dto.folder)) throw new ForbiddenException('targetAccountId is not allowed for this account.');
+    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.STAFF) throw new ForbiddenException('targetAccountId is not allowed for this account.');
+    if (user.role === UserRole.STAFF && !this.adminCanUploadOnBehalf(user, dto.folder)) throw new ForbiddenException('targetAccountId is not allowed for this account.');
 
     const target = await this.storageRepository.findUploadAccount(dto.targetAccountId);
-    if (!target || target.deletedAt) throw new BadRequestException('Upload owner account does not exist');
+    if (!target) throw new BadRequestException('Upload owner account does not exist');
     if (!this.folderAllowsTargetRole(dto.folder, target.role)) throw new BadRequestException('targetAccountId role does not match upload folder.');
     return target.id;
   }
 
   private async assertOwnerExists(ownerId: string): Promise<void> {
     const owner = await this.storageRepository.findUploadOwner(ownerId);
-    if (!owner || owner.deletedAt) throw new BadRequestException('Upload owner account does not exist');
+    if (!owner) throw new BadRequestException('Upload owner account does not exist');
   }
 
   private async assertGiftUploadAllowed(user: AuthUserContext, giftId: string, targetAccountId: string | null): Promise<void> {
@@ -153,12 +153,12 @@ export class StorageService {
     if (!gift) throw new BadRequestException('Gift not found');
     if (user.role === UserRole.PROVIDER && gift.providerId !== user.uid) throw new ForbiddenException('Providers can upload images only for their own gifts');
     if (targetAccountId && gift.providerId !== targetAccountId) throw new ForbiddenException('targetAccountId does not own this gift.');
-    if (user.role === UserRole.ADMIN && !this.hasAnyPermission(user, ['gifts.create', 'gifts.update'])) throw new ForbiddenException('Admin role cannot upload gift images');
+    if (user.role === UserRole.STAFF && !this.hasAnyPermission(user, ['gifts.create', 'gifts.update'])) throw new ForbiddenException('Admin role cannot upload gift images');
   }
 
   private folderAllowsTargetRole(folder: UploadFolder, role: UserRole): boolean {
     if (folder === UploadFolder.PROVIDER_AVATARS || folder === UploadFolder.PROVIDER_LOGOS || folder === UploadFolder.PROVIDER_COVERS || folder === UploadFolder.PROVIDER_DOCUMENTS || folder === UploadFolder.PROVIDER_ITEM_IMAGES || folder === UploadFolder.GIFT_IMAGES) return role === UserRole.PROVIDER;
-    if (folder === UploadFolder.ADMIN_AVATARS) return role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
+    if (folder === UploadFolder.ADMIN_AVATARS) return role === UserRole.STAFF || role === UserRole.SUPER_ADMIN;
     if (folder === UploadFolder.USER_AVATARS) return role === UserRole.REGISTERED_USER;
     return false;
   }

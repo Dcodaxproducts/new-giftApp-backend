@@ -8,7 +8,7 @@ export class ChatOrderSourceRepository {
   findCustomerOrderSource(userId: string, orderId: string) {
     return this.prisma.order.findFirst({
       where: { id: orderId, userId },
-      include: { providerOrders: { include: { provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, avatarUrl: true, isActive: true } } }, take: 1 } },
+      include: { providerOrders: { include: { provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, avatarUrl: true, isActive: true } } }, take: 1 } },
     });
   }
 

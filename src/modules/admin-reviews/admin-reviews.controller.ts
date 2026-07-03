@@ -8,11 +8,11 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminReviewsService } from './admin-reviews.service';
-import { ExportReviewsDto, FlaggedSummaryDto, ListReviewsDto, ModerateReviewDto, ModerationLogsDto, ModerationQueueDto, ReviewStatsDto } from './dto/admin-reviews.dto';
+import { ExportReviewsDto, FlaggedSummaryDto, ListReviewsDto, ModerateReviewDto, ModerationQueueDto, ReviewStatsDto } from './dto/admin-reviews.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/reviews')
 export class AdminReviewsController {
   constructor(private readonly reviews: AdminReviewsService) {}
@@ -45,11 +45,6 @@ export class AdminReviewsController {
   @Permissions('reviews.moderate')
   moderationQueue(@Query() query: ModerationQueueDto) { return this.reviews.moderationQueue(query); }
 
-  @Get('moderation-logs')
-  @ApiTags('02 Admin - Review Moderation')
-  @Permissions('reviewModerationLogs.read')
-  moderationLogs(@Query() query: ModerationLogsDto) { return this.reviews.moderationLogs(query); }
-
   @Get()
   @ApiTags('02 Admin - Reviews Management')
   @Permissions('reviews.read')
@@ -67,7 +62,7 @@ export class AdminReviewsController {
   @Post(':id/moderate')
   @ApiTags('02 Admin - Review Moderation')
   @Permissions('reviews.moderate')
-  @ApiOperation({ summary: 'Moderate a review', description: 'SUPER_ADMIN or ADMIN with reviews.moderate/specific moderation permissions. Creates ReviewModerationLog and admin audit log. Does not physically delete reviews.' })
+  @ApiOperation({ summary: 'Moderate a review', description: 'SUPER_ADMIN or ADMIN with reviews.moderate/specific moderation permissions. Creates an admin audit log. Does not physically delete reviews.' })
   @ApiBody({ type: ModerateReviewDto, examples: { hide: { value: { action: 'HIDE', reason: 'POLICY_VIOLATION', comment: 'Hidden after manual moderation.', notifyUser: false, notifyProvider: true } }, remove: { value: { action: 'REMOVE', reason: 'FAKE_REVIEW', comment: 'Removed due to fake review indicators.', notifyUser: true, notifyProvider: true } }, approve: { value: { action: 'APPROVE', reason: 'FALSE_POSITIVE', comment: 'Review checked and approved.', notifyUser: false, notifyProvider: false } } } })
   moderate(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ModerateReviewDto) { return this.reviews.moderate(user, id, dto); }
 }

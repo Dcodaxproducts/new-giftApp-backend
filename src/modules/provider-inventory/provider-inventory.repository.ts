@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { GiftModerationStatus, GiftStatus, Prisma } from '@prisma/client';
+import { GiftStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export const PROVIDER_INVENTORY_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
   category: { select: { id: true, name: true } },
-  variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
+  variants: { orderBy: { name: 'asc' } },
 });
 
 export type ProviderInventoryVariantWrite = {
@@ -25,22 +25,20 @@ export class ProviderInventoryRepository {
   }
 
   findStatsForProvider(providerId: string) {
-    const where: Prisma.GiftWhereInput = { providerId, deletedAt: null };
+    const where: Prisma.GiftWhereInput = { providerId };
     return this.prisma.$transaction([
       this.prisma.gift.count({ where }),
       this.prisma.gift.count({ where: { ...where, status: GiftStatus.ACTIVE } }),
       this.prisma.gift.count({ where: { ...where, status: GiftStatus.INACTIVE } }),
-      this.prisma.gift.count({ where: { ...where, moderationStatus: GiftModerationStatus.PENDING } }),
-      this.prisma.gift.count({ where: { ...where, moderationStatus: GiftModerationStatus.REJECTED } }),
     ]);
   }
 
   findLookupItemsForProvider(providerId: string) {
-    return this.prisma.gift.findMany({ where: { providerId, deletedAt: null, status: GiftStatus.ACTIVE }, orderBy: { name: 'asc' }, take: 500 });
+    return this.prisma.gift.findMany({ where: { providerId, status: GiftStatus.ACTIVE }, orderBy: { name: 'asc' }, take: 500 });
   }
 
   findOwnedItemById(providerId: string, id: string) {
-    return this.prisma.gift.findFirst({ where: { id, providerId, deletedAt: null }, include: PROVIDER_INVENTORY_INCLUDE });
+    return this.prisma.gift.findFirst({ where: { id, providerId }, include: PROVIDER_INVENTORY_INCLUDE });
   }
 
   findActiveCategory(categoryId: string) {
@@ -52,24 +50,23 @@ export class ProviderInventoryRepository {
   }
 
   findVariantsByIdsForItem(giftId: string, ids: string[]) {
-    return this.prisma.giftVariant.findMany({ where: { giftId, id: { in: ids }, deletedAt: null }, select: { id: true } });
+    return this.prisma.giftVariant.findMany({ where: { giftId, id: { in: ids } }, select: { id: true } });
   }
 
   createItemWithVariants(data: Prisma.GiftCreateArgs['data']) {
     return this.prisma.gift.create({ data, include: PROVIDER_INVENTORY_INCLUDE });
   }
 
-  updateItemWithVariants(params: { id: string; data: Prisma.GiftUpdateArgs['data']; variants?: ProviderInventoryVariantWrite[]; replaceVariants: boolean; incomingIds: string[]; clearDefault: boolean }) {
+  updateItemWithVariants(params: { id: string; data: Prisma.GiftUpdateArgs['data']; variants?: ProviderInventoryVariantWrite[]; replaceVariants: boolean; incomingIds: string[] }) {
     return this.prisma.$transaction(async (tx) => {
       const base = await tx.gift.update({ where: { id: params.id }, data: params.data });
-      if (params.variants) await this.upsertVariants(tx, { id: params.id, variants: params.variants, replaceVariants: params.replaceVariants, incomingIds: params.incomingIds, clearDefault: params.clearDefault });
+      if (params.variants) await this.upsertVariants(tx, { id: params.id, variants: params.variants, replaceVariants: params.replaceVariants, incomingIds: params.incomingIds });
       return tx.gift.findUniqueOrThrow({ where: { id: base.id }, include: PROVIDER_INVENTORY_INCLUDE });
     });
   }
 
-  private async upsertVariants(tx: Prisma.TransactionClient, params: { id: string; variants: ProviderInventoryVariantWrite[]; replaceVariants: boolean; incomingIds: string[]; clearDefault: boolean }) {
-    if (params.replaceVariants) await tx.giftVariant.updateMany({ where: { giftId: params.id, deletedAt: null, id: { notIn: params.incomingIds } }, data: { deletedAt: new Date(), isActive: false, isDefault: false } });
-    if (params.clearDefault) await tx.giftVariant.updateMany({ where: { giftId: params.id, deletedAt: null }, data: { isDefault: false } });
+  private async upsertVariants(tx: Prisma.TransactionClient, params: { id: string; variants: ProviderInventoryVariantWrite[]; replaceVariants: boolean; incomingIds: string[] }) {
+    if (params.replaceVariants) await tx.giftVariant.deleteMany({ where: { giftId: params.id, id: { notIn: params.incomingIds } } });
     for (const variant of params.variants) {
       if (variant.id) await tx.giftVariant.update({ where: { id: variant.id }, data: variant.updateData });
       else await tx.giftVariant.create({ data: { giftId: params.id, ...variant.createData } });

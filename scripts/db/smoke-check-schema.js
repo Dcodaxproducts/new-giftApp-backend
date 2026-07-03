@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const pg_1 = require("pg");
 const requiredTables = [
-    'guest_sessions',
     'chat_threads',
     'chat_participants',
     'chat_messages',
@@ -15,8 +14,6 @@ const requiredTables = [
     'message_moderation_logs',
 ];
 const requiredEnums = [
-    'GuestCapability',
-    'GuestSessionPlatform',
     'ChatThreadType',
     'ChatSourceType',
     'ChatThreadStatus',

@@ -59,7 +59,7 @@ describe('real-time notification integration paths', () => {
       threadId: 'support_1',
       threadType: ChatThreadType.SUPPORT_CHAT,
       senderId: 'admin_1',
-      senderRole: UserRole.ADMIN,
+      senderRole: UserRole.STAFF,
       participantId: 'provider_1',
       participantRole: UserRole.PROVIDER,
       body: 'Checking.',

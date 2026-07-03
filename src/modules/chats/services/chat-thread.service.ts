@@ -7,7 +7,6 @@ import { ChatMessageService } from './chat-message.service';
 import { ChatNotificationService } from './chat-notification.service';
 import { ChatReadReceiptService } from './chat-read-receipt.service';
 import { CHAT_THREAD_INCLUDE, ChatThreadRepository } from '../repositories/chat-thread.repository';
-import { ChatAuditLogRepository } from '../repositories/chat-audit-log.repository';
 import { ChatSortBy, ChatSortOrder, ChatSourceKind, ChatStatus, ChatThreadKind, CreateChatThreadDto, ListChatsDto, ListThreadMessagesDto, SendChatThreadMessageDto, UpdateChatThreadStatusDto } from '../dto/chats.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -22,7 +21,6 @@ export class ChatThreadService {
     private readonly messagesService: ChatMessageService,
     private readonly receipts: ChatReadReceiptService,
     private readonly attachments: ChatAttachmentPolicyService,
-    private readonly auditLogs: ChatAuditLogRepository,
     private readonly notifications: ChatNotificationService,
   ) {}
 
@@ -82,7 +80,6 @@ export class ChatThreadService {
     const status = this.statusFor(dto.status);
     const updated = await this.threads.update(threadId, { status, ...this.statusResolutionData(user, dto.status) });
     const notifyParticipants = dto.notifyParticipants ?? dto.notifyParticipant ?? true;
-    await this.auditLogs.create({ threadId, actorId: user.uid, action: this.statusAuditAction(dto.status), metadataJson: { status: dto.status, reason: dto.reason, comment: dto.comment, notifyParticipants } });
     if (notifyParticipants) await this.notifications.notifyThreadStatus({ threadId, status: dto.status, actorId: user.uid, participants: thread.participants, comment: dto.comment });
     return { data: { id: updated.id, status: updated.status }, message: this.statusMessage(dto.status) };
   }
@@ -124,8 +121,7 @@ export class ChatThreadService {
 
   async auditLog(user: AuthUserContext, threadId: string): Promise<Envelope<unknown>> {
     await this.access.getAllowedThread(user, threadId);
-    const rows = await this.auditLogs.findForThread(threadId);
-    return { data: { threadId, events: rows.map((row) => ({ id: row.id, action: row.action, actor: row.actor, metadata: row.metadataJson, createdAt: row.createdAt })) }, message: 'Chat audit log fetched successfully.' };
+    return { data: { threadId, events: [] }, message: 'Chat audit logs are disabled.' };
   }
 
   async socketContext(user: AuthUserContext, threadId: string) {
@@ -191,11 +187,11 @@ export class ChatThreadService {
     if (query.participantId) where.participants = { some: { userId: query.participantId, leftAt: null } };
     if (user.role === UserRole.REGISTERED_USER) where.participants = { some: { userId: user.uid, leftAt: null } };
     if (user.role === UserRole.PROVIDER) where.participants = { some: { userId: user.uid, leftAt: null } };
-    if (user.role === UserRole.ADMIN && !this.access.has(user, 'supportChats.read.all')) {
+    if (user.role === UserRole.STAFF && !this.access.has(user, 'supportChats.read.all')) {
       where.OR = [...(where.OR ?? []), { assignedAdminId: user.uid }, ...(this.access.has(user, 'messageModeration.read') ? [{ threadType: ChatThreadType.ORDER_CHAT }] : [])];
     }
     if (query.search?.trim()) {
-      const search: Prisma.ChatThreadWhereInput[] = [{ subject: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { customer: { firstName: { contains: query.search, mode: 'insensitive' } } }, { customer: { lastName: { contains: query.search, mode: 'insensitive' } } }, { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } }];
+      const search: Prisma.ChatThreadWhereInput[] = [{ subject: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { customer: { firstName: { contains: query.search, mode: 'insensitive' } } }, { customer: { lastName: { contains: query.search, mode: 'insensitive' } } }, { provider: { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } } }];
       where.AND = [...(Array.isArray(where.AND) ? where.AND : []), { OR: search }];
     }
     return where;
@@ -239,8 +235,8 @@ export class ChatThreadService {
     return participant ? { id: participant.user.id, role: participant.user.role, name: this.participantName(participant.user), avatarUrl: participant.user.avatarUrl } : null;
   }
 
-  private participantName(user: { providerBusinessName?: string | null; firstName: string; lastName: string }): string {
-    return user.providerBusinessName ?? this.name(user);
+  private participantName(user: { providerProfile?: { businessName: string | null } | null; firstName: string; lastName: string }): string {
+    return user.providerProfile?.businessName ?? this.name(user);
   }
 
   private name(user: { firstName: string; lastName: string }): string {

@@ -38,10 +38,10 @@ describe('Storage upload ownership rules', () => {
   });
 
   it('derives ADMIN ownerId by default and allows targetAccountId only with permission', async () => {
-    await expect(resolve(user('admin_1', UserRole.ADMIN), { folder: UploadFolder.ADMIN_AVATARS })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: null });
-    await expect(resolve(user('admin_1', UserRole.ADMIN, { systemSettings: ['update'] }), { folder: UploadFolder.PLATFORM_LOGOS })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: null });
-    await expect(resolve(user('admin_1', UserRole.ADMIN), { folder: UploadFolder.PROVIDER_LOGOS, targetAccountId: 'provider_1' })).rejects.toBeInstanceOf(ForbiddenException);
-    await expect(resolve(user('admin_1', UserRole.ADMIN, { providers: ['update'] }), { folder: UploadFolder.PROVIDER_LOGOS, targetAccountId: 'provider_1' })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: 'provider_1', effectiveAccountId: 'provider_1' });
+    await expect(resolve(user('admin_1', UserRole.STAFF), { folder: UploadFolder.ADMIN_AVATARS })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: null });
+    await expect(resolve(user('admin_1', UserRole.STAFF, { systemSettings: ['update'] }), { folder: UploadFolder.PLATFORM_LOGOS })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: null });
+    await expect(resolve(user('admin_1', UserRole.STAFF), { folder: UploadFolder.PROVIDER_LOGOS, targetAccountId: 'provider_1' })).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(resolve(user('admin_1', UserRole.STAFF, { providers: ['update'] }), { folder: UploadFolder.PROVIDER_LOGOS, targetAccountId: 'provider_1' })).resolves.toMatchObject({ ownerId: 'admin_1', targetAccountId: 'provider_1', effectiveAccountId: 'provider_1' });
   });
 
   it('allows SUPER_ADMIN valid targetAccountId and rejects missing or mismatched targets', async () => {
@@ -77,7 +77,7 @@ describe('Storage upload ownership rules', () => {
 
   function roleFor(id: string): UserRole {
     if (id.startsWith('provider')) return UserRole.PROVIDER;
-    if (id.startsWith('admin')) return UserRole.ADMIN;
+    if (id.startsWith('admin')) return UserRole.STAFF;
     if (id.startsWith('super')) return UserRole.SUPER_ADMIN;
     return UserRole.REGISTERED_USER;
   }

@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { DisputePriority, PaymentStatus, Prisma, ProviderDisputeSeverity, UserRole } from '@prisma/client';
+import { PaymentStatus, Prisma, UserRole } from '@prisma/client';
 import { AdminDashboardQueryDto, AdminDashboardRange } from './dto/admin-dashboard-query.dto';
 import { AdminDashboardRepository } from './admin-dashboard.repository';
 
 type CustomerDispute = Awaited<ReturnType<AdminDashboardRepository['findRecentCustomerDisputes']>>[number];
-type ProviderDispute = Awaited<ReturnType<AdminDashboardRepository['findRecentProviderDisputes']>>[number];
 type RecentDispute = { id: string; caseId: string; userName: string; reason: string; status: string; createdAt: Date };
 
 @Injectable()
@@ -35,8 +34,8 @@ export class AdminDashboardService {
 
   private async overview(query: AdminDashboardQueryDto) {
     const { currentStart, currentEnd, previousStart, previousEnd } = this.dateRanges(query);
-    const activeUserWhere = { deletedAt: null, role: UserRole.REGISTERED_USER } satisfies Prisma.UserWhereInput;
-    const activeProviderWhere = { deletedAt: null } satisfies Prisma.UserWhereInput;
+    const activeUserWhere = { role: UserRole.REGISTERED_USER } satisfies Prisma.UserWhereInput;
+    const activeProviderWhere = {} satisfies Prisma.UserWhereInput;
     const currentTransactionsWhere = { createdAt: { gte: currentStart, lte: currentEnd }, status: PaymentStatus.SUCCEEDED } satisfies Prisma.PaymentWhereInput;
     const previousTransactionsWhere = { createdAt: { gte: previousStart, lt: previousEnd }, status: PaymentStatus.SUCCEEDED } satisfies Prisma.PaymentWhereInput;
     const currentRevenueWhere = currentTransactionsWhere;
@@ -82,8 +81,8 @@ export class AdminDashboardService {
   }
 
   private async recentDisputes() {
-    const [customerDisputes, providerDisputes] = await Promise.all([this.dashboardRepository.findRecentCustomerDisputes(), this.dashboardRepository.findRecentProviderDisputes()]);
-    const data = [...customerDisputes.map((dispute) => this.customerDispute(dispute)), ...providerDisputes.map((dispute) => this.providerDispute(dispute))]
+    const disputes = await this.dashboardRepository.findRecentCustomerDisputes();
+    const data = disputes.map((dispute) => this.customerDispute(dispute))
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
       .slice(0, 10)
       .map((item) => ({ id: item.id, caseId: item.caseId, userName: item.userName, reason: item.reason, status: item.status }));
@@ -135,11 +134,7 @@ export class AdminDashboardService {
   }
 
   private customerDispute(dispute: CustomerDispute): RecentDispute {
-    return { id: dispute.id, caseId: dispute.caseId, userName: this.name(dispute.user), reason: this.label(dispute.reason), status: dispute.priority === DisputePriority.HIGH || dispute.priority === DisputePriority.CRITICAL ? 'HIGH_PRIORITY' : dispute.status, createdAt: dispute.createdAt };
-  }
-
-  private providerDispute(dispute: ProviderDispute): RecentDispute {
-    return { id: dispute.id, caseId: dispute.caseId, userName: this.name(dispute.customer), reason: this.label(dispute.reason), status: dispute.priority === ProviderDisputeSeverity.HIGH || dispute.priority === ProviderDisputeSeverity.CRITICAL ? 'HIGH_PRIORITY' : dispute.status, createdAt: dispute.createdAt };
+    return { id: dispute.id, caseId: dispute.id, userName: this.name(dispute.user), reason: this.label(dispute.reason), status: dispute.status, createdAt: dispute.createdAt };
   }
 
   private name(user: { firstName: string; lastName: string }): string {

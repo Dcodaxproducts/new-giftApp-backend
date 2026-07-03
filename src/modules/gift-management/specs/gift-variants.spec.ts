@@ -7,9 +7,11 @@ describe('Nested gift variants', () => {
   const service = readFileSync(join(__dirname, '../services/gift-management.service.ts'), 'utf8');
   const repository = readFileSync(join(__dirname, '../repositories/gift-management.repository.ts'), 'utf8');
 
-  it('stores variants in GiftVariant with soft delete support', () => {
+  it('stores minimal variants in GiftVariant', () => {
     expect(schema).toContain('model GiftVariant');
-    expect(schema).toContain('deletedAt');
+    expect(schema).toContain('name          String');
+    expect(schema).toContain('price         Decimal');
+    expect(schema).not.toContain('originalPrice Decimal?  @map("original_price")');
     expect(schema).toMatch(/variants\s+GiftVariant\[\]/);
   });
 
@@ -18,7 +20,7 @@ describe('Nested gift variants', () => {
     expect(dto).toContain('variants?: GiftVariantDto[]');
     expect(dto).toContain('replaceVariants?: boolean');
     expect(service).toContain('upsertVariants');
-    expect(service).toContain('Only one default variant is allowed');
-    expect(repository).toContain('deletedAt: new Date()');
+    expect(service).toContain('New variants must include name and price');
+    expect(repository).toContain('deleteVariantsForGift');
   });
 });

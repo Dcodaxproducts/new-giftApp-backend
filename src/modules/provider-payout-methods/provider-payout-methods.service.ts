@@ -84,7 +84,7 @@ export class ProviderPayoutMethodsService {
   private async getApprovedActiveProvider(id: string) {
     const provider = await this.repository.findApprovedProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
-    if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access payout methods');
+    if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) throw new ForbiddenException('Only approved active providers can access payout methods');
     return provider;
   }
 
@@ -123,8 +123,8 @@ export class ProviderPayoutMethodsService {
 
   private fingerprint(providerId: string, accountNumber?: string | null, routingNumber?: string | null, iban?: string | null): string { const secret = process.env.PAYOUT_METHOD_FINGERPRINT_SECRET ?? process.env.JWT_SECRET ?? 'local-payout-fingerprint-secret'; const normalized = [providerId, accountNumber, routingNumber, iban].filter(Boolean).join(':').replace(/\s+/g, '').toUpperCase(); return createHmac('sha256', secret).update(normalized).digest('hex'); }
 
-  private payerId(provider: { id: string; firstName: string; lastName: string; providerBusinessName: string | null }, last4: string): string {
-    const source = provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`;
+  private payerId(provider: { id: string; firstName: string; lastName: string; providerProfile?: { businessName: string | null } | null }, last4: string): string {
+    const source = provider.providerProfile?.businessName ?? `${provider.firstName} ${provider.lastName}`;
     const initials = source.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'PV';
     return `${initials}-${provider.id.slice(-4).toUpperCase()}-${last4}`;
   }

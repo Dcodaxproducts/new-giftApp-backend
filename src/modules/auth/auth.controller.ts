@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthService } from './services/auth.service';
 import {
   ChangePasswordDto,
-  CreateGuestSessionDto,
   ForgotPasswordDto,
   LoginDto,
   RefreshDto,
@@ -32,50 +31,6 @@ export class AuthController {
   @Post('providers/register')
   registerProvider(@Body() dto: RegisterProviderDto) {
     return this.authService.registerProvider(dto);
-  }
-
-  @Post('guest/session')
-  @ApiOperation({
-    summary: 'Create guest browsing session',
-    description: 'Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.',
-  })
-  @ApiBody({
-    required: false,
-    type: CreateGuestSessionDto,
-    examples: {
-      metadata: { value: { deviceId: 'optional-device-id', platform: 'WEB', appVersion: '1.0.0', locale: 'en', timezone: 'Asia/Karachi', referrer: 'landing-page' } },
-      empty: { value: {} },
-    },
-  })
-  @ApiResponse({
-    status: 201,
-    schema: {
-      example: {
-        success: true,
-        data: {
-          guestSessionId: 'guest_session_id',
-          accessToken: 'guest_jwt',
-          tokenType: 'Bearer',
-          role: 'GUEST_USER',
-          capabilities: ['VIEW_ONBOARDING', 'BROWSE_MARKETPLACE', 'VIEW_GIFT_DETAILS', 'VIEW_MARKETPLACE_FILTERS', 'VIEW_DISCOUNTED_GIFTS'],
-          expiresAt: '2026-05-18T12:00:00.000Z',
-          guestAccess: {
-            allowMarketplaceBrowsing: true,
-            allowMarketplaceHome: true,
-            allowGiftDetails: true,
-            allowDiscountedGifts: true,
-            allowFilterOptions: true,
-            allowWishlist: false,
-            allowCart: false,
-            allowCheckout: false,
-          },
-        },
-        message: 'Guest session created successfully.',
-      },
-    },
-  })
-  guestSession(@Body() dto: CreateGuestSessionDto | undefined, @Req() request: Request) {
-    return this.authService.createGuestSession(dto, request.ip, request.headers['user-agent']);
   }
 
   @Post('login')
@@ -119,7 +74,7 @@ export class AuthController {
 
   @Post('resend-verification-email')
   @ApiOperation({ summary: 'Resend verification email', description: 'Public endpoint. Returns the same success envelope for ineligible or missing accounts to avoid account enumeration. Reports delivery failure only when the mail provider fails for an eligible account.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'OTP_SENT_IF_ELIGIBLE', nextStep: 'Use the 6-digit verification OTP to complete email verification.' }, message: 'A verification email has been sent to the email address you provided.' } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { delivery: 'EMAIL', nextStep: 'Check your inbox for a 6-digit verification code.' }, message: 'A verification email has been sent to the email address you provided.' } } })
   @ApiResponse({ status: 503, schema: { example: { success: false, error: { code: 'SERVICE_UNAVAILABLE', message: 'We could not send the verification email right now. Please try again later.' }, meta: {} } } })
   resendVerificationEmail(@Body() dto: ResendVerificationEmailDto, @Req() request: Request) {
     return this.authService.resendVerificationEmail(dto, request.ip);
@@ -199,10 +154,4 @@ export class AuthController {
     return this.authService.deleteAccount(user);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('cancel-deletion')
-  cancelDeletion(@CurrentUser() user: AuthUserContext) {
-    return this.authService.cancelDeletion(user);
-  }
 }

@@ -137,7 +137,7 @@ export class ProviderOrdersRepository {
   }
 
   findActiveSuperAdminIds(tx: ProviderOrderTransaction) {
-    return tx.user.findMany({ where: { role: 'SUPER_ADMIN', isActive: true, deletedAt: null }, select: { id: true } });
+    return tx.user.findMany({ where: { role: 'SUPER_ADMIN', isActive: true }, select: { id: true } });
   }
 
   async getOrCreateChecklistForRead(providerOrderId: string) {

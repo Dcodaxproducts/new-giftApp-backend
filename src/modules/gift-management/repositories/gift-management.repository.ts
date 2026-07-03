@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { GiftModerationStatus, GiftStatus, NotificationRecipientType, OrderStatus, Prisma, ReviewStatus, UserRole } from '@prisma/client';
+import { GiftStatus, NotificationRecipientType, OrderStatus, Prisma, ReviewStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const GIFT_MANAGEMENT_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
   category: { select: { id: true, name: true, isActive: true, deletedAt: true } },
-  provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true, isActive: true, isApproved: true, providerApprovalStatus: true, suspendedAt: true, deletedAt: true } },
-  variants: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] },
+  provider: { select: { id: true, email: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, isActive: true, isApproved: true, suspendedAt: true } },
+  variants: { orderBy: { name: 'asc' } },
 });
 
 type GiftTx = Prisma.TransactionClient;
@@ -23,7 +23,7 @@ export class GiftManagementRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findGiftCategories(params: { where: Prisma.GiftCategoryWhereInput; orderBy: Prisma.GiftCategoryOrderByWithRelationInput; skip: number; take: number }) {
-    return this.prisma.giftCategory.findMany({ where: params.where, include: { _count: { select: { gifts: { where: { deletedAt: null } } } } }, orderBy: params.orderBy, skip: params.skip, take: params.take });
+    return this.prisma.giftCategory.findMany({ where: params.where, include: { _count: { select: { gifts: true } } }, orderBy: params.orderBy, skip: params.skip, take: params.take });
   }
 
   countGiftCategories(where: Prisma.GiftCategoryWhereInput) { return this.prisma.giftCategory.count({ where }); }
@@ -42,11 +42,11 @@ export class GiftManagementRepository {
 
   deleteGiftCategory(id: string) { return this.prisma.giftCategory.delete({ where: { id } }); }
 
-  countGiftsByCategory(categoryId: string) { return this.prisma.gift.count({ where: { categoryId, deletedAt: null } }); }
+  countGiftsByCategory(categoryId: string) { return this.prisma.gift.count({ where: { categoryId } }); }
 
   findGiftCategoryLookup() { return this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, backgroundColor: true, imageUrl: true, color: true } }); }
 
-  findGiftCategoryStats() { return this.prisma.$transaction([this.prisma.giftCategory.count({ where: { deletedAt: null } }), this.prisma.gift.count({ where: { deletedAt: null, status: GiftStatus.ACTIVE } })]); }
+  findGiftCategoryStats() { return this.prisma.$transaction([this.prisma.giftCategory.count({ where: { deletedAt: null } }), this.prisma.gift.count({ where: { status: GiftStatus.ACTIVE } })]); }
 
   async findMostPopularGiftCategory() {
     const salesStatuses = [OrderStatus.DELIVERED, OrderStatus.COMPLETED, OrderStatus.PARTIALLY_COMPLETED];
@@ -58,7 +58,6 @@ export class GiftManagementRepository {
       INNER JOIN gift_categories gc ON gc.id = g.category_id
       WHERE oi.status::text IN (${Prisma.join(salesStatuses)})
         AND o.status::text IN (${Prisma.join(salesStatuses)})
-        AND g.deleted_at IS NULL
         AND gc.deleted_at IS NULL
       GROUP BY gc.id, gc.name
       ORDER BY "totalQuantity" DESC, "totalSales" DESC, gc.name ASC
@@ -81,11 +80,11 @@ export class GiftManagementRepository {
     return this.prisma.review.groupBy({ by: ['providerId'], where: { providerId: { in: providerIds }, deletedAt: null, status: ReviewStatus.PUBLISHED }, _avg: { rating: true }, _count: { _all: true } });
   }
 
-  findGiftByIdWithVariants(id: string) { return this.prisma.gift.findFirst({ where: { id, deletedAt: null }, include: GIFT_MANAGEMENT_INCLUDE }); }
+  findGiftByIdWithVariants(id: string) { return this.prisma.gift.findFirst({ where: { id }, include: GIFT_MANAGEMENT_INCLUDE }); }
 
   findGiftBySlug(slug: string, exceptId?: string) { return this.prisma.gift.findFirst({ where: { slug, id: exceptId ? { not: exceptId } : undefined } }); }
 
-  findProviderById(id: string) { return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } }); }
+  findProviderById(id: string) { return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER } }); }
 
   createGiftWithVariants(data: GiftCreateData) { return this.prisma.gift.create({ data, include: GIFT_MANAGEMENT_INCLUDE }); }
 
@@ -95,13 +94,11 @@ export class GiftManagementRepository {
 
   findGiftByIdWithVariantsTx(tx: GiftTx, id: string) { return tx.gift.findUniqueOrThrow({ where: { id }, include: GIFT_MANAGEMENT_INCLUDE }); }
 
-  softDeleteVariantsForGift(tx: GiftTx, giftId: string, incomingIds: string[]) { return tx.giftVariant.updateMany({ where: { giftId, deletedAt: null, id: { notIn: incomingIds } }, data: { deletedAt: new Date(), isActive: false, isDefault: false } }); }
+  deleteVariantsForGift(tx: GiftTx, giftId: string, incomingIds: string[]) { return tx.giftVariant.deleteMany({ where: { giftId, id: { notIn: incomingIds } } }); }
 
-  clearDefaultVariantsForGift(tx: GiftTx, giftId: string) { return tx.giftVariant.updateMany({ where: { giftId, deletedAt: null }, data: { isDefault: false } }); }
+  findGiftVariantForGift(tx: GiftTx, giftId: string, variantId: string) { return tx.giftVariant.findFirst({ where: { id: variantId, giftId } }); }
 
-  findGiftVariantForGift(tx: GiftTx, giftId: string, variantId: string) { return tx.giftVariant.findFirst({ where: { id: variantId, giftId, deletedAt: null } }); }
-
-  findGiftVariantById(tx: GiftTx, variantId: string) { return tx.giftVariant.findFirst({ where: { id: variantId }, select: { id: true, giftId: true, deletedAt: true } }); }
+  findGiftVariantById(tx: GiftTx, variantId: string) { return tx.giftVariant.findFirst({ where: { id: variantId }, select: { id: true, giftId: true } }); }
 
   updateGiftVariant(tx: GiftTx, id: string, data: GiftVariantUpdateData) { return tx.giftVariant.update({ where: { id }, data }); }
 
@@ -111,15 +108,9 @@ export class GiftManagementRepository {
 
   deleteGift(id: string) { return this.prisma.gift.delete({ where: { id } }); }
 
-  findGiftStats() { return this.prisma.$transaction([this.prisma.gift.count({ where: { deletedAt: null } }), this.prisma.gift.count({ where: { deletedAt: null, status: GiftStatus.ACTIVE } }), this.prisma.gift.count({ where: { deletedAt: null, moderationStatus: GiftModerationStatus.PENDING } })]); }
+  findGiftStats() { return this.prisma.$transaction([this.prisma.gift.count(), this.prisma.gift.count({ where: { status: GiftStatus.ACTIVE } })]); }
 
   findGiftsForExport(where: Prisma.GiftWhereInput) { return this.prisma.gift.findMany({ where, include: GIFT_MANAGEMENT_INCLUDE, orderBy: { createdAt: 'desc' }, take: 10000 }); }
-
-  findGiftModerationQueue(params: { where: Prisma.GiftWhereInput; orderBy: Prisma.GiftOrderByWithRelationInput; skip: number; take: number }) {
-    return this.prisma.$transaction([this.prisma.gift.findMany({ where: params.where, include: GIFT_MANAGEMENT_INCLUDE, orderBy: params.orderBy, skip: params.skip, take: params.take }), this.prisma.gift.count({ where: params.where })]);
-  }
-
-  updateGiftModerationStatus(id: string, data: Prisma.GiftUncheckedUpdateInput) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
 
   createProviderNotification(data: { providerId: string; title: string; message: string; type: string; giftId: string }) {
     return this.notificationDispatch.createAndEmit({ recipientId: data.providerId, recipientType: NotificationRecipientType.PROVIDER, title: data.title, message: data.message, type: data.type, metadataJson: { giftId: data.giftId } })

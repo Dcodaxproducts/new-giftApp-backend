@@ -102,7 +102,7 @@ describe('SocialModerationService', () => {
 describe('Social moderation source safety', () => {
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
   const controller = readFileSync(join(__dirname, '../controllers/social-moderation.controller.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 

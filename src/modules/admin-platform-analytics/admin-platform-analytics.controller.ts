@@ -13,7 +13,7 @@ import { PlatformAnalyticsReportQueryDto, PlatformAnalyticsSummaryQueryDto, Plat
 @ApiTags('02 Admin - Platform Analytics')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/platform-analytics')
 export class AdminPlatformAnalyticsController {
   constructor(private readonly analytics: AdminPlatformAnalyticsService) {}

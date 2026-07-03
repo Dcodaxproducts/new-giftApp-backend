@@ -32,7 +32,7 @@ export class ProviderDashboardService {
   private async getApprovedActiveProvider(id: string) {
     const provider = await this.repository.findProviderById(id);
     if (!provider) throw new NotFoundException('Provider not found');
-    if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) {
+    if (provider.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !provider.isActive || !provider.isApproved || provider.suspendedAt) {
       throw new ForbiddenException('Only approved active providers can access dashboard');
     }
     return provider;
@@ -41,9 +41,9 @@ export class ProviderDashboardService {
   private toProvider(provider: DashboardProvider) {
     return {
       id: provider.id,
-      businessName: provider.providerBusinessName,
+      businessName: provider.providerProfile?.businessName ?? null,
       avatarUrl: provider.avatarUrl,
-      approvalStatus: provider.providerApprovalStatus,
+      approvalStatus: provider.providerProfile?.approvalStatus ?? null,
       status: provider.isActive ? 'ACTIVE' : 'INACTIVE',
     };
   }

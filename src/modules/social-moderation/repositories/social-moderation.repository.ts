@@ -10,7 +10,6 @@ export const SOCIAL_REPORT_INCLUDE = Prisma.validator<Prisma.SocialReportInclude
 
 type SocialTx = Prisma.TransactionClient;
 type SocialPostUpdateData = Prisma.Args<SocialTx['socialPost'], 'update'>['data'];
-type SocialModerationLogCreateData = Prisma.Args<SocialTx['socialModerationLog'], 'create'>['data'];
 type UserWarningCreateData = Prisma.Args<SocialTx['userWarning'], 'create'>['data'];
 type NotificationCreateData = Prisma.Args<SocialTx['notification'], 'create'>['data'];
 
@@ -44,7 +43,6 @@ export class SocialModerationRepository {
   runModerationAction<T>(callback: (tx: SocialTx) => Promise<T>) { return this.prisma.$transaction(callback); }
   updateSocialPost(tx: SocialTx, postId: string, data: SocialPostUpdateData) { return tx.socialPost.update({ where: { id: postId }, data }); }
   updateSocialReportStatus(tx: SocialTx, id: string, status: SocialReportStatus) { return tx.socialReport.update({ where: { id }, data: { status } }); }
-  createSocialModerationLog(tx: SocialTx, data: SocialModerationLogCreateData) { return tx.socialModerationLog.create({ data }); }
   createUserWarning(tx: SocialTx, data: UserWarningCreateData) { return tx.userWarning.create({ data }); }
   createNotification(tx: SocialTx, data: NotificationCreateData) { return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput); }
 }

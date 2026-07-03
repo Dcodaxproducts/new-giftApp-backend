@@ -13,21 +13,21 @@ import { GiftManagementService } from '../services/gift-management.service';
 @ApiTags('04 Gifts - Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('gifts')
 export class GiftsController {
   constructor(private readonly gifts: GiftManagementService) {}
 
   @Post()
-  @Permissions('gifts.create')
-  @ApiOperation({ summary: 'Create admin gift with optional nested variants', description: 'SUPER_ADMIN/ADMIN with gifts.create. Nested variants are created in the same transaction and stored in GiftVariant.' })
-  @ApiBody({ type: CreateGiftDto, examples: { withVariants: { value: { name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', shortDescription: 'Premium fragrance gift.', categoryId: 'gift_category_id', providerId: 'provider_id', price: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], isPublished: true, isFeatured: false, tags: ['perfume', 'luxury'], moderationStatus: 'APPROVED', variants: [{ name: '30ml', price: 89.99, originalPrice: 119.99, isPopular: false, isDefault: false, sortOrder: 1, isActive: true }, { name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }] } } } })
-  @ApiResponse({ status: 201, description: 'Gift created successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }] }, message: 'Gift created successfully' } } })
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.PROVIDER)
+  @ApiOperation({ summary: 'Create gift with optional nested variants', description: 'SUPER_ADMIN/ADMIN with gifts.create creates ACTIVE gifts. PROVIDER creates gifts for their own account as INACTIVE. Nested variants are created in the same transaction and stored in GiftVariant.' })
+  @ApiBody({ type: CreateGiftDto, examples: { withVariants: { value: { name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', categoryId: 'gift_category_id', providerId: 'provider_id', price: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], status: 'ACTIVE', isFeatured: false, variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99 }] } } } })
+  @ApiResponse({ status: 201, description: 'Gift created successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Gift created successfully' } } })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateGiftDto) { return this.gifts.createGift(user, dto); }
 
   @Get()
   @Permissions('gifts.read')
-  @ApiOperation({ summary: 'List admin gifts', description: 'SUPER_ADMIN/ADMIN with gifts.read. Supports category/provider/status/moderation filters.' })
+  @ApiOperation({ summary: 'List admin gifts', description: 'SUPER_ADMIN/ADMIN with gifts.read. Supports category, provider, and status filters.' })
   list(@Query() query: ListGiftsDto) { return this.gifts.listGifts(query); }
 
   @Get('stats')
@@ -49,9 +49,9 @@ export class GiftsController {
   details(@Param('id') id: string) { return this.gifts.giftDetails(id); }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update admin gift, nested variants, or operational catalog status', description: "SUPER_ADMIN or ADMIN with 'gifts.update' for normal fields and 'gifts.status.update' for status changes. If replaceVariants=true, omitted variants are soft-deleted. Only one default variant is allowed. Moderation decisions stay under POST /api/v1/gift-moderation/:id/action." })
-  @ApiBody({ type: UpdateGiftDto, examples: { upsertVariants: { value: { name: 'Luxury Perfume Updated', replaceVariants: false, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true, sortOrder: 2, isActive: true }, { name: '150ml', price: 249.99, originalPrice: 299.99, isPopular: false, isDefault: false, sortOrder: 4, isActive: true }] } }, activateGift: { value: { status: 'ACTIVE', reason: 'Back in stock and approved by admin.' } }, deactivateGift: { value: { status: 'INACTIVE', reason: 'Temporarily disabled by admin.' } }, markOutOfStock: { value: { status: 'OUT_OF_STOCK', reason: 'Inventory is depleted.' } } } })
-  @ApiResponse({ status: 200, description: 'Gift updated successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume Updated', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isDefault: true, isActive: true }] }, message: 'Gift updated successfully' } } })
+  @ApiOperation({ summary: 'Update admin gift, nested variants, or operational catalog status', description: "SUPER_ADMIN or ADMIN with 'gifts.update' for normal fields and 'gifts.status.update' for status changes. If replaceVariants=true, omitted variants are permanently removed." })
+  @ApiBody({ type: UpdateGiftDto, examples: { upsertVariants: { value: { name: 'Luxury Perfume Updated', replaceVariants: false, variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }, { name: '150ml', price: 249.99 }] } }, activateGift: { value: { status: 'ACTIVE', reason: 'Back in stock.' } }, deactivateGift: { value: { status: 'INACTIVE', reason: 'Temporarily disabled by admin.' } }, markOutOfStock: { value: { status: 'OUT_OF_STOCK', reason: 'Inventory is depleted.' } } } })
+  @ApiResponse({ status: 200, description: 'Gift updated successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume Updated', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Gift updated successfully' } } })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateGiftDto) { return this.gifts.updateGift(user, id, dto); }
 
   @Delete(':id')

@@ -35,10 +35,6 @@ export class AccountLifecycleService {
       return this.suspend(account, input);
     }
 
-    if (account.suspendedAt) {
-      await this.unsuspendActiveRecord(account.id, input.actorId);
-    }
-
     const isActive = input.activeStatuses.includes(input.status);
     const updated = await this.repository.updateAccountStatus(account.id, {
       isActive,
@@ -68,13 +64,6 @@ export class AccountLifecycleService {
       throw new BadRequestException('Suspension reason is required');
     }
 
-    await this.repository.createAccountSuspension({
-      accountId: account.id,
-      accountType: input.accountType,
-      reason: input.reason,
-      comment: input.comment?.trim(),
-      suspendedBy: input.actorId,
-    });
     const updated = await this.repository.updateAccountStatus(account.id, {
       isActive: false,
       suspensionReason: input.reason,
@@ -101,7 +90,6 @@ export class AccountLifecycleService {
 
   async unsuspend(input: Omit<AccountLifecycleInput, 'status' | 'reason'>) {
     const account = await this.getAccount(input.accountId, input.accountType);
-    await this.unsuspendActiveRecord(account.id, input.actorId);
     const updated = await this.repository.updateAccountStatus(account.id, {
       isActive: true,
       suspensionReason: null,
@@ -134,17 +122,13 @@ export class AccountLifecycleService {
     return account;
   }
 
-  private async unsuspendActiveRecord(accountId: string, actorId: string): Promise<void> {
-    await this.repository.deactivateActiveSuspensions(accountId, actorId);
-  }
-
   private toUserRole(accountType: AccountType): UserRole {
     if (accountType === AccountType.PROVIDER) {
       return UserRole.PROVIDER;
     }
 
     if (accountType === AccountType.ADMIN) {
-      return UserRole.ADMIN;
+      return UserRole.STAFF;
     }
 
     return UserRole.REGISTERED_USER;

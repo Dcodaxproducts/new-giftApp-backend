@@ -83,7 +83,6 @@ export class PaymentsService {
       metadata: this.sanitizeMetadata({ paymentId: payment.id, cartId: cart.id, userId: user.uid, idempotencyKey }),
     }, { idempotencyKey });
     const updated = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { cartId: cart.id, summary, stripeStatus: intent.status, idempotencyKey } });
-    await this.repository.createPaymentAuditLog({ paymentId: updated.id, userId: user.uid, action: 'PAYMENT_INTENT_CREATED', status: updated.status, idempotencyKey, metadataJson: { providerPaymentIntentId: intent.id } });
     return { data: { ...this.toPaymentResponse(updated), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey(), amount: this.toSmallestUnit(summary.total, summary.currency), currency: summary.currency }, message: 'Payment intent created successfully.' };
   }
 
@@ -96,7 +95,6 @@ export class PaymentsService {
     this.assertIntentMatchesPayment(intent, payment);
     const status = this.statusFromStripe(intent.status);
     const updated = await this.repository.updatePaymentConfirmation({ id: payment.id, status, failureReason: intent.last_payment_error?.message ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status, confirmIdempotencyKey: idempotencyKey }) });
-    await this.repository.createPaymentAuditLog({ paymentId: updated.id, userId: user.uid, action: 'PAYMENT_CONFIRMED', status: updated.status, idempotencyKey, metadataJson: { providerPaymentIntentId: intent.id } });
     if (status === PaymentStatus.SUCCEEDED) {
       await this.customerWalletService.creditWalletTopUp(updated);
       await this.customerReferralsService.awardReferralForFirstEligiblePurchase(user.uid, payment.id, Number(updated.amount));
@@ -148,9 +146,6 @@ export class PaymentsService {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!secret) throw new ServiceUnavailableException('Stripe webhook is not configured');
     const event = this.stripe().webhooks.constructEvent(rawBody, signature, secret);
-    const existing = await this.stripeWebhookEventsRepository.findWebhookEvent(event.id);
-    if (existing?.status === 'PROCESSED') return { data: { received: true, duplicate: true }, message: 'Stripe webhook processed successfully.' };
-    if (!existing) await this.stripeWebhookEventsRepository.createWebhookEvent({ eventId: event.id, eventType: event.type });
     try {
       const intent = event.data.object as StripeIntentLike & { cancellation_reason?: string | null };
       if (event.type === 'payment_intent.succeeded') await this.updateFromStripeIntent(intent, PaymentStatus.SUCCEEDED, undefined, event.id);
@@ -158,9 +153,7 @@ export class PaymentsService {
       if (event.type === 'payment_intent.canceled') await this.updateFromStripeIntent(intent, PaymentStatus.CANCELLED, intent.cancellation_reason ?? undefined, event.id);
       if (event.type === 'setup_intent.succeeded') await this.saveSetupIntentPaymentMethod(event.data.object);
       if (event.type.startsWith('customer.subscription.') || event.type.startsWith('invoice.')) await this.customerSubscriptionsService.handleStripeSubscriptionEvent(event.type, event.data.object);
-      await this.stripeWebhookEventsRepository.markWebhookEventProcessed(event.id);
     } catch (error) {
-      await this.stripeWebhookEventsRepository.markWebhookEventFailed(event.id, error instanceof Error ? error.message : 'Unknown webhook processing error');
       throw error;
     }
     return { data: { received: true }, message: 'Stripe webhook processed successfully.' };
@@ -183,7 +176,6 @@ export class PaymentsService {
     }
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(dto.amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true }, metadata: this.sanitizeMetadata({ paymentId: payment.id, moneyGiftId: moneyGift.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey });
     const updatedPayment = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { moneyGiftId: moneyGift.id, stripeStatus: intent.status, idempotencyKey } });
-    await this.repository.createPaymentAuditLog({ paymentId: updatedPayment.id, userId: user.uid, action: 'MONEY_GIFT_INTENT_CREATED', status: updatedPayment.status, idempotencyKey, metadataJson: { moneyGiftId: moneyGift.id } });
     return { data: { ...this.toMoneyGift(moneyGift), payment: { ...this.toPaymentResponse(updatedPayment), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey(), amount: this.toSmallestUnit(dto.amount, currency), currency } }, message: 'Money gift created successfully.' };
   }
 
@@ -231,7 +223,6 @@ export class PaymentsService {
     const finalStatuses: PaymentStatus[] = [PaymentStatus.SUCCEEDED, PaymentStatus.FAILED, PaymentStatus.CANCELLED];
     if (finalStatuses.includes(payment.status)) return;
     const updated = await this.stripeWebhookEventsRepository.updatePaymentStatus({ id: payment.id, status, failureReason: failureReason ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status, webhookPaymentIntentId: intent.id, webhookEventId }) });
-    await this.stripeWebhookEventsRepository.createPaymentAuditLog({ paymentId: updated.id, userId: updated.userId, action: 'PAYMENT_WEBHOOK_STATUS_SYNCED', status: updated.status, idempotencyKey: updated.idempotencyKey ?? undefined, metadataJson: { providerPaymentIntentId: intent.id, webhookEventId } });
     if (updated.moneyGiftId && status === PaymentStatus.SUCCEEDED) {
       const deliveryDate = await this.stripeWebhookEventsRepository.findMoneyGiftDeliveryDate(updated.moneyGiftId);
       await this.stripeWebhookEventsRepository.updateMoneyGiftStatus(updated.moneyGiftId, deliveryDate && deliveryDate.deliveryDate > new Date() ? MoneyGiftStatus.SCHEDULED : MoneyGiftStatus.SENT);

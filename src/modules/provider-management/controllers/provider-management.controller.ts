@@ -34,7 +34,7 @@ import { ProviderManagementService } from '../services/provider-management.servi
 @ApiTags('02 Admin - Provider Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('providers')
 export class ProviderManagementController {
   constructor(private readonly providerManagementService: ProviderManagementService) {}

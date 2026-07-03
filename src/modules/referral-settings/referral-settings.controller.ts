@@ -19,7 +19,7 @@ export class ReferralSettingsController {
   constructor(private readonly settings: ReferralSettingsService) {}
 
   @Get()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('referralSettings.read')
   @ApiOperation({ summary: 'Fetch referral settings', description: 'SUPER_ADMIN or ADMIN with referralSettings.read. Customer referral APIs consume these settings. Pending referrals use the settings snapshot stored at referral creation.' })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { isActive: true, referrerRewardAmount: 25, newUserRewardAmount: 10, rewardCurrency: 'USD', minimumTransactionAmount: 50, referralExpirationValue: 30, referralExpirationUnit: 'DAYS', allowSelfReferrals: false, qualificationRule: 'FIRST_SUCCESSFUL_PURCHASE', updatedAt: '2026-05-09T10:00:00.000Z' }, message: 'Referral settings fetched successfully.' } } })
@@ -33,7 +33,7 @@ export class ReferralSettingsController {
   update(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateReferralSettingsDto, @Req() request: Request) { return this.settings.update(user, dto, request.ip, request.headers['user-agent']); }
 
   @Get('stats')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('referralSettings.read')
   @ApiOperation({ summary: 'Fetch referral stats', description: 'SUPER_ADMIN or ADMIN with referralSettings.read.' })
   stats() { return this.settings.stats(); }

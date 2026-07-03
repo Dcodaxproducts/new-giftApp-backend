@@ -119,7 +119,7 @@ export class SubscriptionPlansService implements OnModuleInit {
 
   private hasPlanPermission(user: AuthUserContext, permissions: Set<string>, allowed: string[]): boolean {
     if (user.role === UserRole.SUPER_ADMIN) return true;
-    return user.role === UserRole.ADMIN && allowed.some((permission) => permissions.has(permission));
+    return user.role === UserRole.STAFF && allowed.some((permission) => permissions.has(permission));
   }
 
   private hasNormalPlanFields(dto: UpdateSubscriptionPlanDto): boolean {

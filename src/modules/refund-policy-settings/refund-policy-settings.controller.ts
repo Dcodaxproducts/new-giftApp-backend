@@ -38,7 +38,7 @@ export class RefundPolicySettingsController {
   constructor(private readonly settings: RefundPolicySettingsService) {}
 
   @Get()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('refundPolicies.read')
   @ApiOperation({ summary: 'Fetch refund policy settings', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read. Returns refund enablement status and cancellation deduction tiers used by refund policy settings.' })
   @ApiResponse({ status: 200, schema: { example: refundPolicySettingsResponseExample } })

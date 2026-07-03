@@ -27,7 +27,7 @@ describe('PermissionsGuard', () => {
     const guard = new PermissionsGuard(reflector);
 
     const result = guard.canActivate(contextWithUser({
-      role: UserRole.ADMIN,
+      role: UserRole.STAFF,
       permissions: { users: ['read'] },
     }));
 
@@ -40,7 +40,7 @@ describe('PermissionsGuard', () => {
     const guard = new PermissionsGuard(reflector);
 
     expect(() => guard.canActivate(contextWithUser({
-      role: UserRole.ADMIN,
+      role: UserRole.STAFF,
       permissions: { providers: ['read'] },
     }))).toThrow(ForbiddenException);
   });
@@ -56,14 +56,6 @@ describe('PermissionsGuard', () => {
     },
   );
 
-  it('rejects guest session role from admin permission checks', () => {
-    const reflector = new Reflector();
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['users.read']);
-    const guard = new PermissionsGuard(reflector);
-
-    expect(() => guard.canActivate(contextWithUser({ role: 'GUEST_USER' as UserRole }))).toThrow(ForbiddenException);
-  });
-
   it('uses permission metadata key', () => {
     expect(PERMISSIONS_KEY).toBe('permissions');
   });
@@ -74,12 +66,12 @@ describe('PermissionsGuard', () => {
     const guard = new PermissionsGuard(reflector);
 
     expect(guard.canActivate(contextWithUser({
-      role: UserRole.ADMIN,
+      role: UserRole.STAFF,
       permissions: { broadcasts: ['schedule'] },
     }))).toBe(true);
 
     expect(() => guard.canActivate(contextWithUser({
-      role: UserRole.ADMIN,
+      role: UserRole.STAFF,
       permissions: { broadcasts: ['send'] },
     }))).toThrow(ForbiddenException);
   });

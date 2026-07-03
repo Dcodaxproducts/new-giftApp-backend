@@ -7,14 +7,13 @@ import { ConfigModule } from '@nestjs/config';
 import { PublicController } from './public.controller';
 import { AdminDashboardModule } from './modules/admin-dashboard/admin-dashboard.module';
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
-import { AdminProviderDisputesModule } from './modules/admin-provider-disputes/admin-provider-disputes.module';
 import { AdminProviderPayoutsModule } from './modules/admin-provider-payouts/admin-provider-payouts.module';
 import { AdminPlatformAnalyticsModule } from './modules/admin-platform-analytics/admin-platform-analytics.module';
 import { AdminTransactionsModule } from './modules/admin-transactions/admin-transactions.module';
-import { AdminManagementModule } from './modules/admin-management/admin-management.module';
+import { StaffManagementModule } from './modules/staff-management/staff-management.module';
 import { AdminPayoutSettingsModule } from './modules/admin-payout-settings/admin-payout-settings.module';
 import { AdminReviewsModule } from './modules/admin-reviews/admin-reviews.module';
-import { AdminRolesModule } from './modules/admin-roles/admin-roles.module';
+import { StaffRolesModule } from './modules/staff-roles/staff-roles.module';
 import { AdminSystemHealthModule } from './modules/admin-system-health/admin-system-health.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -30,7 +29,6 @@ import { CustomerTransactionsModule } from './modules/customer-transactions/cust
 import { CustomerWalletModule } from './modules/customer-wallet/customer-wallet.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
-import { GuestAccessModule } from './modules/guest-access/guest-access.module';
 import { MessageModerationModule } from './modules/message-moderation/message-moderation.module';
 import { MessagingSettingsModule } from './modules/messaging-settings/messaging-settings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -64,14 +62,13 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     AuthModule,
     AdminDashboardModule,
     AdminDisputesModule,
-    AdminProviderDisputesModule,
     AdminProviderPayoutsModule,
     AdminPlatformAnalyticsModule,
     AdminTransactionsModule,
-    AdminManagementModule,
+    StaffManagementModule,
     AdminPayoutSettingsModule,
     AdminReviewsModule,
-    AdminRolesModule,
+    StaffRolesModule,
     AdminSystemHealthModule,
     ProviderManagementModule,
     ProviderDashboardModule,
@@ -95,7 +92,6 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     CustomerTransactionsModule,
     CustomerWalletModule,
     GiftManagementModule,
-    GuestAccessModule,
     NotificationsModule,
     BroadcastNotificationsModule,
     SubscriptionPlansModule,

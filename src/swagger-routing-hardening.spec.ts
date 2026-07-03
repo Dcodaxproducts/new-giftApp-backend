@@ -14,7 +14,7 @@ describe('Swagger and static route hardening', () => {
   it('Swagger tag order starts with Auth and is not alphabetically sorted', () => {
     const main = readFileSync(join(root, 'src/main.ts'), 'utf8');
     expect(main).toContain('export const SWAGGER_TAG_ORDER');
-    expectBefore(main, "'01 Auth'", "'05 Customer / Guest - Marketplace'");
+    expectBefore(main, "'01 Auth'", "'05 Customer - Marketplace'");
     expectBefore(main, "'01 Auth'", "'01 Auth - Login Attempts'");
     expect(main).toContain('tagsSorter');
     expect(main).toContain('document.tags = SWAGGER_TAG_ORDER.map');
@@ -25,7 +25,7 @@ describe('Swagger and static route hardening', () => {
     const sorter = createSwaggerTagsSorter(SWAGGER_TAG_ORDER);
 
     expect((main.match(/'08 Chat - Threads'/g) ?? [])).toHaveLength(1);
-    expect(sorter('01 Auth', '05 Customer / Guest - Marketplace')).toBeLessThan(0);
+    expect(sorter('01 Auth', '05 Customer - Marketplace')).toBeLessThan(0);
     expect(sorter('ZZ Unknown', '01 Auth')).toBeGreaterThan(0);
     expect(sorter('ZZ Beta', 'ZZ Alpha')).toBeGreaterThan(0);
     expect(sorter.toString()).not.toContain('SWAGGER_TAG_ORDER');

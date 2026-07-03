@@ -8,7 +8,6 @@ import { UserSafetyModule } from '../user-safety/user-safety.module';
 import { ChatsController } from './controllers/chats.controller';
 import { ChatGateway } from './gateways/chat.gateway';
 import { ChatAttachmentRepository } from './repositories/chat-attachment.repository';
-import { ChatAuditLogRepository } from './repositories/chat-audit-log.repository';
 import { ChatMessageRepository } from './repositories/chat-message.repository';
 import { ChatOrderSourceRepository } from './repositories/chat-order-source.repository';
 import { ChatParticipantRepository } from './repositories/chat-participant.repository';
@@ -44,7 +43,6 @@ import { ChatThreadService } from './services/chat-thread.service';
     ChatThreadRepository,
     ChatMessageRepository,
     ChatParticipantRepository,
-    ChatAuditLogRepository,
     ChatOrderSourceRepository,
     ChatAttachmentRepository,
   ],

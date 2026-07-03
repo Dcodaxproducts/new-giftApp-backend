@@ -49,7 +49,7 @@ export class AdminTransactionsService {
   async timeline(id: string) {
     const item = await this.getTransaction(id);
     const [refunds, disputes, audits] = await this.adminTransactionsRepository.findTransactionTimeline(item.paymentId, item.transactionId);
-    const events = [{ status: 'INITIATED', title: 'Initiated', description: 'Checkout session started by user via mobile application.', source: 'User Session', timestamp: item.createdAt }, { status: this.statusTitle(item.status), title: this.statusTitle(item.status), description: this.timelineDescription(item), source: item.gatewayReference ? 'Gateway Response' : 'System Auto-Update', timestamp: item.createdAt }, ...refunds.map((refund) => ({ status: refund.status, title: 'Refund Updated', description: `Refund ${refund.transactionId ?? refund.id} ${refund.status.toLowerCase().replaceAll('_', ' ')}.`, source: 'Refund Workflow', timestamp: refund.createdAt })), ...disputes.map((dispute) => ({ status: dispute.status, title: 'Dispute Opened', description: `${dispute.caseId} opened for ${dispute.reason}.`, source: 'Admin Dispute Manager', timestamp: dispute.createdAt })), ...audits.map((audit) => ({ status: audit.action, title: audit.actionLabel ?? this.label(audit.action), description: `${this.label(audit.action)} completed.`, source: 'Audit Log', timestamp: audit.createdAt }))].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const events = [{ status: 'INITIATED', title: 'Initiated', description: 'Checkout session started by user via mobile application.', source: 'User Session', timestamp: item.createdAt }, { status: this.statusTitle(item.status), title: this.statusTitle(item.status), description: this.timelineDescription(item), source: item.gatewayReference ? 'Gateway Response' : 'System Auto-Update', timestamp: item.createdAt }, ...refunds.map((refund) => ({ status: refund.status, title: 'Refund Updated', description: `Refund ${refund.transactionId ?? refund.id} ${refund.status.toLowerCase().replaceAll('_', ' ')}.`, source: 'Refund Workflow', timestamp: refund.createdAt })), ...disputes.map((dispute) => ({ status: dispute.status, title: 'Dispute Opened', description: `${dispute.id} opened for ${dispute.reason}.`, source: 'Admin Dispute Manager', timestamp: dispute.createdAt })), ...audits.map((audit) => ({ status: audit.action, title: audit.actionLabel ?? this.label(audit.action), description: `${this.label(audit.action)} completed.`, source: 'Audit Log', timestamp: audit.createdAt }))].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     return { data: events, message: 'Transaction timeline fetched successfully.' };
   }
 
@@ -85,9 +85,10 @@ export class AdminTransactionsService {
     const duplicate = await this.adminTransactionsRepository.findOpenDispute(item.paymentId, item.transactionId);
     if (duplicate) throw new BadRequestException('An open dispute already exists for this transaction');
     const providerOrder = await this.adminTransactionsRepository.findProviderOrderForDispute(item.orderId);
-    const dispute = await this.adminTransactionsRepository.openDispute({ actorId: user.uid, caseId: this.caseId(), userId: item.userId, orderId: item.orderId, transactionId: item.transactionId, paymentId: item.paymentId, providerId: providerOrder?.providerId, amount: new Prisma.Decimal(item.amount), currency: item.currency, reason: dto.reason, claimDetails: dto.claimDetails.trim(), priority: dto.priority, slaDeadlineAt: new Date(Date.now() + 72 * 3_600_000), assignedToId: dto.assignToId });
-    await this.auditLog.write({ actorId: user.uid, targetId: item.paymentId, targetType: 'TRANSACTION', action: 'TRANSACTION_DISPUTE_OPENED', module: 'Transaction Monitoring', afterJson: { disputeId: dispute.id, caseId: dispute.caseId, transactionId: item.transactionId } });
-    return { data: { disputeId: dispute.id, caseId: dispute.caseId, transactionId: item.transactionId, status: dispute.status }, message: 'Dispute opened successfully.' };
+    if (!providerOrder) throw new BadRequestException('Provider order is required to open a dispute');
+    const dispute = await this.adminTransactionsRepository.openDispute({ userId: item.userId, orderId: item.orderId, providerId: providerOrder.providerId, reason: dto.reason, description: dto.claimDetails.trim() });
+    await this.auditLog.write({ actorId: user.uid, targetId: item.paymentId, targetType: 'TRANSACTION', action: 'TRANSACTION_DISPUTE_OPENED', module: 'Transaction Monitoring', afterJson: { disputeId: dispute.id, transactionId: item.transactionId } });
+    return { data: { disputeId: dispute.id, caseId: dispute.id, transactionId: item.transactionId, status: dispute.status }, message: 'Dispute opened successfully.' };
   }
 
   async receipt(user: AuthUserContext, id: string): Promise<FileResult> {
@@ -125,12 +126,12 @@ export class AdminTransactionsService {
     const where: Prisma.PaymentWhereInput = { createdAt: { gte: range.fromDate, lte: range.toDate } };
     if (query.userId) where.userId = query.userId;
     if (query.minAmount !== undefined || query.maxAmount !== undefined) where.amount = { gte: query.minAmount === undefined ? undefined : new Prisma.Decimal(query.minAmount), lte: query.maxAmount === undefined ? undefined : new Prisma.Decimal(query.maxAmount) };
-    if (query.search) where.OR = [{ id: { contains: query.search, mode: 'insensitive' } }, { providerPaymentIntentId: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { user: { firstName: { contains: query.search, mode: 'insensitive' } } }, { user: { lastName: { contains: query.search, mode: 'insensitive' } } }, { user: { email: { contains: query.search, mode: 'insensitive' } } }, { order: { providerOrders: { some: { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } } } } }];
+    if (query.search) where.OR = [{ id: { contains: query.search, mode: 'insensitive' } }, { providerPaymentIntentId: { contains: query.search, mode: 'insensitive' } }, { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } }, { user: { firstName: { contains: query.search, mode: 'insensitive' } } }, { user: { lastName: { contains: query.search, mode: 'insensitive' } } }, { user: { email: { contains: query.search, mode: 'insensitive' } } }, { order: { providerOrders: { some: { provider: { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } } } } } }];
     if (query.providerId) where.order = { providerOrders: { some: { providerId: query.providerId } } };
     return where;
   }
 
-  private paymentInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, location: true } }, order: { include: { providerOrders: { include: { provider: { select: { id: true, providerBusinessName: true } } }, orderBy: { createdAt: 'asc' } } } }, moneyGift: true, customerSubscription: true, recurringPaymentOccurrences: { include: { recurringPayment: true } }, refundRequests: true } satisfies Prisma.PaymentInclude; }
+  private paymentInclude() { return { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, location: true } }, order: { include: { providerOrders: { include: { provider: { select: { id: true, providerProfile: { select: { businessName: true } } } } }, orderBy: { createdAt: 'asc' } } } }, moneyGift: true, customerSubscription: true, recurringPaymentOccurrences: { include: { recurringPayment: true } }, refundRequests: true } satisfies Prisma.PaymentInclude; }
 
   private normalize(payment: PaymentRecord): NormalizedAdminTransaction {
     const metadata = this.object(payment.metadataJson);
@@ -138,7 +139,7 @@ export class AdminTransactionsService {
     const status = this.status(payment.status, refundedAmount, Number(payment.amount), this.stringValue(metadata.adminRefundStatus));
     const providerOrder = payment.order?.providerOrders[0];
     const type = this.type(payment, metadata);
-    return { id: payment.id, transactionId: this.transactionId(payment), paymentId: payment.id, orderId: payment.orderId, orderNumber: payment.order?.orderNumber ?? null, userId: payment.userId, user: { id: payment.user.id, name: this.name(payment.user), email: payment.user.email, avatarUrl: payment.user.avatarUrl, location: payment.user.location }, providerId: providerOrder?.providerId ?? null, providerBusinessName: providerOrder?.provider.providerBusinessName ?? null, gatewayProvider: this.gateway(payment), type, amount: this.money(payment.amount), currency: payment.currency, status, paymentStatus: payment.status, paymentMethod: payment.paymentMethod, gatewayReference: payment.providerPaymentIntentId, metadata, subtotal: payment.order ? this.money(payment.order.subtotal) : this.money(payment.amount), discount: payment.order ? this.money(payment.order.discountTotal) : 0, deliveryFee: payment.order ? this.money(payment.order.deliveryFee) : 0, tax: payment.order ? this.money(payment.order.tax) : 0, createdAt: payment.createdAt };
+    return { id: payment.id, transactionId: this.transactionId(payment), paymentId: payment.id, orderId: payment.orderId, orderNumber: payment.order?.orderNumber ?? null, userId: payment.userId, user: { id: payment.user.id, name: this.name(payment.user), email: payment.user.email, avatarUrl: payment.user.avatarUrl, location: payment.user.location }, providerId: providerOrder?.providerId ?? null, providerBusinessName: providerOrder?.provider.providerProfile?.businessName ?? null, gatewayProvider: this.gateway(payment), type, amount: this.money(payment.amount), currency: payment.currency, status, paymentStatus: payment.status, paymentMethod: payment.paymentMethod, gatewayReference: payment.providerPaymentIntentId, metadata, subtotal: payment.order ? this.money(payment.order.subtotal) : this.money(payment.amount), discount: payment.order ? this.money(payment.order.discountTotal) : 0, deliveryFee: payment.order ? this.money(payment.order.deliveryFee) : 0, tax: payment.order ? this.money(payment.order.tax) : 0, createdAt: payment.createdAt };
   }
 
   private async getTransaction(id: string): Promise<NormalizedAdminTransaction> {
@@ -161,7 +162,7 @@ export class AdminTransactionsService {
   private assertActionPermission(user: AuthUserContext, action: AdminTransactionAction): void {
     if (user.role === UserRole.SUPER_ADMIN) return;
     const permission = action === AdminTransactionAction.REFUND ? 'transactions.refund' : action === AdminTransactionAction.OPEN_DISPUTE ? 'transactions.openDispute' : 'transactions.notifyUser';
-    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
+    if (user.role !== UserRole.STAFF || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
   }
   private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
     const granted = new Set<string>();
@@ -173,7 +174,7 @@ export class AdminTransactionsService {
     return granted;
   }
   private refundDto(dto: AdminTransactionActionDto): RefundAdminTransactionDto { return { refundType: dto.refundType ?? AdminRefundType.FULL, refundAmount: dto.refundAmount ?? 0, reason: dto.reason as AdminRefundReason, comment: dto.comment, notifyUser: dto.notifyUser }; }
-  private disputeDto(dto: AdminTransactionActionDto): OpenTransactionDisputeDto { return { reason: dto.reason as OpenTransactionDisputeDto['reason'], priority: dto.priority!, claimDetails: dto.claimDetails!, assignToId: dto.assignToId }; }
+  private disputeDto(dto: AdminTransactionActionDto): OpenTransactionDisputeDto { return { reason: String(dto.reason), claimDetails: dto.claimDetails!, assignToId: dto.assignToId }; }
   private notifyDto(dto: AdminTransactionActionDto): NotifyTransactionUserDto { return { channel: dto.channel!, subject: dto.subject!, message: dto.message!, includeReceipt: dto.includeReceipt }; }
   private toListItem(item: NormalizedAdminTransaction) { return { id: item.id, transactionId: item.transactionId, user: { id: item.user.id, name: item.user.name, avatarUrl: item.user.avatarUrl }, gatewayProvider: item.gatewayProvider, type: item.type, amount: item.amount, currency: item.currency, status: item.status, createdAt: item.createdAt }; }
   private range(query: Partial<AdminTransactionStatsDto>): { fromDate?: Date; toDate?: Date } { if (query.fromDate || query.toDate) return { fromDate: query.fromDate ? new Date(query.fromDate) : undefined, toDate: query.toDate ? new Date(query.toDate) : undefined }; const now = new Date(); const range = query.range ?? AdminTransactionRange.LAST_30_DAYS; if (range === AdminTransactionRange.TODAY) return this.todayRange(); const days = range === AdminTransactionRange.LAST_7_DAYS ? 7 : 30; return { fromDate: new Date(now.getTime() - days * 86_400_000), toDate: now }; }
@@ -192,7 +193,6 @@ export class AdminTransactionsService {
   private timelineDescription(item: NormalizedAdminTransaction): string { if (item.status === AdminTransactionStatus.SUCCESS) return 'Funds successfully transferred to the merchant escrow account.'; if (item.status === AdminTransactionStatus.FAILED) return 'Gateway or system marked the transaction as failed.'; if (item.status === AdminTransactionStatus.PENDING) return 'Transaction is pending settlement or review.'; return 'Refund state updated for this transaction.'; }
   private statusTitle(status: AdminTransactionStatus): string { if (status === AdminTransactionStatus.SUCCESS) return 'COMPLETED'; return status; }
   private refundId(paymentId: string): string { return `RF-${paymentId.slice(-8).toUpperCase()}`; }
-  private caseId(): string { return `DSP-${String(Date.now()).slice(-6)}`; }
   private label(action: string): string { return action.toLowerCase().split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' '); }
   private delta(current: number, previous: number): number { if (previous === 0) return current === 0 ? 0 : 100; return this.money(((current - previous) / previous) * 100); }
   private money(value: Prisma.Decimal | number | null | undefined): number { return Number(Number(value ?? 0).toFixed(2)); }

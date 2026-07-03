@@ -10,5 +10,4 @@ export class AuthProfileService {
   me(user: AuthUserContext) { return this.core.me(user); }
   updateMe(user: AuthUserContext, dto: UpdateOwnProfileDto) { return this.core.updateMe(user, dto); }
   deleteAccount(user: AuthUserContext) { return this.core.deleteAccount(user); }
-  cancelDeletion(user: AuthUserContext) { return this.core.cancelDeletion(user); }
 }

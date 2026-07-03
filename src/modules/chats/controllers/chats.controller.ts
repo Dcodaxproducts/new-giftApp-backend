@@ -11,7 +11,7 @@ import { CreateChatThreadDto, ListChatsDto, ListThreadMessagesDto, SendChatThrea
 @ApiTags('08 Chat - Threads')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.REGISTERED_USER, UserRole.PROVIDER, UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.REGISTERED_USER, UserRole.PROVIDER, UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('chats')
 export class ChatsController {
   constructor(private readonly chats: ChatCoreService) {}

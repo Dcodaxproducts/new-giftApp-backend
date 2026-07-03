@@ -92,7 +92,7 @@ describe('AdminProviderPayoutsService', () => {
   it('approves pending and on-hold payouts with audit and provider notification', async () => {
     const { service, repository, auditLog } = createService();
     repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
-    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['approve'] } }, 'payout_2', { action: AdminProviderPayoutAction.APPROVE, comment: 'Approved after verification.', notifyProvider: true });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['approve'] } }, 'payout_2', { action: AdminProviderPayoutAction.APPROVE, comment: 'Approved after verification.', notifyProvider: true });
     expect(response.data.status).toBe(ProviderPayoutStatus.PROCESSING);
     const transitionCalls = repository.transitionPayout.mock.calls as unknown[][];
     expect(transitionCalls[0]?.[0]).toMatchObject({ status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, notification: { type: 'PROVIDER_PAYOUT_APPROVED' } });
@@ -103,14 +103,14 @@ describe('AdminProviderPayoutsService', () => {
   it('holds payout without releasing locked ledger balance', async () => {
     const { service, repository } = createService();
     repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
-    await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_2', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, comment: 'Bank verification required.', notifyProvider: true });
+    await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['hold'] } }, 'payout_2', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, comment: 'Bank verification required.', notifyProvider: true });
     expect(repository.transitionPayout).toHaveBeenCalledWith(expect.objectContaining({ status: ProviderPayoutStatus.ON_HOLD, releaseLedger: false }));
   });
 
   it('rejects payout and releases locked ledger balance', async () => {
     const { service, repository, auditLog } = createService();
     repository.findPayoutById.mockResolvedValueOnce(pendingPayout);
-    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['reject'] } }, 'payout_2', { action: AdminProviderPayoutAction.REJECT, reason: AdminProviderPayoutActionReason.INVALID_BANK_ACCOUNT, comment: 'Bank details are invalid.', notifyProvider: true });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['reject'] } }, 'payout_2', { action: AdminProviderPayoutAction.REJECT, reason: AdminProviderPayoutActionReason.INVALID_BANK_ACCOUNT, comment: 'Bank details are invalid.', notifyProvider: true });
     expect(response.data).toMatchObject({ status: ProviderPayoutStatus.REJECTED, ledgerReleased: true });
     const transitionCalls = repository.transitionPayout.mock.calls as unknown[][];
     expect(transitionCalls[0]?.[0]).toMatchObject({ status: ProviderPayoutStatus.REJECTED, releaseLedger: true, notification: { type: 'PROVIDER_PAYOUT_REJECTED' } });
@@ -120,22 +120,22 @@ describe('AdminProviderPayoutsService', () => {
 
   it('rejects invalid status transitions and keeps bulk APPROVE idempotent', async () => {
     const { service, repository } = createService();
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_1', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['hold'] } }, 'payout_1', { action: AdminProviderPayoutAction.HOLD, reason: AdminProviderPayoutActionReason.BANK_VERIFICATION_PENDING, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
     repository.findPayoutById.mockResolvedValueOnce(completedPayout).mockResolvedValueOnce(pendingPayout);
-    const response = await service.bulkAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['approve'] } }, { action: AdminProviderPayoutAction.APPROVE, payoutIds: ['payout_1', 'payout_2'], reason: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW, comment: 'Bulk approval', notifyProvider: false });
+    const response = await service.bulkAction({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['approve'] } }, { action: AdminProviderPayoutAction.APPROVE, payoutIds: ['payout_1', 'payout_2'], reason: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW, comment: 'Bulk approval', notifyProvider: false });
     expect(response.data).toEqual(expect.arrayContaining([{ payoutId: 'payout_1', status: ProviderPayoutStatus.COMPLETED, success: true, idempotent: true }, { payoutId: 'payout_2', status: ProviderPayoutStatus.PROCESSING, success: true, idempotent: false }]));
   });
 
   it('rejects unsupported bulk payout actions and enforces permissions', async () => {
     const { service } = createService();
-    await expect(service.bulkAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, { action: AdminProviderPayoutAction.HOLD, payoutIds: ['payout_2'], reason: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW, notifyProvider: false })).rejects.toThrow('Only APPROVE is supported for bulk payout actions');
-    await expect(service.bulkAction({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['read'] } }, { action: AdminProviderPayoutAction.APPROVE, payoutIds: ['payout_2'], notifyProvider: false })).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.bulkAction({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['hold'] } }, { action: AdminProviderPayoutAction.HOLD, payoutIds: ['payout_2'], reason: AdminProviderPayoutActionReason.COMPLIANCE_REVIEW, notifyProvider: false })).rejects.toThrow('Only APPROVE is supported for bulk payout actions');
+    await expect(service.bulkAction({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['read'] } }, { action: AdminProviderPayoutAction.APPROVE, payoutIds: ['payout_2'], notifyProvider: false })).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('enforces action-specific permissions and reason requirements', async () => {
     const { service } = createService();
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['approve'] } }, 'payout_2', { action: AdminProviderPayoutAction.REJECT, reason: AdminProviderPayoutActionReason.INVALID_BANK_ACCOUNT, notifyProvider: false })).rejects.toBeInstanceOf(ForbiddenException);
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providerPayouts: ['hold'] } }, 'payout_2', { action: AdminProviderPayoutAction.HOLD, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['approve'] } }, 'payout_2', { action: AdminProviderPayoutAction.REJECT, reason: AdminProviderPayoutActionReason.INVALID_BANK_ACCOUNT, notifyProvider: false })).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providerPayouts: ['hold'] } }, 'payout_2', { action: AdminProviderPayoutAction.HOLD, notifyProvider: false })).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('throws for missing payout details', async () => {
@@ -149,7 +149,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   const controller = readFileSync(join(__dirname, '../admin-provider-payouts.controller.ts'), 'utf8');
   const serviceSource = readFileSync(join(__dirname, '../admin-provider-payouts.service.ts'), 'utf8');
   const repository = readFileSync(join(__dirname, '../admin-provider-payouts.repository.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 

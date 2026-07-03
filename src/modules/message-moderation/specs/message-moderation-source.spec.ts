@@ -8,12 +8,12 @@ describe('Admin message moderation implementation guards', () => {
   const repository = readFileSync(join(root, 'repositories/message-moderation.repository.ts'), 'utf8');
   const scanner = readFileSync(join(root, 'services/message-moderation-scanner.service.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const chatMessages = readFileSync(join(__dirname, '../../chats/services/chat-message.service.ts'), 'utf8');
   const chatModerationBridge = readFileSync(join(__dirname, '../../chats/services/chat-moderation-bridge.service.ts'), 'utf8');
 
   it('SUPER_ADMIN and ADMIN route guards protect message moderation routes with final permissions', () => {
-    expect(controller).toContain("@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)");
+    expect(controller).toContain("@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)");
     for (const permission of [
       "@Permissions('messageModeration.read')",
       "@Permissions('messageModeration.export')",

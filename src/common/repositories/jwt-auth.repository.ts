@@ -8,7 +8,7 @@ export class JwtAuthRepository {
   findUserForJwtGuard(userId: string) {
     return this.prisma.user.findUnique({
       where: { id: userId },
-      include: { adminRole: true },
+      include: { staffProfile: { include: { staffRole: true } }, providerProfile: true },
     });
   }
 
@@ -19,10 +19,4 @@ export class JwtAuthRepository {
     });
   }
 
-  findActiveGuestSessionForJwtGuard(guestSessionId: string) {
-    return this.prisma.guestSession.findFirst({
-      where: { OR: [{ guestSessionId }, { id: guestSessionId }], revokedAt: null, expiresAt: { gt: new Date() } },
-      select: { id: true, guestSessionId: true, capabilitiesJson: true },
-    });
-  }
 }

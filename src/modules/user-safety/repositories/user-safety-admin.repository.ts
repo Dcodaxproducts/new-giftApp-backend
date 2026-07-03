@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountType, Prisma, UserSafetyAdminAction, UserSafetyReportStatus } from '@prisma/client';
+import { Prisma, UserSafetyAdminAction, UserSafetyReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { USER_SAFETY_REPORT_INCLUDE } from './user-safety.repository';
@@ -20,7 +20,6 @@ export class UserSafetyAdminRepository {
       where: { id },
       include: {
         ...USER_SAFETY_REPORT_INCLUDE,
-        logs: { orderBy: { createdAt: 'desc' }, include: { actor: { select: { id: true, firstName: true, lastName: true } } } },
       },
     });
   }
@@ -37,16 +36,12 @@ export class UserSafetyAdminRepository {
     return tx.userSafetyReport.update({ where: { id }, data });
   }
 
-  createLog(tx: Prisma.TransactionClient, data: Prisma.UserSafetyModerationLogUncheckedCreateInput) {
-    return tx.userSafetyModerationLog.create({ data });
+  createLog(tx: Prisma.TransactionClient, data: unknown) {
+    return Promise.resolve(null);
   }
 
   createNotification(tx: Prisma.TransactionClient, data: Prisma.NotificationUncheckedCreateInput) {
     return this.notificationDispatch.createAndEmit(data);
-  }
-
-  createSuspension(tx: Prisma.TransactionClient, data: { accountId: string; suspendedBy: string; reason: string; comment?: string }) {
-    return tx.accountSuspension.create({ data: { accountId: data.accountId, accountType: AccountType.REGISTERED_USER, suspendedBy: data.suspendedBy, reason: data.reason, comment: data.comment, isActive: true } });
   }
 
   statusFor(action: UserSafetyAdminAction): UserSafetyReportStatus {

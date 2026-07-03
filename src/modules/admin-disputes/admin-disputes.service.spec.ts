@@ -12,7 +12,7 @@ describe('Admin Dispute Manager Core module', () => {
   const moduleFile = readFileSync(join(__dirname, '../admin-disputes.module.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/admin-disputes.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const storageDto = readFileSync(join(__dirname, '../../storage/dto/create-presigned-upload.dto.ts'), 'utf8');
   const storageService = readFileSync(join(__dirname, '../../storage/storage.service.ts'), 'utf8');
   const appModule = readFileSync(join(__dirname, '../../../app.module.ts'), 'utf8');
@@ -83,7 +83,7 @@ describe('Admin Dispute Manager Core module', () => {
   it('admin cannot access list/detail/stat APIs without disputes.read', () => {
     expect(controller).toContain("@Permissions('disputes.read')");
     expect(controller).toContain('PermissionsGuard');
-    expect(controller).toContain('UserRole.SUPER_ADMIN, UserRole.ADMIN');
+    expect(controller).toContain('UserRole.SUPER_ADMIN, UserRole.STAFF');
   });
 
   it('dispute export requires disputes.export', () => {

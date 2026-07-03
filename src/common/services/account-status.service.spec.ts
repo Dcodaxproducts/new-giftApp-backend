@@ -15,14 +15,11 @@ const baseUser = {
   phone: null,
   avatarUrl: null,
   location: null,
-  adminRoleId: null,
   isVerified: true,
   isActive: true,
   isApproved: true,
   mustChangePassword: false,
   lastLoginAt: null,
-  adminTitle: null,
-  adminPermissions: null,
   providerBusinessName: null,
   providerServiceArea: null,
   providerDocuments: null,
@@ -56,10 +53,6 @@ function createService() {
       findFirst: jest.fn().mockResolvedValue(baseUser),
       update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...baseUser, ...data })),
     },
-    accountSuspension: {
-      create: jest.fn().mockResolvedValue({ id: 'suspension_1' }),
-      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-    },
     authSession: {
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
     },
@@ -82,10 +75,10 @@ describe('AccountStatusService', () => {
     expect(serviceSource).not.toContain('PrismaService');
     expect(serviceSource).not.toContain('this.prisma');
     expect(repositorySource).toContain('constructor(private readonly prisma: PrismaService)');
-    expect(repositorySource).toContain('createAccountSuspension');
+    expect(repositorySource).not.toContain('accountSuspension');
   });
 
-  it('creates suspension history and disables account on suspend', async () => {
+  it('disables account on suspend without suspension history table', async () => {
     const { service, prisma, auditLog } = createService();
 
     const response = await service.updateStatus({
@@ -101,9 +94,6 @@ describe('AccountStatusService', () => {
       targetType: 'REGISTERED_USER',
     });
 
-    expect(prisma.accountSuspension.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ reason: 'POLICY_VIOLATION', isActive: true }),
-    }));
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ isActive: false, suspensionReason: 'POLICY_VIOLATION' }),
     }));
@@ -115,7 +105,7 @@ describe('AccountStatusService', () => {
     expect(response.status).toBe('SUSPENDED');
   });
 
-  it('unsuspends active suspension history and restores account', async () => {
+  it('unsuspends and restores account', async () => {
     const { service, prisma, auditLog } = createService();
 
     const response = await service.unsuspend({
@@ -129,9 +119,6 @@ describe('AccountStatusService', () => {
       targetType: 'REGISTERED_USER',
     });
 
-    expect(prisma.accountSuspension.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ isActive: false, unsuspendedBy: 'admin_1' }),
-    }));
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'REGISTERED_USER_UNSUSPENDED' }));
     expect(response.status).toBe('ACTIVE');
   });

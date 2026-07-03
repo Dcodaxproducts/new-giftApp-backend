@@ -3,7 +3,7 @@ import { applySwaggerAccessMetadata, getSwaggerAccessRule } from './swagger-acce
 
 describe('Swagger access metadata', () => {
   it('documents role-specific APIs without falling back to generic Authenticated', () => {
-    expect(getSwaggerAccessRule('GET', '/api/v1/admin-roles')?.allowedRoles).toBe('SUPER_ADMIN');
+    expect(getSwaggerAccessRule('GET', '/api/v1/staff-roles')?.allowedRoles).toBe('SUPER_ADMIN');
     expect(getSwaggerAccessRule('PATCH', '/api/v1/providers/{id}/status')?.allowedRoles).toContain('SUPER_ADMIN or ADMIN with provider lifecycle permission');
     expect(getSwaggerAccessRule('GET', '/api/v1/provider/inventory')?.allowedRoles).toBe('PROVIDER');
     expect(getSwaggerAccessRule('GET', '/api/v1/customer/wallet/history')?.allowedRoles).toBe('REGISTERED_USER');

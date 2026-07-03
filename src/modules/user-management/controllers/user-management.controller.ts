@@ -32,7 +32,7 @@ import { UserManagementService } from '../services/user-management.service';
 @ApiTags('02 Admin - User Management')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('users')
 export class UserManagementController {
   constructor(private readonly userManagementService: UserManagementService) {}

@@ -13,7 +13,7 @@ import { SubscriptionPlansService } from '../services/subscription-plans.service
 @ApiTags('07 Plans & Coupons')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('coupons')
 export class CouponsController {
   constructor(private readonly service: SubscriptionPlansService) {}

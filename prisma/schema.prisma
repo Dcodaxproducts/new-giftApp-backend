@@ -8,26 +8,9 @@ datasource db {
 
 enum UserRole {
   SUPER_ADMIN
-  ADMIN
+  STAFF
   REGISTERED_USER
   PROVIDER
-  GUEST_USER
-}
-
-enum GuestCapability {
-  VIEW_ONBOARDING
-  BROWSE_MARKETPLACE
-  VIEW_MARKETPLACE_HOME
-  VIEW_GIFT_DETAILS
-  VIEW_MARKETPLACE_FILTERS
-  VIEW_DISCOUNTED_GIFTS
-}
-
-enum GuestSessionPlatform {
-  IOS
-  ANDROID
-  WEB
-  UNKNOWN
 }
 
 enum ProviderApprovalStatus {
@@ -684,155 +667,9 @@ enum UserSafetyAdminAction {
 }
 
 enum DisputeStatus {
-  OPEN
-  IN_REVIEW
-  ESCALATED
-  RESOLVED
-  REJECTED
-  APPROVED
-}
-
-enum DisputePriority {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum DisputeReason {
-  PRODUCT_NOT_RECEIVED
-  PRODUCT_DAMAGED
-  WRONG_ITEM
-  DUPLICATE_CHARGE
-  REFUND_NOT_RECEIVED
-  PROVIDER_ISSUE
-  OTHER
-}
-
-enum DisputeActorType {
-  CUSTOMER
-  ADMIN
-  PROVIDER
-  SYSTEM
-}
-
-enum DisputeEvidenceUploadedByType {
-  CUSTOMER
-  ADMIN
-}
-
-enum DisputeNoteVisibility {
-  INTERNAL
-}
-
-enum DisputeRefundType {
-  FULL
-  PARTIAL
-  NONE
-}
-
-enum DisputeDecision {
-  APPROVE
-  REJECT
-  ESCALATE
-}
-
-enum DisputeRejectReason {
-  INSUFFICIENT_EVIDENCE
-  REFUND_WINDOW_EXPIRED
-  CUSTOMER_WITHDREW
-  NOT_COVERED_BY_POLICY
-  TRANSACTION_NOT_ELIGIBLE
-  OTHER
-}
-
-enum DisputeResolutionStatus {
   PENDING
   APPROVED
   REJECTED
-  ESCALATED
-}
-
-enum DisputeCustomerNotificationStatus {
-  NOT_SENT
-  SENT
-  FAILED
-}
-
-enum ProviderDisputeCategory {
-  NON_DELIVERY
-  QUALITY_ISSUE
-  REFUND_CONFLICT
-  LATE_DELIVERY
-  OTHER
-}
-
-enum ProviderDisputeSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum ProviderDisputeStatus {
-  OPEN
-  EVIDENCE_PHASE
-  UNDER_REVIEW
-  RULING_PENDING
-  ESCALATED
-  RESOLVED
-  DENIED
-}
-
-enum ProviderDisputeSubmittedByType {
-  CUSTOMER
-  PROVIDER
-  ADMIN
-}
-
-enum ProviderDisputeEvidenceStatus {
-  RECEIVED
-  RECEIVED_LATE
-  REQUESTED
-}
-
-enum ProviderDisputeEvidenceRequestTarget {
-  CUSTOMER
-  PROVIDER
-  BOTH
-}
-
-enum ProviderDisputeRuling {
-  CUSTOMER_WINS_FULL_REFUND
-  PROVIDER_WINS_NO_REFUND
-  SPLIT_LIABILITY
-}
-
-enum ProviderDisputeAdjustmentType {
-  DEDUCT_FROM_NEXT_PAYOUT
-  DEDUCT_IMMEDIATELY
-  LEDGER_ONLY
-  WAIVE_DEDUCTION
-}
-
-enum ProviderFinancialAdjustmentType {
-  CUSTOMER_REFUND
-  PROVIDER_LOST_EARNINGS
-  PLATFORM_FEE_REVERSAL
-  PENALTY
-  ADJUSTMENT
-}
-
-enum ProviderFinancialAdjustmentDirection {
-  CREDIT
-  DEBIT
-}
-
-enum ProviderFinancialAdjustmentStatus {
-  PENDING
-  APPLIED
-  WAIVED
-  FAILED
 }
 
 enum ProviderPayoutMethodType {
@@ -896,29 +733,6 @@ enum AdminPayoutSchedule {
   MANUAL
 }
 
-
-enum ProviderDisputeFinalRuling {
-  CUSTOMER_WINS
-  PROVIDER_WINS
-  SPLIT_LIABILITY
-}
-
-enum ProviderDisputeResolutionStatus {
-  RESOLVED
-  DENIED
-}
-
-enum ProviderDisputeCommunicationTargetType {
-  CUSTOMER
-  PROVIDER
-  BOTH
-}
-
-enum ProviderDisputeCommunicationChannel {
-  EMAIL
-  IN_APP
-}
-
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -929,35 +743,11 @@ model User {
   phone                               String?
   avatarUrl                           String?                              @map("avatar_url")
   location                            String?
-  adminRoleId                         String?                              @map("admin_role_id")
   isVerified                          Boolean                              @default(false) @map("is_verified")
   isActive                            Boolean                              @default(true) @map("is_active")
   isApproved                          Boolean                              @default(true) @map("is_approved")
   mustChangePassword                  Boolean                              @default(false) @map("must_change_password")
   lastLoginAt                         DateTime?                            @map("last_login_at") @db.Timestamptz
-  adminTitle                          String?                              @map("admin_title")
-  adminPermissions                    Json?                                @map("admin_permissions")
-  providerBusinessName                String?                              @map("provider_business_name")
-  providerLegalName                   String?                              @map("provider_legal_name")
-  providerBusinessCategoryId          String?                              @map("provider_business_category_id")
-  providerTaxId                       String?                              @map("provider_tax_id")
-  providerBusinessEmail               String?                              @map("provider_business_email")
-  providerBusinessPhone               String?                              @map("provider_business_phone")
-  providerBusinessAddress             String?                              @map("provider_business_address")
-  providerStoreAddress                Json?                                @map("provider_store_address")
-  providerBusinessHours               Json?                                @map("provider_business_hours")
-  providerServiceArea                 String?                              @map("provider_service_area")
-  providerWebsite                     String?                              @map("provider_website")
-  providerFulfillmentMethods          Json?                                @map("provider_fulfillment_methods")
-  providerAutoAcceptOrders            Boolean                              @default(false) @map("provider_auto_accept_orders")
-  providerDocuments                   Json?                                @map("provider_documents")
-  providerApprovalStatus              ProviderApprovalStatus?              @map("provider_approval_status")
-  providerApprovedAt                  DateTime?                            @map("provider_approved_at") @db.Timestamptz
-  providerApprovedBy                  String?                              @map("provider_approved_by")
-  providerRejectedAt                  DateTime?                            @map("provider_rejected_at") @db.Timestamptz
-  providerRejectedBy                  String?                              @map("provider_rejected_by")
-  providerRejectionReason             String?                              @map("provider_rejection_reason")
-  providerRejectionComment            String?                              @map("provider_rejection_comment")
   verificationOtp                     String?                              @map("verification_otp")
   verificationOtpExpiresAt            DateTime?                            @map("verification_otp_expires_at") @db.Timestamptz
   verificationOtpAttempts             Int                                  @default(0) @map("verification_otp_attempts")
@@ -970,19 +760,13 @@ model User {
   suspendedBy                         String?                              @map("suspended_by")
   refreshTokenHash                    String?                              @map("refresh_token_hash")
   referralCode                        String?                              @unique @map("referral_code")
-  deletedAt                           DateTime?                            @map("deleted_at") @db.Timestamptz
-  deleteAfter                         DateTime?                            @map("delete_after") @db.Timestamptz
   createdAt                           DateTime                             @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                           DateTime                             @updatedAt @map("updated_at") @db.Timestamptz
-  adminRole                           AdminRole?                           @relation(fields: [adminRoleId], references: [id])
+  staffProfile                        StaffProfile?
+  providerProfile                     ProviderProfile?
+  customerProfile                     CustomerProfile?
   auditLogs                           AdminAuditLog[]                      @relation("AuditActor")
-  accountSuspensions                  AccountSuspension[]                  @relation("SuspendedAccount")
-  createdSuspensions                  AccountSuspension[]                  @relation("SuspensionActor")
-  resolvedSuspensions                 AccountSuspension[]                  @relation("UnsuspensionActor")
   providerGifts                       Gift[]                               @relation("GiftProvider")
-  approvedGifts                       Gift[]                               @relation("GiftApprover")
-  rejectedGifts                       Gift[]                               @relation("GiftRejecter")
-  flaggedGifts                        Gift[]                               @relation("GiftFlagger")
   promotionalOffers                   PromotionalOffer[]                   @relation("PromotionalOfferProvider")
   approvedPromotionalOffers           PromotionalOffer[]                   @relation("PromotionalOfferApprover")
   rejectedPromotionalOffers           PromotionalOffer[]                   @relation("PromotionalOfferRejecter")
@@ -993,7 +777,6 @@ model User {
   notificationPreference              NotificationPreference?
   authSessions                        AuthSession[]
   payments                            Payment[]
-  paymentAuditLogs                    PaymentAuditLog[]
   moneyGifts                          MoneyGift[]
   customerRecurringPayments           CustomerRecurringPayment[]
   customerRecurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
@@ -1013,7 +796,6 @@ model User {
   updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
   createdCoupons                      Coupon[]                             @relation("CouponCreator")
   updatedCoupons                      Coupon[]                             @relation("CouponUpdater")
-  providerBusinessCategory            ProviderBusinessCategory?            @relation(fields: [providerBusinessCategoryId], references: [id])
   providerOrders                      ProviderOrder[]
   customerRefundRequests              RefundRequest[]                      @relation("RefundRequestCustomer")
   providerRefundRequests              RefundRequest[]                      @relation("RefundRequestProvider")
@@ -1023,7 +805,6 @@ model User {
   customerReviews                     Review[]                             @relation("ReviewCustomer")
   providerReviews                     Review[]                             @relation("ReviewProvider")
   reviewResponses                     ReviewResponse[]                     @relation("ReviewResponseProvider")
-  reviewModerationLogs                ReviewModerationLog[]                @relation("ReviewModerationActor")
   updatedReviewPolicies               ReviewPolicy[]                       @relation("ReviewPolicyUpdater")
   customerChatThreads                 ChatThread[]                         @relation("CustomerChatThread")
   providerChatThreads                 ChatThread[]                         @relation("ProviderChatThread")
@@ -1032,35 +813,18 @@ model User {
   sentChatMessages                    ChatMessage[]                        @relation("ChatMessageSender")
   chatParticipants                    ChatParticipant[]                    @relation("ChatParticipantUser")
   chatReadReceipts                    ChatMessageReadReceipt[]             @relation("ChatReadReceiptUser")
-  chatAuditLogs                       ChatAuditLog[]                       @relation("ChatAuditActor")
   submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
   receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
   reviewedProviderReports             ProviderReport[]                     @relation("ProviderReportReviewer")
-  providerDisputeCases                DisputeCase[]                        @relation("DisputeProvider")
-  disputeCases                        DisputeCase[]                        @relation("DisputeCustomer")
-  assignedDisputes                    DisputeCase[]                        @relation("DisputeAssignee")
-  disputeEvidenceUploads              DisputeEvidence[]                    @relation("DisputeEvidenceUploader")
-  disputeNotes                        DisputeNote[]                        @relation("DisputeNoteAuthor")
-  disputeTimelineEvents               DisputeTimeline[]                    @relation("DisputeTimelineActor")
-  linkedDisputes                      DisputeCase[]                        @relation("DisputeLinker")
-  providerDisputesAsProvider          ProviderDisputeCase[]                @relation("ProviderDisputeProvider")
-  providerDisputesAsCustomer          ProviderDisputeCase[]                @relation("ProviderDisputeCustomer")
-  assignedProviderDisputes            ProviderDisputeCase[]                @relation("ProviderDisputeAssignee")
-  providerDisputeEvidenceUploads      ProviderDisputeEvidence[]            @relation("ProviderDisputeEvidenceSubmitter")
-  providerDisputeNotes                ProviderDisputeNote[]                @relation("ProviderDisputeNoteAuthor")
-  providerDisputeTimelineEvents       ProviderDisputeTimeline[]            @relation("ProviderDisputeTimelineActor")
-  finalAttestedProviderDisputes       ProviderDisputeCase[]                @relation("ProviderDisputeFinalAttestor")
-  finalizedProviderDisputeResolutions ProviderDisputeResolution[]          @relation("ProviderDisputeFinalizer")
-  providerFinancialAdjustments        ProviderFinancialAdjustment[]
+  disputesAsUser                      Dispute[]                            @relation("DisputeUser")
+  disputesAsProvider                  Dispute[]                            @relation("DisputeProvider")
   providerPayoutMethods               ProviderPayoutMethod[]
   providerEarningsLedger              ProviderEarningsLedger[]
   providerPayouts                     ProviderPayout[]
-  providerPayoutAuditLogs             ProviderPayoutAuditLog[]
-  updatedPayoutSettings              AdminPayoutSettings[]              @relation("AdminPayoutSettingsUpdater")
-  updatedSystemSettings              SystemSettings[]                   @relation("SystemSettingsUpdater")
-  updatedGuestAccessSettings         GuestAccessSettings[]              @relation("GuestAccessSettingsUpdater")
-  updatedMessagingSettings           MessagingSettings[]                @relation("MessagingSettingsUpdater")
-  updatedCommissionTiers             CommissionTier[]                    @relation("CommissionTierUpdater")
+  updatedPayoutSettings               AdminPayoutSettings[]                @relation("AdminPayoutSettingsUpdater")
+  updatedSystemSettings               SystemSettings[]                     @relation("SystemSettingsUpdater")
+  updatedMessagingSettings            MessagingSettings[]                  @relation("MessagingSettingsUpdater")
+  updatedCommissionTiers              CommissionTier[]                     @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
   submittedUserSafetyReports          UserSafetyReport[]                   @relation("UserSafetyReporter")
@@ -1068,18 +832,78 @@ model User {
   reviewedUserSafetyReports           UserSafetyReport[]                   @relation("UserSafetyReviewer")
   blockedUsers                        UserBlock[]                          @relation("UserBlockBlocker")
   blockedByUsers                      UserBlock[]                          @relation("UserBlockBlocked")
-  userSafetyModerationLogs            UserSafetyModerationLog[]            @relation("UserSafetyModerationActor")
-  socialModerationLogs                SocialModerationLog[]                @relation("SocialModerationActor")
   socialWarnings                      UserWarning[]                        @relation("WarnedUser")
   issuedSocialWarnings                UserWarning[]                        @relation("WarningIssuer")
 
   @@index([role, isActive])
   @@index([role, suspendedAt])
-  @@index([adminRoleId])
-  @@index([providerApprovalStatus])
-  @@index([providerBusinessCategoryId])
   @@index([referralCode])
   @@map("users")
+}
+
+model StaffProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique @map("user_id")
+  staffRoleId String? @map("staff_role_id")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staffRole StaffRole? @relation(fields: [staffRoleId], references: [id])
+
+  @@index([staffRoleId])
+  @@map("staff_profiles")
+}
+
+model ProviderProfile {
+  id                 String                  @id @default(cuid())
+  userId             String                  @unique @map("user_id")
+  businessName       String?                 @map("business_name")
+  legalName          String?                 @map("legal_name")
+  businessCategoryId String?                 @map("business_category_id")
+  taxId              String?                 @map("tax_id")
+  businessEmail      String?                 @map("business_email")
+  businessPhone      String?                 @map("business_phone")
+  businessAddress    String?                 @map("business_address")
+  storeAddress       Json?                   @map("store_address")
+  businessHours      Json?                   @map("business_hours")
+  serviceArea        String?                 @map("service_area")
+  website            String?
+  fulfillmentMethods Json?                   @map("fulfillment_methods")
+  autoAcceptOrders   Boolean                 @default(false) @map("auto_accept_orders")
+  documents          Json?
+  approvalStatus     ProviderApprovalStatus? @map("approval_status")
+  approvedAt         DateTime?               @map("approved_at") @db.Timestamptz
+  approvedBy         String?                 @map("approved_by")
+  rejectedAt         DateTime?               @map("rejected_at") @db.Timestamptz
+  rejectedBy         String?                 @map("rejected_by")
+  rejectionReason    String?                 @map("rejection_reason")
+  rejectionComment   String?                 @map("rejection_comment")
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+
+  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessCategory ProviderBusinessCategory? @relation(fields: [businessCategoryId], references: [id])
+
+  @@index([approvalStatus])
+  @@index([businessCategoryId])
+  @@map("provider_profiles")
+}
+
+model CustomerProfile {
+  id                      String    @id @default(cuid())
+  userId                  String    @unique @map("user_id")
+  dateOfBirth             DateTime? @map("date_of_birth") @db.Date
+  gender                  String?
+  preferredCurrency       String    @default("USD") @map("preferred_currency")
+  preferredLanguage       String    @default("en") @map("preferred_language")
+  marketingOptIn          Boolean   @default(false) @map("marketing_opt_in")
+  giftPreferencesJson     Json      @default("{}") @map("gift_preferences_json")
+  occasionPreferencesJson Json      @default("{}") @map("occasion_preferences_json")
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
 }
 
 model Referral {
@@ -1131,16 +955,16 @@ model ReferralSettings {
 }
 
 model RefundPolicySettings {
-  id                           String   @id @default(cuid())
-  allowRefund                  Boolean  @default(true) @map("allow_refund")
-  noteText                     String?  @map("note_text")
-  refundWindowDays             Int      @default(30) @map("refund_window_days")
-  autoRefundThresholdAmount    Decimal  @default(50) @map("auto_refund_threshold_amount") @db.Decimal(10, 2)
-  currency                     String   @default("PKR")
-  cancellationTiersJson        Json     @default("[]") @map("cancellation_tiers_json")
-  updatedById                  String?  @map("updated_by_id")
-  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                        String   @id @default(cuid())
+  allowRefund               Boolean  @default(true) @map("allow_refund")
+  noteText                  String?  @map("note_text")
+  refundWindowDays          Int      @default(30) @map("refund_window_days")
+  autoRefundThresholdAmount Decimal  @default(50) @map("auto_refund_threshold_amount") @db.Decimal(10, 2)
+  currency                  String   @default("PKR")
+  cancellationTiersJson     Json     @default("[]") @map("cancellation_tiers_json")
+  updatedById               String?  @map("updated_by_id")
+  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   updatedBy User? @relation("RefundPolicySettingsUpdater", fields: [updatedById], references: [id])
 
@@ -1240,7 +1064,7 @@ model ProviderBusinessCategory {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  providers User[]
+  providers ProviderProfile[]
 
   @@index([isActive, sortOrder])
   @@index([deletedAt])
@@ -1466,50 +1290,12 @@ model Payment {
   customerSubscription        CustomerSubscription?                @relation(fields: [customerSubscriptionId], references: [id])
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   refundRequests              RefundRequest[]
-  disputeCases                DisputeCase[]
-  providerDisputes            ProviderDisputeCase[]
 
-  auditLogs                   PaymentAuditLog[]
 
   @@index([userId, status])
   @@index([status, createdAt])
   @@index([userId, idempotencyKey])
   @@map("payments")
-}
-
-model StripeWebhookEvent {
-  id          String   @id @default(cuid())
-  eventId     String   @unique @map("event_id")
-  eventType   String   @map("event_type")
-  status      String   @default("PROCESSING")
-  processedAt DateTime? @map("processed_at") @db.Timestamptz
-  errorMessage String? @map("error_message")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
-
-  @@index([eventType, createdAt])
-  @@index([status, createdAt])
-  @@map("stripe_webhook_events")
-}
-
-model PaymentAuditLog {
-  id           String   @id @default(cuid())
-  paymentId    String?  @map("payment_id")
-  userId       String?  @map("user_id")
-  action       String
-  status       PaymentStatus?
-  idempotencyKey String? @map("idempotency_key")
-  metadataJson Json     @default("{}") @map("metadata_json")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  payment Payment? @relation(fields: [paymentId], references: [id])
-  user    User?    @relation(fields: [userId], references: [id])
-
-  @@index([paymentId, createdAt])
-  @@index([userId, createdAt])
-  @@index([action, createdAt])
-  @@index([idempotencyKey])
-  @@map("payment_audit_logs")
 }
 
 model CustomerSubscription {
@@ -1594,9 +1380,7 @@ model Order {
   reviews                      Review[]
   chatThreads                  ChatThread[]
   providerReports              ProviderReport[]
-  disputeCases                 DisputeCase[]
-  providerDisputes             ProviderDisputeCase[]
-  providerFinancialAdjustments ProviderFinancialAdjustment[]
+  disputes                     Dispute[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1662,10 +1446,8 @@ model ProviderOrder {
   checklist                    ProviderOrderChecklist?
   messages                     OrderMessage[]
   refundRequests               RefundRequest[]
-  providerDisputes             ProviderDisputeCase[]
   reviews                      Review[]
   chatThread                   ChatThread?
-  providerFinancialAdjustments ProviderFinancialAdjustment[]
   earningsLedger               ProviderEarningsLedger[]
 
   @@index([orderId])
@@ -1936,57 +1718,31 @@ model PromotionalOffer {
 }
 
 model Gift {
-  id                String               @id @default(cuid())
-  name              String
-  slug              String               @unique
-  description       String?
-  shortDescription  String?              @map("short_description")
-  categoryId        String               @map("category_id")
-  providerId        String               @map("provider_id")
-  price             Decimal              @db.Decimal(10, 2)
-  currency          String               @default("USD")
-  stockQuantity     Int                  @default(0) @map("stock_quantity")
-  sku               String?              @unique
-  imageUrls         Json                 @default("[]") @map("image_urls")
-  status            GiftStatus           @default(INACTIVE)
-  moderationStatus  GiftModerationStatus @default(PENDING) @map("moderation_status")
-  isPublished       Boolean              @default(false) @map("is_published")
-  requiresManualReview Boolean            @default(false) @map("requires_manual_review")
-  manualReviewReason String?              @map("manual_review_reason")
-  hiddenByModeration Boolean              @default(false) @map("hidden_by_moderation")
-  moderationResolvedAt DateTime?          @map("moderation_resolved_at") @db.Timestamptz
-  isFeatured        Boolean              @default(false) @map("is_featured")
-  tags              Json                 @default("[]")
-  ratingPlaceholder Decimal              @default(0) @map("rating_placeholder") @db.Decimal(3, 2)
-  approvedAt        DateTime?            @map("approved_at") @db.Timestamptz
-  approvedBy        String?              @map("approved_by")
-  rejectedAt        DateTime?            @map("rejected_at") @db.Timestamptz
-  rejectedBy        String?              @map("rejected_by")
-  rejectionReason   String?              @map("rejection_reason")
-  rejectionComment  String?              @map("rejection_comment")
-  flaggedAt         DateTime?            @map("flagged_at") @db.Timestamptz
-  flaggedById       String?              @map("flagged_by")
-  flagReason        String?              @map("flag_reason")
-  flagComment       String?              @map("flag_comment")
-  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt         DateTime?            @map("deleted_at") @db.Timestamptz
+  id                   String               @id @default(cuid())
+  name                 String
+  slug                 String               @unique
+  description          String?
+  categoryId           String               @map("category_id")
+  providerId           String               @map("provider_id")
+  price                Decimal              @db.Decimal(10, 2)
+  currency             String               @default("USD")
+  imageUrls            Json                 @default("[]") @map("image_urls")
+  status               GiftStatus           @default(INACTIVE)
+  isFeatured           Boolean              @default(false) @map("is_featured")
+  ratingPlaceholder    Decimal              @default(0) @map("rating_placeholder") @db.Decimal(3, 2)
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
   category          GiftCategory       @relation(fields: [categoryId], references: [id])
   provider          User               @relation("GiftProvider", fields: [providerId], references: [id])
-  approver          User?              @relation("GiftApprover", fields: [approvedBy], references: [id])
-  rejecter          User?              @relation("GiftRejecter", fields: [rejectedBy], references: [id])
-  flagger           User?              @relation("GiftFlagger", fields: [flaggedById], references: [id])
   promotionalOffers PromotionalOffer[]
   variants          GiftVariant[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
 
-  @@index([categoryId, deletedAt])
-  @@index([providerId, deletedAt])
-  @@index([status, deletedAt])
-  @@index([moderationStatus, deletedAt])
-  @@index([isPublished, deletedAt])
+  @@index([categoryId])
+  @@index([providerId])
+  @@index([status])
   @@map("gifts")
 }
 
@@ -1995,23 +1751,14 @@ model GiftVariant {
   giftId        String    @map("gift_id")
   name          String
   price         Decimal   @db.Decimal(10, 2)
-  originalPrice Decimal?  @map("original_price") @db.Decimal(10, 2)
-  stockQuantity Int       @default(0) @map("stock_quantity")
-  sku           String?   @unique
-  isPopular     Boolean   @default(false) @map("is_popular")
-  isDefault     Boolean   @default(false) @map("is_default")
-  sortOrder     Int       @default(0) @map("sort_order")
-  isActive      Boolean   @default(true) @map("is_active")
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz
 
   gift       Gift        @relation(fields: [giftId], references: [id])
   cartItems  CartItem[]
   orderItems OrderItem[]
 
-  @@index([giftId, isActive, sortOrder])
-  @@index([deletedAt])
+  @@index([giftId])
   @@map("gift_variants")
 }
 
@@ -2028,8 +1775,8 @@ model Broadcast {
   createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz
 
-  creator   User  @relation("BroadcastCreator", fields: [createdBy], references: [id])
-  updater   User? @relation("BroadcastUpdater", fields: [updatedBy], references: [id])
+  creator User  @relation("BroadcastCreator", fields: [createdBy], references: [id])
+  updater User? @relation("BroadcastUpdater", fields: [updatedBy], references: [id])
 
   notifications Notification[]
 
@@ -2055,40 +1802,14 @@ model Notification {
   createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz
   deletedAt     DateTime?                 @map("deleted_at") @db.Timestamptz
 
-  recipient User       @relation(fields: [recipientId], references: [id])
-  broadcast Broadcast? @relation(fields: [broadcastId], references: [id])
-  deliveryLogs NotificationDeliveryLog[]
+  recipient    User                      @relation(fields: [recipientId], references: [id])
+  broadcast    Broadcast?                @relation(fields: [broadcastId], references: [id])
 
   @@index([recipientId, isRead, createdAt])
   @@index([recipientId, type, createdAt])
   @@index([deletedAt])
   @@index([broadcastId])
   @@map("notifications")
-}
-
-model NotificationDeliveryLog {
-  id               String                     @id @default(cuid())
-  notificationId   String?                    @map("notification_id")
-  recipientId      String                     @map("recipient_id")
-  recipientType    NotificationRecipientType  @map("recipient_type")
-  notificationType String                     @map("notification_type")
-  channelsJson     Json                       @default("[]") @map("channels_json")
-  idempotencyKey   String?                    @unique @map("idempotency_key")
-  inAppStatus      NotificationDeliveryStatus @default(QUEUED) @map("in_app_status")
-  socketStatus     NotificationDeliveryStatus @default(SKIPPED) @map("socket_status")
-  pushStatus       NotificationDeliveryStatus @default(SKIPPED) @map("push_status")
-  emailStatus      NotificationDeliveryStatus @default(SKIPPED) @map("email_status")
-  lastError        String?                    @map("last_error")
-  retryCount       Int                        @default(0) @map("retry_count")
-  createdAt        DateTime                   @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
-
-  notification Notification? @relation(fields: [notificationId], references: [id])
-
-  @@index([recipientId, recipientType, createdAt])
-  @@index([notificationType, createdAt])
-  @@index([inAppStatus, socketStatus, pushStatus, emailStatus])
-  @@map("notification_delivery_logs")
 }
 
 model NotificationDeviceToken {
@@ -2162,7 +1883,6 @@ model Review {
   provider       User                  @relation("ReviewProvider", fields: [providerId], references: [id])
   customer       User                  @relation("ReviewCustomer", fields: [userId], references: [id])
   response       ReviewResponse?
-  moderationLogs ReviewModerationLog[]
 
   @@index([status, createdAt])
   @@index([source, createdAt])
@@ -2191,30 +1911,6 @@ model ReviewResponse {
   @@index([providerId, createdAt])
   @@index([deletedAt])
   @@map("review_responses")
-}
-
-model ReviewModerationLog {
-  id            String                    @id @default(cuid())
-  reviewId      String                    @map("review_id")
-  actorId       String?                   @map("actor_id")
-  actorType     ReviewModerationActorType @map("actor_type")
-  action        ReviewModerationAction
-  outcome       ReviewStatus
-  reason        ReviewFlagReason?
-  comment       String?
-  autoModerated Boolean                   @default(false) @map("auto_moderated")
-  confidence    Int?
-  beforeJson    Json?                     @map("before_json")
-  afterJson     Json?                     @map("after_json")
-  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz
-
-  review Review @relation(fields: [reviewId], references: [id])
-  actor  User?  @relation("ReviewModerationActor", fields: [actorId], references: [id])
-
-  @@index([reviewId, createdAt])
-  @@index([actorId, createdAt])
-  @@index([action, createdAt])
-  @@map("review_moderation_logs")
 }
 
 model ReviewPolicy {
@@ -2253,18 +1949,17 @@ model ChatThread {
   createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  order         Order?        @relation(fields: [orderId], references: [id])
-  providerOrder ProviderOrder? @relation(fields: [providerOrderId], references: [id])
-  provider      User?         @relation("ProviderChatThread", fields: [providerId], references: [id])
-  customer      User?         @relation("CustomerChatThread", fields: [customerId], references: [id])
-  assignedAdmin User?         @relation("AssignedChatAdmin", fields: [assignedAdminId], references: [id])
-  resolvedBy    User?         @relation("ResolvedChatAdmin", fields: [resolvedById], references: [id])
-  lastMessage   ChatMessage?  @relation("ThreadLastMessage", fields: [lastMessageId], references: [id])
-  messages      ChatMessage[] @relation("ThreadMessages")
+  order         Order?                   @relation(fields: [orderId], references: [id])
+  providerOrder ProviderOrder?           @relation(fields: [providerOrderId], references: [id])
+  provider      User?                    @relation("ProviderChatThread", fields: [providerId], references: [id])
+  customer      User?                    @relation("CustomerChatThread", fields: [customerId], references: [id])
+  assignedAdmin User?                    @relation("AssignedChatAdmin", fields: [assignedAdminId], references: [id])
+  resolvedBy    User?                    @relation("ResolvedChatAdmin", fields: [resolvedById], references: [id])
+  lastMessage   ChatMessage?             @relation("ThreadLastMessage", fields: [lastMessageId], references: [id])
+  messages      ChatMessage[]            @relation("ThreadMessages")
   participants  ChatParticipant[]
   readReceipts  ChatMessageReadReceipt[]
   attachments   ChatAttachment[]
-  auditLogs     ChatAuditLog[]
 
   @@index([threadType, status, updatedAt])
   @@index([sourceType, sourceId])
@@ -2276,32 +1971,31 @@ model ChatThread {
 }
 
 model ChatMessage {
-  id                 String          @id @default(cuid())
-  threadId           String          @map("thread_id")
-  senderId           String          @map("sender_id")
-  senderType         ChatSenderType  @map("sender_type")
-  clientMessageId    String?         @map("client_message_id")
-  messageType        ChatMessageType @default(TEXT) @map("message_type")
+  id                 String                  @id @default(cuid())
+  threadId           String                  @map("thread_id")
+  senderId           String                  @map("sender_id")
+  senderType         ChatSenderType          @map("sender_type")
+  clientMessageId    String?                 @map("client_message_id")
+  messageType        ChatMessageType         @default(TEXT) @map("message_type")
   body               String?
-  attachmentUrlsJson Json            @default("[]") @map("attachment_urls_json")
-  isReadByCustomer   Boolean         @default(false) @map("is_read_by_customer")
-  isReadByProvider   Boolean         @default(false) @map("is_read_by_provider")
+  attachmentUrlsJson Json                    @default("[]") @map("attachment_urls_json")
+  isReadByCustomer   Boolean                 @default(false) @map("is_read_by_customer")
+  isReadByProvider   Boolean                 @default(false) @map("is_read_by_provider")
   visibilityStatus   MessageVisibilityStatus @default(VISIBLE) @map("visibility_status")
-  hiddenByModeration Boolean         @default(false) @map("hidden_by_moderation")
-  hiddenAt           DateTime?       @map("hidden_at") @db.Timestamptz
-  hiddenByAdminId    String?         @map("hidden_by_admin_id")
-  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  hiddenByModeration Boolean                 @default(false) @map("hidden_by_moderation")
+  hiddenAt           DateTime?               @map("hidden_at") @db.Timestamptz
+  hiddenByAdminId    String?                 @map("hidden_by_admin_id")
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz
 
-  thread        ChatThread  @relation("ThreadMessages", fields: [threadId], references: [id])
-  sender        User        @relation("ChatMessageSender", fields: [senderId], references: [id])
-  lastForThread ChatThread? @relation("ThreadLastMessage")
+  thread        ChatThread               @relation("ThreadMessages", fields: [threadId], references: [id])
+  sender        User                     @relation("ChatMessageSender", fields: [senderId], references: [id])
+  lastForThread ChatThread?              @relation("ThreadLastMessage")
   readReceipts  ChatMessageReadReceipt[]
   attachments   ChatAttachment[]
-  auditLogs     ChatAuditLog[]
 
+  @@unique([threadId, senderId, clientMessageId])
   @@index([threadId, createdAt])
   @@index([senderId, createdAt])
-  @@unique([threadId, senderId, clientMessageId])
   @@map("chat_messages")
 }
 
@@ -2354,52 +2048,31 @@ model ChatAttachment {
   @@map("chat_attachments")
 }
 
-model ChatAuditLog {
-  id           String   @id @default(cuid())
-  threadId     String   @map("thread_id")
-  messageId    String?  @map("message_id")
-  actorId      String?  @map("actor_id")
-  action       String
-  metadataJson Json     @default("{}") @map("metadata_json")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  thread  ChatThread   @relation(fields: [threadId], references: [id])
-  message ChatMessage? @relation(fields: [messageId], references: [id])
-  actor   User?        @relation("ChatAuditActor", fields: [actorId], references: [id])
-
-  @@index([threadId, createdAt])
-  @@index([messageId])
-  @@index([actorId, createdAt])
-  @@map("chat_audit_logs")
-}
-
-
 model MessageModerationCase {
-  id                 String                      @id @default(cuid())
-  conversationId     String                      @map("conversation_id")
-  messageId          String                      @unique @map("message_id")
-  source             MessageModerationSource
-  participantId      String                      @map("participant_id")
-  participantRole    String                      @map("participant_role")
-  participantName    String?                     @map("participant_name")
+  id                   String                    @id @default(cuid())
+  conversationId       String                    @map("conversation_id")
+  messageId            String                    @unique @map("message_id")
+  source               MessageModerationSource
+  participantId        String                    @map("participant_id")
+  participantRole      String                    @map("participant_role")
+  participantName      String?                   @map("participant_name")
   participantAvatarUrl String?                   @map("participant_avatar_url")
-  externalReference  String?                     @map("external_reference")
-  senderId           String                      @map("sender_id")
-  senderRole         String                      @map("sender_role")
-  rawBody            String?                     @map("raw_body")
-  redactedBody       String                      @map("redacted_body")
-  flagTypesJson      Json                        @default("[]") @map("flag_types_json")
-  keywordsJson       Json                        @default("[]") @map("keywords_json")
-  severity           MessageModerationSeverity
-  confidence         Decimal                     @db.Decimal(5, 2)
-  status             MessageModerationStatus     @default(FLAGGED)
-  assignedToId       String?                     @map("assigned_to_id")
-  lastMessageAt      DateTime                    @map("last_message_at") @db.Timestamptz
-  resolvedAt         DateTime?                   @map("resolved_at") @db.Timestamptz
-  createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime                    @updatedAt @map("updated_at") @db.Timestamptz
+  externalReference    String?                   @map("external_reference")
+  senderId             String                    @map("sender_id")
+  senderRole           String                    @map("sender_role")
+  rawBody              String?                   @map("raw_body")
+  redactedBody         String                    @map("redacted_body")
+  flagTypesJson        Json                      @default("[]") @map("flag_types_json")
+  keywordsJson         Json                      @default("[]") @map("keywords_json")
+  severity             MessageModerationSeverity
+  confidence           Decimal                   @db.Decimal(5, 2)
+  status               MessageModerationStatus   @default(FLAGGED)
+  assignedToId         String?                   @map("assigned_to_id")
+  lastMessageAt        DateTime                  @map("last_message_at") @db.Timestamptz
+  resolvedAt           DateTime?                 @map("resolved_at") @db.Timestamptz
+  createdAt            DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
 
-  logs MessageModerationLog[]
   escalations MessageModerationEscalation[]
 
   @@index([source, status, severity, createdAt])
@@ -2409,41 +2082,23 @@ model MessageModerationCase {
 }
 
 model MessageModerationEscalation {
-  id                String                 @id @default(cuid())
-  caseId            String                 @map("case_id")
-  messageId         String                 @map("message_id")
-  conversationId    String                 @map("conversation_id")
-  escalationType    String                 @map("escalation_type")
+  id                String                    @id @default(cuid())
+  caseId            String                    @map("case_id")
+  messageId         String                    @map("message_id")
+  conversationId    String                    @map("conversation_id")
+  escalationType    String                    @map("escalation_type")
   priority          MessageModerationSeverity
   reason            String
-  assignedToAdminId String?                @map("assigned_to_admin_id")
-  status            String                 @default("ESCALATED")
-  createdByAdminId  String                 @map("created_by_admin_id")
-  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  assignedToAdminId String?                   @map("assigned_to_admin_id")
+  status            String                    @default("ESCALATED")
+  createdByAdminId  String                    @map("created_by_admin_id")
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz
 
   case MessageModerationCase @relation(fields: [caseId], references: [id])
 
   @@index([messageId, createdAt])
   @@index([assignedToAdminId, status])
   @@map("message_moderation_escalations")
-}
-
-model MessageModerationLog {
-  id               String                    @id @default(cuid())
-  caseId           String                    @map("case_id")
-  messageId        String                    @map("message_id")
-  action           MessageModerationAction
-  reason           String?
-  internalNote     String?                   @map("internal_note")
-  actorId          String?                   @map("actor_id")
-  metadataJson     Json?                     @map("metadata_json")
-  createdAt        DateTime                  @default(now()) @map("created_at") @db.Timestamptz
-
-  case MessageModerationCase @relation(fields: [caseId], references: [id])
-
-  @@index([caseId, createdAt])
-  @@index([messageId, createdAt])
-  @@map("message_moderation_logs")
 }
 
 model ProviderReport {
@@ -2473,26 +2128,25 @@ model ProviderReport {
 }
 
 model UserSafetyReport {
-  id               String                  @id @default(cuid())
-  reportId         String                  @unique @map("report_id")
-  reporterUserId   String                  @map("reporter_user_id")
-  reportedUserId   String                  @map("reported_user_id")
+  id               String                 @id @default(cuid())
+  reportId         String                 @unique @map("report_id")
+  reporterUserId   String                 @map("reporter_user_id")
+  reportedUserId   String                 @map("reported_user_id")
   reason           UserSafetyReportReason
   details          String
-  sourceType       UserSafetySourceType    @map("source_type")
-  sourceId         String?                 @map("source_id")
-  evidenceUrlsJson Json                    @default("[]") @map("evidence_urls_json")
-  status           UserSafetyReportStatus  @default(SUBMITTED)
-  adminComment     String?                 @map("admin_comment")
-  reviewedById     String?                 @map("reviewed_by_id")
-  reviewedAt       DateTime?               @map("reviewed_at") @db.Timestamptz
-  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  sourceType       UserSafetySourceType   @map("source_type")
+  sourceId         String?                @map("source_id")
+  evidenceUrlsJson Json                   @default("[]") @map("evidence_urls_json")
+  status           UserSafetyReportStatus @default(SUBMITTED)
+  adminComment     String?                @map("admin_comment")
+  reviewedById     String?                @map("reviewed_by_id")
+  reviewedAt       DateTime?              @map("reviewed_at") @db.Timestamptz
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime               @updatedAt @map("updated_at") @db.Timestamptz
 
-  reporter User  @relation("UserSafetyReporter", fields: [reporterUserId], references: [id])
-  reported User  @relation("UserSafetyReported", fields: [reportedUserId], references: [id])
-  reviewer User? @relation("UserSafetyReviewer", fields: [reviewedById], references: [id])
-  logs     UserSafetyModerationLog[]
+  reporter User                      @relation("UserSafetyReporter", fields: [reporterUserId], references: [id])
+  reported User                      @relation("UserSafetyReported", fields: [reportedUserId], references: [id])
+  reviewer User?                     @relation("UserSafetyReviewer", fields: [reviewedById], references: [id])
 
   @@index([reporterUserId, createdAt])
   @@index([reportedUserId, status])
@@ -2515,25 +2169,6 @@ model UserBlock {
   @@map("user_blocks")
 }
 
-model UserSafetyModerationLog {
-  id        String                 @id @default(cuid())
-  reportId  String                 @map("report_id")
-  actorId   String                 @map("actor_id")
-  action    UserSafetyAdminAction
-  reason    String?
-  comment   String?
-  beforeJson Json?                 @map("before_json")
-  afterJson  Json?                 @map("after_json")
-  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz
-
-  report UserSafetyReport @relation(fields: [reportId], references: [id])
-  actor  User             @relation("UserSafetyModerationActor", fields: [actorId], references: [id])
-
-  @@index([reportId, createdAt])
-  @@index([actorId, createdAt])
-  @@map("user_safety_moderation_logs")
-}
-
 model SocialPost {
   id            String               @id @default(cuid())
   userId        String               @map("user_id")
@@ -2546,7 +2181,6 @@ model SocialPost {
 
   user           User                  @relation("SocialPostAuthor", fields: [userId], references: [id])
   reports        SocialReport[]
-  moderationLogs SocialModerationLog[]
   warnings       UserWarning[]
 
   @@index([userId, createdAt])
@@ -2568,7 +2202,6 @@ model SocialReport {
 
   post           SocialPost            @relation(fields: [postId], references: [id])
   reportedBy     User                  @relation("SocialReportReporter", fields: [reportedById], references: [id])
-  moderationLogs SocialModerationLog[]
   warnings       UserWarning[]
 
   @@index([postId, status, createdAt])
@@ -2576,28 +2209,6 @@ model SocialReport {
   @@index([reason, status])
   @@index([severity, status])
   @@map("social_reports")
-}
-
-model SocialModerationLog {
-  id             String                 @id @default(cuid())
-  socialReportId String                 @map("social_report_id")
-  postId         String                 @map("post_id")
-  actorId        String                 @map("actor_id")
-  action         SocialModerationAction
-  reason         SocialReportReason?
-  comment        String?
-  beforeJson     Json?                  @map("before_json")
-  afterJson      Json?                  @map("after_json")
-  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz
-
-  report SocialReport @relation(fields: [socialReportId], references: [id])
-  post   SocialPost   @relation(fields: [postId], references: [id])
-  actor  User         @relation("SocialModerationActor", fields: [actorId], references: [id])
-
-  @@index([socialReportId, createdAt])
-  @@index([postId, createdAt])
-  @@index([actorId, createdAt])
-  @@map("social_moderation_logs")
 }
 
 model SocialReportingRule {
@@ -2638,297 +2249,55 @@ model UserWarning {
   @@map("user_warnings")
 }
 
-model DisputeCase {
-  id                         String                            @id @default(cuid())
-  caseId                     String                            @unique @map("case_id")
-  userId                     String                            @map("user_id")
-  orderId                    String                            @map("order_id")
-  transactionId              String?                           @map("transaction_id")
-  paymentId                  String?                           @map("payment_id")
-  providerId                 String?                           @map("provider_id")
-  linkedTransactionId        String?                           @map("linked_transaction_id")
-  linkedPaymentId            String?                           @map("linked_payment_id")
-  linkedOrderId              String?                           @map("linked_order_id")
-  refundType                 DisputeRefundType?                @map("refund_type")
-  refundAmount               Decimal?                          @map("refund_amount") @db.Decimal(10, 2)
-  linkedById                 String?                           @map("linked_by_id")
-  decision                   DisputeDecision?
-  decisionReason             DisputeRejectReason?              @map("decision_reason")
-  decisionComment            String?                           @map("decision_comment")
-  resolutionStatus           DisputeResolutionStatus           @default(PENDING) @map("resolution_status")
-  escalatedAt                DateTime?                         @map("escalated_at") @db.Timestamptz
-  estimatedResolutionAt      DateTime?                         @map("estimated_resolution_at") @db.Timestamptz
-  refundId                   String?                           @map("refund_id")
-  customerNotificationStatus DisputeCustomerNotificationStatus @default(NOT_SENT) @map("customer_notification_status")
-  amount                     Decimal                           @db.Decimal(10, 2)
-  currency                   String                            @default("PKR")
-  reason                     DisputeReason
-  claimDetails               String                            @map("claim_details")
-  priority                   DisputePriority                   @default(MEDIUM)
-  status                     DisputeStatus                     @default(OPEN)
-  slaDeadlineAt              DateTime                          @map("sla_deadline_at") @db.Timestamptz
-  assignedToId               String?                           @map("assigned_to_id")
-  linkedRefundId             String?                           @map("linked_refund_id")
-  linkedAt                   DateTime?                         @map("linked_at") @db.Timestamptz
-  createdAt                  DateTime                          @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                  DateTime                          @updatedAt @map("updated_at") @db.Timestamptz
-  resolvedAt                 DateTime?                         @map("resolved_at") @db.Timestamptz
+model Dispute {
+  id          String        @id @default(uuid())
+  userId      String        @map("user_id")
+  providerId  String        @map("provider_id")
+  orderId     String        @map("order_id")
+  reason      String
+  description String        @db.Text
+  status      DisputeStatus @default(PENDING)
+  adminNote   String?       @map("admin_note") @db.Text
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
-  user       User              @relation("DisputeCustomer", fields: [userId], references: [id])
-  order      Order             @relation(fields: [orderId], references: [id])
-  payment    Payment?          @relation(fields: [paymentId], references: [id])
-  provider   User?             @relation("DisputeProvider", fields: [providerId], references: [id])
-  assignedTo User?             @relation("DisputeAssignee", fields: [assignedToId], references: [id])
-  linkedBy   User?             @relation("DisputeLinker", fields: [linkedById], references: [id])
-  evidence   DisputeEvidence[]
-  notes      DisputeNote[]
-  timeline   DisputeTimeline[]
+  user     User  @relation("DisputeUser", fields: [userId], references: [id])
+  provider User  @relation("DisputeProvider", fields: [providerId], references: [id])
+  order    Order @relation(fields: [orderId], references: [id])
 
-  @@index([status, priority, createdAt])
-  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([providerId])
   @@index([orderId])
-  @@index([paymentId])
-  @@map("dispute_cases")
-}
-
-model DisputeEvidence {
-  id             String                        @id @default(cuid())
-  disputeId      String                        @map("dispute_id")
-  uploadedById   String                        @map("uploaded_by_id")
-  uploadedByType DisputeEvidenceUploadedByType @map("uploaded_by_type")
-  fileName       String                        @map("file_name")
-  fileUrl        String                        @map("file_url")
-  contentType    String                        @map("content_type")
-  createdAt      DateTime                      @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute    DisputeCase @relation(fields: [disputeId], references: [id])
-  uploadedBy User        @relation("DisputeEvidenceUploader", fields: [uploadedById], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("dispute_evidence")
-}
-
-model DisputeNote {
-  id         String                @id @default(cuid())
-  disputeId  String                @map("dispute_id")
-  authorId   String                @map("author_id")
-  note       String
-  visibility DisputeNoteVisibility @default(INTERNAL)
-  createdAt  DateTime              @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute DisputeCase @relation(fields: [disputeId], references: [id])
-  author  User        @relation("DisputeNoteAuthor", fields: [authorId], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("dispute_notes")
-}
-
-model DisputeTimeline {
-  id           String           @id @default(cuid())
-  disputeId    String           @map("dispute_id")
-  type         String
-  title        String
-  description  String
-  actorId      String?          @map("actor_id")
-  actorType    DisputeActorType @map("actor_type")
-  metadataJson Json             @default("{}") @map("metadata_json")
-  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute DisputeCase @relation(fields: [disputeId], references: [id])
-  actor   User?       @relation("DisputeTimelineActor", fields: [actorId], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("dispute_timelines")
-}
-
-model ProviderDisputeCase {
-  id                        String                         @id @default(cuid())
-  caseId                    String                         @unique @map("case_id")
-  providerId                String                         @map("provider_id")
-  customerId                String                         @map("customer_id")
-  orderId                   String                         @map("order_id")
-  providerOrderId           String                         @map("provider_order_id")
-  transactionId             String?                        @map("transaction_id")
-  paymentId                 String?                        @map("payment_id")
-  amount                    Decimal                        @db.Decimal(10, 2)
-  currency                  String                         @default("PKR")
-  category                  ProviderDisputeCategory
-  reason                    String
-  claimType                 String                         @map("claim_type")
-  customerStatement         String                         @map("customer_statement")
-  priority                  ProviderDisputeSeverity        @default(MEDIUM)
-  status                    ProviderDisputeStatus          @default(OPEN)
-  riskScore                 Int                            @default(0) @map("risk_score")
-  slaDeadlineAt             DateTime                       @map("sla_deadline_at") @db.Timestamptz
-  assignedToId              String?                        @map("assigned_to_id")
-  evidenceReviewStartedAt   DateTime?                      @map("evidence_review_started_at") @db.Timestamptz
-  evidenceReviewCompletedAt DateTime?                      @map("evidence_review_completed_at") @db.Timestamptz
-  ruling                    ProviderDisputeRuling?
-  rulingReason              String?                        @map("ruling_reason")
-  refundAmount              Decimal?                       @map("refund_amount") @db.Decimal(10, 2)
-  applyPenalty              Boolean                        @default(false) @map("apply_penalty")
-  penaltyAmount             Decimal?                       @map("penalty_amount") @db.Decimal(10, 2)
-  penaltyReason             String?                        @map("penalty_reason")
-  financialImpactJson       Json?                          @map("financial_impact_json")
-  adjustmentType            ProviderDisputeAdjustmentType? @map("adjustment_type")
-  totalProviderDeduction    Decimal?                       @map("total_provider_deduction") @db.Decimal(10, 2)
-  finalAttestedAt           DateTime?                      @map("final_attested_at") @db.Timestamptz
-  finalAttestedById         String?                        @map("final_attested_by_id")
-  createdAt                 DateTime                       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
-  resolvedAt                DateTime?                      @map("resolved_at") @db.Timestamptz
-
-  provider             User                              @relation("ProviderDisputeProvider", fields: [providerId], references: [id])
-  customer             User                              @relation("ProviderDisputeCustomer", fields: [customerId], references: [id])
-  order                Order                             @relation(fields: [orderId], references: [id])
-  providerOrder        ProviderOrder                     @relation(fields: [providerOrderId], references: [id])
-  payment              Payment?                          @relation(fields: [paymentId], references: [id])
-  assignedTo           User?                             @relation("ProviderDisputeAssignee", fields: [assignedToId], references: [id])
-  finalAttestedBy      User?                             @relation("ProviderDisputeFinalAttestor", fields: [finalAttestedById], references: [id])
-  evidence             ProviderDisputeEvidence[]
-  notes                ProviderDisputeNote[]
-  timeline             ProviderDisputeTimeline[]
-  financialAdjustments ProviderFinancialAdjustment[]
-  financialLogs        ProviderDisputeFinancialLog[]
-  communicationLogs    ProviderDisputeCommunicationLog[]
-  resolution           ProviderDisputeResolution?
-
-  @@index([status, priority, createdAt])
-  @@index([providerId, createdAt])
-  @@index([customerId, createdAt])
-  @@index([orderId])
-  @@index([providerOrderId])
-  @@map("provider_dispute_cases")
-}
-
-model ProviderDisputeEvidence {
-  id              String                         @id @default(cuid())
-  disputeId       String                         @map("dispute_id")
-  submittedById   String                         @map("submitted_by_id")
-  submittedByType ProviderDisputeSubmittedByType @map("submitted_by_type")
-  narrative       String
-  status          ProviderDisputeEvidenceStatus
-  submittedAt     DateTime                       @map("submitted_at") @db.Timestamptz
-  isLate          Boolean                        @default(false) @map("is_late")
-  filesJson       Json                           @default("[]") @map("files_json")
-  createdAt       DateTime                       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime                       @updatedAt @map("updated_at") @db.Timestamptz
-
-  dispute     ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-  submittedBy User                @relation("ProviderDisputeEvidenceSubmitter", fields: [submittedById], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("provider_dispute_evidence")
-}
-
-model ProviderDisputeNote {
-  id         String                @id @default(cuid())
-  disputeId  String                @map("dispute_id")
-  authorId   String                @map("author_id")
-  note       String
-  visibility DisputeNoteVisibility @default(INTERNAL)
-  createdAt  DateTime              @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-  author  User                @relation("ProviderDisputeNoteAuthor", fields: [authorId], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("provider_dispute_notes")
-}
-
-model ProviderDisputeTimeline {
-  id           String           @id @default(cuid())
-  disputeId    String           @map("dispute_id")
-  type         String
-  title        String
-  description  String
-  actorId      String?          @map("actor_id")
-  actorType    DisputeActorType @map("actor_type")
-  metadataJson Json             @default("{}") @map("metadata_json")
-  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-  actor   User?               @relation("ProviderDisputeTimelineActor", fields: [actorId], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("provider_dispute_timelines")
-}
-
-model ProviderFinancialAdjustment {
-  id              String                               @id @default(cuid())
-  providerId      String                               @map("provider_id")
-  disputeId       String                               @map("dispute_id")
-  providerOrderId String                               @map("provider_order_id")
-  type            ProviderFinancialAdjustmentType
-  direction       ProviderFinancialAdjustmentDirection
-  amount          Decimal                              @db.Decimal(10, 2)
-  currency        String                               @default("PKR")
-  status          ProviderFinancialAdjustmentStatus    @default(PENDING)
-  transactionId   String?                              @map("transaction_id")
-  createdAt       DateTime                             @default(now()) @map("created_at") @db.Timestamptz
-
-  provider      User                @relation(fields: [providerId], references: [id])
-  dispute       ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-  providerOrder ProviderOrder       @relation(fields: [providerOrderId], references: [id])
-  order         Order?              @relation(fields: [orderId], references: [id])
-  orderId       String?
-
-  @@index([providerId, createdAt])
-  @@index([disputeId, createdAt])
-  @@map("provider_financial_adjustments")
+  @@map("disputes")
 }
 
 model SystemSettings {
-  id                        String   @id @default(cuid())
-  applicationName           String   @default("Gift App") @map("application_name")
-  supportEmail              String   @default("support@giftapp.com") @map("support_email")
-  platformLogoUrl           String?  @map("platform_logo_url")
-  stripePublishableKey      String?  @map("stripe_publishable_key")
-  stripeSecretKey           String?  @map("stripe_secret_key")
-  stripeWebhookSecret       String?  @map("stripe_webhook_secret")
-  firebaseServiceAccountJson Json?   @map("firebase_service_account_json")
-  awsS3BucketName           String?  @map("aws_s3_bucket_name")
-  awsRegion                 String?  @map("aws_region")
-  awsAccessKey              String?  @map("aws_access_key")
-  awsSecretKey              String?  @map("aws_secret_key")
-  smtpHost                  String?  @map("smtp_host")
-  smtpPort                  Int?     @map("smtp_port")
-  smtpUsername              String?  @map("smtp_username")
-  smtpPassword              String?  @map("smtp_password")
-  senderEmail               String?  @map("sender_email")
-  senderName                String?  @map("sender_name")
-  updatedById               String?  @map("updated_by_id")
-  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                         String   @id @default(cuid())
+  applicationName            String   @default("Gift App") @map("application_name")
+  supportEmail               String   @default("support@giftapp.com") @map("support_email")
+  platformLogoUrl            String?  @map("platform_logo_url")
+  stripePublishableKey       String?  @map("stripe_publishable_key")
+  stripeSecretKey            String?  @map("stripe_secret_key")
+  stripeWebhookSecret        String?  @map("stripe_webhook_secret")
+  firebaseServiceAccountJson Json?    @map("firebase_service_account_json")
+  awsS3BucketName            String?  @map("aws_s3_bucket_name")
+  awsRegion                  String?  @map("aws_region")
+  awsAccessKey               String?  @map("aws_access_key")
+  awsSecretKey               String?  @map("aws_secret_key")
+  smtpHost                   String?  @map("smtp_host")
+  smtpPort                   Int?     @map("smtp_port")
+  smtpUsername               String?  @map("smtp_username")
+  smtpPassword               String?  @map("smtp_password")
+  senderEmail                String?  @map("sender_email")
+  senderName                 String?  @map("sender_name")
+  updatedById                String?  @map("updated_by_id")
+  createdAt                  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   updatedBy User? @relation("SystemSettingsUpdater", fields: [updatedById], references: [id])
 
   @@map("system_settings")
-}
-
-model GuestAccessSettings {
-  id                       String   @id @default(cuid())
-  guestAccessEnabled       Boolean  @default(true) @map("guest_access_enabled")
-  allowMarketplaceBrowsing Boolean  @default(true) @map("allow_marketplace_browsing")
-  allowMarketplaceHome     Boolean  @default(true) @map("allow_marketplace_home")
-  allowGiftDetails         Boolean  @default(true) @map("allow_gift_details")
-  allowDiscountedGifts     Boolean  @default(true) @map("allow_discounted_gifts")
-  allowFilterOptions       Boolean  @default(true) @map("allow_filter_options")
-  allowProviderPreview     Boolean  @default(true) @map("allow_provider_preview")
-  allowWishlist            Boolean  @default(false) @map("allow_wishlist")
-  allowCart                Boolean  @default(false) @map("allow_cart")
-  allowCheckout            Boolean  @default(false) @map("allow_checkout")
-  sessionTtlMinutes        Int      @default(120) @map("session_ttl_minutes")
-  maxRequestsPerMinute     Int      @default(60) @map("max_requests_per_minute")
-  showExactStockToGuests   Boolean  @default(false) @map("show_exact_stock_to_guests")
-  showSkuToGuests          Boolean  @default(false) @map("show_sku_to_guests")
-  updatedById              String?  @map("updated_by_id")
-  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
-
-  updatedBy User? @relation("GuestAccessSettingsUpdater", fields: [updatedById], references: [id])
-
-  @@map("guest_access_settings")
 }
 
 model MessagingSettings {
@@ -2953,30 +2322,6 @@ model MessagingSettings {
 
   @@index([updatedById])
   @@map("messaging_settings")
-}
-
-model GuestSession {
-  id               String               @id @default(cuid())
-  guestSessionId   String               @unique @default(cuid()) @map("guest_session_id")
-  deviceId         String?              @map("device_id")
-  platform         GuestSessionPlatform @default(UNKNOWN)
-  appVersion       String?              @map("app_version")
-  ipAddress        String?              @map("ip_address")
-  userAgent        String?              @map("user_agent")
-  locale           String?
-  timezone         String?
-  referrer         String?
-  capabilitiesJson Json                 @default("[]") @map("capabilities_json")
-  expiresAt        DateTime             @map("expires_at") @db.Timestamptz
-  lastSeenAt       DateTime?            @map("last_seen_at") @db.Timestamptz
-  revokedAt        DateTime?            @map("revoked_at") @db.Timestamptz
-  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz
-
-  @@index([expiresAt])
-  @@index([guestSessionId])
-  @@index([ipAddress, lastSeenAt])
-  @@map("guest_sessions")
 }
 
 model AdminPayoutSettings {
@@ -3011,16 +2356,16 @@ model SeasonalTheme {
 }
 
 model CommissionTier {
-  id                   String   @id @default(cuid())
-  name                 String
-  commissionRatePercent Decimal  @map("commission_rate_percent") @db.Decimal(5, 2)
-  orderVolumeThreshold Decimal  @map("order_volume_threshold") @db.Decimal(10, 2)
-  sortOrder            Int      @default(1) @map("sort_order")
-  isActive             Boolean  @default(true) @map("is_active")
-  updatedById          String?  @map("updated_by_id")
-  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz
-  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                    String    @id @default(cuid())
+  name                  String
+  commissionRatePercent Decimal   @map("commission_rate_percent") @db.Decimal(5, 2)
+  orderVolumeThreshold  Decimal   @map("order_volume_threshold") @db.Decimal(10, 2)
+  sortOrder             Int       @default(1) @map("sort_order")
+  isActive              Boolean   @default(true) @map("is_active")
+  updatedById           String?   @map("updated_by_id")
+  deletedAt             DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   updatedBy User? @relation("CommissionTierUpdater", fields: [updatedById], references: [id])
 
@@ -3054,9 +2399,9 @@ model ProviderPayoutMethod {
   provider User             @relation(fields: [providerId], references: [id])
   payouts  ProviderPayout[]
 
+  @@unique([providerId, fingerprint])
   @@index([providerId, deletedAt])
   @@index([providerId, isDefault])
-  @@unique([providerId, fingerprint])
   @@index([providerId, verificationStatus])
   @@map("provider_payout_methods")
 }
@@ -3105,91 +2450,13 @@ model ProviderPayout {
   createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
-  provider     User                   @relation(fields: [providerId], references: [id])
-  payoutMethod ProviderPayoutMethod   @relation(fields: [payoutMethodId], references: [id])
+  provider     User                     @relation(fields: [providerId], references: [id])
+  payoutMethod ProviderPayoutMethod     @relation(fields: [payoutMethodId], references: [id])
   ledger       ProviderEarningsLedger[]
-  auditLogs    ProviderPayoutAuditLog[]
 
   @@index([providerId, status, createdAt])
   @@index([payoutMethodId])
   @@map("provider_payouts")
-}
-
-model ProviderPayoutAuditLog {
-  id           String                @id @default(cuid())
-  payoutId     String?               @map("payout_id")
-  providerId   String                @map("provider_id")
-  actorId      String?               @map("actor_id")
-  action       String
-  status       ProviderPayoutStatus?
-  metadataJson Json                  @default("{}") @map("metadata_json")
-  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz
-
-  payout   ProviderPayout? @relation(fields: [payoutId], references: [id])
-  provider User            @relation(fields: [providerId], references: [id])
-
-  @@index([payoutId, createdAt])
-  @@index([providerId, createdAt])
-  @@index([action, createdAt])
-  @@map("provider_payout_audit_logs")
-}
-
-model ProviderDisputeResolution {
-  id                     String                          @id @default(cuid())
-  disputeId              String                          @unique @map("dispute_id")
-  finalRuling            ProviderDisputeFinalRuling      @map("final_ruling")
-  status                 ProviderDisputeResolutionStatus
-  refundProcessed        Boolean                         @default(false) @map("refund_processed")
-  refundAmount           Decimal                         @default(0) @map("refund_amount") @db.Decimal(10, 2)
-  providerDeduction      Decimal                         @default(0) @map("provider_deduction") @db.Decimal(10, 2)
-  penaltyApplied         Boolean                         @default(false) @map("penalty_applied")
-  penaltyAmount          Decimal                         @default(0) @map("penalty_amount") @db.Decimal(10, 2)
-  notificationStatusJson Json                            @default("{}") @map("notification_status_json")
-  performanceImpactJson  Json?                           @map("performance_impact_json")
-  finalizedById          String                          @map("finalized_by_id")
-  finalizedAt            DateTime                        @map("finalized_at") @db.Timestamptz
-  createdAt              DateTime                        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt              DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
-
-  dispute     ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-  finalizedBy User                @relation("ProviderDisputeFinalizer", fields: [finalizedById], references: [id])
-
-  @@index([finalizedById, finalizedAt])
-  @@map("provider_dispute_resolutions")
-}
-
-model ProviderDisputeFinancialLog {
-  id            String                            @id @default(cuid())
-  disputeId     String                            @map("dispute_id")
-  transactionId String                            @map("transaction_id")
-  action        String
-  amount        Decimal                           @db.Decimal(10, 2)
-  currency      String                            @default("PKR")
-  status        ProviderFinancialAdjustmentStatus
-  metadataJson  Json?                             @map("metadata_json")
-  createdAt     DateTime                          @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("provider_dispute_financial_logs")
-}
-
-model ProviderDisputeCommunicationLog {
-  id          String                                 @id @default(cuid())
-  disputeId   String                                 @map("dispute_id")
-  targetType  ProviderDisputeCommunicationTargetType @map("target_type")
-  channel     ProviderDisputeCommunicationChannel
-  title       String
-  bodyPreview String                                 @map("body_preview")
-  status      String
-  sentAt      DateTime?                              @map("sent_at") @db.Timestamptz
-  createdAt   DateTime                               @default(now()) @map("created_at") @db.Timestamptz
-
-  dispute ProviderDisputeCase @relation(fields: [disputeId], references: [id])
-
-  @@index([disputeId, createdAt])
-  @@map("provider_dispute_communication_logs")
 }
 
 model AuthSession {
@@ -3315,22 +2582,18 @@ model Coupon {
   @@map("coupons")
 }
 
-model AdminRole {
-  id          String    @id @default(cuid())
+model StaffRole {
+  id          String   @id @default(cuid())
   name        String
-  slug        String    @unique
+  slug        String   @unique
   description String?
-  permissions Json      @map("permissions_json")
-  isSystem    Boolean   @default(false) @map("is_system")
-  isActive    Boolean   @default(true) @map("is_active")
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  permissions Json     @map("permissions_json")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  admins User[]
+  staffProfiles StaffProfile[]
 
-  @@index([isActive, isSystem])
-  @@map("admin_roles")
+  @@map("staff_roles")
 }
 
 model AdminAuditLog {
@@ -3361,28 +2624,3 @@ model AdminAuditLog {
   @@index([module, createdAt])
   @@map("admin_audit_logs")
 }
-
-model AccountSuspension {
-  id            String      @id @default(cuid())
-  accountId     String      @map("account_id")
-  accountType   AccountType @map("account_type")
-  reason        String
-  comment       String?
-  suspendedBy   String      @map("suspended_by")
-  suspendedAt   DateTime    @default(now()) @map("suspended_at") @db.Timestamptz
-  unsuspendedBy String?     @map("unsuspended_by")
-  unsuspendedAt DateTime?   @map("unsuspended_at") @db.Timestamptz
-  isActive      Boolean     @default(true) @map("is_active")
-  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz
-
-  account        User  @relation("SuspendedAccount", fields: [accountId], references: [id])
-  suspendActor   User  @relation("SuspensionActor", fields: [suspendedBy], references: [id])
-  unsuspendActor User? @relation("UnsuspensionActor", fields: [unsuspendedBy], references: [id])
-
-  @@index([accountId, isActive])
-  @@index([accountType, isActive])
-  @@index([suspendedBy, suspendedAt])
-  @@map("account_suspensions")
-}
-

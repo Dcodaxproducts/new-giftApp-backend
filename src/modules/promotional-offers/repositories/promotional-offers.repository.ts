@@ -3,13 +3,13 @@ import { Gift, PromotionalOffer, PromotionalOfferApprovalStatus, Prisma } from '
 import { PrismaService } from '../../../database/prisma.service';
 
 export type OfferWithRelations = PromotionalOffer & {
-  item: Pick<Gift, 'id' | 'name' | 'imageUrls' | 'price' | 'currency' | 'status' | 'moderationStatus'>;
-  provider: { id: string; email: string; providerBusinessName: string | null; firstName: string; lastName: string };
+  item: Pick<Gift, 'id' | 'name' | 'imageUrls' | 'price' | 'currency' | 'status'>;
+  provider: { id: string; email: string; providerProfile: { businessName: string | null } | null; firstName: string; lastName: string };
 };
 
 export const promotionalOfferInclude = {
-  item: { select: { id: true, name: true, imageUrls: true, price: true, currency: true, status: true, moderationStatus: true } },
-  provider: { select: { id: true, email: true, providerBusinessName: true, firstName: true, lastName: true } },
+  item: { select: { id: true, name: true, imageUrls: true, price: true, currency: true, status: true } },
+  provider: { select: { id: true, email: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } },
 } as const;
 
 @Injectable()

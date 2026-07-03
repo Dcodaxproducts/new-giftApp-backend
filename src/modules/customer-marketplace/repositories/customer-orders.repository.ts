@@ -56,7 +56,7 @@ export class CustomerOrdersRepository {
     return this.prisma.customerAddress.findFirst({ where: { id: addressId, userId, deletedAt: null } });
   }
 
-  findGiftsForCheckout(params: { giftIds: string[]; where: Prisma.GiftWhereInput; include: Prisma.GiftInclude }) {
+  findGiftsForCheckout<T extends Prisma.GiftInclude>(params: { giftIds: string[]; where: Prisma.GiftWhereInput; include: T }) {
     return this.prisma.gift.findMany({ where: { id: { in: params.giftIds }, ...params.where }, include: params.include });
   }
 

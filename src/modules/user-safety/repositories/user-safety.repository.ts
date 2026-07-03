@@ -14,7 +14,7 @@ export class UserSafetyRepository {
 
   findUserById(id: string) {
     return this.prisma.user.findFirst({
-      where: { id, role: { in: [UserRole.REGISTERED_USER, UserRole.PROVIDER] }, deletedAt: null },
+      where: { id, role: { in: [UserRole.REGISTERED_USER, UserRole.PROVIDER] } },
       select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true },
     });
   }
@@ -52,7 +52,7 @@ export class UserSafetyRepository {
   }
 
   findActiveAdminRecipients() {
-    return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN] }, isActive: true, deletedAt: null }, select: { id: true, role: true } });
+    return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.STAFF] }, isActive: true }, select: { id: true, role: true } });
   }
 
   createManyNotifications(data: Prisma.NotificationCreateManyInput[]) {

@@ -20,7 +20,7 @@ export class CustomerReferralsRepository {
   }
 
   findReferrerByCode(code: string) {
-    return this.prisma.user.findFirst({ where: { referralCode: code, role: UserRole.REGISTERED_USER, deletedAt: null, isActive: true } });
+    return this.prisma.user.findFirst({ where: { referralCode: code, role: UserRole.REGISTERED_USER, isActive: true } });
   }
 
   findReferralByReferredUserId(referredUserId: string) {

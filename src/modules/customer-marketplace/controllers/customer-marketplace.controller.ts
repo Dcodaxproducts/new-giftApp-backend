@@ -2,55 +2,48 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { GuestCapabilities } from '../../../common/decorators/guest-capabilities.decorator';
 import { Roles } from '../../../common/decorators/roles.decorator';
-import { GuestCapabilitiesGuard } from '../../../common/guards/guest-capabilities.guard';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { CustomerMarketplaceService } from '../services/customer-marketplace.service';
 import { AddCartItemDto, CreateCustomerAddressDto, CreateCustomerReminderDto, CreateOrderDto, CustomerGiftListDto, ListCustomerOrdersDto, UpdateCartItemDto, UpdateCustomerAddressDto, UpdateCustomerReminderDto } from '../dto/customer-marketplace.dto';
 
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard, GuestCapabilitiesGuard)
-@Roles(UserRole.REGISTERED_USER, UserRole.GUEST_USER)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.REGISTERED_USER)
 @Controller('customer')
 export class CustomerMarketplaceController {
   constructor(private readonly marketplace: CustomerMarketplaceService) {}
 
   @Get('home')
-  @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('VIEW_MARKETPLACE_HOME')
-  @ApiOperation({ summary: 'Fetch customer app home', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode="GUEST".' })
+  @ApiTags('05 Customer - Marketplace')
+  @ApiOperation({ summary: 'Fetch customer app home', description: 'REGISTERED_USER only. Returns personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable.' })
   @ApiResponse({ status: 200, description: 'Customer home fetched successfully' })
   home(@CurrentUser() user: AuthUserContext) { return this.marketplace.home(user); }
 
   @Get('categories')
-  @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('BROWSE_MARKETPLACE')
-  @ApiOperation({ summary: 'List customer marketplace categories', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.' })
+  @ApiTags('05 Customer - Marketplace')
+  @ApiOperation({ summary: 'List customer marketplace categories', description: 'REGISTERED_USER only. Lists customer-visible marketplace categories.' })
   @ApiResponse({ status: 200, description: 'Customer categories fetched successfully' })
   categories(@CurrentUser() user: AuthUserContext) { return this.marketplace.categories(user); }
 
   @Get('gifts/discounted')
-  @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('VIEW_DISCOUNTED_GIFTS')
-  @ApiOperation({ summary: 'List discounted customer gifts', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.' })
+  @ApiTags('05 Customer - Marketplace')
+  @ApiOperation({ summary: 'List discounted customer gifts', description: 'REGISTERED_USER only. Discounted gift cards include customer wishlist state.' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiResponse({ status: 200, description: 'Discounted gifts fetched successfully' })
   discountedGifts(@CurrentUser() user: AuthUserContext, @Query() query: CustomerGiftListDto) { return this.marketplace.discountedGifts(user, query); }
 
   @Get('gifts/filter-options')
-  @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('VIEW_MARKETPLACE_FILTERS')
-  @ApiOperation({ summary: 'Fetch marketplace gift filter options', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.' })
+  @ApiTags('05 Customer - Marketplace')
+  @ApiOperation({ summary: 'Fetch marketplace gift filter options', description: 'REGISTERED_USER only. Returns available marketplace filters.' })
   @ApiResponse({ status: 200, description: 'Gift filter options fetched successfully' })
   filterOptions(@CurrentUser() user: AuthUserContext) { return this.marketplace.filterOptions(user); }
 
   @Get('gifts')
-  @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('BROWSE_MARKETPLACE')
-  @ApiOperation({ summary: 'List customer marketplace gifts', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.' })
+  @ApiTags('05 Customer - Marketplace')
+  @ApiOperation({ summary: 'List customer marketplace gifts', description: 'REGISTERED_USER only. Gift cards include customer wishlist state.' })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'categoryId', required: false })
   @ApiQuery({ name: 'categorySlug', required: false })
@@ -62,20 +55,19 @@ export class CustomerMarketplaceController {
   @ApiQuery({ name: 'brand', required: false })
   @ApiQuery({ name: 'deliveryOption', required: false })
   @ApiQuery({ name: 'sortBy', required: false })
-  @ApiResponse({ status: 200, description: 'Customer gifts fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', rating: 4.6, isWishlisted: false, requiresAuthForWishlist: true, requiresAuthForCart: true, requiresAuthForCheckout: true, shortDescription: 'Premium fragrance gift.', reviewCount: 24, category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts' }, deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Customer gifts fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Customer gifts fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', rating: 4.6, isWishlisted: false, reviewCount: 24, category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts' }, deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Customer gifts fetched successfully' } } })
   gifts(@CurrentUser() user: AuthUserContext, @Query() query: CustomerGiftListDto) { return this.marketplace.gifts(user, query); }
 
   @Get('gifts/:id')
-  @ApiTags('05 Customer / Guest - Marketplace')
-  @GuestCapabilities('VIEW_GIFT_DETAILS')
-  @ApiOperation({ summary: 'Fetch customer-safe gift details', description: 'REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.' })
-  @ApiResponse({ status: 200, description: 'Gift details fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', shortDescription: 'Premium fragrance gift.', price: 99.99, originalPrice: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], rating: 4.6, reviewCount: 24, isWishlisted: false, requiresAuthForWishlist: true, requiresAuthForCart: true, requiresAuthForCheckout: true, badges: ['AUTHENTIC'], category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts', rating: 4.6, reviewCount: 24, fulfillmentMethods: ['DELIVERY'] }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99, originalPrice: 159.99, isPopular: true, isDefault: true }], deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }, message: 'Gift details fetched successfully' } } })
+  @ApiTags('05 Customer - Marketplace')
+  @ApiOperation({ summary: 'Fetch customer-safe gift details', description: 'REGISTERED_USER only. Gift details include customer wishlist state.' })
+  @ApiResponse({ status: 200, description: 'Gift details fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', price: 99.99, originalPrice: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], rating: 4.6, reviewCount: 24, isWishlisted: false, badges: ['AUTHENTIC'], category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts', rating: 4.6, reviewCount: 24, fulfillmentMethods: ['DELIVERY'] }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }], deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }, message: 'Gift details fetched successfully' } } })
   giftDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.giftDetails(user, id); }
 
   @Roles(UserRole.REGISTERED_USER)
   @Get('wishlist')
   @ApiTags('05 Customer - Wishlist')
-  @ApiOperation({ summary: 'List wishlist gifts', description: 'REGISTERED_USER only. Returns customer-visible gifts: ACTIVE, published, not deleted, and owned by an approved active provider.' })
+  @ApiOperation({ summary: 'List wishlist gifts', description: 'REGISTERED_USER only. Returns customer-visible ACTIVE gifts owned by an approved active provider.' })
   wishlist(@CurrentUser() user: AuthUserContext) { return this.marketplace.wishlist(user); }
 
   @Roles(UserRole.REGISTERED_USER)

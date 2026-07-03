@@ -19,18 +19,17 @@ function createGuard(options: {
   const repository = {
     findUserForJwtGuard: jest.fn().mockResolvedValue(options.user ?? {
       id: 'admin_1',
-      role: UserRole.ADMIN,
+      role: UserRole.STAFF,
       isActive: true,
       deletedAt: null,
-      adminRoleId: 'role_1',
-      adminRole: { id: 'role_1', isActive: true, deletedAt: null, permissions: { gifts: ['create'] } },
+      staffProfile: { staffRoleId: 'role_1', staffRole: { id: 'role_1', permissions: { gifts: ['create'] } } },
     }),
     findActiveSessionForJwtGuard: jest.fn().mockResolvedValue(Object.prototype.hasOwnProperty.call(options, 'session') ? options.session : { id: 'session_1' }),
   };
   const guard = new JwtAuthGuard(
     options.verifyRejects
       ? ({ verifyAsync: jest.fn().mockRejectedValue(new Error('bad token')) } as never)
-      : ({ verifyAsync: jest.fn().mockResolvedValue(options.payload ?? { uid: 'admin_1', role: UserRole.ADMIN }) } as never),
+      : ({ verifyAsync: jest.fn().mockResolvedValue(options.payload ?? { uid: 'admin_1', role: UserRole.STAFF }) } as never),
     { get: jest.fn().mockReturnValue('secret') } as never,
     repository as never,
   );
@@ -39,13 +38,13 @@ function createGuard(options: {
 }
 
 describe('JwtAuthGuard', () => {
-  it('loads fresh ADMIN role permissions from active AdminRole', async () => {
+  it('loads fresh STAFF role permissions from StaffRole', async () => {
     const { guard } = createGuard();
 
     const context = contextWithHeader();
     await expect(guard.canActivate(context)).resolves.toBe(true);
     const request = context.switchToHttp().getRequest<{ user?: { permissions?: unknown } }>();
-    expect(request.user).toEqual({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { gifts: ['create'] }, sessionId: undefined });
+    expect(request.user).toEqual({ uid: 'admin_1', role: UserRole.STAFF, permissions: { gifts: ['create'] }, sessionId: undefined });
   });
 
   it('returns unauthorized when bearer token is missing', async () => {
@@ -61,31 +60,20 @@ describe('JwtAuthGuard', () => {
   });
 
   it('rejects inactive or deleted users', async () => {
-    const { guard: inactiveGuard } = createGuard({ user: { id: 'user_1', role: UserRole.ADMIN, isActive: false, deletedAt: null } });
+    const { guard: inactiveGuard } = createGuard({ user: { id: 'user_1', role: UserRole.STAFF, isActive: false, deletedAt: null } });
     await expect(inactiveGuard.canActivate(contextWithHeader())).rejects.toThrow(ForbiddenException);
 
-    const { guard: deletedGuard } = createGuard({ user: { id: 'user_1', role: UserRole.ADMIN, isActive: true, deletedAt: new Date() } });
+    const { guard: deletedGuard } = createGuard({ user: { id: 'user_1', role: UserRole.STAFF, isActive: true, deletedAt: new Date() } });
     await expect(deletedGuard.canActivate(contextWithHeader())).rejects.toThrow(ForbiddenException);
   });
 
-  it('blocks ADMIN users with inactive or missing AdminRole', async () => {
-    const { guard: inactiveRoleGuard } = createGuard({ user: {
-      id: 'admin_1',
-      role: UserRole.ADMIN,
-      isActive: true,
-      deletedAt: null,
-      adminRoleId: 'role_1',
-      adminRole: { id: 'role_1', isActive: false, deletedAt: null, permissions: { gifts: ['create'] } },
-    } });
-    await expect(inactiveRoleGuard.canActivate(contextWithHeader())).rejects.toThrow(ForbiddenException);
-
+  it('blocks STAFF users with missing StaffRole', async () => {
     const { guard: missingRoleGuard } = createGuard({ user: {
       id: 'admin_1',
-      role: UserRole.ADMIN,
+      role: UserRole.STAFF,
       isActive: true,
       deletedAt: null,
-      adminRoleId: null,
-      adminRole: null,
+      staffProfile: null,
     } });
     await expect(missingRoleGuard.canActivate(contextWithHeader())).rejects.toThrow(ForbiddenException);
   });

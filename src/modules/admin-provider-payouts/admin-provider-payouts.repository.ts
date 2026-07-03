@@ -4,7 +4,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const ADMIN_PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInclude>()({
-  provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true, avatarUrl: true } },
+  provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, avatarUrl: true } },
   payoutMethod: { select: { id: true, bankName: true, maskedAccount: true, last4: true, verificationStatus: true } },
 });
 
@@ -29,7 +29,7 @@ export class AdminProviderPayoutsRepository {
   }
 
   findLedgerEntries(where: Prisma.ProviderEarningsLedgerWhereInput) {
-    return this.prisma.providerEarningsLedger.findMany({ where, include: { provider: { select: { id: true, providerBusinessName: true, firstName: true, lastName: true } } }, take: 10000 });
+    return this.prisma.providerEarningsLedger.findMany({ where, include: { provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } } }, take: 10000 });
   }
 
   findCommissionTiers() {
@@ -41,7 +41,6 @@ export class AdminProviderPayoutsRepository {
       if (params.releaseLedger) await tx.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, payoutId: null, metadataJson: { payoutId: params.payoutId, releaseReason: params.failureReason ?? params.status } } });
       if (params.settleLedger) await tx.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.PAID, metadataJson: { payoutId: params.payoutId, settledAt: new Date().toISOString() } } });
       const payout = await tx.providerPayout.update({ where: { id: params.payoutId }, data: { status: params.status, failureReason: params.failureReason, ...(params.status === ProviderPayoutStatus.COMPLETED ? { completedAt: new Date() } : {}) }, include: ADMIN_PROVIDER_PAYOUT_INCLUDE });
-      await tx.providerPayoutAuditLog.create({ data: { payoutId: params.payoutId, providerId: params.providerId, actorId: params.actorId, action: params.action ?? `PROVIDER_PAYOUT_${params.status}`, status: params.status, metadataJson: { failureReason: params.failureReason ?? null } } });
       if (params.notification) await this.notificationDispatch.createAndEmit({ recipientId: params.providerId, recipientType: NotificationRecipientType.PROVIDER, title: params.notification.title, message: params.notification.message, type: params.notification.type, metadataJson: params.notification.metadataJson })
       return payout;
     });

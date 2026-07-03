@@ -19,7 +19,7 @@ const baseBroadcastPayload = {
 @ApiTags('06 Broadcast Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('broadcasts')
 export class BroadcastNotificationsController {
   constructor(private readonly broadcasts: BroadcastNotificationsService) {}

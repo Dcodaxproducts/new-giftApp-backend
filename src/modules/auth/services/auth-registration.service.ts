@@ -8,5 +8,4 @@ export class AuthRegistrationService {
 
   registerUser(dto: RegisterUserDto) { return this.core.registerUser(dto); }
   registerProvider(dto: RegisterProviderDto) { return this.core.registerProvider(dto); }
-  createGuestSession() { return this.core.createGuestSession(); }
 }

@@ -20,7 +20,7 @@ describe('Storage upload metadata flow', () => {
   });
 
   it('enforces upload ownership and gift message media policy', () => {
-    expect(source).toContain('ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN ? query.ownerId : user.uid');
+    expect(source).toContain('ownerId: user.role === UserRole.SUPER_ADMIN || user.role === UserRole.STAFF ? query.ownerId : user.uid');
     expect(source).toContain('private async resolveUploadOwnership');
     expect(source).toContain('targetAccountId is not allowed for this account.');
     expect(source).toContain('Upload owner account does not exist');

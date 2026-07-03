@@ -8,7 +8,7 @@ export class ProviderOffersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findProviderItem(providerId: string, itemId: string) {
-    return this.prisma.gift.findFirst({ where: { id: itemId, providerId, deletedAt: null } });
+    return this.prisma.gift.findFirst({ where: { id: itemId, providerId } });
   }
 
   findProviderOfferById(providerId: string, id: string): Promise<OfferWithRelations | null> {

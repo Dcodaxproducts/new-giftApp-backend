@@ -57,83 +57,6 @@
         "description": "Access: PUBLIC."
       }
     },
-    "/api/v1/auth/guest/session": {
-      "post": {
-        "description": "Access: PUBLIC. Optional metadata-only request body. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only. Request body is optional metadata only. Guest capabilities are server-issued from Admin Guest Access Settings. Client-provided capabilities are ignored and will be removed in a future version. Guest sessions are for limited browsing and onboarding access only.",
-        "operationId": "AuthController_guestSession",
-        "parameters": [],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateGuestSessionDto"
-              },
-              "examples": {
-                "metadata": {
-                  "value": {
-                    "deviceId": "optional-device-id",
-                    "platform": "WEB",
-                    "appVersion": "1.0.0",
-                    "locale": "en",
-                    "timezone": "Asia/Karachi",
-                    "referrer": "landing-page"
-                  }
-                },
-                "empty": {
-                  "value": {}
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "guestSessionId": "guest_session_id",
-                      "accessToken": "guest_jwt",
-                      "tokenType": "Bearer",
-                      "role": "GUEST_USER",
-                      "capabilities": [
-                        "VIEW_ONBOARDING",
-                        "BROWSE_MARKETPLACE",
-                        "VIEW_GIFT_DETAILS",
-                        "VIEW_MARKETPLACE_FILTERS",
-                        "VIEW_DISCOUNTED_GIFTS"
-                      ],
-                      "expiresAt": "2026-05-18T12:00:00.000Z",
-                      "guestAccess": {
-                        "allowMarketplaceBrowsing": true,
-                        "allowMarketplaceHome": true,
-                        "allowGiftDetails": true,
-                        "allowDiscountedGifts": true,
-                        "allowFilterOptions": true,
-                        "allowWishlist": false,
-                        "allowCart": false,
-                        "allowCheckout": false
-                      }
-                    },
-                    "message": "Guest session created successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "summary": "Create guest browsing session",
-        "tags": [
-          "01 Auth"
-        ],
-        "x-allowed-roles": "PUBLIC",
-        "x-access": "PUBLIC"
-      }
-    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "AuthController_login",
@@ -337,8 +260,8 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "delivery": "OTP_SENT_IF_ELIGIBLE",
-                      "nextStep": "Use the 6-digit verification OTP to complete email verification."
+                      "delivery": "EMAIL",
+                      "nextStep": "Check your inbox for a 6-digit verification code."
                     },
                     "message": "A verification email has been sent to the email address you provided."
                   }
@@ -2226,83 +2149,6 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
-      }
-    },
-    "/api/v1/admin/guest-access-settings": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.",
-        "operationId": "GuestAccessSettingsController_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch guest access settings",
-        "tags": [
-          "02 Admin - Guest Access Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with guestAccessSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.update. SUPER_ADMIN or ADMIN with guestAccessSettings.update permission. Creates audit logs.",
-        "operationId": "GuestAccessSettingsController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGuestAccessSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update guest access settings",
-        "tags": [
-          "02 Admin - Guest Access Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with guestAccessSettings.update",
-        "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.update"
-      }
-    },
-    "/api/v1/admin/guest-access-settings/audit-logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with guestAccessSettings.read. SUPER_ADMIN or ADMIN with guestAccessSettings.read permission.",
-        "operationId": "GuestAccessSettingsController_auditLogs",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List guest access settings audit logs",
-        "tags": [
-          "02 Admin - Guest Access Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with guestAccessSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with guestAccessSettings.read"
       }
     },
     "/api/v1/admin/dashboard": {
@@ -6699,10 +6545,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with transactions.read"
       }
     },
-    "/api/v1/admins": {
+    "/api/v1/staff": {
       "post": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Creates ADMIN staff users only. Creates an ADMIN staff user under Super Admin. The roleId field is the AdminRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, PROVIDER, or GUEST_USER accounts.",
-        "operationId": "AdminManagementController_create",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Creates STAFF users only. Creates a STAFF user under Super Admin. The roleId field is the StaffRole ID that controls this staff user's permissions. This endpoint cannot create SUPER_ADMIN, REGISTERED_USER, or PROVIDER accounts.",
+        "operationId": "StaffManagementController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6717,9 +6563,8 @@
                   "firstName": "Operations",
                   "lastName": "Staff",
                   "phone": "+15550000002",
-                  "title": "Operations Manager",
-                  "roleId": "admin_role_id",
-                  "avatarUrl": "https://cdn.yourdomain.com/admin-avatars/staff.png",
+                  "roleId": "STAFF_ROLE_id",
+                  "avatarUrl": "https://cdn.yourdomain.com/staff-avatars/staff.png",
                   "isActive": true,
                   "sendInviteEmail": true
                 }
@@ -6737,16 +6582,16 @@
             "bearer": []
           }
         ],
-        "summary": "Create admin staff user",
+        "summary": "Create staff user",
         "tags": [
-          "02 Admin - Staff Management"
+          "02 Staff Management"
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
       },
       "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Admin staff management is controlled by Super Admin only. SUPER_ADMIN only. Returns User.role = ADMIN staff accounts only; SUPER_ADMIN accounts are intentionally excluded.",
-        "operationId": "AdminManagementController_list",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Staff management is controlled by Super Admin only. SUPER_ADMIN only. Returns User.role = STAFF accounts only; SUPER_ADMIN accounts are intentionally excluded.",
+        "operationId": "StaffManagementController_list",
         "parameters": [
           {
             "name": "page",
@@ -6832,7 +6677,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Admins fetched successfully",
+            "description": "Staff fetched successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -6840,14 +6685,14 @@
                     "success": true,
                     "data": [
                       {
-                        "id": "admin_id",
+                        "id": "staff_id",
                         "firstName": "Operations",
                         "lastName": "Staff",
                         "fullName": "Operations Staff",
                         "email": "staff@example.com",
                         "phone": "+15550000002",
                         "role": {
-                          "id": "admin_role_id",
+                          "id": "STAFF_ROLE_id",
                           "name": "Gift Manager",
                           "slug": "gift-manager"
                         },
@@ -6863,7 +6708,7 @@
                       "total": 1,
                       "totalPages": 1
                     },
-                    "message": "Admins fetched successfully"
+                    "message": "Staff fetched successfully"
                   }
                 }
               }
@@ -6875,17 +6720,17 @@
             "bearer": []
           }
         ],
-        "summary": "List admin staff users",
+        "summary": "List staff users",
         "tags": [
-          "02 Admin - Staff Management"
+          "02 Staff Management"
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
       }
     },
-    "/api/v1/admins/{id}": {
+    "/api/v1/staff/{id}": {
       "get": {
-        "operationId": "AdminManagementController_details",
+        "operationId": "StaffManagementController_details",
         "parameters": [
           {
             "name": "id",
@@ -6907,16 +6752,16 @@
           }
         ],
         "tags": [
-          "02 Admin - Staff Management"
+          "02 Staff Management"
         ],
-        "summary": "Fetch Admins details",
+        "summary": "Fetch Staff details",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches ADMIN staff details."
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Fetches STAFF details."
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates ADMIN staff account details. SUPER_ADMIN only. Updates ADMIN staff profile, role assignment, and active/inactive status in one endpoint. Password updates are handled only by the dedicated password endpoint. SUPER_ADMIN self-disable and SUPER_ADMIN role updates are blocked.",
-        "operationId": "AdminManagementController_update",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates STAFF account details. SUPER_ADMIN only. Updates STAFF profile, role assignment, and active/inactive status in one endpoint. Password updates are handled only by the dedicated password endpoint. SUPER_ADMIN self-disable and SUPER_ADMIN role updates are blocked.",
+        "operationId": "StaffManagementController_update",
         "parameters": [
           {
             "name": "id",
@@ -6935,20 +6780,20 @@
                 "$ref": "#/components/schemas/UpdateAdminDto"
               },
               "examples": {
-                "updateAdminProfile": {
+                "updateStaffProfile": {
                   "value": {
                     "firstName": "Operations",
                     "lastName": "Staff",
-                    "roleId": "admin_role_id"
+                    "roleId": "STAFF_ROLE_id"
                   }
                 },
-                "activateAdmin": {
+                "activateStaff": {
                   "value": {
                     "isActive": true,
                     "reason": "Staff account re-enabled."
                   }
                 },
-                "deactivateAdmin": {
+                "deactivateStaff": {
                   "value": {
                     "isActive": false,
                     "reason": "Staff account disabled after access review."
@@ -6960,23 +6805,23 @@
         },
         "responses": {
           "200": {
-            "description": "Admin updated successfully",
+            "description": "Staff updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "example": {
                     "success": true,
                     "data": {
-                      "id": "admin_id",
+                      "id": "staff_id",
                       "firstName": "Operations",
                       "lastName": "Staff",
                       "role": {
-                        "id": "admin_role_id",
+                        "id": "STAFF_ROLE_id",
                         "name": "Gift Manager"
                       },
                       "isActive": true
                     },
-                    "message": "Admin updated successfully"
+                    "message": "Staff updated successfully"
                   }
                 }
               }
@@ -6988,16 +6833,16 @@
             "bearer": []
           }
         ],
-        "summary": "Update admin staff profile or active status",
+        "summary": "Update staff profile or active status",
         "tags": [
-          "02 Admin - Staff Management"
+          "02 Staff Management"
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
       },
       "delete": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanently deletes an ADMIN staff account. DANGER: This endpoint permanently deletes an ADMIN staff account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.",
-        "operationId": "AdminManagementController_permanentlyDelete",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Permanently deletes a STAFF account. DANGER: This endpoint permanently deletes a STAFF account from the database. This is not a soft delete. Use only from Super Admin danger zone screens. SUPER_ADMIN accounts and self-delete are blocked.",
+        "operationId": "StaffManagementController_permanentlyDelete",
         "parameters": [
           {
             "name": "id",
@@ -7010,16 +6855,16 @@
         ],
         "responses": {
           "200": {
-            "description": "Admin staff user permanently deleted successfully",
+            "description": "Staff user permanently deleted successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "example": {
                     "success": true,
                     "data": {
-                      "deletedAdminId": "admin_id"
+                      "deletedStaffId": "staff_id"
                     },
-                    "message": "Admin staff user permanently deleted successfully."
+                    "message": "Staff user permanently deleted successfully."
                   }
                 }
               }
@@ -7031,17 +6876,17 @@
             "bearer": []
           }
         ],
-        "summary": "Permanently delete admin staff user",
+        "summary": "Permanently delete staff user",
         "tags": [
-          "02 Admin - Staff Management"
+          "02 Staff Management"
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
       }
     },
-    "/api/v1/admins/{id}/password": {
+    "/api/v1/staff/{id}/password": {
       "patch": {
-        "operationId": "AdminManagementController_resetPassword",
+        "operationId": "StaffManagementController_resetPassword",
         "parameters": [
           {
             "name": "id",
@@ -7073,12 +6918,12 @@
           }
         ],
         "tags": [
-          "02 Admin - Staff Management"
+          "02 Staff Management"
         ],
-        "summary": "Update Admins Password",
+        "summary": "Update Staff Password",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes ADMIN staff password from dashboard."
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Changes STAFF password from dashboard."
       }
     },
     "/api/v1/admin/payout-settings": {
@@ -8606,10 +8451,10 @@
         "x-access": "SUPER_ADMIN or ADMIN with reviewPolicies.read"
       }
     },
-    "/api/v1/admin-roles": {
+    "/api/v1/staff-roles": {
       "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Admin Roles / RBAC manages permission roles for ADMIN staff users only. SUPER_ADMIN has full immutable access and does not depend on AdminRole permissions. By default returns all non-deleted roles. Use isActive=true or isActive=false to filter by active state.",
-        "operationId": "AdminRolesController_list",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Only SUPER_ADMIN can manage staff roles and permissions. Staff Roles / RBAC manages permission roles for STAFF users only. SUPER_ADMIN has full immutable access and does not depend on StaffRole permissions.",
+        "operationId": "StaffRolesController_list",
         "parameters": [
           {
             "name": "search",
@@ -8617,23 +8462,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "isSystem",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "isActive",
-            "required": false,
-            "in": "query",
-            "description": "When omitted, the list returns all non-deleted roles. Use true for active only or false for inactive only.",
-            "schema": {
-              "type": "boolean"
             }
           }
         ],
@@ -8647,22 +8475,22 @@
             "bearer": []
           }
         ],
-        "summary": "List Admin Roles",
+        "summary": "List Staff Roles",
         "tags": [
-          "02 Admin - Roles & Permissions"
+          "02 Staff - Roles & Permissions"
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
       },
       "post": {
-        "operationId": "AdminRolesController_create",
+        "operationId": "StaffRolesController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAdminRoleDto"
+                "$ref": "#/components/schemas/CreateStaffRoleDto"
               }
             }
           }
@@ -8678,17 +8506,17 @@
           }
         ],
         "tags": [
-          "02 Admin - Roles & Permissions"
+          "02 Staff - Roles & Permissions"
         ],
-        "summary": "Create Admin Roles",
+        "summary": "Create Staff Roles",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot create roles."
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. STAFF users cannot create roles."
       }
     },
-    "/api/v1/admin-roles/{id}": {
+    "/api/v1/staff-roles/{id}": {
       "get": {
-        "operationId": "AdminRolesController_details",
+        "operationId": "StaffRolesController_details",
         "parameters": [
           {
             "name": "id",
@@ -8710,15 +8538,15 @@
           }
         ],
         "tags": [
-          "02 Admin - Roles & Permissions"
+          "02 Staff - Roles & Permissions"
         ],
-        "summary": "Fetch Admin Roles details",
+        "summary": "Fetch Staff Roles details",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot view role details."
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. STAFF users cannot view role details."
       },
       "patch": {
-        "operationId": "AdminRolesController_update",
+        "operationId": "StaffRolesController_update",
         "parameters": [
           {
             "name": "id",
@@ -8734,7 +8562,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAdminRoleDto"
+                "$ref": "#/components/schemas/UpdateStaffRoleDto"
               }
             }
           }
@@ -8750,15 +8578,15 @@
           }
         ],
         "tags": [
-          "02 Admin - Roles & Permissions"
+          "02 Staff - Roles & Permissions"
         ],
-        "summary": "Update Admin Roles",
+        "summary": "Update Staff Roles",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update roles."
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. STAFF users cannot update roles."
       },
       "delete": {
-        "operationId": "AdminRolesController_delete",
+        "operationId": "StaffRolesController_delete",
         "parameters": [
           {
             "name": "id",
@@ -8780,17 +8608,17 @@
           }
         ],
         "tags": [
-          "02 Admin - Roles & Permissions"
+          "02 Staff - Roles & Permissions"
         ],
-        "summary": "Delete Admin Roles",
+        "summary": "Delete Staff Roles",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot delete roles."
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. STAFF users cannot delete roles."
       }
     },
-    "/api/v1/admin-roles/{id}/permissions": {
+    "/api/v1/staff-roles/{id}/permissions": {
       "patch": {
-        "operationId": "AdminRolesController_updatePermissions",
+        "operationId": "StaffRolesController_updatePermissions",
         "parameters": [
           {
             "name": "id",
@@ -8822,35 +8650,12 @@
           }
         ],
         "tags": [
-          "02 Admin - Roles & Permissions"
+          "02 Staff - Roles & Permissions"
         ],
-        "summary": "Update Admin Roles Permissions",
+        "summary": "Update Staff Roles Permissions",
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN",
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. ADMIN staff cannot update role permissions."
-      }
-    },
-    "/api/v1/permissions/catalog": {
-      "get": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Read-only backend permission catalog. Read-only list of backend-supported permission keys that can be assigned to admin roles.",
-        "operationId": "PermissionCatalogController_catalog",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List Permissions Catalog",
-        "tags": [
-          "02 Admin - Roles & Permissions"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN",
-        "x-access": "SUPER_ADMIN"
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. STAFF users cannot update role permissions."
       }
     },
     "/api/v1/admin/system-health/stats": {
@@ -15530,7 +15335,7 @@
     },
     "/api/v1/customer/home": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest home responses include defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\".",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Returns personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. REGISTERED_USER only. Returns personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable.",
         "operationId": "CustomerMarketplaceController_home",
         "parameters": [],
         "responses": {
@@ -15545,15 +15350,15 @@
         ],
         "summary": "Fetch customer app home",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Customer - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
-        "x-access": "REGISTERED_USER or GUEST_USER"
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/categories": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Lists customer-visible marketplace categories. REGISTERED_USER only. Lists customer-visible marketplace categories.",
         "operationId": "CustomerMarketplaceController_categories",
         "parameters": [],
         "responses": {
@@ -15568,15 +15373,15 @@
         ],
         "summary": "List customer marketplace categories",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Customer - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
-        "x-access": "REGISTERED_USER or GUEST_USER"
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts/discounted": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Discounted gift cards include isWishlisted=false and auth-required flags for guests.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Discounted gift cards include customer wishlist state. REGISTERED_USER only. Discounted gift cards include customer wishlist state.",
         "operationId": "CustomerMarketplaceController_discountedGifts",
         "parameters": [
           {
@@ -15723,15 +15528,15 @@
         ],
         "summary": "List discounted customer gifts",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Customer - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
-        "x-access": "REGISTERED_USER or GUEST_USER"
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts/filter-options": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Returns available marketplace filters. REGISTERED_USER only. Returns available marketplace filters.",
         "operationId": "CustomerMarketplaceController_filterOptions",
         "parameters": [],
         "responses": {
@@ -15746,15 +15551,15 @@
         ],
         "summary": "Fetch marketplace gift filter options",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Customer - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
-        "x-access": "REGISTERED_USER or GUEST_USER"
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift cards include isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, and requiresAuthForCheckout=true. Provider inventory does not require separate gift moderation approval.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Gift cards include customer wishlist state. REGISTERED_USER only. Gift cards include customer wishlist state. Provider inventory does not require separate gift moderation approval.",
         "operationId": "CustomerMarketplaceController_gifts",
         "parameters": [
           {
@@ -15906,9 +15711,6 @@
                         "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
                         "rating": 4.6,
                         "isWishlisted": false,
-                        "requiresAuthForWishlist": true,
-                        "requiresAuthForCart": true,
-                        "requiresAuthForCheckout": true,
                         "shortDescription": "Premium fragrance gift.",
                         "reviewCount": 24,
                         "category": {
@@ -15948,15 +15750,15 @@
         ],
         "summary": "List customer marketplace gifts",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Customer - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
-        "x-access": "REGISTERED_USER or GUEST_USER"
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/gifts/{id}": {
       "get": {
-        "description": "Access: REGISTERED_USER or GUEST_USER. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest response behavior includes isWishlisted=false, requiresAuthForWishlist=true, requiresAuthForCart=true, requiresAuthForCheckout=true, defaultAddress=null, upcomingReminder=null, and mode=\"GUEST\" where applicable. Registered users receive personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable. Guest users receive guest-safe marketplace data only. Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals. Guest gift details include isWishlisted=false and auth-required flags; SKU/exact stock stay hidden unless enabled in guest settings.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Gift details include customer wishlist state. REGISTERED_USER only. Gift details include customer wishlist state.",
         "operationId": "CustomerMarketplaceController_giftDetails",
         "parameters": [
           {
@@ -15990,9 +15792,6 @@
                       "rating": 4.6,
                       "reviewCount": 24,
                       "isWishlisted": false,
-                      "requiresAuthForWishlist": true,
-                      "requiresAuthForCart": true,
-                      "requiresAuthForCheckout": true,
                       "badges": [
                         "AUTHENTIC"
                       ],
@@ -16041,10 +15840,10 @@
         ],
         "summary": "Fetch customer-safe gift details",
         "tags": [
-          "05 Customer / Guest - Marketplace"
+          "05 Customer - Marketplace"
         ],
-        "x-allowed-roles": "REGISTERED_USER or GUEST_USER",
-        "x-access": "REGISTERED_USER or GUEST_USER"
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
       }
     },
     "/api/v1/customer/wishlist": {
@@ -21998,6 +21797,15 @@
             }
           },
           {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Searches actor name and email.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "actorId",
             "required": false,
             "in": "query",
@@ -22065,6 +21873,21 @@
                 "FAILED",
                 "PENDING",
                 "WARNING"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
               ]
             }
           },
@@ -22177,6 +22000,15 @@
             }
           },
           {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Searches actor name and email.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "actorId",
             "required": false,
             "in": "query",
@@ -22244,6 +22076,21 @@
                 "FAILED",
                 "PENDING",
                 "WARNING"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
               ]
             }
           },
@@ -23376,6 +23223,7 @@
               "type": "string",
               "enum": [
                 "admin-avatars",
+                "platform-logos",
                 "user-avatars",
                 "provider-avatars",
                 "provider-logos",
@@ -23393,7 +23241,8 @@
                 "provider-dispute-evidence",
                 "provider-support-attachments",
                 "support-chat-attachments",
-                "user-report-evidence"
+                "user-report-evidence",
+                "seasonal-theme-assets"
               ]
             }
           },
@@ -23488,7 +23337,7 @@
     },
     "/api/v1/admin/system-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. SMTP secrets are never returned.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission. SMTP secrets are never returned. Secret values are masked and never returned in plain text.",
         "operationId": "SystemSettingsController_get",
         "parameters": [],
         "responses": {
@@ -23501,29 +23350,31 @@
                     "success": true,
                     "data": {
                       "platformInfo": {
-                        "applicationName": "Gift App",
-                        "supportEmail": "support@giftapp.com",
+                        "applicationName": "FintechOS Enterprise",
+                        "supportEmail": "support@fintechos.io",
                         "platformLogoUrl": "https://cdn.example.com/logo.png"
                       },
-                      "security": {
-                        "sessionTimeoutMinutes": 30,
-                        "adminMfaRequired": true,
-                        "passwordPolicy": {
-                          "minLength": 8,
-                          "requireUppercase": true,
-                          "requireLowercase": true,
-                          "requireNumber": true,
-                          "requireSymbol": true
-                        }
-                      },
                       "payments": {
-                        "defaultCurrency": "USD",
-                        "transactionFeePercent": 2.5
+                        "stripePublishableKey": "pk_live_xxx",
+                        "stripeSecretKey": "************",
+                        "stripeWebhookSecret": "************"
                       },
-                      "notifications": {
-                        "pushNotificationsEnabled": true,
-                        "emailNotificationsEnabled": true,
-                        "smtpConfigured": true
+                      "firebase": {
+                        "firebaseServiceAccountJson": "************"
+                      },
+                      "storage": {
+                        "awsS3BucketName": "gift-platform-assets",
+                        "awsRegion": "us-east-1",
+                        "awsAccessKey": "************",
+                        "awsSecretKey": "************"
+                      },
+                      "email": {
+                        "smtpHost": "smtp.mailtrap.io",
+                        "smtpPort": 587,
+                        "smtpUsername": "smtp-user",
+                        "smtpPassword": "************",
+                        "senderEmail": "noreply@giftplatform.com",
+                        "senderName": "Gift Platform"
                       }
                     },
                     "message": "System settings fetched successfully."
@@ -23546,7 +23397,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Session timeout and payment fee changes apply to future sessions/transactions only.",
+        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Send masked or omitted secret values to preserve existing secrets.",
         "operationId": "SystemSettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -23577,83 +23428,16 @@
         "x-access": "SUPER_ADMIN or ADMIN with systemSettings.update"
       }
     },
-    "/api/v1/admin/system-settings/logo": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Stores logo URL/reference only. Provide a completed Storage upload reference when available; only URL/reference is stored.",
-        "operationId": "SystemSettingsController_logo",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateLogoDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update system logo URL/reference",
-        "tags": [
-          "02 Admin - System Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.update",
-        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.update"
-      }
-    },
-    "/api/v1/admin/system-settings/smtp/test": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.update. SUPER_ADMIN or ADMIN with systemSettings.update permission. Does not expose SMTP secrets. Uses configured mailer and does not expose SMTP password or secrets.",
-        "operationId": "SystemSettingsController_smtpTest",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SmtpTestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Send SMTP test email",
-        "tags": [
-          "02 Admin - System Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.update",
-        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.update"
-      }
-    },
-    "/api/v1/admin/system-settings/audit-logs": {
+    "/api/v1/admin/seasonal-themes": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with systemSettings.read. SUPER_ADMIN or ADMIN with systemSettings.read permission.",
-        "operationId": "SystemSettingsController_auditLogs",
+        "description": "Access: SUPER_ADMIN or ADMIN with seasonalThemes.read. SUPER_ADMIN or ADMIN with seasonalThemes.read permission.",
+        "operationId": "SeasonalThemesAdminController_list",
         "parameters": [
           {
             "name": "page",
             "required": false,
             "in": "query",
             "schema": {
-              "example": 1,
               "type": "number"
             }
           },
@@ -23668,20 +23452,91 @@
             }
           },
           {
-            "name": "fromDate",
+            "name": "isActive",
             "required": false,
             "in": "query",
             "schema": {
-              "example": "2026-01-01T00:00:00.000Z",
-              "type": "string"
+              "type": "boolean"
             }
-          },
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
           {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
+            "bearer": []
+          }
+        ],
+        "summary": "List seasonal themes",
+        "tags": [
+          "02 Admin - Seasonal Themes"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with seasonalThemes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with seasonalThemes.read"
+      },
+      "post": {
+        "description": "Access: SUPER_ADMIN or ADMIN with seasonalThemes.create. SUPER_ADMIN or ADMIN with seasonalThemes.create permission. imageUrl must reference a completed seasonal-theme-assets upload. imageUrl must reference a completed seasonal-theme-assets upload. Active theme date ranges cannot overlap.",
+        "operationId": "SeasonalThemesAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSeasonalThemeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "theme_id",
+                      "name": "Eid 2026",
+                      "imageUrl": "https://cdn.yourdomain.com/seasonal-theme-assets/admin_1/eid.png",
+                      "startsAt": "2026-03-15T00:00:00.000Z",
+                      "endsAt": "2026-03-25T23:59:59.000Z",
+                      "isActive": true
+                    },
+                    "message": "Seasonal theme created successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create seasonal theme",
+        "tags": [
+          "02 Admin - Seasonal Themes"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with seasonalThemes.create",
+        "x-access": "SUPER_ADMIN or ADMIN with seasonalThemes.create"
+      }
+    },
+    "/api/v1/admin/seasonal-themes/{id}": {
+      "get": {
+        "description": "Access: SUPER_ADMIN or ADMIN with seasonalThemes.read. SUPER_ADMIN or ADMIN with seasonalThemes.read permission.",
+        "operationId": "SeasonalThemesAdminController_details",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
             "schema": {
-              "example": "2026-01-31T23:59:59.999Z",
               "type": "string"
             }
           }
@@ -23696,12 +23551,118 @@
             "bearer": []
           }
         ],
-        "summary": "List system settings audit logs",
+        "summary": "Fetch seasonal theme",
         "tags": [
-          "02 Admin - System Settings"
+          "02 Admin - Seasonal Themes"
         ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with systemSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with systemSettings.read"
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with seasonalThemes.read",
+        "x-access": "SUPER_ADMIN or ADMIN with seasonalThemes.read"
+      },
+      "patch": {
+        "description": "Access: SUPER_ADMIN or ADMIN with seasonalThemes.update. SUPER_ADMIN or ADMIN with seasonalThemes.update permission. Active date ranges cannot overlap. Active theme date ranges cannot overlap.",
+        "operationId": "SeasonalThemesAdminController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSeasonalThemeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update seasonal theme",
+        "tags": [
+          "02 Admin - Seasonal Themes"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with seasonalThemes.update",
+        "x-access": "SUPER_ADMIN or ADMIN with seasonalThemes.update"
+      },
+      "delete": {
+        "description": "Access: SUPER_ADMIN or ADMIN with seasonalThemes.delete. SUPER_ADMIN or ADMIN with seasonalThemes.delete permission.",
+        "operationId": "SeasonalThemesAdminController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete seasonal theme",
+        "tags": [
+          "02 Admin - Seasonal Themes"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN or ADMIN with seasonalThemes.delete",
+        "x-access": "SUPER_ADMIN or ADMIN with seasonalThemes.delete"
+      }
+    },
+    "/api/v1/seasonal-themes/active": {
+      "get": {
+        "description": "Access: PUBLIC. Returns the single active seasonal theme for the current date or null. Returns the single active seasonal theme for the current date, or null when no theme is active.",
+        "operationId": "SeasonalThemesPublicController_active",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "theme_id",
+                      "name": "Eid 2026",
+                      "imageUrl": "https://cdn.yourdomain.com/seasonal-theme-assets/admin_1/eid.png",
+                      "startsAt": "2026-03-15T00:00:00.000Z",
+                      "endsAt": "2026-03-25T23:59:59.000Z",
+                      "isActive": true
+                    },
+                    "message": "Active seasonal theme fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Fetch active seasonal theme",
+        "tags": [
+          "10 Public - Seasonal Themes"
+        ],
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC"
       }
     },
     "/api/v1/chats": {
@@ -23805,10 +23766,9 @@
               "type": "string",
               "enum": [
                 "SUPER_ADMIN",
-                "ADMIN",
+                "STAFF",
                 "REGISTERED_USER",
-                "PROVIDER",
-                "GUEST_USER"
+                "PROVIDER"
               ]
             }
           },
@@ -24226,7 +24186,7 @@
     "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
     "version": "0.1.0",
     "contact": {},
-    "x-openapi-generated-at": "2026-06-29T11:19:31.222Z"
+    "x-openapi-generated-at": "2026-07-02T07:02:44.604Z"
   },
   "tags": [
     {
@@ -24296,10 +24256,10 @@
       "name": "02 Admin - System Settings"
     },
     {
-      "name": "02 Admin - System Health Monitoring"
+      "name": "02 Admin - Seasonal Themes"
     },
     {
-      "name": "02 Admin - Guest Access Settings"
+      "name": "02 Admin - System Health Monitoring"
     },
     {
       "name": "02 Admin - System Logs & Audit Trail"
@@ -24380,7 +24340,7 @@
       "name": "04 Gifts - Moderation"
     },
     {
-      "name": "05 Customer / Guest - Marketplace"
+      "name": "05 Customer - Marketplace"
     },
     {
       "name": "05 Customer - Wishlist"
@@ -24438,6 +24398,9 @@
     },
     {
       "name": "07 Storage"
+    },
+    {
+      "name": "10 Public - Seasonal Themes"
     },
     {
       "name": "08 Chat - Threads"
@@ -24583,55 +24546,6 @@
           "businessCategoryId",
           "businessAddress"
         ]
-      },
-      "CreateGuestSessionDto": {
-        "type": "object",
-        "properties": {
-          "deviceId": {
-            "type": "string",
-            "example": "optional-device-id",
-            "maxLength": 128
-          },
-          "platform": {
-            "type": "string",
-            "enum": [
-              "IOS",
-              "ANDROID",
-              "WEB",
-              "UNKNOWN"
-            ],
-            "example": "WEB",
-            "default": "UNKNOWN"
-          },
-          "appVersion": {
-            "type": "string",
-            "example": "1.0.0",
-            "maxLength": 32
-          },
-          "locale": {
-            "type": "string",
-            "example": "en",
-            "maxLength": 20
-          },
-          "timezone": {
-            "type": "string",
-            "example": "Asia/Karachi",
-            "maxLength": 64
-          },
-          "referrer": {
-            "type": "string",
-            "example": "landing-page",
-            "maxLength": 128
-          },
-          "capabilities": {
-            "deprecated": true,
-            "description": "Deprecated and ignored. Guest capabilities are server-issued from Admin Guest Access Settings.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
       },
       "LoginDto": {
         "type": "object",
@@ -25035,57 +24949,6 @@
           "statusReason": {
             "type": "string",
             "example": "Seasonal referral campaign enabled."
-          }
-        }
-      },
-      "UpdateGuestAccessSettingsDto": {
-        "type": "object",
-        "properties": {
-          "guestAccessEnabled": {
-            "type": "boolean"
-          },
-          "allowMarketplaceBrowsing": {
-            "type": "boolean"
-          },
-          "allowMarketplaceHome": {
-            "type": "boolean"
-          },
-          "allowGiftDetails": {
-            "type": "boolean"
-          },
-          "allowDiscountedGifts": {
-            "type": "boolean"
-          },
-          "allowFilterOptions": {
-            "type": "boolean"
-          },
-          "allowProviderPreview": {
-            "type": "boolean"
-          },
-          "allowWishlist": {
-            "type": "boolean"
-          },
-          "allowCart": {
-            "type": "boolean"
-          },
-          "allowCheckout": {
-            "type": "boolean"
-          },
-          "sessionTtlMinutes": {
-            "type": "number",
-            "minimum": 15,
-            "maximum": 1440
-          },
-          "maxRequestsPerMinute": {
-            "type": "number",
-            "minimum": 10,
-            "maximum": 300
-          },
-          "showExactStockToGuests": {
-            "type": "boolean"
-          },
-          "showSkuToGuests": {
-            "type": "boolean"
           }
         }
       },
@@ -25679,9 +25542,6 @@
           "avatarUrl": {
             "type": "string"
           },
-          "title": {
-            "type": "string"
-          },
           "roleId": {
             "type": "string"
           },
@@ -25988,7 +25848,7 @@
           "rating"
         ]
       },
-      "CreateAdminRoleDto": {
+      "CreateStaffRoleDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -26006,7 +25866,7 @@
           "permissions"
         ]
       },
-      "UpdateAdminRoleDto": {
+      "UpdateStaffRoleDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -26014,9 +25874,6 @@
           },
           "description": {
             "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
           }
         }
       },
@@ -29249,6 +29106,7 @@
             "type": "string",
             "enum": [
               "admin-avatars",
+              "platform-logos",
               "user-avatars",
               "provider-avatars",
               "provider-logos",
@@ -29266,7 +29124,8 @@
               "provider-dispute-evidence",
               "provider-support-attachments",
               "support-chat-attachments",
-              "user-report-evidence"
+              "user-report-evidence",
+              "seasonal-theme-assets"
             ],
             "example": "gift-images",
             "description": "Upload folder. Normal users/providers should send only folder, fileName, contentType, and sizeBytes. Add giftId only for gift image uploads."
@@ -29319,11 +29178,11 @@
         "properties": {
           "applicationName": {
             "type": "string",
-            "example": "Gift App"
+            "example": "FintechOS Enterprise"
           },
           "supportEmail": {
             "type": "string",
-            "example": "support@giftapp.com"
+            "example": "support@fintechos.io"
           },
           "platformLogoUrl": {
             "type": "string",
@@ -29335,92 +29194,87 @@
           "supportEmail"
         ]
       },
-      "PasswordPolicyDto": {
+      "PaymentProviderSettingsDto": {
         "type": "object",
         "properties": {
-          "minLength": {
-            "type": "number",
-            "example": 8
-          },
-          "requireUppercase": {
-            "type": "boolean",
-            "example": true
-          },
-          "requireLowercase": {
-            "type": "boolean",
-            "example": true
-          },
-          "requireNumber": {
-            "type": "boolean",
-            "example": true
-          },
-          "requireSymbol": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "minLength",
-          "requireUppercase",
-          "requireLowercase",
-          "requireNumber",
-          "requireSymbol"
-        ]
-      },
-      "SecuritySettingsDto": {
-        "type": "object",
-        "properties": {
-          "sessionTimeoutMinutes": {
-            "type": "number",
-            "example": 30
-          },
-          "adminMfaRequired": {
-            "type": "boolean",
-            "example": true
-          },
-          "passwordPolicy": {
-            "$ref": "#/components/schemas/PasswordPolicyDto"
-          }
-        },
-        "required": [
-          "sessionTimeoutMinutes",
-          "adminMfaRequired",
-          "passwordPolicy"
-        ]
-      },
-      "PaymentSettingsDto": {
-        "type": "object",
-        "properties": {
-          "defaultCurrency": {
+          "stripePublishableKey": {
             "type": "string",
-            "example": "USD"
+            "example": "pk_live_xxx"
           },
-          "transactionFeePercent": {
-            "type": "number",
-            "example": 2.5
+          "stripeSecretKey": {
+            "type": "string",
+            "example": "sk_live_xxx",
+            "description": "Send ************ or omit to preserve the existing secret."
+          },
+          "stripeWebhookSecret": {
+            "type": "string",
+            "example": "whsec_xxx",
+            "description": "Send ************ or omit to preserve the existing secret."
           }
-        },
-        "required": [
-          "defaultCurrency",
-          "transactionFeePercent"
-        ]
+        }
       },
-      "NotificationSettingsDto": {
+      "FirebaseSettingsDto": {
         "type": "object",
         "properties": {
-          "pushNotificationsEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "emailNotificationsEnabled": {
-            "type": "boolean",
-            "example": true
+          "firebaseServiceAccountJson": {
+            "type": "string",
+            "example": "{\"type\":\"service_account\",\"project_id\":\"gift-platform\"}",
+            "description": "JSON string. Send ************ or omit to preserve the existing service account."
           }
-        },
-        "required": [
-          "pushNotificationsEnabled",
-          "emailNotificationsEnabled"
-        ]
+        }
+      },
+      "StorageSettingsDto": {
+        "type": "object",
+        "properties": {
+          "awsS3BucketName": {
+            "type": "string",
+            "example": "gift-platform-assets"
+          },
+          "awsRegion": {
+            "type": "string",
+            "example": "us-east-1"
+          },
+          "awsAccessKey": {
+            "type": "string",
+            "example": "AKIA...",
+            "description": "Send ************ or omit to preserve the existing access key."
+          },
+          "awsSecretKey": {
+            "type": "string",
+            "example": "secret",
+            "description": "Send ************ or omit to preserve the existing secret key."
+          }
+        }
+      },
+      "EmailSettingsDto": {
+        "type": "object",
+        "properties": {
+          "smtpHost": {
+            "type": "string",
+            "example": "smtp.mailtrap.io"
+          },
+          "smtpPort": {
+            "type": "number",
+            "example": 587
+          },
+          "smtpUsername": {
+            "type": "string",
+            "example": "smtp-user"
+          },
+          "smtpPassword": {
+            "type": "string",
+            "example": "smtp-password",
+            "description": "Send ************ or omit to preserve the existing password."
+          },
+          "senderEmail": {
+            "type": "string",
+            "example": "noreply@giftplatform.com"
+          },
+          "senderName": {
+            "type": "string",
+            "example": "Gift Platform"
+          }
+        }
       },
       "UpdateSystemSettingsDto": {
         "type": "object",
@@ -29428,50 +29282,82 @@
           "platformInfo": {
             "$ref": "#/components/schemas/PlatformInfoDto"
           },
-          "security": {
-            "$ref": "#/components/schemas/SecuritySettingsDto"
-          },
           "payments": {
-            "$ref": "#/components/schemas/PaymentSettingsDto"
+            "$ref": "#/components/schemas/PaymentProviderSettingsDto"
           },
-          "notifications": {
-            "$ref": "#/components/schemas/NotificationSettingsDto"
+          "firebase": {
+            "$ref": "#/components/schemas/FirebaseSettingsDto"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageSettingsDto"
+          },
+          "email": {
+            "$ref": "#/components/schemas/EmailSettingsDto"
           }
         },
         "required": [
           "platformInfo",
-          "security",
           "payments",
-          "notifications"
+          "firebase",
+          "storage",
+          "email"
         ]
       },
-      "UpdateLogoDto": {
+      "CreateSeasonalThemeDto": {
         "type": "object",
         "properties": {
-          "platformLogoUrl": {
+          "name": {
             "type": "string",
-            "example": "https://cdn.example.com/logo.png"
+            "example": "Eid 2026"
           },
-          "uploadId": {
+          "imageUrl": {
             "type": "string",
-            "example": "upload_id"
+            "example": "https://cdn.yourdomain.com/seasonal-theme-assets/admin_1/eid-banner.png"
+          },
+          "startsAt": {
+            "type": "string",
+            "example": "2026-03-15T00:00:00.000Z"
+          },
+          "endsAt": {
+            "type": "string",
+            "example": "2026-03-25T23:59:59.000Z"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
           }
         },
         "required": [
-          "platformLogoUrl"
+          "name",
+          "imageUrl",
+          "startsAt",
+          "endsAt"
         ]
       },
-      "SmtpTestDto": {
+      "UpdateSeasonalThemeDto": {
         "type": "object",
         "properties": {
-          "to": {
+          "name": {
             "type": "string",
-            "example": "admin@giftapp.com"
+            "example": "Eid 2026"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://cdn.yourdomain.com/seasonal-theme-assets/admin_1/eid-banner.png"
+          },
+          "startsAt": {
+            "type": "string",
+            "example": "2026-03-15T00:00:00.000Z"
+          },
+          "endsAt": {
+            "type": "string",
+            "example": "2026-03-25T23:59:59.000Z"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
           }
-        },
-        "required": [
-          "to"
-        ]
+        }
       },
       "CreateChatThreadDto": {
         "type": "object",

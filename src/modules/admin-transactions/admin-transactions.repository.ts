@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DisputeActorType, DisputePriority, DisputeReason, DisputeStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderStatus, RefundRequestStatus } from '@prisma/client';
+import { DisputeStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderStatus, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
@@ -15,12 +15,14 @@ export class AdminTransactionsRepository {
     return this.prisma.payment.findFirst(params) as Promise<Prisma.PaymentGetPayload<T> | null>;
   }
 
-  findTransactionTimeline(paymentId: string, transactionId: string) {
-    return Promise.all([
+  async findTransactionTimeline(paymentId: string, _transactionId: string) {
+    const payment = await this.prisma.payment.findUnique({ where: { id: paymentId }, select: { orderId: true } });
+    const [refunds, disputes, audits] = await Promise.all([
       this.prisma.refundRequest.findMany({ where: { paymentId }, orderBy: { createdAt: 'asc' } }),
-      this.prisma.disputeCase.findMany({ where: { OR: [{ paymentId }, { linkedPaymentId: paymentId }, { transactionId }] }, orderBy: { createdAt: 'asc' } }),
+      payment?.orderId ? this.prisma.dispute.findMany({ where: { orderId: payment.orderId }, orderBy: { createdAt: 'asc' } }) : Promise.resolve([]),
       this.prisma.adminAuditLog.findMany({ where: { targetId: paymentId, action: { in: ['TRANSACTION_REFUNDED_BY_ADMIN', 'TRANSACTION_DISPUTE_OPENED', 'TRANSACTION_NOTIFICATION_SENT', 'TRANSACTION_RECEIPT_DOWNLOADED'] } }, orderBy: { createdAt: 'asc' } }),
     ]);
+    return [refunds, disputes, audits] as const;
   }
 
   findRefundRequestsForPayment(paymentId: string) {
@@ -64,8 +66,12 @@ export class AdminTransactionsRepository {
     });
   }
 
-  findOpenDispute(paymentId: string, transactionId: string) {
-    return this.prisma.disputeCase.findFirst({ where: { OR: [{ paymentId }, { linkedPaymentId: paymentId }, { transactionId }], status: { in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW, DisputeStatus.ESCALATED] } } });
+  async findOpenDispute(paymentId: string, _transactionId: string) {
+    const payment = await this.prisma.payment.findUnique({ where: { id: paymentId }, select: { orderId: true } });
+    if (!payment?.orderId) {
+      return null;
+    }
+    return this.prisma.dispute.findFirst({ where: { orderId: payment.orderId, status: DisputeStatus.PENDING } });
   }
 
   findProviderOrderForDispute(orderId: string) {
@@ -73,26 +79,20 @@ export class AdminTransactionsRepository {
   }
 
   openDispute(params: {
-    actorId: string;
-    caseId: string;
     userId: string;
     orderId: string;
-    transactionId: string;
-    paymentId: string;
-    providerId?: string | null;
-    amount: Prisma.Decimal;
-    currency: string;
-    reason: DisputeReason;
-    claimDetails: string;
-    priority: DisputePriority;
-    slaDeadlineAt: Date;
-    assignedToId?: string;
+    providerId: string;
+    reason: string;
+    description: string;
   }) {
-    return this.prisma.$transaction(async (tx) => {
-      const created = await tx.disputeCase.create({ data: { caseId: params.caseId, userId: params.userId, orderId: params.orderId, transactionId: params.transactionId, paymentId: params.paymentId, providerId: params.providerId, linkedTransactionId: params.transactionId, linkedPaymentId: params.paymentId, linkedOrderId: params.orderId, amount: params.amount, currency: params.currency, reason: params.reason, claimDetails: params.claimDetails, priority: params.priority, status: DisputeStatus.OPEN, slaDeadlineAt: params.slaDeadlineAt, assignedToId: params.assignedToId } });
-      await tx.disputeTimeline.create({ data: { disputeId: created.id, type: 'TRANSACTION_DISPUTE_OPENED', title: 'Dispute opened from transaction', description: params.claimDetails, actorId: params.actorId, actorType: DisputeActorType.ADMIN, metadataJson: { paymentId: params.paymentId, transactionId: params.transactionId } } });
-      if (params.assignedToId) await this.notificationDispatch.createAndEmit({ recipientId: params.assignedToId, recipientType: NotificationRecipientType.ADMIN, title: 'Transaction dispute assigned', message: `${created.caseId} was opened from transaction ${params.transactionId}.`, type: 'ADMIN_TRANSACTION_DISPUTE_ASSIGNED', metadataJson: { disputeId: created.id, caseId: created.caseId, paymentId: params.paymentId } })
-      return created;
+    return this.prisma.dispute.create({
+      data: {
+        userId: params.userId,
+        orderId: params.orderId,
+        providerId: params.providerId,
+        reason: params.reason,
+        description: params.description,
+      },
     });
   }
 

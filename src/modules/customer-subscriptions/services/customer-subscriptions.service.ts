@@ -41,8 +41,7 @@ export class CustomerSubscriptionsService {
     const clientSecret = typeof paymentIntent === 'object' ? paymentIntent?.client_secret ?? null : null;
     const amount = this.toSmallestUnit(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice, plan.currency);
     const saved = await this.repository.createCustomerSubscription({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, status: CustomerSubscriptionStatus.INCOMPLETE, stripeCustomerId: customerId, stripeSubscriptionId: subscription.id, stripePriceId: price, couponId: coupon?.id });
-    const payment = await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: typeof paymentIntent === 'object' ? paymentIntent?.id ?? null : null, amount: new Prisma.Decimal(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
-    await this.repository.createPaymentAuditLog({ paymentId: payment.id, userId: user.uid, action: 'SUBSCRIPTION_CHECKOUT_CREATED', status: payment.status, idempotencyKey, metadataJson: { subscriptionId: saved.id } });
+    await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: typeof paymentIntent === 'object' ? paymentIntent?.id ?? null : null, amount: new Prisma.Decimal(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
     return { data: { customerSubscriptionId: saved.id, stripeSubscriptionId: subscription.id, clientSecret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount, currency: plan.currency, billingCycle: dto.billingCycle, status: saved.status }, message: 'Subscription checkout created successfully.' };
   }
 
@@ -53,7 +52,6 @@ export class CustomerSubscriptionsService {
     const stripeSub = await this.stripe().subscriptions.retrieve(dto.stripeSubscriptionId) as StripeSubscriptionLike;
     const status = this.statusFromStripe(stripeSub.status);
     const updated = await this.repository.updateCustomerSubscriptionStatus(local.id, { status, isPremium: this.isPremiumStatus(status), currentPeriodStart: this.fromUnix(stripeSub.current_period_start), currentPeriodEnd: this.fromUnix(stripeSub.current_period_end), cancelAtPeriodEnd: stripeSub.cancel_at_period_end ?? false });
-    await this.repository.createPaymentAuditLog({ userId: user.uid, action: 'SUBSCRIPTION_CONFIRMED', idempotencyKey: this.idempotencyKey('subscription-confirm', user.uid, dto.idempotencyKey ?? dto.customerSubscriptionId), metadataJson: { subscriptionId: updated.id, stripeSubscriptionId: dto.stripeSubscriptionId, stripeStatus: stripeSub.status } });
     if (this.isPremiumStatus(status)) await this.notify(user.uid, 'Premium activated', 'Your premium subscription is now active.', 'SUBSCRIPTION_ACTIVATED', { subscriptionId: updated.id });
     return { data: { id: updated.id, status: updated.status, isPremium: updated.isPremium, currentPeriodEnd: updated.currentPeriodEnd }, message: 'Premium subscription activated successfully.' };
   }

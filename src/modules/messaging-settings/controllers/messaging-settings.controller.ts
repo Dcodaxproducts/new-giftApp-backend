@@ -14,7 +14,7 @@ import { MessagingSettingsService } from '../services/messaging-settings.service
 @ApiTags('02 Admin - In-App Messaging Settings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/messaging-settings')
 export class MessagingSettingsController {
   constructor(private readonly settings: MessagingSettingsService) {}

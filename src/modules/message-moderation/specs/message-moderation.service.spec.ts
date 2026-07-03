@@ -82,8 +82,8 @@ describe('MessageModerationService', () => {
 
   it('action-specific permissions are enforced', async () => {
     const { service } = createService();
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { messageModeration: ['warn'] } }, 'message_1', { action: MessageModerationMessageAction.HIDE_MESSAGE })).rejects.toThrow(ForbiddenException);
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { messageModeration: ['moderate'] } }, 'message_1', { action: MessageModerationMessageAction.ESCALATE })).rejects.toThrow(ForbiddenException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { messageModeration: ['warn'] } }, 'message_1', { action: MessageModerationMessageAction.HIDE_MESSAGE })).rejects.toThrow(ForbiddenException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { messageModeration: ['moderate'] } }, 'message_1', { action: MessageModerationMessageAction.ESCALATE })).rejects.toThrow(ForbiddenException);
   });
 
   it('sender role resolves correctly for provider and registered user notifications', async () => {
@@ -101,7 +101,7 @@ describe('MessageModerationService', () => {
     await service.action({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'message_1', { action: MessageModerationMessageAction.SUSPEND_SENDER, reason: 'OFF_PLATFORM_PAYMENT', notifySender: true });
     expect(accountLifecycleService.updateStatus).toHaveBeenCalledWith(expect.objectContaining({ accountId: 'provider_1', accountType: 'PROVIDER', status: 'SUSPENDED' }));
 
-    const adminSender = createService({ sender: { id: 'admin_2', role: UserRole.ADMIN } });
+    const adminSender = createService({ sender: { id: 'admin_2', role: UserRole.STAFF } });
     await expect(adminSender.service.action({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'message_1', { action: MessageModerationMessageAction.SUSPEND_SENDER, reason: 'OFF_PLATFORM_PAYMENT' })).rejects.toThrow('Admin and Super Admin accounts cannot be suspended from message moderation.');
   });
 

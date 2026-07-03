@@ -241,7 +241,7 @@ export class PromotionalOffersService {
     }
 
     const permission = this.actionPermission(action);
-    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) {
+    if (user.role !== UserRole.STAFF || !this.flattenPermissions(user.permissions).has(permission)) {
       throw new ForbiddenException('Your role does not have the required permission');
     }
   }
@@ -374,7 +374,7 @@ export class PromotionalOffersService {
   private include() { return promotionalOfferInclude; }
   private toListItem(offer: OfferWithRelations) { return { id: offer.id, title: offer.title, description: offer.description, discountType: offer.discountType, discountValue: Number(offer.discountValue), status: this.computeOfferStatus(offer), approvalStatus: offer.approvalStatus, startDate: offer.startDate, endDate: offer.endDate, isActive: offer.isActive, item: { id: offer.item.id, name: offer.item.name, imageUrl: this.firstImage(offer.item.imageUrls) }, endsInText: this.endsInText(offer.endDate) }; }
   private toDetail(offer: OfferWithRelations) { return { ...this.toListItem(offer), eligibilityRules: offer.eligibilityRules, provider: { id: offer.provider.id, name: this.providerName(offer.provider), email: offer.provider.email }, rejectionReason: offer.rejectionReason, rejectionComment: offer.rejectionComment, createdAt: offer.createdAt, updatedAt: offer.updatedAt }; }
-  private providerName(provider: OfferWithRelations['provider']) { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
+  private providerName(provider: OfferWithRelations['provider']) { return provider.providerProfile?.businessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
   private firstImage(value: Prisma.JsonValue) { return Array.isArray(value) ? value.find((item): item is string => typeof item === 'string') ?? null : null; }
   private endsInText(endDate: Date | null) { if (!endDate) return 'Ongoing'; const diff = endDate.getTime() - Date.now(); if (diff <= 0) return 'Expired'; const days = Math.ceil(diff / 86_400_000); return `Ends in ${days} ${days === 1 ? 'day' : 'days'}`; }
   private async audit(actorId: string, targetId: string | null, action: string, beforeJson: unknown, afterJson: unknown) { await this.auditLog.write({ actorId, targetId, targetType: 'PROMOTIONAL_OFFER', action, beforeJson, afterJson }); }

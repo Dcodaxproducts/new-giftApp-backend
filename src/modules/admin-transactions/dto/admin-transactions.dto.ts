@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DisputePriority, DisputeReason } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsISO8601, IsInt, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
 
@@ -50,8 +49,7 @@ export class RefundAdminTransactionDto {
 }
 
 export class OpenTransactionDisputeDto {
-  @ApiProperty({ enum: DisputeReason, example: DisputeReason.PRODUCT_NOT_RECEIVED }) @IsEnum(DisputeReason) reason!: DisputeReason;
-  @ApiProperty({ enum: DisputePriority, example: DisputePriority.HIGH }) @IsEnum(DisputePriority) priority!: DisputePriority;
+  @ApiProperty({ example: 'PRODUCT_NOT_RECEIVED' }) @IsString() reason!: string;
   @ApiProperty({ example: 'Dispute opened from transaction detail screen.' }) @IsString() claimDetails!: string;
   @ApiPropertyOptional({ example: 'admin_id' }) @IsOptional() @IsString() assignToId?: string;
 }
@@ -67,8 +65,7 @@ export class AdminTransactionActionDto {
   @ApiProperty({ enum: AdminTransactionAction, example: AdminTransactionAction.REFUND }) @IsEnum(AdminTransactionAction) action!: AdminTransactionAction;
   @ApiPropertyOptional({ enum: AdminRefundType, example: AdminRefundType.FULL }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND) @IsEnum(AdminRefundType) refundType?: AdminRefundType;
   @ApiPropertyOptional({ example: 1281.25 }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND) @Type(() => Number) @IsNumber() @Min(0.01) refundAmount?: number;
-  @ApiPropertyOptional({ enum: { ...AdminRefundReason, ...DisputeReason }, example: AdminRefundReason.CUSTOMER_REQUEST }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND || dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsEnum({ ...AdminRefundReason, ...DisputeReason }) reason?: AdminRefundReason | DisputeReason;
-  @ApiPropertyOptional({ enum: DisputePriority, example: DisputePriority.HIGH }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsEnum(DisputePriority) priority?: DisputePriority;
+  @ApiPropertyOptional({ example: AdminRefundReason.CUSTOMER_REQUEST }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.REFUND || dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsString() reason?: AdminRefundReason | string;
   @ApiPropertyOptional({ example: 'Dispute opened from transaction detail screen.' }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.OPEN_DISPUTE) @IsString() claimDetails?: string;
   @ApiPropertyOptional({ example: 'admin_id' }) @IsOptional() @IsString() assignToId?: string;
   @ApiPropertyOptional({ enum: AdminNotificationChannel, example: AdminNotificationChannel.EMAIL }) @ValidateIf((dto: AdminTransactionActionDto) => dto.action === AdminTransactionAction.NOTIFY_USER) @IsEnum(AdminNotificationChannel) channel?: AdminNotificationChannel;

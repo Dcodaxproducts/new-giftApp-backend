@@ -13,9 +13,8 @@ function documentWith(paths: Record<string, Partial<Record<TestMethod, Record<st
 
 describe('Swagger access metadata', () => {
   it.each([
-    ['get', '/api/v1/admin-roles', 'SUPER_ADMIN'],
-    ['get', '/api/v1/permissions/catalog', 'SUPER_ADMIN'],
-    ['get', '/api/v1/admins', 'SUPER_ADMIN'],
+    ['get', '/api/v1/staff-roles', 'SUPER_ADMIN'],
+    ['get', '/api/v1/staff', 'SUPER_ADMIN'],
     ['delete', '/api/v1/users/{id}', 'SUPER_ADMIN'],
     ['delete', '/api/v1/providers/{id}', 'SUPER_ADMIN'],
     ['patch', '/api/v1/providers/{id}/status', 'SUPER_ADMIN or ADMIN with provider lifecycle permission (APPROVE=>providers.approve, REJECT=>providers.reject, SUSPEND=>providers.suspend, UNSUSPEND=>providers.suspend, UPDATE_STATUS=>providers.updateStatus)'],

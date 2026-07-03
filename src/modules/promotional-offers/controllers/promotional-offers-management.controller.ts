@@ -12,7 +12,7 @@ import { PromotionalOffersService } from '../services/promotional-offers.service
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('promotional-offers')
 export class PromotionalOffersManagementController {
   constructor(private readonly service: PromotionalOffersService) {}

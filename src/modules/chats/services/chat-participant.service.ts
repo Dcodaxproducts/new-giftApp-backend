@@ -13,7 +13,7 @@ export class ChatParticipantService {
   participantRole(role: UserRole): ChatParticipantRole {
     if (role === UserRole.REGISTERED_USER) return ChatParticipantRole.REGISTERED_USER;
     if (role === UserRole.PROVIDER) return ChatParticipantRole.PROVIDER;
-    if (role === UserRole.ADMIN) return ChatParticipantRole.ADMIN;
+    if (role === UserRole.STAFF) return ChatParticipantRole.ADMIN;
     if (role === UserRole.SUPER_ADMIN) return ChatParticipantRole.SUPER_ADMIN;
     throw new BadRequestException('Unsupported chat participant role');
   }

@@ -89,7 +89,7 @@ describe('PromotionalOffersService', () => {
   it('approve works and dispatches provider notification with audit log', async () => {
     const { service, auditLog, notificationDispatch } = createService();
 
-    const result = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['approve'] } }, 'offer_1', { action: AdminPromotionalOfferAction.APPROVE, comment: 'Offer verified.', notifyProvider: true });
+    const result = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['approve'] } }, 'offer_1', { action: AdminPromotionalOfferAction.APPROVE, comment: 'Offer verified.', notifyProvider: true });
 
     expect(result.message).toBe('Promotional offer approved successfully');
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PROMOTIONAL_OFFER_APPROVED' }));
@@ -99,9 +99,9 @@ describe('PromotionalOffersService', () => {
   it('reject works and requires reason', async () => {
     const { service, auditLog, notificationDispatch } = createService();
 
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['reject'] } }, 'offer_1', { action: AdminPromotionalOfferAction.REJECT })).rejects.toThrow('Reason is required when rejecting a promotional offer');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['reject'] } }, 'offer_1', { action: AdminPromotionalOfferAction.REJECT })).rejects.toThrow('Reason is required when rejecting a promotional offer');
 
-    const result = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['reject'] } }, 'offer_1', { action: AdminPromotionalOfferAction.REJECT, reason: PromotionalOfferRejectionReason.INVALID_DISCOUNT, comment: 'Invalid discount', notifyProvider: true });
+    const result = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['reject'] } }, 'offer_1', { action: AdminPromotionalOfferAction.REJECT, reason: PromotionalOfferRejectionReason.INVALID_DISCOUNT, comment: 'Invalid discount', notifyProvider: true });
 
     expect(result.message).toBe('Promotional offer rejected successfully');
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PROMOTIONAL_OFFER_REJECTED' }));
@@ -114,7 +114,7 @@ describe('PromotionalOffersService', () => {
       .mockResolvedValueOnce({ ...offer, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: false, status: PromotionalOfferStatus.INACTIVE })
       .mockResolvedValueOnce({ ...offer, approvalStatus: PromotionalOfferApprovalStatus.APPROVED, isActive: true, status: PromotionalOfferStatus.ACTIVE });
 
-    const admin = { uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['status.update'] } };
+    const admin = { uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['status.update'] } };
     const activate = await service.action(admin, 'offer_1', { action: AdminPromotionalOfferAction.ACTIVATE, notifyProvider: true });
     const deactivate = await service.action(admin, 'offer_1', { action: AdminPromotionalOfferAction.DEACTIVATE, reason: PromotionalOfferRejectionReason.OTHER, notifyProvider: true });
 
@@ -127,15 +127,15 @@ describe('PromotionalOffersService', () => {
   it('action-specific permissions are enforced', async () => {
     const { service } = createService();
 
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['status.update'] } }, 'offer_1', { action: AdminPromotionalOfferAction.APPROVE })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['approve'] } }, 'offer_1', { action: AdminPromotionalOfferAction.DEACTIVATE })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['status.update'] } }, 'offer_1', { action: AdminPromotionalOfferAction.APPROVE })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['approve'] } }, 'offer_1', { action: AdminPromotionalOfferAction.DEACTIVATE })).rejects.toThrow('Your role does not have the required permission');
   });
 
   it('invalid transitions are rejected', async () => {
     const { service, prisma, offer } = createService();
     prisma.promotionalOffer.findFirst.mockResolvedValue({ ...offer, approvalStatus: PromotionalOfferApprovalStatus.REJECTED, isActive: false, status: PromotionalOfferStatus.REJECTED });
 
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['approve'] } }, 'offer_1', { action: AdminPromotionalOfferAction.APPROVE })).rejects.toThrow(BadRequestException);
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { promotionalOffers: ['status.update'] } }, 'offer_1', { action: AdminPromotionalOfferAction.ACTIVATE })).rejects.toThrow('Offer cannot be active until approved');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['approve'] } }, 'offer_1', { action: AdminPromotionalOfferAction.APPROVE })).rejects.toThrow(BadRequestException);
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { promotionalOffers: ['status.update'] } }, 'offer_1', { action: AdminPromotionalOfferAction.ACTIVATE })).rejects.toThrow('Offer cannot be active until approved');
   });
 });

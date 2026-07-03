@@ -42,7 +42,6 @@ export class CustomerWalletService {
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), payment_method: dto.stripePaymentMethodId, automatic_payment_methods: dto.stripePaymentMethodId ? undefined : { enabled: true }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
     const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, stripePaymentMethodId: dto.stripePaymentMethodId, idempotencyKey } });
-    await this.repository.createPaymentAuditLog({ paymentId: updatedPayment.id, userId: user.uid, action: 'WALLET_TOP_UP_INTENT_CREATED', status: updatedPayment.status, idempotencyKey, metadataJson: { walletTopUpId: ledger.id } });
     return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, clientSecret: intent.client_secret, amount, currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 

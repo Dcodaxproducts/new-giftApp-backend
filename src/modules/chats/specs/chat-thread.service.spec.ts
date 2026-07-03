@@ -83,7 +83,7 @@ describe('ChatThreadService', () => {
     const { service, threads } = createService();
 
     await service.createOrGetThread(
-      { uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['reply'] } },
+      { uid: 'admin_1', role: UserRole.STAFF, permissions: { supportChats: ['reply'] } },
       { threadType: ChatThreadKind.SUPPORT_CHAT, sourceType: ChatSourceKind.SUPPORT, participantId: 'provider_1', subject: 'Order support' },
     );
 
@@ -95,14 +95,14 @@ describe('ChatThreadService', () => {
     const { service } = createService();
 
     await expect(service.createOrGetThread(
-      { uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['reply'] } },
+      { uid: 'admin_1', role: UserRole.STAFF, permissions: { supportChats: ['reply'] } },
       { threadType: ChatThreadKind.SUPPORT_CHAT, sourceType: ChatSourceKind.SUPPORT, participantId: 'provider_1', participantRole: UserRole.REGISTERED_USER },
     )).rejects.toThrow(BadRequestException);
   });
 
   it('resolve via status works and notifies participants', async () => {
     const { service, threads, notifications } = createService();
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['resolve'] } }, 'thread_1', { status: ChatStatus.RESOLVED, reason: 'ISSUE_RESOLVED', comment: 'Support issue resolved.', notifyParticipants: true });
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { supportChats: ['resolve'] } }, 'thread_1', { status: ChatStatus.RESOLVED, reason: 'ISSUE_RESOLVED', comment: 'Support issue resolved.', notifyParticipants: true });
     expect(result).toEqual(expect.objectContaining({ data: expect.objectContaining({ id: 'thread_1', status: ChatThreadStatus.RESOLVED }), message: 'Chat thread resolved successfully.' }));
     expect(threads.update).toHaveBeenCalledWith('thread_1', expect.objectContaining({ status: ChatThreadStatus.RESOLVED, resolvedBy: { connect: { id: 'admin_1' } } }));
     expect(notifications.notifyThreadStatus).toHaveBeenCalledWith(expect.objectContaining({ threadId: 'thread_1', status: ChatStatus.RESOLVED, actorId: 'admin_1', comment: 'Support issue resolved.' }));
@@ -110,14 +110,14 @@ describe('ChatThreadService', () => {
 
   it('reopen via status works', async () => {
     const { service, threads } = createService({ thread: { ...thread(), status: ChatThreadStatus.RESOLVED } });
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['resolve'] } }, 'thread_1', { status: ChatStatus.REOPENED, reason: 'CUSTOMER_REPLIED', notifyParticipants: false });
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { supportChats: ['resolve'] } }, 'thread_1', { status: ChatStatus.REOPENED, reason: 'CUSTOMER_REPLIED', notifyParticipants: false });
     expect(result).toEqual(expect.objectContaining({ data: expect.objectContaining({ id: 'thread_1', status: ChatThreadStatus.REOPENED }), message: 'Chat thread reopened successfully.' }));
     expect(threads.update).toHaveBeenCalledWith('thread_1', expect.objectContaining({ status: ChatThreadStatus.REOPENED, resolvedAt: null, resolvedBy: { disconnect: true } }));
   });
 
   it('permission enforced for support thread resolution statuses', async () => {
     const { service } = createService({ canResolve: false });
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { supportChats: ['read'] } }, 'thread_1', { status: ChatStatus.RESOLVED })).rejects.toThrow(ForbiddenException);
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { supportChats: ['read'] } }, 'thread_1', { status: ChatStatus.RESOLVED })).rejects.toThrow(ForbiddenException);
   });
 
   it('old resolve and reopen routes are removed from Swagger', () => {

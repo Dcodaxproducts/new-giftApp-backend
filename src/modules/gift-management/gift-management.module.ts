@@ -4,7 +4,6 @@ import { AuditLogWriterRepository } from '../../common/repositories/audit-log-wr
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { GiftCategoriesController } from './controllers/gift-categories.controller';
 import { GiftCategoriesLookupController } from './controllers/gift-categories-lookup.controller';
-import { GiftModerationController } from './controllers/gift-moderation.controller';
 import { GiftManagementRepository } from './repositories/gift-management.repository';
 import { GiftManagementService } from './services/gift-management.service';
 import { GiftsController } from './controllers/gifts.controller';
@@ -12,7 +11,7 @@ import { BroadcastNotificationsModule } from '../broadcast-notifications/broadca
 
 @Module({
   imports: [BroadcastNotificationsModule, DatabaseModule],
-  controllers: [GiftCategoriesLookupController, GiftCategoriesController, GiftsController, GiftModerationController],
+  controllers: [GiftCategoriesLookupController, GiftCategoriesController, GiftsController],
   providers: [GiftManagementService, GiftManagementRepository, AuditLogWriterRepository, AuditLogWriterService],
 })
 export class GiftManagementModule {}

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import {
   ChangePasswordDto,
-  CreateGuestSessionDto,
   ForgotPasswordDto,
   LoginDto,
   RefreshDto,
@@ -18,7 +17,6 @@ import { AuthLoginService } from './auth-login.service';
 import { AuthPasswordService } from './auth-password.service';
 import { AuthProfileService } from './auth-profile.service';
 import { AuthRegistrationService } from './auth-registration.service';
-import { GuestSessionService } from '../../guest-access/services/guest-session.service';
 import { AuthSessionService } from './auth-session.service';
 
 @Injectable()
@@ -29,12 +27,10 @@ export class AuthService {
     private readonly password: AuthPasswordService,
     private readonly profile: AuthProfileService,
     private readonly session: AuthSessionService,
-    private readonly guestSession?: GuestSessionService,
   ) {}
 
   registerUser(dto: RegisterUserDto) { return this.registration.registerUser(dto); }
   registerProvider(dto: RegisterProviderDto) { return this.registration.registerProvider(dto); }
-  createGuestSession(dto?: CreateGuestSessionDto, ipAddress?: string, userAgent?: string | string[]) { return this.guestSession ? this.guestSession.create(dto, ipAddress, userAgent) : this.registration.createGuestSession(); }
   login(dto: LoginDto, ipAddress?: string, userAgent?: string | string[]) { return this.loginFlow.login(dto, ipAddress, userAgent); }
   refresh(dto: RefreshDto) { return this.loginFlow.refresh(dto); }
   logout(user: AuthUserContext) { return this.loginFlow.logout(user); }
@@ -51,5 +47,4 @@ export class AuthService {
   logoutAllSessions(user: AuthUserContext) { return this.session.logoutAllSessions(user); }
   revokeSession(user: AuthUserContext, id: string) { return this.session.revokeSession(user, id); }
   deleteAccount(user: AuthUserContext) { return this.profile.deleteAccount(user); }
-  cancelDeletion(user: AuthUserContext) { return this.profile.cancelDeletion(user); }
 }

@@ -10,8 +10,6 @@ interface JwtPayload extends AuthUserContext {
   sub?: string;
   type?: string;
   permissions?: Prisma.JsonValue;
-  guestSessionId?: string;
-  capabilities?: string[];
 }
 
 @Injectable()
@@ -34,16 +32,9 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET', 'change-me-access'),
       });
-      if (payload.role === UserRole.GUEST_USER) {
-        const guestSession = await this.repository.findActiveGuestSessionForJwtGuard(payload.guestSessionId ?? payload.sub ?? payload.uid);
-        if (!guestSession) throw new UnauthorizedException('Guest session has expired');
-        request.user = { uid: guestSession.guestSessionId, role: UserRole.GUEST_USER, guestSessionId: guestSession.guestSessionId, capabilities: this.stringArray(guestSession.capabilitiesJson) };
-        return true;
-      }
-
       const user = await this.repository.findUserForJwtGuard(payload.uid);
 
-      if (!user || user.deletedAt || !user.isActive) {
+      if (!user || !user.isActive) {
         throw new ForbiddenException('Account is inactive');
       }
 
@@ -52,13 +43,13 @@ export class JwtAuthGuard implements CanActivate {
         if (!session) throw new UnauthorizedException('Session has expired');
       }
 
-      if (user.role === UserRole.ADMIN) {
-        if (!user.adminRoleId || !user.adminRole || user.adminRole.deletedAt || !user.adminRole.isActive) {
-          throw new ForbiddenException('Admin role is inactive or missing');
+      if (user.role === UserRole.STAFF) {
+        if (!user.staffProfile?.staffRoleId || !user.staffProfile.staffRole) {
+          throw new ForbiddenException('Staff role is missing');
         }
       }
 
-      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && (user.providerApprovalStatus !== ProviderApprovalStatus.APPROVED || !user.isActive || user.suspendedAt)) {
+      if (user.role === UserRole.PROVIDER && this.isBlockedProviderModule(request.path) && (user.providerProfile?.approvalStatus !== ProviderApprovalStatus.APPROVED || !user.isActive || user.suspendedAt)) {
         throw new ForbiddenException('Your provider account is pending approval. You cannot access this module yet.');
       }
 
@@ -66,7 +57,7 @@ export class JwtAuthGuard implements CanActivate {
       request.user = {
         uid: user.id,
         role: user.role,
-        permissions: user.role === UserRole.ADMIN ? user.adminRole?.permissions ?? undefined : undefined,
+        permissions: user.role === UserRole.STAFF ? user.staffProfile?.staffRole?.permissions ?? undefined : undefined,
         sessionId: payload.sessionId,
       };
       return true;
@@ -84,11 +75,6 @@ export class JwtAuthGuard implements CanActivate {
     if (path.startsWith('/api/v1/provider/business-info')) return false;
     return true;
   }
-
-  private stringArray(value: Prisma.JsonValue): string[] {
-    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
-  }
-
   private extractBearerToken(request: Request): string | null {
     const header = request.headers.authorization;
     if (!header?.startsWith('Bearer ')) {

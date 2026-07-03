@@ -222,7 +222,7 @@ describe('AuthService bounded-context boundary', () => {
   it('auth DTO folder contains only auth-owned DTOs', () => {
     const authDto = readFileSync('src/modules/auth/dto/auth.dto.ts', 'utf8');
 
-    expect(authDto).toContain('export class CreateGuestSessionDto');
+    expect(authDto).not.toContain('export class CreateGuestSessionDto');
     expect(authDto).not.toContain('export class CreateAdminDto');
     expect(authDto).not.toContain('export class RejectProviderDto');
     expect(authDto).not.toContain('export class UpdateUserActiveStatusDto');
@@ -253,14 +253,11 @@ function authUser(overrides: Partial<Record<string, unknown>> = {}) {
     phone: '+15550000001',
     avatarUrl: null,
     location: null,
-    adminRoleId: null,
     isVerified: true,
     isActive: true,
     isApproved: true,
     mustChangePassword: false,
     lastLoginAt: null,
-    adminTitle: null,
-    adminPermissions: {},
     providerBusinessName: null,
     providerBusinessCategoryId: null,
     providerTaxId: null,
@@ -292,7 +289,9 @@ function authUser(overrides: Partial<Record<string, unknown>> = {}) {
     deleteAfter: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-    adminRole: null,
+    staffProfile: null,
+    providerProfile: null,
+    customerProfile: null,
     ...overrides,
   };
 }
@@ -433,8 +432,8 @@ describe('AuthService sensitive auth behavior', () => {
 
     await expect(service.resendVerificationEmail({ email: 'USER@example.com' }, '127.0.0.1')).resolves.toEqual({
       data: {
-        delivery: 'OTP_SENT_IF_ELIGIBLE',
-        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+        delivery: 'EMAIL',
+        nextStep: 'Check your inbox for a 6-digit verification code.',
       },
       message: 'A verification email has been sent to the email address you provided.',
     });
@@ -449,8 +448,8 @@ describe('AuthService sensitive auth behavior', () => {
     const { service: missingService, mailerService: missingMailer } = createSensitiveAuthService({ user: null });
     await expect(missingService.resendVerificationEmail({ email: 'missing@example.com' })).resolves.toEqual({
       data: {
-        delivery: 'OTP_SENT_IF_ELIGIBLE',
-        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+        delivery: 'EMAIL',
+        nextStep: 'Check your inbox for a 6-digit verification code.',
       },
       message: 'A verification email has been sent to the email address you provided.',
     });
@@ -459,8 +458,8 @@ describe('AuthService sensitive auth behavior', () => {
     const { service: verifiedService, mailerService: verifiedMailer } = createSensitiveAuthService({ user: authUser({ isVerified: true }) });
     await expect(verifiedService.resendVerificationEmail({ email: 'user@example.com' })).resolves.toEqual({
       data: {
-        delivery: 'OTP_SENT_IF_ELIGIBLE',
-        nextStep: 'Use the 6-digit verification OTP to complete email verification.',
+        delivery: 'EMAIL',
+        nextStep: 'Check your inbox for a 6-digit verification code.',
       },
       message: 'A verification email has been sent to the email address you provided.',
     });
@@ -515,14 +514,14 @@ describe('AuthService sensitive auth behavior', () => {
     expect(mailerService.sendVerificationEmail).toHaveBeenCalledWith('user@example.com', '123456');
     expect(referrals.assertValidReferralCode).toHaveBeenCalledWith('REF123');
     expect(referrals.captureSignupReferral).toHaveBeenCalledWith('user_1', 'REF123');
-    const registerUserCall = prisma.user.create.mock.calls[0] as [{ data: { role: UserRole; isApproved: boolean; providerApprovalStatus: null } }];
+    const registerUserCall = prisma.user.create.mock.calls[0] as [{ data: { role: UserRole; isApproved: boolean; customerProfile?: { create: Record<string, never> } } }];
     expect(registerUserCall[0].data.role).toBe(UserRole.REGISTERED_USER);
     expect(registerUserCall[0].data.isApproved).toBe(true);
-    expect(registerUserCall[0].data.providerApprovalStatus).toBeNull();
+    expect(registerUserCall[0].data.customerProfile).toEqual({ create: {} });
   });
 
   it('provider registration supports legacy names and fulfillment methods', async () => {
-    const user = authUser({ email: 'provider@example.com', role: UserRole.PROVIDER, isApproved: false, providerApprovalStatus: 'PENDING', verificationOtp: '123456', providerBusinessName: 'Cake Shop' });
+    const user = authUser({ email: 'provider@example.com', role: UserRole.PROVIDER, isApproved: false, verificationOtp: '123456', providerProfile: { approvalStatus: 'PENDING', businessName: 'Cake Shop', businessCategoryId: 'cat_1' } });
     const { service, mailerService, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
 
@@ -530,12 +529,12 @@ describe('AuthService sensitive auth behavior', () => {
 
     expect(result.message).toBe('Provider application submitted for Super Admin approval.');
     expect(mailerService.sendVerificationEmail).toHaveBeenCalledWith('provider@example.com', '123456');
-    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { role: UserRole; isApproved: boolean; providerApprovalStatus: string | null; providerBusinessName: string | null; providerBusinessCategoryId: string | null } }];
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { role: UserRole; isApproved: boolean; providerProfile?: { create: { approvalStatus?: string; businessName?: string; businessCategoryId?: string } } } }];
     expect(registerProviderCall[0].data.role).toBe(UserRole.PROVIDER);
     expect(registerProviderCall[0].data.isApproved).toBe(false);
-    expect(registerProviderCall[0].data.providerApprovalStatus).toBe('PENDING');
-    expect(registerProviderCall[0].data.providerBusinessName).toBe('Cake Shop');
-    expect(registerProviderCall[0].data.providerBusinessCategoryId).toBe('cat_1');
+    expect(registerProviderCall[0].data.providerProfile?.create.approvalStatus).toBe('PENDING');
+    expect(registerProviderCall[0].data.providerProfile?.create.businessName).toBe('Cake Shop');
+    expect(registerProviderCall[0].data.providerProfile?.create.businessCategoryId).toBe('cat_1');
   });
 
   it('provider registration accepts name and optional fulfillment methods', async () => {
@@ -545,22 +544,22 @@ describe('AuthService sensitive auth behavior', () => {
 
     await service.registerProvider({ email: 'provider-name@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street' });
 
-    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { firstName: string; lastName: string; providerFulfillmentMethods?: string[] } }];
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { firstName: string; lastName: string; providerProfile?: { create: { fulfillmentMethods?: string[] } } } }];
     expect(registerProviderCall[0].data.firstName).toBe('Cake');
     expect(registerProviderCall[0].data.lastName).toBe('Owner');
-    expect(registerProviderCall[0].data.providerFulfillmentMethods).toBeUndefined();
+    expect(registerProviderCall[0].data.providerProfile?.create.fulfillmentMethods).toBeUndefined();
   });
 
   it('provider registration optionally stores valid location and validates coordinates', async () => {
-    const user = authUser({ email: 'provider-location@example.com', role: UserRole.PROVIDER, firstName: 'Cake', lastName: 'Owner', isApproved: false, providerApprovalStatus: 'PENDING', verificationOtp: '123456', providerBusinessName: 'Cake Shop', location: '31.5,74.3', providerStoreAddress: { lat: 31.5, lng: 74.3 } });
+    const user = authUser({ email: 'provider-location@example.com', role: UserRole.PROVIDER, firstName: 'Cake', lastName: 'Owner', isApproved: false, verificationOtp: '123456', location: '31.5,74.3', providerProfile: { approvalStatus: 'PENDING', businessName: 'Cake Shop', storeAddress: { lat: 31.5, lng: 74.3 } } });
     const { service, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
 
     const result = await service.registerProvider({ email: 'provider-location@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', location: { lat: 31.5, lng: 74.3 } });
 
-    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { location?: string; providerStoreAddress?: { lat: number; lng: number } } }];
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { location?: string; providerProfile?: { create: { storeAddress?: { lat: number; lng: number } } } } }];
     expect(registerProviderCall[0].data.location).toBe('31.5,74.3');
-    expect(registerProviderCall[0].data.providerStoreAddress).toEqual({ lat: 31.5, lng: 74.3 });
+    expect(registerProviderCall[0].data.providerProfile?.create.storeAddress).toEqual({ lat: 31.5, lng: 74.3 });
     const providerUser = result.data.user as { provider: { location: { lat: number; lng: number } } };
     expect(providerUser.provider).toEqual(expect.objectContaining({ location: { lat: 31.5, lng: 74.3 } }));
 
@@ -570,11 +569,6 @@ describe('AuthService sensitive auth behavior', () => {
     await expect(pipe.transform({ ...basePayload, location: { lat: -91, lng: 74.3 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: -181 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: 74.3 } }, { type: 'body', metatype: RegisterProviderDto })).resolves.toBeInstanceOf(RegisterProviderDto);
-  });
-
-  it('guest session fallback remains server-issued', () => {
-    const { service } = createSensitiveAuthService();
-    expect(service.createGuestSession()).toEqual({ data: { role: 'GUEST_USER', capabilities: ['VIEW_ONBOARDING', 'EXPLORE_FEATURES'] }, message: 'Guest session initialized' });
   });
 
   it('auth core service no longer imports PrismaService or uses this.prisma', () => {

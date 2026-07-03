@@ -55,14 +55,14 @@ describe('ProviderBusinessCategoriesService', () => {
 
   it('creates category and writes audit log', async () => {
     const { service, auditLog } = createService();
-    await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Florist' });
-    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.ADMIN, action: 'PROVIDER_BUSINESS_CATEGORY_CREATED' }));
+    await service.create({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Florist' });
+    expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.STAFF, action: 'PROVIDER_BUSINESS_CATEGORY_CREATED' }));
   });
 
   it('blocks delete when active providers are attached', async () => {
     const { service, prisma, category } = createService();
     prisma.providerBusinessCategory.findFirst.mockResolvedValue(category);
     prisma.user.count.mockResolvedValue(1);
-    await expect(service.delete({ uid: 'admin_1', role: UserRole.ADMIN }, 'cat_1')).rejects.toThrow('active providers');
+    await expect(service.delete({ uid: 'admin_1', role: UserRole.STAFF }, 'cat_1')).rejects.toThrow('active providers');
   });
 });

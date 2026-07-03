@@ -7,7 +7,6 @@ describe('Gift management repository cleanup', () => {
   const categoriesController = readFileSync(join(__dirname, '../controllers/gift-categories.controller.ts'), 'utf8');
   const lookupController = readFileSync(join(__dirname, '../controllers/gift-categories-lookup.controller.ts'), 'utf8');
   const giftsController = readFileSync(join(__dirname, '../controllers/gifts.controller.ts'), 'utf8');
-  const moderationController = readFileSync(join(__dirname, '../controllers/gift-moderation.controller.ts'), 'utf8');
   const customerMarketplaceService = readFileSync(join(__dirname, '../../customer-marketplace/services/customer-marketplace.service.ts'), 'utf8');
 
   it('keeps gift category API behavior stable', () => {
@@ -19,15 +18,11 @@ describe('Gift management repository cleanup', () => {
     expect(categoriesController).toContain("@Permissions('giftCategories.delete')");
   });
 
-  it('keeps gift management and moderation API behavior stable', () => {
+  it('keeps simplified gift management API behavior stable', () => {
     for (const route of ["@Get()", "@Post()", "@Get('stats')", "@Get('export')", "@Get(':id')", "@Patch(':id')", "@Delete(':id')"]) expect(giftsController).toContain(route);
     expect(giftsController).not.toContain("@Patch(':id/status')");
-    for (const route of ["@Get()", "@Post(':id/action')"]) expect(moderationController).toContain(route);
-    for (const oldRoute of ["@Patch(':id/approve')", "@Patch(':id/reject')", "@Patch(':id/flag')"]) expect(moderationController).not.toContain(oldRoute);
-    expect(giftsController).toContain("@Permissions('gifts.create')");
-    expect(moderationController).toContain("'giftModeration.approve'");
-    expect(moderationController).toContain("'giftModeration.reject'");
-    expect(moderationController).toContain("'giftModeration.flag'");
+    expect(giftsController).not.toContain('gift-moderation');
+    expect(giftsController).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.PROVIDER)');
   });
 
   it('repository owns gift category DB access', () => {
@@ -42,28 +37,27 @@ describe('Gift management repository cleanup', () => {
   it('repository owns admin gift and variant DB access', () => {
     for (const method of ['findGiftsForAdmin', 'countGiftsForAdmin', 'findGiftByIdWithVariants', 'createGiftWithVariants', 'updateGiftBase', 'deleteGift', 'findGiftStats', 'findGiftsForExport']) expect(repository).toContain(method);
     expect(repository).not.toContain('updateGiftStatus');
-    for (const method of ['softDeleteVariantsForGift', 'clearDefaultVariantsForGift', 'findGiftVariantForGift', 'updateGiftVariant', 'createGiftVariant']) expect(repository).toContain(method);
+    for (const method of ['deleteVariantsForGift', 'findGiftVariantForGift', 'updateGiftVariant', 'createGiftVariant']) expect(repository).toContain(method);
     expect(repository).toContain('this.prisma.gift.create');
     expect(repository).toContain('tx.gift.update');
-    expect(repository).toContain('tx.giftVariant.updateMany');
+    expect(repository).toContain('tx.giftVariant.deleteMany');
     expect(repository).toContain('tx.giftVariant.create');
   });
 
-  it('service preserves slug, variant, and default variant business rules', () => {
+  it('service preserves slug and simple variant business rules', () => {
     expect(service).toContain('uniqueCategorySlug');
     expect(service).toContain('uniqueGiftSlug');
     expect(service).not.toContain('Gift SKU already exists');
     expect(service).not.toContain('Variant SKU must be unique');
-    expect(service).toContain('Only one default variant is allowed');
-    expect(service).toContain('if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true');
+    expect(service).toContain('New variants must include name and price');
     expect(service).toContain('Variant does not belong to gift');
   });
 
   it('service preserves admin gift create/update/delete/status behavior', () => {
     expect(service).toContain('const providerId = user.role === UserRole.PROVIDER ? user.uid : dto.providerId');
-    expect(service).toContain('statusFromPublication');
-    expect(service).toContain('dto.status === GiftStatus.ACTIVE ? true : dto.isPublished');
+    expect(service).toContain('status: user.role === UserRole.PROVIDER ? GiftStatus.INACTIVE : GiftStatus.ACTIVE');
     expect(service).toContain('Provider cannot manage another provider gift');
+    expect(service).toContain('assertGiftCreatePermission');
     expect(service).toContain('GIFT_CREATED');
     expect(service).toContain('GIFT_UPDATED');
     expect(service).toContain('GIFT_DELETED');
@@ -80,27 +74,20 @@ describe('Gift management repository cleanup', () => {
     expect(giftsController).toContain('markOutOfStock');
   });
 
-  it('repository owns gift moderation DB access and service preserves workflow decisions', () => {
-    expect(repository).toContain('findGiftModerationQueue');
-    expect(repository).toContain('updateGiftModerationStatus');
-    expect(repository).toContain('findGiftModerationQueue');
-    expect(service).toContain('moderationQueueWhere');
-    expect(service).toContain('GiftModerationStatus.NOT_REQUIRED');
-    expect(service).toContain('GiftModerationStatus.APPROVED');
-    expect(service).toContain('GiftModerationStatus.REJECTED');
-    expect(service).toContain('GiftModerationStatus.FLAGGED');
-    expect(service).toContain('GIFT_APPROVED');
-    expect(service).toContain('GIFT_REJECTED');
-    expect(service).toContain('GIFT_FLAGGED');
+  it('gift moderation workflow is removed from gift management', () => {
+    expect(repository).not.toContain('findGiftModerationQueue');
+    expect(repository).not.toContain('updateGiftModerationStatus');
+    expect(service).not.toContain('GiftModerationStatus');
+    expect(service).not.toContain('GIFT_APPROVED');
+    expect(service).not.toContain('GIFT_REJECTED');
+    expect(service).not.toContain('GIFT_FLAGGED');
   });
 
-  it('provider inventory no-moderation marketplace rule is not affected', () => {
-    expect(customerMarketplaceService).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
-    expect(customerMarketplaceService).toContain('moderationStatus: { not: GiftModerationStatus.REJECTED }');
-    expect(customerMarketplaceService).toContain('hiddenByModeration: false');
-    expect(customerMarketplaceService).toContain('requiresManualReview: false');
-    expect(customerMarketplaceService).toContain('isPublished: true');
-    expect(customerMarketplaceService).toContain('providerApprovalStatus: ProviderApprovalStatus.APPROVED');
+  it('customer marketplace visibility uses active gift status and approved provider only', () => {
+    expect(customerMarketplaceService).toContain('status: GiftStatus.ACTIVE');
+    expect(customerMarketplaceService).not.toContain('GiftModerationStatus');
+    expect(customerMarketplaceService).not.toContain('isPublished: true');
+    expect(customerMarketplaceService).toContain('approvalStatus: ProviderApprovalStatus.APPROVED');
   });
 
   it('service no longer injects PrismaService directly for gift-management DB access', () => {

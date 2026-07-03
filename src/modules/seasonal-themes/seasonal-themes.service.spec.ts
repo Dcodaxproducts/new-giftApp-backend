@@ -13,7 +13,7 @@ const theme = {
   createdAt: now,
   updatedAt: now,
 };
-const user = { uid: 'admin_1', role: UserRole.ADMIN };
+const user = { uid: 'admin_1', role: UserRole.STAFF };
 
 function createService(overrides: Record<string, unknown> = {}) {
   const repository = {

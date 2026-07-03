@@ -162,7 +162,7 @@ describe('AdminPlatformAnalyticsService', () => {
     const { service, repository, auditLog } = createService();
     repository.findPayments.mockResolvedValue([payment({ id: 'pay_1', email: 'alex.rivera@gmail.com', amount: 150, plan: 'Pro' })]);
 
-    const file = await service.report({ uid: 'admin_1', role: UserRole.ADMIN }, { format: PlatformAnalyticsReportFormat.PDF, status: PlatformAnalyticsTransactionStatus.COMPLETED });
+    const file = await service.report({ uid: 'admin_1', role: UserRole.STAFF }, { format: PlatformAnalyticsReportFormat.PDF, status: PlatformAnalyticsTransactionStatus.COMPLETED });
 
     expect(file.contentType).toBe('text/csv');
     expect(file.content).toContain('Transaction ID');
@@ -176,6 +176,6 @@ describe('AdminPlatformAnalyticsService', () => {
     expect(controller).toContain("@Permissions('analytics.export')");
     expect(controller).toContain("@Get('stats')");
     expect(controller).not.toContain("@Get('filter-options')");
-    expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+    expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
   });
 });

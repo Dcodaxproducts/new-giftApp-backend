@@ -112,7 +112,7 @@ export class AdminPlatformAnalyticsService {
         { user: { email: { contains: query.search, mode: 'insensitive' } } },
         { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } },
         { order: { items: { some: { gift: { name: { contains: query.search, mode: 'insensitive' } } } } } },
-        { order: { providerOrders: { some: { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } } } } },
+        { order: { providerOrders: { some: { provider: { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } } } } } },
       ];
     }
 
@@ -229,8 +229,8 @@ export class AdminPlatformAnalyticsService {
     return { format, range, fromDate, toDate, categoryId, providerId, status, search };
   }
 
-  private providerName(provider: { providerBusinessName: string | null; firstName: string; lastName: string }): string {
-    return provider.providerBusinessName ?? (`${provider.firstName} ${provider.lastName}`.trim() || 'Provider');
+  private providerName(provider: { providerProfile: { businessName: string | null } | null; firstName: string; lastName: string }): string {
+    return provider.providerProfile?.businessName ?? (`${provider.firstName} ${provider.lastName}`.trim() || 'Provider');
   }
 
   private money(value: Prisma.Decimal | number | null | undefined): number {

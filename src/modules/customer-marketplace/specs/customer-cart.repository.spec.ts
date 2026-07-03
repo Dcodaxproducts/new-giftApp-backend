@@ -74,7 +74,7 @@ describe('Customer cart repository cleanup', () => {
     expect(service).toContain('this.availableGiftWhere()');
     expect(service).toContain("throw new NotFoundException('Gift not found or unavailable')");
     expect(service).toContain('status: GiftStatus.ACTIVE');
-    expect(service).toContain('isPublished: true');
+    expect(service).toContain('provider: this.approvedProviderWhere()');
   });
 
   it('variant must belong to gift', () => {

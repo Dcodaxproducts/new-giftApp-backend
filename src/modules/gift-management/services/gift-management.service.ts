@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Gift, GiftCategory, GiftModerationStatus, GiftStatus, GiftVariant, Prisma, UserRole } from '@prisma/client';
+import { Gift, GiftCategory, GiftStatus, GiftVariant, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
 import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from '../repositories/gift-management.repository';
@@ -8,17 +8,12 @@ import {
   CreateGiftDto,
   ExportFormat,
   ExportGiftsDto,
-  GiftModerationAction,
-  GiftModerationActionDto,
   GiftVariantDto,
   GiftCategorySortBy,
   GiftListStatus,
-  GiftModerationFilter,
   GiftSortBy,
   ListGiftCategoriesDto,
-  ListGiftModerationDto,
   ListGiftsDto,
-  ModerationSortBy,
   SortOrder,
   UpdateGiftCategoryDto,
   UpdateGiftDto,
@@ -28,7 +23,7 @@ import { getPagination } from '../../../common/pagination/pagination.util';
 
 type GiftWithRelations = Gift & {
   category: Pick<GiftCategory, 'id' | 'name' | 'isActive' | 'deletedAt'>;
-  provider: { id: string; email: string; providerBusinessName: string | null; firstName: string; lastName: string; isActive?: boolean; isApproved?: boolean; providerApprovalStatus?: string | null; suspendedAt?: Date | null; deletedAt?: Date | null };
+  provider: { id: string; email: string; providerProfile: { businessName: string | null } | null; firstName: string; lastName: string; isActive?: boolean; isApproved?: boolean; suspendedAt?: Date | null };
   variants: GiftVariant[];
 };
 type RatingSummary = { rating: number; reviewCount: number };
@@ -125,37 +120,23 @@ export class GiftManagementService {
   }
 
   async createGift(user: AuthUserContext, dto: CreateGiftDto) {
-    const providerId = user.role === UserRole.PROVIDER ? user.uid : dto.providerId;
+    this.assertGiftCreatePermission(user);
+    if (user.role !== UserRole.PROVIDER && !dto.providerId) throw new BadRequestException('Provider is required');
+    const providerId = user.role === UserRole.PROVIDER ? user.uid : dto.providerId!;
     await this.assertCategory(dto.categoryId);
     await this.assertProvider(providerId);
     const variants = this.normalizeVariants(dto.variants);
-    const isProviderCreatedInventory = user.role === UserRole.PROVIDER;
-    const moderationStatus = isProviderCreatedInventory
-      ? GiftModerationStatus.NOT_REQUIRED
-      : user.role === UserRole.SUPER_ADMIN && dto.isPublished
-      ? (dto.moderationStatus ?? GiftModerationStatus.APPROVED)
-      : GiftModerationStatus.PENDING;
-    const isPublished = isProviderCreatedInventory ? (dto.isPublished ?? true) : (dto.isPublished ?? false);
-    const status = this.statusFromPublication(isPublished, moderationStatus);
     const gift = await this.giftManagementRepository.createGiftWithVariants({
       name: dto.name.trim(),
       slug: await this.uniqueGiftSlug(dto.name),
       description: dto.description?.trim(),
-      shortDescription: dto.shortDescription?.trim(),
       categoryId: dto.categoryId,
       providerId,
       price: new Prisma.Decimal(dto.price),
       currency: dto.currency ?? 'USD',
       imageUrls: dto.imageUrls ?? [],
-      isPublished,
       isFeatured: dto.isFeatured ?? false,
-      tags: dto.tags ?? [],
-      moderationStatus,
-      requiresManualReview: false,
-      hiddenByModeration: false,
-      status,
-      approvedAt: moderationStatus === GiftModerationStatus.APPROVED ? new Date() : null,
-      approvedBy: moderationStatus === GiftModerationStatus.APPROVED ? user.uid : null,
+      status: user.role === UserRole.PROVIDER ? GiftStatus.INACTIVE : GiftStatus.ACTIVE,
       variants: variants.length ? { create: variants.map((variant) => this.variantCreateData(variant)) } : undefined,
     });
     const data = this.toGiftDetail(gift, this.emptyRatingSummary());
@@ -172,9 +153,9 @@ export class GiftManagementService {
   }
 
   async giftStats() {
-    const [totalGifts, activeListings, pendingApproval] = await this.giftManagementRepository.findGiftStats();
+    const [totalGifts, activeListings] = await this.giftManagementRepository.findGiftStats();
     return {
-      data: { totalGifts, totalGiftsChangePercent: 0, activeListings, activeListingsChangePercent: 0, pendingApproval, pendingApprovalChangePercent: 0 },
+      data: { totalGifts, totalGiftsChangePercent: 0, activeListings, activeListingsChangePercent: 0 },
       message: 'Gift inventory stats fetched successfully',
     };
   }
@@ -192,24 +173,17 @@ export class GiftManagementService {
     if (dto.providerId) await this.assertProvider(dto.providerId);
     const normalizedVariants = dto.variants ? this.normalizeUpdateVariants(dto.variants) : undefined;
     const providerId = user.role === UserRole.PROVIDER ? gift.providerId : dto.providerId;
-    const nextModeration = user.role === UserRole.PROVIDER && gift.moderationStatus === GiftModerationStatus.APPROVED
-      ? GiftModerationStatus.PENDING
-      : gift.moderationStatus;
     const updated = await this.giftManagementRepository.runGiftTransaction(async (tx) => {
       const base = await this.giftManagementRepository.updateGiftBase(tx, id, {
         name: dto.name?.trim(),
         slug: dto.name ? await this.uniqueGiftSlug(dto.name, id) : undefined,
         description: dto.description?.trim(),
-        shortDescription: dto.shortDescription?.trim(),
         categoryId: dto.categoryId,
         providerId,
         price: dto.price === undefined ? undefined : new Prisma.Decimal(dto.price),
         currency: dto.currency,
         imageUrls: dto.imageUrls,
-        isPublished: dto.status === GiftStatus.ACTIVE ? true : dto.isPublished,
         isFeatured: dto.isFeatured,
-        tags: dto.tags,
-        moderationStatus: nextModeration,
         status: dto.status,
       });
       if (normalizedVariants) await this.upsertVariants(tx, id, normalizedVariants, dto.replaceVariants ?? false);
@@ -234,78 +208,9 @@ export class GiftManagementService {
 
   async exportGifts(query: ExportGiftsDto) {
     const gifts = await this.giftManagementRepository.findGiftsForExport(this.giftWhere(query));
-    const rows = [['ID', 'Name', 'Category', 'Provider', 'Price', 'Currency', 'Status', 'Moderation', 'Published'], ...gifts.map((gift) => [gift.id, gift.name, gift.category.name, this.providerName(gift.provider), gift.price.toString(), gift.currency, gift.status, gift.moderationStatus, String(gift.isPublished)])];
+    const rows = [['ID', 'Name', 'Category', 'Provider', 'Price', 'Currency', 'Status'], ...gifts.map((gift) => [gift.id, gift.name, gift.category.name, this.providerName(gift.provider), gift.price.toString(), gift.currency, gift.status])];
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n');
     return { filename: `gifts.${query.format === ExportFormat.XLSX ? 'xlsx' : 'csv'}`, contentType: query.format === ExportFormat.XLSX ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv; charset=utf-8', content: csv };
-  }
-
-  async moderationQueue(query: ListGiftModerationDto) {
-    const { page, limit, skip, take } = getPagination(query);
-    const where: Prisma.GiftWhereInput = { deletedAt: null, providerId: query.providerId, ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}), ...this.moderationQueueWhere(query) };
-    const [items, total] = await this.giftManagementRepository.findGiftModerationQueue({ where, orderBy: query.sortBy === ModerationSortBy.NAME ? { name: this.dir(query.sortOrder) } : { createdAt: this.dir(query.sortOrder) }, skip, take });
-    return { data: items.map((gift) => ({ id: gift.id, name: gift.name, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, imageUrl: this.firstImage(gift), submittedAt: gift.createdAt, moderationStatus: gift.moderationStatus, status: gift.moderationStatus })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gift moderation queue fetched successfully' };
-  }
-
-  async moderationAction(user: AuthUserContext, id: string, dto: GiftModerationActionDto) {
-    this.assertGiftModerationPermission(user, dto.action);
-
-    if (dto.action === GiftModerationAction.REJECT && !dto.reason) {
-      throw new BadRequestException('Reason is required when rejecting a gift');
-    }
-
-    if (dto.action === GiftModerationAction.FLAG && !dto.reason) {
-      throw new BadRequestException('Reason is required when flagging a gift');
-    }
-
-    const gift = await this.getGift(id);
-
-    if (dto.action === GiftModerationAction.APPROVE) {
-      return this.approveGiftAction(user, gift, dto);
-    }
-
-    if (dto.action === GiftModerationAction.REJECT) {
-      return this.rejectGiftAction(user, gift, dto);
-    }
-
-    return this.flagGiftAction(user, gift, dto);
-  }
-
-  private async approveGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
-    const canRestore = this.canPublishAfterApproval(gift);
-    const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.APPROVED, requiresManualReview: false, hiddenByModeration: false, manualReviewReason: null, moderationResolvedAt: new Date(), status: canRestore ? GiftStatus.ACTIVE : gift.status, isPublished: canRestore ? true : gift.isPublished, approvedAt: new Date(), approvedBy: user.uid, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null });
-    const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, approvedAt: updated.approvedAt, approvedBy: updated.approvedBy };
-    await this.audit(user, gift.id, 'GIFT_APPROVED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, comment: dto.comment, notifyProvider: dto.notifyProvider });
-    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift approved', dto.comment?.trim() ?? 'Your gift passed moderation review.', 'GIFT_APPROVED');
-    return { data, message: 'Gift approved successfully' };
-  }
-
-  private async rejectGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
-    const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.REJECTED, requiresManualReview: false, hiddenByModeration: true, isPublished: false, status: GiftStatus.INACTIVE, moderationResolvedAt: new Date(), rejectedAt: new Date(), rejectedBy: user.uid, rejectionReason: dto.reason, rejectionComment: dto.comment?.trim() });
-    const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, rejectedAt: updated.rejectedAt, rejectedBy: updated.rejectedBy, rejectionReason: updated.rejectionReason, rejectionComment: updated.rejectionComment };
-    await this.audit(user, gift.id, 'GIFT_REJECTED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), { ...data, notifyProvider: dto.notifyProvider });
-    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift rejected', dto.comment?.trim() ?? 'Your gift was rejected by moderation.', 'GIFT_REJECTED');
-    return { data, message: 'Gift rejected successfully' };
-  }
-
-  private async flagGiftAction(user: AuthUserContext, gift: GiftWithRelations, dto: GiftModerationActionDto) {
-    const hide = dto.hideFromMarketplace ?? false;
-    const updated = await this.giftManagementRepository.updateGiftModerationStatus(gift.id, { moderationStatus: GiftModerationStatus.FLAGGED, requiresManualReview: true, manualReviewReason: dto.reason, hiddenByModeration: hide, isPublished: hide ? false : gift.isPublished, flaggedAt: new Date(), flaggedById: user.uid, flagReason: dto.reason, flagComment: dto.comment?.trim(), moderationResolvedAt: null });
-    const data = { id: gift.id, moderationStatus: updated.moderationStatus, status: updated.status, isPublished: updated.isPublished, requiresManualReview: updated.requiresManualReview, hiddenByModeration: updated.hiddenByModeration, flaggedAt: updated.flaggedAt, flaggedById: updated.flaggedById, flagReason: updated.flagReason, flagComment: updated.flagComment };
-    await this.audit(user, gift.id, 'GIFT_FLAGGED', this.toGiftDetail(gift, await this.ratingSummary(gift.providerId)), data);
-    if (dto.notifyProvider) await this.notifyProvider(gift.providerId, gift.id, 'Gift flagged for review', dto.comment?.trim() ?? 'Your gift requires manual moderation review.', 'GIFT_FLAGGED');
-    return { data, message: 'Gift flagged successfully' };
-  }
-
-  private assertGiftModerationPermission(user: AuthUserContext, action: GiftModerationAction): void {
-    if (user.role === UserRole.SUPER_ADMIN) return;
-    const permission = this.giftModerationPermission(action);
-    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) throw new ForbiddenException('Your role does not have the required permission');
-  }
-
-  private giftModerationPermission(action: GiftModerationAction): string {
-    if (action === GiftModerationAction.APPROVE) return 'giftModeration.approve';
-    if (action === GiftModerationAction.REJECT) return 'giftModeration.reject';
-    return 'giftModeration.flag';
   }
 
   private flattenPermissions(permissions?: Prisma.JsonValue): Set<string> {
@@ -337,16 +242,10 @@ export class GiftManagementService {
   }
 
   private giftWhere(query: ListGiftsDto | ExportGiftsDto): Prisma.GiftWhereInput {
-    return { deletedAt: null, categoryId: query.categoryId, providerId: query.providerId, isPublished: query.isPublished, ...(query.search ? { OR: [{ name: { contains: query.search, mode: 'insensitive' } }, { provider: { providerBusinessName: { contains: query.search, mode: 'insensitive' } } }] } : {}), ...this.statusWhere(query.status), ...(query.moderationStatus && query.moderationStatus !== GiftModerationFilter.ALL ? { moderationStatus: query.moderationStatus } : {}) };
-  }
-  private moderationQueueWhere(query: ListGiftModerationDto): Prisma.GiftWhereInput {
-    if (query.status) return { moderationStatus: query.status };
-    if (query.includeResolved) return {};
-    return { OR: [{ moderationStatus: { in: [GiftModerationStatus.PENDING, GiftModerationStatus.FLAGGED, GiftModerationStatus.REJECTED] } }, { requiresManualReview: true }] };
+    return { categoryId: query.categoryId, providerId: query.providerId, ...(query.search ? { OR: [{ name: { contains: query.search, mode: 'insensitive' } }, { provider: { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } } }] } : {}), ...this.statusWhere(query.status) };
   }
   private statusWhere(status?: GiftListStatus): Prisma.GiftWhereInput {
     if (!status || status === GiftListStatus.ALL) return {};
-    if (status === GiftListStatus.PENDING || status === GiftListStatus.REJECTED || status === GiftListStatus.FLAGGED) return { moderationStatus: status };
     return { status };
   }
   private categoryOrderBy(sortBy?: GiftCategorySortBy, sortOrder?: SortOrder): Prisma.GiftCategoryOrderByWithRelationInput { return { [sortBy === GiftCategorySortBy.NAME || sortBy === GiftCategorySortBy.SORT_ORDER ? sortBy : 'createdAt']: this.dir(sortOrder) }; }
@@ -356,13 +255,9 @@ export class GiftManagementService {
 
   private normalizeVariants(variants?: GiftVariantDto[]): GiftVariantDto[] {
     if (!variants?.length) return [];
-    this.assertSingleDefaultVariant(variants);
-    const normalized = variants.map((variant) => ({ ...variant }));
-    if (!normalized.some((variant) => variant.isDefault)) normalized[0].isDefault = true;
-    return normalized;
+    return variants.map((variant) => ({ ...variant }));
   }
   private normalizeUpdateVariants(variants: UpdateGiftVariantDto[]): UpdateGiftVariantDto[] {
-    this.assertSingleDefaultVariant(variants);
     for (const variant of variants) {
       if (!variant.id && (variant.name === undefined || variant.price === undefined)) {
         throw new BadRequestException('New variants must include name and price');
@@ -370,20 +265,17 @@ export class GiftManagementService {
     }
     return variants.map((variant) => ({ ...variant }));
   }
-  private assertSingleDefaultVariant(variants?: Array<{ isDefault?: boolean }>): void { if ((variants ?? []).filter((variant) => variant.isDefault).length > 1) throw new BadRequestException('Only one default variant is allowed'); }
   private variantCreateData(variant: GiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput { return this.variantCreateDataFromUpdate(variant); }
   private variantCreateDataFromUpdate(variant: UpdateGiftVariantDto): Prisma.GiftVariantCreateWithoutGiftInput {
     if (variant.name === undefined || variant.price === undefined) throw new BadRequestException('New variants must include name and price');
-    return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular ?? false, isDefault: variant.isDefault ?? false, sortOrder: variant.sortOrder ?? 0, isActive: variant.isActive ?? true };
+    return { name: variant.name.trim(), price: new Prisma.Decimal(variant.price) };
   }
-  private canPublishAfterApproval(gift: GiftWithRelations): boolean { return gift.status === GiftStatus.ACTIVE && gift.deletedAt === null && gift.category.isActive && gift.category.deletedAt === null && (gift.provider.isActive ?? true) && gift.provider.deletedAt === null && gift.provider.suspendedAt === null; }
   private async notifyProvider(providerId: string, giftId: string, title: string, message: string, type: string): Promise<void> { await this.giftManagementRepository.createProviderNotification({ providerId, giftId, title, message, type }); }
-  private variantUpdateData(variant: UpdateGiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price), originalPrice: variant.originalPrice === undefined ? undefined : new Prisma.Decimal(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
+  private variantUpdateData(variant: UpdateGiftVariantDto): Prisma.GiftVariantUpdateInput { return { name: variant.name?.trim(), price: variant.price === undefined ? undefined : new Prisma.Decimal(variant.price) }; }
   private async upsertVariants(tx: Prisma.TransactionClient, giftId: string, variants: UpdateGiftVariantDto[], replaceVariants: boolean): Promise<void> {
     const normalized = this.normalizeUpdateVariants(variants);
     const incomingIds = normalized.map((variant) => variant.id).filter((id): id is string => Boolean(id));
-    if (replaceVariants) await this.giftManagementRepository.softDeleteVariantsForGift(tx, giftId, incomingIds);
-    if (normalized.some((variant) => variant.isDefault)) await this.giftManagementRepository.clearDefaultVariantsForGift(tx, giftId);
+    if (replaceVariants) await this.giftManagementRepository.deleteVariantsForGift(tx, giftId, incomingIds);
     for (const variant of normalized) {
       if (variant.id) {
         const existing = await this.giftManagementRepository.findGiftVariantForGift(tx, giftId, variant.id);
@@ -401,13 +293,12 @@ export class GiftManagementService {
   }
 
   private toCategory(category: GiftCategory, totalGifts: number) { const backgroundColor = category.backgroundColor ?? category.color ?? '#F3E8FF'; return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, color: category.color ?? backgroundColor, backgroundColor, imageUrl: category.imageUrl, totalGifts, isActive: category.isActive, sortOrder: category.sortOrder, createdAt: category.createdAt, updatedAt: category.updatedAt }; }
-  private toGiftListItem(gift: GiftWithRelations, ratingSummary: RatingSummary) { const imageUrls = this.stringArray(gift.imageUrls); return { id: gift.id, name: gift.name, shortDescription: gift.shortDescription, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, status: gift.status, moderationStatus: gift.moderationStatus, isPublished: gift.isPublished, imageUrl: imageUrls[0] ?? null, imageUrls, createdAt: gift.createdAt }; }
-  private toGiftDetail(gift: GiftWithRelations, ratingSummary: RatingSummary) { return { ...this.toGiftListItem(gift, ratingSummary), description: gift.description, isFeatured: gift.isFeatured, tags: this.stringArray(gift.tags), variants: (gift.variants ?? []).map((variant) => this.toVariant(variant)), updatedAt: gift.updatedAt }; }
-  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price), originalPrice: variant.originalPrice === null ? null : Number(variant.originalPrice), isPopular: variant.isPopular, isDefault: variant.isDefault, sortOrder: variant.sortOrder, isActive: variant.isActive }; }
-  private providerName(provider: GiftWithRelations['provider']): string { return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
+  private toGiftListItem(gift: GiftWithRelations, ratingSummary: RatingSummary) { const imageUrls = this.stringArray(gift.imageUrls); return { id: gift.id, name: gift.name, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, status: gift.status, imageUrl: imageUrls[0] ?? null, imageUrls, createdAt: gift.createdAt }; }
+  private toGiftDetail(gift: GiftWithRelations, ratingSummary: RatingSummary) { return { ...this.toGiftListItem(gift, ratingSummary), description: gift.description, isFeatured: gift.isFeatured, variants: (gift.variants ?? []).map((variant) => this.toVariant(variant)), updatedAt: gift.updatedAt }; }
+  private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price) }; }
+  private providerName(provider: GiftWithRelations['provider']): string { return provider.providerProfile?.businessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
   private firstImage(gift: Gift): string | null { return this.stringArray(gift.imageUrls)[0] ?? null; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
-  private statusFromPublication(isPublished: boolean, moderationStatus: GiftModerationStatus): GiftStatus { return isPublished && moderationStatus === GiftModerationStatus.APPROVED ? GiftStatus.ACTIVE : GiftStatus.INACTIVE; }
   private emptyRatingSummary(): RatingSummary { return { rating: 0, reviewCount: 0 }; }
   private async ratingSummary(providerId: string): Promise<RatingSummary> { return (await this.ratingSummaries([{ providerId }])).get(providerId) ?? this.emptyRatingSummary(); }
   private async ratingSummaries(gifts: Pick<Gift, 'providerId'>[]): Promise<Map<string, RatingSummary>> {
@@ -428,8 +319,14 @@ export class GiftManagementService {
     if (standardChanged && !permissions.has('gifts.update')) throw new ForbiddenException('Your role does not have the required permission');
     if (!statusChanged && !standardChanged && !permissions.has('gifts.update')) throw new ForbiddenException('Your role does not have the required permission');
   }
+  private assertGiftCreatePermission(user: AuthUserContext): void {
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.PROVIDER) return;
+    if (user.role !== UserRole.STAFF || !this.flattenPermissions(user.permissions).has('gifts.create')) {
+      throw new ForbiddenException('Your role does not have the required permission');
+    }
+  }
   private hasStandardGiftUpdateFields(dto: UpdateGiftDto): boolean {
-    return dto.name !== undefined || dto.description !== undefined || dto.shortDescription !== undefined || dto.categoryId !== undefined || dto.providerId !== undefined || dto.price !== undefined || dto.currency !== undefined || dto.imageUrls !== undefined || dto.isPublished !== undefined || dto.isFeatured !== undefined || dto.tags !== undefined || dto.replaceVariants !== undefined || dto.variants !== undefined;
+    return dto.name !== undefined || dto.description !== undefined || dto.categoryId !== undefined || dto.providerId !== undefined || dto.price !== undefined || dto.currency !== undefined || dto.imageUrls !== undefined || dto.isFeatured !== undefined || dto.replaceVariants !== undefined || dto.variants !== undefined;
   }
   private async uniqueCategorySlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftCategoryBySlug(slug, exceptId)); }
   private async uniqueGiftSlug(name: string, exceptId?: string): Promise<string> { return this.uniqueSlug(name, (slug) => this.giftManagementRepository.findGiftBySlug(slug, exceptId)); }

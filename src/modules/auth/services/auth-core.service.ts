@@ -14,9 +14,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
-  AdminRole,
+  CustomerProfile,
+  StaffRole,
   Prisma,
+  ProviderProfile,
   ProviderApprovalStatus,
+  StaffProfile,
   User,
   UserRole,
 } from '@prisma/client';
@@ -30,7 +33,6 @@ import { EmailNotVerifiedException } from '../exceptions/email-not-verified.exce
 import { AuthResendVerificationRateLimiterService } from './auth-resend-verification-rate-limiter.service';
 import { MailerService } from '../../mailer/mailer.service';
 import { CustomerReferralsService } from '../../customer-referrals/services/customer-referrals.service';
-import { SUPER_ADMIN_PERMISSIONS } from '../../admin-roles/constants/permission-catalog';
 import {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -52,6 +54,12 @@ interface TokenPayload {
   type?: 'refresh';
   sessionId?: string;
 }
+
+type AuthUserWithStaff = User & {
+  staffProfile?: (StaffProfile & { staffRole: StaffRole | null }) | null;
+  providerProfile?: ProviderProfile | null;
+  customerProfile?: CustomerProfile | null;
+};
 
 const PASSWORD_RESET_SENT_MESSAGE = 'Reset instructions have been sent to the email address you provided.';
 const PASSWORD_RESET_SEND_FAILED_MESSAGE = 'We could not send the reset instructions right now. Please try again later.';
@@ -92,7 +100,6 @@ export class AuthCoreService implements OnModuleInit {
       phone: dto.phone,
       role: UserRole.REGISTERED_USER,
       isApproved: true,
-      providerApprovalStatus: null,
     });
     await this.customerReferralsService?.captureSignupReferral(user.id, dto.referralCode);
     await this.mailerService.sendVerificationEmail(
@@ -121,15 +128,17 @@ export class AuthCoreService implements OnModuleInit {
       phone: dto.phone,
       role: UserRole.PROVIDER,
       isApproved: false,
-      providerApprovalStatus: ProviderApprovalStatus.PENDING,
-      providerBusinessName: dto.businessName.trim(),
-      providerBusinessCategoryId: dto.businessCategoryId,
-      providerTaxId: dto.taxId?.trim(),
-      providerBusinessAddress: dto.businessAddress.trim(),
       location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
-      providerStoreAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
-      providerFulfillmentMethods: dto.fulfillmentMethods,
-      providerAutoAcceptOrders: dto.autoAcceptOrders ?? false,
+      providerProfile: {
+        businessName: dto.businessName.trim(),
+        businessCategoryId: dto.businessCategoryId,
+        taxId: dto.taxId?.trim(),
+        businessAddress: dto.businessAddress.trim(),
+        storeAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
+        fulfillmentMethods: dto.fulfillmentMethods,
+        autoAcceptOrders: dto.autoAcceptOrders ?? false,
+        approvalStatus: ProviderApprovalStatus.PENDING,
+      },
     });
     await this.mailerService.sendVerificationEmail(
       user.email,
@@ -146,19 +155,6 @@ export class AuthCoreService implements OnModuleInit {
     };
   }
 
-  createGuestSession() {
-    return {
-      data: {
-        role: 'GUEST_USER',
-        capabilities: [
-          'VIEW_ONBOARDING',
-          'EXPLORE_FEATURES',
-        ],
-      },
-      message: 'Guest session initialized',
-    };
-  }
-
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string | string[]) {
     this.assertLoginAllowed(dto.email);
 
@@ -169,17 +165,7 @@ export class AuthCoreService implements OnModuleInit {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (user.deletedAt && user.deleteAfter && user.deleteAfter > new Date()) {
-      return {
-        data: {
-          user: await this.toAuthUser(user),
-          deletionState: this.toDeletionState(user),
-        },
-        message: 'Account is scheduled for deletion. Cancel deletion to login.',
-      };
-    }
-
-    if (!user.isActive || user.deletedAt) {
+    if (!user.isActive) {
       this.recordFailedLogin(dto.email);
       throw new UnauthorizedException('Account is inactive');
     }
@@ -194,17 +180,17 @@ export class AuthCoreService implements OnModuleInit {
       throw new ForbiddenException('Provider account is pending Super Admin approval');
     }
 
-    if (user.role === UserRole.ADMIN && !user.isApproved) {
+    if (user.role === UserRole.STAFF && !user.isApproved) {
       this.recordFailedLogin(dto.email);
       throw new ForbiddenException('Admin account is not approved');
     }
 
     if (
-      user.role === UserRole.ADMIN &&
-      (!user.adminRoleId || !user.adminRole || user.adminRole.deletedAt || !user.adminRole.isActive)
+      user.role === UserRole.STAFF &&
+      (!user.staffProfile?.staffRoleId || !user.staffProfile.staffRole)
     ) {
       this.recordFailedLogin(dto.email);
-      throw new ForbiddenException('Admin role is inactive or missing');
+      throw new ForbiddenException('Staff role is missing');
     }
 
     const tokens = await this.issueTokens(user, undefined, ipAddress, this.normalizeUserAgent(userAgent));
@@ -242,7 +228,7 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     const user = await this.authRepository.findUserById(payload.uid);
-    if (!user?.refreshTokenHash || user.deletedAt || !user.isActive) {
+    if (!user?.refreshTokenHash || !user.isActive) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -322,7 +308,7 @@ export class AuthCoreService implements OnModuleInit {
     this.resendVerificationRateLimiter.assertAllowed(dto.email, ipAddress);
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
-    if (user && !user.deletedAt && !user.isVerified) {
+    if (user && !user.isVerified) {
       const otp = this.generateOtp();
       await this.authPasswordRepository.storeVerificationOtp(user.id, otp, this.generateOtpExpiry());
       try {
@@ -344,7 +330,7 @@ export class AuthCoreService implements OnModuleInit {
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
-    if (!user || user.deletedAt) {
+    if (!user) {
       return { message: PASSWORD_RESET_SENT_MESSAGE };
     }
 
@@ -366,7 +352,7 @@ export class AuthCoreService implements OnModuleInit {
   async verifyResetOtp(dto: VerifyResetOtpDto) {
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
-    if (!user || user.deletedAt) {
+    if (!user) {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
@@ -461,25 +447,13 @@ export class AuthCoreService implements OnModuleInit {
   }
 
   async deleteAccount(user: AuthUserContext) {
-    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.STAFF) {
       throw new ForbiddenException('Administrative accounts must be managed by Super Admin');
     }
 
     await this.authRepository.deleteAccountCascade(user.uid);
 
     return { data: null, message: 'Account deleted successfully' };
-  }
-
-  async cancelDeletion(user: AuthUserContext) {
-    const dbUser = await this.authRepository.findUserForDeletionCancel(user.uid);
-
-    if (!dbUser?.deletedAt || !dbUser.deleteAfter || dbUser.deleteAfter <= new Date()) {
-      throw new BadRequestException('Account is not scheduled for deletion');
-    }
-
-    await this.authRepository.cancelDeletion(dbUser.id);
-
-    return { data: null, message: 'Account deletion cancelled' };
   }
 
   private async createUser(input: {
@@ -493,21 +467,20 @@ export class AuthCoreService implements OnModuleInit {
     isVerified?: boolean;
     isActive?: boolean;
     mustChangePassword?: boolean;
-    adminRoleId?: string;
-    providerApprovalStatus: ProviderApprovalStatus | null;
-    providerBusinessName?: string;
-    providerBusinessCategoryId?: string;
-    providerTaxId?: string;
-    providerBusinessAddress?: string;
     location?: string;
-    providerStoreAddress?: Prisma.InputJsonValue;
-    providerServiceArea?: string;
-    providerFulfillmentMethods?: string[];
-    providerAutoAcceptOrders?: boolean;
-    providerDocuments?: string[];
-    adminTitle?: string;
+    providerProfile?: {
+      businessName?: string;
+      businessCategoryId?: string;
+      taxId?: string;
+      businessAddress?: string;
+      storeAddress?: Prisma.InputJsonValue;
+      serviceArea?: string;
+      fulfillmentMethods?: string[];
+      autoAcceptOrders?: boolean;
+      documents?: Prisma.InputJsonValue;
+      approvalStatus?: ProviderApprovalStatus;
+    };
     avatarUrl?: string;
-    adminPermissions?: Prisma.InputJsonValue;
   }): Promise<User> {
     const email = this.normalizeEmail(input.email);
     const existing = await this.authRepository.findExistingUserByEmail(email);
@@ -525,24 +498,32 @@ export class AuthCoreService implements OnModuleInit {
         phone: input.phone?.trim(),
         avatarUrl: input.avatarUrl,
         role: input.role,
-        adminRoleId: input.adminRoleId,
         isVerified: input.isVerified ?? false,
         isActive: input.isActive ?? true,
         isApproved: input.isApproved,
         mustChangePassword: input.mustChangePassword ?? false,
-        providerApprovalStatus: input.providerApprovalStatus,
-        providerBusinessName: input.providerBusinessName,
-        providerBusinessCategoryId: input.providerBusinessCategoryId,
-        providerTaxId: input.providerTaxId,
-        providerBusinessAddress: input.providerBusinessAddress,
         location: input.location,
-        providerStoreAddress: input.providerStoreAddress,
-        providerServiceArea: input.providerServiceArea,
-        providerFulfillmentMethods: input.providerFulfillmentMethods ?? undefined,
-        providerAutoAcceptOrders: input.providerAutoAcceptOrders ?? false,
-        providerDocuments: input.providerDocuments ?? undefined,
-        adminTitle: input.adminTitle,
-        adminPermissions: input.adminPermissions ?? undefined,
+        providerProfile: input.providerProfile
+          ? {
+              create: {
+                businessName: input.providerProfile.businessName,
+                businessCategoryId: input.providerProfile.businessCategoryId,
+                taxId: input.providerProfile.taxId,
+                businessAddress: input.providerProfile.businessAddress,
+                storeAddress: input.providerProfile.storeAddress,
+                serviceArea: input.providerProfile.serviceArea,
+                fulfillmentMethods: input.providerProfile.fulfillmentMethods ?? undefined,
+                autoAcceptOrders: input.providerProfile.autoAcceptOrders ?? false,
+                documents: input.providerProfile.documents ?? undefined,
+                approvalStatus: input.providerProfile.approvalStatus,
+              },
+            }
+          : undefined,
+        customerProfile: input.role === UserRole.REGISTERED_USER
+          ? {
+              create: {},
+            }
+          : undefined,
         verificationOtp: otp,
         verificationOtpExpiresAt: this.generateOtpExpiry(),
       });
@@ -565,14 +546,14 @@ export class AuthCoreService implements OnModuleInit {
   private async getActiveUser(userId: string): Promise<User> {
     const user = await this.authRepository.findActiveUserById(userId);
 
-    if (!user || user.deletedAt || !user.isActive) {
+    if (!user || !user.isActive) {
       throw new NotFoundException('User not found');
     }
 
     return user;
   }
 
-  private async issueTokens(user: User, existingSessionId?: string, ipAddress?: string, userAgent?: string) {
+  private async issueTokens(user: AuthUserWithStaff, existingSessionId?: string, ipAddress?: string, userAgent?: string) {
     const session = existingSessionId
       ? await this.authSessionsRepository.touchSession(existingSessionId)
       : await this.authSessionsRepository.createRefreshSession({
@@ -584,7 +565,7 @@ export class AuthCoreService implements OnModuleInit {
     const payload: TokenPayload = {
       uid: user.id,
       role: user.role,
-      permissions: user.adminPermissions ?? undefined,
+      permissions: user.role === UserRole.STAFF ? user.staffProfile?.staffRole?.permissions ?? undefined : undefined,
       sessionId: session.id,
     };
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -611,7 +592,7 @@ export class AuthCoreService implements OnModuleInit {
     return { accessToken, refreshToken };
   }
 
-  private async toAuthUser(user: User) {
+  private async toAuthUser(user: AuthUserWithStaff) {
     const baseUser = {
       id: user.id,
       email: user.email,
@@ -624,44 +605,43 @@ export class AuthCoreService implements OnModuleInit {
       isVerified: user.isVerified,
       isActive: user.isActive,
       mustChangePassword: user.mustChangePassword,
-      deletionState: this.toDeletionState(user),
     };
 
     if (user.role === UserRole.SUPER_ADMIN) {
       return baseUser;
     }
 
-    if (user.role === UserRole.ADMIN) {
+    if (user.role === UserRole.STAFF) {
       return {
         ...baseUser,
         admin: {
-          title: user.adminTitle,
-          roleId: user.adminRoleId,
-          permissions: user.adminPermissions,
+          roleId: user.staffProfile?.staffRoleId ?? null,
+          permissions: user.staffProfile?.staffRole?.permissions ?? {},
           isApproved: user.isApproved,
         },
       };
     }
 
     if (user.role === UserRole.PROVIDER) {
-      const businessCategory = user.providerBusinessCategoryId
-        ? await this.authRepository.findProviderBusinessCategory(user.providerBusinessCategoryId)
+      const profile = user.providerProfile;
+      const businessCategory = profile?.businessCategoryId
+        ? await this.authRepository.findProviderBusinessCategory(profile.businessCategoryId)
         : null;
       return {
         ...baseUser,
         provider: {
           id: user.id,
-          businessName: user.providerBusinessName,
+          businessName: profile?.businessName ?? null,
           businessCategory: businessCategory
             ? { id: businessCategory.id, name: businessCategory.name }
             : null,
-          taxId: user.providerTaxId,
-          businessAddress: user.providerBusinessAddress,
+          taxId: profile?.taxId ?? null,
+          businessAddress: profile?.businessAddress ?? null,
           location: this.providerLocation(user),
-          fulfillmentMethods: this.stringArray(user.providerFulfillmentMethods),
-          autoAcceptOrders: user.providerAutoAcceptOrders,
-          serviceArea: user.providerServiceArea,
-          approvalStatus: user.providerApprovalStatus,
+          fulfillmentMethods: this.stringArray(profile?.fulfillmentMethods),
+          autoAcceptOrders: profile?.autoAcceptOrders ?? false,
+          serviceArea: profile?.serviceArea ?? null,
+          approvalStatus: profile?.approvalStatus ?? null,
           status: user.isActive ? 'ACTIVE' : 'INACTIVE',
           isActive: user.isActive,
           memberSince: user.createdAt,
@@ -672,8 +652,8 @@ export class AuthCoreService implements OnModuleInit {
     return { ...baseUser, subscription: await this.customerSubscriptionSummary(user.id) };
   }
 
-  private providerLocation(user: User): { lat: number; lng: number } | null {
-    const value = user.providerStoreAddress;
+  private providerLocation(user: AuthUserWithStaff): { lat: number; lng: number } | null {
+    const value = user.providerProfile?.storeAddress;
     if (value && !Array.isArray(value) && typeof value === 'object') {
       const lat = value.lat;
       const lng = value.lng;
@@ -691,15 +671,6 @@ export class AuthCoreService implements OnModuleInit {
     return { isPremium: subscription.isPremium, status: subscription.status, planId: subscription.planId, planName: subscription.plan.name, billingCycle: subscription.billingCycle };
   }
 
-  private toDeletionState(user: User) {
-    return {
-      isDeleted: !!user.deletedAt,
-      deletionScheduled: !!user.deleteAfter && user.deleteAfter > new Date(),
-      deletedAt: user.deletedAt,
-      deleteAfter: user.deleteAfter,
-    };
-  }
-
   private stringArray(value: Prisma.JsonValue | null | undefined): string[] {
     return Array.isArray(value)
       ? value.filter((item): item is string => typeof item === 'string')
@@ -709,7 +680,7 @@ export class AuthCoreService implements OnModuleInit {
   private async userFromResetOtp(dto: ResetPasswordDto): Promise<User> {
     const user = await this.authPasswordRepository.findUserByEmail(this.normalizeEmail(dto.email));
 
-    if (!user || user.deletedAt) {
+    if (!user) {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
@@ -807,24 +778,6 @@ export class AuthCoreService implements OnModuleInit {
   }
 
   private async ensureSingleSuperAdmin(): Promise<void> {
-    const superAdminRole = await this.ensureSystemRole(
-      'Super Admin',
-      UserRole.SUPER_ADMIN,
-      'Full platform access.',
-      SUPER_ADMIN_PERMISSIONS,
-    );
-    await this.ensureSystemRole(
-      'Manager',
-      'MANAGER',
-      'Can oversee daily operations.',
-      {
-        users: ['read', 'updateStatus'],
-        admins: ['read'],
-        providers: ['read', 'approve', 'reject', 'updateStatus'],
-        reports: ['read'],
-        auditLogs: ['read'],
-      },
-    );
     const email = this.normalizeEmail('giftapp.superadmin@yopmail.com');
     const password = 'Admin@123456';
     const emailOwner = await this.authRepository.findExistingUserByEmail(email);
@@ -837,10 +790,6 @@ export class AuthCoreService implements OnModuleInit {
           isVerified: true,
           isActive: true,
           isApproved: true,
-          adminRoleId: superAdminRole.id,
-          adminPermissions: SUPER_ADMIN_PERMISSIONS,
-          deletedAt: null,
-          deleteAfter: null,
         })
       : await this.authRepository.createAuthUser({
           email,
@@ -851,8 +800,6 @@ export class AuthCoreService implements OnModuleInit {
           isVerified: true,
           isActive: true,
           isApproved: true,
-          adminRoleId: superAdminRole.id,
-          adminPermissions: SUPER_ADMIN_PERMISSIONS,
         });
 
     await this.authRepository.demoteOtherSuperAdmins(canonicalSuperAdmin.id);
@@ -866,15 +813,4 @@ export class AuthCoreService implements OnModuleInit {
   private generateOtpExpiry(): Date {
     return new Date(Date.now() + 10 * 60 * 1000);
   }
-
-  private async ensureSystemRole(
-    name: string,
-    slug: string,
-    description: string,
-    permissions: Record<string, string[]>,
-  ): Promise<AdminRole> {
-    return this.authRepository.upsertSystemRole({ name, slug, description, permissions });
-  }
-
-
 }

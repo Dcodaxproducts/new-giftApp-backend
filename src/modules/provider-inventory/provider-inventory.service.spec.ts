@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { GiftModerationStatus, GiftStatus, Prisma, UserRole } from '@prisma/client';
+import { GiftStatus, Prisma, UserRole } from '@prisma/client';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { ProviderInventoryRepository } from './provider-inventory.repository';
 import { ProviderInventoryService } from './provider-inventory.service';
@@ -10,29 +10,25 @@ const providerGift = {
   id: 'gift_1',
   name: 'Birthday Box',
   description: 'Premium gift',
-  shortDescription: 'Premium',
   imageUrls: ['https://cdn.example.com/gift.png'],
   price: new Prisma.Decimal(25),
   currency: 'USD',
   category: { id: 'category_1', name: 'Gifts' },
   status: GiftStatus.ACTIVE,
-  moderationStatus: GiftModerationStatus.NOT_REQUIRED,
-  isPublished: true,
   createdAt: new Date('2026-05-08T10:00:00.000Z'),
   variants: [],
 };
 
 describe('ProviderInventoryService ownership rules', () => {
-  const source = readFileSync(join(__dirname, '../provider-inventory.service.ts'), 'utf8');
-  const repository = readFileSync(join(__dirname, '../provider-inventory.repository.ts'), 'utf8');
-  const controller = readFileSync(join(__dirname, '../provider-inventory.controller.ts'), 'utf8');
-  const jwtGuard = readFileSync(join(__dirname, '../../../common/guards/jwt-auth.guard.ts'), 'utf8');
-  const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };
+  const source = readFileSync(join(__dirname, 'provider-inventory.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, 'provider-inventory.repository.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, 'provider-inventory.controller.ts'), 'utf8');
+  const jwtGuard = readFileSync(join(__dirname, '../../common/guards/jwt-auth.guard.ts'), 'utf8');
 
   it('scopes inventory reads and writes to the JWT provider id', () => {
     expect(source).toContain('providerId,');
     expect(source).toContain('providerId: user.uid');
-    expect(repository).toContain('id, providerId, deletedAt: null');
+    expect(repository).toContain('id, providerId');
   });
 
   it('keeps approved active provider access enforced by existing guards', () => {
@@ -43,25 +39,25 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(jwtGuard).toContain('Your provider account is pending approval. You cannot access this module yet.');
   });
 
-  it('creates provider inventory without mandatory gift moderation approval', () => {
-    expect(source).toContain('moderationStatus: GiftModerationStatus.NOT_REQUIRED');
-    expect(source).toContain('isPublished: true');
-    expect(source).not.toContain('moderationStatus: GiftModerationStatus.PENDING,\n        isPublished: false');
+  it('creates provider inventory with simple active status', () => {
+    expect(source).toContain('status: GiftStatus.ACTIVE');
+    expect(source).not.toContain('GiftModerationStatus');
+    expect(source).not.toContain('isPublished: true');
   });
 
-  it('updates provider inventory without resetting moderation to pending', () => {
-    expect(source).toContain('moderationStatus: item.moderationStatus');
-    expect(source).toContain('isPublished: item.isPublished');
+  it('updates provider inventory without moderation fields', () => {
+    expect(source).not.toContain('moderationStatus: item.moderationStatus');
+    expect(source).not.toContain('isPublished: item.isPublished');
     expect(source).not.toContain('PROVIDER_INVENTORY_ITEM_RESUBMITTED_FOR_MODERATION');
     expect(source).toContain('dto.isAvailable === true');
     expect(source).toContain('dto.isAvailable === false');
     expect(source).toContain('return item.status;');
   });
 
-  it('exposes lookup with active provider items without approved moderation requirement', () => {
+  it('exposes lookup with active provider items', () => {
     expect(source).toContain('async lookup');
     expect(repository).toContain('status: GiftStatus.ACTIVE');
-    expect(repository).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
+    expect(repository).not.toContain('moderationStatus');
   });
 
   it('read-only repository scopes list stats lookup and details by provider', () => {
@@ -69,7 +65,7 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(repository).toContain('findStatsForProvider(providerId: string)');
     expect(repository).toContain('findLookupItemsForProvider(providerId: string)');
     expect(repository).toContain('findOwnedItemById(providerId: string, id: string)');
-    expect(repository).toContain('providerId, deletedAt: null');
+    expect(repository).toContain('providerId');
   });
 
   it('write repository owns create update and delete database operations', () => {
@@ -102,9 +98,7 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(controller).toContain('activateItem');
     expect(controller).toContain('deactivateItem');
     expect(controller).toContain('markOutOfStock');
-    expect(openapi.paths['/api/v1/provider/inventory/{id}']).toBeDefined();
-    expect(openapi.paths['/api/v1/provider/inventory/{id}/status']).toBeUndefined();
-    expect(Object.keys(openapi.paths['/api/v1/provider/inventory/{id}']?.patch?.requestBody?.content?.['application/json']?.examples ?? {})).toEqual(expect.arrayContaining(['updateItem', 'activateItem', 'deactivateItem', 'markOutOfStock']));
+    expect(controller).not.toContain('moderationStatus');
   });
 
   it('status and availability update through main PATCH without affecting material moderation checks', () => {

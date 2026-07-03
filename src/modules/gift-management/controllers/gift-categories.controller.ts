@@ -13,7 +13,7 @@ import { GiftManagementService } from '../services/gift-management.service';
 @ApiTags('04 Gifts - Categories')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('gift-categories')
 export class GiftCategoriesController {
   constructor(private readonly gifts: GiftManagementService) {}

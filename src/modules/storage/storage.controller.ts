@@ -12,7 +12,7 @@ import { StorageService } from './storage.service';
 @ApiTags('07 Storage')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTERED_USER, UserRole.PROVIDER)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.REGISTERED_USER, UserRole.PROVIDER)
 @Controller('uploads')
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}

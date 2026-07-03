@@ -7,15 +7,15 @@ export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findActiveUserById(userId: string) {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+    return this.prisma.user.findUnique({ where: { id: userId }, include: { providerProfile: true, customerProfile: true } });
   }
 
   findUserByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email }, include: { adminRole: true } });
+    return this.prisma.user.findUnique({ where: { email }, include: { staffProfile: { include: { staffRole: true } }, providerProfile: true, customerProfile: true } });
   }
 
   findUserById(userId: string) {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+    return this.prisma.user.findUnique({ where: { id: userId }, include: { providerProfile: true, customerProfile: true } });
   }
 
   updateLastLoginAt(userId: string) {
@@ -34,12 +34,12 @@ export class AuthRepository {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  createAuthUser(data: Prisma.UserUncheckedCreateInput) {
+  createAuthUser(data: Prisma.UserCreateInput) {
     return this.prisma.user.create({ data });
   }
 
   updateOwnProfile(userId: string, params: { firstName?: string; lastName?: string; phone?: string; avatarUrl?: string }) {
-    return this.prisma.user.update({ where: { id: userId }, data: params });
+    return this.prisma.user.update({ where: { id: userId }, data: params, include: { providerProfile: true, customerProfile: true } });
   }
 
   deleteAccountCascade(userId: string) {
@@ -48,7 +48,6 @@ export class AuthRepository {
       await tx.notification.deleteMany({ where: { recipientId: userId } });
       await tx.notificationDeviceToken.deleteMany({ where: { userId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: userId } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: userId } });
       await tx.customerWishlist.deleteMany({ where: { userId } });
       await tx.cartItem.deleteMany({ where: { cart: { userId } } });
       await tx.cart.deleteMany({ where: { userId } });
@@ -64,16 +63,9 @@ export class AuthRepository {
       await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId } });
       await tx.customerRecurringPayment.deleteMany({ where: { userId } });
       await tx.customerContact.deleteMany({ where: { userId } });
+      await tx.customerProfile.deleteMany({ where: { userId } });
       await tx.user.delete({ where: { id: userId } });
     });
-  }
-
-  findUserForDeletionCancel(userId: string) {
-    return this.prisma.user.findUnique({ where: { id: userId } });
-  }
-
-  cancelDeletion(userId: string) {
-    return this.prisma.user.update({ where: { id: userId }, data: { isActive: true, deletedAt: null, deleteAfter: null } });
   }
 
   findCustomerSubscriptionSummary(userId: string) {
@@ -91,15 +83,7 @@ export class AuthRepository {
   demoteOtherSuperAdmins(canonicalSuperAdminId: string) {
     return this.prisma.user.updateMany({
       where: { role: UserRole.SUPER_ADMIN, id: { not: canonicalSuperAdminId } },
-      data: { role: UserRole.ADMIN, isApproved: false, isActive: false, adminPermissions: Prisma.JsonNull, refreshTokenHash: null },
-    });
-  }
-
-  upsertSystemRole(params: { name: string; slug: string; description: string; permissions: Prisma.InputJsonValue }) {
-    return this.prisma.adminRole.upsert({
-      where: { slug: params.slug },
-      create: { name: params.name, slug: params.slug, description: params.description, permissions: params.permissions, isSystem: true, isActive: true },
-      update: { name: params.name, description: params.description, permissions: params.permissions, isSystem: true, isActive: true, deletedAt: null },
+      data: { role: UserRole.STAFF, isApproved: false, isActive: false, refreshTokenHash: null },
     });
   }
 }

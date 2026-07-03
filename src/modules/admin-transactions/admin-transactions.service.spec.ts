@@ -112,7 +112,7 @@ describe('AdminTransactionsService', () => {
 
   it('REFUND action creates refund transaction record and updates original transaction status', async () => {
     const { service, prisma, auditLog, refundPolicy } = createService();
-    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST, notifyUser: true });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST, notifyUser: true });
     expect(response.data).toMatchObject({ status: 'REFUNDED' });
     expect(prisma.refundRequest.create).toHaveBeenCalled();
     expect(prisma.payment.update).toHaveBeenCalled();
@@ -125,7 +125,7 @@ describe('AdminTransactionsService', () => {
 
   it('OPEN_DISPUTE action creates linked dispute case and blocks duplicate open dispute', async () => {
     const { service, prisma, auditLog } = createService();
-    const response = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' });
     expect(response.data).toMatchObject({ caseId: 'DSP-1024' });
     expect(prisma.disputeCase.create).toHaveBeenCalled();
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'TRANSACTION_DISPUTE_OPENED' }));
@@ -140,7 +140,7 @@ describe('AdminTransactionsService', () => {
     const receipt = await service.receipt(user, 'payment_1');
     expect(receipt.content).toContain('Visa **** 4242');
     expect(receipt.content).not.toContain('clientSecret');
-    const notified = await service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['notifyUser'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.', includeReceipt: true });
+    const notified = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['notifyUser'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.', includeReceipt: true });
     expect(notified.data).toMatchObject({ notificationSent: true, channel: AdminNotificationChannel.IN_APP });
     expect(notificationDispatch.createAndEmit).toHaveBeenCalled();
     const exported = await service.export(user, { status: AdminTransactionStatus.SUCCESS });
@@ -151,9 +151,9 @@ describe('AdminTransactionsService', () => {
 
   it('enforces action-specific transaction permissions', async () => {
     const { service } = createService();
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.action({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.' })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.' })).rejects.toThrow('Your role does not have the required permission');
   });
 });
 
@@ -161,7 +161,7 @@ describe('Admin transaction monitoring source safety', () => {
   const controller = readFileSync(join(__dirname, '../admin-transactions.controller.ts'), 'utf8');
   const service = readFileSync(join(__dirname, '../admin-transactions.service.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/admin-transactions.dto.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 

@@ -38,7 +38,7 @@ export class ProviderBusinessCategoriesRepository {
   }
 
   countActiveProviders(categoryId: string) {
-    return this.prisma.user.count({ where: { providerBusinessCategoryId: categoryId, deletedAt: null, isActive: true } });
+    return this.prisma.user.count({ where: { providerProfile: { is: { businessCategoryId: categoryId } }, isActive: true } });
   }
 
   delete(id: string) {

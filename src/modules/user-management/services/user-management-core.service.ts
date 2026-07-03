@@ -231,7 +231,7 @@ export class UserManagementCoreService {
       return;
     }
 
-    if (user.role !== UserRole.ADMIN || !this.flattenPermissions(user.permissions).has(permission)) {
+    if (user.role !== UserRole.STAFF || !this.flattenPermissions(user.permissions).has(permission)) {
       throw new ForbiddenException('Your role does not have the required permission');
     }
   }
@@ -530,7 +530,6 @@ export class UserManagementCoreService {
   private buildRegisteredUserWhere(query: ListRegisteredUsersDto | ExportRegisteredUsersDto): Prisma.UserWhereInput {
     return {
       role: UserRole.REGISTERED_USER,
-      deletedAt: null,
       ...(query.search
         ? {
             OR: [

@@ -14,7 +14,7 @@ import { AdminPayoutSettingsService } from './admin-payout-settings.service';
 @ApiTags('02 Admin - Commission & Payout Settings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/payout-settings')
 export class AdminPayoutSettingsController {
   constructor(private readonly payoutSettings: AdminPayoutSettingsService) {}

@@ -42,7 +42,6 @@ export class SocialModerationService {
     const updated = await this.socialModerationRepository.runModerationAction(async (tx) => {
       const updatedPost = postData ? await this.socialModerationRepository.updateSocialPost(tx, report.postId, postData) : report.post;
       const updatedReport = await this.socialModerationRepository.updateSocialReportStatus(tx, report.id, status);
-      await this.socialModerationRepository.createSocialModerationLog(tx, { socialReportId: report.id, postId: report.postId, actorId: user.uid, action: dto.action, reason: dto.reason, comment: dto.comment?.trim(), beforeJson: before, afterJson: { reportStatus: status, postStatus: updatedPost.status, postVisibility: updatedPost.visibility } });
       if (dto.action === SocialModerationAction.WARN_USER) await this.socialModerationRepository.createUserWarning(tx, { userId: report.post.userId, postId: report.postId, socialReportId: report.id, reason: dto.reason ?? report.reason, message: dto.comment?.trim() ?? 'Warning issued for community guideline violation.', issuedById: user.uid });
       if (dto.notifyUser ?? (dto.action === SocialModerationAction.HIDE || dto.action === SocialModerationAction.REMOVE || dto.action === SocialModerationAction.WARN_USER)) { if (this.reportingCore) await this.reportingCore.notify({ recipientId: report.post.userId, recipientType: 'REGISTERED_USER', title: this.notificationTitle(dto.action), message: dto.comment?.trim() ?? this.notificationTitle(dto.action), type: 'SOCIAL_MODERATION_ACTION', metadata: { socialReportId: report.id, postId: report.postId, action: dto.action } }); else await this.socialModerationRepository.createNotification(tx, { recipientId: report.post.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: this.notificationTitle(dto.action), message: dto.comment?.trim() ?? this.notificationTitle(dto.action), type: 'SOCIAL_MODERATION_ACTION', metadataJson: { socialReportId: report.id, postId: report.postId, action: dto.action } }); }
       return { reportStatus: updatedReport.status, postStatus: updatedPost.status, postVisibility: updatedPost.visibility };
@@ -61,7 +60,7 @@ export class SocialModerationService {
   async ruleStats() {
     const now = new Date(); const dayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())); const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)); const weekAgo = new Date(now.getTime() - 7 * 86_400_000);
     const [activeRules, createdThisMonth, autoFlaggedToday, logs] = await this.socialReportingRulesRepository.findRuleStatsRows({ dayStart, monthStart, weekAgo });
-    const avg = logs.length ? Math.round(logs.reduce((s, l) => s + (l.createdAt.getTime() - l.report.createdAt.getTime()) / 60000, 0) / logs.length) : 0;
+    const avg = logs.length ? Math.round(logs.reduce((s: number, l) => s + (l.createdAt.getTime() - l.report.createdAt.getTime()) / 60000, 0) / logs.length) : 0;
     return { data: { activeRules, activeRulesDeltaText: `+${createdThisMonth} this month`, autoFlaggedToday, accuracyScore: 84, averageEscalationTimeMinutes: avg, averageEscalationDeltaText: '-4m from last week' }, message: 'Social reporting rule stats fetched successfully.' };
   }
 

@@ -2,7 +2,6 @@
 const { Client } = require('pg');
 
 const REQUIRED_TABLES = [
-  'guest_sessions',
   'chat_threads',
   'chat_messages',
   'chat_participants',
@@ -10,8 +9,6 @@ const REQUIRED_TABLES = [
 ];
 
 const REQUIRED_ENUMS = [
-  'GuestCapability',
-  'GuestSessionPlatform',
   'ChatThreadType',
   'ChatSourceType',
   'ChatThreadStatus',

@@ -15,9 +15,9 @@ describe('Customer marketplace repository cleanup', () => {
     expect(controller).toContain("@Get('gifts/discounted')");
     expect(controller).toContain("@Get('gifts/filter-options')");
     expect(controller).toContain("@Get('gifts/:id')");
-    expect(controller).toContain("@ApiTags('05 Customer / Guest - Marketplace')");
-    expect(controller).toContain('REGISTERED_USER or GUEST_USER');
-    expect(controller).toContain('Guest users cannot access wishlist, cart, checkout, addresses, contacts, events, orders, payments, wallet, recurring payments, chats, reviews, or referrals');
+    expect(controller).toContain("@ApiTags('05 Customer - Marketplace')");
+    expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
+    expect(controller).not.toContain('GUEST_USER');
   });
 
   it('customer-marketplace.service.ts no longer imports PrismaService or uses this.prisma', () => {
@@ -63,25 +63,23 @@ describe('Customer marketplace repository cleanup', () => {
   it('gift list excludes inactive providers', () => {
     expect(approvedProviderWhere).toContain('role: UserRole.PROVIDER');
     expect(approvedProviderWhere).toContain('isActive: true');
-    expect(approvedProviderWhere).toContain('providerApprovalStatus: ProviderApprovalStatus.APPROVED');
+    expect(approvedProviderWhere).toContain('approvalStatus: ProviderApprovalStatus.APPROVED');
     expect(approvedProviderWhere).toContain('suspendedAt: null');
-    expect(approvedProviderWhere).toContain('deletedAt: null');
     expect(availableGiftWhere).toContain('provider: this.approvedProviderWhere()');
   });
 
-  it('gift list uses manually managed active status and deleted flags', () => {
+  it('gift list uses manually managed active status', () => {
     expect(availableGiftWhere).toContain('status: GiftStatus.ACTIVE');
-    expect(availableGiftWhere).toContain('isPublished: true');
-    expect(availableGiftWhere).toContain('deletedAt: null');
+    expect(availableGiftWhere).not.toContain('isPublished: true');
+    expect(availableGiftWhere).not.toContain('deletedAt: null');
     expect(availableGiftWhere).not.toContain('stockQuantity');
   });
 
-  it('gift list does not require provider inventory moderation approval', () => {
-    expect(availableGiftWhere).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
-    expect(availableGiftWhere).toContain('moderationStatus: { not: GiftModerationStatus.REJECTED }');
-    expect(availableGiftWhere).toContain('hiddenByModeration: false');
-    expect(availableGiftWhere).toContain('requiresManualReview: false');
-    expect(controller).toContain('Provider inventory does not require separate gift moderation approval');
+  it('gift list does not use gift moderation fields', () => {
+    expect(availableGiftWhere).not.toContain('moderationStatus');
+    expect(availableGiftWhere).not.toContain('hiddenByModeration');
+    expect(availableGiftWhere).not.toContain('requiresManualReview');
+    expect(controller).not.toContain('Provider inventory does not require separate gift moderation approval');
   });
 
   it('gift details require a customer-visible gift', () => {

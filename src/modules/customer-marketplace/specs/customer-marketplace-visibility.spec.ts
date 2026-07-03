@@ -5,22 +5,21 @@ describe('Customer marketplace provider inventory visibility rules', () => {
   const service = readFileSync(join(__dirname, '../services/customer-marketplace.service.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, '../controllers/customer-marketplace.controller.ts'), 'utf8');
 
-  it('does not require gift moderation approval for provider inventory visibility', () => {
+  it('uses active gift status without gift moderation fields for visibility', () => {
     const availableGiftWhere = service.slice(service.indexOf('private availableGiftWhere'), service.indexOf('private approvedProviderWhere'));
     expect(availableGiftWhere).toContain('status: GiftStatus.ACTIVE');
-    expect(availableGiftWhere).toContain('isPublished: true');
-    expect(availableGiftWhere).toContain('deletedAt: null');
-    expect(availableGiftWhere).not.toContain('moderationStatus: GiftModerationStatus.APPROVED');
-    expect(availableGiftWhere).toContain('moderationStatus: { not: GiftModerationStatus.REJECTED }');
-    expect(availableGiftWhere).toContain('hiddenByModeration: false');
-    expect(availableGiftWhere).toContain('requiresManualReview: false');
+    expect(availableGiftWhere).not.toContain('isPublished: true');
+    expect(availableGiftWhere).not.toContain('deletedAt: null');
+    expect(availableGiftWhere).not.toContain('moderationStatus');
+    expect(availableGiftWhere).not.toContain('hiddenByModeration');
+    expect(availableGiftWhere).not.toContain('requiresManualReview');
   });
 
   it('requires approved active non-suspended providers', () => {
     const approvedProviderWhere = service.slice(service.indexOf('private approvedProviderWhere'), service.indexOf('private activeOfferWhere'));
     expect(approvedProviderWhere).toContain('role: UserRole.PROVIDER');
     expect(approvedProviderWhere).toContain('isActive: true');
-    expect(approvedProviderWhere).toContain('providerApprovalStatus: ProviderApprovalStatus.APPROVED');
+    expect(approvedProviderWhere).toContain('approvalStatus: ProviderApprovalStatus.APPROVED');
     expect(approvedProviderWhere).toContain('suspendedAt: null');
   });
 
@@ -30,7 +29,7 @@ describe('Customer marketplace provider inventory visibility rules', () => {
     expect(availableGiftWhere).not.toContain('variants: { some');
   });
 
-  it('documents that provider inventory does not require gift moderation approval', () => {
-    expect(controller).toContain('Provider inventory does not require separate gift moderation approval');
+  it('does not document gift moderation as a marketplace visibility gate', () => {
+    expect(controller).not.toContain('Provider inventory does not require separate gift moderation approval');
   });
 });

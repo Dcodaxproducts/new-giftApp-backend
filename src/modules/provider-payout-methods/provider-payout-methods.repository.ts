@@ -8,7 +8,7 @@ export class ProviderPayoutMethodsRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findApprovedProviderById(id: string) {
-    return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } });
+    return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER }, include: { providerProfile: true } });
   }
 
   findManyByProviderId(providerId: string) {

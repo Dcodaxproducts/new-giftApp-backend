@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderBusinessInfoRepository } from './provider-business-info.repository';
 import { ProviderBusinessHourDto, UpdateProviderBusinessInfoDto } from './dto/provider-business-info.dto';
+
+type ProviderUser = User & { providerProfile?: ProviderProfile | null };
 
 @Injectable()
 export class ProviderBusinessInfoService {
@@ -36,22 +38,23 @@ export class ProviderBusinessInfoService {
     ].some((key) => dto[key as keyof UpdateProviderBusinessInfoDto] !== undefined);
 
     const updated = await this.repository.updateProvider(user.uid, {
-        providerBusinessName: dto.businessName?.trim(),
-        providerLegalName: dto.legalName?.trim(),
-        providerTaxId: dto.taxId?.trim(),
-        providerBusinessCategoryId: dto.businessCategoryId,
-        providerBusinessEmail: dto.email?.trim(),
-        providerBusinessPhone: dto.phone?.trim(),
-        providerBusinessAddress: dto.businessAddress?.trim(),
-        providerStoreAddress: dto.storeAddress === undefined ? undefined : this.toJson(dto.storeAddress),
-        providerBusinessHours: dto.businessHours === undefined ? undefined : this.toJson(dto.businessHours),
-        providerServiceArea: dto.serviceArea?.trim(),
-        providerWebsite: dto.website?.trim(),
         location: dto.headquarters?.trim(),
-        providerFulfillmentMethods: dto.fulfillmentMethods,
-        providerAutoAcceptOrders: dto.autoAcceptOrders,
-        providerApprovalStatus: materialChange ? ProviderApprovalStatus.PENDING : provider.providerApprovalStatus,
         isApproved: materialChange ? false : provider.isApproved,
+      }, {
+        businessName: dto.businessName?.trim(),
+        legalName: dto.legalName?.trim(),
+        taxId: dto.taxId?.trim(),
+        businessCategoryId: dto.businessCategoryId,
+        businessEmail: dto.email?.trim(),
+        businessPhone: dto.phone?.trim(),
+        businessAddress: dto.businessAddress?.trim(),
+        storeAddress: dto.storeAddress === undefined ? undefined : this.toJson(dto.storeAddress),
+        businessHours: dto.businessHours === undefined ? undefined : this.toJson(dto.businessHours),
+        serviceArea: dto.serviceArea?.trim(),
+        website: dto.website?.trim(),
+        fulfillmentMethods: dto.fulfillmentMethods,
+        autoAcceptOrders: dto.autoAcceptOrders,
+        approvalStatus: materialChange ? ProviderApprovalStatus.PENDING : this.profile(provider).approvalStatus,
     });
 
     await this.repository.createAuditLog({
@@ -98,26 +101,27 @@ export class ProviderBusinessInfoService {
   }
 
   private async toBusinessInfo(provider: Awaited<ReturnType<ProviderBusinessInfoService['getProvider']>>) {
-    const category = provider.providerBusinessCategoryId
-      ? await this.repository.findBusinessCategoryByIdIncludingInactive(provider.providerBusinessCategoryId)
+    const profile = this.profile(provider);
+    const category = profile.businessCategoryId
+      ? await this.repository.findBusinessCategoryByIdIncludingInactive(profile.businessCategoryId)
       : null;
 
     return {
-      businessName: provider.providerBusinessName,
-      legalName: provider.providerLegalName,
+      businessName: profile.businessName,
+      legalName: profile.legalName,
       businessCategory: category ? { id: category.id, name: category.name } : null,
-      businessCategoryId: provider.providerBusinessCategoryId,
-      taxId: provider.providerTaxId,
-      email: provider.providerBusinessEmail ?? provider.email,
-      phone: provider.providerBusinessPhone ?? provider.phone,
-      website: provider.providerWebsite,
-      storeAddress: this.storeAddress(provider.providerStoreAddress, provider.providerBusinessAddress),
-      businessHours: this.businessHours(provider.providerBusinessHours),
-      fulfillmentMethods: this.stringArray(provider.providerFulfillmentMethods),
-      autoAcceptOrders: provider.providerAutoAcceptOrders,
-      verificationRequired: provider.providerApprovalStatus === ProviderApprovalStatus.PENDING || !provider.isApproved,
-      businessAddress: provider.providerBusinessAddress,
-      serviceArea: provider.providerServiceArea,
+      businessCategoryId: profile.businessCategoryId,
+      taxId: profile.taxId,
+      email: profile.businessEmail ?? provider.email,
+      phone: profile.businessPhone ?? provider.phone,
+      website: profile.website,
+      storeAddress: this.storeAddress(profile.storeAddress ?? null, profile.businessAddress ?? null),
+      businessHours: this.businessHours(profile.businessHours ?? null),
+      fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
+      autoAcceptOrders: profile.autoAcceptOrders ?? false,
+      verificationRequired: profile.approvalStatus === ProviderApprovalStatus.PENDING || !provider.isApproved,
+      businessAddress: profile.businessAddress,
+      serviceArea: profile.serviceArea,
       headquarters: provider.location,
     };
   }
@@ -153,40 +157,29 @@ export class ProviderBusinessInfoService {
     };
   }
 
-  private auditInfo(provider: {
-    providerBusinessName: string | null;
-    providerLegalName: string | null;
-    providerTaxId: string | null;
-    providerBusinessCategoryId: string | null;
-    providerBusinessEmail: string | null;
-    providerBusinessPhone: string | null;
-    providerBusinessAddress: string | null;
-    providerStoreAddress: Prisma.JsonValue;
-    providerBusinessHours: Prisma.JsonValue;
-    providerServiceArea: string | null;
-    providerWebsite: string | null;
-    location: string | null;
-    providerFulfillmentMethods: unknown;
-    providerAutoAcceptOrders: boolean;
-    providerApprovalStatus: ProviderApprovalStatus | null;
-  }) {
+  private auditInfo(provider: ProviderUser) {
+    const profile = this.profile(provider);
     return {
-      businessName: provider.providerBusinessName,
-      legalName: provider.providerLegalName,
-      taxId: provider.providerTaxId,
-      businessCategoryId: provider.providerBusinessCategoryId,
-      email: provider.providerBusinessEmail,
-      phone: provider.providerBusinessPhone,
-      businessAddress: provider.providerBusinessAddress,
-      storeAddress: this.storeAddress(provider.providerStoreAddress, provider.providerBusinessAddress),
-      businessHours: this.businessHours(provider.providerBusinessHours),
-      serviceArea: provider.providerServiceArea,
-      website: provider.providerWebsite,
+      businessName: profile.businessName,
+      legalName: profile.legalName,
+      taxId: profile.taxId,
+      businessCategoryId: profile.businessCategoryId,
+      email: profile.businessEmail,
+      phone: profile.businessPhone,
+      businessAddress: profile.businessAddress,
+      storeAddress: this.storeAddress(profile.storeAddress ?? null, profile.businessAddress ?? null),
+      businessHours: this.businessHours(profile.businessHours ?? null),
+      serviceArea: profile.serviceArea,
+      website: profile.website,
       headquarters: provider.location,
-      fulfillmentMethods: this.stringArray(provider.providerFulfillmentMethods),
-      autoAcceptOrders: provider.providerAutoAcceptOrders,
-      approvalStatus: provider.providerApprovalStatus,
+      fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
+      autoAcceptOrders: profile.autoAcceptOrders ?? false,
+      approvalStatus: profile.approvalStatus,
     };
+  }
+
+  private profile(provider: ProviderUser): Partial<ProviderProfile> {
+    return provider.providerProfile ?? {};
   }
 
   private stringArray(value: unknown): string[] {

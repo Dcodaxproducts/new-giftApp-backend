@@ -12,7 +12,7 @@ export const ORDER_WITH_PROVIDER_ORDERS_SELECT = Prisma.validator<Prisma.OrderSe
       id: true,
       providerId: true,
       status: true,
-      provider: { select: { id: true, providerBusinessName: true, avatarUrl: true, firstName: true, lastName: true, isActive: true } },
+      provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, isActive: true } },
     },
     orderBy: { createdAt: 'asc' },
   },

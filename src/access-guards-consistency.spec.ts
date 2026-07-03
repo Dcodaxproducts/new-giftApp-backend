@@ -6,14 +6,14 @@ function source(path: string): string {
 }
 
 describe('Access guard consistency', () => {
-  it('keeps Admin Roles and Staff Management SUPER_ADMIN only', () => {
-    const adminRoles = source('modules/admin-roles/admin-roles.controller.ts');
-    const adminStaff = source('modules/admin-management/admin-management.controller.ts');
+  it('keeps Staff Roles and Staff Management SUPER_ADMIN only', () => {
+    const StaffRoles = source('modules/staff-roles/staff-roles.controller.ts');
+    const adminStaff = source('modules/staff-management/staff-management.controller.ts');
 
-    expect(adminRoles).toContain('@Roles(UserRole.SUPER_ADMIN)');
-    expect(adminRoles).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+    expect(StaffRoles).toContain('@Roles(UserRole.SUPER_ADMIN)');
+    expect(StaffRoles).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
     expect(adminStaff).toContain('@Roles(UserRole.SUPER_ADMIN)');
-    expect(adminStaff).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+    expect(adminStaff).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
   });
 
   it('keeps permanent delete and audit logs SUPER_ADMIN only', () => {
@@ -24,7 +24,7 @@ describe('Access guard consistency', () => {
     expect(users).toMatch(/@Delete\(':id'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
     expect(providers).toMatch(/@Delete\(':id'\)\s+@Roles\(UserRole\.SUPER_ADMIN\)/);
     expect(auditLogs).toContain('@Roles(UserRole.SUPER_ADMIN)');
-    expect(auditLogs).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+    expect(auditLogs).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
   });
 
   it('documents and enforces provider-only app controllers', () => {
@@ -36,7 +36,7 @@ describe('Access guard consistency', () => {
       const controller = source(file);
       expect(controller).toContain('@UseGuards(JwtAuthGuard, RolesGuard)');
       expect(controller).toContain('@Roles(UserRole.PROVIDER)');
-      expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+      expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
     }
   });
 
@@ -51,7 +51,7 @@ describe('Access guard consistency', () => {
       const controller = source(file);
       expect(controller).toContain('@Roles(UserRole.REGISTERED_USER)');
       expect(controller).not.toContain('@Roles(UserRole.PROVIDER)');
-      expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+      expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
     }
   });
 

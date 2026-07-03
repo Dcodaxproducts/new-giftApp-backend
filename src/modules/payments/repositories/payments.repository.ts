@@ -78,10 +78,6 @@ export class PaymentsRepository {
     return this.prisma.payment.update({ where: { id: params.id }, data: { status: params.status, failureReason: params.failureReason, metadataJson: params.metadataJson } });
   }
 
-  createPaymentAuditLog(params: { paymentId?: string; userId?: string; action: string; status?: PaymentStatus; idempotencyKey?: string; metadataJson?: Prisma.InputJsonObject }) {
-    return this.prisma.paymentAuditLog.create({ data: { paymentId: params.paymentId, userId: params.userId, action: params.action, status: params.status, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson ?? {} } });
-  }
-
   createNotification(recipientId: string, title: string, message: string, type: string, metadataJson: Prisma.InputJsonObject) {
     return this.notificationDispatch.createAndEmit({ recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson })
   }

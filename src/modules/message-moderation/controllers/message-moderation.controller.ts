@@ -7,14 +7,14 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ListMessageModerationAuditLogsDto, ListMessageModerationDto, MessageModerationActionDto, MessageModerationHistoryDto } from '../dto/message-moderation.dto';
+import { ListMessageModerationDto, MessageModerationActionDto, MessageModerationHistoryDto } from '../dto/message-moderation.dto';
 import { MessageModerationService } from '../services/message-moderation.service';
 
 @ApiTags('02 Admin - Message Moderation')
 @ApiBearerAuth()
 @Controller('admin/message-moderation')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 export class MessageModerationController {
   constructor(private readonly service: MessageModerationService) {}
 
@@ -27,11 +27,6 @@ export class MessageModerationController {
   @Get('stats') @Permissions('messageModeration.read') @ApiOperation({ summary: 'Fetch message moderation stats', description: 'SUPER_ADMIN or ADMIN with messageModeration.read. Calculated from real moderation records.' }) stats() { return this.service.stats(); }
   @Get('filter-options') @Permissions('messageModeration.read') @ApiOperation({ summary: 'Fetch message moderation filter options', description: 'SUPER_ADMIN or ADMIN with messageModeration.read.' }) filterOptions() { return this.service.filterOptions(); }
   @Get('export') @Permissions('messageModeration.export') @ApiOperation({ summary: 'Export message moderation rows', description: 'SUPER_ADMIN or ADMIN with messageModeration.export. Export contains moderation-safe redacted fields only, not full private conversation history.' }) export(@Query() query: ListMessageModerationDto) { return this.service.export(query); }
-
-  @Get('audit-logs')
-  @Permissions('messageModeration.auditLogs.read')
-  @ApiOperation({ summary: 'Fetch message moderation audit logs', description: 'SUPER_ADMIN or ADMIN with messageModeration.auditLogs.read.' })
-  auditLogs(@Query() query: ListMessageModerationAuditLogsDto) { return this.service.auditLogs(query); }
 
   @Get('conversations/:id') @Permissions('messageModeration.read') @ApiOperation({ summary: 'Fetch message moderation conversation detail', description: 'SUPER_ADMIN or ADMIN with messageModeration.read. Returns participants, flagged messages, internal notes, and action history.' }) detail(@Param('id') id: string) { return this.service.detail(id); }
   @Get('conversations/:id/history') @Permissions('messageModeration.read') @ApiOperation({ summary: 'Fetch paginated message moderation conversation history', description: 'SUPER_ADMIN or ADMIN with messageModeration.read. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.' }) history(@Param('id') id: string, @Query() query: MessageModerationHistoryDto) { return this.service.history(id, query); }

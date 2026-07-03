@@ -26,7 +26,7 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    if (user?.role !== UserRole.ADMIN) {
+    if (user?.role !== UserRole.STAFF) {
       throw new ForbiddenException('Your role does not have the required permission');
     }
 

@@ -54,7 +54,7 @@ def access(op):
     m = re.search(r"Access:\s*([^\.]+)\.", desc)
     if m:
         return m.group(1).strip()
-    m = re.search(r"(SUPER_ADMIN(?:\s+or\s+ADMIN\s+with\s+[A-Za-z0-9_.]+)?|PROVIDER|REGISTERED_USER|GUEST_USER)", desc)
+    m = re.search(r"(SUPER_ADMIN(?:\s+or\s+ADMIN\s+with\s+[A-Za-z0-9_.]+)?|PROVIDER|REGISTERED_USER)", desc)
     return m.group(1).strip() if m else ("PUBLIC" if not op.get("security") else "Authenticated")
 
 def route_role(tag, method, path, op):
@@ -65,7 +65,7 @@ def route_role(tag, method, path, op):
         return ["admin"]
     if tag.startswith("03 Provider") or tag == "03 Provider - Inventory" or "/PROVIDER" in path_u:
         return ["provider"]
-    if tag.startswith("05 Customer") or tag.startswith("05 Guest") or tag == "06 Payments" or "/CUSTOMER/" in path_u:
+    if tag.startswith("05 Customer") or tag == "06 Payments" or "/CUSTOMER/" in path_u:
         return ["user"]
     if tag == "06 Notifications":
         return ["admin", "provider", "user"]
@@ -76,7 +76,7 @@ def route_role(tag, method, path, op):
     if tag == "01 Auth":
         if "/providers/register" in path:
             return ["provider"]
-        if "/users/register" in path or "/guest/" in path:
+        if "/users/register" in path:
             return ["user"]
         return ["admin", "provider", "user"]
     return ["user"]
@@ -149,8 +149,7 @@ html.append("<h2>Frontend Integration Flows</h2>")
 html.append("""
 <div class='notice'><b>Required app flows covered by this guide:</b>
 <ul>
-  <li><b>Auth flows:</b> login/register, token refresh, sessions, profile, password reset, and guest session creation.</li>
-  <li><b>Guest flows:</b> use guest session + guest marketplace APIs under <code>05 Customer / Guest - Marketplace</code>; guest users can browse configured marketplace surfaces only.</li>
+  <li><b>Auth flows:</b> login/register, token refresh, sessions, profile, and password reset.</li>
   <li><b>Registered customer flows:</b> marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.</li>
   <li><b>Provider flows:</b> dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.</li>
   <li><b>Super Admin/Admin flows:</b> staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.</li>
@@ -168,7 +167,7 @@ for key in ["admin", "user", "provider"]:
     if key == "admin":
         html.append("<p class='small'>Use SUPER_ADMIN token, or ADMIN token with the RBAC permission shown in Swagger access notes.</p>")
     elif key == "user":
-        html.append("<p class='small'>Use REGISTERED_USER token unless the endpoint is public (for example guest/session or category lookup).</p>")
+        html.append("<p class='small'>Use REGISTERED_USER token unless the endpoint is public, such as category lookup.</p>")
     else:
         html.append("<p class='small'>Use PROVIDER token. Provider-facing data is scoped to the authenticated provider account/business.</p>")
     for module in sorted(sec["modules"].keys()):
@@ -247,8 +246,7 @@ md = [f"{line}\n" for line in generated_notice]
 md.append("\n# Gift App Backend — Frontend Developer API Guide\n\n")
 md.append(f"Generated from `docs/generated/openapi.json` on {generated_at}.\n\n")
 md.append("## Frontend Integration Flows\n\n")
-md.append("- **Auth flows:** login/register, token refresh, sessions, profile, password reset, and guest session creation.\n")
-md.append("- **Guest flows:** use guest session + guest marketplace APIs under `05 Customer / Guest - Marketplace`; guest users can browse configured marketplace surfaces only.\n")
+md.append("- **Auth flows:** login/register, token refresh, sessions, profile, and password reset.\n")
 md.append("- **Registered customer flows:** marketplace, wishlist, addresses, contacts, events, cart, orders, provider chat, reviews, reports, recurring payments, transactions, referrals, subscriptions, wallet, and payment methods.\n")
 md.append("- **Provider flows:** dashboard, business info, buyer chat, reviews, inventory, promotional offers, orders, payouts, payout methods, refunds, and analytics. Provider inventory visibility does not require gift moderation approval; approved active non-suspended providers remain the visibility gate.\n")
 md.append("- **Super Admin/Admin flows:** staff, roles, users, providers, moderation, support chat, payments/payouts, disputes/refunds, settings, audit logs, notifications, and storage policy.\n")

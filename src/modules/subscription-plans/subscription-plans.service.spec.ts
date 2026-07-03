@@ -34,26 +34,26 @@ function createService() {
 describe('SubscriptionPlansService', () => {
   it('creates plan and writes audit log', async () => {
     const { service, prisma, audit } = createService();
-    await service.createPlan({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Pro', monthlyPrice: 49 });
+    await service.createPlan({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Pro', monthlyPrice: 49 });
     expect(prisma.subscriptionPlan.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ slug: 'pro', monthlyPrice: expect.anything(), yearlyPrice: expect.anything() }) }));
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'SUBSCRIPTION_PLAN_CREATED' }));
   });
 
   it('creates plan with yearly pricing only', async () => {
     const { service, prisma } = createService();
-    await service.createPlan({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Annual Pro', yearlyPrice: 490 });
+    await service.createPlan({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Annual Pro', yearlyPrice: 490 });
     expect(Number(prisma.subscriptionPlan.create.mock.calls[0][0].data.monthlyPrice)).toBe(0);
     expect(Number(prisma.subscriptionPlan.create.mock.calls[0][0].data.yearlyPrice)).toBe(490);
   });
 
   it('requires at least one pricing unit when creating a plan', async () => {
     const { service } = createService();
-    await expect(service.createPlan({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Freeform' })).rejects.toThrow('Either monthlyPrice or yearlyPrice is required');
+    await expect(service.createPlan({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Freeform' })).rejects.toThrow('Either monthlyPrice or yearlyPrice is required');
   });
 
   it('filters removed limit fields from plan responses and writes', async () => {
     const { service, prisma } = createService();
-    await service.createPlan({ uid: 'admin_1', role: UserRole.ADMIN }, { name: 'Pro', monthlyPrice: 49, limits: { maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2, maxTeamMembers: 99, storageGb: 100 } as Record<string, unknown> });
+    await service.createPlan({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Pro', monthlyPrice: 49, limits: { maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2, maxTeamMembers: 99, storageGb: 100 } as Record<string, unknown> });
     expect(prisma.subscriptionPlan.create.mock.calls[0][0].data.limitsJson).toEqual({ maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2 });
 
     prisma.subscriptionPlan.findFirst.mockResolvedValue({ ...(await prisma.subscriptionPlan.findMany())[0], limitsJson: { maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2, maxTeamMembers: 99, storageGb: 100 } });
@@ -81,7 +81,7 @@ describe('SubscriptionPlansService', () => {
     const { service, prisma, audit } = createService();
     const existing = (await prisma.subscriptionPlan.findMany())[0];
     prisma.subscriptionPlan.findFirst.mockImplementation((args: { where: { id?: string; slug?: string } }) => Promise.resolve(args.where.slug ? null : existing));
-    const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { subscriptionPlans: ['update'] } }, 'plan_1', { name: 'Premium' });
+    const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['update'] } }, 'plan_1', { name: 'Premium' });
     expect(result.data).toEqual(expect.objectContaining({ name: 'Premium', slug: 'premium' }));
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'SUBSCRIPTION_PLAN_UPDATED', beforeJson: expect.objectContaining({ name: 'Pro' }), afterJson: expect.objectContaining({ name: 'Premium' }) }));
   });
@@ -89,7 +89,7 @@ describe('SubscriptionPlansService', () => {
   it('status update works through main PATCH with status permission', async () => {
     const { service, prisma } = createService();
     prisma.subscriptionPlan.findFirst.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
-    const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { subscriptionPlans: ['status.update'] } }, 'plan_1', { status: SubscriptionPlanStatus.INACTIVE, reason: 'Plan paused.' });
+    const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['status.update'] } }, 'plan_1', { status: SubscriptionPlanStatus.INACTIVE, reason: 'Plan paused.' });
     expect(result.data).toEqual(expect.objectContaining({ status: SubscriptionPlanStatus.INACTIVE }));
     expect(prisma.subscriptionPlan.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: SubscriptionPlanStatus.INACTIVE }) }));
   });
@@ -97,7 +97,7 @@ describe('SubscriptionPlansService', () => {
   it('visibility update works through main PATCH with visibility permission', async () => {
     const { service, prisma } = createService();
     prisma.subscriptionPlan.findFirst.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
-    const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { subscriptionPlans: ['visibility.update'] } }, 'plan_1', { isVisible: false, reason: 'Plan hidden.' });
+    const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['visibility.update'] } }, 'plan_1', { isVisible: false, reason: 'Plan hidden.' });
     expect(result.data).toEqual(expect.objectContaining({ visibility: SubscriptionPlanVisibility.PRIVATE }));
     expect(prisma.subscriptionPlan.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ visibility: SubscriptionPlanVisibility.PRIVATE }) }));
   });
@@ -105,8 +105,8 @@ describe('SubscriptionPlansService', () => {
   it('permissions are enforced for status and visibility fields', async () => {
     const { service, prisma } = createService();
     prisma.subscriptionPlan.findFirst.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
-    await expect(service.updatePlan({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { subscriptionPlans: ['read'] } }, 'plan_1', { status: SubscriptionPlanStatus.ACTIVE })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.updatePlan({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { subscriptionPlans: ['status.update'] } }, 'plan_1', { visibility: SubscriptionPlanVisibility.PUBLIC })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['read'] } }, 'plan_1', { status: SubscriptionPlanStatus.ACTIVE })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['status.update'] } }, 'plan_1', { visibility: SubscriptionPlanVisibility.PUBLIC })).rejects.toThrow('Your role does not have the required permission');
   });
 
   it('old status and visibility routes are removed from Swagger', () => {
@@ -122,9 +122,9 @@ describe('SubscriptionPlansService', () => {
 
   it('creates coupon and writes audit log', async () => {
     const { service, prisma, audit } = createService();
-    await service.createCoupon({ uid: 'admin_1', role: UserRole.ADMIN }, { code: 'summer25', discountType: CouponDiscountType.PERCENTAGE, discountValue: 25 });
+    await service.createCoupon({ uid: 'admin_1', role: UserRole.STAFF }, { code: 'summer25', discountType: CouponDiscountType.PERCENTAGE, discountValue: 25 });
     expect(prisma.coupon.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ code: 'SUMMER25' }) }));
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.ADMIN, action: 'COUPON_CREATED' }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.STAFF, action: 'COUPON_CREATED' }));
   });
 
   it('lists newly created coupons first by default', async () => {
@@ -139,7 +139,7 @@ describe('SubscriptionPlansService', () => {
     const { service, prisma, audit } = createService();
     const existing = (await prisma.coupon.findMany())[0];
     prisma.coupon.findFirst.mockImplementation(({ where }: { where: { id?: string | { not: string } } }) => Promise.resolve(typeof where.id === 'string' ? existing : null));
-    const result = await service.updateCoupon({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { coupons: ['update'] } }, 'coupon_1', { code: 'fall10', description: 'Fall campaign' });
+    const result = await service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['update'] } }, 'coupon_1', { code: 'fall10', description: 'Fall campaign' });
     expect(result.data).toEqual(expect.objectContaining({ code: 'FALL10', description: 'Fall campaign' }));
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'COUPON_UPDATED' }));
   });
@@ -147,7 +147,7 @@ describe('SubscriptionPlansService', () => {
   it('coupon status update works through main PATCH with status permission', async () => {
     const { service, prisma, audit } = createService();
     prisma.coupon.findFirst.mockResolvedValue((await prisma.coupon.findMany())[0]);
-    const result = await service.updateCoupon({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { coupons: ['status.update'] } }, 'coupon_1', { status: CouponStatus.INACTIVE, isActive: false, reason: 'Campaign paused.' });
+    const result = await service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['status.update'] } }, 'coupon_1', { status: CouponStatus.INACTIVE, isActive: false, reason: 'Campaign paused.' });
     expect(result.data).toEqual(expect.objectContaining({ status: CouponStatus.INACTIVE, isActive: false }));
     expect(prisma.coupon.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false }) }));
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'COUPON_UPDATED', beforeJson: expect.objectContaining({ status: CouponStatus.ACTIVE, reason: 'Campaign paused.' }), afterJson: expect.objectContaining({ status: CouponStatus.INACTIVE, reason: 'Campaign paused.' }) }));
@@ -156,16 +156,16 @@ describe('SubscriptionPlansService', () => {
   it('coupon update permissions are enforced', async () => {
     const { service, prisma, audit } = createService();
     prisma.coupon.findFirst.mockResolvedValue((await prisma.coupon.findMany())[0]);
-    await expect(service.updateCoupon({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { coupons: ['read'] } }, 'coupon_1', { code: 'fall10' })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.updateCoupon({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { coupons: ['update'] } }, 'coupon_1', { status: CouponStatus.INACTIVE })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['read'] } }, 'coupon_1', { code: 'fall10' })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['update'] } }, 'coupon_1', { status: CouponStatus.INACTIVE })).rejects.toThrow('Your role does not have the required permission');
     expect(audit.write).not.toHaveBeenCalled();
   });
 
   it('creates and archives plan feature catalog entries', async () => {
     const { service, prisma, audit } = createService();
-    await service.createFeature({ uid: 'admin_1', role: UserRole.ADMIN }, { key: 'apiAccess', label: 'API Access', type: PlanFeatureType.BOOLEAN });
+    await service.createFeature({ uid: 'admin_1', role: UserRole.STAFF }, { key: 'apiAccess', label: 'API Access', type: PlanFeatureType.BOOLEAN });
     prisma.planFeatureCatalog.findFirst.mockResolvedValue((await prisma.planFeatureCatalog.findMany())[0]);
-    await service.deleteFeature({ uid: 'admin_1', role: UserRole.ADMIN }, 'feature_1');
+    await service.deleteFeature({ uid: 'admin_1', role: UserRole.STAFF }, 'feature_1');
     expect(prisma.planFeatureCatalog.delete).toHaveBeenCalledWith({ where: { id: 'feature_1' } });
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'PLAN_FEATURE_DELETED' }));
   });

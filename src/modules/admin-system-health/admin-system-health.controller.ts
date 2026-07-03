@@ -12,7 +12,7 @@ import { SystemHealthGraphQueryDto } from './dto/admin-system-health.dto';
 @ApiTags('02 Admin - System Health Monitoring')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/system-health')
 export class AdminSystemHealthController {
   constructor(private readonly service: AdminSystemHealthService) {}

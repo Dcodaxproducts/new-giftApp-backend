@@ -13,7 +13,7 @@ import { TestReviewPolicyDto, UpdateReviewPoliciesDto } from './dto/admin-review
 @ApiTags('02 Admin - Review Policies')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/review-policies')
 export class ReviewPoliciesController {
   constructor(private readonly reviews: AdminReviewsService) {}

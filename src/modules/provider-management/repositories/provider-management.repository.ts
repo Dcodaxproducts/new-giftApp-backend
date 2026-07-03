@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountType, GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole } from '@prisma/client';
+import { GiftStatus, PaymentStatus, Prisma, ProviderApprovalStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../../common/pagination/pagination.util';
 import { PrismaService } from '../../../database/prisma.service';
@@ -62,6 +62,7 @@ export class ProviderManagementRepository {
   findManyProviders(query: ListProvidersDto | ExportProvidersDto, pagination?: { skip: number; take: number }) {
     return this.prisma.user.findMany({
       where: this.buildProviderWhere(query),
+      include: { providerProfile: true },
       orderBy: this.toOrderBy('sortBy' in query ? query.sortBy : undefined, 'sortOrder' in query ? query.sortOrder : undefined),
       skip: pagination?.skip,
       take: pagination?.take,
@@ -73,7 +74,7 @@ export class ProviderManagementRepository {
   }
 
   findProviderById(id: string) {
-    return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } });
+    return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER }, include: { providerProfile: true } });
   }
 
   findProviderByUserId(userId: string) {
@@ -89,28 +90,28 @@ export class ProviderManagementRepository {
     return this.prisma.user.findMany({
       where: {
         role: UserRole.PROVIDER,
-        deletedAt: null,
-        providerApprovalStatus: query.approvalStatus ?? ProviderApprovalStatus.APPROVED,
+        providerProfile: { is: { approvalStatus: query.approvalStatus ?? ProviderApprovalStatus.APPROVED } },
         isActive: query.isActive ?? true,
         ...(query.search
           ? {
               OR: [
-                { providerBusinessName: { contains: query.search, mode: 'insensitive' } },
+                { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } },
                 { email: { contains: query.search, mode: 'insensitive' } },
               ],
             }
           : {}),
       },
-      orderBy: { providerBusinessName: 'asc' },
+      include: { providerProfile: true },
+      orderBy: { providerProfile: { businessName: 'asc' } },
       take,
     });
   }
 
   async findProviderStats() {
     const [totalProviders, pendingApproval, inactiveProviders] = await this.prisma.$transaction([
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, providerApprovalStatus: ProviderApprovalStatus.PENDING } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, isActive: false } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.PENDING } } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false } }),
     ]);
     return { totalProviders, pendingApproval, inactiveProviders };
   }
@@ -163,17 +164,17 @@ export class ProviderManagementRepository {
       }),
       this.prisma.gift.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, deletedAt: null, status: GiftStatus.ACTIVE },
+        where: { providerId: { in: uniqueProviderIds }, status: GiftStatus.ACTIVE },
         _count: { _all: true },
       }),
       this.prisma.gift.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, deletedAt: null, status: GiftStatus.ACTIVE, createdAt: { gte: currentWindow.start, lt: currentWindow.end } },
+        where: { providerId: { in: uniqueProviderIds }, status: GiftStatus.ACTIVE, createdAt: { gte: currentWindow.start, lt: currentWindow.end } },
         _count: { _all: true },
       }),
       this.prisma.gift.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, deletedAt: null, status: GiftStatus.ACTIVE, createdAt: { gte: previousWindow.start, lt: previousWindow.end } },
+        where: { providerId: { in: uniqueProviderIds }, status: GiftStatus.ACTIVE, createdAt: { gte: previousWindow.start, lt: previousWindow.end } },
         _count: { _all: true },
       }),
       this.prisma.providerOrder.groupBy({
@@ -206,17 +207,17 @@ export class ProviderManagementRepository {
         where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, status: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
-      this.prisma.providerDisputeCase.groupBy({
+      this.prisma.dispute.groupBy({
         by: ['providerId'],
         where: { providerId: { in: uniqueProviderIds } },
         _count: { _all: true },
       }),
-      this.prisma.providerDisputeCase.groupBy({
+      this.prisma.dispute.groupBy({
         by: ['providerId'],
         where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } },
         _count: { _all: true },
       }),
-      this.prisma.providerDisputeCase.groupBy({
+      this.prisma.dispute.groupBy({
         by: ['providerId'],
         where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } },
         _count: { _all: true },
@@ -288,11 +289,7 @@ export class ProviderManagementRepository {
     const gifts = await this.prisma.gift.findMany({
       where: {
         providerId,
-        deletedAt: null,
         ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
-      },
-      include: {
-        variants: { where: { deletedAt: null, isActive: true }, select: { stockQuantity: true } },
       },
     });
 
@@ -325,12 +322,7 @@ export class ProviderManagementRepository {
           currency: gift.currency,
           salesCount,
           salesPercentage: totalSales === 0 ? 0 : this.round((salesCount / totalSales) * 100),
-          status: this.toProviderItemStatus({
-            status: gift.status,
-            isPublished: gift.isPublished,
-            stockQuantity: gift.stockQuantity,
-            variantStock: gift.variants.map((variant) => variant.stockQuantity),
-          }),
+          status: this.toProviderItemStatus(gift.status),
           imageUrl: this.firstImage(gift.imageUrls),
         };
       })
@@ -358,13 +350,13 @@ export class ProviderManagementRepository {
       fallbackOrdersCurrent,
       fallbackOrdersPrevious,
     ] = await Promise.all([
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, providerApprovalStatus: ProviderApprovalStatus.PENDING } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, isActive: false } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, isActive: false, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
-      this.prisma.user.count({ where: { role: UserRole.PROVIDER, deletedAt: null, isActive: false, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.PENDING } } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
+      this.prisma.user.count({ where: { role: UserRole.PROVIDER, isActive: false, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
@@ -406,36 +398,26 @@ export class ProviderManagementRepository {
     });
   }
 
-  createProviderWithUser(data: Prisma.UserUncheckedCreateInput) {
-    return this.prisma.user.create({ data });
+  createProviderWithUser(data: Prisma.UserCreateInput) {
+    return this.prisma.user.create({ data, include: { providerProfile: true } });
   }
 
-  updateProvider(id: string, data: Prisma.UserUncheckedUpdateInput) {
-    return this.prisma.user.update({ where: { id }, data });
-  }
-
-  updateProviderLifecycleStatus(id: string, data: Prisma.UserUncheckedUpdateInput) {
-    return this.prisma.user.update({ where: { id }, data });
-  }
-
-  createAccountSuspension(data: { accountId: string; reason: string; comment?: string; suspendedBy: string }) {
-    return this.prisma.accountSuspension.create({
-      data: {
-        accountId: data.accountId,
-        accountType: AccountType.PROVIDER,
-        reason: data.reason,
-        comment: data.comment,
-        suspendedBy: data.suspendedBy,
-        isActive: true,
-      },
+  updateProvider(id: string, data: Prisma.UserUpdateInput, profileData?: Prisma.ProviderProfileUncheckedUpdateInput) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id }, data });
+      if (profileData) {
+        await tx.providerProfile.upsert({
+          where: { userId: id },
+          create: { userId: id, ...profileData } as Prisma.ProviderProfileUncheckedCreateInput,
+          update: profileData,
+        });
+      }
+      return tx.user.findUniqueOrThrow({ where: { id }, include: { providerProfile: true } });
     });
   }
 
-  deactivateActiveAccountSuspensions(providerId: string, userId: string) {
-    return this.prisma.accountSuspension.updateMany({
-      where: { accountId: providerId, isActive: true },
-      data: { isActive: false, unsuspendedBy: userId, unsuspendedAt: new Date() },
-    });
+  updateProviderLifecycleStatus(id: string, data: Prisma.UserUpdateInput, profileData?: Prisma.ProviderProfileUncheckedUpdateInput) {
+    return this.updateProvider(id, data, profileData);
   }
 
   countActiveProcessingOrders(providerId: string) {
@@ -461,7 +443,6 @@ export class ProviderManagementRepository {
       await tx.notification.deleteMany({ where: { recipientId: params.providerId } });
       await tx.notificationDeviceToken.deleteMany({ where: { userId: params.providerId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: params.providerId } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: params.providerId } });
       await tx.promotionalOffer.deleteMany({ where: { providerId: params.providerId } });
       await tx.gift.deleteMany({ where: { providerId: params.providerId } });
       await tx.user.delete({ where: { id: params.providerId } });
@@ -492,11 +473,10 @@ export class ProviderManagementRepository {
   private buildProviderWhere(query: ListProvidersDto | ExportProvidersDto): Prisma.UserWhereInput {
     return {
       role: UserRole.PROVIDER,
-      deletedAt: null,
       ...(query.search
         ? {
             OR: [
-              { providerBusinessName: { contains: query.search, mode: 'insensitive' } },
+              { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } },
               { email: { contains: query.search, mode: 'insensitive' } },
               { phone: { contains: query.search, mode: 'insensitive' } },
             ],
@@ -504,7 +484,7 @@ export class ProviderManagementRepository {
         : {}),
       ...this.statusWhere(query.status),
       ...(query.approvalStatus && query.approvalStatus !== 'ALL'
-        ? { providerApprovalStatus: query.approvalStatus }
+        ? { providerProfile: { is: { approvalStatus: query.approvalStatus } } }
         : {}),
     };
   }
@@ -512,7 +492,7 @@ export class ProviderManagementRepository {
   private statusWhere(status?: ProviderStatusFilter): Prisma.UserWhereInput {
     switch (status) {
       case ProviderStatusFilter.ACTIVE:
-        return { isActive: true, suspendedAt: null, providerApprovalStatus: ProviderApprovalStatus.APPROVED };
+        return { isActive: true, suspendedAt: null, providerProfile: { is: { approvalStatus: ProviderApprovalStatus.APPROVED } } };
       case ProviderStatusFilter.INACTIVE:
       case ProviderStatusFilter.DISABLED:
         return { isActive: false, suspendedAt: null };
@@ -527,11 +507,11 @@ export class ProviderManagementRepository {
   private toOrderBy(sortBy?: ProviderSortBy, sortOrder?: SortOrder): Prisma.UserOrderByWithRelationInput {
     const direction = sortOrder === SortOrder.ASC ? 'asc' : 'desc';
     if (sortBy === ProviderSortBy.BUSINESS_NAME) {
-      return { providerBusinessName: direction };
+      return { providerProfile: { businessName: direction } };
     }
 
     if (sortBy === ProviderSortBy.APPROVAL_STATUS) {
-      return { providerApprovalStatus: direction };
+      return { providerProfile: { approvalStatus: direction } };
     }
 
     return { createdAt: direction };
@@ -591,15 +571,9 @@ export class ProviderManagementRepository {
     };
   }
 
-  private toProviderItemStatus(input: { status: GiftStatus; isPublished: boolean; stockQuantity: number; variantStock: number[] }): ProviderItemStatus {
-    const hasVariantStock = input.variantStock.some((value) => value > 0);
-    const hasStock = input.stockQuantity > 0 || hasVariantStock;
-    if (input.status === GiftStatus.ACTIVE && input.isPublished && hasStock) {
-      return ProviderItemStatus.ACTIVE;
-    }
-    if (input.stockQuantity <= 0 && !hasVariantStock) {
-      return ProviderItemStatus.OUT_OF_STOCK;
-    }
+  private toProviderItemStatus(status: GiftStatus): ProviderItemStatus {
+    if (status === GiftStatus.ACTIVE) return ProviderItemStatus.ACTIVE;
+    if (status === GiftStatus.OUT_OF_STOCK) return ProviderItemStatus.OUT_OF_STOCK;
     return ProviderItemStatus.INACTIVE;
   }
 

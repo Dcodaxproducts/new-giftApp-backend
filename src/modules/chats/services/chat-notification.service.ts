@@ -51,7 +51,7 @@ export class ChatNotificationService {
 
   private recipientType(role: string): NotificationRecipientType {
     if (role === UserRole.PROVIDER) return NotificationRecipientType.PROVIDER;
-    if (role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) return NotificationRecipientType.ADMIN;
+    if (role === UserRole.STAFF || role === UserRole.SUPER_ADMIN) return NotificationRecipientType.ADMIN;
     return NotificationRecipientType.REGISTERED_USER;
   }
 

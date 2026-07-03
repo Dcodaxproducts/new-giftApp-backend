@@ -8,7 +8,7 @@ export class CustomerProviderReportsRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findProviderById(providerId: string) {
-    return this.prisma.user.findFirst({ where: { id: providerId, role: UserRole.PROVIDER, deletedAt: null } });
+    return this.prisma.user.findFirst({ where: { id: providerId, role: UserRole.PROVIDER } });
   }
 
   findDuplicateActiveReport(params: { reporterUserId: string; providerId: string; orderId?: string; reason: Prisma.ProviderReportUncheckedCreateInput['reason'] }) {
@@ -27,14 +27,14 @@ export class CustomerProviderReportsRepository {
     return this.prisma.uploadedFile.findMany({ where: { fileUrl: { in: urls }, deletedAt: null, status: 'COMPLETED', folder: 'provider-report-evidence' }, select: { fileUrl: true } });
   }
 
-  findProviderReportsAndCount(params: { where: Prisma.ProviderReportWhereInput; include: Prisma.ProviderReportInclude; skip: number; take: number }) {
+  findProviderReportsAndCount<T extends Prisma.ProviderReportInclude>(params: { where: Prisma.ProviderReportWhereInput; include: T; skip: number; take: number }) {
     return this.prisma.$transaction([
       this.prisma.providerReport.findMany({ where: params.where, include: params.include, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
       this.prisma.providerReport.count({ where: params.where }),
     ]);
   }
 
-  findProviderReportForUser(userId: string, id: string, include: Prisma.ProviderReportInclude) {
+  findProviderReportForUser<T extends Prisma.ProviderReportInclude>(userId: string, id: string, include: T) {
     return this.prisma.providerReport.findFirst({ where: { id, reporterUserId: userId }, include });
   }
 
@@ -48,7 +48,7 @@ export class CustomerProviderReportsRepository {
   }
 
   findActiveAdminRecipients() {
-    return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.ADMIN] }, isActive: true, deletedAt: null }, select: { id: true, role: true } });
+    return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.STAFF] }, isActive: true }, select: { id: true, role: true } });
   }
 
   createAdminReportNotifications(admins: { id: string; role: UserRole }[], params: { reportId: string; providerId: string }) {

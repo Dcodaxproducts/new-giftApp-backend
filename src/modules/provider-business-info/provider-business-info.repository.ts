@@ -9,7 +9,7 @@ export class ProviderBusinessInfoRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findProviderById(id: string) {
-    return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER, deletedAt: null } });
+    return this.prisma.user.findFirst({ where: { id, role: UserRole.PROVIDER }, include: { providerProfile: true } });
   }
 
   findBusinessCategoryById(id: string) {
@@ -20,8 +20,16 @@ export class ProviderBusinessInfoRepository {
     return this.prisma.providerBusinessCategory.findUnique({ where: { id } });
   }
 
-  updateProvider(id: string, data: Prisma.UserUncheckedUpdateInput) {
-    return this.prisma.user.update({ where: { id }, data });
+  updateProvider(id: string, data: Prisma.UserUpdateInput, profileData: Prisma.ProviderProfileUncheckedUpdateInput) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id }, data });
+      await tx.providerProfile.upsert({
+        where: { userId: id },
+        create: { userId: id, ...profileData } as Prisma.ProviderProfileUncheckedCreateInput,
+        update: profileData,
+      });
+      return tx.user.findUniqueOrThrow({ where: { id }, include: { providerProfile: true } });
+    });
   }
 
   async createAuditLog(data: Prisma.AdminAuditLogUncheckedCreateInput) {
@@ -30,7 +38,7 @@ export class ProviderBusinessInfoRepository {
   }
 
   findActiveSuperAdmins() {
-    return this.prisma.user.findMany({ where: { role: UserRole.SUPER_ADMIN, isActive: true, deletedAt: null }, select: { id: true } });
+    return this.prisma.user.findMany({ where: { role: UserRole.SUPER_ADMIN, isActive: true }, select: { id: true } });
   }
 
   createNotification(data: Prisma.NotificationUncheckedCreateInput) {

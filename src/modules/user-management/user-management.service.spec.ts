@@ -21,6 +21,7 @@ function createService() {
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
       findFirst: jest.fn(),
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', firstName: 'Admin', lastName: 'User', role: UserRole.STAFF }),
       update: jest.fn(),
     },
     adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
@@ -28,7 +29,6 @@ function createService() {
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
     notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn() },
-    accountSuspension: { create: jest.fn(), updateMany: jest.fn(), deleteMany: jest.fn() },
     customerWishlist: { deleteMany: jest.fn() },
     cartItem: { deleteMany: jest.fn() },
     cart: { deleteMany: jest.fn() },
@@ -205,7 +205,7 @@ describe('UserManagementService', () => {
     prisma.user.findFirst.mockResolvedValue(registeredUser);
     prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: false, suspendedAt: new Date(), suspendedBy: 'admin_1', refreshTokenHash: null });
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['suspend'] } }, 'user_1', {
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { users: ['suspend'] } }, 'user_1', {
       action: RegisteredUserLifecycleAction.SUSPEND,
       reason: SuspensionReason.POLICY_VIOLATION,
       comment: 'User violated platform policy.',
@@ -214,9 +214,6 @@ describe('UserManagementService', () => {
 
     expect(result.message).toBe('User suspended successfully');
     expect(prisma.user.findFirst).toHaveBeenCalledWith({ where: { id: 'user_1', role: UserRole.REGISTERED_USER, deletedAt: null } });
-    expect(prisma.accountSuspension.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ accountId: 'user_1', accountType: 'REGISTERED_USER', reason: SuspensionReason.POLICY_VIOLATION }),
-    }));
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false, refreshTokenHash: null }) }));
     expect(prisma.authSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'user_1', revokedAt: null }, data: expect.objectContaining({ revokedAt: expect.any(Date) }) }));
     expect(mailer.sendAccountStatusEmail).toHaveBeenCalledWith('user@example.com', RegisteredUserStatusUpdate.SUSPENDED, 'User violated platform policy.');
@@ -228,17 +225,13 @@ describe('UserManagementService', () => {
     prisma.user.findFirst.mockResolvedValue({ ...registeredUser, isActive: false, suspendedAt: new Date() });
     prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: true, suspendedAt: null });
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['unsuspend'] } }, 'user_1', {
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { users: ['unsuspend'] } }, 'user_1', {
       action: RegisteredUserLifecycleAction.UNSUSPEND,
       comment: 'Account reviewed and restored.',
       notifyUser: true,
     });
 
     expect(result.message).toBe('User unsuspended successfully');
-    expect(prisma.accountSuspension.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { accountId: 'user_1', isActive: true },
-      data: expect.objectContaining({ isActive: false, unsuspendedBy: 'admin_1' }),
-    }));
     expect(mailer.sendAccountStatusEmail).toHaveBeenCalledWith('user@example.com', 'ACTIVE', 'Account reviewed and restored.');
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'REGISTERED_USER_UNSUSPENDED' }) }));
   });
@@ -248,7 +241,7 @@ describe('UserManagementService', () => {
     prisma.user.findFirst.mockResolvedValue(registeredUser);
     prisma.user.update.mockResolvedValue({ ...registeredUser, isActive: false });
 
-    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['updateStatus'] } }, 'user_1', {
+    const result = await service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { users: ['updateStatus'] } }, 'user_1', {
       action: RegisteredUserLifecycleAction.UPDATE_STATUS,
       status: RegisteredUserStatusUpdate.DISABLED,
     });
@@ -264,7 +257,7 @@ describe('UserManagementService', () => {
     prisma.user.update
       .mockResolvedValueOnce({ ...registeredUser, isActive: false, refreshTokenHash: null })
       .mockResolvedValueOnce({ ...registeredUser, isActive: true });
-    const admin = { uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['status.update'] } };
+    const admin = { uid: 'admin_1', role: UserRole.STAFF, permissions: { users: ['status.update'] } };
 
     await service.updateStatus(admin, 'user_1', { action: RegisteredUserLifecycleAction.DISABLE });
     await service.updateStatus(admin, 'user_1', { action: RegisteredUserLifecycleAction.ENABLE });
@@ -277,12 +270,12 @@ describe('UserManagementService', () => {
     const { service, prisma } = createService();
     prisma.user.findFirst.mockResolvedValue(registeredUser);
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['updateStatus'] } }, 'user_1', {
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { users: ['updateStatus'] } }, 'user_1', {
       action: RegisteredUserLifecycleAction.SUSPEND,
       reason: SuspensionReason.POLICY_VIOLATION,
     })).rejects.toThrow('Your role does not have the required permission');
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { users: ['suspend'] } }, 'user_1', {
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { users: ['suspend'] } }, 'user_1', {
       action: RegisteredUserLifecycleAction.UNSUSPEND,
     })).rejects.toThrow('Your role does not have the required permission');
   });
@@ -343,23 +336,23 @@ describe('UserManagementService', () => {
   });
 
   it('ADMIN with users.resetPassword can change registered user password through guarded controller mapping', () => {
-    const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
-    expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)');
+    const controller = readFileSync(join(__dirname, 'controllers/user-management.controller.ts'), 'utf8');
+    expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)');
     expect(controller).toContain("@Permissions('users.resetPassword')");
   });
 
   it('old suspend and unsuspend routes are removed from Swagger-facing controller code', () => {
-    const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
+    const controller = readFileSync(join(__dirname, 'controllers/user-management.controller.ts'), 'utf8');
     expect(controller).toContain("@Patch(':id/status')");
     expect(controller).not.toContain("@Post(':id/suspend')");
     expect(controller).not.toContain("@Post(':id/unsuspend')");
   });
 
   it('REGISTERED_USER and PROVIDER cannot call endpoint through controller role guard', () => {
-    const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
+    const controller = readFileSync(join(__dirname, 'controllers/user-management.controller.ts'), 'utf8');
     expect(controller).toContain('@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)');
-    expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.REGISTERED_USER');
-    expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PROVIDER');
+    expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.REGISTERED_USER');
+    expect(controller).not.toContain('@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.PROVIDER');
   });
 
   it('rejects ADMIN and SUPER_ADMIN target accounts because only registered users are fetched', async () => {
@@ -367,7 +360,7 @@ describe('UserManagementService', () => {
     prisma.user.findFirst.mockResolvedValue(null);
 
     await expect(service.resetPassword(
-      { uid: 'admin_1', role: UserRole.ADMIN },
+      { uid: 'admin_1', role: UserRole.STAFF },
       'admin_target',
       { newPassword: 'NewUser@123456' },
     )).rejects.toThrow(NotFoundException);
@@ -381,7 +374,7 @@ describe('UserManagementService', () => {
     mailer.sendAdminChangedPasswordEmail.mockRejectedValue(new Error('smtp down'));
 
     const result = await service.resetPassword(
-      { uid: 'admin_1', role: UserRole.ADMIN },
+      { uid: 'admin_1', role: UserRole.STAFF },
       'user_1',
       { newPassword: 'NewUser@123456', sendEmail: true, sendNotification: true },
     );
@@ -399,7 +392,7 @@ describe('UserManagementService', () => {
     prisma.user.update.mockResolvedValue({ ...registeredUser, password: 'hashed' });
 
     const result = await service.resetPassword(
-      { uid: 'admin_1', role: UserRole.ADMIN },
+      { uid: 'admin_1', role: UserRole.STAFF },
       'user_1',
       { newPassword: 'NewUser@123456', sendEmail: false, sendNotification: false },
     );
@@ -410,8 +403,8 @@ describe('UserManagementService', () => {
   });
 
   it('Swagger documents full reset password DTO and 200 response', () => {
-    const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
-    const dto = readFileSync(join(__dirname, '../dto/user-management.dto.ts'), 'utf8');
+    const controller = readFileSync(join(__dirname, 'controllers/user-management.controller.ts'), 'utf8');
+    const dto = readFileSync(join(__dirname, 'dto/user-management.dto.ts'), 'utf8');
     expect(controller).toContain('Change registered user password');
     expect(controller).toContain('@HttpCode(200)');
     expect(controller).toContain('status: 200');
@@ -423,7 +416,7 @@ describe('UserManagementService', () => {
   });
 
   it('DELETE /users/:id is SUPER_ADMIN only and documents danger warning', () => {
-    const controller = readFileSync(join(__dirname, '../controllers/user-management.controller.ts'), 'utf8');
+    const controller = readFileSync(join(__dirname, 'controllers/user-management.controller.ts'), 'utf8');
     expect(controller).toContain("@Delete(':id')");
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(controller).toContain('Permanently delete registered user');
@@ -447,7 +440,7 @@ describe('UserManagementService', () => {
   });
 
   it('user-management-core.service.ts no longer uses emptyStats in runtime path', () => {
-    const source = readFileSync(join(__dirname, '../services/user-management-core.service.ts'), 'utf8');
+    const source = readFileSync(join(__dirname, 'services/user-management-core.service.ts'), 'utf8');
     expect(source).not.toContain('emptyStats');
     expect(source).toContain('zeroStats');
   });

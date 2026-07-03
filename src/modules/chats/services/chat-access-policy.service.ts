@@ -28,8 +28,8 @@ export class ChatAccessPolicyService {
     if (thread.threadType === ChatThreadType.SUPPORT_CHAT) {
       if ((user.role === UserRole.REGISTERED_USER || user.role === UserRole.PROVIDER) && thread.participants.some((participant) => participant.userId === user.uid && !participant.leftAt)) return;
       if (user.role === UserRole.SUPER_ADMIN) return;
-      if (user.role === UserRole.ADMIN && this.has(user, 'supportChats.read.all')) return;
-      if (user.role === UserRole.ADMIN && this.has(user, 'supportChats.read') && thread.assignedAdminId === user.uid) return;
+      if (user.role === UserRole.STAFF && this.has(user, 'supportChats.read.all')) return;
+      if (user.role === UserRole.STAFF && this.has(user, 'supportChats.read') && thread.assignedAdminId === user.uid) return;
       throw new ForbiddenException('You cannot access this support chat');
     }
     if (this.isAdmin(user) && this.hasAny(user, ['messageModeration.read', 'messageModeration.escalate'])) return;
@@ -46,7 +46,7 @@ export class ChatAccessPolicyService {
   assertCanResolve(user: AuthUserContext, thread: Thread): void {
     this.assertCanAccess(user, thread);
     if (user.role === UserRole.SUPER_ADMIN) return;
-    if (user.role === UserRole.ADMIN && this.has(user, 'supportChats.resolve')) return;
+    if (user.role === UserRole.STAFF && this.has(user, 'supportChats.resolve')) return;
     throw new ForbiddenException('Your role does not have the required permission');
   }
 
@@ -81,6 +81,6 @@ export class ChatAccessPolicyService {
   }
 
   isAdmin(user: AuthUserContext): boolean {
-    return user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN;
+    return user.role === UserRole.SUPER_ADMIN || user.role === UserRole.STAFF;
   }
 }

@@ -70,7 +70,7 @@ export class UserManagementRepository {
 
   findUserById(id: string): Promise<User | null> {
     return this.prisma.user.findFirst({
-      where: { id, role: UserRole.REGISTERED_USER, deletedAt: null },
+      where: { id, role: UserRole.REGISTERED_USER },
     });
   }
 
@@ -166,49 +166,29 @@ export class UserManagementRepository {
     comment?: string;
     actorId: string;
   }): Promise<User> {
-    return this.prisma.$transaction(async (tx) => {
-      await tx.accountSuspension.create({
-        data: {
-          accountId: params.userId,
-          accountType: params.accountType,
-          reason: params.reason,
-          comment: params.comment?.trim(),
-          suspendedBy: params.actorId,
-          isActive: true,
-        },
-      });
-
-      return tx.user.update({
-        where: { id: params.userId },
-        data: {
-          isActive: false,
-          suspensionReason: params.reason,
-          suspensionComment: params.comment?.trim(),
-          suspendedAt: new Date(),
-          suspendedBy: params.actorId,
-          refreshTokenHash: null,
-        },
-      });
+    return this.prisma.user.update({
+      where: { id: params.userId },
+      data: {
+        isActive: false,
+        suspensionReason: params.reason,
+        suspensionComment: params.comment?.trim(),
+        suspendedAt: new Date(),
+        suspendedBy: params.actorId,
+        refreshTokenHash: null,
+      },
     });
   }
 
   async unsuspendUser(params: { userId: string; actorId: string }): Promise<User> {
-    return this.prisma.$transaction(async (tx) => {
-      await tx.accountSuspension.updateMany({
-        where: { accountId: params.userId, isActive: true },
-        data: { isActive: false, unsuspendedBy: params.actorId, unsuspendedAt: new Date() },
-      });
-
-      return tx.user.update({
-        where: { id: params.userId },
-        data: {
-          isActive: true,
-          suspensionReason: null,
-          suspensionComment: null,
-          suspendedAt: null,
-          suspendedBy: null,
-        },
-      });
+    return this.prisma.user.update({
+      where: { id: params.userId },
+      data: {
+        isActive: true,
+        suspensionReason: null,
+        suspensionComment: null,
+        suspendedAt: null,
+        suspendedBy: null,
+      },
     });
   }
 
@@ -218,23 +198,16 @@ export class UserManagementRepository {
     isActive: boolean;
     refreshTokenHash: string | null;
   }): Promise<User> {
-    return this.prisma.$transaction(async (tx) => {
-      await tx.accountSuspension.updateMany({
-        where: { accountId: params.userId, isActive: true },
-        data: { isActive: false, unsuspendedBy: params.actorId, unsuspendedAt: new Date() },
-      });
-
-      return tx.user.update({
-        where: { id: params.userId },
-        data: {
-          isActive: params.isActive,
-          suspensionReason: null,
-          suspensionComment: null,
-          suspendedAt: null,
-          suspendedBy: null,
-          refreshTokenHash: params.refreshTokenHash,
-        },
-      });
+    return this.prisma.user.update({
+      where: { id: params.userId },
+      data: {
+        isActive: params.isActive,
+        suspensionReason: null,
+        suspensionComment: null,
+        suspendedAt: null,
+        suspendedBy: null,
+        refreshTokenHash: params.refreshTokenHash,
+      },
     });
   }
 
@@ -325,7 +298,6 @@ export class UserManagementRepository {
       await tx.notification.deleteMany({ where: { recipientId: params.target.id } });
       await tx.notificationDeviceToken.deleteMany({ where: { userId: params.target.id } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: params.target.id } });
-      await tx.accountSuspension.deleteMany({ where: { accountId: params.target.id } });
       await tx.customerWishlist.deleteMany({ where: { userId: params.target.id } });
       await tx.cartItem.deleteMany({ where: { cart: { userId: params.target.id } } });
       await tx.cart.deleteMany({ where: { userId: params.target.id } });

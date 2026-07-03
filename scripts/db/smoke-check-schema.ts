@@ -2,7 +2,6 @@ import 'dotenv/config';
 import { Client } from 'pg';
 
 const requiredTables = [
-  'guest_sessions',
   'chat_threads',
   'chat_participants',
   'chat_messages',
@@ -15,8 +14,6 @@ const requiredTables = [
 ];
 
 const requiredEnums = [
-  'GuestCapability',
-  'GuestSessionPlatform',
   'ChatThreadType',
   'ChatSourceType',
   'ChatThreadStatus',

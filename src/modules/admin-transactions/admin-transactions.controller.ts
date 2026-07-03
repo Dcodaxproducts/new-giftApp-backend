@@ -13,7 +13,7 @@ import { AdminTransactionActionDto, AdminTransactionStatsDto, ExportAdminTransac
 @ApiTags('02 Admin - Transaction Monitoring')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/transactions')
 export class AdminTransactionsController {
   constructor(private readonly transactions: AdminTransactionsService) {}
@@ -48,7 +48,7 @@ export class AdminTransactionsController {
 
   @Post(':id/action')
   @ApiOperation({ summary: 'Run transaction action', description: "SUPER_ADMIN or ADMIN with action-specific transaction permission. REFUND requires 'transactions.refund' and keeps existing server-side refund validation. OPEN_DISPUTE requires 'transactions.openDispute' and keeps duplicate dispute prevention. NOTIFY_USER requires 'transactions.notifyUser' and dispatches through NotificationDispatchService. Raw card numbers, CVV, Stripe secret keys, and payment intent client secrets are never exposed." })
-  @ApiBody({ type: AdminTransactionActionDto, examples: { refund: { value: { action: 'REFUND', refundType: 'FULL', refundAmount: 1281.25, reason: 'CUSTOMER_REQUEST', comment: 'Refund approved by support.', notifyUser: true } }, openDispute: { value: { action: 'OPEN_DISPUTE', reason: 'PRODUCT_NOT_RECEIVED', priority: 'HIGH', claimDetails: 'Dispute opened from transaction detail screen.', assignToId: 'admin_id' } }, notifyUser: { value: { action: 'NOTIFY_USER', channel: 'EMAIL', subject: 'Transaction update', message: 'Your transaction has been successfully processed.', includeReceipt: true } } } })
+  @ApiBody({ type: AdminTransactionActionDto, examples: { refund: { value: { action: 'REFUND', refundType: 'FULL', refundAmount: 1281.25, reason: 'CUSTOMER_REQUEST', comment: 'Refund approved by support.', notifyUser: true } }, openDispute: { value: { action: 'OPEN_DISPUTE', reason: 'PRODUCT_NOT_RECEIVED', claimDetails: 'Dispute opened from transaction detail screen.', assignToId: 'admin_id' } }, notifyUser: { value: { action: 'NOTIFY_USER', channel: 'EMAIL', subject: 'Transaction update', message: 'Your transaction has been successfully processed.', includeReceipt: true } } } })
   @ApiResponse({ status: 200, schema: { example: { success: true, data: { transactionId: 'TRX-982341', refundId: 'RF-45678', refundAmount: 1281.25, currency: 'PKR', status: 'REFUNDED' }, message: 'Transaction refunded successfully.' } } })
   action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: AdminTransactionActionDto) { return this.transactions.action(user, id, dto); }
 

@@ -58,10 +58,6 @@ export class CustomerWalletRepository {
     return this.prisma.payment.update({ where: { id: params.paymentId }, data: { providerPaymentIntentId: params.providerPaymentIntentId, status: PaymentStatus.PROCESSING, metadataJson: params.metadataJson } });
   }
 
-  createPaymentAuditLog(params: { paymentId?: string; userId?: string; action: string; status?: PaymentStatus; idempotencyKey?: string; metadataJson?: Prisma.InputJsonObject }) {
-    return this.prisma.paymentAuditLog.create({ data: { paymentId: params.paymentId, userId: params.userId, action: params.action, status: params.status, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson ?? {} } });
-  }
-
   findWalletTopUpLedger(params: { walletTopUpId: string; userId: string }) {
     return this.prisma.customerWalletLedger.findFirst({ where: { id: params.walletTopUpId, userId: params.userId } });
   }

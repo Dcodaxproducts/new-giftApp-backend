@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderApprovalStatus, User, UserRole } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderApprovalStatus, ProviderProfile, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { MailerService } from '../../mailer/mailer.service';
@@ -44,6 +44,8 @@ interface ProviderAssetMetadata {
   businessBio?: string;
   coverImageUrl?: string;
 }
+
+type ProviderUser = User & { providerProfile?: ProviderProfile | null };
 
 @Injectable()
 export class ProviderManagementService {
@@ -130,7 +132,7 @@ export class ProviderManagementService {
   async create(user: AuthUserContext, dto: CreateProviderDto) {
     const email = dto.email.trim().toLowerCase();
     const existing = await this.repository.findProviderByEmail(email);
-    if (existing && !existing.deletedAt) {
+    if (existing) {
       throw new ConflictException('Email already exists');
     }
     await this.getProviderBusinessCategory(dto.businessCategoryId);
@@ -156,18 +158,22 @@ export class ProviderManagementService {
         isVerified: true,
         mustChangePassword: true,
         location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
-        providerLegalName: dto.businessName.trim(),
-        providerBusinessEmail: email,
-        providerBusinessPhone: dto.contact.trim(),
-        providerBusinessName: dto.businessName.trim(),
-        providerBusinessCategoryId: dto.businessCategoryId,
-        providerTaxId: dto.taxId?.trim(),
-        providerBusinessAddress: dto.businessAddress.trim(),
-        providerStoreAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
-        providerDocuments: this.providerAssetMetadata(dto),
-        providerApprovalStatus: approvalStatus,
-        providerApprovedAt: approvalStatus === ProviderApprovalStatus.APPROVED ? new Date() : null,
-        providerApprovedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
+        providerProfile: {
+          create: {
+            legalName: dto.businessName.trim(),
+            businessEmail: email,
+            businessPhone: dto.contact.trim(),
+            businessName: dto.businessName.trim(),
+            businessCategoryId: dto.businessCategoryId,
+            taxId: dto.taxId?.trim(),
+            businessAddress: dto.businessAddress.trim(),
+            storeAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
+            documents: this.providerAssetMetadata(dto),
+            approvalStatus,
+            approvedAt: approvalStatus === ProviderApprovalStatus.APPROVED ? new Date() : null,
+            approvedBy: approvalStatus === ProviderApprovalStatus.APPROVED ? user.uid : null,
+          },
+        },
     });
 
     const inviteEmailSent = await this.sendProviderInvite(provider, password, approvalStatus);
@@ -201,7 +207,7 @@ export class ProviderManagementService {
     const email = dto.email?.trim().toLowerCase();
     if (email && email !== provider.email) {
       const existing = await this.repository.findProviderByEmail(email);
-      if (existing && existing.id !== provider.id && !existing.deletedAt) {
+      if (existing && existing.id !== provider.id) {
         throw new ConflictException('Email already exists');
       }
     }
@@ -212,15 +218,16 @@ export class ProviderManagementService {
         phone: dto.contact?.trim(),
         avatarUrl: dto.companyLogoUrl?.trim(),
         location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
-        providerLegalName: dto.businessName?.trim(),
-        providerBusinessEmail: email,
-        providerBusinessPhone: dto.contact?.trim(),
-        providerBusinessName: dto.businessName?.trim(),
-        providerBusinessCategoryId: dto.businessCategoryId,
-        providerTaxId: dto.taxId?.trim(),
-        providerBusinessAddress: dto.businessAddress?.trim(),
-        providerStoreAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
-        providerDocuments: this.updatedProviderAssetMetadata(provider, dto),
+      }, {
+        legalName: dto.businessName?.trim(),
+        businessEmail: email,
+        businessPhone: dto.contact?.trim(),
+        businessName: dto.businessName?.trim(),
+        businessCategoryId: dto.businessCategoryId,
+        taxId: dto.taxId?.trim(),
+        businessAddress: dto.businessAddress?.trim(),
+        storeAddress: dto.location ? { lat: dto.location.lat, lng: dto.location.lng } : undefined,
+        documents: this.updatedProviderAssetMetadata(provider, dto),
     });
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, stats));
 
@@ -254,7 +261,7 @@ export class ProviderManagementService {
       return;
     }
 
-    if (user.role !== UserRole.ADMIN) {
+    if (user.role !== UserRole.STAFF) {
       throw new ForbiddenException('Your role does not have the required provider lifecycle permission');
     }
 
@@ -387,7 +394,7 @@ export class ProviderManagementService {
     return { data: null, message: 'Message sent to provider successfully' };
   }
 
-  private async getProvider(id: string): Promise<User> {
+  private async getProvider(id: string): Promise<ProviderUser> {
     const provider = await this.repository.findProviderById(id);
 
     if (!provider) {
@@ -397,7 +404,8 @@ export class ProviderManagementService {
     return provider;
   }
 
-  private toListItem(provider: User, stats: ProviderAggregateStats) {
+  private toListItem(provider: ProviderUser, stats: ProviderAggregateStats) {
+    const profile = this.profile(provider);
     return {
       id: provider.id,
       providerCode: this.providerCode(provider.id),
@@ -410,7 +418,7 @@ export class ProviderManagementService {
       coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
       status: this.toStatus(provider),
       isActive: provider.isActive,
-      approvalStatus: provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
+      approvalStatus: profile.approvalStatus ?? ProviderApprovalStatus.PENDING,
       revenue: stats.revenue,
       listedItems: stats.listedItems,
       performanceStats: stats.performanceStats,
@@ -419,16 +427,17 @@ export class ProviderManagementService {
     };
   }
 
-  private toDetail(provider: User, stats: ProviderAggregateStats) {
+  private toDetail(provider: ProviderUser, stats: ProviderAggregateStats) {
+    const profile = this.profile(provider);
     return {
       ...this.toListItem(provider, stats),
       contact: provider.phone,
-      businessCategoryId: provider.providerBusinessCategoryId,
-      taxId: provider.providerTaxId,
-      businessAddress: provider.providerBusinessAddress,
+      businessCategoryId: profile.businessCategoryId,
+      taxId: profile.taxId,
+      businessAddress: profile.businessAddress,
       headquarters: provider.location,
       location: this.providerLocation(provider),
-      serviceArea: provider.providerServiceArea,
+      serviceArea: profile.serviceArea,
       businessBio: this.providerAssets(provider).businessBio ?? null,
       verification: {
         status: provider.isVerified ? 'TIER_2_VERIFIED' : 'UNVERIFIED',
@@ -450,7 +459,8 @@ export class ProviderManagementService {
     };
   }
 
-  private toCreateView(provider: User, inviteEmailSent: boolean | null) {
+  private toCreateView(provider: ProviderUser, inviteEmailSent: boolean | null) {
+    const profile = this.profile(provider);
     return {
       id: provider.id,
       userId: provider.id,
@@ -458,20 +468,20 @@ export class ProviderManagementService {
       email: provider.email,
       contact: provider.phone,
       businessName: this.businessName(provider),
-      businessCategoryId: provider.providerBusinessCategoryId,
-      taxId: provider.providerTaxId,
-      businessAddress: provider.providerBusinessAddress,
+      businessCategoryId: profile.businessCategoryId,
+      taxId: profile.taxId,
+      businessAddress: profile.businessAddress,
       businessBio: this.providerAssets(provider).businessBio ?? null,
       companyLogoUrl: provider.avatarUrl,
       coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
       location: this.providerLocation(provider),
-      approvalStatus: provider.providerApprovalStatus,
+      approvalStatus: profile.approvalStatus,
       isActive: provider.isActive,
       inviteEmailSent,
     };
   }
 
-  private toStatus(provider: User): ProviderStatusFilter {
+  private toStatus(provider: ProviderUser): ProviderStatusFilter {
     if (provider.suspendedAt) {
       return ProviderStatusFilter.SUSPENDED;
     }
@@ -480,12 +490,12 @@ export class ProviderManagementService {
       return ProviderStatusFilter.INACTIVE;
     }
 
-    return provider.providerApprovalStatus === ProviderApprovalStatus.APPROVED
+    return this.profile(provider).approvalStatus === ProviderApprovalStatus.APPROVED
       ? ProviderStatusFilter.ACTIVE
       : ProviderStatusFilter.INACTIVE;
   }
 
-  private toSuspension(provider: User) {
+  private toSuspension(provider: ProviderUser) {
     return {
       isSuspended: !!provider.suspendedAt,
       reason: provider.suspensionReason,
@@ -522,7 +532,7 @@ export class ProviderManagementService {
     return ProviderActivityType.PROFILE_UPDATE;
   }
 
-  private toExportRows(providers: User[], aggregateMap: Map<string, ProviderAggregateStats>): string[][] {
+  private toExportRows(providers: ProviderUser[], aggregateMap: Map<string, ProviderAggregateStats>): string[][] {
     return [
       ['ID', 'Provider Code', 'Business Name', 'Email', 'Phone', 'Status', 'Approval Status', 'Revenue', 'Listed Items', 'Order Fulfillment', 'Dispute Count', 'Average Rating', 'Review Count', 'Registered Since'],
       ...providers.map((provider) => {
@@ -534,7 +544,7 @@ export class ProviderManagementService {
         provider.email,
         provider.phone ?? '',
         this.toStatus(provider),
-        provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
+        this.profile(provider).approvalStatus ?? ProviderApprovalStatus.PENDING,
         String(stats.revenue),
         String(stats.listedItems),
         String(stats.orderFulfillment),
@@ -643,7 +653,7 @@ export class ProviderManagementService {
 
 
 
-  private async sendProviderInvite(provider: User, temporaryPassword: string, approvalStatus: ProviderApprovalStatus): Promise<boolean> {
+  private async sendProviderInvite(provider: ProviderUser, temporaryPassword: string, approvalStatus: ProviderApprovalStatus): Promise<boolean> {
     try {
       await this.mailerService.sendProviderInviteEmail({
         email: provider.email,
@@ -712,7 +722,7 @@ export class ProviderManagementService {
     return Object.keys(metadata).length ? metadata : undefined;
   }
 
-  private updatedProviderAssetMetadata(provider: User, dto: UpdateProviderDto): Prisma.InputJsonObject | undefined {
+  private updatedProviderAssetMetadata(provider: ProviderUser, dto: UpdateProviderDto): Prisma.InputJsonObject | undefined {
     if (dto.businessBio === undefined && dto.coverImageUrl === undefined) {
       return undefined;
     }
@@ -732,8 +742,8 @@ export class ProviderManagementService {
     return metadata;
   }
 
-  private providerAssets(provider: User): ProviderAssetMetadata {
-    const value = provider.providerDocuments;
+  private providerAssets(provider: ProviderUser): ProviderAssetMetadata {
+    const value = this.profile(provider).documents;
     if (!value || Array.isArray(value) || typeof value !== 'object') {
       return {};
     }
@@ -744,8 +754,8 @@ export class ProviderManagementService {
     };
   }
 
-  private providerLocation(provider: User): { lat: number; lng: number } | null {
-    const value = provider.providerStoreAddress;
+  private providerLocation(provider: ProviderUser): { lat: number; lng: number } | null {
+    const value = this.profile(provider).storeAddress;
     if (value && !Array.isArray(value) && typeof value === 'object') {
       const lat = value.lat;
       const lng = value.lng;
@@ -756,7 +766,7 @@ export class ProviderManagementService {
     return null;
   }
 
-  private validateLifecycleAction(provider: User, dto: UpdateProviderStatusDto): void {
+  private validateLifecycleAction(provider: ProviderUser, dto: UpdateProviderStatusDto): void {
     if (dto.action === ProviderLifecycleAction.REJECT && !dto.reason) {
       throw new BadRequestException('Reason is required when rejecting a provider');
     }
@@ -774,7 +784,7 @@ export class ProviderManagementService {
     }
 
     if (dto.action === ProviderLifecycleAction.UNSUSPEND) {
-      if (provider.providerApprovalStatus !== ProviderApprovalStatus.APPROVED) {
+      if (this.profile(provider).approvalStatus !== ProviderApprovalStatus.APPROVED) {
         throw new BadRequestException('Only approved providers can be unsuspended');
       }
 
@@ -784,51 +794,49 @@ export class ProviderManagementService {
     }
   }
 
-  private async approveProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+  private async approveProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isApproved: true,
         isActive: true,
-        providerApprovalStatus: ProviderApprovalStatus.APPROVED,
-        providerApprovedAt: new Date(),
-        providerApprovedBy: user.uid,
-        providerRejectedAt: null,
-        providerRejectedBy: null,
-        providerRejectionReason: null,
-        providerRejectionComment: null,
         suspensionReason: null,
         suspensionComment: null,
         suspendedAt: null,
         suspendedBy: null,
+    }, {
+        approvalStatus: ProviderApprovalStatus.APPROVED,
+        approvedAt: new Date(),
+        approvedBy: user.uid,
+        rejectedAt: null,
+        rejectedBy: null,
+        rejectionReason: null,
+        rejectionComment: null,
     });
-    await this.repository.deactivateActiveAccountSuspensions(provider.id, user.uid);
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_APPROVED', before, updated, dto, 'Provider approved successfully.');
   }
 
-  private async rejectProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+  private async rejectProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isApproved: false,
         isActive: false,
-        providerApprovalStatus: ProviderApprovalStatus.REJECTED,
-        providerRejectedAt: new Date(),
-        providerRejectedBy: user.uid,
-        providerRejectionReason: dto.reason,
-        providerRejectionComment: dto.comment?.trim(),
         refreshTokenHash: null,
+    }, {
+        approvalStatus: ProviderApprovalStatus.REJECTED,
+        rejectedAt: new Date(),
+        rejectedBy: user.uid,
+        rejectionReason: dto.reason,
+        rejectionComment: dto.comment?.trim(),
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_REJECTED', before, updated, dto, 'Provider rejected successfully.');
   }
 
-  private async updateProviderStatus(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+  private async updateProviderStatus(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     if (dto.status === ProviderStatusUpdate.SUSPENDED) {
       return this.suspendProvider(user, provider, { ...dto, action: ProviderLifecycleAction.SUSPEND });
     }
 
     const before = this.toLifecycleResponse(provider);
-    if (provider.suspendedAt && dto.status === ProviderStatusUpdate.ACTIVE) {
-      await this.repository.deactivateActiveAccountSuspensions(provider.id, user.uid);
-    }
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isActive: dto.status === ProviderStatusUpdate.ACTIVE,
         suspensionReason: null,
@@ -840,14 +848,8 @@ export class ProviderManagementService {
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_STATUS_UPDATED', before, updated, dto, 'Provider status updated successfully.');
   }
 
-  private async suspendProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+  private async suspendProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
-    await this.repository.createAccountSuspension({
-      accountId: provider.id,
-      reason: dto.reason ?? ProviderLifecycleReason.OTHER,
-      comment: dto.comment?.trim(),
-      suspendedBy: user.uid,
-    });
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isActive: false,
         suspensionReason: dto.reason,
@@ -859,9 +861,8 @@ export class ProviderManagementService {
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_SUSPENDED', before, updated, dto, 'Provider suspended successfully.');
   }
 
-  private async unsuspendProvider(user: AuthUserContext, provider: User, dto: UpdateProviderStatusDto) {
+  private async unsuspendProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
     const before = this.toLifecycleResponse(provider);
-    await this.repository.deactivateActiveAccountSuspensions(provider.id, user.uid);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         isActive: true,
         suspensionReason: null,
@@ -877,7 +878,7 @@ export class ProviderManagementService {
     providerId: string,
     action: string,
     beforeJson: unknown,
-    updated: User,
+    updated: ProviderUser,
     dto: UpdateProviderStatusDto,
     message: string,
   ) {
@@ -895,22 +896,23 @@ export class ProviderManagementService {
     return { data: response, message };
   }
 
-  private toLifecycleResponse(provider: User) {
+  private toLifecycleResponse(provider: ProviderUser) {
+    const profile = this.profile(provider);
     return {
       id: provider.id,
-      approvalStatus: provider.providerApprovalStatus ?? ProviderApprovalStatus.PENDING,
+      approvalStatus: profile.approvalStatus ?? ProviderApprovalStatus.PENDING,
       status: this.toStatus(provider),
       isActive: provider.isActive,
-      rejectionReason: provider.providerRejectionReason,
+      rejectionReason: profile.rejectionReason,
       suspensionReason: provider.suspensionReason,
-      approvedAt: provider.providerApprovedAt,
-      rejectedAt: provider.providerRejectedAt,
+      approvedAt: profile.approvedAt,
+      rejectedAt: profile.rejectedAt,
       suspendedAt: provider.suspendedAt,
     };
   }
 
   private async notifyProvider(
-    provider: User,
+    provider: ProviderUser,
     notifyProvider: boolean | undefined,
     status: string,
     comment?: string,
@@ -935,7 +937,7 @@ export class ProviderManagementService {
       }
 
       if (status === 'PROVIDER_REJECTED') {
-        await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), provider.providerRejectionReason ?? undefined, comment);
+        await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), this.profile(provider).rejectionReason ?? undefined, comment);
         return;
       }
 
@@ -992,12 +994,16 @@ export class ProviderManagementService {
     });
   }
 
-  private businessName(provider: User): string {
-    return provider.providerBusinessName ?? `${provider.firstName} ${provider.lastName}`.trim();
+  private businessName(provider: ProviderUser): string {
+    return this.profile(provider).businessName ?? `${provider.firstName} ${provider.lastName}`.trim();
   }
 
-  private name(provider: User): string {
+  private name(provider: ProviderUser): string {
     return `${provider.firstName} ${provider.lastName}`.trim();
+  }
+
+  private profile(provider: ProviderUser): Partial<ProviderProfile> {
+    return provider.providerProfile ?? {};
   }
 
   private providerCode(id: string): string {

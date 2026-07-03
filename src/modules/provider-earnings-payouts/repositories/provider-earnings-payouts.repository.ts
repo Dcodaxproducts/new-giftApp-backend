@@ -16,7 +16,7 @@ export class ProviderEarningsPayoutsRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findProviderUserById(id: string) {
-    return this.prisma.user.findFirst({ where: { id, role: 'PROVIDER', deletedAt: null } });
+    return this.prisma.user.findFirst({ where: { id, role: 'PROVIDER' }, include: { providerProfile: true } });
   }
 
   findLedgerEntriesForProvider(where: Prisma.ProviderEarningsLedgerWhereInput, params?: { skip?: number; take?: number; includeOrder?: boolean }) {
@@ -116,7 +116,6 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.$transaction(async (tx) => {
       const created = await this.createPayout(tx, params.payoutData);
       await tx.providerEarningsLedger.updateMany({ where: { id: { in: params.ledgerEntryIds }, providerId: params.payoutData.providerId, status: ProviderEarningsLedgerStatus.AVAILABLE }, data: { status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, payoutId: created.id, metadataJson: { payoutId: created.id } } });
-      await tx.providerPayoutAuditLog.create({ data: { payoutId: created.id, providerId: params.payoutData.providerId, action: 'PROVIDER_PAYOUT_REQUESTED', status: created.status, metadataJson: { ledgerEntryIds: params.ledgerEntryIds } } });
       await this.createPayoutNotification(tx, { ...params.notificationData, metadataJson: { payoutId: created.id } });
       return created;
     });
@@ -126,7 +125,6 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.$transaction(async (tx) => {
       await this.releaseLedgerEntriesFromPayout(tx, params.providerId, params.payoutId, params.cancelReason);
       const item = await this.cancelPayout(tx, params.payoutId, params.payoutData);
-      await tx.providerPayoutAuditLog.create({ data: { payoutId: params.payoutId, providerId: params.providerId, actorId: params.actorId, action: 'PROVIDER_PAYOUT_CANCELLED', status: item.status, metadataJson: { reason: params.cancelReason } } });
       await this.createPayoutNotification(tx, params.notificationData);
       return item;
     });

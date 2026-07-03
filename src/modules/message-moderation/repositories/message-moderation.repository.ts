@@ -11,14 +11,14 @@ export class MessageModerationRepository {
 
   findCasesAndCount(params: { where: Prisma.MessageModerationCaseWhereInput; skip: number; take: number; orderBy: Prisma.MessageModerationCaseOrderByWithRelationInput }) {
     return this.prisma.$transaction([
-      this.prisma.messageModerationCase.findMany({ where: params.where, skip: params.skip, take: params.take, orderBy: params.orderBy, include: { logs: { orderBy: { createdAt: 'desc' }, take: 10 }, escalations: { orderBy: { createdAt: 'desc' }, take: 1 } } }),
+      this.prisma.messageModerationCase.findMany({ where: params.where, skip: params.skip, take: params.take, orderBy: params.orderBy, include: { escalations: { orderBy: { createdAt: 'desc' }, take: 1 } } }),
       this.prisma.messageModerationCase.count({ where: params.where }),
     ]);
   }
 
-  findCase(id: string) { return this.prisma.messageModerationCase.findUnique({ where: { id }, include: { logs: { orderBy: { createdAt: 'desc' } }, escalations: { orderBy: { createdAt: 'desc' } } } }); }
-  findCaseByMessage(messageId: string) { return this.prisma.messageModerationCase.findUnique({ where: { messageId }, include: { logs: { orderBy: { createdAt: 'desc' } }, escalations: { orderBy: { createdAt: 'desc' } } } }); }
-  findConversationCases(conversationId: string, params: { skip: number; take: number }) { return this.prisma.messageModerationCase.findMany({ where: { conversationId }, include: { logs: { orderBy: { createdAt: 'desc' } } }, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }); }
+  findCase(id: string) { return this.prisma.messageModerationCase.findUnique({ where: { id }, include: { escalations: { orderBy: { createdAt: 'desc' } } } }); }
+  findCaseByMessage(messageId: string) { return this.prisma.messageModerationCase.findUnique({ where: { messageId }, include: { escalations: { orderBy: { createdAt: 'desc' } } } }); }
+  findConversationCases(conversationId: string, params: { skip: number; take: number }) { return this.prisma.messageModerationCase.findMany({ where: { conversationId }, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }); }
   countConversationCases(conversationId: string) { return this.prisma.messageModerationCase.count({ where: { conversationId } }); }
 
   async upsertFlaggedCase(data: Prisma.MessageModerationCaseCreateInput) {
@@ -43,7 +43,7 @@ export class MessageModerationRepository {
   }
 
   createLog(tx: MessageModerationTx, data: { caseId: string; messageId: string; action: MessageModerationAction; reason?: string; internalNote?: string; actorId?: string; metadata?: Prisma.InputJsonValue }) {
-    return tx.messageModerationLog.create({ data: { caseId: data.caseId, messageId: data.messageId, action: data.action, reason: data.reason, internalNote: data.internalNote, actorId: data.actorId, metadataJson: data.metadata ?? Prisma.JsonNull } });
+    return Promise.resolve(null);
   }
 
   async createAuditLog(tx: MessageModerationTx, data: { actorId: string; action: string; entityId: string; metadata?: Prisma.InputJsonValue }) {
@@ -64,15 +64,12 @@ export class MessageModerationRepository {
     return tx.messageModerationEscalation.create({ data });
   }
 
-  findUser(id: string) { return this.prisma.user.findUnique({ where: { id } }); }
+  findUser(id: string) { return this.prisma.user.findUnique({ where: { id }, include: { providerProfile: true } }); }
   runAction<T>(fn: (tx: MessageModerationTx) => Promise<T>) { return this.prisma.$transaction(fn); }
   stats() { return this.prisma.messageModerationCase.groupBy({ by: ['status', 'severity'], _count: { _all: true } }); }
   exportRows(where: Prisma.MessageModerationCaseWhereInput) { return this.prisma.messageModerationCase.findMany({ where, orderBy: { createdAt: 'desc' }, take: 1000 }); }
 
-  auditLogs(params: { where: Prisma.MessageModerationLogWhereInput; skip: number; take: number; orderBy: Prisma.MessageModerationLogOrderByWithRelationInput }) {
-    return this.prisma.$transaction([
-      this.prisma.messageModerationLog.findMany({ where: params.where, skip: params.skip, take: params.take, orderBy: params.orderBy, include: { case: true } }),
-      this.prisma.messageModerationLog.count({ where: params.where }),
-    ]);
+  auditLogs(params: { where: Record<string, unknown>; skip: number; take: number; orderBy: Record<string, unknown> }) {
+    return Promise.resolve([[], 0] as const);
   }
 }

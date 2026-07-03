@@ -26,7 +26,7 @@ describe('module import boundaries', () => {
       'src/common/auth/jwt-auth.module.ts',
       'src/modules/auth/auth.module.ts',
       'src/modules/broadcast-notifications/broadcast-notifications.module.ts',
-      'src/modules/guest-access/guest-access.module.ts',
+      'src/modules/notifications/notifications.module.ts',
     ].map((path) => join(process.cwd(), path));
 
     const offenders = moduleFiles

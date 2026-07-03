@@ -10,7 +10,7 @@ import { ProviderManagementService } from '../services/provider-management.servi
 
 const providerLifecycleAdmin = {
   uid: 'admin_1',
-  role: UserRole.ADMIN,
+  role: UserRole.STAFF,
   permissions: { providers: ['approve', 'reject', 'suspend', 'updateStatus'] },
 };
 
@@ -61,11 +61,6 @@ function createService(overrides: Record<string, unknown> = {}) {
       create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'provider_new', ...data })),
       findUnique: jest.fn(),
       delete: jest.fn(),
-    },
-    accountSuspension: {
-      create: jest.fn().mockResolvedValue({ id: 'suspension_1' }),
-      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-      deleteMany: jest.fn(),
     },
     authSession: { deleteMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
@@ -265,7 +260,7 @@ describe('ProviderManagementService', () => {
       { fileUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png', folder: 'provider-covers', sizeBytes: 2 * 1024 * 1024 },
     ]);
 
-    const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+    const result = await service.create({ uid: 'admin_1', role: UserRole.STAFF }, {
       name: 'Ali Raza',
       email: 'contact@giftsandblooms.com',
       contact: '+15551234567',
@@ -322,7 +317,7 @@ describe('ProviderManagementService', () => {
   it('admin provider creation remains optional without location and stores address only', async () => {
     const { service, prisma } = createService();
 
-    const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+    const result = await service.create({ uid: 'admin_1', role: UserRole.STAFF }, {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
@@ -346,7 +341,7 @@ describe('ProviderManagementService', () => {
     const { service, prisma, mailer } = createService();
     mailer.sendProviderInviteEmail.mockRejectedValue(new Error('smtp down'));
 
-    const result = await service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+    const result = await service.create({ uid: 'admin_1', role: UserRole.STAFF }, {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
@@ -364,7 +359,7 @@ describe('ProviderManagementService', () => {
 
   it('admin provider creation requires password', async () => {
     const { service } = createService();
-    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+    await expect(service.create({ uid: 'admin_1', role: UserRole.STAFF }, {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
@@ -377,7 +372,7 @@ describe('ProviderManagementService', () => {
   it('admin provider creation rejects missing categories and oversized completed branding uploads', async () => {
     const { service, prisma } = createService();
     prisma.providerBusinessCategory.findUnique.mockResolvedValueOnce(null);
-    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+    await expect(service.create({ uid: 'admin_1', role: UserRole.STAFF }, {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
@@ -389,7 +384,7 @@ describe('ProviderManagementService', () => {
 
     prisma.providerBusinessCategory.findUnique.mockResolvedValueOnce({ id: 'provider_business_category_id', isActive: false });
     prisma.uploadedFile.findMany.mockResolvedValueOnce([{ fileUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png', folder: 'provider-logos', sizeBytes: 6 * 1024 * 1024 }]);
-    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN }, {
+    await expect(service.create({ uid: 'admin_1', role: UserRole.STAFF }, {
       email: 'provider@example.com',
       name: 'Ali Raza',
       contact: '+15551234567',
@@ -502,12 +497,12 @@ describe('ProviderManagementService', () => {
   it('provider lifecycle action requires the mapped admin permission', async () => {
     const { service } = createService();
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providers: ['read'] } }, 'provider_1', {
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providers: ['read'] } }, 'provider_1', {
       action: ProviderLifecycleAction.APPROVE,
       comment: 'Documents verified successfully.',
     })).rejects.toThrow(ForbiddenException);
 
-    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { providers: ['approve'] } }, 'provider_1', {
+    await expect(service.updateStatus({ uid: 'admin_1', role: UserRole.STAFF, permissions: { providers: ['approve'] } }, 'provider_1', {
       action: ProviderLifecycleAction.APPROVE,
       comment: 'Documents verified successfully.',
     })).resolves.toEqual(expect.objectContaining({ data: expect.objectContaining({ approvalStatus: ProviderApprovalStatus.APPROVED }) }));
@@ -577,7 +572,6 @@ describe('ProviderManagementService', () => {
       comment: 'Provider violated platform policy.',
     });
 
-    expect(prisma.accountSuspension.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ reason: ProviderLifecycleReason.POLICY_VIOLATION }) }));
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false, suspendedBy: 'admin_1', refreshTokenHash: null }) }));
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_SUSPENDED' }) }));
     expect(result.data).toEqual(expect.objectContaining({ status: 'SUSPENDED', isActive: false, suspensionReason: ProviderLifecycleReason.POLICY_VIOLATION }));
@@ -613,7 +607,6 @@ describe('ProviderManagementService', () => {
       comment: 'Provider account reviewed and restored.',
     });
 
-    expect(prisma.accountSuspension.updateMany).toHaveBeenCalled();
     expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: true, suspendedAt: null, suspensionReason: null }) }));
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_UNSUSPENDED' }) }));
     expect(result.data).toEqual(expect.objectContaining({ approvalStatus: ProviderApprovalStatus.APPROVED, status: 'ACTIVE', isActive: true }));

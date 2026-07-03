@@ -14,7 +14,7 @@ import { SystemSettingsService } from './system-settings.service';
 @ApiTags('02 Admin - System Settings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/system-settings')
 export class SystemSettingsController {
   constructor(private readonly settings: SystemSettingsService) {}

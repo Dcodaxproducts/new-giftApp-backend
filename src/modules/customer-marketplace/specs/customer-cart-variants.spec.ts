@@ -5,9 +5,9 @@ describe('Customer cart variant behavior', () => {
   const service = readFileSync(join(__dirname, '../services/customer-marketplace.service.ts'), 'utf8');
   const controller = readFileSync(join(__dirname, '../controllers/customer-marketplace.controller.ts'), 'utf8');
 
-  it('validates variants and uses variant price snapshots/default variants', () => {
+  it('validates variants and uses variant price snapshots/first variant fallback', () => {
     expect(service).toContain('resolveVariant');
-    expect(service).toContain('candidate.isDefault');
+    expect(service).toContain('gift.variants[0] ?? null');
     expect(service).toContain('Variant does not belong to gift');
     expect(service).toContain('variant?.price ?? gift.price');
     expect(service).not.toContain('assertStock');

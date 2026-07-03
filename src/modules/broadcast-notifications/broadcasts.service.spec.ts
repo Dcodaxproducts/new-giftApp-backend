@@ -36,7 +36,7 @@ function createService() {
   return { service, prisma, audit };
 }
 
-const createUser = { uid: 'admin_1', role: UserRole.ADMIN, permissions: { broadcasts: ['create'] } };
+const createUser = { uid: 'admin_1', role: UserRole.STAFF, permissions: { broadcasts: ['create'] } };
 
 describe('BroadcastNotificationsService', () => {
   it('creates a broadcast with only frontend fields', async () => {
@@ -56,7 +56,7 @@ describe('BroadcastNotificationsService', () => {
         createdBy: 'admin_1',
       },
     });
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'BROADCAST_CREATED', actorType: UserRole.ADMIN }));
+    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'BROADCAST_CREATED', actorType: UserRole.STAFF }));
     expect(result.data).toEqual(expect.objectContaining({ id: 'broadcast_created', audience: BroadcastAudience.ALL_USERS }));
   });
 
@@ -72,7 +72,7 @@ describe('BroadcastNotificationsService', () => {
 
   it('enforces create permission', async () => {
     const { service } = createService();
-    await expect(service.create({ uid: 'admin_1', role: UserRole.ADMIN, permissions: { broadcasts: ['read'] } }, {
+    await expect(service.create({ uid: 'admin_1', role: UserRole.STAFF, permissions: { broadcasts: ['read'] } }, {
       title: 'Maintenance Notice',
       message: 'Type your message here...',
       audience: BroadcastAudienceDto.ALL_USERS,

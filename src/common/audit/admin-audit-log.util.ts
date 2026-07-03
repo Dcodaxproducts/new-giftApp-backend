@@ -6,7 +6,6 @@ export const ADMIN_AUDIT_ACTOR_SELECT = {
   role: true,
   firstName: true,
   lastName: true,
-  adminTitle: true,
 } satisfies Prisma.UserSelect;
 
 type AuditActor = Prisma.UserGetPayload<{ select: typeof ADMIN_AUDIT_ACTOR_SELECT }>;
@@ -104,7 +103,6 @@ export function auditModule(action: string): string {
   if (normalized.startsWith('COUPON_')) return 'Coupons';
   if (normalized.startsWith('MESSAGE_MODERATION')) return 'Message Moderation';
   if (normalized.startsWith('MESSAGING_SETTINGS')) return 'Messaging Settings';
-  if (normalized.startsWith('GUEST_ACCESS')) return 'Guest Access Settings';
   return 'System';
 }
 

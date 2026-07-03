@@ -3,7 +3,7 @@ import { ChatSenderType, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 export const CHAT_MESSAGE_INCLUDE = Prisma.validator<Prisma.ChatMessageInclude>()({
-  sender: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, providerBusinessName: true } },
+  sender: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: { select: { businessName: true } } } },
   readReceipts: true,
 });
 
@@ -54,7 +54,6 @@ export class ChatMessageRepository {
         include: CHAT_MESSAGE_INCLUDE,
       });
       await tx.chatThread.update({ where: { id: params.threadId }, data: { lastMessageId: message.id, lastMessageAt: message.createdAt, status: 'ACTIVE' } });
-      await tx.chatAuditLog.create({ data: { threadId: params.threadId, messageId: message.id, actorId: params.senderId, action: 'chat.message.created', metadataJson: { senderType: params.senderType } } });
       return message;
     });
   }

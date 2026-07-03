@@ -38,7 +38,7 @@ const dto = {
   storage: { awsS3BucketName: 'new-bucket', awsRegion: 'eu-west-1', awsAccessKey: '************', awsSecretKey: 'aws_secret_new' },
   email: { smtpHost: 'smtp.mailtrap.io', smtpPort: 2525, smtpUsername: 'smtp-user', smtpPassword: '************', senderEmail: 'sender@giftapp.com', senderName: 'Gift Platform' },
 };
-const user = { uid: 'admin_1', role: UserRole.ADMIN };
+const user = { uid: 'admin_1', role: UserRole.STAFF };
 
 function createService(overrides: { settings?: typeof settings | null } = {}) {
   const prisma = {
@@ -121,7 +121,7 @@ describe('System settings API stability', () => {
   const controller = readFileSync(join(__dirname, 'system-settings.controller.ts'), 'utf8');
   const repository = readFileSync(join(__dirname, 'system-settings.repository.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../swagger-access.ts'), 'utf8');
   it('adds required routes, repository, schema, permissions, and Swagger group', () => {

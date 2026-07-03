@@ -112,10 +112,6 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.payment.create({ data: { userId: params.userId, customerSubscriptionId: params.customerSubscriptionId, provider: PaymentProvider.STRIPE, providerPaymentIntentId: params.providerPaymentIntentId, amount: params.amount, currency: params.currency, status: PaymentStatus.PROCESSING, paymentMethod: PaymentMethod.STRIPE_CARD, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson } });
   }
 
-  createPaymentAuditLog(params: { paymentId?: string; userId?: string; action: string; status?: PaymentStatus; idempotencyKey?: string; metadataJson?: Prisma.InputJsonObject }) {
-    return this.prisma.paymentAuditLog.create({ data: { paymentId: params.paymentId, userId: params.userId, action: params.action, status: params.status, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson ?? {} } });
-  }
-
   createCustomerNotification(data: Omit<Prisma.NotificationUncheckedCreateInput, 'recipientType'>) {
     return this.notificationDispatch.createAndEmit({ ...data, recipientType: NotificationRecipientType.REGISTERED_USER })
   }

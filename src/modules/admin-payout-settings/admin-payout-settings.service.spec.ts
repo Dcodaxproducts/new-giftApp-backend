@@ -38,7 +38,7 @@ function createService(overrides: Partial<{ settings: typeof settings | null; ti
   return { service, prisma, auditLog };
 }
 
-const user = { uid: 'admin_1', role: UserRole.ADMIN };
+const user = { uid: 'admin_1', role: UserRole.STAFF };
 const settingsDto = { platformRatePercent: 5, minimumPayoutThreshold: 100, currency: 'USD', payoutSchedule: AdminPayoutSchedule.MONTHLY_LAST_DAY, payoutTimeUtc: '00:00', autoPayoutEnabled: true };
 const tierDto = { name: 'Gold Elite', commissionRatePercent: 10, orderVolumeThreshold: 15000, sortOrder: 3, isActive: true };
 
@@ -102,7 +102,7 @@ describe('Admin payout settings source safety', () => {
   const controller = readFileSync(join(__dirname, '../admin-payout-settings.controller.ts'), 'utf8');
   const dto = readFileSync(join(__dirname, '../dto/admin-payout-settings.dto.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../../prisma/schema.prisma'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../admin-roles/constants/permission-catalog.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
 

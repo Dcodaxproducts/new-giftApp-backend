@@ -12,7 +12,7 @@ import { SocialModerationService } from '../services/social-moderation.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 export class SocialModerationBaseController { constructor(protected readonly service: SocialModerationService) {} }
 
 @ApiTags('02 Admin - Social Moderation')

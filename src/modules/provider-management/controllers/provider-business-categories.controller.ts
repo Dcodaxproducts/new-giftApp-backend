@@ -29,7 +29,7 @@ export class ProviderBusinessCategoriesController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('providerBusinessCategories.create')
   @Post()
   @ApiOperation({ summary: 'Create provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission only.' })
@@ -39,7 +39,7 @@ export class ProviderBusinessCategoriesController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('providerBusinessCategories.read')
   @Get(':id')
   @ApiOperation({ summary: 'Fetch provider business category details', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission only.' })
@@ -49,7 +49,7 @@ export class ProviderBusinessCategoriesController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('providerBusinessCategories.update')
   @Patch(':id')
   @ApiOperation({ summary: 'Update provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission only.' })
@@ -59,7 +59,7 @@ export class ProviderBusinessCategoriesController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('providerBusinessCategories.delete')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete provider business category', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission. Permanently deletes the category; refuses deletion when active providers are attached.' })

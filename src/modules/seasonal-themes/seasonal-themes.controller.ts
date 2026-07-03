@@ -14,7 +14,7 @@ import { SeasonalThemesService } from './seasonal-themes.service';
 @ApiTags('02 Admin - Seasonal Themes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('admin/seasonal-themes')
 export class SeasonalThemesAdminController {
   constructor(private readonly seasonalThemes: SeasonalThemesService) {}
