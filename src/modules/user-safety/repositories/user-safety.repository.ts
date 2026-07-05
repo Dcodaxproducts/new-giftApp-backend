@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, UserRole, UserSafetyReportStatus, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const USER_SAFETY_REPORT_INCLUDE = {
   reported: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, role: true } },
@@ -55,7 +55,7 @@ export class UserSafetyRepository {
     return this.prisma.user.findMany({ where: { role: { in: [UserRole.SUPER_ADMIN, UserRole.STAFF] }, status: UserStatus.APPROVED }, select: { id: true, role: true } });
   }
 
-  createManyNotifications(data: Prisma.NotificationCreateManyInput[]) {
-    return Promise.all(data.map((notification) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput)));
+  createManyNotifications(data: DispatchNotificationInput[]) {
+    return Promise.all(data.map((notification) => this.notificationDispatch.createAndEmit(notification)));
   }
 }

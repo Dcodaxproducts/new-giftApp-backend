@@ -3,7 +3,7 @@ import { GiftStatus, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, Pro
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../../common/pagination/pagination.util';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import {
   ExportProvidersDto,
   ListProviderItemsDto,
@@ -458,7 +458,6 @@ export class ProviderManagementRepository {
       });
       await tx.authSession.deleteMany({ where: { userId: params.providerId } });
       await tx.notification.deleteMany({ where: { recipientId: params.providerId } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: params.providerId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: params.providerId } });
       await tx.promotionalOffer.deleteMany({ where: { providerId: params.providerId } });
       await tx.gift.deleteMany({ where: { providerId: params.providerId } });
@@ -478,7 +477,7 @@ export class ProviderManagementRepository {
     return Promise.resolve(null);
   }
 
-  createProviderNotification(data: Prisma.NotificationUncheckedCreateInput) {
+  createProviderNotification(data: DispatchNotificationInput) {
     return this.notificationDispatch.createAndEmit(data);
   }
 

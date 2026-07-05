@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderStatus, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 @Injectable()
 export class AdminTransactionsRepository {
@@ -96,7 +96,7 @@ export class AdminTransactionsRepository {
     });
   }
 
-  createTransactionNotification(data: Prisma.NotificationUncheckedCreateInput) {
+  createTransactionNotification(data: DispatchNotificationInput) {
     return this.notificationDispatch.createAndEmit(data);
   }
 }

@@ -64,7 +64,6 @@ function createService(overrides: Record<string, unknown> = {}) {
     },
     authSession: { deleteMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
-    notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     providerOrder: { count: jest.fn().mockResolvedValue(0) },
     providerOrderItem: { groupBy: jest.fn().mockResolvedValue([]) },

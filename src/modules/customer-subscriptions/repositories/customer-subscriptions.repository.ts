@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CustomerSubscriptionStatus, NotificationRecipientType, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+
+type CustomerNotificationInput = Omit<DispatchNotificationInput, 'recipientType'>;
 
 export const CUSTOMER_SUBSCRIPTION_WITH_PLAN = Prisma.validator<Prisma.CustomerSubscriptionInclude>()({ plan: true });
 
@@ -108,7 +110,7 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.payment.create({ data: { userId: params.userId, customerSubscriptionId: params.customerSubscriptionId, provider: PaymentProvider.STRIPE, providerPaymentIntentId: params.providerPaymentIntentId, amount: params.amount, currency: params.currency, status: PaymentStatus.PROCESSING, paymentMethod: PaymentMethod.STRIPE_CARD, idempotencyKey: params.idempotencyKey, metadataJson: params.metadataJson } });
   }
 
-  createCustomerNotification(data: Omit<Prisma.NotificationUncheckedCreateInput, 'recipientType'>) {
+  createCustomerNotification(data: CustomerNotificationInput) {
     return this.notificationDispatch.createAndEmit({ ...data, recipientType: NotificationRecipientType.REGISTERED_USER })
   }
 }

@@ -27,7 +27,6 @@ function createService() {
     adminAuditLog: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     authSession: { deleteMany: jest.fn(), updateMany: jest.fn() },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }), deleteMany: jest.fn() },
-    notificationDeviceToken: { deleteMany: jest.fn() },
     uploadedFile: { deleteMany: jest.fn() },
     customerWishlist: { deleteMany: jest.fn() },
     cartItem: { deleteMany: jest.fn() },

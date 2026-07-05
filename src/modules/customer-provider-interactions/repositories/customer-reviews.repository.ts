@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ReviewStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const CUSTOMER_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
   provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } },
@@ -22,7 +22,7 @@ const ORDER_FOR_REVIEW_SELECT = Prisma.validator<Prisma.OrderSelect>()({
 
 type CreateReviewData = Prisma.Args<PrismaService['review'], 'create'>['data'];
 type UpdateReviewData = Prisma.Args<PrismaService['review'], 'update'>['data'];
-type CreateReviewNotificationData = Prisma.Args<PrismaService['notification'], 'create'>['data'];
+type CreateReviewNotificationData = DispatchNotificationInput;
 
 @Injectable()
 export class CustomerReviewsRepository {
@@ -72,7 +72,7 @@ export class CustomerReviewsRepository {
   }
 
   createReviewNotification(data: CreateReviewNotificationData) {
-    return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput);
+    return this.notificationDispatch.createAndEmit(data);
   }
 
   findProviderForOrder(customerId: string, providerId: string, orderId?: string) {

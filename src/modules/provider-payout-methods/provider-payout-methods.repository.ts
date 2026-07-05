@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 @Injectable()
 export class ProviderPayoutMethodsRepository {
@@ -55,7 +55,7 @@ export class ProviderPayoutMethodsRepository {
     return this.prisma.providerPayoutMethod.update({ where: { id }, data });
   }
 
-  createNotification(data: Prisma.NotificationUncheckedCreateInput) {
+  createNotification(data: DispatchNotificationInput) {
     return this.notificationDispatch.createAndEmit(data);
   }
 }

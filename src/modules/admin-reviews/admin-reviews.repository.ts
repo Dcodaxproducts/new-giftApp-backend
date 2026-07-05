@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ReviewStatus, ReviewSeverity } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const ADMIN_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
   customer: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
@@ -11,7 +11,7 @@ export const ADMIN_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
 });
 
 type ReviewUpdateData = Prisma.Args<PrismaService['review'], 'update'>['data'];
-type NotificationCreateManyData = Prisma.NotificationCreateManyInput[];
+type NotificationCreateManyData = DispatchNotificationInput[];
 
 @Injectable()
 export class AdminReviewsRepository {
@@ -60,5 +60,5 @@ export class AdminReviewsRepository {
     return this.prisma.review.findMany({ where: params.where, include: ADMIN_REVIEW_INCLUDE, orderBy: params.orderBy, take: 10000 });
   }
 
-  createModerationNotifications(data: NotificationCreateManyData) { return Promise.all(data.map((notification: Prisma.NotificationCreateManyInput) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput))); }
+  createModerationNotifications(data: NotificationCreateManyData) { return Promise.all(data.map((notification) => this.notificationDispatch.createAndEmit(notification))); }
 }

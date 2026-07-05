@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CustomerWalletLedgerStatus, CustomerWalletLedgerType, CustomerWalletLedgerDirection, NotificationRecipientType, PaymentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
+
+type CustomerNotificationInput = Omit<DispatchNotificationInput, 'recipientType'>;
 
 @Injectable()
 export class CustomerWalletRepository {
@@ -84,7 +86,7 @@ export class CustomerWalletRepository {
     ]);
   }
 
-  createCustomerNotification(data: Omit<Prisma.NotificationUncheckedCreateInput, 'recipientType'>) {
+  createCustomerNotification(data: CustomerNotificationInput) {
     return this.notificationDispatch.createAndEmit({ ...data, recipientType: NotificationRecipientType.REGISTERED_USER })
   }
 

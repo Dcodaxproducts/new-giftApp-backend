@@ -52,6 +52,6 @@ export class CustomerProviderReportsRepository {
   }
 
   createAdminReportNotifications(admins: { id: string; role: UserRole }[], params: { reportId: string; providerId: string }) {
-    return Promise.all((admins.map((admin) => ({ recipientId: admin.id, recipientType: admin.role === UserRole.SUPER_ADMIN ? NotificationRecipientType.ADMIN : NotificationRecipientType.ADMIN, title: 'Provider report submitted', message: 'A customer submitted a provider report for review.', type: 'PROVIDER_REPORT_ADMIN', metadataJson: { reportId: params.reportId, providerId: params.providerId } }))).map((notification) => this.notificationDispatch.createAndEmit(notification as Prisma.NotificationUncheckedCreateInput)))
+    return Promise.all((admins.map((admin) => ({ recipientId: admin.id, recipientType: admin.role === UserRole.SUPER_ADMIN ? NotificationRecipientType.ADMIN : NotificationRecipientType.ADMIN, title: 'Provider report submitted', message: 'A customer submitted a provider report for review.', type: 'PROVIDER_REPORT_ADMIN', metadataJson: { reportId: params.reportId, providerId: params.providerId } }))).map((notification) => this.notificationDispatch.createAndEmit(notification)))
   }
 }

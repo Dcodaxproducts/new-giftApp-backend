@@ -57,7 +57,6 @@ export class StaffManagementRepository {
       await tx.authSession.deleteMany({ where: { userId: adminId } });
       await tx.adminAuditLog.updateMany({ where: { actorId: adminId }, data: { actorId: null } });
       await tx.notification.deleteMany({ where: { recipientId: adminId } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: adminId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: adminId } });
       await tx.staffProfile.deleteMany({ where: { userId: adminId } });
       await tx.user.delete({ where: { id: adminId } });

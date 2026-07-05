@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 @Injectable()
 export class ProviderReviewResponsesRepository {
@@ -27,7 +27,7 @@ export class ProviderReviewResponsesRepository {
     return this.prisma.reviewResponse.delete({ where: { id } });
   }
 
-  createCustomerNotification(data: Prisma.NotificationUncheckedCreateInput) {
+  createCustomerNotification(data: DispatchNotificationInput) {
     return this.notificationDispatch.createAndEmit(data);
   }
 }

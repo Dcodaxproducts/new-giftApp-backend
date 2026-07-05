@@ -64,7 +64,6 @@ describe('CI static production guards', () => {
   it('blocks direct notification writes outside notification infrastructure', () => {
     const allowed = new Set([
       'modules/notifications/repositories/notifications.repository.ts',
-      'modules/notifications/repositories/notification-delivery-log.repository.ts',
       'modules/notifications/notification-dispatch.service.ts',
     ]);
     const offenders = walk(srcRoot).filter((path) => {

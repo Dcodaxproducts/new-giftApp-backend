@@ -72,6 +72,5 @@ describe('Swagger and static route hardening', () => {
   it('notification static routes stay before notification id read route', () => {
     const source = readFileSync(join(root, 'src/modules/notifications/notifications.controller.ts'), 'utf8');
     expectBefore(source, "@Get('summary')", "@Patch(':id/read')");
-    expectBefore(source, "@Get('preferences')", "@Patch(':id/read')");
   });
 });

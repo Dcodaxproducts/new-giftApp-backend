@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const PROVIDER_ORDER_LIST_INCLUDE = Prisma.validator<Prisma.ProviderOrderInclude>()({
   order: true,
@@ -12,7 +12,7 @@ export const PROVIDER_ORDER_LIST_INCLUDE = Prisma.validator<Prisma.ProviderOrder
 type ProviderOrderTransaction = Prisma.TransactionClient;
 type ProviderOrderUpdateData = Prisma.Args<ProviderOrderTransaction['providerOrder'], 'update'>['data'];
 type ProviderOrderTimelineCreateData = Prisma.Args<ProviderOrderTransaction['providerOrderTimeline'], 'create'>['data'];
-type NotificationCreateData = Prisma.Args<ProviderOrderTransaction['notification'], 'create'>['data'];
+type NotificationCreateData = DispatchNotificationInput;
 
 @Injectable()
 export class ProviderOrdersRepository {
@@ -127,7 +127,7 @@ export class ProviderOrdersRepository {
   }
 
   createCustomerOrderNotification(tx: ProviderOrderTransaction, data: NotificationCreateData) {
-    return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput);
+    return this.notificationDispatch.createAndEmit(data);
   }
 
   findActiveSuperAdminIds(tx: ProviderOrderTransaction) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, UserSafetyAdminAction, UserSafetyReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { USER_SAFETY_REPORT_INCLUDE } from './user-safety.repository';
 
 @Injectable()
@@ -40,7 +40,7 @@ export class UserSafetyAdminRepository {
     return Promise.resolve(null);
   }
 
-  createNotification(tx: Prisma.TransactionClient, data: Prisma.NotificationUncheckedCreateInput) {
+  createNotification(tx: Prisma.TransactionClient, data: DispatchNotificationInput) {
     return this.notificationDispatch.createAndEmit(data);
   }
 

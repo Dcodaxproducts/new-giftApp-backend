@@ -290,7 +290,6 @@ export class UserManagementRepository {
 
       await tx.authSession.deleteMany({ where: { userId: params.target.id } });
       await tx.notification.deleteMany({ where: { recipientId: params.target.id } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId: params.target.id } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: params.target.id } });
       await tx.customerWishlist.deleteMany({ where: { userId: params.target.id } });
       await tx.cartItem.deleteMany({ where: { cart: { userId: params.target.id } } });

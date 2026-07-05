@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, SocialPostStatus, SocialPostVisibility, SocialReportSeverity, SocialReportStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const SOCIAL_REPORT_INCLUDE = Prisma.validator<Prisma.SocialReportInclude>()({
   post: { include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, createdAt: true } }, reports: { select: { id: true } } } },
@@ -11,7 +11,7 @@ export const SOCIAL_REPORT_INCLUDE = Prisma.validator<Prisma.SocialReportInclude
 type SocialTx = Prisma.TransactionClient;
 type SocialPostUpdateData = Prisma.Args<SocialTx['socialPost'], 'update'>['data'];
 type UserWarningCreateData = Prisma.Args<SocialTx['userWarning'], 'create'>['data'];
-type NotificationCreateData = Prisma.Args<SocialTx['notification'], 'create'>['data'];
+type NotificationCreateData = DispatchNotificationInput;
 
 @Injectable()
 export class SocialModerationRepository {
@@ -44,5 +44,5 @@ export class SocialModerationRepository {
   updateSocialPost(tx: SocialTx, postId: string, data: SocialPostUpdateData) { return tx.socialPost.update({ where: { id: postId }, data }); }
   updateSocialReportStatus(tx: SocialTx, id: string, status: SocialReportStatus) { return tx.socialReport.update({ where: { id }, data: { status } }); }
   createUserWarning(tx: SocialTx, data: UserWarningCreateData) { return tx.userWarning.create({ data }); }
-  createNotification(tx: SocialTx, data: NotificationCreateData) { return this.notificationDispatch.createAndEmit(data as Prisma.NotificationUncheckedCreateInput); }
+  createNotification(tx: SocialTx, data: NotificationCreateData) { return this.notificationDispatch.createAndEmit(data); }
 }

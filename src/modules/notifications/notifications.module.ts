@@ -5,8 +5,6 @@ import { DatabaseModule } from '../../database/database.module';
 import { AuditLogWriterRepository } from '../../common/repositories/audit-log-writer.repository';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { MailerModule } from '../mailer/mailer.module';
-import { DeviceTokensRepository } from './repositories/device-tokens.repository';
-import { NotificationPreferencesRepository } from './repositories/notification-preferences.repository';
 import { NotificationsRepository } from './repositories/notifications.repository';
 import { NotificationDispatchService } from './notification-dispatch.service';
 import { NotificationsController } from './notifications.controller';
@@ -22,8 +20,6 @@ import { NotificationsService } from './notifications.service';
     AuditLogWriterService,
     NotificationsService,
     NotificationsRepository,
-    NotificationPreferencesRepository,
-    DeviceTokensRepository,
     NotificationsGateway,
     NotificationDispatchService,
   ],

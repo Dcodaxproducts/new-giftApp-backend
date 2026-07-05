@@ -46,7 +46,6 @@ export class AuthRepository {
     return this.prisma.$transaction(async (tx) => {
       await tx.authSession.deleteMany({ where: { userId } });
       await tx.notification.deleteMany({ where: { recipientId: userId } });
-      await tx.notificationDeviceToken.deleteMany({ where: { userId } });
       await tx.uploadedFile.deleteMany({ where: { ownerId: userId } });
       await tx.customerWishlist.deleteMany({ where: { userId } });
       await tx.cartItem.deleteMany({ where: { cart: { userId } } });

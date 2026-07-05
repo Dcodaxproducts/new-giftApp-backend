@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../common/audit/admin-audit-log.util';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 @Injectable()
 export class ProviderBusinessInfoRepository {
@@ -41,7 +41,7 @@ export class ProviderBusinessInfoRepository {
     return this.prisma.user.findMany({ where: { role: UserRole.SUPER_ADMIN, status: UserStatus.APPROVED }, select: { id: true } });
   }
 
-  createNotification(data: Prisma.NotificationUncheckedCreateInput) {
+  createNotification(data: DispatchNotificationInput) {
     return this.notificationDispatch.createAndEmit(data);
   }
 }
