@@ -9,11 +9,11 @@ import { SubscriptionPlansRepository } from './repositories/subscription-plans.r
 import { SubscriptionPlansService } from './services/subscription-plans.service';
 
 function createService() {
-  const plan = { id: 'plan_1', name: 'Pro', slug: 'pro', description: null, monthlyPrice: { toString: () => '49' }, yearlyPrice: { toString: () => '490' }, currency: 'USD', status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, isPopular: false, featuresJson: { apiAccess: true }, limitsJson: { maxTeamMembers: 10 }, activeSubscribersPlaceholder: 0, createdBy: 'admin_1', updatedBy: null, createdAt: new Date(), updatedAt: new Date(), deletedAt: null };
+  const plan = { id: 'plan_1', name: 'Pro', slug: 'pro', description: null, monthlyPrice: { toString: () => '49' }, yearlyPrice: { toString: () => '490' }, currency: 'USD', status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, isPopular: false, activeSubscribersPlaceholder: 0, createdAt: new Date(), updatedAt: new Date() };
   const coupon = { id: 'coupon_1', code: 'SUMMER25', description: null, discountType: CouponDiscountType.PERCENTAGE, discountValue: { toString: () => '25' }, planIdsJson: ['plan_1'], startsAt: null, expiresAt: null, maxRedemptions: 100, redemptionCount: 0, isActive: true, createdBy: 'admin_1', updatedBy: null, createdAt: new Date(), updatedAt: new Date(), deletedAt: null };
   const feature = { id: 'feature_1', key: 'apiAccess', label: 'API Access', description: 'API', type: 'BOOLEAN', isActive: true, sortOrder: 0, deletedAt: null, createdAt: new Date(), updatedAt: new Date() };
   const prisma = {
-    subscriptionPlan: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(plan), findMany: jest.fn().mockResolvedValue([plan]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...plan, ...data })), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    subscriptionPlan: { findFirst: jest.fn().mockResolvedValue(null), findUnique: jest.fn().mockResolvedValue(plan), create: jest.fn().mockResolvedValue(plan), findMany: jest.fn().mockResolvedValue([plan]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...plan, ...data })), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     planFeatureCatalog: { upsert: jest.fn(), findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(feature), update: jest.fn().mockResolvedValue({ ...feature, isActive: false }), delete: jest.fn().mockResolvedValue(feature), findMany: jest.fn().mockResolvedValue([feature]), count: jest.fn().mockResolvedValue(1) },
     coupon: { findFirst: jest.fn().mockImplementation(({ where }) => Promise.resolve(typeof where?.id === 'string' ? coupon : null)), create: jest.fn().mockResolvedValue(coupon), findMany: jest.fn().mockResolvedValue([coupon]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...coupon, ...data })) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
@@ -51,20 +51,17 @@ describe('SubscriptionPlansService', () => {
     await expect(service.createPlan({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Freeform' })).rejects.toThrow('Either monthlyPrice or yearlyPrice is required');
   });
 
-  it('filters removed limit fields from plan responses and writes', async () => {
+  it('returns default plan limits after removing plan limit storage', async () => {
     const { service, prisma } = createService();
-    await service.createPlan({ uid: 'admin_1', role: UserRole.STAFF }, { name: 'Pro', monthlyPrice: 49, limits: { maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2, maxTeamMembers: 99, storageGb: 100 } as Record<string, unknown> });
-    expect(prisma.subscriptionPlan.create.mock.calls[0][0].data.limitsJson).toEqual({ maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2 });
-
-    prisma.subscriptionPlan.findFirst.mockResolvedValue({ ...(await prisma.subscriptionPlan.findMany())[0], limitsJson: { maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2, maxTeamMembers: 99, storageGb: 100 } });
+    prisma.subscriptionPlan.findUnique.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
     const result = await service.planDetails('plan_1');
-    expect(result.data.limits).toEqual({ maxGiftsPerMonth: 5, maxGroupGiftingEvents: 2 });
+    expect(result.data.limits).toEqual({ maxGiftsPerMonth: -1, maxGroupGiftingEvents: -1 });
   });
 
-  it('lists plans excluding deleted plans', async () => {
+  it('lists plans without soft-delete filtering', async () => {
     const { service, prisma } = createService();
     await service.listPlans({});
-    expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ deletedAt: null }) }));
+    expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
   });
 
   it('lists newly created plans first by default and respects explicit sort', async () => {
@@ -80,7 +77,8 @@ describe('SubscriptionPlansService', () => {
   it('normal update works through main PATCH service path', async () => {
     const { service, prisma, audit } = createService();
     const existing = (await prisma.subscriptionPlan.findMany())[0];
-    prisma.subscriptionPlan.findFirst.mockImplementation((args: { where: { id?: string; slug?: string } }) => Promise.resolve(args.where.slug ? null : existing));
+    prisma.subscriptionPlan.findUnique.mockResolvedValue(existing);
+    prisma.subscriptionPlan.findFirst.mockImplementation((args: { where: { slug?: string } }) => Promise.resolve(args.where.slug ? null : existing));
     const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['update'] } }, 'plan_1', { name: 'Premium' });
     expect(result.data).toEqual(expect.objectContaining({ name: 'Premium', slug: 'premium' }));
     expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'SUBSCRIPTION_PLAN_UPDATED', beforeJson: expect.objectContaining({ name: 'Pro' }), afterJson: expect.objectContaining({ name: 'Premium' }) }));
@@ -88,7 +86,7 @@ describe('SubscriptionPlansService', () => {
 
   it('status update works through main PATCH with status permission', async () => {
     const { service, prisma } = createService();
-    prisma.subscriptionPlan.findFirst.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
+    prisma.subscriptionPlan.findUnique.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
     const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['status.update'] } }, 'plan_1', { status: SubscriptionPlanStatus.INACTIVE, reason: 'Plan paused.' });
     expect(result.data).toEqual(expect.objectContaining({ status: SubscriptionPlanStatus.INACTIVE }));
     expect(prisma.subscriptionPlan.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: SubscriptionPlanStatus.INACTIVE }) }));
@@ -96,7 +94,7 @@ describe('SubscriptionPlansService', () => {
 
   it('visibility update works through main PATCH with visibility permission', async () => {
     const { service, prisma } = createService();
-    prisma.subscriptionPlan.findFirst.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
+    prisma.subscriptionPlan.findUnique.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
     const result = await service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['visibility.update'] } }, 'plan_1', { isVisible: false, reason: 'Plan hidden.' });
     expect(result.data).toEqual(expect.objectContaining({ visibility: SubscriptionPlanVisibility.PRIVATE }));
     expect(prisma.subscriptionPlan.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ visibility: SubscriptionPlanVisibility.PRIVATE }) }));
@@ -104,7 +102,7 @@ describe('SubscriptionPlansService', () => {
 
   it('permissions are enforced for status and visibility fields', async () => {
     const { service, prisma } = createService();
-    prisma.subscriptionPlan.findFirst.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
+    prisma.subscriptionPlan.findUnique.mockResolvedValue((await prisma.subscriptionPlan.findMany())[0]);
     await expect(service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['read'] } }, 'plan_1', { status: SubscriptionPlanStatus.ACTIVE })).rejects.toThrow('Your role does not have the required permission');
     await expect(service.updatePlan({ uid: 'admin_1', role: UserRole.STAFF, permissions: { subscriptionPlans: ['status.update'] } }, 'plan_1', { visibility: SubscriptionPlanVisibility.PUBLIC })).rejects.toThrow('Your role does not have the required permission');
   });

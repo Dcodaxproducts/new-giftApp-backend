@@ -22,7 +22,7 @@ export class SubscriptionPlansController {
   @Permissions('subscriptionPlans.read')
   @ApiOperation({
     summary: 'List subscription plans',
-    description: 'By default returns all non-deleted plans. Use status to filter ACTIVE, INACTIVE, or ARCHIVED plans.',
+    description: 'By default returns all plans. Use status to filter ACTIVE, INACTIVE, or ARCHIVED plans.',
   })
   list(@Query() query: ListSubscriptionPlansDto) {
     return this.service.listPlans(query);

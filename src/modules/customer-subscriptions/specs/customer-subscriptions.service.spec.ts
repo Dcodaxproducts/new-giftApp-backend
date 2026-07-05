@@ -6,7 +6,7 @@ import { CustomerSubscriptionsRepository } from '../repositories/customer-subscr
 import { CustomerSubscriptionsService } from '../services/customer-subscriptions.service';
 import { CustomerSubscriptionAction, InvoiceStatusFilter } from '../dto/customer-subscriptions.dto';
 
-const plan = { id: 'plan_premium', name: 'Premium', description: 'Premium plan', monthlyPrice: 10, yearlyPrice: 100, currency: 'USD', isPopular: true, featuresJson: { premium_support: true }, limitsJson: { unlimitedCredits: true }, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null, stripeProductId: null, stripeMonthlyPriceId: null, stripeYearlyPriceId: null };
+const plan = { id: 'plan_premium', name: 'Premium', description: 'Premium plan', monthlyPrice: 10, yearlyPrice: 100, currency: 'USD', isPopular: true, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC };
 const activeSubscription = { id: 'sub_1', userId: 'customer_1', planId: 'plan_premium', plan, billingCycle: BillingCycle.MONTHLY, status: CustomerSubscriptionStatus.ACTIVE, isPremium: true, currentPeriodStart: new Date('2026-01-01T00:00:00.000Z'), currentPeriodEnd: new Date('2026-02-01T00:00:00.000Z'), cancelAtPeriodEnd: false, cancelledAt: null, stripeCustomerId: 'cus_1', stripeSubscriptionId: 'stripe_sub_1', stripePriceId: 'price_1', couponId: null };
 const coupon = { id: 'coupon_1', code: 'SAVE10', discountType: CouponDiscountType.PERCENTAGE, discountValue: 10, isActive: true, deletedAt: null, expiresAt: null, planIdsJson: [], maxRedemptions: null, redemptionCount: 0 };
 const invoice = { id: 'invoice_1', userId: 'customer_1', customerSubscriptionId: 'sub_1', stripeInvoiceId: 'in_1', stripePaymentIntentId: 'pi_1', amountDue: 10, amountPaid: 10, currency: 'USD', status: CustomerSubscriptionInvoiceStatus.PAID, invoicePdfUrl: 'https://example.com/invoice.pdf', hostedInvoiceUrl: 'https://example.com/invoice', billingReason: 'subscription_cycle', createdAt: new Date('2026-01-01T00:00:00.000Z'), updatedAt: new Date() };
@@ -75,9 +75,9 @@ describe('Customer Premium Subscription module', () => {
   it('adds customer subscription schemas without duplicating admin plans', () => {
     expect(schema).toContain('model CustomerSubscription');
     expect(schema).toContain('model CustomerSubscriptionInvoice');
-    expect(schema).toContain('stripeProductId');
-    expect(schema).toContain('stripeMonthlyPriceId');
-    expect(schema).toContain('stripeYearlyPriceId');
+    expect(schema).not.toContain('stripeProductId');
+    expect(schema).not.toContain('stripeMonthlyPriceId');
+    expect(schema).not.toContain('stripeYearlyPriceId');
     expect(schema).toContain('SubscriptionPlan');
   });
 
@@ -99,7 +99,7 @@ describe('Customer Premium Subscription module', () => {
   it('lists only active public admin-created plans and hides admin fields', () => {
     expect(repository).toContain('SubscriptionPlanStatus.ACTIVE');
     expect(repository).toContain('SubscriptionPlanVisibility.PUBLIC');
-    expect(repository).toContain('deletedAt: null');
+    expect(repository).not.toContain('visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null');
     expect(service).toContain('planItem');
     expect(service).not.toContain('createdBy: plan.createdBy');
   });
@@ -134,7 +134,6 @@ describe('Customer Premium Subscription module', () => {
     expect(repository).toContain('findCouponByCode');
     expect(repository).toContain('findSubscriptionForUser');
     expect(repository).toContain('findCurrentActionSubscriptionForUser');
-    expect(repository).toContain('updatePlanStripeIds');
     expect(service).toContain('subscriptions.create');
     expect(service).toContain('subscriptions.retrieve');
     expect(service).toContain('finalPrice(plan, dto.billingCycle, coupon)');
@@ -181,14 +180,14 @@ describe('CustomerSubscriptionsService read APIs', () => {
     const result = await service.plans({ billingCycle: BillingCycle.MONTHLY });
     expect(result.message).toBe('Subscription plans fetched successfully.');
     expect(result.data[0]).toEqual(expect.objectContaining({ id: 'plan_premium', monthlyPrice: 10, yearlyPrice: 100, billingCycle: BillingCycle.MONTHLY }));
-    expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null }, orderBy: [{ isPopular: 'desc' }, { monthlyPrice: 'asc' }] });
+    expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC }, orderBy: [{ isPopular: 'desc' }, { monthlyPrice: 'asc' }] });
   });
 
-  it('private and archived/deleted plans are excluded by repository filter', async () => {
+  it('private and archived plans are excluded by repository filter', async () => {
     const { service, prisma } = createService({ plans: [] });
     const result = await service.plans({});
     expect(result.data).toEqual([]);
-    expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null } }));
+    expect(prisma.subscriptionPlan.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC } }));
   });
 
   it('free user returns current subscription FREE state', async () => {
@@ -218,13 +217,15 @@ describe('CustomerSubscriptionsService read APIs', () => {
   });
 
   it('checkout uses backend plan price and does not trust frontend amount', async () => {
-    const { service, prisma } = createService({ current: null, plans: [{ ...plan, stripeMonthlyPriceId: 'price_monthly' }] });
+    const { service, prisma } = createService({ current: null });
     const stripe = mockStripe(service);
     const result = await service.checkout({ uid: 'customer_1', role: 'REGISTERED_USER' }, { planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY, paymentMethod: PaymentMethod.STRIPE_CARD });
     expect(result.message).toBe('Subscription checkout created successfully.');
     expect(result.data).toEqual(expect.objectContaining({ amount: 1000, currency: 'USD', status: CustomerSubscriptionStatus.INCOMPLETE }));
-    expect(stripe.subscriptionsCreate).toHaveBeenCalledWith(expect.objectContaining({ customer: 'cus_new', items: [{ price: 'price_monthly' }], payment_behavior: 'default_incomplete', metadata: expect.objectContaining({ userId: 'customer_1', planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY }) }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
-    expect(prisma.customerSubscription.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'customer_1', planId: 'plan_premium', stripePriceId: 'price_monthly' }) });
+    expect(stripe.productsCreate).toHaveBeenCalledWith(expect.objectContaining({ name: 'Premium', metadata: { planId: 'plan_premium' } }));
+    expect(stripe.pricesCreate).toHaveBeenCalledWith(expect.objectContaining({ product: 'prod_1', metadata: { planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY } }));
+    expect(stripe.subscriptionsCreate).toHaveBeenCalledWith(expect.objectContaining({ customer: 'cus_new', items: [{ price: 'price_new' }], payment_behavior: 'default_incomplete', metadata: expect.objectContaining({ userId: 'customer_1', planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY }) }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
+    expect(prisma.customerSubscription.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'customer_1', planId: 'plan_premium', stripePriceId: 'price_new' }) });
   });
 
   it('checkout rejects inactive/private plan through public plan lookup', async () => {

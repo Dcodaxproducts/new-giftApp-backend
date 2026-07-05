@@ -10,7 +10,7 @@ export class CustomerSubscriptionsRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findPublicActivePlans() {
-    return this.prisma.subscriptionPlan.findMany({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null }, orderBy: [{ isPopular: 'desc' }, { monthlyPrice: 'asc' }] });
+    return this.prisma.subscriptionPlan.findMany({ where: { status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC }, orderBy: [{ isPopular: 'desc' }, { monthlyPrice: 'asc' }] });
   }
 
   findCurrentSubscriptionForUser(userId: string) {
@@ -61,10 +61,6 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.user.findUniqueOrThrow({ where: { id } });
   }
 
-  updatePlanStripeIds(id: string, data: Prisma.SubscriptionPlanUpdateArgs['data']) {
-    return this.prisma.subscriptionPlan.update({ where: { id }, data });
-  }
-
   findCouponByCode(code: string) {
     return this.prisma.coupon.findFirst({ where: { code: code.trim().toUpperCase(), isActive: true, deletedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
   }
@@ -89,7 +85,7 @@ export class CustomerSubscriptionsRepository {
   }
 
   findPlanById(id: string) {
-    return this.prisma.subscriptionPlan.findFirst({ where: { id, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, deletedAt: null } });
+    return this.prisma.subscriptionPlan.findFirst({ where: { id, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC } });
   }
 
   updateStripeSubscriptionSync(id: string, data: Prisma.CustomerSubscriptionUpdateArgs['data']) {

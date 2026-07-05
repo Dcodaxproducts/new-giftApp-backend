@@ -776,8 +776,6 @@ model User {
   uploadedFiles                       UploadedFile[]
   updatedReferralSettings             ReferralSettings[]                   @relation("ReferralSettingsUpdater")
   updatedRefundPolicySettings         RefundPolicySettings[]               @relation("RefundPolicySettingsUpdater")
-  createdSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanCreator")
-  updatedSubscriptionPlans            SubscriptionPlan[]                   @relation("SubscriptionPlanUpdater")
   createdCoupons                      Coupon[]                             @relation("CouponCreator")
   updatedCoupons                      Coupon[]                             @relation("CouponUpdater")
   providerOrders                      ProviderOrder[]
@@ -2417,24 +2415,13 @@ model SubscriptionPlan {
   status                       SubscriptionPlanStatus     @default(ACTIVE)
   visibility                   SubscriptionPlanVisibility @default(PUBLIC)
   isPopular                    Boolean                    @default(false) @map("is_popular")
-  featuresJson                 Json                       @default("{}") @map("features_json")
-  limitsJson                   Json                       @default("{}") @map("limits_json")
   activeSubscribersPlaceholder Int                        @default(0) @map("active_subscribers_placeholder")
-  stripeProductId              String?                    @map("stripe_product_id")
-  stripeMonthlyPriceId         String?                    @map("stripe_monthly_price_id")
-  stripeYearlyPriceId          String?                    @map("stripe_yearly_price_id")
-  createdBy                    String?                    @map("created_by")
-  updatedBy                    String?                    @map("updated_by")
   createdAt                    DateTime                   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                    DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt                    DateTime?                  @map("deleted_at") @db.Timestamptz
 
-  creator               User?                  @relation("SubscriptionPlanCreator", fields: [createdBy], references: [id])
-  updater               User?                  @relation("SubscriptionPlanUpdater", fields: [updatedBy], references: [id])
   customerSubscriptions CustomerSubscription[]
 
   @@index([status, visibility])
-  @@index([deletedAt])
   @@map("subscription_plans")
 }
 
