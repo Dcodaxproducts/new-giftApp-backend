@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BillingCycle, CouponDiscountType, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString, Min, MinLength } from 'class-validator';
 import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
@@ -11,6 +11,11 @@ export enum PlanSortBy { CREATED_AT = 'createdAt', NAME = 'name', MONTHLY_PRICE 
 export enum CouponStatusFilter { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', EXPIRED = 'EXPIRED' }
 export enum CouponStatus { ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', EXPIRED = 'EXPIRED' }
 export enum PlanFeatureType { BOOLEAN = 'BOOLEAN', NUMBER = 'NUMBER', TEXT = 'TEXT' }
+
+export class PlanLimitsDto {
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() maxGiftsPerMonth?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() maxGroupGiftingEvents?: number;
+}
 
 export class CreateSubscriptionPlanDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
@@ -22,6 +27,8 @@ export class CreateSubscriptionPlanDto {
   @ApiPropertyOptional({ example: true, description: 'Alias for visibility=PUBLIC/PRIVATE.' }) @IsOptional() @IsBoolean() isVisible?: boolean;
   @ApiPropertyOptional({ enum: SubscriptionPlanStatus }) @IsOptional() @IsEnum(SubscriptionPlanStatus) status?: SubscriptionPlanStatus;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPopular?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsObject() features?: Record<string, boolean>;
+  @ApiPropertyOptional({ type: PlanLimitsDto }) @IsOptional() @IsObject() limits?: PlanLimitsDto;
 }
 
 export class UpdateSubscriptionPlanDto {
@@ -35,6 +42,8 @@ export class UpdateSubscriptionPlanDto {
   @ApiPropertyOptional({ enum: SubscriptionPlanStatus }) @IsOptional() @IsEnum(SubscriptionPlanStatus) status?: SubscriptionPlanStatus;
   @ApiPropertyOptional({ example: 'Plan published.' }) @IsOptional() @IsString() reason?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isPopular?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsObject() features?: Record<string, boolean>;
+  @ApiPropertyOptional({ type: PlanLimitsDto }) @IsOptional() @IsObject() limits?: PlanLimitsDto;
 }
 
 export class ListSubscriptionPlansDto {

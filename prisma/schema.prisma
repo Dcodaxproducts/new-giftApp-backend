@@ -2415,6 +2415,8 @@ model SubscriptionPlan {
   status                       SubscriptionPlanStatus     @default(ACTIVE)
   visibility                   SubscriptionPlanVisibility @default(PUBLIC)
   isPopular                    Boolean                    @default(false) @map("is_popular")
+  featuresJson                 Json                       @default("{}") @map("features_json")
+  limitsJson                   Json                       @default("{}") @map("limits_json")
   activeSubscribersPlaceholder Int                        @default(0) @map("active_subscribers_placeholder")
   createdAt                    DateTime                   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                    DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
