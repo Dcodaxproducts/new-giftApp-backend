@@ -1,14 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, StreamableFile, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { Permissions } from '../../../common/decorators/permissions.decorator';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../../common/guards/permissions.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { CreateGiftDto, ExportGiftsDto, ListGiftsDto, UpdateGiftDto } from '../dto/gift-management.dto';
-import { GiftManagementService } from '../services/gift-management.service';
+import { AuthUserContext, CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Permissions } from 'src/common/decorators/permissions.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PermissionsGuard } from 'src/common/guards/permissions.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { CreateGiftDto, ExportGiftsDto, ListGiftsDto, UpdateGiftDto } from './dto/gift-management.dto';
+import { GiftManagementService } from './gift-management.service';
 
 @ApiTags('04 Gifts - Management')
 @ApiBearerAuth()
