@@ -15,7 +15,7 @@ export class AdminDisputesRepository {
   countStats(where: Prisma.DisputeWhereInput) {
     return this.prisma.$transaction([
       this.prisma.dispute.count({ where }),
-      this.prisma.dispute.count({ where: { ...where, status: this.status('OPEN') } }),
+      this.prisma.dispute.count({ where: { ...where, status: this.status('PENDING') } }),
       this.prisma.dispute.count({ where: { ...where, status: this.status('APPROVED') } }),
       this.prisma.dispute.count({ where: { ...where, status: this.status('REJECTED') } }),
     ]);

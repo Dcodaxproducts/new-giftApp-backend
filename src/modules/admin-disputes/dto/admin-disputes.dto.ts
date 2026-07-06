@@ -1,11 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayMaxSize, IsArray, IsEnum, IsOptional, IsString, IsUrl, MinLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEnum, IsOptional, IsString, IsUrl, MinLength, ValidateIf } from 'class-validator';
 
 export enum DisputeRange { TODAY = 'TODAY', LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS', CUSTOM = 'CUSTOM' }
 export enum DisputeSortBy { CREATED_AT = 'createdAt', STATUS = 'status' }
 export enum SortOrder { ASC = 'asc', DESC = 'desc' }
-export enum DisputeStatusFilter { OPEN = 'OPEN', PROVIDER_RESPONSE_PENDING = 'PROVIDER_RESPONSE_PENDING', UNDER_REVIEW = 'UNDER_REVIEW', APPROVED = 'APPROVED', REJECTED = 'REJECTED', RESOLVED = 'RESOLVED', CANCELLED = 'CANCELLED' }
-export enum DisputeDecisionStatus { APPROVED = 'APPROVED', REJECTED = 'REJECTED', RESOLVED = 'RESOLVED' }
+export enum DisputeStatusFilter { PENDING = 'PENDING', UNDER_REVIEW = 'UNDER_REVIEW', APPROVED = 'APPROVED', REJECTED = 'REJECTED' }
+export enum DisputeDecisionStatus { APPROVED = 'APPROVED', REJECTED = 'REJECTED' }
+export enum ProviderDisputeDecisionDto { APPROVED = 'APPROVED', REJECTED = 'REJECTED' }
+export enum DisputeDecisionReasonDto { INSUFFICIENT_EVIDENCE = 'INSUFFICIENT_EVIDENCE', INVALID_CLAIM = 'INVALID_CLAIM', OUTSIDE_POLICY = 'OUTSIDE_POLICY', DUPLICATE_DISPUTE = 'DUPLICATE_DISPUTE', PROVIDER_PROOF_VALID = 'PROVIDER_PROOF_VALID', OTHER = 'OTHER' }
 
 export class ListDisputesDto {
   @ApiPropertyOptional({ enum: DisputeRange }) @IsOptional() @IsEnum(DisputeRange) range?: DisputeRange;
@@ -30,10 +32,12 @@ export class CreateDisputeDto {
 
 export class ReviewDisputeDto {
   @ApiProperty({ enum: DisputeDecisionStatus, example: DisputeDecisionStatus.APPROVED }) @IsEnum(DisputeDecisionStatus) status!: DisputeDecisionStatus;
+  @ApiPropertyOptional({ enum: DisputeDecisionReasonDto, example: DisputeDecisionReasonDto.INSUFFICIENT_EVIDENCE }) @ValidateIf((dto: ReviewDisputeDto) => dto.status === DisputeDecisionStatus.REJECTED) @IsEnum(DisputeDecisionReasonDto) decisionReason?: DisputeDecisionReasonDto;
   @ApiPropertyOptional({ example: 'Reviewed by Super Admin.' }) @IsOptional() @IsString() adminNote?: string;
 }
 
 export class RespondDisputeDto {
+  @ApiProperty({ enum: ProviderDisputeDecisionDto, example: ProviderDisputeDecisionDto.APPROVED }) @IsEnum(ProviderDisputeDecisionDto) decision!: ProviderDisputeDecisionDto;
   @ApiProperty({ example: 'Customer issue reviewed; delivery proof attached.' }) @IsString() @MinLength(3) response!: string;
   @ApiPropertyOptional({ example: ['https://cdn.yourdomain.com/provider-dispute-evidence/proof.png'] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsUrl({}, { each: true }) evidenceUrls?: string[];
 }

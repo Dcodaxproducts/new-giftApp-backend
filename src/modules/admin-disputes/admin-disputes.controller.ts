@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminDisputesService } from './admin-disputes.service';
-import { CreateDisputeDto, ListDisputesDto, ReviewDisputeDto } from './dto/admin-disputes.dto';
+import { ListDisputesDto, ReviewDisputeDto } from './dto/admin-disputes.dto';
 
 @ApiBearerAuth()
 @ApiTags('02 Admin - Disputes')
@@ -28,22 +28,10 @@ export class AdminDisputesController {
   @ApiOperation({ summary: 'List disputes' })
   list(@Query() query: ListDisputesDto) { return this.disputes.list(query); }
 
-  @Post()
-  @Permissions('disputes.create')
-  @ApiOperation({ summary: 'Create dispute' })
-  @ApiBody({ type: CreateDisputeDto })
-  create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateDisputeDto) { return this.disputes.create(user, dto); }
-
   @Get(':id')
   @Permissions('disputes.read')
   @ApiOperation({ summary: 'Fetch dispute details' })
   details(@Param('id') id: string) { return this.disputes.details(id); }
-
-  @Patch(':id/review')
-  @Permissions('disputes.review')
-  @ApiOperation({ summary: 'Approve or reject dispute' })
-  @ApiBody({ type: ReviewDisputeDto })
-  review(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ReviewDisputeDto) { return this.disputes.review(user, id, dto); }
 
   @Post(':id/decision')
   @Permissions('disputes.review')

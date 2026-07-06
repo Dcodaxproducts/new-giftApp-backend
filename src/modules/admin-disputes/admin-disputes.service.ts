@@ -9,10 +9,10 @@ import { CreateDisputeDto, DisputeRange, DisputeSortBy, ListDisputesDto, Respond
 type DisputeView = Prisma.DisputeGetPayload<{ include: typeof DISPUTE_INCLUDE }>;
 type DisputeExtras = {
   evidenceUrlsJson?: Prisma.JsonValue;
+  providerDecision?: string | null;
   providerResponse?: string | null;
   providerEvidenceUrlsJson?: Prisma.JsonValue;
-  providerRespondedAt?: Date | null;
-  decidedAt?: Date | null;
+  decisionReason?: string | null;
 };
 
 @Injectable()
@@ -20,8 +20,8 @@ export class AdminDisputesService {
   constructor(private readonly disputesRepository: AdminDisputesRepository, private readonly auditLog: AuditLogWriterService) {}
 
   async stats(query: ListDisputesDto) {
-    const [total, open, approved, rejected] = await this.disputesRepository.countStats(this.where(query));
-    return { data: { total, open, approved, rejected }, message: 'Dispute stats fetched successfully.' };
+    const [total, pending, approved, rejected] = await this.disputesRepository.countStats(this.where(query));
+    return { data: { total, pending, approved, rejected }, message: 'Dispute stats fetched successfully.' };
   }
 
   async list(query: ListDisputesDto) {
@@ -81,9 +81,9 @@ export class AdminDisputesService {
     if (!current) throw new NotFoundException('Dispute not found');
     const updated = await this.disputesRepository.respondAsProvider(id, {
       status: this.status('UNDER_REVIEW'),
+      providerDecision: dto.decision,
       providerResponse: dto.response.trim(),
       providerEvidenceUrlsJson: this.evidence(dto.evidenceUrls),
-      providerRespondedAt: new Date(),
     });
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: id, targetType: 'DISPUTE', action: 'DISPUTE_RESPONDED_BY_PROVIDER', module: 'Disputes', beforeJson: this.snapshot(current), afterJson: this.snapshot(updated) });
     return { data: this.item(updated), message: 'Dispute response submitted successfully.' };
@@ -91,7 +91,7 @@ export class AdminDisputesService {
 
   async review(user: AuthUserContext, id: string, dto: ReviewDisputeDto) {
     const current = await this.getDispute(id);
-    const updated = await this.disputesRepository.updateStatus(id, { status: this.status(dto.status), adminNote: dto.adminNote?.trim() || null, decidedAt: new Date() });
+    const updated = await this.disputesRepository.updateStatus(id, { status: this.status(dto.status), adminNote: dto.adminNote?.trim() || null, decisionReason: dto.decisionReason ?? null });
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: id, targetType: 'DISPUTE', action: `DISPUTE_${dto.status}`, module: 'Disputes', beforeJson: this.snapshot(current), afterJson: this.snapshot(updated) });
     return { data: this.item(updated), message: `Dispute ${dto.status.toLowerCase()} successfully.` };
   }
@@ -132,11 +132,11 @@ export class AdminDisputesService {
 
   private item(dispute: DisputeView) {
     const extras = dispute as DisputeView & DisputeExtras;
-    return { id: dispute.id, user: { id: dispute.user.id, name: this.name(dispute.user), email: dispute.user.email }, provider: { id: dispute.provider.id, name: dispute.provider.providerProfile?.businessName ?? this.name(dispute.provider), email: dispute.provider.email }, order: dispute.order, reason: dispute.reason, description: dispute.description, evidenceUrls: this.stringArray(extras.evidenceUrlsJson), status: dispute.status, providerResponse: extras.providerResponse ?? null, providerEvidenceUrls: this.stringArray(extras.providerEvidenceUrlsJson), providerRespondedAt: extras.providerRespondedAt ?? null, adminNote: dispute.adminNote, decidedAt: extras.decidedAt ?? null, createdAt: dispute.createdAt, updatedAt: dispute.updatedAt };
+    return { id: dispute.id, user: { id: dispute.user.id, name: this.name(dispute.user), email: dispute.user.email }, provider: { id: dispute.provider.id, name: dispute.provider.providerProfile?.businessName ?? this.name(dispute.provider), email: dispute.provider.email }, order: dispute.order, reason: dispute.reason, description: dispute.description, evidenceUrls: this.stringArray(extras.evidenceUrlsJson), status: dispute.status, providerDecision: extras.providerDecision ?? null, providerResponse: extras.providerResponse ?? null, providerEvidenceUrls: this.stringArray(extras.providerEvidenceUrlsJson), adminNote: dispute.adminNote, decisionReason: extras.decisionReason ?? null, createdAt: dispute.createdAt, updatedAt: dispute.updatedAt };
   }
 
   private createData(userId: string, providerId: string, orderId: string, dto: CreateDisputeDto): Prisma.DisputeUncheckedCreateInput & Record<string, unknown> {
-    return { userId, providerId, orderId, reason: dto.reason.trim(), description: dto.description.trim(), evidenceUrlsJson: this.evidence(dto.evidenceUrls), status: this.status('OPEN') };
+    return { userId, providerId, orderId, reason: dto.reason.trim(), description: dto.description.trim(), evidenceUrlsJson: this.evidence(dto.evidenceUrls), status: this.status('PENDING') };
   }
 
   private evidence(urls?: string[]): Prisma.InputJsonValue {
@@ -153,7 +153,7 @@ export class AdminDisputesService {
 
   private snapshot(dispute: Dispute | DisputeView) {
     const extras = dispute as (Dispute | DisputeView) & DisputeExtras;
-    return { id: dispute.id, reason: dispute.reason, status: dispute.status, evidenceUrls: this.stringArray(extras.evidenceUrlsJson), providerResponse: extras.providerResponse ?? null, providerEvidenceUrls: this.stringArray(extras.providerEvidenceUrlsJson), adminNote: dispute.adminNote };
+    return { id: dispute.id, reason: dispute.reason, status: dispute.status, evidenceUrls: this.stringArray(extras.evidenceUrlsJson), providerDecision: extras.providerDecision ?? null, providerResponse: extras.providerResponse ?? null, providerEvidenceUrls: this.stringArray(extras.providerEvidenceUrlsJson), adminNote: dispute.adminNote, decisionReason: extras.decisionReason ?? null };
   }
   private name(user: { firstName: string; lastName: string }) { return `${user.firstName} ${user.lastName}`.trim(); }
 }

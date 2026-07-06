@@ -641,13 +641,24 @@ enum UserSafetyAdminAction {
 }
 
 enum DisputeStatus {
-  OPEN
-  PROVIDER_RESPONSE_PENDING
+  PENDING
   UNDER_REVIEW
   APPROVED
   REJECTED
-  RESOLVED
-  CANCELLED
+}
+
+enum ProviderDisputeDecision {
+  APPROVED
+  REJECTED
+}
+
+enum DisputeDecisionReason {
+  INSUFFICIENT_EVIDENCE
+  INVALID_CLAIM
+  OUTSIDE_POLICY
+  DUPLICATE_DISPUTE
+  PROVIDER_PROOF_VALID
+  OTHER
 }
 
 enum ProviderPayoutMethodType {
@@ -2120,12 +2131,12 @@ model Dispute {
   reason                   String
   description              String        @db.Text
   evidenceUrlsJson         Json          @default("[]") @map("evidence_urls_json")
-  status                   DisputeStatus @default(OPEN)
+  status                   DisputeStatus @default(PENDING)
+  providerDecision         ProviderDisputeDecision? @map("provider_decision")
   providerResponse         String?       @map("provider_response") @db.Text
   providerEvidenceUrlsJson Json          @default("[]") @map("provider_evidence_urls_json")
-  providerRespondedAt      DateTime?     @map("provider_responded_at") @db.Timestamptz
   adminNote                String?       @map("admin_note") @db.Text
-  decidedAt                DateTime?     @map("decided_at") @db.Timestamptz
+  decisionReason           DisputeDecisionReason? @map("decision_reason")
   createdAt                DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
