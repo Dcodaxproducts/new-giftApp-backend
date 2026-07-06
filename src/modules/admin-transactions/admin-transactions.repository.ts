@@ -71,7 +71,7 @@ export class AdminTransactionsRepository {
     if (!payment?.orderId) {
       return null;
     }
-    return this.prisma.dispute.findFirst({ where: { orderId: payment.orderId, status: DisputeStatus.PENDING } });
+    return this.prisma.dispute.findFirst({ where: { orderId: payment.orderId, status: { in: ['OPEN', 'PROVIDER_RESPONSE_PENDING', 'UNDER_REVIEW'] as DisputeStatus[] } } });
   }
 
   findProviderOrderForDispute(orderId: string) {

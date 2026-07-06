@@ -15,9 +15,9 @@ export class AdminDisputesRepository {
   countStats(where: Prisma.DisputeWhereInput) {
     return this.prisma.$transaction([
       this.prisma.dispute.count({ where }),
-      this.prisma.dispute.count({ where: { ...where, status: DisputeStatus.PENDING } }),
-      this.prisma.dispute.count({ where: { ...where, status: DisputeStatus.APPROVED } }),
-      this.prisma.dispute.count({ where: { ...where, status: DisputeStatus.REJECTED } }),
+      this.prisma.dispute.count({ where: { ...where, status: this.status('OPEN') } }),
+      this.prisma.dispute.count({ where: { ...where, status: this.status('APPROVED') } }),
+      this.prisma.dispute.count({ where: { ...where, status: this.status('REJECTED') } }),
     ]);
   }
 
@@ -32,11 +32,45 @@ export class AdminDisputesRepository {
     return this.prisma.dispute.findUnique({ where: { id }, include: DISPUTE_INCLUDE });
   }
 
-  create(data: Prisma.DisputeUncheckedCreateInput) {
-    return this.prisma.dispute.create({ data, include: DISPUTE_INCLUDE });
+  create(data: Prisma.DisputeUncheckedCreateInput & Record<string, unknown>) {
+    return this.prisma.dispute.create({ data: data as Prisma.DisputeUncheckedCreateInput, include: DISPUTE_INCLUDE });
   }
 
-  updateStatus(id: string, data: Prisma.DisputeUpdateInput) {
-    return this.prisma.dispute.update({ where: { id }, data, include: DISPUTE_INCLUDE });
+  updateStatus(id: string, data: Prisma.DisputeUpdateInput & Record<string, unknown>) {
+    return this.prisma.dispute.update({ where: { id }, data: data as Prisma.DisputeUpdateInput, include: DISPUTE_INCLUDE });
+  }
+
+  findCustomerOrder(userId: string, orderId: string) {
+    return this.prisma.order.findFirst({ where: { id: orderId, userId }, include: { providerOrders: { orderBy: { createdAt: 'asc' } } } });
+  }
+
+  findCustomerDisputesAndCount(params: { userId: string; orderBy: Prisma.DisputeOrderByWithRelationInput; skip: number; take: number }) {
+    return this.prisma.$transaction([
+      this.prisma.dispute.findMany({ where: { userId: params.userId }, include: DISPUTE_INCLUDE, orderBy: params.orderBy, skip: params.skip, take: params.take }),
+      this.prisma.dispute.count({ where: { userId: params.userId } }),
+    ]);
+  }
+
+  findCustomerDispute(userId: string, id: string) {
+    return this.prisma.dispute.findFirst({ where: { id, userId }, include: DISPUTE_INCLUDE });
+  }
+
+  findProviderDisputesAndCount(params: { providerId: string; orderBy: Prisma.DisputeOrderByWithRelationInput; skip: number; take: number }) {
+    return this.prisma.$transaction([
+      this.prisma.dispute.findMany({ where: { providerId: params.providerId }, include: DISPUTE_INCLUDE, orderBy: params.orderBy, skip: params.skip, take: params.take }),
+      this.prisma.dispute.count({ where: { providerId: params.providerId } }),
+    ]);
+  }
+
+  findProviderDispute(providerId: string, id: string) {
+    return this.prisma.dispute.findFirst({ where: { id, providerId }, include: DISPUTE_INCLUDE });
+  }
+
+  respondAsProvider(id: string, data: Prisma.DisputeUpdateInput & Record<string, unknown>) {
+    return this.prisma.dispute.update({ where: { id }, data: data as Prisma.DisputeUpdateInput, include: DISPUTE_INCLUDE });
+  }
+
+  private status(value: string): DisputeStatus {
+    return value as DisputeStatus;
   }
 }

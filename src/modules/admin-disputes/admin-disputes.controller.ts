@@ -44,4 +44,10 @@ export class AdminDisputesController {
   @ApiOperation({ summary: 'Approve or reject dispute' })
   @ApiBody({ type: ReviewDisputeDto })
   review(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ReviewDisputeDto) { return this.disputes.review(user, id, dto); }
+
+  @Post(':id/decision')
+  @Permissions('disputes.review')
+  @ApiOperation({ summary: 'Submit final dispute decision' })
+  @ApiBody({ type: ReviewDisputeDto })
+  decision(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ReviewDisputeDto) { return this.disputes.review(user, id, dto); }
 }
