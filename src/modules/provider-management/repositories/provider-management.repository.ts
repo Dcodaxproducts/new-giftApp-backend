@@ -85,6 +85,10 @@ export class ProviderManagementRepository {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  findUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
   findProviderLookup(query: ProviderLookupDto) {
     const { take } = getPagination(query);
     return this.prisma.user.findMany({

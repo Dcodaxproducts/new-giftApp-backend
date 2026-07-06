@@ -130,7 +130,7 @@ export class ProviderManagementService {
 
   async create(user: AuthUserContext, dto: CreateProviderDto) {
     const email = dto.email.trim().toLowerCase();
-    const existing = await this.repository.findProviderByEmail(email);
+    const existing = await this.repository.findUserByEmail(email);
     if (existing) {
       throw new ConflictException('Email already exists');
     }
@@ -199,7 +199,7 @@ export class ProviderManagementService {
 
     const email = dto.email?.trim().toLowerCase();
     if (email && email !== provider.email) {
-      const existing = await this.repository.findProviderByEmail(email);
+      const existing = await this.repository.findUserByEmail(email);
       if (existing && existing.id !== provider.id) {
         throw new ConflictException('Email already exists');
       }
