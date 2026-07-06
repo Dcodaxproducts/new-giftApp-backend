@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Gift, GiftCategory, GiftStatus, GiftVariant, Prisma, UserRole, UserStatus } from '@prisma/client';
-import { AuthUserContext } from 'src/common/decorators/current-user.decorator';
-import { AuditLogWriterService } from 'src/common/services/audit-log.service';
+import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from './gift-management.repository';
 import {
   CreateGiftCategoryDto,
@@ -19,7 +19,7 @@ import {
   UpdateGiftDto,
   UpdateGiftVariantDto,
 } from './dto/gift-management.dto';
-import { getPagination } from 'src/common/pagination/pagination.util';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 type GiftWithRelations = Gift & {
   category: Pick<GiftCategory, 'id' | 'name' | 'isActive'>;

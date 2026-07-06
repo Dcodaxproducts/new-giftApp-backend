@@ -58,11 +58,11 @@ describe('Swagger and static route hardening', () => {
   });
 
   it('provider and admin static routes stay before dynamic id routes', () => {
-    const providers = readFileSync(join(root, 'src/modules/provider-management/controllers/provider-management.controller.ts'), 'utf8');
+    const providers = readFileSync(join(root, 'src/modules/provider-management/provider-management.controller.ts'), 'utf8');
     expectBefore(providers, "@Get('export')", "@Get(':id')");
     expectBefore(providers, "@Get('stats')", "@Get(':id')");
     expectBefore(providers, "@Get('lookup')", "@Get(':id')");
-    const gifts = readFileSync(join(root, 'src/modules/gift-management/controllers/gifts.controller.ts'), 'utf8');
+    const gifts = readFileSync(join(root, 'src/modules/gift-management/gifts.controller.ts'), 'utf8');
     expectBefore(gifts, "@Get('export')", "@Get(':id')");
     const plans = readFileSync(join(root, 'src/modules/subscription-plans/controllers/subscription-plans.controller.ts'), 'utf8');
     expectBefore(plans, "@Get('stats')", "@Get(':id')");
