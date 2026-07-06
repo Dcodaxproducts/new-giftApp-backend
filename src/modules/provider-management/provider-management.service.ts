@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, ProviderProfile, User, UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { MailerService } from '../../mailer/mailer.service';
+import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { MailerService } from '../mailer/mailer.service';
 import {
   CreateProviderDto,
   ExportFormat,
@@ -27,9 +27,9 @@ import {
   SortOrder,
   UpdateProviderDto,
   UpdateProviderStatusDto,
-} from '../dto/provider-management.dto';
-import { ProviderAggregateStats, ProviderManagementRepository } from '../repositories/provider-management.repository';
-import { getPagination } from '../../../common/pagination/pagination.util';
+} from './dto/provider-management.dto';
+import { ProviderAggregateStats, ProviderManagementRepository } from './provider-management.repository';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 interface ProviderActivityItem {
   id: string;
@@ -470,15 +470,11 @@ export class ProviderManagementService {
   }
 
   private toStatus(provider: ProviderUser): ProviderStatusFilter {
-    if (provider.status === UserStatus.SUSPENDED) {
-      return ProviderStatusFilter.SUSPENDED;
-    }
-
-    if (provider.status === UserStatus.BLOCKED || provider.status === UserStatus.REJECTED) {
-      return ProviderStatusFilter.INACTIVE;
-    }
-
-    return provider.status === UserStatus.APPROVED ? ProviderStatusFilter.ACTIVE : ProviderStatusFilter.INACTIVE;
+    if (provider.status === UserStatus.APPROVED) return ProviderStatusFilter.APPROVED;
+    if (provider.status === UserStatus.REJECTED) return ProviderStatusFilter.REJECTED;
+    if (provider.status === UserStatus.SUSPENDED) return ProviderStatusFilter.SUSPENDED;
+    if (provider.status === UserStatus.BLOCKED) return ProviderStatusFilter.BLOCKED;
+    return ProviderStatusFilter.PENDING;
   }
 
   private toSuspension(provider: ProviderUser) {
@@ -799,10 +795,10 @@ export class ProviderManagementService {
 
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
-        status: dto.status === ProviderStatusUpdate.ACTIVE ? UserStatus.APPROVED : UserStatus.BLOCKED,
+        status: dto.status === ProviderStatusUpdate.APPROVED ? UserStatus.APPROVED : UserStatus.BLOCKED,
         suspensionReason: null,
         suspensionComment: null,
-        refreshTokenHash: dto.status === ProviderStatusUpdate.ACTIVE ? provider.refreshTokenHash : null,
+        refreshTokenHash: dto.status === ProviderStatusUpdate.APPROVED ? provider.refreshTokenHash : null,
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_STATUS_UPDATED', before, updated, dto, 'Provider status updated successfully.');
   }

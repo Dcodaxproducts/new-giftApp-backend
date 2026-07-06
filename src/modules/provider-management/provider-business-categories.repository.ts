@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, UserStatus } from '@prisma/client';
-import { PrismaService } from '../../../database/prisma.service';
+import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class ProviderBusinessCategoriesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   upsertDefaultCategory(data: { name: string; slug: string }) {
-    return this.prisma.providerBusinessCategory.upsert({ where: { slug: data.slug }, create: data, update: { name: data.name, deletedAt: null } });
+    return this.prisma.providerBusinessCategory.upsert({ where: { slug: data.slug }, create: data, update: { name: data.name } });
   }
 
   async findManyForList(params: { where: Prisma.ProviderBusinessCategoryWhereInput; skip: number; take: number }) {
@@ -18,11 +18,11 @@ export class ProviderBusinessCategoriesRepository {
   }
 
   findById(id: string) {
-    return this.prisma.providerBusinessCategory.findFirst({ where: { id, deletedAt: null } });
+    return this.prisma.providerBusinessCategory.findFirst({ where: { id } });
   }
 
   findByName(name: string, exceptId?: string) {
-    return this.prisma.providerBusinessCategory.findFirst({ where: { name, id: exceptId ? { not: exceptId } : undefined, deletedAt: null } });
+    return this.prisma.providerBusinessCategory.findFirst({ where: { name, id: exceptId ? { not: exceptId } : undefined } });
   }
 
   findBySlug(slug: string, exceptId?: string) {

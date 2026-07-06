@@ -1,10 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ProviderBusinessCategory, Prisma } from '@prisma/client';
-import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { ProviderBusinessCategoriesRepository } from '../repositories/provider-business-categories.repository';
-import { CreateProviderBusinessCategoryDto, ListProviderBusinessCategoriesDto, UpdateProviderBusinessCategoryDto } from '../dto/provider-business-categories.dto';
-import { getPagination } from '../../../common/pagination/pagination.util';
+import { AuthUserContext } from '../../common/decorators/current-user.decorator';
+import { AuditLogWriterService } from '../../common/services/audit-log.service';
+import { ProviderBusinessCategoriesRepository } from './provider-business-categories.repository';
+import { CreateProviderBusinessCategoryDto, ListProviderBusinessCategoriesDto, UpdateProviderBusinessCategoryDto } from './dto/provider-business-categories.dto';
+import { getPagination } from '../../common/pagination/pagination.util';
 
 const DEFAULT_PROVIDER_BUSINESS_CATEGORIES = [
   { name: 'Logistics', slug: 'logistics' },
@@ -29,7 +29,6 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
   async list(query: ListProviderBusinessCategoriesDto = {}) {
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ProviderBusinessCategoryWhereInput = {
-      deletedAt: null,
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
       ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
     };
@@ -42,23 +41,13 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     };
   }
 
-  lookup(query: ListProviderBusinessCategoriesDto = {}) {
-    return this.list({ ...query, isActive: true });
-  }
-
-  async details(id: string) {
-    const category = await this.getCategory(id);
-    return { data: this.toCategory(category), message: 'Provider business category fetched successfully' };
-  }
-
   async create(user: AuthUserContext, dto: CreateProviderBusinessCategoryDto) {
     const slug = await this.uniqueSlug(dto.name);
     const category = await this.repository.create({
         name: dto.name.trim(),
         slug,
         description: dto.description?.trim(),
-        iconKey: dto.iconKey?.trim(),
-        sortOrder: dto.sortOrder ?? 0,
+        imageUrl: dto.imageUrl?.trim(),
         isActive: dto.isActive ?? true,
     });
     await this.audit(user, category.id, 'PROVIDER_BUSINESS_CATEGORY_CREATED', undefined, this.toCategory(category));
@@ -72,8 +61,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
         name: dto.name?.trim(),
         slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined,
         description: dto.description?.trim(),
-        iconKey: dto.iconKey?.trim(),
-        sortOrder: dto.sortOrder,
+        imageUrl: dto.imageUrl?.trim(),
         isActive: dto.isActive,
     });
     await this.audit(user, id, 'PROVIDER_BUSINESS_CATEGORY_UPDATED', this.toCategory(category), this.toCategory(updated));
@@ -110,7 +98,7 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
   }
 
   private toCategory(category: ProviderBusinessCategory) {
-    return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, sortOrder: category.sortOrder, isActive: category.isActive, createdAt: category.createdAt, updatedAt: category.updatedAt };
+    return { id: category.id, name: category.name, slug: category.slug, description: category.description, imageUrl: category.imageUrl, isActive: category.isActive, createdAt: category.createdAt, updatedAt: category.updatedAt };
   }
 
   private async audit(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> {

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { GiftStatus, NotificationRecipientType, OrderStatus, Prisma, ReviewStatus, UserRole } from '@prisma/client';
-import { PrismaService } from '../../../database/prisma.service';
-import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { NotificationRecipientType, Prisma, ReviewStatus, UserRole } from '@prisma/client';
+import { PrismaService } from '../../database/prisma.service';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const GIFT_MANAGEMENT_INCLUDE = Prisma.validator<Prisma.GiftInclude>()({
-  category: { select: { id: true, name: true, isActive: true, deletedAt: true } },
+  category: { select: { id: true, name: true, isActive: true } },
   provider: { select: { id: true, email: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, status: true } },
   variants: { orderBy: { name: 'asc' } },
 });
@@ -16,7 +16,6 @@ type GiftCategoryCreateData = Prisma.Args<PrismaService['giftCategory'], 'create
 type GiftCategoryUpdateData = Prisma.Args<PrismaService['giftCategory'], 'update'>['data'];
 type GiftVariantCreateData = Prisma.Args<GiftTx['giftVariant'], 'create'>['data'];
 type GiftVariantUpdateData = Prisma.Args<GiftTx['giftVariant'], 'update'>['data'];
-type PopularGiftCategoryRow = { name: string; totalQuantity: bigint; totalSales: Prisma.Decimal };
 
 @Injectable()
 export class GiftManagementRepository {
@@ -32,7 +31,7 @@ export class GiftManagementRepository {
     return this.prisma.$transaction([this.findGiftCategories(params), this.countGiftCategories(params.where)]);
   }
 
-  findGiftCategoryById(id: string) { return this.prisma.giftCategory.findFirst({ where: { id, deletedAt: null } }); }
+  findGiftCategoryById(id: string) { return this.prisma.giftCategory.findFirst({ where: { id } }); }
 
   findGiftCategoryBySlug(slug: string, exceptId?: string) { return this.prisma.giftCategory.findFirst({ where: { slug, id: exceptId ? { not: exceptId } : undefined } }); }
 
@@ -43,28 +42,6 @@ export class GiftManagementRepository {
   deleteGiftCategory(id: string) { return this.prisma.giftCategory.delete({ where: { id } }); }
 
   countGiftsByCategory(categoryId: string) { return this.prisma.gift.count({ where: { categoryId } }); }
-
-  findGiftCategoryLookup() { return this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, backgroundColor: true, imageUrl: true, color: true } }); }
-
-  findGiftCategoryStats() { return this.prisma.$transaction([this.prisma.giftCategory.count({ where: { deletedAt: null } }), this.prisma.gift.count({ where: { status: GiftStatus.ACTIVE } })]); }
-
-  async findMostPopularGiftCategory() {
-    const salesStatuses = [OrderStatus.DELIVERED, OrderStatus.COMPLETED, OrderStatus.PARTIALLY_COMPLETED];
-    const rows = await this.prisma.$queryRaw<PopularGiftCategoryRow[]>(Prisma.sql`
-      SELECT gc.name AS "name", SUM(oi.quantity)::bigint AS "totalQuantity", COALESCE(SUM(oi.total), 0) AS "totalSales"
-      FROM order_items oi
-      INNER JOIN orders o ON o.id = oi.order_id
-      INNER JOIN gifts g ON g.id = oi.gift_id
-      INNER JOIN gift_categories gc ON gc.id = g.category_id
-      WHERE oi.status::text IN (${Prisma.join(salesStatuses)})
-        AND o.status::text IN (${Prisma.join(salesStatuses)})
-        AND gc.deleted_at IS NULL
-      GROUP BY gc.id, gc.name
-      ORDER BY "totalQuantity" DESC, "totalSales" DESC, gc.name ASC
-      LIMIT 1
-    `);
-    return rows[0]?.name ?? null;
-  }
 
   findGiftsForAdmin(params: { where: Prisma.GiftWhereInput; orderBy: Prisma.GiftOrderByWithRelationInput; skip: number; take: number }) {
     return this.prisma.gift.findMany({ where: params.where, include: GIFT_MANAGEMENT_INCLUDE, orderBy: params.orderBy, skip: params.skip, take: params.take });
@@ -107,8 +84,6 @@ export class GiftManagementRepository {
   updateGiftWithVariants(id: string, data: GiftUpdateData) { return this.prisma.gift.update({ where: { id }, data, include: GIFT_MANAGEMENT_INCLUDE }); }
 
   deleteGift(id: string) { return this.prisma.gift.delete({ where: { id } }); }
-
-  findGiftStats() { return this.prisma.$transaction([this.prisma.gift.count(), this.prisma.gift.count({ where: { status: GiftStatus.ACTIVE } })]); }
 
   findGiftsForExport(where: Prisma.GiftWhereInput) { return this.prisma.gift.findMany({ where, include: GIFT_MANAGEMENT_INCLUDE, orderBy: { createdAt: 'desc' }, take: 10000 }); }
 

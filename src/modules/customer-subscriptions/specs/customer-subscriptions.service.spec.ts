@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BillingCycle, CouponDiscountType, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
+import { BillingCycle, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { CustomerSubscriptionsRepository } from '../repositories/customer-subscriptions.repository';
@@ -7,11 +7,10 @@ import { CustomerSubscriptionsService } from '../services/customer-subscriptions
 import { CustomerSubscriptionAction, InvoiceStatusFilter } from '../dto/customer-subscriptions.dto';
 
 const plan = { id: 'plan_premium', name: 'Premium', description: 'Premium plan', monthlyPrice: 10, yearlyPrice: 100, currency: 'USD', isPopular: true, featuresJson: { premium_support: true }, limitsJson: { unlimitedCredits: true }, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC };
-const activeSubscription = { id: 'sub_1', userId: 'customer_1', planId: 'plan_premium', plan, billingCycle: BillingCycle.MONTHLY, status: CustomerSubscriptionStatus.ACTIVE, isPremium: true, currentPeriodStart: new Date('2026-01-01T00:00:00.000Z'), currentPeriodEnd: new Date('2026-02-01T00:00:00.000Z'), cancelAtPeriodEnd: false, cancelledAt: null, stripeCustomerId: 'cus_1', stripeSubscriptionId: 'stripe_sub_1', stripePriceId: 'price_1', couponId: null };
-const coupon = { id: 'coupon_1', code: 'SAVE10', discountType: CouponDiscountType.PERCENTAGE, discountValue: 10, isActive: true, deletedAt: null, expiresAt: null, planIdsJson: [], maxRedemptions: null, redemptionCount: 0 };
+const activeSubscription = { id: 'sub_1', userId: 'customer_1', planId: 'plan_premium', plan, billingCycle: BillingCycle.MONTHLY, status: CustomerSubscriptionStatus.ACTIVE, isPremium: true, currentPeriodStart: new Date('2026-01-01T00:00:00.000Z'), currentPeriodEnd: new Date('2026-02-01T00:00:00.000Z'), cancelAtPeriodEnd: false, cancelledAt: null, stripeCustomerId: 'cus_1', stripeSubscriptionId: 'stripe_sub_1', stripePriceId: 'price_1' };
 const invoice = { id: 'invoice_1', userId: 'customer_1', customerSubscriptionId: 'sub_1', stripeInvoiceId: 'in_1', stripePaymentIntentId: 'pi_1', amountDue: 10, amountPaid: 10, currency: 'USD', status: CustomerSubscriptionInvoiceStatus.PAID, invoicePdfUrl: 'https://example.com/invoice.pdf', hostedInvoiceUrl: 'https://example.com/invoice', billingReason: 'subscription_cycle', createdAt: new Date('2026-01-01T00:00:00.000Z'), updatedAt: new Date() };
 
-function createService(overrides: Partial<{ plans: unknown[]; current: unknown; invoices: unknown[]; invoice: unknown; coupon: unknown }> = {}) {
+function createService(overrides: Partial<{ plans: unknown[]; current: unknown; invoices: unknown[]; invoice: unknown }> = {}) {
   const plans = overrides.plans ?? [plan];
   const invoices = overrides.invoices ?? [invoice];
   const prisma = {
@@ -35,7 +34,6 @@ function createService(overrides: Partial<{ plans: unknown[]; current: unknown; 
       findFirst: jest.fn().mockResolvedValue(Object.prototype.hasOwnProperty.call(overrides, 'invoice') ? overrides.invoice : invoice),
       upsert: jest.fn(),
     },
-    coupon: { findFirst: jest.fn().mockResolvedValue(Object.prototype.hasOwnProperty.call(overrides, 'coupon') ? overrides.coupon : coupon) },
     user: { findUniqueOrThrow: jest.fn().mockResolvedValue({ id: 'customer_1', email: 'customer@example.com', firstName: 'Jane', lastName: 'Doe' }) },
     payment: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ id: 'payment_1', status: 'PROCESSING' }), upsert: jest.fn() },
     paymentAuditLog: { create: jest.fn() },
@@ -91,7 +89,8 @@ describe('Customer Premium Subscription module', () => {
   });
 
   it('exposes all required customer subscription routes', () => {
-    for (const route of ["@Get('plans')", "@Get('current')", "@Post('checkout')", "@Post('confirm')", "@Post('action')", "@Get('invoices')", "@Get('invoices/:id')", "@Post('apply-coupon')"]) expect(controller).toContain(route);
+    for (const route of ["@Get('plans')", "@Get('current')", "@Post('checkout')", "@Post('confirm')", "@Post('action')", "@Get('invoices')", "@Get('invoices/:id')"]) expect(controller).toContain(route);
+    expect(controller).not.toContain("@Post('apply-coupon')");
     expect(controller).not.toContain("@Post('cancel')");
     expect(controller).not.toContain("@Post('reactivate')");
   });
@@ -117,11 +116,11 @@ describe('Customer Premium Subscription module', () => {
     expect(service).not.toContain('customerSubscriptionInvoice.count');
   });
 
-  it('checkout uses Stripe subscriptions and backend-calculated price/coupons', () => {
+  it('checkout uses Stripe subscriptions and backend-calculated plan price', () => {
     expect(service).toContain('payment_behavior');
     expect(service).toContain('default_incomplete');
     expect(service).toContain('ensureStripePrice');
-    expect(service).toContain('finalPrice(plan, dto.billingCycle, coupon)');
+    expect(service).toContain('planPrice(plan, dto.billingCycle)');
     expect(service).toContain('You already have an active premium subscription');
   });
 
@@ -131,21 +130,19 @@ describe('Customer Premium Subscription module', () => {
     expect(repository).toContain('updateCustomerSubscriptionStatus');
     expect(repository).toContain('markSubscriptionCancelled');
     expect(repository).toContain('reactivateSubscription');
-    expect(repository).toContain('findCouponByCode');
     expect(repository).toContain('findSubscriptionForUser');
     expect(repository).toContain('findCurrentActionSubscriptionForUser');
     expect(service).toContain('subscriptions.create');
     expect(service).toContain('subscriptions.retrieve');
-    expect(service).toContain('finalPrice(plan, dto.billingCycle, coupon)');
+    expect(service).toContain('planPrice(plan, dto.billingCycle)');
   });
 
-  it('supports confirm/unified action/invoices/coupon preview', () => {
+  it('supports confirm/unified action/invoices', () => {
     expect(service).toContain('Premium subscription activated successfully.');
     expect(service).toContain('dto.action === CustomerSubscriptionAction.CANCEL');
     expect(service).toContain('cancel_at_period_end');
     expect(service).toContain('Subscription reactivated successfully.');
     expect(repository).toContain('customerSubscriptionInvoice.findMany');
-    expect(service).toContain('Coupon redemption limit reached');
   });
 
   it('extends Stripe webhook subscription handling and creates payment transaction records', () => {
@@ -272,13 +269,7 @@ describe('CustomerSubscriptionsService read APIs', () => {
     expect(openapi.paths['/api/v1/customer/subscription/action']).toBeDefined();
     expect(openapi.paths['/api/v1/customer/subscription/cancel']).toBeUndefined();
     expect(openapi.paths['/api/v1/customer/subscription/reactivate']).toBeUndefined();
-  });
-
-  it('coupon apply validates active coupon and calculates discount backend-side', async () => {
-    const { service, prisma } = createService();
-    const result = await service.applyCoupon({ uid: 'customer_1', role: 'REGISTERED_USER' }, { planId: 'plan_premium', billingCycle: BillingCycle.MONTHLY, couponCode: 'save10' });
-    expect(result.data).toEqual(expect.objectContaining({ planPrice: 10, discountAmount: 1, finalPrice: 9, currency: 'USD', coupon: expect.objectContaining({ code: 'SAVE10' }) }));
-    expect(prisma.coupon.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ code: 'SAVE10', isActive: true, deletedAt: null }) }));
+    expect(openapi.paths['/api/v1/customer/subscription/apply-coupon']).toBeUndefined();
   });
 
 });

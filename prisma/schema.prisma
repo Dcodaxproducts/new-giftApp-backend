@@ -85,11 +85,6 @@ enum BillingCycle {
   YEARLY
 }
 
-enum CouponDiscountType {
-  PERCENTAGE
-  FIXED_AMOUNT
-}
-
 enum PromotionalOfferDiscountType {
   PERCENTAGE
   FIXED_AMOUNT
@@ -775,8 +770,6 @@ model User {
   uploadedFiles                       UploadedFile[]
   updatedReferralSettings             ReferralSettings[]                   @relation("ReferralSettingsUpdater")
   updatedRefundPolicySettings         RefundPolicySettings[]               @relation("RefundPolicySettingsUpdater")
-  createdCoupons                      Coupon[]                             @relation("CouponCreator")
-  updatedCoupons                      Coupon[]                             @relation("CouponUpdater")
   providerOrders                      ProviderOrder[]
   customerRefundRequests              RefundRequest[]                      @relation("RefundRequestCustomer")
   providerRefundRequests              RefundRequest[]                      @relation("RefundRequestProvider")
@@ -1023,39 +1016,30 @@ model ProviderBusinessCategory {
   name        String    @unique
   slug        String    @unique
   description String?
-  iconKey     String?   @map("icon_key")
-  sortOrder   Int       @default(0) @map("sort_order")
+  imageUrl    String?   @map("image_url")
   isActive    Boolean   @default(true) @map("is_active")
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   providers ProviderProfile[]
 
-  @@index([isActive, sortOrder])
-  @@index([deletedAt])
+  @@index([isActive])
   @@map("provider_business_categories")
 }
 
 model GiftCategory {
-  id              String    @id @default(cuid())
-  name            String
-  slug            String    @unique
-  description     String?
-  iconKey         String?   @map("icon_key")
-  color           String?
-  backgroundColor String?   @default("#F3E8FF") @map("background_color")
-  imageUrl        String?   @map("image_url")
-  sortOrder       Int       @default(0) @map("sort_order")
-  isActive        Boolean   @default(true) @map("is_active")
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?  @map("image_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   gifts Gift[]
 
-  @@index([isActive, sortOrder])
-  @@index([deletedAt])
+  @@index([isActive])
   @@map("gift_categories")
 }
 
@@ -1278,19 +1262,16 @@ model CustomerSubscription {
   currentPeriodEnd     DateTime?                  @map("current_period_end") @db.Timestamptz
   cancelAtPeriodEnd    Boolean                    @default(false) @map("cancel_at_period_end")
   cancelledAt          DateTime?                  @map("cancelled_at") @db.Timestamptz
-  couponId             String?                    @map("coupon_id")
   createdAt            DateTime                   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt            DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
 
   user     User                          @relation(fields: [userId], references: [id])
   plan     SubscriptionPlan              @relation(fields: [planId], references: [id])
-  coupon   Coupon?                       @relation(fields: [couponId], references: [id])
   invoices CustomerSubscriptionInvoice[]
   payments Payment[]
 
   @@index([userId, status])
   @@index([planId])
-  @@index([couponId])
   @@map("customer_subscriptions")
 }
 
@@ -2423,33 +2404,6 @@ model UploadedFile {
   @@index([folder, createdAt])
   @@index([deletedAt])
   @@map("uploaded_files")
-}
-
-model Coupon {
-  id              String             @id @default(cuid())
-  code            String             @unique
-  description     String?
-  discountType    CouponDiscountType @map("discount_type")
-  discountValue   Decimal            @map("discount_value") @db.Decimal(10, 2)
-  planIdsJson     Json               @default("[]") @map("plan_ids_json")
-  startsAt        DateTime?          @map("starts_at") @db.Timestamptz
-  expiresAt       DateTime?          @map("expires_at") @db.Timestamptz
-  maxRedemptions  Int?               @map("max_redemptions")
-  redemptionCount Int                @default(0) @map("redemption_count")
-  isActive        Boolean            @default(true) @map("is_active")
-  createdBy       String?            @map("created_by")
-  updatedBy       String?            @map("updated_by")
-  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz
-
-  creator               User?                  @relation("CouponCreator", fields: [createdBy], references: [id])
-  updater               User?                  @relation("CouponUpdater", fields: [updatedBy], references: [id])
-  customerSubscriptions CustomerSubscription[]
-
-  @@index([isActive, expiresAt])
-  @@index([deletedAt])
-  @@map("coupons")
 }
 
 model StaffRole {

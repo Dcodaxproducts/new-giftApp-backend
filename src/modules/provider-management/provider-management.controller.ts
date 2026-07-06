@@ -12,12 +12,12 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { AuthUserContext, CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { Permissions } from '../../../common/decorators/permissions.decorator';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../../common/guards/permissions.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
+import { AuthUserContext, CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import {
   CreateProviderDto,
   ExportProvidersDto,
@@ -28,8 +28,8 @@ import {
   ProviderLookupDto,
   UpdateProviderDto,
   UpdateProviderStatusDto,
-} from '../dto/provider-management.dto';
-import { ProviderManagementService } from '../services/provider-management.service';
+} from './dto/provider-management.dto';
+import { ProviderManagementService } from './provider-management.service';
 
 @ApiTags('02 Admin - Provider Management')
 @ApiBearerAuth()
@@ -58,7 +58,7 @@ export class ProviderManagementController {
   @Get()
   @Permissions('providers.read')
   @ApiOperation({ summary: 'List providers', description: 'SUPER_ADMIN/ADMIN with providers.read permission.' })
-  @ApiResponse({ status: 200, description: 'Providers fetched successfully', schema: { example: { success: true, data: [{ id: 'provider_id', businessName: 'Premium Gifts Co', email: 'provider@example.com', phone: '+923001234567', status: 'ACTIVE', businessCategory: { id: 'category_id', name: 'Gift Supplier' }, createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Providers fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Providers fetched successfully', schema: { example: { success: true, data: [{ id: 'provider_id', businessName: 'Premium Gifts Co', email: 'provider@example.com', phone: '+923001234567', status: 'APPROVED', businessCategory: { id: 'category_id', name: 'Gift Supplier' }, createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Providers fetched successfully' } } })
   list(@Query() query: ListProvidersDto): Promise<unknown> {
     return this.providerManagementService.list(query);
   }
@@ -127,7 +127,7 @@ export class ProviderManagementController {
           companyLogoUrl: 'https://cdn.yourdomain.com/provider-logos/logo.png',
           coverImageUrl: 'https://cdn.yourdomain.com/provider-covers/cover.png',
           location: { lat: 31.5, lng: 74.3 },
-          status: 'INACTIVE',
+          status: 'PENDING',
           inviteEmailSent: true,
         },
         message: 'Provider created successfully and invite email sent.',
@@ -176,7 +176,7 @@ export class ProviderManagementController {
       },
       updateStatus: {
         summary: 'Update Status',
-        value: { action: 'UPDATE_STATUS', status: 'ACTIVE', reason: 'OTHER', comment: 'Provider account restored after review.', notifyProvider: true },
+        value: { action: 'UPDATE_STATUS', status: 'APPROVED', reason: 'OTHER', comment: 'Provider account restored after review.', notifyProvider: true },
       },
       suspendProvider: {
         summary: 'Suspend Provider',
@@ -196,7 +196,7 @@ export class ProviderManagementController {
         success: true,
         data: {
           id: 'provider_id',
-          status: 'ACTIVE',
+          status: 'APPROVED',
         },
         message: 'Provider approved successfully.',
       },

@@ -35,7 +35,7 @@ describe('ProviderInventoryService ownership rules', () => {
     expect(controller).toContain('@UseGuards(JwtAuthGuard, RolesGuard)');
     expect(controller).toContain('@Roles(UserRole.PROVIDER)');
     expect(jwtGuard).toContain("path.startsWith('/api/v1/provider/')");
-    expect(jwtGuard).toContain('ProviderApprovalStatus.APPROVED');
+    expect(jwtGuard).toContain('UserStatus.APPROVED');
     expect(jwtGuard).toContain('Your provider account is pending approval. You cannot access this module yet.');
   });
 

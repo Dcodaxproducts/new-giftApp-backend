@@ -43,23 +43,12 @@ Notes:
 
 ## 4. Post-deploy verification
 
-Run Prisma status and the schema smoke check:
+Run Prisma status and build verification:
 
 ```bash
 npx prisma migrate status
-node scripts/smoke-migration-schema.js
 npm run build
 ```
-
-The smoke script verifies these required tables:
-
-- `guest_sessions`
-- `chat_threads`
-- `chat_messages`
-- `chat_participants`
-- `notification_delivery_logs`
-
-And required runtime enums for guest sessions, chat runtime, and notification delivery logs.
 
 ## 5. Rollback plan
 
@@ -78,12 +67,11 @@ npx prisma migrate status
 pg_restore --clean --if-exists --dbname="$DATABASE_URL" "$BACKUP_FILE"
 ```
 
-4. Re-run smoke checks against restored DB.
+4. Re-run Prisma status and build verification against restored DB.
 5. Prefer a forward fix migration when production data has already accepted writes after migration start.
 
 ## 6. Success criteria
 
 - `npx prisma migrate deploy` exits 0.
 - `npx prisma migrate status` reports database schema is up to date.
-- `node scripts/smoke-migration-schema.js` exits 0.
 - `npm run build` exits 0.

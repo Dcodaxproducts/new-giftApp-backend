@@ -63,10 +63,6 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.user.findUniqueOrThrow({ where: { id } });
   }
 
-  findCouponByCode(code: string) {
-    return this.prisma.coupon.findFirst({ where: { code: code.trim().toUpperCase(), isActive: true, deletedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
-  }
-
   findSubscriptionInvoicesForUser(where: Prisma.CustomerSubscriptionInvoiceWhereInput, params: { skip: number; take: number }) {
     return this.prisma.customerSubscriptionInvoice.findMany({ where, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });
   }

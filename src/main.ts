@@ -77,7 +77,7 @@ export const SWAGGER_TAG_ORDER = [
   '06 Payments',
   '06 Notifications',
   '06 Broadcast Notifications',
-  '07 Plans & Coupons',
+  '07 Plans',
   '07 Storage',
   '10 Public - Seasonal Themes',
   '08 Chat - Threads',

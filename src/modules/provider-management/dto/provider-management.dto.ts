@@ -22,10 +22,11 @@ import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum ProviderStatusFilter {
   ALL = 'ALL',
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
   SUSPENDED = 'SUSPENDED',
-  DISABLED = 'DISABLED',
+  BLOCKED = 'BLOCKED',
 }
 
 export enum ProviderSortBy {
@@ -42,8 +43,8 @@ export enum SortOrder {
 
 
 export enum ProviderStatusUpdate {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
+  APPROVED = 'APPROVED',
+  BLOCKED = 'BLOCKED',
   SUSPENDED = 'SUSPENDED',
 }
 
@@ -324,7 +325,7 @@ export class UpdateProviderStatusDto {
   @IsEnum(ProviderLifecycleAction)
   action!: ProviderLifecycleAction;
 
-  @ApiPropertyOptional({ enum: ProviderStatusUpdate, example: ProviderStatusUpdate.ACTIVE })
+  @ApiPropertyOptional({ enum: ProviderStatusUpdate, example: ProviderStatusUpdate.APPROVED })
   @ValidateIf((dto: UpdateProviderStatusDto) => dto.action === ProviderLifecycleAction.UPDATE_STATUS)
   @IsEnum(ProviderStatusUpdate)
   status?: ProviderStatusUpdate;

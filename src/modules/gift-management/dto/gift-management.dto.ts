@@ -5,7 +5,6 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
-  IsHexColor,
   IsInt,
   IsNumber,
   IsOptional,
@@ -19,28 +18,20 @@ import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum ExportFormat { CSV = 'CSV', XLSX = 'XLSX' }
-export enum GiftCategorySortBy { CREATED_AT = 'createdAt', NAME = 'name', SORT_ORDER = 'sortOrder', TOTAL_GIFTS = 'totalGifts' }
+export enum GiftCategorySortBy { CREATED_AT = 'createdAt', NAME = 'name', TOTAL_GIFTS = 'totalGifts' }
 export enum GiftSortBy { CREATED_AT = 'createdAt', NAME = 'name', PRICE = 'price', RATING = 'rating' }
 export enum GiftListStatus { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', OUT_OF_STOCK = 'OUT_OF_STOCK' }
 
 export class CreateGiftCategoryDto {
   @ApiProperty() @IsString() @MinLength(2) name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() iconKey?: string;
-  @ApiPropertyOptional({ example: '#8B5CF6', description: 'Deprecated alias. Use backgroundColor.' }) @IsOptional() @IsHexColor() color?: string;
-  @ApiPropertyOptional({ example: '#E9D5FF' }) @IsOptional() @IsHexColor() backgroundColor?: string;
   @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
 export class UpdateGiftCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() iconKey?: string;
-  @ApiPropertyOptional({ example: '#8B5CF6', description: 'Deprecated alias. Use backgroundColor.' }) @IsOptional() @IsHexColor() color?: string;
-  @ApiPropertyOptional({ example: '#E9D5FF' }) @IsOptional() @IsHexColor() backgroundColor?: string;
   @ApiPropertyOptional({ example: 'https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/gift-category-images/perfumes.png' }) @IsOptional() @IsUrl({ require_tld: false }) imageUrl?: string;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
@@ -48,7 +39,7 @@ export class ListGiftCategoriesDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
-  @ApiPropertyOptional({ description: 'When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.' }) @IsOptional() @Transform(({ value }: { value: unknown }) => optionalBoolean(value)) @IsBoolean() isActive?: boolean;
+  @ApiPropertyOptional({ description: 'When omitted, the list returns all categories. Use true for active only or false for inactive only.' }) @IsOptional() @Transform(({ value }: { value: unknown }) => optionalBoolean(value)) @IsBoolean() isActive?: boolean;
   @ApiPropertyOptional({ enum: GiftCategorySortBy }) @IsOptional() @IsEnum(GiftCategorySortBy) sortBy?: GiftCategorySortBy;
   @ApiPropertyOptional({ enum: SortOrder }) @IsOptional() @IsEnum(SortOrder) sortOrder?: SortOrder;
 }

@@ -44,20 +44,15 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'POST /api/v1/providers/{id}/message': { allowedRoles: 'SUPER_ADMIN or ADMIN with providers.message', description: 'SUPER_ADMIN or ADMIN with providers.message permission.' },
 
 
-  'GET /api/v1/provider-business-categories': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Lists provider business categories. By default returns all non-deleted categories. Use isActive=true or isActive=false to filter by active state.' },
-  'GET /api/v1/provider-business-categories/lookup': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Provider signup dropdown. Returns active provider business categories only.' },
+  'GET /api/v1/provider-business-categories': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Lists provider business categories. Use isActive=true or isActive=false to filter by active state.' },
   'POST /api/v1/provider-business-categories': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.create', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.create permission.' },
-  'GET /api/v1/provider-business-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.read', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.read permission.' },
   'PATCH /api/v1/provider-business-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.update', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.update permission.' },
   'DELETE /api/v1/provider-business-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete', description: 'SUPER_ADMIN or ADMIN with providerBusinessCategories.delete permission.' },
 
   'POST /api/v1/gift-categories': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.create', description: 'SUPER_ADMIN or ADMIN with giftCategories.create permission.' },
   'GET /api/v1/gift-categories': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.read', description: 'SUPER_ADMIN or ADMIN with giftCategories.read permission.' },
-  'GET /api/v1/gift-categories/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.read', description: 'SUPER_ADMIN or ADMIN with giftCategories.read permission.' },
-  'GET /api/v1/gift-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.read', description: 'SUPER_ADMIN or ADMIN with giftCategories.read permission.' },
   'PATCH /api/v1/gift-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.update', description: 'SUPER_ADMIN or ADMIN with giftCategories.update permission.' },
   'DELETE /api/v1/gift-categories/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with giftCategories.delete', description: 'SUPER_ADMIN or ADMIN with giftCategories.delete permission.' },
-  'GET /api/v1/gift-categories/lookup': { allowedRoles: 'PUBLIC', description: 'PUBLIC. Active gift category lookup.' },
 
   'GET /api/v1/customer/home': { allowedRoles: 'REGISTERED_USER', description: 'REGISTERED_USER only. Returns personalized marketplace fields such as wishlist state, default address, and upcoming reminders where applicable.' },
   'GET /api/v1/customer/categories': { allowedRoles: 'REGISTERED_USER', description: 'REGISTERED_USER only. Lists customer-visible marketplace categories.' },
@@ -68,7 +63,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
 
   'POST /api/v1/gifts': { allowedRoles: 'SUPER_ADMIN, PROVIDER, or ADMIN with gifts.create', description: 'SUPER_ADMIN and ADMIN with gifts.create create ACTIVE gifts. PROVIDER creates own gifts as INACTIVE.' },
   'GET /api/v1/gifts': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
-  'GET /api/v1/gifts/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
   'GET /api/v1/gifts/export': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.export', description: 'SUPER_ADMIN or ADMIN with gifts.export permission.' },
   'GET /api/v1/gifts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with gifts.read', description: 'SUPER_ADMIN or ADMIN with gifts.read permission.' },
   'PATCH /api/v1/gifts/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with gift-specific update permission', description: 'SUPER_ADMIN or ADMIN with gifts.update for standard gift fields and gifts.status.update for operational status changes.' },
@@ -187,11 +181,6 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'PATCH /api/v1/plan-features/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with planFeatures.update', description: 'SUPER_ADMIN or ADMIN with planFeatures.update permission.' },
   'DELETE /api/v1/plan-features/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with planFeatures.delete', description: 'SUPER_ADMIN or ADMIN with planFeatures.delete permission.' },
 
-  'GET /api/v1/coupons': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.read', description: 'SUPER_ADMIN or ADMIN with coupons.read permission.' },
-  'POST /api/v1/coupons': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.create', description: 'SUPER_ADMIN or ADMIN with coupons.create permission.' },
-  'GET /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.read', description: 'SUPER_ADMIN or ADMIN with coupons.read permission.' },
-  'PATCH /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupon-specific update permission', description: 'SUPER_ADMIN or ADMIN with coupon-specific permissions. Standard coupon fields require coupons.update; status or isActive changes require coupons.status.update; mixed payloads require both permissions.' },
-  'DELETE /api/v1/coupons/{id}': { allowedRoles: 'SUPER_ADMIN or ADMIN with coupons.delete', description: 'SUPER_ADMIN or ADMIN with coupons.delete permission.' },
 
 
   'GET /api/v1/admin/disputes/stats': { allowedRoles: 'SUPER_ADMIN or ADMIN with disputes.read', description: 'SUPER_ADMIN or ADMIN with disputes.read permission.' },

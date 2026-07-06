@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { BillingCycle, Coupon, CouponDiscountType, CustomerSubscription, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, Prisma, SubscriptionPlan } from '@prisma/client';
+import { BillingCycle, CustomerSubscription, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, Prisma, SubscriptionPlan } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { ApplyCouponDto, ConfirmSubscriptionDto, CustomerSubscriptionAction, CustomerSubscriptionActionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
+import { ConfirmSubscriptionDto, CustomerSubscriptionAction, CustomerSubscriptionActionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
 import { CustomerSubscriptionsRepository } from '../repositories/customer-subscriptions.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -26,22 +26,22 @@ export class CustomerSubscriptionsService {
 
   async checkout(user: AuthUserContext, dto: SubscriptionCheckoutDto) {
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) throw new BadRequestException('Premium subscriptions require STRIPE_CARD');
-    const idempotencyKey = this.idempotencyKey('subscription-checkout', user.uid, dto.idempotencyKey ?? `${dto.planId}:${dto.billingCycle}:${dto.couponCode ?? ''}`);
+    const idempotencyKey = this.idempotencyKey('subscription-checkout', user.uid, dto.idempotencyKey ?? `${dto.planId}:${dto.billingCycle}`);
     const duplicate = await this.repository.findSubscriptionByIdempotencyKey(user.uid, idempotencyKey);
     if (duplicate?.customerSubscription) return { data: { customerSubscriptionId: duplicate.customerSubscription.id, stripeSubscriptionId: duplicate.customerSubscription.stripeSubscriptionId, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount: this.toSmallestUnit(Number(duplicate.amount), duplicate.currency), currency: duplicate.currency, billingCycle: duplicate.customerSubscription.billingCycle, status: duplicate.customerSubscription.status }, message: 'Subscription checkout created successfully.' };
     const existing = await this.activeSubscription(user.uid);
     if (existing) throw new BadRequestException('You already have an active premium subscription');
     const plan = await this.publicPlan(dto.planId);
     if (plan.currency.toUpperCase() !== this.currency(plan.currency)) throw new BadRequestException('Plan currency must match Stripe currency');
-    const coupon = dto.couponCode ? await this.validCoupon(dto.planId, dto.couponCode) : null;
     const price = await this.ensureStripePrice(plan, dto.billingCycle);
     const customerId = await this.ensureStripeCustomer(user.uid);
     const subscription = await this.stripe().subscriptions.create({ customer: customerId, items: [{ price }], default_payment_method: dto.stripePaymentMethodId, payment_behavior: 'default_incomplete', expand: ['latest_invoice.payment_intent'], metadata: this.sanitizeMetadata({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, idempotencyKey }) }, { idempotencyKey }) as StripeSubscriptionLike;
     const paymentIntent = typeof subscription.latest_invoice === 'object' ? subscription.latest_invoice?.payment_intent : null;
     const clientSecret = typeof paymentIntent === 'object' ? paymentIntent?.client_secret ?? null : null;
-    const amount = this.toSmallestUnit(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice, plan.currency);
-    const saved = await this.repository.createCustomerSubscription({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, status: CustomerSubscriptionStatus.INCOMPLETE, stripeCustomerId: customerId, stripeSubscriptionId: subscription.id, stripePriceId: price, couponId: coupon?.id });
-    await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: typeof paymentIntent === 'object' ? paymentIntent?.id ?? null : null, amount: new Prisma.Decimal(this.finalPrice(plan, dto.billingCycle, coupon).finalPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
+    const planPrice = this.planPrice(plan, dto.billingCycle);
+    const amount = this.toSmallestUnit(planPrice, plan.currency);
+    const saved = await this.repository.createCustomerSubscription({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, status: CustomerSubscriptionStatus.INCOMPLETE, stripeCustomerId: customerId, stripeSubscriptionId: subscription.id, stripePriceId: price });
+    await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: typeof paymentIntent === 'object' ? paymentIntent?.id ?? null : null, amount: new Prisma.Decimal(planPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
     return { data: { customerSubscriptionId: saved.id, stripeSubscriptionId: subscription.id, clientSecret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount, currency: plan.currency, billingCycle: dto.billingCycle, status: saved.status }, message: 'Subscription checkout created successfully.' };
   }
 
@@ -64,8 +64,6 @@ export class CustomerSubscriptionsService {
 
   async invoices(user: AuthUserContext, query: ListSubscriptionInvoicesDto) { const { page, limit, skip, take } = getPagination(query); const where: Prisma.CustomerSubscriptionInvoiceWhereInput = { userId: user.uid, ...(query.status && query.status !== InvoiceStatusFilter.ALL ? { status: query.status } : {}) }; const [items, total] = await this.repository.findSubscriptionInvoicesAndCountForUser(where, { skip, take }); return { data: items.map((item) => this.invoiceItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Subscription invoices fetched successfully.' }; }
   async invoiceDetails(user: AuthUserContext, id: string) { const invoice = await this.repository.findSubscriptionInvoiceForUser(user.uid, id); if (!invoice) throw new NotFoundException('Subscription invoice not found'); return { data: this.invoiceItem(invoice), message: 'Subscription invoice fetched successfully.' }; }
-
-  async applyCoupon(_user: AuthUserContext, dto: ApplyCouponDto) { const plan = await this.publicPlan(dto.planId); const coupon = await this.validCoupon(dto.planId, dto.couponCode); const result = this.finalPrice(plan, dto.billingCycle, coupon); return { data: { planPrice: result.planPrice, discountAmount: result.discountAmount, finalPrice: result.finalPrice, currency: plan.currency, coupon: { code: coupon.code, discountType: coupon.discountType, discountValue: Number(coupon.discountValue) } }, message: 'Coupon applied successfully.' }; }
 
   async handleStripeSubscriptionEvent(type: string, payload: unknown): Promise<void> {
     if (type.startsWith('customer.subscription.')) await this.updateFromStripeSubscription(payload as StripeSubscriptionLike, type);
@@ -108,8 +106,6 @@ export class CustomerSubscriptionsService {
   private features(plan: SubscriptionPlan): PlanFeature[] { const map = this.object(plan.featuresJson); return Object.entries(map).map(([key, enabled]) => ({ key, label: key.split('_').map((p) => p[0]?.toUpperCase() + p.slice(1)).join(' '), enabled: Boolean(enabled) })); }
   private object(value: Prisma.JsonValue): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
   private planPrice(plan: SubscriptionPlan, cycle: BillingCycle): number { return Number(cycle === BillingCycle.YEARLY ? plan.yearlyPrice : plan.monthlyPrice); }
-  private finalPrice(plan: SubscriptionPlan, cycle: BillingCycle, coupon: Coupon | null) { const planPrice = this.planPrice(plan, cycle); if (!coupon) return { planPrice, discountAmount: 0, finalPrice: planPrice }; const discountAmount = coupon.discountType === CouponDiscountType.PERCENTAGE ? this.money(planPrice * (Number(coupon.discountValue) / 100)) : Math.min(planPrice, Number(coupon.discountValue)); return { planPrice, discountAmount, finalPrice: this.money(Math.max(0, planPrice - discountAmount)) }; }
-  private async validCoupon(planId: string, code: string): Promise<Coupon> { const coupon = await this.repository.findCouponByCode(code); if (!coupon) throw new BadRequestException('Coupon is invalid or expired'); const planIds = Array.isArray(coupon.planIdsJson) ? coupon.planIdsJson.filter((v): v is string => typeof v === 'string') : []; if (planIds.length && !planIds.includes(planId)) throw new BadRequestException('Coupon is not valid for this plan'); if (coupon.maxRedemptions && coupon.redemptionCount >= coupon.maxRedemptions) throw new BadRequestException('Coupon redemption limit reached'); return coupon; }
   private async ensureStripeCustomer(userId: string): Promise<string> { const existing = await this.repository.findSubscriptionWithStripeCustomer(userId); if (existing?.stripeCustomerId) return existing.stripeCustomerId; const user = await this.repository.findUserByIdOrThrow(userId); return (await this.stripe().customers.create({ email: user.email, name: `${user.firstName} ${user.lastName}`.trim(), metadata: { userId } })).id; }
   private async ensureStripePrice(plan: SubscriptionPlan, cycle: BillingCycle): Promise<string> { const productId = (await this.stripe().products.create({ name: plan.name, metadata: { planId: plan.id } })).id; const price = await this.stripe().prices.create({ product: productId, currency: plan.currency.toLowerCase(), unit_amount: this.toSmallestUnit(this.planPrice(plan, cycle), plan.currency), recurring: { interval: cycle === BillingCycle.YEARLY ? 'year' : 'month' }, metadata: { planId: plan.id, billingCycle: cycle } }); return price.id; }
   private async updateFromStripeSubscription(stripeSub: StripeSubscriptionLike, type: string): Promise<void> { const sub = await this.repository.findSubscriptionByStripeSubscriptionId(stripeSub.id); if (!sub) return; const status = type === 'customer.subscription.deleted' ? CustomerSubscriptionStatus.CANCELLED : this.statusFromStripe(stripeSub.status); await this.repository.updateStripeSubscriptionSync(sub.id, { status, isPremium: this.isPremiumStatus(status), currentPeriodStart: this.fromUnix(stripeSub.current_period_start), currentPeriodEnd: this.fromUnix(stripeSub.current_period_end), cancelAtPeriodEnd: stripeSub.cancel_at_period_end ?? false, cancelledAt: status === CustomerSubscriptionStatus.CANCELLED ? new Date() : sub.cancelledAt }); }

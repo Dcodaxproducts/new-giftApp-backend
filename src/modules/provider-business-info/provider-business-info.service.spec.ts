@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ProviderFulfillmentMethodDto } from '../auth/dto/auth.dto';
@@ -31,7 +31,7 @@ describe('Provider business info source safety', () => {
 
   it('material business changes trigger pending verification, audit, and admin notification', () => {
     expect(service).toContain('materialChange');
-    expect(service).toContain('ProviderApprovalStatus.PENDING');
+    expect(service).toContain('UserStatus.PENDING');
     expect(service).toContain('PROVIDER_BUSINESS_INFO_UPDATED');
     expect(service).not.toContain('website');
     expect(service).toContain('ADMIN_PROVIDER_REVIEW_NEEDED');
@@ -55,7 +55,7 @@ const businessInfoProvider = {
     businessAddress: '842 Industrial Way, Suite 102',
     fulfillmentMethods: ['PICKUP', 'DELIVERY'],
     autoAcceptOrders: false,
-    approvalStatus: ProviderApprovalStatus.APPROVED,
+    status: UserStatus.APPROVED,
   },
   isApproved: true,
 };
@@ -74,7 +74,7 @@ function createBusinessInfoService(overrides: Record<string, unknown> = {}) {
       upsert: jest.fn().mockResolvedValue(provider.providerProfile),
     },
     providerBusinessCategory: {
-      findFirst: jest.fn().mockResolvedValue({ id: 'category_1', name: 'Industrial Warehousing & Distribution', deletedAt: null }),
+      findFirst: jest.fn().mockResolvedValue({ id: 'category_1', name: 'Industrial Warehousing & Distribution' }),
       findUnique: jest.fn().mockResolvedValue({ id: 'category_1', name: 'Industrial Warehousing & Distribution' }),
     },
     adminAuditLog: { create: jest.fn().mockResolvedValue({ id: 'audit_1' }) },

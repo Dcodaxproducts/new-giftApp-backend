@@ -119,17 +119,6 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
-    module: 'coupons',
-    label: 'Coupons',
-    permissions: [
-      { key: 'read', label: 'View Coupons', description: 'View coupon codes.' },
-      { key: 'create', label: 'Create Coupons', description: 'Create coupon codes.' },
-      { key: 'update', label: 'Update Coupons', description: 'Update coupon codes.' },
-      { key: 'delete', label: 'Delete Coupons', description: 'Delete coupon codes.' },
-      { key: 'status.update', label: 'Update Coupon Status', description: 'Activate, deactivate, or expire coupon codes.' },
-    ],
-  },
-  {
     module: 'promotionalOffers',
     label: 'Promotional Offers',
     permissions: [

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { GiftStatus, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
-import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
-import { getPagination } from '../../../common/pagination/pagination.util';
-import { PrismaService } from '../../../database/prisma.service';
-import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
+import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../common/audit/admin-audit-log.util';
+import { getPagination } from '../../common/pagination/pagination.util';
+import { PrismaService } from '../../database/prisma.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import {
   ExportProvidersDto,
   ListProviderItemsDto,
@@ -14,7 +14,7 @@ import {
   ProviderSortBy,
   ProviderStatusFilter,
   SortOrder,
-} from '../dto/provider-management.dto';
+} from './dto/provider-management.dto';
 
 export interface ProviderAggregateStats {
   revenue: number;
@@ -508,13 +508,16 @@ export class ProviderManagementRepository {
 
   private statusWhere(status?: ProviderStatusFilter): Prisma.UserWhereInput {
     switch (status) {
-      case ProviderStatusFilter.ACTIVE:
+      case ProviderStatusFilter.PENDING:
+        return { status: UserStatus.PENDING };
+      case ProviderStatusFilter.APPROVED:
         return { status: UserStatus.APPROVED };
-      case ProviderStatusFilter.INACTIVE:
-      case ProviderStatusFilter.DISABLED:
-        return { status: { in: [UserStatus.BLOCKED, UserStatus.REJECTED] } };
+      case ProviderStatusFilter.REJECTED:
+        return { status: UserStatus.REJECTED };
       case ProviderStatusFilter.SUSPENDED:
         return { status: UserStatus.SUSPENDED };
+      case ProviderStatusFilter.BLOCKED:
+        return { status: UserStatus.BLOCKED };
       case ProviderStatusFilter.ALL:
       case undefined:
         return {};

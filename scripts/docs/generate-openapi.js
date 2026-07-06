@@ -1,5 +1,9 @@
 require('ts-node/register');
 
+process.env.DATABASE_URL ??= 'postgresql://user:pass@127.0.0.1:5432/giftapp';
+process.env.JWT_ACCESS_SECRET ??= 'dev-docs-secret';
+process.env.JWT_SECRET ??= 'dev-docs-secret';
+
 const { RequestMethod, ValidationPipe } = require('@nestjs/common');
 const { NestFactory } = require('@nestjs/core');
 const { DocumentBuilder, SwaggerModule } = require('@nestjs/swagger');

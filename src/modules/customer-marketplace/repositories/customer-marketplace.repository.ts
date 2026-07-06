@@ -10,7 +10,7 @@ export class CustomerMarketplaceRepository {
     return this.prisma.$transaction([
       this.findDefaultAddressForUser(params.userId),
       this.findUpcomingReminderForUser(params.userId),
-      this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null, gifts: { some: params.giftWhere } }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }], take: 12, select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }),
+      this.prisma.giftCategory.findMany({ where: { isActive: true, gifts: { some: params.giftWhere } }, orderBy: { name: 'asc' }, take: 12, select: { id: true, name: true, slug: true, imageUrl: true } }),
       this.findDiscountedGifts({ where: params.giftWhere, activeOfferWhere: params.activeOfferWhere, include: params.giftInclude, take: 12 }),
     ]);
   }
@@ -24,7 +24,7 @@ export class CustomerMarketplaceRepository {
   }
 
   findMarketplaceCategories(giftWhere: Prisma.GiftWhereInput) {
-    return this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null, gifts: { some: giftWhere } }, include: { _count: { select: { gifts: { where: giftWhere } } } }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] });
+    return this.prisma.giftCategory.findMany({ where: { isActive: true, gifts: { some: giftWhere } }, include: { _count: { select: { gifts: { where: giftWhere } } } }, orderBy: { name: 'asc' } });
   }
 
   findMarketplaceGifts<T extends Prisma.GiftInclude>(params: { where: Prisma.GiftWhereInput; include: T; orderBy: Prisma.GiftOrderByWithRelationInput; skip: number; take: number }) {
@@ -56,7 +56,7 @@ export class CustomerMarketplaceRepository {
 
   findGiftFilterOptions(params: { giftWhere: Prisma.GiftWhereInput; approvedProviderWhere: Prisma.UserWhereInput }) {
     return this.prisma.$transaction([
-      this.prisma.giftCategory.findMany({ where: { isActive: true, deletedAt: null, gifts: { some: params.giftWhere } }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, color: true, backgroundColor: true, imageUrl: true } }),
+      this.prisma.giftCategory.findMany({ where: { isActive: true, gifts: { some: params.giftWhere } }, orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, imageUrl: true } }),
       this.prisma.gift.aggregate({ where: params.giftWhere, _min: { price: true }, _max: { price: true } }),
       this.prisma.user.findMany({ where: params.approvedProviderWhere, orderBy: { providerProfile: { businessName: 'asc' } }, select: { providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } }),
     ]);

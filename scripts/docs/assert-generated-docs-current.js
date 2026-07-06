@@ -3,20 +3,16 @@ const path = require('path');
 
 const root = process.cwd();
 const generatedDir = path.join(root, 'docs', 'generated');
-const requirePdf = process.env.DOCS_REQUIRE_PDF === 'true';
 const baseRequiredFiles = [
   'openapi.json',
-  'api-reference.md',
-  'api-reference.html',
-  'frontend-api-guide.md',
-  'frontend-api-guide.html',
 ];
-const pdfFiles = [
-  'api-reference.pdf',
-  'frontend-api-guide.pdf',
-];
-const requiredFiles = requirePdf ? [...baseRequiredFiles, ...pdfFiles] : baseRequiredFiles;
 const staleFiles = [
+  'api-reference.html',
+  'api-reference.md',
+  'api-reference.pdf',
+  'frontend-api-guide.html',
+  'frontend-api-guide.md',
+  'frontend-api-guide.pdf',
   'gift-app-api-record.html',
   'gift-app-api-record.md',
   'gift-app-api-record.pdf',
@@ -53,7 +49,7 @@ function fail(message) {
 }
 
 if (!fs.existsSync(generatedDir)) fail('docs/generated is missing');
-for (const file of requiredFiles) {
+for (const file of baseRequiredFiles) {
   if (!fs.existsSync(path.join(generatedDir, file))) fail(`Missing required generated file: docs/generated/${file}`);
 }
 for (const file of staleFiles) {
@@ -62,7 +58,7 @@ for (const file of staleFiles) {
 if (fs.existsSync(path.join(root, 'gift-app-api-record.pdf'))) fail('Root gift-app-api-record.pdf must not exist');
 
 const actualFiles = fs.readdirSync(generatedDir).filter((file) => fs.statSync(path.join(generatedDir, file)).isFile()).sort();
-const allowedFiles = [...baseRequiredFiles, ...pdfFiles].sort();
+const allowedFiles = [...baseRequiredFiles].sort();
 const unexpectedFiles = actualFiles.filter((file) => !allowedFiles.includes(file));
 if (unexpectedFiles.length) {
   fail(`docs/generated must contain only canonical outputs. Found unexpected: ${unexpectedFiles.join(', ')}. All files: ${actualFiles.join(', ')}`);
@@ -94,13 +90,5 @@ for (const removed of removedChatGroups) {
 }
 if (!tagNames.has('08 Chat - Threads')) fail('Expected chat group missing: 08 Chat - Threads');
 if (!tagNames.has('02 Admin - Notification Delivery Monitoring')) fail('Expected chat/notification group missing: 02 Admin - Notification Delivery Monitoring');
-
-const headerChecks = ['api-reference.md', 'frontend-api-guide.md', 'api-reference.html', 'frontend-api-guide.html'];
-for (const file of headerChecks) {
-  const content = fs.readFileSync(path.join(generatedDir, file), 'utf8');
-  for (const token of ['Generated from docs/generated/openapi.json', 'Generated at:', 'Do not edit manually.', 'Run: npm run docs:generate']) {
-    if (!content.includes(token)) fail(`Generated header missing in docs/generated/${file}: ${token}`);
-  }
-}
 
 console.log('DOCS_ASSERT_OK');

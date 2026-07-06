@@ -30,11 +30,6 @@ export class GiftsController {
   @ApiOperation({ summary: 'List admin gifts', description: 'SUPER_ADMIN/ADMIN with gifts.read. Supports category, provider, and status filters.' })
   list(@Query() query: ListGiftsDto) { return this.gifts.listGifts(query); }
 
-  @Get('stats')
-  @Permissions('gifts.read')
-  @ApiOperation({ summary: 'Fetch gift inventory stats' })
-  stats() { return this.gifts.giftStats(); }
-
   @Get('export')
   @Permissions('gifts.export')
   @ApiOperation({ summary: 'Export gift inventory' })

@@ -92,12 +92,16 @@ describe('CI static production guards', () => {
 
   it('keeps docs guard scripts wired in package scripts', () => {
     const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
-    expect(pkg.scripts?.['docs:generate']).toEqual(expect.any(String));
-    expect(pkg.scripts?.['docs:generate']).not.toContain('--pdf');
-    expect(pkg.scripts?.['docs:pdf']).toContain('--pdf');
+    expect(pkg.scripts?.['docs:generate']).toBe('npm run docs:openapi');
+    expect(pkg.scripts?.['docs:openapi']).toContain('generate-openapi.js');
+    expect(pkg.scripts?.['docs:reference']).toBeUndefined();
+    expect(pkg.scripts?.['docs:frontend']).toBeUndefined();
+    expect(pkg.scripts?.['docs:pdf']).toBeUndefined();
     expect(pkg.scripts?.['docs:assert']).toContain('assert-generated-docs-current');
     expect(existsSync(join(root, 'scripts/docs/assert-generated-docs-current.js'))).toBe(true);
-    expect(existsSync(join(root, 'scripts/docs/requirements.txt'))).toBe(true);
-    expect(readFileSync(join(root, 'scripts/docs/assert-generated-docs-current.js'), 'utf8')).toContain('DOCS_REQUIRE_PDF');
+    expect(existsSync(join(root, 'scripts/docs/generate-openapi.js'))).toBe(true);
+    expect(existsSync(join(root, 'scripts/docs/generate-api-reference.py'))).toBe(false);
+    expect(existsSync(join(root, 'scripts/docs/generate-frontend-guide.py'))).toBe(false);
+    expect(existsSync(join(root, 'scripts/docs/requirements.txt'))).toBe(false);
   });
 });

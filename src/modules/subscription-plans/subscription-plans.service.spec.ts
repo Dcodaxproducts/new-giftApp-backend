@@ -1,34 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-import { CouponDiscountType, SubscriptionPlanStatus, SubscriptionPlanVisibility, UserRole } from '@prisma/client';
+import { SubscriptionPlanStatus, SubscriptionPlanVisibility, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { CouponsRepository } from './repositories/coupons.repository';
-import { CouponStatus, PlanFeatureType, PlanSortBy, SortOrder } from './dto/subscription-plans.dto';
+import { PlanFeatureType, PlanSortBy, SortOrder } from './dto/subscription-plans.dto';
 import { PlanFeaturesRepository } from './repositories/plan-features.repository';
 import { SubscriptionPlansRepository } from './repositories/subscription-plans.repository';
 import { SubscriptionPlansService } from './services/subscription-plans.service';
 
 function createService() {
   const plan = { id: 'plan_1', name: 'Pro', slug: 'pro', description: null, monthlyPrice: { toString: () => '49' }, yearlyPrice: { toString: () => '490' }, currency: 'USD', status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC, isPopular: false, featuresJson: { apiAccess: true }, limitsJson: { maxTeamMembers: 10 }, activeSubscribersPlaceholder: 0, createdAt: new Date(), updatedAt: new Date() };
-  const coupon = { id: 'coupon_1', code: 'SUMMER25', description: null, discountType: CouponDiscountType.PERCENTAGE, discountValue: { toString: () => '25' }, planIdsJson: ['plan_1'], startsAt: null, expiresAt: null, maxRedemptions: 100, redemptionCount: 0, isActive: true, createdBy: 'admin_1', updatedBy: null, createdAt: new Date(), updatedAt: new Date(), deletedAt: null };
   const feature = { id: 'feature_1', key: 'apiAccess', label: 'API Access', description: 'API', type: 'BOOLEAN', isActive: true, sortOrder: 0, deletedAt: null, createdAt: new Date(), updatedAt: new Date() };
   const prisma = {
     subscriptionPlan: { findFirst: jest.fn().mockResolvedValue(null), findUnique: jest.fn().mockResolvedValue(plan), create: jest.fn().mockResolvedValue(plan), findMany: jest.fn().mockResolvedValue([plan]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...plan, ...data })), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     planFeatureCatalog: { upsert: jest.fn(), findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(feature), update: jest.fn().mockResolvedValue({ ...feature, isActive: false }), delete: jest.fn().mockResolvedValue(feature), findMany: jest.fn().mockResolvedValue([feature]), count: jest.fn().mockResolvedValue(1) },
-    coupon: { findFirst: jest.fn().mockImplementation(({ where }) => Promise.resolve(typeof where?.id === 'string' ? coupon : null)), create: jest.fn().mockResolvedValue(coupon), findMany: jest.fn().mockResolvedValue([coupon]), count: jest.fn().mockResolvedValue(1), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...coupon, ...data })) },
     $transaction: jest.fn().mockImplementation((items: unknown[]) => Promise.all(items)),
   };
   const audit = { write: jest.fn().mockResolvedValue(undefined) };
   const subscriptionPlansRepository = new SubscriptionPlansRepository(prisma as unknown as ConstructorParameters<typeof SubscriptionPlansRepository>[0]);
   const planFeaturesRepository = new PlanFeaturesRepository(prisma as unknown as ConstructorParameters<typeof PlanFeaturesRepository>[0]);
-  const couponsRepository = new CouponsRepository(prisma as unknown as ConstructorParameters<typeof CouponsRepository>[0]);
   const service = new SubscriptionPlansService(
     subscriptionPlansRepository,
     planFeaturesRepository,
-    couponsRepository,
-    audit as unknown as ConstructorParameters<typeof SubscriptionPlansService>[3],
+    audit as unknown as ConstructorParameters<typeof SubscriptionPlansService>[2],
   );
-  return { service, prisma, audit, subscriptionPlansRepository, planFeaturesRepository, couponsRepository };
+  return { service, prisma, audit, subscriptionPlansRepository, planFeaturesRepository };
 }
 
 describe('SubscriptionPlansService', () => {
@@ -121,47 +116,6 @@ describe('SubscriptionPlansService', () => {
     expect(openapi.paths['/api/v1/subscription-plans/{id}/visibility']).toBeUndefined();
   });
 
-  it('creates coupon and writes audit log', async () => {
-    const { service, prisma, audit } = createService();
-    await service.createCoupon({ uid: 'admin_1', role: UserRole.STAFF }, { code: 'summer25', discountType: CouponDiscountType.PERCENTAGE, discountValue: 25 });
-    expect(prisma.coupon.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ code: 'SUMMER25' }) }));
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ actorType: UserRole.STAFF, action: 'COUPON_CREATED' }));
-  });
-
-  it('lists newly created coupons first by default', async () => {
-    const { service, prisma } = createService();
-
-    await service.listCoupons({});
-
-    expect(prisma.coupon.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: 'desc' } }));
-  });
-
-  it('normal coupon update works through main PATCH service path', async () => {
-    const { service, prisma, audit } = createService();
-    const existing = (await prisma.coupon.findMany())[0];
-    prisma.coupon.findFirst.mockImplementation(({ where }: { where: { id?: string | { not: string } } }) => Promise.resolve(typeof where.id === 'string' ? existing : null));
-    const result = await service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['update'] } }, 'coupon_1', { code: 'fall10', description: 'Fall campaign' });
-    expect(result.data).toEqual(expect.objectContaining({ code: 'FALL10', description: 'Fall campaign' }));
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'COUPON_UPDATED' }));
-  });
-
-  it('coupon status update works through main PATCH with status permission', async () => {
-    const { service, prisma, audit } = createService();
-    prisma.coupon.findFirst.mockResolvedValue((await prisma.coupon.findMany())[0]);
-    const result = await service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['status.update'] } }, 'coupon_1', { status: CouponStatus.INACTIVE, isActive: false, reason: 'Campaign paused.' });
-    expect(result.data).toEqual(expect.objectContaining({ status: CouponStatus.INACTIVE, isActive: false }));
-    expect(prisma.coupon.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isActive: false }) }));
-    expect(audit.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'COUPON_UPDATED', beforeJson: expect.objectContaining({ status: CouponStatus.ACTIVE, reason: 'Campaign paused.' }), afterJson: expect.objectContaining({ status: CouponStatus.INACTIVE, reason: 'Campaign paused.' }) }));
-  });
-
-  it('coupon update permissions are enforced', async () => {
-    const { service, prisma, audit } = createService();
-    prisma.coupon.findFirst.mockResolvedValue((await prisma.coupon.findMany())[0]);
-    await expect(service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['read'] } }, 'coupon_1', { code: 'fall10' })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.updateCoupon({ uid: 'admin_1', role: UserRole.STAFF, permissions: { coupons: ['update'] } }, 'coupon_1', { status: CouponStatus.INACTIVE })).rejects.toThrow('Your role does not have the required permission');
-    expect(audit.write).not.toHaveBeenCalled();
-  });
-
   it('creates and archives plan feature catalog entries', async () => {
     const { service, prisma, audit } = createService();
     await service.createFeature({ uid: 'admin_1', role: UserRole.STAFF }, { key: 'apiAccess', label: 'API Access', type: PlanFeatureType.BOOLEAN });
@@ -189,13 +143,9 @@ describe('SubscriptionPlansService', () => {
     expect(prisma.planFeatureCatalog.findMany).toHaveBeenNthCalledWith(3, expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, isActive: false }) }));
   });
 
-  it('old coupon status route is removed from Swagger', () => {
-    const controller = readFileSync(join(__dirname, 'controllers/coupons.controller.ts'), 'utf8');
-    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, { patch?: { requestBody?: { content?: { 'application/json'?: { examples?: Record<string, unknown> } } } } }> };
-    expect(controller).toContain("@Patch(':id')");
-    expect(controller).not.toContain("@Patch(':id/status')");
-    expect(openapi.paths['/api/v1/coupons/{id}']).toBeDefined();
-    expect(openapi.paths['/api/v1/coupons/{id}/status']).toBeUndefined();
-    expect(Object.keys(openapi.paths['/api/v1/coupons/{id}']?.patch?.requestBody?.content?.['application/json']?.examples ?? {})).toEqual(expect.arrayContaining(['updateCoupon', 'activateCoupon', 'deactivateCoupon']));
+  it('coupon routes are removed from Swagger', () => {
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    expect(openapi.paths['/api/v1/coupons']).toBeUndefined();
+    expect(openapi.paths['/api/v1/coupons/{id}']).toBeUndefined();
   });
 });

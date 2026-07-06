@@ -55,16 +55,14 @@ describe('Customer marketplace repository cleanup', () => {
 
   it('categories return active categories with visible gifts', () => {
     expect(repository).toContain('findMarketplaceCategories');
-    expect(repository).toContain('isActive: true, deletedAt: null, gifts: { some: giftWhere }');
+    expect(repository).toContain('isActive: true, gifts: { some: giftWhere }');
     expect(repository).toContain('_count: { select: { gifts: { where: giftWhere } } }');
     expect(service).toContain('totalGifts: category._count.gifts');
   });
 
   it('gift list excludes inactive providers', () => {
     expect(approvedProviderWhere).toContain('role: UserRole.PROVIDER');
-    expect(approvedProviderWhere).toContain('isActive: true');
-    expect(approvedProviderWhere).toContain('approvalStatus: ProviderApprovalStatus.APPROVED');
-    expect(approvedProviderWhere).toContain('suspendedAt: null');
+    expect(approvedProviderWhere).toContain('status: UserStatus.APPROVED');
     expect(availableGiftWhere).toContain('provider: this.approvedProviderWhere()');
   });
 

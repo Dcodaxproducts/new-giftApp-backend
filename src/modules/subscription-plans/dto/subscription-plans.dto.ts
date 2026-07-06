@@ -1,15 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BillingCycle, CouponDiscountType, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
+import { BillingCycle, SubscriptionPlanStatus, SubscriptionPlanVisibility } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString, Min, MinLength } from 'class-validator';
 import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum PlanStatusFilter { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', ARCHIVED = 'ARCHIVED' }
 export enum PlanVisibilityFilter { ALL = 'ALL', PUBLIC = 'PUBLIC', PRIVATE = 'PRIVATE', ARCHIVED = 'ARCHIVED' }
 export enum PlanSortBy { CREATED_AT = 'createdAt', NAME = 'name', MONTHLY_PRICE = 'monthlyPrice', YEARLY_PRICE = 'yearlyPrice', ACTIVE_SUBSCRIBERS = 'activeSubscribers' }
-export enum CouponStatusFilter { ALL = 'ALL', ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', EXPIRED = 'EXPIRED' }
-export enum CouponStatus { ACTIVE = 'ACTIVE', INACTIVE = 'INACTIVE', EXPIRED = 'EXPIRED' }
 export enum PlanFeatureType { BOOLEAN = 'BOOLEAN', NUMBER = 'NUMBER', TEXT = 'TEXT' }
 
 export class PlanLimitsDto {
@@ -59,19 +57,3 @@ export class ListSubscriptionPlansDto {
 export class ListPlanFeaturesDto { @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number; @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional({ example: 'priority' }) @IsOptional() @IsString() search?: string; @ApiPropertyOptional({ example: true, description: 'When omitted, the list returns all non-deleted plan features. Use true for active only or false for inactive only.' }) @IsOptional() @Transform(({ value }: { value: unknown }) => optionalBoolean(value)) @IsBoolean() isActive?: boolean; }
 export class CreatePlanFeatureDto { @ApiProperty() @IsString() @MinLength(2) key!: string; @ApiProperty() @IsString() @MinLength(2) label!: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiProperty({ enum: PlanFeatureType }) @IsEnum(PlanFeatureType) type!: PlanFeatureType; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortOrder?: number; }
 export class UpdatePlanFeatureDto { @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) key?: string; @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(2) label?: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiPropertyOptional({ enum: PlanFeatureType }) @IsOptional() @IsEnum(PlanFeatureType) type?: PlanFeatureType; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortOrder?: number; }
-
-export class ListCouponsDto { @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number; @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number; @ApiPropertyOptional({ example: 'SAVE' }) @IsOptional() @IsString() search?: string; @ApiPropertyOptional({ enum: CouponStatusFilter }) @IsOptional() @IsEnum(CouponStatusFilter) status?: CouponStatusFilter; @ApiPropertyOptional({ example: 'plan_id' }) @IsOptional() @IsString() planId?: string; }
-export class CreateCouponDto { @ApiProperty() @IsString() @MinLength(2) code!: string; @ApiPropertyOptional() @IsOptional() @IsString() description?: string; @ApiProperty({ enum: CouponDiscountType }) @IsEnum(CouponDiscountType) discountType!: CouponDiscountType; @ApiProperty() @Type(() => Number) @IsNumber() @Min(0) discountValue!: number; @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) planIds?: string[]; @ApiPropertyOptional() @IsOptional() @IsDateString() startsAt?: string; @ApiPropertyOptional() @IsOptional() @IsDateString() expiresAt?: string; @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) maxRedemptions?: number; @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean; }
-export class UpdateCouponDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() code?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
-  @ApiPropertyOptional({ enum: CouponDiscountType }) @IsOptional() @IsEnum(CouponDiscountType) discountType?: CouponDiscountType;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) discountValue?: number;
-  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @IsString({ each: true }) planIds?: string[];
-  @ApiPropertyOptional() @IsOptional() @IsDateString() startsAt?: string;
-  @ApiPropertyOptional() @IsOptional() @IsDateString() expiresAt?: string;
-  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) maxRedemptions?: number;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
-  @ApiPropertyOptional({ enum: CouponStatus }) @IsOptional() @IsEnum(CouponStatus) status?: CouponStatus;
-  @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
-}

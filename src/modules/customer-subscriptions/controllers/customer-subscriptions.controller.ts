@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../../common/decorators/current
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { ApplyCouponDto, ConfirmSubscriptionDto, CustomerSubscriptionActionDto, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
+import { ConfirmSubscriptionDto, CustomerSubscriptionActionDto, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
 import { CustomerSubscriptionsService } from '../services/customer-subscriptions.service';
 
 @ApiTags('05 Customer - Subscriptions')
@@ -26,7 +26,7 @@ export class CustomerSubscriptionsController {
   current(@CurrentUser() user: AuthUserContext) { return this.subscriptions.current(user); }
 
   @Post('checkout')
-  @ApiOperation({ summary: 'Create Stripe subscription checkout', description: 'REGISTERED_USER only. Backend calculates price from admin-created SubscriptionPlan and optional coupon. Uses Stripe subscription flow with payment_behavior=default_incomplete.' })
+  @ApiOperation({ summary: 'Create Stripe subscription checkout', description: 'REGISTERED_USER only. Backend calculates price from admin-created SubscriptionPlan. Uses Stripe subscription flow with payment_behavior=default_incomplete.' })
   @ApiBody({ type: SubscriptionCheckoutDto })
   checkout(@CurrentUser() user: AuthUserContext, @Body() dto: SubscriptionCheckoutDto) { return this.subscriptions.checkout(user, dto); }
 
@@ -47,7 +47,4 @@ export class CustomerSubscriptionsController {
   @ApiOperation({ summary: 'Fetch own subscription invoice details', description: 'REGISTERED_USER only.' })
   invoiceDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.subscriptions.invoiceDetails(user, id); }
 
-  @Post('apply-coupon')
-  @ApiOperation({ summary: 'Preview subscription coupon', description: 'REGISTERED_USER only. Validates coupon against active coupon rules and plan restrictions; frontend discount amounts are ignored.' })
-  applyCoupon(@CurrentUser() user: AuthUserContext, @Body() dto: ApplyCouponDto) { return this.subscriptions.applyCoupon(user, dto); }
 }

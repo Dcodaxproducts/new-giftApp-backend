@@ -13,7 +13,7 @@ export class ProviderBusinessInfoRepository {
   }
 
   findBusinessCategoryById(id: string) {
-    return this.prisma.providerBusinessCategory.findFirst({ where: { id, deletedAt: null } });
+    return this.prisma.providerBusinessCategory.findFirst({ where: { id } });
   }
 
   findBusinessCategoryByIdIncludingInactive(id: string) {

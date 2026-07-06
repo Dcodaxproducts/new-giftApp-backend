@@ -10,7 +10,6 @@
 - Fresh local Postgres (`postgres:16-alpine`, `127.0.0.1:5547/giftapp_fresh`) with `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5547/giftapp_fresh`:
   - `npx prisma migrate deploy`: passed from an empty database.
   - `npx prisma migrate status`: clean / database schema up to date.
-  - `npx ts-node scripts/db/smoke-check-schema.ts`: `SCHEMA_SMOKE_OK`.
 
 ### Baseline migration
 

@@ -1,8 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Gift, GiftCategory, GiftStatus, GiftVariant, Prisma, UserRole, UserStatus } from '@prisma/client';
-import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
-import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from '../repositories/gift-management.repository';
+import { AuthUserContext } from 'src/common/decorators/current-user.decorator';
+import { AuditLogWriterService } from 'src/common/services/audit-log.service';
+import { GIFT_MANAGEMENT_INCLUDE, GiftManagementRepository } from './gift-management.repository';
 import {
   CreateGiftCategoryDto,
   CreateGiftDto,
@@ -18,11 +18,11 @@ import {
   UpdateGiftCategoryDto,
   UpdateGiftDto,
   UpdateGiftVariantDto,
-} from '../dto/gift-management.dto';
-import { getPagination } from '../../../common/pagination/pagination.util';
+} from './dto/gift-management.dto';
+import { getPagination } from 'src/common/pagination/pagination.util';
 
 type GiftWithRelations = Gift & {
-  category: Pick<GiftCategory, 'id' | 'name' | 'isActive' | 'deletedAt'>;
+  category: Pick<GiftCategory, 'id' | 'name' | 'isActive'>;
   provider: { id: string; email: string; providerProfile: { businessName: string | null } | null; firstName: string; lastName: string; status: UserStatus };
   variants: GiftVariant[];
 };
@@ -33,18 +33,14 @@ export class GiftManagementService {
   constructor(
     private readonly giftManagementRepository: GiftManagementRepository,
     private readonly auditLog: AuditLogWriterService,
-  ) {}
+  ) { }
 
   async createCategory(user: AuthUserContext, dto: CreateGiftCategoryDto) {
     const category = await this.giftManagementRepository.createGiftCategory({
       name: dto.name.trim(),
       slug: await this.uniqueCategorySlug(dto.name),
       description: dto.description?.trim(),
-      iconKey: dto.iconKey?.trim(),
-      color: dto.color ?? dto.backgroundColor,
-      backgroundColor: dto.backgroundColor ?? dto.color ?? '#F3E8FF',
       imageUrl: dto.imageUrl?.trim(),
-      sortOrder: dto.sortOrder ?? 0,
       isActive: dto.isActive ?? true,
     });
     await this.audit(user, category.id, 'GIFT_CATEGORY_CREATED', undefined, this.toCategory(category, 0));
@@ -54,7 +50,6 @@ export class GiftManagementService {
   async listCategories(query: ListGiftCategoriesDto) {
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.GiftCategoryWhereInput = {
-      deletedAt: null,
       ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
     };
@@ -66,32 +61,6 @@ export class GiftManagementService {
     };
   }
 
-  async lookupActiveCategories() {
-    const categories = await this.giftManagementRepository.findGiftCategoryLookup();
-    return { data: categories.map((category) => ({ ...category, backgroundColor: category.backgroundColor ?? category.color ?? '#F3E8FF' })), message: 'Gift category lookup fetched successfully' };
-  }
-
-  async categoryStats() {
-    const [[totalCategories, activeGiftItems], mostPopularCategory] = await Promise.all([
-      this.giftManagementRepository.findGiftCategoryStats(),
-      this.giftManagementRepository.findMostPopularGiftCategory(),
-    ]);
-    return {
-      data: {
-        totalCategories,
-        activeGiftItems,
-        mostPopularCategory,
-      },
-      message: 'Gift category stats fetched successfully',
-    };
-  }
-
-  async categoryDetails(id: string) {
-    const category = await this.getCategory(id);
-    const totalGifts = await this.giftManagementRepository.countGiftsByCategory(id);
-    return { data: this.toCategory(category, totalGifts), message: 'Gift category details fetched successfully' };
-  }
-
   async updateCategory(user: AuthUserContext, id: string, dto: UpdateGiftCategoryDto) {
     const category = await this.getCategory(id);
     const before = this.toCategory(category, await this.giftManagementRepository.countGiftsByCategory(id));
@@ -99,11 +68,7 @@ export class GiftManagementService {
       name: dto.name?.trim(),
       slug: dto.name ? await this.uniqueCategorySlug(dto.name, id) : undefined,
       description: dto.description?.trim(),
-      iconKey: dto.iconKey?.trim(),
-      color: dto.color,
-      backgroundColor: dto.backgroundColor ?? dto.color,
       imageUrl: dto.imageUrl?.trim(),
-      sortOrder: dto.sortOrder,
       isActive: dto.isActive,
     });
     await this.audit(user, id, 'GIFT_CATEGORY_UPDATED', before, this.toCategory(updated, before.totalGifts));
@@ -150,14 +115,6 @@ export class GiftManagementService {
     const [items, total] = await this.giftManagementRepository.findGiftsAndCountForAdmin({ where, orderBy: this.giftOrderBy(query.sortBy, query.sortOrder), skip, take });
     const ratings = await this.ratingSummaries(items);
     return { data: items.map((gift) => this.toGiftListItem(gift, ratings.get(gift.providerId) ?? this.emptyRatingSummary())), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Gifts fetched successfully' };
-  }
-
-  async giftStats() {
-    const [totalGifts, activeListings] = await this.giftManagementRepository.findGiftStats();
-    return {
-      data: { totalGifts, totalGiftsChangePercent: 0, activeListings, activeListingsChangePercent: 0 },
-      message: 'Gift inventory stats fetched successfully',
-    };
   }
 
   async giftDetails(id: string) {
@@ -248,7 +205,7 @@ export class GiftManagementService {
     if (!status || status === GiftListStatus.ALL) return {};
     return { status };
   }
-  private categoryOrderBy(sortBy?: GiftCategorySortBy, sortOrder?: SortOrder): Prisma.GiftCategoryOrderByWithRelationInput { return { [sortBy === GiftCategorySortBy.NAME || sortBy === GiftCategorySortBy.SORT_ORDER ? sortBy : 'createdAt']: this.dir(sortOrder) }; }
+  private categoryOrderBy(sortBy?: GiftCategorySortBy, sortOrder?: SortOrder): Prisma.GiftCategoryOrderByWithRelationInput { return { [sortBy === GiftCategorySortBy.NAME ? sortBy : 'createdAt']: this.dir(sortOrder) }; }
   private giftOrderBy(sortBy?: GiftSortBy, sortOrder?: SortOrder): Prisma.GiftOrderByWithRelationInput { const field = sortBy === GiftSortBy.NAME || sortBy === GiftSortBy.PRICE ? sortBy : sortBy === GiftSortBy.RATING ? 'ratingPlaceholder' : 'createdAt'; return { [field]: this.dir(sortOrder) }; }
   private dir(sortOrder?: SortOrder): Prisma.SortOrder { return sortOrder === SortOrder.ASC ? 'asc' : 'desc'; }
   private giftInclude() { return GIFT_MANAGEMENT_INCLUDE; }
@@ -292,7 +249,7 @@ export class GiftManagementService {
     }
   }
 
-  private toCategory(category: GiftCategory, totalGifts: number) { const backgroundColor = category.backgroundColor ?? category.color ?? '#F3E8FF'; return { id: category.id, name: category.name, slug: category.slug, description: category.description, iconKey: category.iconKey, color: category.color ?? backgroundColor, backgroundColor, imageUrl: category.imageUrl, totalGifts, isActive: category.isActive, sortOrder: category.sortOrder, createdAt: category.createdAt, updatedAt: category.updatedAt }; }
+  private toCategory(category: GiftCategory, totalGifts: number) { return { id: category.id, name: category.name, slug: category.slug, description: category.description, imageUrl: category.imageUrl, totalGifts, isActive: category.isActive, createdAt: category.createdAt, updatedAt: category.updatedAt }; }
   private toGiftListItem(gift: GiftWithRelations, ratingSummary: RatingSummary) { const imageUrls = this.stringArray(gift.imageUrls); return { id: gift.id, name: gift.name, category: gift.category, provider: { id: gift.provider.id, businessName: this.providerName(gift.provider) }, price: Number(gift.price), currency: gift.currency, rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, status: gift.status, imageUrl: imageUrls[0] ?? null, imageUrls, createdAt: gift.createdAt }; }
   private toGiftDetail(gift: GiftWithRelations, ratingSummary: RatingSummary) { return { ...this.toGiftListItem(gift, ratingSummary), description: gift.description, isFeatured: gift.isFeatured, variants: (gift.variants ?? []).map((variant) => this.toVariant(variant)), updatedAt: gift.updatedAt }; }
   private toVariant(variant: GiftVariant) { return { id: variant.id, name: variant.name, price: Number(variant.price) }; }

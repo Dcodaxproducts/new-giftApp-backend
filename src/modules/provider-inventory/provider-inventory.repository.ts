@@ -42,7 +42,7 @@ export class ProviderInventoryRepository {
   }
 
   findActiveCategory(categoryId: string) {
-    return this.prisma.giftCategory.findFirst({ where: { id: categoryId, isActive: true, deletedAt: null } });
+    return this.prisma.giftCategory.findFirst({ where: { id: categoryId, isActive: true } });
   }
 
   findBySlug(slug: string, exceptId?: string) {

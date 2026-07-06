@@ -100,7 +100,6 @@ export function auditModule(action: string): string {
   if (normalized.startsWith('REFUND_POLICY_')) return 'Refund Policy Settings';
   if (normalized.startsWith('REFERRAL_')) return 'Referral Settings';
   if (normalized.startsWith('BROADCAST_')) return 'Broadcast Notifications';
-  if (normalized.startsWith('COUPON_')) return 'Coupons';
   if (normalized.startsWith('MESSAGE_MODERATION')) return 'Message Moderation';
   if (normalized.startsWith('MESSAGING_SETTINGS')) return 'Messaging Settings';
   return 'System';

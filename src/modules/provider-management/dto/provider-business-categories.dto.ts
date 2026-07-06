@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Max, Min, MinLength } from 'class-validator';
 import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export class ListProviderBusinessCategoriesDto {
@@ -24,7 +24,7 @@ export class ListProviderBusinessCategoriesDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'When omitted, the list returns all non-deleted categories. Use true for active only or false for inactive only.' })
+  @ApiPropertyOptional({ description: 'When omitted, the list returns all categories. Use true for active only or false for inactive only.' })
   @IsOptional()
   @Transform(({ value }: { value: unknown }) => optionalBoolean(value))
   @IsBoolean()
@@ -45,14 +45,8 @@ export class CreateProviderBusinessCategoryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  iconKey?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
+  @IsUrl({ require_tld: false })
+  imageUrl?: string;
 
   @ApiPropertyOptional({ default: true })
   @IsOptional()
@@ -75,14 +69,8 @@ export class UpdateProviderBusinessCategoryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  iconKey?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
+  @IsUrl({ require_tld: false })
+  imageUrl?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

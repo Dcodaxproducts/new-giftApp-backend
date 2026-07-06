@@ -9,7 +9,6 @@ describe('Swagger access metadata', () => {
     expect(getSwaggerAccessRule('GET', '/api/v1/customer/wallet/history')?.allowedRoles).toBe('REGISTERED_USER');
     expect(getSwaggerAccessRule('GET', '/api/v1/audit-logs')?.allowedRoles).toBe('SUPER_ADMIN');
     expect(getSwaggerAccessRule('GET', '/api/v1/admin/disputes')?.allowedRoles).toBe('SUPER_ADMIN or ADMIN with disputes.read');
-    expect(getSwaggerAccessRule('GET', '/api/v1/admin/provider-disputes/{id}/resolution-log')?.allowedRoles).toBe('SUPER_ADMIN or ADMIN with providerDisputes.logs.read');
     expect(getSwaggerAccessRule('GET', '/api/v1/chats')?.allowedRoles).toContain('REGISTERED_USER, PROVIDER, SUPER_ADMIN');
     expect(getSwaggerAccessRule('GET', '/api/v1/provider/chats')).toBeUndefined();
     expect(getSwaggerAccessRule('GET', '/api/v1/provider/reviews')?.allowedRoles).toBe('PROVIDER');
@@ -20,7 +19,6 @@ describe('Swagger access metadata', () => {
       paths: {
         '/api/v1/providers/{id}/status': { patch: { security: [{ bearer: [] }] } },
         '/api/v1/customer/wallet/history': { get: { security: [{ bearer: [] }] } },
-        '/api/v1/gift-categories/lookup': { get: { security: [{ bearer: [] }] } },
       },
     } as unknown as OpenAPIObject;
 
@@ -28,12 +26,9 @@ describe('Swagger access metadata', () => {
 
     const providerStatus = document.paths['/api/v1/providers/{id}/status']?.patch as unknown as { 'x-allowed-roles': string; description: string };
     const walletHistory = document.paths['/api/v1/customer/wallet/history']?.get as unknown as { 'x-allowed-roles': string; description: string };
-    const publicLookup = document.paths['/api/v1/gift-categories/lookup']?.get as unknown as { 'x-allowed-roles': string; security?: unknown };
 
     expect(providerStatus['x-allowed-roles']).toContain('SUPER_ADMIN or ADMIN with provider lifecycle permission');
     expect(providerStatus.description).toContain('APPROVE requires providers.approve');
     expect(walletHistory['x-allowed-roles']).toBe('REGISTERED_USER');
-    expect(publicLookup['x-allowed-roles']).toBe('PUBLIC');
-    expect(publicLookup.security).toBeUndefined();
   });
 });

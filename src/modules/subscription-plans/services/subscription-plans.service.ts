@@ -1,10 +1,9 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { Coupon, CouponDiscountType, PlanFeatureCatalog, Prisma, SubscriptionPlan, SubscriptionPlanStatus, SubscriptionPlanVisibility, UserRole } from '@prisma/client';
+import { PlanFeatureCatalog, Prisma, SubscriptionPlan, SubscriptionPlanStatus, SubscriptionPlanVisibility, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../../common/services/audit-log.service';
-import { CouponsRepository } from '../repositories/coupons.repository';
 import { PlanFeaturesRepository } from '../repositories/plan-features.repository';
-import { CouponStatus, CouponStatusFilter, CreateCouponDto, CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListCouponsDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanLimitsDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdateCouponDto, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
+import { CreatePlanFeatureDto, CreateSubscriptionPlanDto, ListPlanFeaturesDto, ListSubscriptionPlansDto, PlanLimitsDto, PlanSortBy, PlanStatusFilter, PlanVisibilityFilter, SortOrder, UpdatePlanFeatureDto, UpdateSubscriptionPlanDto } from '../dto/subscription-plans.dto';
 import { SubscriptionPlansRepository } from '../repositories/subscription-plans.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
@@ -20,7 +19,6 @@ export class SubscriptionPlansService implements OnModuleInit {
   constructor(
     private readonly subscriptionPlansRepository: SubscriptionPlansRepository,
     private readonly planFeaturesRepository: PlanFeaturesRepository,
-    private readonly couponsRepository: CouponsRepository,
     private readonly auditLog: AuditLogWriterService,
   ) {}
 
@@ -73,40 +71,9 @@ export class SubscriptionPlansService implements OnModuleInit {
   async updateFeature(user: AuthUserContext, id: string, dto: UpdatePlanFeatureDto) { const feature = await this.getFeature(id); if (dto.key) await this.assertUniqueFeatureKey(dto.key, id); const updated = await this.planFeaturesRepository.updateFeature(id, { key: dto.key?.trim(), label: dto.label?.trim(), description: dto.description?.trim(), type: dto.type, isActive: dto.isActive, sortOrder: dto.sortOrder }); await this.auditFeature(user, id, 'PLAN_FEATURE_UPDATED', this.toFeature(feature), this.toFeature(updated)); return { data: this.toFeature(updated), message: 'Plan feature updated successfully' }; }
   async deleteFeature(user: AuthUserContext, id: string) { const feature = await this.getFeature(id); await this.planFeaturesRepository.deleteFeature(id); await this.auditFeature(user, id, 'PLAN_FEATURE_DELETED', this.toFeature(feature), null); return { data: null, message: 'Plan feature deleted successfully' }; }
 
-  async listCoupons(query: ListCouponsDto) { const { page, limit, skip, take } = getPagination(query); const now = new Date(); const where: Prisma.CouponWhereInput = { deletedAt: null, ...(query.search ? { code: { contains: query.search, mode: 'insensitive' } } : {}), ...(query.status === CouponStatusFilter.ACTIVE ? { isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } : {}), ...(query.status === CouponStatusFilter.INACTIVE ? { isActive: false } : {}), ...(query.status === CouponStatusFilter.EXPIRED ? { expiresAt: { lte: now } } : {}) }; const [items, total] = await this.couponsRepository.findCouponsAndCount({ where, orderBy: { createdAt: 'desc' }, skip, take }); const filtered = query.planId ? items.filter((coupon) => this.stringArray(coupon.planIdsJson).includes(query.planId ?? '')) : items; return { data: filtered.map((coupon) => this.toCoupon(coupon)), meta: { page, limit, total: query.planId ? filtered.length : total, totalPages: Math.ceil((query.planId ? filtered.length : total) / limit) }, message: 'Coupons fetched successfully' }; }
-  async couponDetails(id: string) { const coupon = await this.getCoupon(id); return { data: this.toCoupon(coupon), message: 'Coupon fetched successfully' }; }
-  async createCoupon(user: AuthUserContext, dto: CreateCouponDto) { this.assertValidCoupon(dto.discountType, dto.discountValue, dto.startsAt, dto.expiresAt); await this.assertUniqueCoupon(dto.code); const coupon = await this.couponsRepository.createCoupon( { code: dto.code.trim().toUpperCase(), description: dto.description?.trim(), discountType: dto.discountType, discountValue: new Prisma.Decimal(dto.discountValue), planIdsJson: dto.planIds ?? [], startsAt: dto.startsAt ? new Date(dto.startsAt) : null, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null, maxRedemptions: dto.maxRedemptions, isActive: dto.isActive ?? true, createdBy: user.uid }); await this.audit(user, coupon.id, 'COUPON_CREATED', undefined, this.toCoupon(coupon)); return { data: this.toCoupon(coupon), message: 'Coupon created successfully' }; }
-  async updateCoupon(user: AuthUserContext, id: string, dto: UpdateCouponDto) {
-    const coupon = await this.getCoupon(id);
-    this.assertCouponUpdatePermissions(user, dto);
-    if (dto.code) await this.assertUniqueCoupon(dto.code, id);
-    this.assertValidCoupon(dto.discountType ?? coupon.discountType, dto.discountValue ?? Number(coupon.discountValue), dto.startsAt ?? coupon.startsAt?.toISOString(), dto.expiresAt ?? coupon.expiresAt?.toISOString());
-
-    const before = this.toCoupon(coupon);
-    const updated = await this.couponsRepository.updateCoupon(id, {
-      code: dto.code?.trim().toUpperCase(),
-      description: dto.description?.trim(),
-      discountType: dto.discountType,
-      discountValue: dto.discountValue === undefined ? undefined : new Prisma.Decimal(dto.discountValue),
-      planIdsJson: dto.planIds,
-      startsAt: dto.startsAt ? new Date(dto.startsAt) : undefined,
-      expiresAt: dto.status === CouponStatus.EXPIRED ? new Date() : dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-      maxRedemptions: dto.maxRedemptions,
-      isActive: dto.status === CouponStatus.ACTIVE ? true : dto.status === CouponStatus.INACTIVE || dto.status === CouponStatus.EXPIRED ? false : dto.isActive,
-      updatedBy: user.uid,
-    });
-    const after = this.toCoupon(updated);
-    await this.audit(user, id, 'COUPON_UPDATED', this.changedFields(before, after, dto.reason), this.changedFields(after, before, dto.reason));
-    return { data: after, message: 'Coupon updated successfully' };
-  }
-  async deleteCoupon(user: AuthUserContext, id: string) { const coupon = await this.getCoupon(id); await this.couponsRepository.deleteCoupon(id); await this.audit(user, id, 'COUPON_DELETED', this.toCoupon(coupon), null); return { data: null, message: 'Coupon deleted successfully' }; }
-
   private async getPlan(id: string): Promise<SubscriptionPlan> { const plan = await this.subscriptionPlansRepository.findPlanById(id); if (!plan) throw new NotFoundException('Subscription plan not found'); return plan; }
-  private async getCoupon(id: string): Promise<Coupon> { const coupon = await this.couponsRepository.findCouponById(id); if (!coupon) throw new NotFoundException('Coupon not found'); return coupon; }
   private async getFeature(id: string): Promise<PlanFeatureCatalog> { const feature = await this.planFeaturesRepository.findFeatureById(id); if (!feature) throw new NotFoundException('Plan feature not found'); return feature; }
-  private async assertUniqueCoupon(code: string, exceptId?: string) { const exists = await this.couponsRepository.findCouponByCode(code, exceptId); if (exists) throw new ConflictException('Coupon code already exists'); }
   private async assertUniqueFeatureKey(key: string, exceptId?: string) { const exists = await this.planFeaturesRepository.findFeatureByKey(key.trim(), exceptId); if (exists) throw new ConflictException('Plan feature key already exists'); }
-  private assertValidCoupon(discountType: CouponDiscountType, discountValue: number, startsAt?: string, expiresAt?: string) { if (discountType === CouponDiscountType.PERCENTAGE && (discountValue < 1 || discountValue > 100)) throw new BadRequestException('Percentage discount must be between 1 and 100'); if (discountType === CouponDiscountType.FIXED_AMOUNT && discountValue <= 0) throw new BadRequestException('Fixed amount discount must be greater than 0'); if (startsAt && expiresAt && new Date(expiresAt).getTime() < new Date(startsAt).getTime()) throw new BadRequestException('expiresAt cannot be before startsAt'); }
   private async clearPopular(exceptId?: string) { await this.subscriptionPlansRepository.clearPopular(exceptId); }
   private planOrder(sortBy?: PlanSortBy, sortOrder?: SortOrder): Prisma.SubscriptionPlanOrderByWithRelationInput { const direction = sortOrder === SortOrder.ASC ? 'asc' : 'desc'; const field = sortBy === PlanSortBy.NAME ? 'name' : sortBy === PlanSortBy.MONTHLY_PRICE ? 'monthlyPrice' : sortBy === PlanSortBy.YEARLY_PRICE ? 'yearlyPrice' : sortBy === PlanSortBy.ACTIVE_SUBSCRIBERS ? 'activeSubscribersPlaceholder' : 'createdAt'; return { [field]: direction }; }
 
@@ -124,20 +91,6 @@ export class SubscriptionPlansService implements OnModuleInit {
 
   private hasNormalPlanFields(dto: UpdateSubscriptionPlanDto): boolean {
     return dto.name !== undefined || dto.description !== undefined || dto.monthlyPrice !== undefined || dto.yearlyPrice !== undefined || dto.currency !== undefined || dto.isPopular !== undefined || dto.features !== undefined || dto.limits !== undefined;
-  }
-
-  private assertCouponUpdatePermissions(user: AuthUserContext, dto: UpdateCouponDto): void {
-    const permissions = this.flattenPermissions(user.permissions);
-    if (this.hasCouponStandardFields(dto) && !this.hasPlanPermission(user, permissions, ['coupons.update'])) throw new ForbiddenException('Your role does not have the required permission');
-    if (this.hasCouponStatusFields(dto) && !this.hasPlanPermission(user, permissions, ['coupons.status.update'])) throw new ForbiddenException('Your role does not have the required permission');
-  }
-
-  private hasCouponStandardFields(dto: UpdateCouponDto): boolean {
-    return dto.code !== undefined || dto.description !== undefined || dto.discountType !== undefined || dto.discountValue !== undefined || dto.planIds !== undefined || dto.startsAt !== undefined || dto.expiresAt !== undefined || dto.maxRedemptions !== undefined;
-  }
-
-  private hasCouponStatusFields(dto: UpdateCouponDto): boolean {
-    return dto.isActive !== undefined || dto.status !== undefined;
   }
 
   private visibilityFromDto(dto: UpdateSubscriptionPlanDto): SubscriptionPlanVisibility | undefined {
@@ -180,8 +133,6 @@ export class SubscriptionPlansService implements OnModuleInit {
   private toPlanListItem(plan: SubscriptionPlan) { return { id: plan.id, name: plan.name, slug: plan.slug, description: plan.description, badge: plan.isPopular ? 'MOST_POPULAR' : null, monthlyPrice: Number(plan.monthlyPrice), yearlyPrice: Number(plan.yearlyPrice), currency: plan.currency, status: plan.status, visibility: plan.visibility, activeSubscribers: plan.activeSubscribersPlaceholder, features: Object.entries(this.boolMap(plan.featuresJson)).filter(([, enabled]) => enabled).map(([key]) => key), limits: this.limits(plan.limitsJson), isPopular: plan.isPopular, createdAt: plan.createdAt }; }
   private async toPlanDetail(plan: SubscriptionPlan) { const catalog = await this.planFeaturesRepository.findManyFeatures({ where: { isActive: true } }); const features = this.boolMap(plan.featuresJson); return { ...this.toPlanListItem(plan), activeSubscribersChangePercent: 0, features: catalog.map((item) => ({ key: item.key, label: item.label, description: item.description, enabled: features[item.key] ?? false })), updatedAt: plan.updatedAt }; }
   private toFeature(item: PlanFeatureCatalog) { return { id: item.id, key: item.key, label: item.label, description: item.description, type: item.type, isActive: item.isActive, sortOrder: item.sortOrder, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
-  private toCoupon(coupon: Coupon) { return { id: coupon.id, code: coupon.code, description: coupon.description, discountType: coupon.discountType, discountValue: Number(coupon.discountValue), planIds: this.stringArray(coupon.planIdsJson), startsAt: coupon.startsAt, expiresAt: coupon.expiresAt, maxRedemptions: coupon.maxRedemptions, redemptionCount: coupon.redemptionCount, isActive: coupon.isActive, status: this.couponStatus(coupon), createdAt: coupon.createdAt }; }
-  private couponStatus(coupon: Coupon): CouponStatus { if (coupon.expiresAt && coupon.expiresAt.getTime() <= Date.now()) return CouponStatus.EXPIRED; return coupon.isActive ? CouponStatus.ACTIVE : CouponStatus.INACTIVE; }
   private boolMap(value: Prisma.JsonValue): Record<string, boolean> { return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean')) : {}; }
   private limits(value: Prisma.JsonValue) { return this.sanitizeLimits(typeof value === 'object' && value !== null && !Array.isArray(value) ? value : undefined); }
   private sanitizeLimits(value?: PlanLimitsDto | Record<string, unknown>) {
@@ -195,6 +146,6 @@ export class SubscriptionPlansService implements OnModuleInit {
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
   private async uniqueSlug(name: string, exceptId?: string): Promise<string> { const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'plan'; let slug = base; let i = 1; while (await this.subscriptionPlansRepository.findPlanBySlug(slug, exceptId)) slug = `${base}-${i++}`; return slug; }
   private toJson(value: unknown): Prisma.InputJsonValue { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }
-  private async audit(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> { await this.auditLog.write({ actorId: actor.uid, actorType: actor.role, targetId, targetType: action.startsWith('COUPON') ? 'COUPON' : 'SUBSCRIPTION_PLAN', action, beforeJson, afterJson }); }
+  private async audit(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> { await this.auditLog.write({ actorId: actor.uid, actorType: actor.role, targetId, targetType: 'SUBSCRIPTION_PLAN', action, beforeJson, afterJson }); }
   private async auditFeature(actor: AuthUserContext, targetId: string, action: string, beforeJson: unknown, afterJson: unknown): Promise<void> { await this.auditLog.write({ actorId: actor.uid, actorType: actor.role, targetId, targetType: 'PLAN_FEATURE', action, beforeJson, afterJson }); }
 }
