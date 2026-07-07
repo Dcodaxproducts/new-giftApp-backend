@@ -26,7 +26,7 @@ describe('Provider Reviews module', () => {
   });
 
   it('provider review APIs and chat APIs are documented in swagger access metadata', () => {
-    const access = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
+    const access = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
     expect(access).toContain("'GET /api/v1/chats': { allowedRoles: 'REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission'");
     expect(access).not.toContain("'GET /api/v1/provider/chats': { allowedRoles: 'PROVIDER'");
     expect(access).toContain("'GET /api/v1/provider/reviews': { allowedRoles: 'PROVIDER'");

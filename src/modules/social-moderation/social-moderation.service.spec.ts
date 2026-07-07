@@ -104,7 +104,7 @@ describe('Social moderation source safety', () => {
   const controller = readFileSync(join(__dirname, '../controllers/social-moderation.controller.ts'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
-  const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
+  const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
 
   it('adds social moderation models and permissions', () => {
     for (const text of ['model SocialPost', 'model SocialReport', 'model SocialModerationLog', 'model SocialReportingRule', 'model UserWarning']) expect(schema).toContain(text);

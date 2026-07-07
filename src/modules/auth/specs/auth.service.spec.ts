@@ -175,7 +175,7 @@ describe('AuthService forgot/reset password', () => {
 
   it('auth Swagger wording uses clear enumeration-safe descriptions', () => {
     const controllerSource = readFileSync('src/modules/auth/auth.controller.ts', 'utf8');
-    const accessSource = readFileSync('src/swagger-access.ts', 'utf8');
+    const accessSource = readFileSync('src/common/swagger-access.ts', 'utf8');
     const combined = `${controllerSource}\n${accessSource}`;
 
     expect(controllerSource).toContain('Reset instructions have been sent to the email address you provided.');

@@ -151,7 +151,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   const repository = readFileSync(join(__dirname, '../admin-provider-payouts.repository.ts'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
-  const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
+  const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
 
   it('adds required routes, Swagger examples, and access metadata', () => {
     expect(controller).toContain("@ApiTags('02 Admin - Provider Payouts')");

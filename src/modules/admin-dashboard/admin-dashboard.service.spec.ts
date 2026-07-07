@@ -87,7 +87,7 @@ describe('Admin dashboard overview source safety', () => {
   const repository = readFileSync(join(__dirname, '../admin-dashboard.repository.ts'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
-  const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
+  const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
   const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
 
   it('requires dashboard.read permission for every endpoint and documents Swagger examples', () => {

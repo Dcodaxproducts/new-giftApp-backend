@@ -123,7 +123,7 @@ describe('System settings API stability', () => {
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../main.ts'), 'utf8');
-  const swaggerAccess = readFileSync(join(__dirname, '../../swagger-access.ts'), 'utf8');
+  const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
   it('adds required routes, repository, schema, permissions, and Swagger group', () => {
     expect(schema).toContain('model SystemSettings');
     expect(schema).toContain('stripePublishableKey');

@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { applySwaggerAccessMetadata } from './swagger-access';
+import { applySwaggerAccessMetadata } from './common/swagger-access';
 
 export const SWAGGER_TAG_ORDER = [
   '00 System',

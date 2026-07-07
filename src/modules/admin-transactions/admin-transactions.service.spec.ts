@@ -163,7 +163,7 @@ describe('Admin transaction monitoring source safety', () => {
   const dto = readFileSync(join(__dirname, '../dto/admin-transactions.dto.ts'), 'utf8');
   const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
-  const swaggerAccess = readFileSync(join(__dirname, '../../../swagger-access.ts'), 'utf8');
+  const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
 
   it('admin without transactions.read cannot list transactions because controller requires permission', () => {
     expect(controller).toContain("@Permissions('transactions.read')");

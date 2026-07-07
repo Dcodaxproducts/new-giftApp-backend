@@ -142,7 +142,7 @@ describe('Refund policy settings source safety', () => {
   const permissions = readFileSync(join(__dirname, '../staff-roles/constants/permission-catalog.ts'), 'utf8');
   const schema = readFileSync(join(__dirname, '../../../prisma/schema.prisma'), 'utf8');
   const main = readFileSync(join(__dirname, '../../main.ts'), 'utf8');
-  const swaggerAccess = readFileSync(join(__dirname, '../../swagger-access.ts'), 'utf8');
+  const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
 
   it('adds schema, permission catalog entries, Swagger group, and access metadata', () => {
     expect(schema).toContain('model RefundPolicySettings');
