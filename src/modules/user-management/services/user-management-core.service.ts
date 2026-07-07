@@ -707,13 +707,13 @@ export class UserManagementCoreService {
   }
 
   private toProviderOrderTimelineActivity(timeline: UserActivityProviderOrderTimeline): UserActivityItem {
-    const orderNumber = timeline.providerOrder.orderNumber ?? timeline.providerOrder.orderId;
+    const orderNumber = timeline.orderNumber ?? timeline.id;
     return {
       id: timeline.id,
       type: UserActivityType.ORDER,
-      title: timeline.title,
-      description: `${orderNumber}: ${timeline.description || this.titleCase(timeline.status)}`,
-      createdAt: timeline.createdAt,
+      title: `Order ${timeline.providerStatus}`,
+      description: `${orderNumber}: ${`Provider status changed to ${timeline.providerStatus}` || this.titleCase(timeline.providerStatus)}`,
+      createdAt: timeline.updatedAt,
     };
   }
 

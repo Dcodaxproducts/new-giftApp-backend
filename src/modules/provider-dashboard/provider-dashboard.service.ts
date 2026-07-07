@@ -4,7 +4,7 @@ import { AuthUserContext } from '../../common/decorators/current-user.decorator'
 import { ProviderDashboardRepository } from './provider-dashboard.repository';
 
 type DashboardProvider = Awaited<ReturnType<ProviderDashboardService['getApprovedActiveProvider']>>;
-type RecentProviderOrder = Prisma.ProviderOrderGetPayload<{ include: { order: true; items: true } }>;
+type RecentOrder = Prisma.OrderGetPayload<{ include: { items: { include: { gift: true } } } }>;
 
 @Injectable()
 export class ProviderDashboardService {
@@ -57,16 +57,16 @@ export class ProviderDashboardService {
     return { range: 'WEEKLY', labels, values: values.map((value) => this.money(value)), currency: orders[0]?.currency ?? 'PKR' };
   }
 
-  private toRecentOrder(order: RecentProviderOrder) {
+  private toRecentOrder(order: RecentOrder) {
     const firstItem = order.items[0];
     return {
       id: order.id,
-      orderNumber: order.orderNumber ?? order.order.orderNumber,
-      itemName: firstItem?.nameSnapshot ?? 'Order item',
-      imageUrl: firstItem?.imageUrl ?? null,
+      orderNumber: order.orderNumber,
+      itemName: firstItem?.gift.name ?? 'Order item',
+      imageUrl: this.firstImage(firstItem?.gift.imageUrls),
       amount: this.money(Number(order.totalPayout ?? order.total)),
       currency: order.currency,
-      status: order.order.paymentStatus === PaymentStatus.SUCCEEDED ? 'PAID' : order.status,
+      status: order.paymentStatus === PaymentStatus.SUCCEEDED ? 'PAID' : order.providerStatus,
       createdAgoText: this.timeAgo(order.createdAt),
     };
   }
@@ -79,6 +79,8 @@ export class ProviderDashboardService {
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
   }
+
+  private firstImage(value: Prisma.JsonValue | undefined): string | null { return Array.isArray(value) && typeof value[0] === 'string' ? value[0] : null; }
 
   private money(value: number): number { return Number(value.toFixed(2)); }
 }

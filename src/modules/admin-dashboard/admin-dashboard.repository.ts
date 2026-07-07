@@ -44,9 +44,9 @@ export class AdminDashboardRepository {
   }
 
   async findProviderPerformanceRows(): Promise<ProviderPerformanceRow[]> {
-    const orderRows = await this.prisma.providerOrder.groupBy({
-      by: ['providerId', 'status', 'currency'],
-      where: { status: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+    const orderRows = await this.prisma.order.groupBy({
+      by: ['providerId', 'providerStatus', 'currency'],
+      where: { providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
       _count: { _all: true },
       _sum: { total: true },
     });
@@ -71,7 +71,7 @@ export class AdminDashboardRepository {
         currency: row.currency,
       };
       current.totalOrders += row._count._all;
-      if (row.status === ProviderOrderStatus.DELIVERED || row.status === ProviderOrderStatus.COMPLETED) {
+      if (row.providerStatus === ProviderOrderStatus.DELIVERED || row.providerStatus === ProviderOrderStatus.COMPLETED) {
         current.successfulOrders += row._count._all;
         current.totalVolume += Number(row._sum.total ?? 0);
       }

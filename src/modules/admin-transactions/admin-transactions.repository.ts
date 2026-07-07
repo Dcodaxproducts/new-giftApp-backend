@@ -30,14 +30,12 @@ export class AdminTransactionsRepository {
   }
 
   findProviderOrderForRefund(orderId: string) {
-    return this.prisma.providerOrder.findFirst({ where: { orderId }, include: { items: true }, orderBy: { createdAt: 'asc' } });
+    return this.prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
   }
 
   processRefund(params: {
     actorId: string;
     orderId: string;
-    providerOrderId: string;
-    providerOrderStatus: ProviderOrderStatus;
     userId: string;
     providerId: string;
     paymentId: string;
@@ -58,10 +56,9 @@ export class AdminTransactionsRepository {
     notificationMessage: string;
   }) {
     return this.prisma.$transaction(async (tx) => {
-      await tx.refundRequest.create({ data: { orderId: params.orderId, providerOrderId: params.providerOrderId, userId: params.userId, providerId: params.providerId, paymentId: params.paymentId, requestedAmount: params.requestedAmount, approvedAmount: params.approvedAmount, currency: params.currency, customerReason: params.customerReason, status: RefundRequestStatus.REFUNDED, providerComment: params.providerComment, transactionId: params.transactionId, stripeRefundId: params.stripeRefundId, approvedAt: new Date(), refundedAt: new Date() } });
+      await tx.refundRequest.create({ data: { orderId: params.orderId, userId: params.userId, providerId: params.providerId, paymentId: params.paymentId, requestedAmount: params.requestedAmount, approvedAmount: params.approvedAmount, currency: params.currency, customerReason: params.customerReason, status: RefundRequestStatus.REFUNDED, providerComment: params.providerComment, transactionId: params.transactionId, stripeRefundId: params.stripeRefundId, approvedAt: new Date(), refundedAt: new Date() } });
       await tx.payment.update({ where: { id: params.paymentId }, data: { status: params.paymentStatus, metadataJson: params.paymentMetadata } });
-      if (params.updateOrderAsRefunded) await tx.order.update({ where: { id: params.orderId }, data: { paymentStatus: PaymentStatus.REFUNDED, status: OrderStatus.COMPLETED } });
-      await tx.providerOrderTimeline.create({ data: { providerOrderId: params.providerOrderId, createdById: params.actorId, status: params.updateOrderAsRefunded ? ProviderOrderStatus.REFUNDED : params.providerOrderStatus, title: params.timelineTitle, description: params.timelineDescription, metadataJson: params.timelineMetadata } });
+      if (params.updateOrderAsRefunded) await tx.order.update({ where: { id: params.orderId }, data: { paymentStatus: PaymentStatus.REFUNDED, status: OrderStatus.COMPLETED, providerStatus: ProviderOrderStatus.REFUNDED } });
       if (params.notifyUser) await this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Transaction refunded', message: params.notificationMessage, type: 'TRANSACTION_REFUND_PROCESSED', metadataJson: params.timelineMetadata })
     });
   }
@@ -75,7 +72,7 @@ export class AdminTransactionsRepository {
   }
 
   findProviderOrderForDispute(orderId: string) {
-    return this.prisma.providerOrder.findFirst({ where: { orderId }, orderBy: { createdAt: 'asc' } });
+    return this.prisma.order.findUnique({ where: { id: orderId } });
   }
 
   openDispute(params: {

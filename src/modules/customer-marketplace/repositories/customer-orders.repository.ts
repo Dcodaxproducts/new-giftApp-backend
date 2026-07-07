@@ -6,16 +6,12 @@ import { NotificationDispatchService } from '../../notifications/notification-di
 
 export const CUSTOMER_ORDER_INCLUDE = Prisma.validator<Prisma.OrderInclude>()({
   items: { include: { gift: { select: { id: true, name: true, imageUrls: true } }, variant: { select: { id: true, name: true } } } },
-  providerOrders: true,
   payment: true,
 });
 
 type CheckoutTransaction = Prisma.TransactionClient;
 type CreateOrderData = Prisma.Args<CheckoutTransaction['order'], 'create'>['data'];
 type CreateOrderItemData = Prisma.Args<CheckoutTransaction['orderItem'], 'create'>['data'];
-type CreateProviderOrderData = Prisma.Args<CheckoutTransaction['providerOrder'], 'create'>['data'];
-type CreateProviderOrderItemData = Prisma.Args<CheckoutTransaction['providerOrderItem'], 'create'>['data'];
-
 
 @Injectable()
 export class CustomerOrdersRepository {
@@ -72,10 +68,6 @@ export class CustomerOrdersRepository {
     return tx.orderItem.create({ data });
   }
 
-  createProviderSubOrder(tx: CheckoutTransaction, data: CreateProviderOrderData) {
-    return tx.providerOrder.create({ data });
-  }
-
   findActivePayoutSettings(tx: CheckoutTransaction) {
     return tx.adminPayoutSettings.findFirst({ orderBy: { createdAt: 'asc' } });
   }
@@ -89,19 +81,8 @@ export class CustomerOrdersRepository {
     return Number(aggregate._sum.amount ?? 0);
   }
 
-  findProviderOrderItems(tx: CheckoutTransaction, orderId: string, providerId: string) {
-    return tx.orderItem.findMany({ where: { orderId, providerId }, include: { gift: { select: { name: true, imageUrls: true } }, variant: { select: { name: true } } } });
-  }
-
-  createProviderOrderItem(tx: CheckoutTransaction, data: CreateProviderOrderItemData) {
-    return tx.providerOrderItem.create({ data });
-  }
-
   markCartCheckedOut(tx: CheckoutTransaction, cartId: string) {
-    return Promise.all([
-      tx.cartItem.deleteMany({ where: { cartId } }),
-      tx.cart.update({ where: { id: cartId }, data: { status: CartStatus.CHECKED_OUT } }),
-    ]);
+    return tx.cartItem.deleteMany({ where: { cartId } });
   }
 
   linkPaymentToOrder(tx: CheckoutTransaction, paymentId: string, orderId: string) {
@@ -109,7 +90,6 @@ export class CustomerOrdersRepository {
   }
 
   createOrderNotification(tx: CheckoutTransaction, params: { recipientId: string; recipientType: NotificationRecipientType; title: string; message: string; orderId: string }) {
-    return this.notificationDispatch.createAndEmit({ recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } })
+    return this.notificationDispatch.createAndEmit({ recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } });
   }
-
 }

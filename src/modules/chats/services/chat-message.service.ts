@@ -74,7 +74,7 @@ export class ChatMessageService {
       participantId: participant.id,
       participantRole: participant.userRole,
       orderId: thread.orderId,
-      providerOrderId: thread.providerOrderId,
+      providerOrderId: thread.orderId,
       body: dto.body,
     });
     return { data: this.messageItem(message, user.uid), message: 'Message sent successfully.' };

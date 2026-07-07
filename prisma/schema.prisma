@@ -770,10 +770,9 @@ model User {
   uploadedFiles                       UploadedFile[]
   updatedReferralSettings             ReferralSettings[]                   @relation("ReferralSettingsUpdater")
   updatedRefundPolicySettings         RefundPolicySettings[]               @relation("RefundPolicySettingsUpdater")
-  providerOrders                      ProviderOrder[]
+  providerOrders                      Order[]                              @relation("OrderProvider")
   customerRefundRequests              RefundRequest[]                      @relation("RefundRequestCustomer")
   providerRefundRequests              RefundRequest[]                      @relation("RefundRequestProvider")
-  providerOrderTimelines              ProviderOrderTimeline[]
   customerReviews                     Review[]                             @relation("ReviewCustomer")
   providerReviews                     Review[]                             @relation("ReviewProvider")
   reviewResponses                     ReviewResponse[]                     @relation("ReviewResponseProvider")
@@ -825,20 +824,20 @@ model StaffProfile {
 }
 
 model ProviderProfile {
-  id                 String                  @id @default(cuid())
-  userId             String                  @unique @map("user_id")
-  businessName       String?                 @map("business_name")
-  legalName          String?                 @map("legal_name")
-  businessCategoryId String?                 @map("business_category_id")
-  taxId              String?                 @map("tax_id")
-  businessEmail      String?                 @map("business_email")
-  businessPhone      String?                 @map("business_phone")
-  businessAddress    String?                 @map("business_address")
-  fulfillmentMethods Json?                   @map("fulfillment_methods")
-  autoAcceptOrders   Boolean                 @default(false) @map("auto_accept_orders")
+  id                 String   @id @default(cuid())
+  userId             String   @unique @map("user_id")
+  businessName       String?  @map("business_name")
+  legalName          String?  @map("legal_name")
+  businessCategoryId String?  @map("business_category_id")
+  taxId              String?  @map("tax_id")
+  businessEmail      String?  @map("business_email")
+  businessPhone      String?  @map("business_phone")
+  businessAddress    String?  @map("business_address")
+  fulfillmentMethods Json?    @map("fulfillment_methods")
+  autoAcceptOrders   Boolean  @default(false) @map("auto_accept_orders")
   documents          Json?
-  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessCategory ProviderBusinessCategory? @relation(fields: [businessCategoryId], references: [id])
@@ -1012,14 +1011,14 @@ model CustomerBankAccount {
 }
 
 model ProviderBusinessCategory {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
   description String?
-  imageUrl    String?   @map("image_url")
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  imageUrl    String?  @map("image_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   providers ProviderProfile[]
 
@@ -1178,6 +1177,7 @@ model Cart {
   updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz
   items     CartItem[]
 
+  @@unique([userId])
   @@index([userId, status])
   @@map("carts")
 }
@@ -1241,7 +1241,6 @@ model Payment {
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   refundRequests              RefundRequest[]
 
-
   @@index([userId, status])
   @@index([status, createdAt])
   @@index([userId, idempotencyKey])
@@ -1299,59 +1298,73 @@ model CustomerSubscriptionInvoice {
 }
 
 model Order {
-  id                           String                        @id @default(cuid())
-  userId                       String                        @map("user_id")
-  orderNumber                  String                        @unique @map("order_number")
-  status                       OrderStatus                   @default(PENDING)
-  paymentStatus                PaymentStatus                 @default(PENDING) @map("payment_status")
-  paymentMethod                PaymentMethod                 @default(COD) @map("payment_method")
-  paymentId                    String?                       @unique @map("payment_id")
-  subtotal                     Decimal                       @db.Decimal(10, 2)
-  discountTotal                Decimal                       @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee                  Decimal                       @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                          Decimal                       @default(0) @db.Decimal(10, 2)
-  total                        Decimal                       @db.Decimal(10, 2)
-  currency                     String                        @default("PKR")
-  deliveryAddressId            String                        @map("delivery_address_id")
-  recipientName                String                        @map("recipient_name")
-  recipientPhone               String                        @map("recipient_phone")
-  giftMessage                  String?                       @map("gift_message")
-  scheduledDeliveryAt          DateTime?                     @map("scheduled_delivery_at") @db.Timestamptz
-  createdAt                    DateTime                      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                    DateTime                      @updatedAt @map("updated_at") @db.Timestamptz
-  items                        OrderItem[]
-  providerOrders               ProviderOrder[]
-  refundRequests               RefundRequest[]
-  payment                      Payment?
-  reviews                      Review[]
-  chatThreads                  ChatThread[]
-  providerReports              ProviderReport[]
-  disputes                     Dispute[]
+  id                      String                     @id @default(cuid())
+  userId                  String                     @map("user_id")
+  orderNumber             String                     @unique @map("order_number")
+  status                  OrderStatus                @default(PENDING)
+  paymentStatus           PaymentStatus              @default(PENDING) @map("payment_status")
+  paymentMethod           PaymentMethod              @default(COD) @map("payment_method")
+  paymentId               String?                    @unique @map("payment_id")
+  subtotal                Decimal                    @db.Decimal(10, 2)
+  discountTotal           Decimal                    @default(0) @map("discount_total") @db.Decimal(10, 2)
+  deliveryFee             Decimal                    @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  tax                     Decimal                    @default(0) @db.Decimal(10, 2)
+  total                   Decimal                    @db.Decimal(10, 2)
+  currency                String                     @default("PKR")
+  deliveryAddressId       String                     @map("delivery_address_id")
+  recipientName           String                     @map("recipient_name")
+  recipientPhone          String                     @map("recipient_phone")
+  giftMessage             String?                    @map("gift_message")
+  scheduledDeliveryAt     DateTime?                  @map("scheduled_delivery_at") @db.Timestamptz
+  providerId              String                     @map("provider_id")
+  providerStatus          ProviderOrderStatus        @default(PENDING) @map("provider_status")
+  platformFee             Decimal                    @default(0) @map("platform_fee") @db.Decimal(10, 2)
+  totalPayout             Decimal?                   @map("total_payout") @db.Decimal(10, 2)
+  acceptedAt              DateTime?                  @map("accepted_at") @db.Timestamptz
+  rejectedAt              DateTime?                  @map("rejected_at") @db.Timestamptz
+  rejectionReason         ProviderOrderRejectReason? @map("rejection_reason")
+  rejectionComment        String?                    @map("rejection_comment")
+  dispatchAt              DateTime?                  @map("dispatch_at") @db.Timestamptz
+  fulfilledAt             DateTime?                  @map("fulfilled_at") @db.Timestamptz
+  trackingNumber          String?                    @map("tracking_number")
+  carrier                 String?
+  estimatedDeliveryAt     DateTime?                  @map("estimated_delivery_at") @db.Timestamptz
+  createdAt               DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+  items                   OrderItem[]
+  provider                User                       @relation("OrderProvider", fields: [providerId], references: [id])
+  refundRequests          RefundRequest[]
+  payment                 Payment?
+  reviews                 Review[]
+  chatThreads             ChatThread[]
+  providerReports         ProviderReport[]
+  disputes                Dispute[]
+  providerEarningsLedgers ProviderEarningsLedger[]
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([providerId, providerStatus])
   @@map("orders")
 }
 
 model OrderItem {
-  id                 String              @id @default(cuid())
-  orderId            String              @map("order_id")
-  giftId             String              @map("gift_id")
-  variantId          String?             @map("variant_id")
-  providerId         String              @map("provider_id")
+  id                 String       @id @default(cuid())
+  orderId            String       @map("order_id")
+  giftId             String       @map("gift_id")
+  variantId          String?      @map("variant_id")
+  providerId         String       @map("provider_id")
   quantity           Int
-  unitPrice          Decimal             @map("unit_price") @db.Decimal(10, 2)
-  discountAmount     Decimal             @default(0) @map("discount_amount") @db.Decimal(10, 2)
-  finalUnitPrice     Decimal             @map("final_unit_price") @db.Decimal(10, 2)
-  total              Decimal             @db.Decimal(10, 2)
-  promotionalOfferId String?             @map("promotional_offer_id")
-  status             OrderStatus         @default(PENDING)
-  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz
-  order              Order               @relation(fields: [orderId], references: [id])
-  gift               Gift                @relation(fields: [giftId], references: [id])
-  variant            GiftVariant?        @relation(fields: [variantId], references: [id])
-  providerOrderItems ProviderOrderItem[]
+  unitPrice          Decimal      @map("unit_price") @db.Decimal(10, 2)
+  discountAmount     Decimal      @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  finalUnitPrice     Decimal      @map("final_unit_price") @db.Decimal(10, 2)
+  total              Decimal      @db.Decimal(10, 2)
+  promotionalOfferId String?      @map("promotional_offer_id")
+  status             OrderStatus  @default(PENDING)
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  order              Order        @relation(fields: [orderId], references: [id])
+  gift               Gift         @relation(fields: [giftId], references: [id])
+  variant            GiftVariant? @relation(fields: [variantId], references: [id])
 
   @@index([orderId])
   @@index([giftId])
@@ -1360,88 +1373,9 @@ model OrderItem {
   @@map("order_items")
 }
 
-model ProviderOrder {
-  id                           String                        @id @default(cuid())
-  orderId                      String                        @map("order_id")
-  providerId                   String                        @map("provider_id")
-  orderNumber                  String?                       @map("order_number")
-  status                       ProviderOrderStatus           @default(PENDING)
-  subtotal                     Decimal                       @db.Decimal(10, 2)
-  discountTotal                Decimal                       @default(0) @map("discount_total") @db.Decimal(10, 2)
-  deliveryFee                  Decimal                       @default(0) @map("delivery_fee") @db.Decimal(10, 2)
-  tax                          Decimal                       @default(0) @db.Decimal(10, 2)
-  platformFee                  Decimal                       @default(0) @map("platform_fee") @db.Decimal(10, 2)
-  totalPayout                  Decimal?                      @map("total_payout") @db.Decimal(10, 2)
-  total                        Decimal                       @db.Decimal(10, 2)
-  currency                     String                        @default("PKR")
-  acceptedAt                   DateTime?                     @map("accepted_at") @db.Timestamptz
-  rejectedAt                   DateTime?                     @map("rejected_at") @db.Timestamptz
-  rejectionReason              ProviderOrderRejectReason?    @map("rejection_reason")
-  rejectionComment             String?                       @map("rejection_comment")
-  dispatchAt                   DateTime?                     @map("dispatch_at") @db.Timestamptz
-  fulfilledAt                  DateTime?                     @map("fulfilled_at") @db.Timestamptz
-  trackingNumber               String?                       @map("tracking_number")
-  carrier                      String?
-  estimatedDeliveryAt          DateTime?                     @map("estimated_delivery_at") @db.Timestamptz
-  createdAt                    DateTime                      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                    DateTime                      @updatedAt @map("updated_at") @db.Timestamptz
-  order                        Order                         @relation(fields: [orderId], references: [id])
-  provider                     User                          @relation(fields: [providerId], references: [id])
-  items                        ProviderOrderItem[]
-  timeline                     ProviderOrderTimeline[]
-  refundRequests               RefundRequest[]
-  reviews                      Review[]
-  chatThread                   ChatThread?
-  earningsLedger               ProviderEarningsLedger[]
-
-  @@index([orderId])
-  @@index([providerId, status])
-  @@map("provider_orders")
-}
-
-model ProviderOrderItem {
-  id                  String   @id @default(cuid())
-  providerOrderId     String   @map("provider_order_id")
-  orderItemId         String   @map("order_item_id")
-  giftId              String   @map("gift_id")
-  variantId           String?  @map("variant_id")
-  nameSnapshot        String   @map("name_snapshot")
-  variantNameSnapshot String?  @map("variant_name_snapshot")
-  quantity            Int
-  unitPrice           Decimal  @map("unit_price") @db.Decimal(10, 2)
-  total               Decimal  @db.Decimal(10, 2)
-  imageUrl            String?  @map("image_url")
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-  orderItem     OrderItem     @relation(fields: [orderItemId], references: [id])
-
-  @@index([providerOrderId])
-  @@index([orderItemId])
-  @@map("provider_order_items")
-}
-
-model ProviderOrderTimeline {
-  id              String              @id @default(cuid())
-  providerOrderId String              @map("provider_order_id")
-  status          ProviderOrderStatus
-  title           String
-  description     String
-  metadataJson    Json?               @map("metadata_json")
-  createdById     String              @map("created_by_id")
-  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
-
-  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-  createdBy     User          @relation(fields: [createdById], references: [id])
-
-  @@index([providerOrderId, createdAt])
-  @@map("provider_order_timelines")
-}
-
 model RefundRequest {
   id               String              @id @default(cuid())
   orderId          String              @map("order_id")
-  providerOrderId  String              @map("provider_order_id")
   userId           String              @map("user_id")
   providerId       String              @map("provider_id")
   paymentId        String?             @map("payment_id")
@@ -1462,14 +1396,12 @@ model RefundRequest {
   createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
-  order         Order         @relation(fields: [orderId], references: [id])
-  providerOrder ProviderOrder @relation(fields: [providerOrderId], references: [id])
-  user          User          @relation("RefundRequestCustomer", fields: [userId], references: [id])
-  provider      User          @relation("RefundRequestProvider", fields: [providerId], references: [id])
-  payment       Payment?      @relation(fields: [paymentId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id])
+  user     User     @relation("RefundRequestCustomer", fields: [userId], references: [id])
+  provider User     @relation("RefundRequestProvider", fields: [providerId], references: [id])
+  payment  Payment? @relation(fields: [paymentId], references: [id])
 
   @@index([providerId, status, createdAt])
-  @@index([providerOrderId])
   @@index([orderId])
   @@index([userId])
   @@map("refund_requests")
@@ -1624,20 +1556,20 @@ model PromotionalOffer {
 }
 
 model Gift {
-  id                   String               @id @default(cuid())
-  name                 String
-  slug                 String               @unique
-  description          String?
-  categoryId           String               @map("category_id")
-  providerId           String               @map("provider_id")
-  price                Decimal              @db.Decimal(10, 2)
-  currency             String               @default("USD")
-  imageUrls            Json                 @default("[]") @map("image_urls")
-  status               GiftStatus           @default(INACTIVE)
-  isFeatured           Boolean              @default(false) @map("is_featured")
-  ratingPlaceholder    Decimal              @default(0) @map("rating_placeholder") @db.Decimal(3, 2)
-  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  id                String     @id @default(cuid())
+  name              String
+  slug              String     @unique
+  description       String?
+  categoryId        String     @map("category_id")
+  providerId        String     @map("provider_id")
+  price             Decimal    @db.Decimal(10, 2)
+  currency          String     @default("USD")
+  imageUrls         Json       @default("[]") @map("image_urls")
+  status            GiftStatus @default(INACTIVE)
+  isFeatured        Boolean    @default(false) @map("is_featured")
+  ratingPlaceholder Decimal    @default(0) @map("rating_placeholder") @db.Decimal(3, 2)
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz
 
   category          GiftCategory       @relation(fields: [categoryId], references: [id])
   provider          User               @relation("GiftProvider", fields: [providerId], references: [id])
@@ -1653,12 +1585,12 @@ model Gift {
 }
 
 model GiftVariant {
-  id            String    @id @default(cuid())
-  giftId        String    @map("gift_id")
-  name          String
-  price         Decimal   @db.Decimal(10, 2)
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  id        String   @id @default(cuid())
+  giftId    String   @map("gift_id")
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   gift       Gift        @relation(fields: [giftId], references: [id])
   cartItems  CartItem[]
@@ -1701,8 +1633,8 @@ model Notification {
   readAt        DateTime?                 @map("read_at") @db.Timestamptz
   createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz
 
-  recipient    User                      @relation(fields: [recipientId], references: [id])
-  broadcast    Broadcast?                @relation(fields: [broadcastId], references: [id])
+  recipient User       @relation(fields: [recipientId], references: [id])
+  broadcast Broadcast? @relation(fields: [broadcastId], references: [id])
 
   @@index([recipientId, isRead, createdAt])
   @@index([broadcastId])
@@ -1713,7 +1645,6 @@ model Review {
   id                     String            @id @default(cuid())
   reviewCode             String            @unique @map("review_code")
   orderId                String            @map("order_id")
-  providerOrderId        String?           @map("provider_order_id")
   providerId             String            @map("provider_id")
   userId                 String            @map("user_id")
   rating                 Int
@@ -1733,11 +1664,10 @@ model Review {
   updatedAt              DateTime          @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt              DateTime?         @map("deleted_at") @db.Timestamptz
 
-  order          Order                 @relation(fields: [orderId], references: [id])
-  providerOrder  ProviderOrder?        @relation(fields: [providerOrderId], references: [id])
-  provider       User                  @relation("ReviewProvider", fields: [providerId], references: [id])
-  customer       User                  @relation("ReviewCustomer", fields: [userId], references: [id])
-  response       ReviewResponse?
+  order    Order           @relation(fields: [orderId], references: [id])
+  provider User            @relation("ReviewProvider", fields: [providerId], references: [id])
+  customer User            @relation("ReviewCustomer", fields: [userId], references: [id])
+  response ReviewResponse?
 
   @@index([status, createdAt])
   @@index([source, createdAt])
@@ -1746,7 +1676,6 @@ model Review {
   @@index([providerId, createdAt])
   @@index([userId, createdAt])
   @@index([orderId])
-  @@index([providerOrderId])
   @@index([deletedAt])
   @@map("reviews")
 }
@@ -1793,7 +1722,6 @@ model ChatThread {
   subject         String?
   status          ChatThreadStatus @default(ACTIVE)
   orderId         String?          @map("order_id")
-  providerOrderId String?          @unique @map("provider_order_id")
   providerId      String?          @map("provider_id")
   customerId      String?          @map("customer_id")
   assignedAdminId String?          @map("assigned_admin_id")
@@ -1805,7 +1733,6 @@ model ChatThread {
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
   order         Order?                   @relation(fields: [orderId], references: [id])
-  providerOrder ProviderOrder?           @relation(fields: [providerOrderId], references: [id])
   provider      User?                    @relation("ProviderChatThread", fields: [providerId], references: [id])
   customer      User?                    @relation("CustomerChatThread", fields: [customerId], references: [id])
   assignedAdmin User?                    @relation("AssignedChatAdmin", fields: [assignedAdminId], references: [id])
@@ -1999,9 +1926,9 @@ model UserSafetyReport {
   createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime               @updatedAt @map("updated_at") @db.Timestamptz
 
-  reporter User                      @relation("UserSafetyReporter", fields: [reporterUserId], references: [id])
-  reported User                      @relation("UserSafetyReported", fields: [reportedUserId], references: [id])
-  reviewer User?                     @relation("UserSafetyReviewer", fields: [reviewedById], references: [id])
+  reporter User  @relation("UserSafetyReporter", fields: [reporterUserId], references: [id])
+  reported User  @relation("UserSafetyReported", fields: [reportedUserId], references: [id])
+  reviewer User? @relation("UserSafetyReviewer", fields: [reviewedById], references: [id])
 
   @@index([reporterUserId, createdAt])
   @@index([reportedUserId, status])
@@ -2034,9 +1961,9 @@ model SocialPost {
   createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
-  user           User                  @relation("SocialPostAuthor", fields: [userId], references: [id])
-  reports        SocialReport[]
-  warnings       UserWarning[]
+  user     User           @relation("SocialPostAuthor", fields: [userId], references: [id])
+  reports  SocialReport[]
+  warnings UserWarning[]
 
   @@index([userId, createdAt])
   @@index([visibility, status])
@@ -2055,9 +1982,9 @@ model SocialReport {
   createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
-  post           SocialPost            @relation(fields: [postId], references: [id])
-  reportedBy     User                  @relation("SocialReportReporter", fields: [reportedById], references: [id])
-  warnings       UserWarning[]
+  post       SocialPost    @relation(fields: [postId], references: [id])
+  reportedBy User          @relation("SocialReportReporter", fields: [reportedById], references: [id])
+  warnings   UserWarning[]
 
   @@index([postId, status, createdAt])
   @@index([reportedById, createdAt])
@@ -2105,21 +2032,21 @@ model UserWarning {
 }
 
 model Dispute {
-  id                       String        @id @default(uuid())
-  userId                   String        @map("user_id")
-  providerId               String        @map("provider_id")
-  orderId                  String        @map("order_id")
+  id                       String                   @id @default(uuid())
+  userId                   String                   @map("user_id")
+  providerId               String                   @map("provider_id")
+  orderId                  String                   @map("order_id")
   reason                   String
-  description              String        @db.Text
-  evidenceUrlsJson         Json          @default("[]") @map("evidence_urls_json")
-  status                   DisputeStatus @default(PENDING)
+  description              String                   @db.Text
+  evidenceUrlsJson         Json                     @default("[]") @map("evidence_urls_json")
+  status                   DisputeStatus            @default(PENDING)
   providerDecision         ProviderDisputeDecision? @map("provider_decision")
-  providerResponse         String?       @map("provider_response") @db.Text
-  providerEvidenceUrlsJson Json          @default("[]") @map("provider_evidence_urls_json")
-  adminNote                String?       @map("admin_note") @db.Text
-  decisionReason           DisputeDecisionReason? @map("decision_reason")
-  createdAt                DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  providerResponse         String?                  @map("provider_response") @db.Text
+  providerEvidenceUrlsJson Json                     @default("[]") @map("provider_evidence_urls_json")
+  adminNote                String?                  @map("admin_note") @db.Text
+  decisionReason           DisputeDecisionReason?   @map("decision_reason")
+  createdAt                DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
 
   user     User  @relation("DisputeUser", fields: [userId], references: [id])
   provider User  @relation("DisputeProvider", fields: [providerId], references: [id])
@@ -2267,25 +2194,25 @@ model ProviderPayoutMethod {
 }
 
 model ProviderEarningsLedger {
-  id              String                          @id @default(cuid())
-  providerId      String                          @map("provider_id")
-  providerOrderId String?                         @map("provider_order_id")
-  payoutId        String?                         @map("payout_id")
-  type            ProviderEarningsLedgerType
-  direction       ProviderEarningsLedgerDirection
-  amount          Decimal                         @db.Decimal(10, 2)
-  currency        String                          @default("USD")
-  status          ProviderEarningsLedgerStatus    @default(PENDING)
-  description     String
-  metadataJson    Json                            @default("{}") @map("metadata_json")
-  createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
+  id           String                          @id @default(cuid())
+  providerId   String                          @map("provider_id")
+  orderId      String?                         @map("order_id")
+  payoutId     String?                         @map("payout_id")
+  type         ProviderEarningsLedgerType
+  direction    ProviderEarningsLedgerDirection
+  amount       Decimal                         @db.Decimal(10, 2)
+  currency     String                          @default("USD")
+  status       ProviderEarningsLedgerStatus    @default(PENDING)
+  description  String
+  metadataJson Json                            @default("{}") @map("metadata_json")
+  createdAt    DateTime                        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
 
-  provider      User            @relation(fields: [providerId], references: [id])
-  providerOrder ProviderOrder?  @relation(fields: [providerOrderId], references: [id])
-  payout        ProviderPayout? @relation(fields: [payoutId], references: [id])
+  provider User            @relation(fields: [providerId], references: [id])
+  order    Order?          @relation(fields: [orderId], references: [id])
+  payout   ProviderPayout? @relation(fields: [payoutId], references: [id])
 
-  @@unique([providerOrderId, type])
+  @@unique([orderId, type])
   @@index([providerId, status, createdAt])
   @@index([providerId, type, createdAt])
   @@index([payoutId])

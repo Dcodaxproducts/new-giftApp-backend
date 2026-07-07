@@ -41,7 +41,7 @@ export class AdminDisputesRepository {
   }
 
   findCustomerOrder(userId: string, orderId: string) {
-    return this.prisma.order.findFirst({ where: { id: orderId, userId }, include: { providerOrders: { orderBy: { createdAt: 'asc' } } } });
+    return this.prisma.order.findFirst({ where: { id: orderId, userId } });
   }
 
   findCustomerDisputesAndCount(params: { userId: string; orderBy: Prisma.DisputeOrderByWithRelationInput; skip: number; take: number }) {

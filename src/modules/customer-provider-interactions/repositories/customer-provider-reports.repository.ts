@@ -39,7 +39,7 @@ export class CustomerProviderReportsRepository {
   }
 
   async hasProviderRelationship(customerId: string, providerId: string, orderId?: string) {
-    const order = await this.prisma.order.findFirst({ where: { userId: customerId, ...(orderId ? { id: orderId } : {}), providerOrders: { some: { providerId } } }, select: { id: true } });
+    const order = await this.prisma.order.findFirst({ where: { userId: customerId, providerId, ...(orderId ? { id: orderId } : {}) }, select: { id: true } });
     if (order) return true;
     const thread = await this.prisma.chatThread.findFirst({ where: { customerId, providerId }, select: { id: true } });
     if (thread) return true;

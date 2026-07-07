@@ -83,7 +83,7 @@ export class AdminProviderPayoutsService {
     const grossAmount = this.money(payout.amount);
     const platformFee = this.money(grossAmount - Number(payout.totalToReceive) - Number(payout.processingFee));
     const platformFeePercent = grossAmount > 0 ? this.money((platformFee / grossAmount) * 100) : 0;
-    return { data: { payoutId: payout.id, provider: { id: payout.provider.id, businessName: this.providerName(payout.provider), merchantId: this.merchantId(payout.provider.id) }, grossAmount, platformFee, platformFeePercent, processingFee: this.money(payout.processingFee), netPayout: this.money(payout.totalToReceive), currency: payout.currency, recentTransactions: ledger.map((item) => ({ orderNumber: item.providerOrder?.orderNumber ?? item.providerOrderId ?? item.id, description: item.description, amount: this.money(item.amount) })) }, message: 'Payout breakdown fetched successfully.' };
+    return { data: { payoutId: payout.id, provider: { id: payout.provider.id, businessName: this.providerName(payout.provider), merchantId: this.merchantId(payout.provider.id) }, grossAmount, platformFee, platformFeePercent, processingFee: this.money(payout.processingFee), netPayout: this.money(payout.totalToReceive), currency: payout.currency, recentTransactions: ledger.map((item) => ({ orderNumber: item.order?.orderNumber ?? item.orderId ?? item.id, description: item.description, amount: this.money(item.amount) })) }, message: 'Payout breakdown fetched successfully.' };
   }
 
   async action(user: AuthUserContext, id: string, dto: AdminProviderPayoutActionDto) {

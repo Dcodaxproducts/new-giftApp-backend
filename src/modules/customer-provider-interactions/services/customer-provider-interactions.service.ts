@@ -9,7 +9,7 @@ import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositor
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
 import { getPagination } from '../../../common/pagination/pagination.util';
 type ProviderView = { id: string; providerProfile: { businessName: string | null } | null; avatarUrl: string | null; firstName: string; lastName: string; status: UserStatus };
-type OrderWithProviderOrders = { id: string; orderNumber: string; status: OrderStatus; userId: string; providerOrders: { id: string; providerId: string; status: ProviderOrderStatus; provider: ProviderView }[] };
+type OrderWithProvider = { id: string; orderNumber: string; status: OrderStatus; providerStatus: ProviderOrderStatus; providerId: string; userId: string; provider: ProviderView };
 
 @Injectable()
 export class CustomerProviderInteractionsService {
@@ -22,14 +22,13 @@ export class CustomerProviderInteractionsService {
 
   async submitReview(user: AuthUserContext, orderId: string, dto: CreateReviewDto) {
     const order = await this.getOrderForReview(user.uid, orderId);
-    const providerOrder = order.providerOrders.find((item) => item.providerId === dto.providerId);
-    if (!providerOrder) throw new ForbiddenException('Provider is not part of this order');
-    if (!this.isReviewable(order.status, providerOrder.status)) throw new BadRequestException('Only delivered or completed orders can be reviewed');
-    const existing = await this.customerReviewsRepository.findExistingReviewForProviderOrder(user.uid, providerOrder.id, [ReviewStatus.REMOVED]);
+    if (order.providerId !== dto.providerId) throw new ForbiddenException('Provider is not part of this order');
+    if (!this.isReviewable(order.status, order.providerStatus)) throw new BadRequestException('Only delivered or completed orders can be reviewed');
+    const existing = await this.customerReviewsRepository.findExistingReviewForOrder(user.uid, order.id, [ReviewStatus.REMOVED]);
     if (existing) throw new BadRequestException('You have already reviewed this provider order');
     const moderation = this.moderateText(dto.comment, dto.rating);
-    const review = await this.customerReviewsRepository.createReview({ reviewCode: await this.reviewCode(), orderId: order.id, providerOrderId: providerOrder.id, providerId: dto.providerId, userId: user.uid, rating: dto.rating, comment: dto.comment, status: moderation.status, severity: moderation.severity, flagReason: moderation.flagReason, autoModerated: moderation.autoModerated, moderationConfidence: moderation.confidence, detectedCategoriesJson: moderation.categories });
-    if (review.status === ReviewStatus.PUBLISHED) await this.customerReviewsRepository.createReviewNotification({ recipientId: dto.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New provider review', message: `A customer submitted a ${dto.rating}-star review.`, type: 'PROVIDER_REVIEW', metadataJson: { reviewId: review.id, orderId: order.id, providerOrderId: providerOrder.id } });
+    const review = await this.customerReviewsRepository.createReview({ reviewCode: await this.reviewCode(), orderId: order.id, providerId: dto.providerId, userId: user.uid, rating: dto.rating, comment: dto.comment, status: moderation.status, severity: moderation.severity, flagReason: moderation.flagReason, autoModerated: moderation.autoModerated, moderationConfidence: moderation.confidence, detectedCategoriesJson: moderation.categories });
+    if (review.status === ReviewStatus.PUBLISHED) await this.customerReviewsRepository.createReviewNotification({ recipientId: dto.providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New provider review', message: `A customer submitted a ${dto.rating}-star review.`, type: 'PROVIDER_REVIEW', metadataJson: { reviewId: review.id, orderId: order.id } });
     return { data: this.reviewSummary(review), message: 'Review submitted successfully.' };
   }
 
@@ -96,7 +95,7 @@ export class CustomerProviderInteractionsService {
     return { data: this.reportItem(report), message: 'Provider report fetched successfully.' };
   }
 
-  private async getOrderForReview(customerId: string, orderId: string): Promise<OrderWithProviderOrders> { const order = await this.customerReviewsRepository.findOrderForReviewByUser(customerId, orderId); if (!order) throw new NotFoundException('Order not found'); return order; }
+  private async getOrderForReview(customerId: string, orderId: string): Promise<OrderWithProvider> { const order = await this.customerReviewsRepository.findOrderForReviewByUser(customerId, orderId); if (!order) throw new NotFoundException('Order not found'); return order; }
   private isReviewable(orderStatus: OrderStatus, providerStatus: ProviderOrderStatus): boolean { return orderStatus === OrderStatus.DELIVERED || orderStatus === OrderStatus.COMPLETED || providerStatus === ProviderOrderStatus.DELIVERED || providerStatus === ProviderOrderStatus.COMPLETED; }
   private moderateText(comment: string, rating: number) { const text = comment.toLowerCase(); const categories = [/spam|scam|click/.test(text) ? 'SPAM' : null, /fake|fraud/.test(text) ? 'FAKE_REVIEW' : null, /abuse|hate|threat/.test(text) ? 'ABUSE' : null].filter((value): value is string => Boolean(value)); const confidence = Math.min(95, 55 + categories.length * 20 + (rating <= 2 ? 8 : 0)); const flagged = categories.length > 0; return { status: flagged ? ReviewStatus.FLAGGED : ReviewStatus.PUBLISHED, severity: categories.includes('ABUSE') ? ReviewSeverity.HIGH : flagged ? ReviewSeverity.MEDIUM : ReviewSeverity.LOW, flagReason: categories.includes('SPAM') ? ReviewFlagReason.SPAM : categories.includes('FAKE_REVIEW') ? ReviewFlagReason.FAKE_REVIEW : categories.includes('ABUSE') ? ReviewFlagReason.ABUSE : null, autoModerated: true, confidence, categories }; }
   private async reviewCode(): Promise<string> { for (let attempt = 0; attempt < 5; attempt += 1) { const code = `RV-${randomInt(10000, 99999)}`; const exists = await this.customerReviewsRepository.findReviewCode(code); if (!exists) return code; } return `RV-${Date.now()}`; }

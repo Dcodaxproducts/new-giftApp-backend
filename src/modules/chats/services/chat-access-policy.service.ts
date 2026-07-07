@@ -54,14 +54,13 @@ export class ChatAccessPolicyService {
     if (user.role === UserRole.REGISTERED_USER && sourceType === 'CUSTOMER_ORDER') {
       const order = await this.orderSources.findCustomerOrderSource(user.uid, sourceId);
       if (!order) throw new NotFoundException('Order not found');
-      const providerOrder = order.providerOrders[0];
-      if (!providerOrder) throw new NotFoundException('Provider order not found');
-      return { orderId: order.id, providerOrderId: providerOrder.id, providerId: providerOrder.providerId, customerId: user.uid };
+      if (!order.providerId) throw new NotFoundException('Provider order not found');
+      return { orderId: order.id, providerOrderId: order.id, providerId: order.providerId, customerId: user.uid };
     }
     if (user.role === UserRole.PROVIDER && sourceType === 'PROVIDER_ORDER') {
       const providerOrder = await this.orderSources.findProviderOrderSource(user.uid, sourceId);
       if (!providerOrder) throw new NotFoundException('Provider order not found');
-      return { orderId: providerOrder.orderId, providerOrderId: providerOrder.id, providerId: user.uid, customerId: providerOrder.order.userId };
+      return { orderId: providerOrder.id, providerOrderId: providerOrder.id, providerId: user.uid, customerId: providerOrder.userId };
     }
     throw new ForbiddenException('Your role cannot create this order chat');
   }

@@ -4,7 +4,7 @@ import { PrismaService } from '../../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const PROVIDER_EARNINGS_LEDGER_INCLUDE = Prisma.validator<Prisma.ProviderEarningsLedgerInclude>()({
-  providerOrder: { select: { orderNumber: true } },
+  order: { select: { orderNumber: true } },
 });
 
 export const PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInclude>()({
@@ -93,12 +93,12 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.providerPayoutMethod.findFirst({ where: { id, providerId, deletedAt: null } });
   }
 
-  findProviderOrderForEarning(providerOrderId: string) {
-    return this.prisma.providerOrder.findUnique({ where: { id: providerOrderId }, include: { order: true } });
+  findOrderForEarning(orderId: string) {
+    return this.prisma.order.findUnique({ where: { id: orderId } });
   }
 
   createOrderEarningLedgerEntry(data: Prisma.ProviderEarningsLedgerUncheckedCreateInput) {
-    return this.prisma.providerEarningsLedger.upsert({ where: { providerOrderId_type: { providerOrderId: data.providerOrderId ?? '', type: data.type } }, update: {}, create: data });
+    return this.prisma.providerEarningsLedger.upsert({ where: { orderId_type: { orderId: data.orderId ?? '', type: data.type } }, update: {}, create: data });
   }
 
   returnFailedPayoutBalance(params: { providerId: string; payoutId: string; reason: string }) {

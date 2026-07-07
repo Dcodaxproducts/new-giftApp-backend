@@ -13,11 +13,10 @@ const ORDER_FOR_REVIEW_SELECT = Prisma.validator<Prisma.OrderSelect>()({
   id: true,
   orderNumber: true,
   status: true,
+  providerStatus: true,
+  providerId: true,
   userId: true,
-  providerOrders: {
-    select: { id: true, providerId: true, status: true, provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, status: true } } },
-    orderBy: { createdAt: 'asc' },
-  },
+  provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, status: true } },
 });
 
 type CreateReviewData = Prisma.Args<PrismaService['review'], 'create'>['data'];
@@ -32,8 +31,8 @@ export class CustomerReviewsRepository {
     return this.prisma.order.findFirst({ where: { id: orderId, userId: customerId }, select: ORDER_FOR_REVIEW_SELECT });
   }
 
-  findExistingReviewForProviderOrder(userId: string, providerOrderId: string, removedStatuses: ReviewStatus[]) {
-    return this.prisma.review.findFirst({ where: { userId, providerOrderId, deletedAt: null, status: { notIn: removedStatuses } } });
+  findExistingReviewForOrder(userId: string, orderId: string, removedStatuses: ReviewStatus[]) {
+    return this.prisma.review.findFirst({ where: { userId, orderId, deletedAt: null, status: { notIn: removedStatuses } } });
   }
 
   findReviewCode(reviewCode: string) {
@@ -76,6 +75,6 @@ export class CustomerReviewsRepository {
   }
 
   findProviderForOrder(customerId: string, providerId: string, orderId?: string) {
-    return this.prisma.order.findFirst({ where: { userId: customerId, ...(orderId ? { id: orderId } : {}), providerOrders: { some: { providerId } } } });
+    return this.prisma.order.findFirst({ where: { userId: customerId, providerId, ...(orderId ? { id: orderId } : {}) } });
   }
 }

@@ -131,7 +131,7 @@ export class ChatThreadService {
       threadType: thread.threadType,
       sourceType: thread.sourceType,
       orderId: thread.orderId,
-      providerOrderId: thread.providerOrderId,
+      providerOrderId: thread.orderId,
       customerId: thread.customerId,
       providerId: thread.providerId,
       participantId: this.supportParticipant(thread)?.id,
@@ -181,7 +181,7 @@ export class ChatThreadService {
     const where: Prisma.ChatThreadWhereInput = {};
     if (query.threadType) where.threadType = query.threadType;
     if (query.sourceType) where.sourceType = query.sourceType;
-    if (query.sourceId) where.OR = [{ id: query.sourceId }, { sourceId: query.sourceId }, { orderId: query.sourceId }, { providerOrderId: query.sourceId }];
+    if (query.sourceId) where.OR = [{ id: query.sourceId }, { sourceId: query.sourceId }, { orderId: query.sourceId }];
     if (query.status) where.status = query.status;
     if (query.assignedToAdminId) where.assignedAdminId = query.assignedToAdminId;
     if (query.participantId) where.participants = { some: { userId: query.participantId, leftAt: null } };
@@ -214,7 +214,7 @@ export class ChatThreadService {
       id: thread.id,
       threadType: thread.threadType,
       sourceType: thread.sourceType,
-      sourceId: thread.sourceId ?? thread.providerOrderId ?? thread.orderId,
+      sourceId: thread.sourceId ?? thread.orderId ?? thread.orderId,
       status: thread.status,
       subject: thread.subject ?? (thread.order ? `Order ${thread.order.orderNumber}` : 'Support Ticket'),
       orderNumber: thread.order?.orderNumber,

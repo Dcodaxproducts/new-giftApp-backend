@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserStatus } from '@prisma/client';
+import { NotificationRecipientType, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, OrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, ProviderPayoutAction, ProviderPayoutActionDto, RequestProviderPayoutDto, SortOrder } from '../dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from '../repositories/provider-earnings-payouts.repository';
@@ -43,7 +43,7 @@ export class ProviderEarningsPayoutsService {
     if (query.status && query.status !== EarningsLedgerStatusFilter.ALL) where.status = query.status;
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
     const [items, total] = await this.repository.findLedgerEntriesAndCountForProvider(where, { skip, take });
-    return { data: items.map((item) => ({ id: item.id, type: item.type, description: item.description, amount: Number(item.amount), currency: item.currency, status: item.status, orderNumber: item.providerOrder?.orderNumber ?? null, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider earnings ledger fetched successfully.' };
+    return { data: items.map((item) => ({ id: item.id, type: item.type, description: item.description, amount: Number(item.amount), currency: item.currency, status: item.status, orderNumber: item.order?.orderNumber ?? null, createdAt: item.createdAt })), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Provider earnings ledger fetched successfully.' };
   }
 
   async payoutSummary(user: AuthUserContext) {
@@ -103,10 +103,10 @@ export class ProviderEarningsPayoutsService {
     return { data: { id: updated.id, status: updated.status }, message: 'Provider payout cancelled successfully.' };
   }
 
-  async recordOrderEarning(providerOrderId: string): Promise<void> {
-    const order = await this.repository.findProviderOrderForEarning(providerOrderId);
-    if (!order || order.order.paymentStatus !== PaymentStatus.SUCCEEDED || !([ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] as ProviderOrderStatus[]).includes(order.status)) return;
-    await this.repository.createOrderEarningLedgerEntry({ providerId: order.providerId, providerOrderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: order.totalPayout ?? order.total, currency: order.currency, status: ProviderEarningsLedgerStatus.AVAILABLE, description: `Order #${order.orderNumber ?? order.order.orderNumber} payout`, metadataJson: { orderId: order.orderId } });
+  async recordOrderEarning(orderId: string): Promise<void> {
+    const order = await this.repository.findOrderForEarning(orderId);
+    if (!order || order.paymentStatus !== PaymentStatus.SUCCEEDED || !([OrderStatus.DELIVERED, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) return;
+    await this.repository.createOrderEarningLedgerEntry({ providerId: order.providerId, orderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: order.totalPayout ?? order.total, currency: order.currency, status: ProviderEarningsLedgerStatus.AVAILABLE, description: `Order #${order.orderNumber ?? order.orderNumber} payout`, metadataJson: { orderId: order.id } });
   }
 
   async returnFailedPayoutBalance(providerId: string, payoutId: string, reason: string): Promise<void> {

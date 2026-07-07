@@ -7,7 +7,7 @@ export const PLATFORM_ANALYTICS_PAYMENT_INCLUDE = Prisma.validator<Prisma.Paymen
   order: {
     include: {
       items: { include: { gift: { select: { id: true, name: true, categoryId: true, category: { select: { id: true, name: true } } } } } },
-      providerOrders: { include: { provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } } } },
+      provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } },
     },
   },
   customerSubscription: { include: { plan: { select: { id: true, name: true } } } },

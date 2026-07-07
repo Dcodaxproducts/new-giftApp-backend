@@ -45,7 +45,7 @@ export class AdminDisputesService {
   async createForCustomer(user: AuthUserContext, orderId: string, dto: CreateDisputeDto) {
     const order = await this.disputesRepository.findCustomerOrder(user.uid, orderId);
     if (!order) throw new NotFoundException('Order not found');
-    const providerId = dto.providerId ?? order.providerOrders[0]?.providerId;
+    const providerId = dto.providerId ?? order.providerId;
     if (!providerId) throw new BadRequestException('Provider is required to create a dispute for this order');
     const dispute = await this.disputesRepository.create(this.createData(user.uid, providerId, orderId, dto));
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: dispute.id, targetType: 'DISPUTE', action: 'DISPUTE_CREATED_BY_CUSTOMER', module: 'Disputes', afterJson: this.snapshot(dispute) });

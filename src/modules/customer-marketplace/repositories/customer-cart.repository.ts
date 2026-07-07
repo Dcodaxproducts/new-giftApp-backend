@@ -19,11 +19,12 @@ export class CustomerCartRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findActiveCartForUser(userId: string) {
-    return this.prisma.cart.findFirst({ where: { userId, status: CartStatus.ACTIVE } });
+    return this.prisma.cart.findUnique({ where: { userId } });
   }
 
   async findOrCreateActiveCart(userId: string) {
-    return (await this.findActiveCartForUser(userId)) ?? this.prisma.cart.create({ data: { userId } });
+    const cart = await this.findActiveCartForUser(userId);
+    return cart ? this.prisma.cart.update({ where: { id: cart.id }, data: { status: CartStatus.ACTIVE } }) : this.prisma.cart.create({ data: { userId } });
   }
 
   findCustomerCartItem(userId: string, itemId: string) {
@@ -39,7 +40,7 @@ export class CustomerCartRepository {
   }
 
   findCartWithItemsForUser(userId: string) {
-    return this.prisma.cart.findFirst({ where: { userId, status: CartStatus.ACTIVE }, include: CUSTOMER_CART_WITH_ITEMS_INCLUDE });
+    return this.prisma.cart.findUnique({ where: { userId }, include: CUSTOMER_CART_WITH_ITEMS_INCLUDE });
   }
 
   findAddressForUser(userId: string, addressId: string) {

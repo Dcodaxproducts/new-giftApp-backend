@@ -112,7 +112,7 @@ export class AdminPlatformAnalyticsService {
         { user: { email: { contains: query.search, mode: 'insensitive' } } },
         { order: { orderNumber: { contains: query.search, mode: 'insensitive' } } },
         { order: { items: { some: { gift: { name: { contains: query.search, mode: 'insensitive' } } } } } },
-        { order: { providerOrders: { some: { provider: { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } } } } } },
+        { order: { provider: { providerProfile: { is: { businessName: { contains: query.search, mode: 'insensitive' } } } } } },
       ];
     }
 
@@ -122,14 +122,13 @@ export class AdminPlatformAnalyticsService {
   private orderFilter(query: Partial<PlatformAnalyticsTransactionsQueryDto>): Prisma.OrderWhereInput | null {
     const AND: Prisma.OrderWhereInput[] = [];
     if (query.categoryId) AND.push({ items: { some: { gift: { categoryId: query.categoryId } } } });
-    if (query.providerId) AND.push({ OR: [{ providerOrders: { some: { providerId: query.providerId } } }, { items: { some: { providerId: query.providerId } } }] });
+    if (query.providerId) AND.push({ OR: [{ providerId: query.providerId }, { items: { some: { providerId: query.providerId } } }] });
     return AND.length ? { AND } : null;
   }
 
   private normalize(payment: PlatformAnalyticsPayment): NormalizedRevenueTransaction {
-    const providerOrder = payment.order?.providerOrders[0];
-    const provider = providerOrder?.provider
-      ? { id: providerOrder.provider.id, businessName: this.providerName(providerOrder.provider) }
+    const provider = payment.order?.provider
+      ? { id: payment.order.provider.id, businessName: this.providerName(payment.order.provider) }
       : null;
     const category = payment.order?.items[0]?.gift.category ?? null;
     const plan = payment.customerSubscription?.plan.name ?? null;

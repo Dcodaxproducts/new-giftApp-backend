@@ -28,8 +28,8 @@ export type UserActivityPayment = Prisma.PaymentGetPayload<{
   select: { id: true; status: true; amount: true; currency: true; paymentMethod: true; failureReason: true; orderId: true; moneyGiftId: true; createdAt: true; updatedAt: true };
 }>;
 
-export type UserActivityProviderOrderTimeline = Prisma.ProviderOrderTimelineGetPayload<{
-  select: { id: true; status: true; title: true; description: true; createdAt: true; providerOrder: { select: { id: true; orderNumber: true; orderId: true } } };
+export type UserActivityProviderOrderTimeline = Prisma.OrderGetPayload<{
+  select: { id: true; orderNumber: true; providerStatus: true; updatedAt: true; createdAt: true };
 }>;
 
 export interface UserActivityRecords {
@@ -237,10 +237,10 @@ export class UserManagementRepository {
         orderBy: { updatedAt: 'desc' },
         take: 200,
       }),
-      this.prisma.providerOrderTimeline.findMany({
-        where: { providerOrder: { order: { userId } } },
-        select: { id: true, status: true, title: true, description: true, createdAt: true, providerOrder: { select: { id: true, orderNumber: true, orderId: true } } },
-        orderBy: { createdAt: 'desc' },
+      this.prisma.order.findMany({
+        where: { userId },
+        select: { id: true, orderNumber: true, providerStatus: true, updatedAt: true, createdAt: true },
+        orderBy: { updatedAt: 'desc' },
         take: 200,
       }),
     ]);

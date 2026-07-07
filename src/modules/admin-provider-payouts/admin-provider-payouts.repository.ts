@@ -21,7 +21,7 @@ export class AdminProviderPayoutsRepository {
   }
 
   findPayoutLedgerEntries(payoutId: string) {
-    return this.prisma.providerEarningsLedger.findMany({ where: { payoutId }, include: { providerOrder: { select: { orderNumber: true } } }, orderBy: { createdAt: 'desc' }, take: 10 });
+    return this.prisma.providerEarningsLedger.findMany({ where: { payoutId }, include: { order: { select: { orderNumber: true } } }, orderBy: { createdAt: 'desc' }, take: 10 });
   }
 
   findPreviousCompletedPayout(providerId: string, before: Date, excludeId: string) {

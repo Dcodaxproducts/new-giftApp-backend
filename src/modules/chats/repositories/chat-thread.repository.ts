@@ -4,7 +4,6 @@ import { PrismaService } from '../../../database/prisma.service';
 
 export const CHAT_THREAD_INCLUDE = Prisma.validator<Prisma.ChatThreadInclude>()({
   order: { select: { id: true, orderNumber: true, userId: true } },
-  providerOrder: { select: { id: true, orderId: true, providerId: true } },
   provider: { select: { id: true, role: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true, avatarUrl: true, status: true } },
   customer: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true, status: true } },
   assignedAdmin: { select: { id: true, role: true, firstName: true, lastName: true, avatarUrl: true } },
@@ -30,8 +29,8 @@ export class ChatThreadRepository {
     return this.prisma.chatThread.findUnique({ where: { id }, include: CHAT_THREAD_INCLUDE });
   }
 
-  findByProviderOrderId(providerOrderId: string) {
-    return this.prisma.chatThread.findUnique({ where: { providerOrderId }, include: CHAT_THREAD_INCLUDE });
+  findByProviderOrderId(orderId: string) {
+    return this.prisma.chatThread.findFirst({ where: { orderId }, include: CHAT_THREAD_INCLUDE });
   }
 
   findParticipantThread(userId: string, id: string) {
@@ -47,25 +46,10 @@ export class ChatThreadRepository {
 
   async upsertOrderThread(params: { orderId: string; providerOrderId: string; providerId: string; customerId: string }) {
     return this.prisma.$transaction(async (tx) => {
-      const thread = await tx.chatThread.upsert({
-        where: { providerOrderId: params.providerOrderId },
-        update: {
-          threadType: ChatThreadType.ORDER_CHAT,
-          sourceType: ChatSourceType.PROVIDER_ORDER,
-          sourceId: params.providerOrderId,
-          status: ChatThreadStatus.ACTIVE,
-        },
-        create: {
-          threadType: ChatThreadType.ORDER_CHAT,
-          sourceType: ChatSourceType.PROVIDER_ORDER,
-          sourceId: params.providerOrderId,
-          orderId: params.orderId,
-          providerOrderId: params.providerOrderId,
-          providerId: params.providerId,
-          customerId: params.customerId,
-          status: ChatThreadStatus.ACTIVE,
-        },
-      });
+      const existing = await tx.chatThread.findFirst({ where: { orderId: params.orderId, providerId: params.providerId } });
+      const thread = existing
+        ? await tx.chatThread.update({ where: { id: existing.id }, data: { threadType: ChatThreadType.ORDER_CHAT, sourceType: ChatSourceType.PROVIDER_ORDER, sourceId: params.orderId, status: ChatThreadStatus.ACTIVE } })
+        : await tx.chatThread.create({ data: { threadType: ChatThreadType.ORDER_CHAT, sourceType: ChatSourceType.PROVIDER_ORDER, sourceId: params.orderId, orderId: params.orderId, providerId: params.providerId, customerId: params.customerId, status: ChatThreadStatus.ACTIVE } });
       await tx.chatParticipant.upsert({ where: { threadId_userId: { threadId: thread.id, userId: params.customerId } }, update: { leftAt: null, role: 'REGISTERED_USER' }, create: { threadId: thread.id, userId: params.customerId, role: 'REGISTERED_USER' } });
       await tx.chatParticipant.upsert({ where: { threadId_userId: { threadId: thread.id, userId: params.providerId } }, update: { leftAt: null, role: 'PROVIDER' }, create: { threadId: thread.id, userId: params.providerId, role: 'PROVIDER' } });
       return tx.chatThread.findUniqueOrThrow({ where: { id: thread.id }, include: CHAT_THREAD_INCLUDE });

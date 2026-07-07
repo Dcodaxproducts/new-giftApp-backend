@@ -156,12 +156,12 @@ export class ProviderManagementRepository {
         _sum: { amount: true },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
         where: {
           providerId: { in: uniqueProviderIds },
-          status: { in: this.revenueEligibleStatuses() },
-          order: { paymentStatus: PaymentStatus.SUCCEEDED },
+          providerStatus: { in: this.revenueEligibleStatuses() },
+          paymentStatus: PaymentStatus.SUCCEEDED,
         },
         _sum: { totalPayout: true, total: true },
       }),
@@ -180,34 +180,34 @@ export class ProviderManagementRepository {
         where: { providerId: { in: uniqueProviderIds }, status: GiftStatus.ACTIVE, createdAt: { gte: previousWindow.start, lt: previousWindow.end } },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, status: { in: this.fulfillmentSuccessStatuses() }, order: { paymentStatus: PaymentStatus.SUCCEEDED } },
+        where: { providerId: { in: uniqueProviderIds }, providerStatus: { in: this.fulfillmentSuccessStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, status: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+        where: { providerId: { in: uniqueProviderIds }, providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, status: { in: this.fulfillmentSuccessStatuses() }, order: { paymentStatus: PaymentStatus.SUCCEEDED } },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, providerStatus: { in: this.fulfillmentSuccessStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, status: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, status: { in: this.fulfillmentSuccessStatuses() }, order: { paymentStatus: PaymentStatus.SUCCEEDED } },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, providerStatus: { in: this.fulfillmentSuccessStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED },
         _count: { _all: true },
       }),
-      this.prisma.providerOrder.groupBy({
+      this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, status: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
       this.prisma.dispute.groupBy({
@@ -298,14 +298,14 @@ export class ProviderManagementRepository {
 
     const giftIds = gifts.map((gift) => gift.id);
     const salesRows = giftIds.length
-      ? await this.prisma.providerOrderItem.groupBy({
+      ? await this.prisma.orderItem.groupBy({
           by: ['giftId'],
           where: {
             giftId: { in: giftIds },
-            providerOrder: {
+            order: {
               providerId,
-              status: { in: this.fulfillmentSuccessStatuses() },
-              order: { paymentStatus: PaymentStatus.SUCCEEDED },
+              providerStatus: { in: this.fulfillmentSuccessStatuses() },
+              paymentStatus: PaymentStatus.SUCCEEDED,
             },
           },
           _sum: { quantity: true },
@@ -363,9 +363,9 @@ export class ProviderManagementRepository {
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
-      this.prisma.providerOrder.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, order: { paymentStatus: PaymentStatus.SUCCEEDED } }, _sum: { totalPayout: true, total: true } }),
-      this.prisma.providerOrder.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, order: { paymentStatus: PaymentStatus.SUCCEEDED }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { totalPayout: true, total: true } }),
-      this.prisma.providerOrder.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, order: { paymentStatus: PaymentStatus.SUCCEEDED }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { totalPayout: true, total: true } }),
+      this.prisma.order.aggregate({ where: { providerStatus: { in: this.revenueEligibleStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED }, _sum: { totalPayout: true, total: true } }),
+      this.prisma.order.aggregate({ where: { providerStatus: { in: this.revenueEligibleStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { totalPayout: true, total: true } }),
+      this.prisma.order.aggregate({ where: { providerStatus: { in: this.revenueEligibleStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { totalPayout: true, total: true } }),
     ]);
 
     const activeRevenue = revenueRows._count._all > 0 ? Number(revenueRows._sum.amount ?? 0) : Number(fallbackOrders._sum.totalPayout ?? fallbackOrders._sum.total ?? 0);
@@ -442,8 +442,8 @@ export class ProviderManagementRepository {
   }
 
   countActiveProcessingOrders(providerId: string) {
-    return this.prisma.providerOrder.count({
-      where: { providerId, status: { in: ['PENDING', 'ACCEPTED', 'PROCESSING', 'PACKED', 'READY_FOR_PICKUP', 'SHIPPED', 'OUT_FOR_DELIVERY'] } },
+    return this.prisma.order.count({
+      where: { providerId, providerStatus: { in: [ProviderOrderStatus.PENDING, ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY] } },
     });
   }
 
