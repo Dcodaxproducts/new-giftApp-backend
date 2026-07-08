@@ -36,6 +36,7 @@ export class UpdateGiftCategoryDto {
 }
 
 export class ListGiftCategoriesDto {
+  @ApiPropertyOptional({ description: 'When true, returns only { id, name } pairs (for dropdowns). All other params are ignored.' }) @IsOptional() @Transform(({ value }: { value: unknown }) => optionalBoolean(value)) @IsBoolean() lookup?: boolean;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;

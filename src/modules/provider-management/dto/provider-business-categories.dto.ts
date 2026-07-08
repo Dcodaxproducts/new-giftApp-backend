@@ -4,6 +4,12 @@ import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Max, Min, MinLength } fr
 import { optionalBoolean } from '../../../common/transforms/boolean.transform';
 
 export class ListProviderBusinessCategoriesDto {
+  @ApiPropertyOptional({ description: 'When true, returns only { id, name } pairs (for dropdowns). All other params are ignored.' })
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => optionalBoolean(value))
+  @IsBoolean()
+  lookup?: boolean;
+
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   @Type(() => Number)

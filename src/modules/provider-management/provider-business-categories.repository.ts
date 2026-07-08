@@ -17,6 +17,10 @@ export class ProviderBusinessCategoriesRepository {
     ]);
   }
 
+  lookup() {
+    return this.prisma.providerBusinessCategory.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
+  }
+
   findById(id: string) {
     return this.prisma.providerBusinessCategory.findFirst({ where: { id } });
   }

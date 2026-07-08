@@ -27,7 +27,7 @@ export class GiftCategoriesController {
 
   @Get()
   @Permissions('giftCategories.read')
-  @ApiOperation({ summary: 'List gift categories', description: 'RBAC permission: giftCategories.read. By default returns all categories. Use isActive=true or isActive=false to filter by active state.' })
+  @ApiOperation({ summary: 'List gift categories', description: 'RBAC permission: giftCategories.read. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination). Otherwise returns full list with pagination. Use isActive=true or isActive=false to filter by active state.' })
   @ApiResponse({ status: 200, description: 'Gift categories fetched successfully' })
   list(@Query() query: ListGiftCategoriesDto) { return this.gifts.listCategories(query); }
 

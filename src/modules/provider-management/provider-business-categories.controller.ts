@@ -16,7 +16,7 @@ export class ProviderBusinessCategoriesController {
   constructor(private readonly service: ProviderBusinessCategoriesService) { }
 
   @Get()
-  @ApiOperation({ summary: 'List provider business categories', description: 'Lists provider business categories. Use isActive=true or isActive=false to filter by active state.' })
+  @ApiOperation({ summary: 'List provider business categories', description: 'Lists provider business categories. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination). Use isActive=true or isActive=false to filter by active state.' })
   list(@Query() query: ListProviderBusinessCategoriesDto) {
     return this.service.list(query);
   }

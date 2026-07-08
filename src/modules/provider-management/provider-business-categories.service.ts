@@ -27,6 +27,10 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
   }
 
   async list(query: ListProviderBusinessCategoriesDto = {}) {
+    if (query.lookup) {
+      const items = await this.repository.lookup();
+      return { data: items, message: 'Provider business categories lookup fetched successfully' };
+    }
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ProviderBusinessCategoryWhereInput = {
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),

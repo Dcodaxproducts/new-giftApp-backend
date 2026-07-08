@@ -25,6 +25,10 @@ export class GiftManagementRepository {
     return this.prisma.giftCategory.findMany({ where: params.where, include: { _count: { select: { gifts: true } } }, orderBy: params.orderBy, skip: params.skip, take: params.take });
   }
 
+  lookupGiftCategories() {
+    return this.prisma.giftCategory.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
+  }
+
   countGiftCategories(where: Prisma.GiftCategoryWhereInput) { return this.prisma.giftCategory.count({ where }); }
 
   findGiftCategoriesAndCount(params: { where: Prisma.GiftCategoryWhereInput; orderBy: Prisma.GiftCategoryOrderByWithRelationInput; skip: number; take: number }) {

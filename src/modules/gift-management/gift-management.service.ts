@@ -48,6 +48,10 @@ export class GiftManagementService {
   }
 
   async listCategories(query: ListGiftCategoriesDto) {
+    if (query.lookup) {
+      const items = await this.giftManagementRepository.lookupGiftCategories();
+      return { data: items, message: 'Gift categories lookup fetched successfully' };
+    }
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.GiftCategoryWhereInput = {
       ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
