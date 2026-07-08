@@ -89,18 +89,17 @@ export class AdminDocumentsService {
       throw new NotFoundException('Document not found.');
     }
 
-    const updated = await this.repository.update(id, { isActive: false });
+    await this.repository.delete(id);
 
     await this.auditLog.write({
       actorId,
       targetId: id,
       targetType: 'DOCUMENT',
-      action: 'DOCUMENT_DEACTIVATED',
+      action: 'DOCUMENT_DELETED',
       module: 'Document Management',
-      beforeJson: { isActive: true },
-      afterJson: { isActive: false },
+      beforeJson: { name: document.name, isRequired: document.isRequired, isActive: document.isActive },
     });
 
-    return { data: updated, message: 'Document deactivated successfully.' };
+    return { data: null, message: 'Document deleted successfully.' };
   }
 }

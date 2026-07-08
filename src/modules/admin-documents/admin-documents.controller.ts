@@ -44,8 +44,8 @@ export class AdminDocumentsController {
 
   @Delete(':id')
   @Permissions('documents.delete')
-  @ApiOperation({ summary: 'Deactivate a document definition', description: 'SUPER_ADMIN or STAFF with documents.delete. Soft deletes by setting isActive to false.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'doc_id', name: 'Business License', isRequired: true, isActive: false, createdAt: '2025-01-01T00:00:00.000Z', updatedAt: '2025-01-01T00:00:00.000Z' }, message: 'Document deactivated successfully.' } } })
+  @ApiOperation({ summary: 'Permanently delete a document definition', description: 'SUPER_ADMIN or STAFF with documents.delete. Permanently removes the document from the database.' })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: null, message: 'Document deleted successfully.' } } })
   delete(@CurrentUser() user: AuthUserContext, @Param('id') id: string) {
     return this.documents.delete(user.uid, id);
   }

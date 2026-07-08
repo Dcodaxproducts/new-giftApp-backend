@@ -28,4 +28,8 @@ export class AdminDocumentsRepository {
   update(id: string, data: Prisma.DocumentUpdateInput) {
     return this.prisma.document.update({ where: { id }, data });
   }
+
+  delete(id: string) {
+    return this.prisma.document.delete({ where: { id } });
+  }
 }
