@@ -4,6 +4,7 @@ import { RequestMetricsModule } from './common/request-metrics.module';
 import { JwtAuthModule } from './common/auth/jwt-auth.module';
 import { MediaUrlSignerService } from './common/services/media-url-signer.service';
 import { ConfigModule } from '@nestjs/config';
+import { AdminDocumentsModule } from './modules/admin-documents/admin-documents.module';
 import { AdminDashboardModule } from './modules/admin-dashboard/admin-dashboard.module';
 import { AdminDisputesModule } from './modules/admin-disputes/admin-disputes.module';
 import { AdminProviderPayoutsModule } from './modules/admin-provider-payouts/admin-provider-payouts.module';
@@ -59,6 +60,7 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     RequestMetricsModule,
     JwtAuthModule,
     AuthModule,
+    AdminDocumentsModule,
     AdminDashboardModule,
     AdminDisputesModule,
     AdminProviderPayoutsModule,
