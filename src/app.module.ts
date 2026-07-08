@@ -34,6 +34,7 @@ import { MessagingSettingsModule } from './modules/messaging-settings/messaging-
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderBusinessInfoModule } from './modules/provider-business-info/provider-business-info.module';
+import { ProviderDocumentsModule } from './modules/provider-documents/provider-documents.module';
 import { ProviderDashboardModule } from './modules/provider-dashboard/provider-dashboard.module';
 import { ProviderEarningsPayoutsModule } from './modules/provider-earnings-payouts/provider-earnings-payouts.module';
 import { ProviderInteractionsModule } from './modules/provider-interactions/provider-interactions.module';
@@ -75,6 +76,7 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     ProviderDashboardModule,
     ProviderEarningsPayoutsModule,
     ProviderBusinessInfoModule,
+    ProviderDocumentsModule,
     ProviderInteractionsModule,
     ProviderInventoryModule,
     ProviderOrdersModule,
