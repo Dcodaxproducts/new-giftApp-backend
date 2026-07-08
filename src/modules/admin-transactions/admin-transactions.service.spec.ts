@@ -1,4 +1,4 @@
-import { DisputePriority, DisputeReason, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { OrderStatus, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminTransactionsRepository } from './admin-transactions.repository';
@@ -9,12 +9,12 @@ const createdAt = new Date('2026-10-24T14:20:00.000Z');
 const payment = {
   id: 'payment_1', userId: 'user_1', orderId: 'order_1', moneyGiftId: null, customerSubscriptionId: null, provider: PaymentProvider.STRIPE, providerPaymentIntentId: 'TRX-982341', amount: new Prisma.Decimal(1281.25), currency: 'PKR', status: PaymentStatus.SUCCEEDED, paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, metadataJson: { cardBrand: 'Visa', cardLast4: '4242', clientSecret: 'should_not_leak', processorAuthCode: 'AUTH-9921-X' }, createdAt, updatedAt: createdAt,
   user: { id: 'user_1', firstName: 'Julianne', lastName: 'Doe', email: 'julianne.doe@example.com', avatarUrl: 'avatar.png', location: 'San Francisco, CA, USA' },
-  order: { id: 'order_1', orderNumber: 'ORD-88421', subtotal: new Prisma.Decimal(1250), discountTotal: new Prisma.Decimal(0), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(31.25), currency: 'PKR', providerOrders: [{ id: 'provider_order_1', providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, fulfilledAt: createdAt, provider: { id: 'provider_1', providerBusinessName: 'Gift Shop' } }] },
+  order: { id: 'order_1', orderNumber: 'ORD-88421', subtotal: new Prisma.Decimal(1250), discountTotal: new Prisma.Decimal(0), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(31.25), currency: 'PKR', providerOrders: [{ id: 'provider_order_1', providerId: 'provider_1', status: OrderStatus.COMPLETED, fulfilledAt: createdAt, provider: { id: 'provider_1', providerBusinessName: 'Gift Shop' } }] },
   moneyGift: null, customerSubscription: null, recurringPaymentOccurrences: [], refundRequests: [],
 };
 
 function createService(overrides: Partial<{ payments: typeof payment[]; refundRequests: unknown[]; disputes: unknown[] }> = {}) {
-  const providerOrder = { id: 'provider_order_1', providerId: 'provider_1', status: ProviderOrderStatus.COMPLETED, fulfilledAt: createdAt, items: [] };
+  const providerOrder = { id: 'provider_order_1', providerId: 'provider_1', status: OrderStatus.COMPLETED, fulfilledAt: createdAt, items: [] };
   const prisma: {
     payment: { findMany: jest.Mock; findFirst: jest.Mock; update: jest.Mock };
     refundRequest: { findMany: jest.Mock; create: jest.Mock };
@@ -125,13 +125,13 @@ describe('AdminTransactionsService', () => {
 
   it('OPEN_DISPUTE action creates linked dispute case and blocks duplicate open dispute', async () => {
     const { service, prisma, auditLog } = createService();
-    const response = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' });
+    const response = await service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: 'PRODUCT_NOT_RECEIVED', claimDetails: 'Missing gift.' });
     expect(response.data).toMatchObject({ caseId: 'DSP-1024' });
     expect(prisma.disputeCase.create).toHaveBeenCalled();
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'TRANSACTION_DISPUTE_OPENED' }));
 
     const duplicate = createService({ disputes: [{ id: 'dispute_existing' }] });
-    await expect(duplicate.service.action({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('An open dispute already exists');
+    await expect(duplicate.service.action({ uid: 'admin_1', role: UserRole.SUPER_ADMIN }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: 'PRODUCT_NOT_RECEIVED', claimDetails: 'Missing gift.' })).rejects.toThrow('An open dispute already exists');
   });
 
   it('NOTIFY_USER action plus receipt download and export create safe audit logs', async () => {
@@ -152,7 +152,7 @@ describe('AdminTransactionsService', () => {
   it('enforces action-specific transaction permissions', async () => {
     const { service } = createService();
     await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['openDispute'] } }, 'payment_1', { action: AdminTransactionAction.REFUND, refundType: AdminRefundType.FULL, refundAmount: 1281.25, reason: AdminRefundReason.CUSTOMER_REQUEST })).rejects.toThrow('Your role does not have the required permission');
-    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: DisputeReason.PRODUCT_NOT_RECEIVED, priority: DisputePriority.HIGH, claimDetails: 'Missing gift.' })).rejects.toThrow('Your role does not have the required permission');
+    await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.OPEN_DISPUTE, reason: 'PRODUCT_NOT_RECEIVED', claimDetails: 'Missing gift.' })).rejects.toThrow('Your role does not have the required permission');
     await expect(service.action({ uid: 'admin_1', role: UserRole.STAFF, permissions: { transactions: ['refund'] } }, 'payment_1', { action: AdminTransactionAction.NOTIFY_USER, channel: AdminNotificationChannel.IN_APP, subject: 'Transaction update', message: 'Processed.' })).rejects.toThrow('Your role does not have the required permission');
   });
 });

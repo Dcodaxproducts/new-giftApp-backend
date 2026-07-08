@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CartStatus, NotificationRecipientType, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
+import { NotificationRecipientType, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
@@ -55,7 +55,7 @@ export class PaymentsRepository {
   }
 
   findOwnedActiveCartWithItems(userId: string, cartId: string) {
-    return this.prisma.cart.findFirst({ where: { id: cartId, userId, status: CartStatus.ACTIVE }, include: { items: true } });
+    return this.prisma.cart.findFirst({ where: { id: cartId, userId }, include: { items: { include: { gift: { select: { price: true, currency: true } } } } } });
   }
 
   findPaymentByIdempotencyKey(userId: string, idempotencyKey: string) {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ForbiddenException } from '@nestjs/common';
-import { GiftStatus, PaymentStatus, PromotionalOfferApprovalStatus, PromotionalOfferStatus, ProviderApprovalStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { GiftStatus, OrderStatus, PaymentStatus, PromotionalOfferApprovalStatus, PromotionalOfferStatus, UserRole, UserStatus } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ProviderDashboardRepository } from './provider-dashboard.repository';
@@ -12,7 +12,7 @@ const approvedProvider = {
   deletedAt: null,
   providerBusinessName: 'Global Logistics Solutions',
   avatarUrl: 'https://cdn.yourdomain.com/provider-avatars/provider.png',
-  providerApprovalStatus: ProviderApprovalStatus.APPROVED,
+  status: UserStatus.APPROVED,
   isActive: true,
   isApproved: true,
   suspendedAt: null,
@@ -25,7 +25,7 @@ function createService(provider: Record<string, unknown> | null = approvedProvid
   const recentOrder = empty ? null : {
     id: 'provider_order_1',
     orderNumber: 'ORD-8821',
-    status: ProviderOrderStatus.PENDING,
+    status: OrderStatus.PENDING,
     totalPayout: 120,
     total: 120,
     currency: 'PKR',
@@ -64,7 +64,7 @@ describe('Provider dashboard source safety', () => {
     expect(service).toContain('getApprovedActiveProvider(user.uid)');
     expect(service).not.toContain('query.providerId');
     expect(repository).toContain('role: UserRole.PROVIDER');
-    expect(service).toContain('ProviderApprovalStatus.APPROVED');
+    expect(service).toContain('UserStatus.APPROVED');
     expect(service).toContain('!provider.isActive');
     expect(service).toContain('ForbiddenException');
   });
@@ -75,11 +75,11 @@ describe('ProviderDashboardService', () => {
     const { service } = createService();
     const result = await service.get({ uid: 'provider_1', role: UserRole.PROVIDER });
     expect(result.message).toBe('Provider dashboard fetched successfully.');
-    expect(result.data.provider).toEqual(expect.objectContaining({ id: 'provider_1', approvalStatus: ProviderApprovalStatus.APPROVED, status: 'ACTIVE' }));
+    expect(result.data.provider).toEqual(expect.objectContaining({ id: 'provider_1', status: 'ACTIVE' }));
   });
 
   it('pending provider cannot fetch dashboard', async () => {
-    const { service } = createService({ ...approvedProvider, providerApprovalStatus: ProviderApprovalStatus.PENDING, isApproved: false });
+    const { service } = createService({ ...approvedProvider, status: UserStatus.PENDING, isApproved: false });
     await expect(service.get({ uid: 'provider_1', role: UserRole.PROVIDER })).rejects.toThrow(ForbiddenException);
   });
 

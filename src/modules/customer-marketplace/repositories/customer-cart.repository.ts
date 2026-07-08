@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CartStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 export const CUSTOMER_CART_ITEM_INCLUDE = Prisma.validator<Prisma.CartItemInclude>()({
-  gift: { select: { id: true, name: true, imageUrls: true, currency: true } },
-  variant: { select: { id: true, name: true } },
+  gift: { select: { id: true, name: true, imageUrls: true } },
 });
 
 export const CUSTOMER_CART_WITH_ITEMS_INCLUDE = Prisma.validator<Prisma.CartInclude>()({
@@ -24,11 +23,11 @@ export class CustomerCartRepository {
 
   async findOrCreateActiveCart(userId: string) {
     const cart = await this.findActiveCartForUser(userId);
-    return cart ? this.prisma.cart.update({ where: { id: cart.id }, data: { status: CartStatus.ACTIVE } }) : this.prisma.cart.create({ data: { userId } });
+    return cart ?? this.prisma.cart.create({ data: { userId } });
   }
 
   findCustomerCartItem(userId: string, itemId: string) {
-    return this.prisma.cartItem.findFirst({ where: { id: itemId, cart: { userId, status: CartStatus.ACTIVE } }, include: CUSTOMER_CART_ITEM_INCLUDE });
+    return this.prisma.cartItem.findFirst({ where: { id: itemId, cart: { userId } }, include: CUSTOMER_CART_ITEM_INCLUDE });
   }
 
   findCartItemsForCart(cartId: string) {
@@ -41,18 +40,6 @@ export class CustomerCartRepository {
 
   findCartWithItemsForUser(userId: string) {
     return this.prisma.cart.findUnique({ where: { userId }, include: CUSTOMER_CART_WITH_ITEMS_INCLUDE });
-  }
-
-  findAddressForUser(userId: string, addressId: string) {
-    return this.prisma.customerAddress.findFirst({ where: { id: addressId, userId, deletedAt: null } });
-  }
-
-  findContactForUser(userId: string, contactId: string) {
-    return this.prisma.customerContact.findFirst({ where: { id: contactId, userId, deletedAt: null }, select: { id: true } });
-  }
-
-  findEventForUser(userId: string, eventId: string) {
-    return this.prisma.customerEvent.findFirst({ where: { id: eventId, userId, deletedAt: null }, select: { id: true } });
   }
 
   createCartItem(data: CartItemCreateData) {

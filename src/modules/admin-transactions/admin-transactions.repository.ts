@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DisputeStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, ProviderOrderStatus, RefundRequestStatus } from '@prisma/client';
+import { DisputeStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
@@ -58,7 +58,7 @@ export class AdminTransactionsRepository {
     return this.prisma.$transaction(async (tx) => {
       await tx.refundRequest.create({ data: { orderId: params.orderId, userId: params.userId, providerId: params.providerId, paymentId: params.paymentId, requestedAmount: params.requestedAmount, approvedAmount: params.approvedAmount, currency: params.currency, customerReason: params.customerReason, status: RefundRequestStatus.REFUNDED, providerComment: params.providerComment, transactionId: params.transactionId, stripeRefundId: params.stripeRefundId, approvedAt: new Date(), refundedAt: new Date() } });
       await tx.payment.update({ where: { id: params.paymentId }, data: { status: params.paymentStatus, metadataJson: params.paymentMetadata } });
-      if (params.updateOrderAsRefunded) await tx.order.update({ where: { id: params.orderId }, data: { paymentStatus: PaymentStatus.REFUNDED, status: OrderStatus.COMPLETED, providerStatus: ProviderOrderStatus.REFUNDED } });
+      if (params.updateOrderAsRefunded) await tx.order.update({ where: { id: params.orderId }, data: { status: OrderStatus.CANCELLED } });
       if (params.notifyUser) await this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Transaction refunded', message: params.notificationMessage, type: 'TRANSACTION_REFUND_PROCESSED', metadataJson: params.timelineMetadata })
     });
   }

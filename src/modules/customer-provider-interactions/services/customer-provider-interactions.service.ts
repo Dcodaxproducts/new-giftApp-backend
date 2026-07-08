@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, Prisma, ProviderOrderStatus, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewSeverity, ReviewStatus, UserStatus } from '@prisma/client';
+import { NotificationRecipientType, OrderStatus, Prisma, ProviderReportReason, ProviderReportStatus, ReviewFlagReason, ReviewSeverity, ReviewStatus, UserStatus } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CreateProviderReportDto, CreateReviewDto, CustomerReviewStatusFilter, ListCustomerReviewsDto, ListProviderReportsDto, ProviderReportStatusFilter, UpdateReviewDto } from '../dto/customer-provider-interactions.dto';
@@ -9,7 +9,7 @@ import { CUSTOMER_REVIEW_INCLUDE, CustomerReviewsRepository } from '../repositor
 import { ReportingCoreService } from '../../reporting-core/reporting-core.service';
 import { getPagination } from '../../../common/pagination/pagination.util';
 type ProviderView = { id: string; providerProfile: { businessName: string | null } | null; avatarUrl: string | null; firstName: string; lastName: string; status: UserStatus };
-type OrderWithProvider = { id: string; orderNumber: string; status: OrderStatus; providerStatus: ProviderOrderStatus; providerId: string; userId: string; provider: ProviderView };
+type OrderWithProvider = { id: string; orderNumber: string; status: OrderStatus; providerId: string; userId: string; provider: ProviderView };
 
 @Injectable()
 export class CustomerProviderInteractionsService {
@@ -23,7 +23,7 @@ export class CustomerProviderInteractionsService {
   async submitReview(user: AuthUserContext, orderId: string, dto: CreateReviewDto) {
     const order = await this.getOrderForReview(user.uid, orderId);
     if (order.providerId !== dto.providerId) throw new ForbiddenException('Provider is not part of this order');
-    if (!this.isReviewable(order.status, order.providerStatus)) throw new BadRequestException('Only delivered or completed orders can be reviewed');
+    if (!this.isReviewable(order.status)) throw new BadRequestException('Only delivered or completed orders can be reviewed');
     const existing = await this.customerReviewsRepository.findExistingReviewForOrder(user.uid, order.id, [ReviewStatus.REMOVED]);
     if (existing) throw new BadRequestException('You have already reviewed this provider order');
     const moderation = this.moderateText(dto.comment, dto.rating);
@@ -96,7 +96,7 @@ export class CustomerProviderInteractionsService {
   }
 
   private async getOrderForReview(customerId: string, orderId: string): Promise<OrderWithProvider> { const order = await this.customerReviewsRepository.findOrderForReviewByUser(customerId, orderId); if (!order) throw new NotFoundException('Order not found'); return order; }
-  private isReviewable(orderStatus: OrderStatus, providerStatus: ProviderOrderStatus): boolean { return orderStatus === OrderStatus.DELIVERED || orderStatus === OrderStatus.COMPLETED || providerStatus === ProviderOrderStatus.DELIVERED || providerStatus === ProviderOrderStatus.COMPLETED; }
+  private isReviewable(orderStatus: OrderStatus): boolean { return orderStatus === OrderStatus.DELIVERED || orderStatus === OrderStatus.COMPLETED; }
   private moderateText(comment: string, rating: number) { const text = comment.toLowerCase(); const categories = [/spam|scam|click/.test(text) ? 'SPAM' : null, /fake|fraud/.test(text) ? 'FAKE_REVIEW' : null, /abuse|hate|threat/.test(text) ? 'ABUSE' : null].filter((value): value is string => Boolean(value)); const confidence = Math.min(95, 55 + categories.length * 20 + (rating <= 2 ? 8 : 0)); const flagged = categories.length > 0; return { status: flagged ? ReviewStatus.FLAGGED : ReviewStatus.PUBLISHED, severity: categories.includes('ABUSE') ? ReviewSeverity.HIGH : flagged ? ReviewSeverity.MEDIUM : ReviewSeverity.LOW, flagReason: categories.includes('SPAM') ? ReviewFlagReason.SPAM : categories.includes('FAKE_REVIEW') ? ReviewFlagReason.FAKE_REVIEW : categories.includes('ABUSE') ? ReviewFlagReason.ABUSE : null, autoModerated: true, confidence, categories }; }
   private async reviewCode(): Promise<string> { for (let attempt = 0; attempt < 5; attempt += 1) { const code = `RV-${randomInt(10000, 99999)}`; const exists = await this.customerReviewsRepository.findReviewCode(code); if (!exists) return code; } return `RV-${Date.now()}`; }
   private reviewInclude() { return CUSTOMER_REVIEW_INCLUDE; }

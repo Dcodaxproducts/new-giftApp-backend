@@ -6,7 +6,6 @@ export const ORDER_WITH_PROVIDER_ORDERS_SELECT = Prisma.validator<Prisma.OrderSe
   id: true,
   orderNumber: true,
   status: true,
-  providerStatus: true,
   providerId: true,
   userId: true,
   provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, status: true } },

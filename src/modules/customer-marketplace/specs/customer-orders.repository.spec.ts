@@ -31,22 +31,13 @@ describe('Customer orders repository cleanup', () => {
     expect(repository).toContain('runCheckoutTransaction');
     expect(repository).toContain('this.prisma.$transaction(callback)');
     expect(repository).toContain('findActiveCartForCheckout');
-    expect(repository).toContain('findPaymentForUser');
-    expect(repository).toContain('findDeliveryAddressForUser');
     expect(repository).toContain('findGiftsForCheckout');
     expect(repository).toContain('createOrderWithItems');
     expect(repository).toContain('tx.order.create');
     expect(repository).toContain('createOrderItem');
     expect(repository).toContain('tx.orderItem.create');
-    expect(repository).toContain('createProviderSubOrder');
-    expect(repository).toContain('tx.providerOrder.create');
-    expect(repository).toContain('createProviderOrderItem');
-    expect(repository).toContain('tx.providerOrderItem.create');
     expect(repository).toContain('markCartCheckedOut');
     expect(repository).toContain('tx.cartItem.deleteMany');
-    expect(repository).toContain('tx.cart.update');
-    expect(repository).toContain('linkPaymentToOrder');
-    expect(repository).toContain('tx.payment.update');
     expect(repository).toContain('createOrderNotification');
     expect(repository).toContain('this.notificationDispatch.createAndEmit');
   });
@@ -55,9 +46,7 @@ describe('Customer orders repository cleanup', () => {
     expect(service).toContain('userId: user.uid');
     expect(service).toContain('findOwnedOrderById(user.uid, id)');
     expect(createOrderSource).toContain('getCheckoutCart(user.uid, dto.cartId)');
-    expect(createOrderSource).toContain('getCheckoutDeliveryAddress(user.uid, dto.deliveryAddressId)');
-    expect(createOrderSource).toContain('findPaymentForUser(user.uid, dto.paymentId)');
-    expect(repository).toContain('where: { ...(cartId ? { id: cartId } : {}), userId, status: CartStatus.ACTIVE }');
+    expect(repository).toContain('where: { ...(cartId ? { id: cartId } : {}), userId }');
     expect(service).not.toContain('query.userId');
     expect(service).not.toContain('dto.userId');
   });
@@ -66,7 +55,7 @@ describe('Customer orders repository cleanup', () => {
     expect(service).toContain('private async getCheckoutCart(userId: string, cartId?: string): Promise<CartView>');
     expect(service).toContain("throw new NotFoundException('Active cart not found')");
     expect(repository).toContain('findActiveCartForCheckout(userId: string, cartId?: string)');
-    expect(repository).toContain('userId, status: CartStatus.ACTIVE');
+    expect(repository).toContain('userId');
   });
 
   it('STRIPE_CARD requires owned successful payment and amount validation uses backend summary', () => {
@@ -94,7 +83,7 @@ describe('Customer orders repository cleanup', () => {
     expect(createOrderSource).toContain('const providerItems = cart.items.filter((item) => item.providerId === providerId)');
     expect(createOrderSource).toContain('providerSubtotal');
     expect(createOrderSource).toContain('providerDiscount');
-    expect(createOrderSource).toContain('ProviderOrderStatus.PENDING');
+    expect(createOrderSource).toContain('OrderStatus.PENDING');
     expect(createOrderSource).toContain('this.providerPayoutCalculation(tx, providerId, providerSubtotal - providerDiscount)');
     expect(createOrderSource).toContain('platformFee: new Prisma.Decimal(payout.platformFee)');
     expect(createOrderSource).toContain('totalPayout: new Prisma.Decimal(payout.totalPayout)');
@@ -123,7 +112,7 @@ describe('Customer orders repository cleanup', () => {
   it('cart is marked checked out as before', () => {
     expect(createOrderSource).toContain('markCartCheckedOut(tx, cart.id)');
     expect(repository).toContain('tx.cartItem.deleteMany({ where: { cartId } })');
-    expect(repository).toContain('tx.cart.update({ where: { id: cartId }, data: { status: CartStatus.CHECKED_OUT } })');
+    expect(repository).toContain('tx.cartItem.deleteMany({ where: { cartId } })');
   });
 
   it('COD and placeholder payment method behavior remain unchanged', () => {

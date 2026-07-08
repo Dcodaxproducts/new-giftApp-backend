@@ -19,13 +19,13 @@ export class ProviderOrdersController {
   @ApiTags('03 Provider - Orders')
   @ApiOperation({ summary: 'List own assigned provider orders', description: 'PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.' })
   @ApiQuery({ name: 'status', enum: ProviderOrderStatusFilter, required: false })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'provider_order_id', orderId: 'order_id', orderNumber: 'ORD-10293', status: 'PENDING', paymentStatus: 'SUCCEEDED', customer: { name: 'Sarah Jenkins', phone: '+15551234567' }, itemPreview: [{ name: 'Premium Sneakers', imageUrl: 'https://cdn.yourdomain.com/gifts/sneaker.png' }], itemCount: 3, totalPayout: 142, currency: 'PKR', createdAt: '2026-10-24T10:45:00.000Z', receivedAgoText: '5m ago' }], message: 'Provider orders fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'order_id', orderId: 'order_id', orderNumber: 'ORD-10293', status: 'PENDING', customer: { name: 'Sarah Jenkins', phone: '+15551234567' }, itemPreview: [{ name: 'Premium Sneakers', imageUrl: 'https://cdn.yourdomain.com/gifts/sneaker.png' }], itemCount: 3, total: 142, currency: 'PKR', createdAt: '2026-10-24T10:45:00.000Z', receivedAgoText: '5m ago' }], message: 'Provider orders fetched successfully.' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderOrdersDto) { return this.providerOrders.list(user, query); }
 
 
   @Get('history')
   @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'List own provider order history', description: 'PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.' })
+  @ApiOperation({ summary: 'List own provider order history', description: 'PROVIDER only. Uses Order records scoped to the authenticated provider. Status tabs map to order statuses.' })
   history(@CurrentUser() user: AuthUserContext, @Query() query: ProviderOrderHistoryDto) { return this.providerOrders.history(user, query); }
 
   @Get('performance')
@@ -35,7 +35,7 @@ export class ProviderOrdersController {
 
   @Get('analytics/revenue')
   @ApiTags('03 Provider - Order Analytics')
-  @ApiOperation({ summary: 'Fetch own provider revenue analytics', description: 'PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.' })
+  @ApiOperation({ summary: 'Fetch own provider revenue analytics', description: 'PROVIDER only. Revenue uses order total for active/completed orders.' })
   revenueAnalytics(@CurrentUser() user: AuthUserContext, @Query() query: ProviderRevenueAnalyticsDto) { return this.providerOrders.revenueAnalytics(user, query); }
 
   @Get('analytics/ratings')
@@ -66,9 +66,9 @@ export class ProviderOrdersController {
 
   @Post(':id/action')
   @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Run provider order action', description: 'PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.' })
-  @ApiBody({ type: ProviderOrderActionDto, examples: { accept: { value: { action: 'ACCEPT', comment: 'Order accepted and will be processed shortly.', notifyCustomer: true } }, reject: { value: { action: 'REJECT', reason: 'OUT_OF_STOCK', comment: 'The selected item is currently unavailable.', notifyCustomer: true } }, updateStatus: { value: { action: 'UPDATE_STATUS', status: 'PROCESSING', note: 'Order is being prepared.', notifyCustomer: true } }, fulfill: { value: { action: 'FULFILL', dispatchAt: '2026-10-25T10:00:00.000Z', estimatedDeliveryAt: '2026-10-26T10:00:00.000Z', carrier: 'FedEx', trackingNumber: 'FDX-123456', notifyCustomer: true, note: 'Package handed to courier.' } } } })
-  @ApiResponse({ status: 200, description: 'Provider order action completed successfully', schema: { example: { success: true, data: { id: 'provider_order_id', status: 'PROCESSING', orderId: 'order_id', orderNumber: 'ORD-10293' }, message: 'Provider order action completed successfully.' } } })
+  @ApiOperation({ summary: 'Run provider order action', description: 'PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces order state machine. FULFILL moves order to SHIPPED state.' })
+  @ApiBody({ type: ProviderOrderActionDto, examples: { accept: { value: { action: 'ACCEPT', comment: 'Order accepted and will be processed shortly.', notifyCustomer: true } }, reject: { value: { action: 'REJECT', reason: 'Out of stock', comment: 'The selected item is currently unavailable.', notifyCustomer: true } }, updateStatus: { value: { action: 'UPDATE_STATUS', status: 'PROCESSING', note: 'Order is being prepared.', notifyCustomer: true } }, fulfill: { value: { action: 'FULFILL', notifyCustomer: true, note: 'Package handed to courier.' } } } })
+  @ApiResponse({ status: 200, description: 'Provider order action completed successfully', schema: { example: { success: true, data: { id: 'order_id', status: 'PROCESSING', orderNumber: 'ORD-10293' }, message: 'Provider order action completed successfully.' } } })
   action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ProviderOrderActionDto) { return this.providerOrders.action(user, id, dto); }
 
   @Get(':id/timeline')

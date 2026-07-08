@@ -674,7 +674,7 @@ export class UserManagementCoreService {
         id: `${order.id}:created`,
         type: UserActivityType.ORDER,
         title: 'Order placed',
-        description: `${order.orderNumber} created for ${this.formatMoney(order.total, order.currency)} with payment ${this.titleCase(order.paymentStatus)}.`,
+        description: `${order.orderNumber} created for ${Number(order.total).toFixed(2)} with status ${this.titleCase(order.status)}.`,
         createdAt: order.createdAt,
       },
     ];
@@ -684,7 +684,7 @@ export class UserManagementCoreService {
         id: `${order.id}:updated`,
         type: UserActivityType.ORDER,
         title: `Order ${this.titleCase(order.status)}`,
-        description: `${order.orderNumber} is ${this.titleCase(order.status)} with payment ${this.titleCase(order.paymentStatus)}.`,
+        description: `${order.orderNumber} is ${this.titleCase(order.status)}.`,
         createdAt: order.updatedAt,
       });
     }
@@ -711,8 +711,8 @@ export class UserManagementCoreService {
     return {
       id: timeline.id,
       type: UserActivityType.ORDER,
-      title: `Order ${timeline.providerStatus}`,
-      description: `${orderNumber}: ${`Provider status changed to ${timeline.providerStatus}` || this.titleCase(timeline.providerStatus)}`,
+      title: `Order ${timeline.status}`,
+      description: `${orderNumber}: Status changed to ${this.titleCase(timeline.status)}`,
       createdAt: timeline.updatedAt,
     };
   }

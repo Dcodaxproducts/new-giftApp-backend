@@ -1,10 +1,10 @@
-import { DisputePriority, DisputeReason, DisputeStatus, PaymentStatus, Prisma, ProviderDisputeCategory, ProviderDisputeSeverity, ProviderDisputeStatus } from '@prisma/client';
+import { DisputeStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminDashboardRepository } from './admin-dashboard.repository';
 import { AdminDashboardService } from './admin-dashboard.service';
 
-type MockRepository = jest.Mocked<Pick<AdminDashboardRepository, 'countUsers' | 'countProviders' | 'countPayments' | 'countOrders' | 'sumPayments' | 'findRevenuePayments' | 'findDistributionPayments' | 'findProviderPerformanceRows' | 'findRecentCustomerDisputes' | 'findRecentProviderDisputes'>>;
+type MockRepository = jest.Mocked<Pick<AdminDashboardRepository, 'countUsers' | 'countProviders' | 'countPayments' | 'countOrders' | 'sumPayments' | 'findRevenuePayments' | 'findDistributionPayments' | 'findProviderPerformanceRows' | 'findRecentCustomerDisputes'>>;
 
 function aggregate(amount: number): Prisma.GetPaymentAggregateType<{ _sum: { amount: true }; where: Prisma.PaymentWhereInput }> {
   return { _sum: { amount: new Prisma.Decimal(amount) } };
@@ -21,7 +21,6 @@ function createService(overrides: Partial<MockRepository> = {}) {
     findDistributionPayments: jest.fn().mockResolvedValue([]),
     findProviderPerformanceRows: jest.fn().mockResolvedValue([]),
     findRecentCustomerDisputes: jest.fn().mockResolvedValue([]),
-    findRecentProviderDisputes: jest.fn().mockResolvedValue([]),
     ...overrides,
   };
   return { service: new AdminDashboardService(repository as unknown as AdminDashboardRepository), repository };
@@ -70,14 +69,13 @@ describe('AdminDashboardService', () => {
         findProviderPerformanceRows: jest.fn().mockResolvedValue([
         { providerId: 'provider_1', providerName: 'Stripe Integration', totalOrders: 2, successfulOrders: 1, totalVolume: 200, currency: 'USD' },
       ]),
-      findRecentCustomerDisputes: jest.fn().mockResolvedValue([{ id: 'dispute_1', caseId: 'DISP-9021', reason: DisputeReason.DUPLICATE_CHARGE, priority: DisputePriority.HIGH, status: DisputeStatus.OPEN, createdAt: new Date('2026-04-08T10:00:00.000Z'), user: { firstName: 'Marcus', lastName: 'Wright' } }]),
-      findRecentProviderDisputes: jest.fn().mockResolvedValue([{ id: 'provider_dispute_1', caseId: 'PD-9021', reason: 'Late evidence', category: ProviderDisputeCategory.NON_DELIVERY, priority: ProviderDisputeSeverity.LOW, status: ProviderDisputeStatus.OPEN, createdAt: new Date('2026-04-07T10:00:00.000Z'), customer: { firstName: 'Ada', lastName: 'Lovelace' } }]),
+      findRecentCustomerDisputes: jest.fn().mockResolvedValue([{ id: 'dispute_1', caseId: 'DISP-9021', reason: 'DUPLICATE_CHARGE', status: DisputeStatus.PENDING, createdAt: new Date('2026-04-08T10:00:00.000Z'), user: { firstName: 'Marcus', lastName: 'Wright' } }]),
     });
     const response = await service.get({});
     expect(response.data.revenueTrends.values.reduce((sum, value) => sum + value, 0)).toBe(120);
     expect(response.data.giftVsPayment).toEqual({ giftCardsPercent: 67, directPaymentsPercent: 33 });
     expect(response.data.providerPerformance).toEqual([{ providerId: 'provider_1', providerName: 'Stripe Integration', successRate: 50, totalVolume: 200 }]);
-    expect(response.data.recentDisputes[0]).toMatchObject({ id: 'dispute_1', caseId: 'DISP-9021', userName: 'Marcus Wright', reason: 'Duplicate Charge', status: 'HIGH_PRIORITY' });
+    expect(response.data.recentDisputes[0]).toMatchObject({ id: 'dispute_1', caseId: 'dispute_1', userName: 'Marcus Wright', reason: 'Duplicate Charge', status: 'PENDING' });
   });
 });
 
@@ -120,9 +118,8 @@ describe('Admin dashboard overview source safety', () => {
 
   it('stays read-only and reuses existing source tables', () => {
     expect(repository).toContain('this.prisma.payment.findMany');
-    expect(repository).toContain('this.prisma.providerOrder.groupBy');
-    expect(repository).toContain('this.prisma.disputeCase.findMany');
-    expect(repository).toContain('this.prisma.providerDisputeCase.findMany');
+    expect(repository).toContain('this.prisma.order.groupBy');
+    expect(repository).toContain('this.prisma.dispute.findMany');
     expect(repository).not.toContain('.create(');
     expect(repository).not.toContain('.update(');
     expect(repository).not.toContain('.delete(');

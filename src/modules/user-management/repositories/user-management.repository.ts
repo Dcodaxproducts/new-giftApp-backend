@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountType, CustomerSubscriptionStatus, NotificationRecipientType, PaymentStatus, Prisma, User, UserRole, UserStatus } from '@prisma/client';
+import { AccountType, CustomerSubscriptionStatus, NotificationRecipientType, OrderStatus, PaymentStatus, Prisma, User, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../../common/audit/admin-audit-log.util';
 import { PrismaService } from '../../../database/prisma.service';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
@@ -21,7 +21,7 @@ export interface UserSubscriptionSnapshot {
 }
 
 export type UserActivityOrder = Prisma.OrderGetPayload<{
-  select: { id: true; orderNumber: true; status: true; paymentStatus: true; total: true; currency: true; createdAt: true; updatedAt: true };
+  select: { id: true; orderNumber: true; status: true; total: true; createdAt: true; updatedAt: true };
 }>;
 
 export type UserActivityPayment = Prisma.PaymentGetPayload<{
@@ -29,7 +29,7 @@ export type UserActivityPayment = Prisma.PaymentGetPayload<{
 }>;
 
 export type UserActivityProviderOrderTimeline = Prisma.OrderGetPayload<{
-  select: { id: true; orderNumber: true; providerStatus: true; updatedAt: true; createdAt: true };
+  select: { id: true; orderNumber: true; status: true; updatedAt: true; createdAt: true };
 }>;
 
 export interface UserActivityRecords {
@@ -101,7 +101,7 @@ export class UserManagementRepository {
       }),
       this.prisma.order.groupBy({
         by: ['userId'],
-        where: { userId: { in: uniqueUserIds }, paymentStatus: PaymentStatus.SUCCEEDED },
+        where: { userId: { in: uniqueUserIds }, status: { in: [OrderStatus.DELIVERED, OrderStatus.COMPLETED] } },
         _sum: { total: true },
       }),
     ]);
@@ -227,7 +227,7 @@ export class UserManagementRepository {
       }),
       this.prisma.order.findMany({
         where: { userId },
-        select: { id: true, orderNumber: true, status: true, paymentStatus: true, total: true, currency: true, createdAt: true, updatedAt: true },
+        select: { id: true, orderNumber: true, status: true, total: true, createdAt: true, updatedAt: true },
         orderBy: { updatedAt: 'desc' },
         take: 200,
       }),
@@ -239,7 +239,7 @@ export class UserManagementRepository {
       }),
       this.prisma.order.findMany({
         where: { userId },
-        select: { id: true, orderNumber: true, providerStatus: true, updatedAt: true, createdAt: true },
+        select: { id: true, orderNumber: true, status: true, updatedAt: true, createdAt: true },
         orderBy: { updatedAt: 'desc' },
         take: 200,
       }),

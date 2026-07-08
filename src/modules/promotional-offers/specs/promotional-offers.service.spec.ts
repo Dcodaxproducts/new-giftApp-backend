@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { BadRequestException } from '@nestjs/common';
-import { GiftModerationStatus, GiftStatus, NotificationRecipientType, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferRejectionReason, PromotionalOfferStatus, UserRole } from '@prisma/client';
+import { GiftStatus, NotificationRecipientType, PromotionalOfferApprovalStatus, PromotionalOfferDiscountType, PromotionalOfferRejectionReason, PromotionalOfferStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { PromotionalOffersRepository } from '../repositories/promotional-offers.repository';
@@ -9,7 +9,7 @@ import { ProviderOffersRepository } from '../repositories/provider-offers.reposi
 import { AdminPromotionalOfferAction } from '../dto/promotional-offers.dto';
 
 function createService() {
-  const item = { id: 'gift_1', name: 'Gift', imageUrls: ['https://cdn/gift.png'], price: { toString: () => '100' }, currency: 'USD', status: GiftStatus.ACTIVE, moderationStatus: GiftModerationStatus.APPROVED, providerId: 'provider_1', deletedAt: null };
+  const item = { id: 'gift_1', name: 'Gift', imageUrls: ['https://cdn/gift.png'], price: { toString: () => '100' }, currency: 'USD', status: GiftStatus.ACTIVE, providerId: 'provider_1', deletedAt: null };
   const provider = { id: 'provider_1', email: 'p@example.com', providerBusinessName: 'Provider', firstName: 'P', lastName: 'One' };
   const offer = { id: 'offer_1', providerId: 'provider_1', itemId: 'gift_1', title: 'Sale', description: null, discountType: PromotionalOfferDiscountType.PERCENTAGE, discountValue: { toString: () => '20' }, startDate: new Date(Date.now() - 1000), endDate: new Date(Date.now() + 86_400_000), eligibilityRules: null, isActive: true, status: PromotionalOfferStatus.PENDING, approvalStatus: PromotionalOfferApprovalStatus.PENDING, approvedAt: null, approvedBy: null, rejectedAt: null, rejectedBy: null, rejectionReason: null, rejectionComment: null, createdBy: 'provider_1', updatedBy: null, deletedAt: null, createdAt: new Date(), updatedAt: new Date(), item, provider };
   const prisma = {

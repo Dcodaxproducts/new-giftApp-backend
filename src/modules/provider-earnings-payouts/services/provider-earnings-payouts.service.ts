@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationRecipientType, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, OrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserStatus } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, OrderStatus, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { EarningsChartQueryDto, EarningsLedgerQueryDto, EarningsLedgerStatusFilter, EarningsLedgerTypeFilter, EarningsSummaryQueryDto, EarningsSummaryRange, PayoutHistoryQueryDto, PayoutHistoryRange, PayoutPreviewQueryDto, PayoutSortBy, PayoutStatusFilter, ProviderPayoutAction, ProviderPayoutActionDto, RequestProviderPayoutDto, SortOrder } from '../dto/provider-earnings-payouts.dto';
 import { ProviderEarningsPayoutsRepository } from '../repositories/provider-earnings-payouts.repository';
@@ -105,8 +105,8 @@ export class ProviderEarningsPayoutsService {
 
   async recordOrderEarning(orderId: string): Promise<void> {
     const order = await this.repository.findOrderForEarning(orderId);
-    if (!order || order.paymentStatus !== PaymentStatus.SUCCEEDED || !([OrderStatus.DELIVERED, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) return;
-    await this.repository.createOrderEarningLedgerEntry({ providerId: order.providerId, orderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: order.totalPayout ?? order.total, currency: order.currency, status: ProviderEarningsLedgerStatus.AVAILABLE, description: `Order #${order.orderNumber ?? order.orderNumber} payout`, metadataJson: { orderId: order.id } });
+    if (!order || !([OrderStatus.DELIVERED, OrderStatus.COMPLETED] as OrderStatus[]).includes(order.status)) return;
+    await this.repository.createOrderEarningLedgerEntry({ providerId: order.providerId, orderId: order.id, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: order.total, currency: 'USD', status: ProviderEarningsLedgerStatus.AVAILABLE, description: `Order #${order.orderNumber} payout`, metadataJson: { orderId: order.id } });
   }
 
   async returnFailedPayoutBalance(providerId: string, payoutId: string, reason: string): Promise<void> {

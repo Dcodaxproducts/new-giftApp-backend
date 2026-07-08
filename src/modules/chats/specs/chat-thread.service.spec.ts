@@ -72,7 +72,6 @@ function createService(overrides: { thread?: Record<string, unknown>; canResolve
     messages as never,
     {} as never,
     { assertCompleted: jest.fn().mockResolvedValue(undefined) } as never,
-    auditLogs as never,
     notifications as never,
   );
   return { service, threads, access, auditLogs, notifications };

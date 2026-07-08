@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CustomerDeliveryOption, CustomerReminderEventType, OrderStatus, PaymentMethod } from '@prisma/client';
+import { CustomerReminderEventType, OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Min, MinLength } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
 
 export enum CustomerGiftSortBy {
   POPULARITY = 'popularity',
@@ -24,7 +24,6 @@ export class CustomerGiftListDto {
   @ApiPropertyOptional({ example: 250 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) maxPrice?: number;
   @ApiPropertyOptional({ example: 4 }) @IsOptional() @Type(() => Number) @IsNumber() @Min(0) minRating?: number;
   @ApiPropertyOptional({ example: 'Dcodax Gifts' }) @IsOptional() @IsString() brand?: string;
-  @ApiPropertyOptional({ enum: CustomerDeliveryOption, example: CustomerDeliveryOption.SAME_DAY }) @IsOptional() @IsEnum(CustomerDeliveryOption) deliveryOption?: CustomerDeliveryOption;
   @ApiPropertyOptional({ enum: CustomerGiftSortBy, example: CustomerGiftSortBy.POPULARITY }) @IsOptional() @IsEnum(CustomerGiftSortBy) sortBy?: CustomerGiftSortBy;
 }
 
@@ -80,47 +79,29 @@ export class UpdateCustomerReminderDto {
 
 export class AddCartItemDto {
   @ApiProperty({ example: 'cmf0giftroses001' }) @IsString() giftId!: string;
-  @ApiPropertyOptional({ example: 'cmf0variant50ml001' }) @IsOptional() @IsString() variantId?: string;
   @ApiProperty({ example: 1 }) @Type(() => Number) @IsInt() @Min(1) quantity!: number;
-  @ApiProperty({ enum: CustomerDeliveryOption, example: CustomerDeliveryOption.SCHEDULED }) @IsEnum(CustomerDeliveryOption) deliveryOption!: CustomerDeliveryOption;
-  @ApiPropertyOptional({ example: 'cmf0contactmary001' }) @IsOptional() @IsString() recipientContactId?: string;
-  @ApiProperty({ example: 'Sarah Khan' }) @IsString() recipientName!: string;
-  @ApiProperty({ example: '+923001234567' }) @IsString() recipientPhone!: string;
-  @ApiProperty({ example: 'cmf0addresshome001' }) @IsString() recipientAddressId!: string;
-  @ApiPropertyOptional({ example: 'cmf0eventbirthday001' }) @IsOptional() @IsString() eventId?: string;
-  @ApiPropertyOptional({ example: 'Hope you love this special surprise!' }) @IsOptional() @IsString() giftMessage?: string;
-  @ApiPropertyOptional({ type: [String], example: ['https://cdn.yourdomain.com/gift-message-media/photo.png'] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) messageMediaUrls?: string[];
-  @ApiPropertyOptional({ example: '2026-06-01T12:00:00.000Z', nullable: true }) @IsOptional() @IsDateString() scheduledDeliveryAt?: string;
 }
 
 export class UpdateCartItemDto {
-  @ApiPropertyOptional({ example: 'cmf0variant100ml001' }) @IsOptional() @IsString() variantId?: string;
   @ApiPropertyOptional({ example: 2 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) quantity?: number;
-  @ApiPropertyOptional({ enum: CustomerDeliveryOption, example: CustomerDeliveryOption.NEXT_DAY }) @IsOptional() @IsEnum(CustomerDeliveryOption) deliveryOption?: CustomerDeliveryOption;
-  @ApiPropertyOptional({ example: 'cmf0contactmary001' }) @IsOptional() @IsString() recipientContactId?: string;
-  @ApiPropertyOptional({ example: 'Sarah Khan' }) @IsOptional() @IsString() recipientName?: string;
-  @ApiPropertyOptional({ example: '+923001234567' }) @IsOptional() @IsString() recipientPhone?: string;
-  @ApiPropertyOptional({ example: 'cmf0addresshome001' }) @IsOptional() @IsString() recipientAddressId?: string;
-  @ApiPropertyOptional({ example: 'cmf0eventbirthday001' }) @IsOptional() @IsString() eventId?: string;
-  @ApiPropertyOptional({ example: 'Happy Birthday!' }) @IsOptional() @IsString() giftMessage?: string;
-  @ApiPropertyOptional({ type: [String], example: ['https://cdn.yourdomain.com/gift-message-media/video.mp4'] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) messageMediaUrls?: string[];
-  @ApiPropertyOptional({ example: '2026-06-01T12:00:00.000Z', nullable: true }) @IsOptional() @IsDateString() scheduledDeliveryAt?: string;
 }
 
 export enum OrderHistoryType { ALL = 'ALL', GIFTS_SENT = 'GIFTS_SENT', PAYMENTS_SENT = 'PAYMENTS_SENT' }
 
 export class CreateOrderDto {
   @ApiPropertyOptional({ example: 'cmf0cartactive001' }) @IsOptional() @IsString() cartId?: string;
-  @ApiPropertyOptional({ example: 'cmf0payment001' }) @IsOptional() @IsString() paymentId?: string;
-  @ApiProperty({ example: 'cmf0addresshome001' }) @IsString() deliveryAddressId!: string;
-  @ApiPropertyOptional({ enum: PaymentMethod, default: PaymentMethod.COD, example: PaymentMethod.COD }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+  @ApiProperty({ example: 'Sarah Khan' }) @IsString() recipientName!: string;
+  @ApiProperty({ example: '+923001234567' }) @IsString() recipientPhone!: string;
+  @ApiProperty({ example: 'House 12, Street 4, F-8/2, Islamabad' }) @IsString() recipientAddress!: string;
+  @ApiPropertyOptional({ example: 'Hope you love this special surprise!' }) @IsOptional() @IsString() giftMessage?: string;
+  @ApiPropertyOptional({ type: [String], example: ['https://cdn.yourdomain.com/gift-message-media/photo.png'] }) @IsOptional() @IsArray() mediaAttachments?: any[];
 }
 
 export class ListCustomerOrdersDto {
   @ApiPropertyOptional({ example: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) limit?: number;
   @ApiPropertyOptional({ enum: OrderHistoryType, example: OrderHistoryType.ALL }) @IsOptional() @IsEnum(OrderHistoryType) type?: OrderHistoryType;
-  @ApiPropertyOptional({ enum: OrderStatus, example: OrderStatus.CONFIRMED }) @IsOptional() @IsEnum(OrderStatus) status?: OrderStatus;
+  @ApiPropertyOptional({ enum: OrderStatus, example: OrderStatus.PENDING }) @IsOptional() @IsEnum(OrderStatus) status?: OrderStatus;
   @ApiPropertyOptional({ example: '2026-01-01T00:00:00.000Z' }) @IsOptional() @IsDateString() fromDate?: string;
   @ApiPropertyOptional({ example: '2026-12-31T23:59:59.000Z' }) @IsOptional() @IsDateString() toDate?: string;
 }

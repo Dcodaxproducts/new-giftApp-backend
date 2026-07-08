@@ -1,5 +1,5 @@
 import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
-import { ProviderApprovalStatus, UserRole } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -86,7 +86,7 @@ describe('JwtAuthGuard', () => {
         role: UserRole.PROVIDER,
         isActive: true,
         deletedAt: null,
-        providerApprovalStatus: ProviderApprovalStatus.PENDING,
+        status: UserStatus.PENDING,
         suspendedAt: null,
       },
     });

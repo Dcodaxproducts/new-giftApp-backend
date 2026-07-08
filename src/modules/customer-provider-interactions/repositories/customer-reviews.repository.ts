@@ -13,7 +13,6 @@ const ORDER_FOR_REVIEW_SELECT = Prisma.validator<Prisma.OrderSelect>()({
   id: true,
   orderNumber: true,
   status: true,
-  providerStatus: true,
   providerId: true,
   userId: true,
   provider: { select: { id: true, providerProfile: { select: { businessName: true } }, avatarUrl: true, firstName: true, lastName: true, status: true } },

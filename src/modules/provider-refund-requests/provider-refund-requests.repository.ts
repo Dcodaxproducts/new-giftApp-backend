@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PaymentStatus, Prisma, ProviderOrderStatus, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
+import { OrderStatus, Prisma, RefundRejectReason, RefundRequestStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const PROVIDER_REFUND_REQUEST_INCLUDE = Prisma.validator<Prisma.RefundRequestInclude>()({
   user: true,
-  order: { include: { items: { include: { gift: true, variant: true } } } },
+  order: { include: { items: { include: { gift: true } } } },
   payment: true,
 });
 
@@ -36,8 +36,7 @@ export class ProviderRefundRequestsRepository {
     return this.prisma.$transaction(async (tx) => {
       const item = await tx.refundRequest.update({ where: { id: params.refundId }, data: { status: params.status, approvedAmount: params.refundAmount, providerComment: params.providerComment, approvedAt: new Date(), refundedAt: params.status === RefundRequestStatus.REFUNDED ? new Date() : null, transactionId: params.transactionId, stripeRefundId: params.stripeRefundId } });
       if (params.status === RefundRequestStatus.REFUNDED) {
-        await tx.order.update({ where: { id: params.orderId }, data: { providerStatus: ProviderOrderStatus.REFUNDED, paymentStatus: PaymentStatus.REFUNDED } });
-        if (params.paymentId) await tx.payment.update({ where: { id: params.paymentId }, data: { status: PaymentStatus.REFUNDED } });
+        await tx.order.update({ where: { id: params.orderId }, data: { status: OrderStatus.CANCELLED } });
       }
       if (params.notifyCustomer) await this.notificationDispatch.createAndEmit({ recipientId: params.userId, recipientType: 'REGISTERED_USER', title: params.status === RefundRequestStatus.REFUNDED ? 'Refund processed' : 'Refund approved', message: params.status === RefundRequestStatus.REFUNDED ? 'Your refund was approved and processed.' : 'Your refund was approved and is being processed.', type: params.status === RefundRequestStatus.REFUNDED ? 'CUSTOMER_REFUND_PROCESSED' : 'CUSTOMER_REFUND_APPROVED', metadataJson: { refundRequestId: params.refundId, orderId: params.orderId, refundAmount: params.refundAmount, transactionId: params.transactionId } });
       return item;

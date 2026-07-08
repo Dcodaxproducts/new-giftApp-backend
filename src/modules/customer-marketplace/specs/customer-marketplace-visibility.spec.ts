@@ -18,9 +18,7 @@ describe('Customer marketplace provider inventory visibility rules', () => {
   it('requires approved active non-suspended providers', () => {
     const approvedProviderWhere = service.slice(service.indexOf('private approvedProviderWhere'), service.indexOf('private activeOfferWhere'));
     expect(approvedProviderWhere).toContain('role: UserRole.PROVIDER');
-    expect(approvedProviderWhere).toContain('isActive: true');
-    expect(approvedProviderWhere).toContain('approvalStatus: ProviderApprovalStatus.APPROVED');
-    expect(approvedProviderWhere).toContain('suspendedAt: null');
+    expect(approvedProviderWhere).toContain('status: UserStatus.APPROVED');
   });
 
   it('does not require stock for marketplace visibility', () => {

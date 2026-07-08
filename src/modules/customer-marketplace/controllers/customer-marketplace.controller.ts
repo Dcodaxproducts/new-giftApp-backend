@@ -53,15 +53,14 @@ export class CustomerMarketplaceController {
   @ApiQuery({ name: 'maxPrice', required: false })
   @ApiQuery({ name: 'minRating', required: false })
   @ApiQuery({ name: 'brand', required: false })
-  @ApiQuery({ name: 'deliveryOption', required: false })
   @ApiQuery({ name: 'sortBy', required: false })
-  @ApiResponse({ status: 200, description: 'Customer gifts fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', rating: 4.6, isWishlisted: false, reviewCount: 24, category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts' }, deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Customer gifts fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Customer gifts fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', rating: 4.6, isWishlisted: false, reviewCount: 24, category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts' }, activeOffer: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Customer gifts fetched successfully' } } })
   gifts(@CurrentUser() user: AuthUserContext, @Query() query: CustomerGiftListDto) { return this.marketplace.gifts(user, query); }
 
   @Get('gifts/:id')
   @ApiTags('05 Customer - Marketplace')
   @ApiOperation({ summary: 'Fetch customer-safe gift details', description: 'REGISTERED_USER only. Gift details include customer wishlist state.' })
-  @ApiResponse({ status: 200, description: 'Gift details fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', price: 99.99, originalPrice: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], rating: 4.6, reviewCount: 24, isWishlisted: false, badges: ['AUTHENTIC'], category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts', rating: 4.6, reviewCount: 24, fulfillmentMethods: ['DELIVERY'] }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }], deliveryOptions: ['SAME_DAY', 'NEXT_DAY', 'SCHEDULED'], activeOffer: null }, message: 'Gift details fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Gift details fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', price: 99.99, originalPrice: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], rating: 4.6, reviewCount: 24, isWishlisted: false, badges: ['AUTHENTIC'], category: { id: 'gift_category_id', name: 'Perfumes', slug: 'perfumes' }, provider: { id: 'provider_id', businessName: 'Dcodax Gifts', rating: 4.6, reviewCount: 24, fulfillmentMethods: ['DELIVERY'] }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }], activeOffer: null }, message: 'Gift details fetched successfully' } } })
   giftDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.giftDetails(user, id); }
 
   @Roles(UserRole.REGISTERED_USER)
@@ -148,22 +147,22 @@ export class CustomerMarketplaceController {
   @Roles(UserRole.REGISTERED_USER)
   @Get('cart')
   @ApiTags('05 Customer - Cart')
-  @ApiOperation({ summary: 'Fetch active cart', description: 'REGISTERED_USER only. Totals are backend calculated from price snapshots.' })
-  @ApiResponse({ status: 200, description: 'Cart fetched successfully', schema: { example: { success: true, data: { id: 'cart_id', status: 'ACTIVE', items: [{ id: 'cart_item_id', giftId: 'gift_id', variantId: 'variant_id', name: 'Luxury Perfume', variantName: '50ml', quantity: 1, unitPrice: 129.99, discountAmount: 20, finalUnitPrice: 109.99, lineTotal: 109.99, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', deliveryOption: 'SAME_DAY', recipient: { contactId: 'contact_id', name: 'Sarah Khan', phone: '+923001234567', addressId: 'address_id' }, giftMessage: 'Hope you love this special surprise!', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/photo.png'], scheduledDeliveryAt: '2026-12-24T10:00:00.000Z' }], summary: { subtotal: 129.99, discountTotal: 20, deliveryFee: 0, tax: 0, total: 109.99, currency: 'PKR' } }, message: 'Cart fetched successfully' } } })
+  @ApiOperation({ summary: 'Fetch active cart', description: 'REGISTERED_USER only. Returns cart items with gift info.' })
+  @ApiResponse({ status: 200, description: 'Cart fetched successfully', schema: { example: { success: true, data: { id: 'cart_id', items: [{ id: 'cart_item_id', giftId: 'gift_id', name: 'Luxury Perfume', quantity: 1, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', createdAt: '2026-06-01T12:00:00.000Z', updatedAt: '2026-06-01T12:00:00.000Z' }], itemCount: 1 }, message: 'Cart fetched successfully' } } })
   cart(@CurrentUser() user: AuthUserContext) { return this.marketplace.cart(user); }
 
   @Roles(UserRole.REGISTERED_USER)
   @Post('cart/items')
   @ApiTags('05 Customer - Cart')
-  @ApiOperation({ summary: 'Add item to cart', description: 'REGISTERED_USER only. Backend calculates unit price, active offer discount, final price, subtotal, delivery fee placeholder, and total.' })
-  @ApiBody({ type: AddCartItemDto, examples: { sendGift: { value: { giftId: 'cmf0giftroses001', variantId: 'cmf0variant50ml001', quantity: 1, deliveryOption: 'SAME_DAY', recipientContactId: 'cmf0contactmary001', recipientName: 'Sarah Khan', recipientPhone: '+923001234567', recipientAddressId: 'cmf0addresshome001', eventId: 'cmf0eventbirthday001', giftMessage: 'Hope you love this special surprise!', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/photo.png'], scheduledDeliveryAt: '2026-12-24T10:00:00.000Z' } } } })
+  @ApiOperation({ summary: 'Add item to cart', description: 'REGISTERED_USER only. All cart items must belong to the same provider.' })
+  @ApiBody({ type: AddCartItemDto, examples: { sendGift: { value: { giftId: 'cmf0giftroses001', quantity: 1 } } } })
   addCartItem(@CurrentUser() user: AuthUserContext, @Body() dto: AddCartItemDto) { return this.marketplace.addCartItem(user, dto); }
 
   @Roles(UserRole.REGISTERED_USER)
   @Patch('cart/items/:id')
   @ApiTags('05 Customer - Cart')
   @ApiOperation({ summary: 'Update cart item', description: 'REGISTERED_USER only. Validates ownership through the active customer cart.' })
-  @ApiBody({ type: UpdateCartItemDto, examples: { updateSelection: { value: { variantId: 'cmf0variant100ml001', quantity: 2, deliveryOption: 'SCHEDULED', recipientContactId: 'cmf0contactmary001', recipientName: 'Sarah Khan', recipientPhone: '+923001234567', recipientAddressId: 'cmf0addresshome001', eventId: 'cmf0eventbirthday001', giftMessage: 'Updated gift note.', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/video.mp4'], scheduledDeliveryAt: '2026-12-25T10:00:00.000Z' } } } })
+  @ApiBody({ type: UpdateCartItemDto, examples: { updateQuantity: { value: { quantity: 2 } } } })
   updateCartItem(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateCartItemDto) { return this.marketplace.updateCartItem(user, id, dto); }
 
   @Roles(UserRole.REGISTERED_USER)
@@ -181,8 +180,8 @@ export class CustomerMarketplaceController {
   @Roles(UserRole.REGISTERED_USER)
   @Post('orders')
   @ApiTags('05 Customer - Orders')
-  @ApiOperation({ summary: 'Create order from active cart', description: 'REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.' })
-  @ApiBody({ type: CreateOrderDto, examples: { stripeCard: { summary: 'Stripe card checkout', value: { cartId: 'cart_id', paymentId: 'payment_id', deliveryAddressId: 'address_id', paymentMethod: 'STRIPE_CARD' } }, cod: { summary: 'Cash on delivery checkout', value: { cartId: 'cart_id', deliveryAddressId: 'address_id', paymentMethod: 'COD' } } } })
+  @ApiOperation({ summary: 'Create order from active cart', description: 'REGISTERED_USER only. Creates an order from cart items. All items must be from the same provider. Platform fee is calculated automatically.' })
+  @ApiBody({ type: CreateOrderDto, examples: { checkout: { summary: 'Standard checkout', value: { recipientName: 'Sarah Khan', recipientPhone: '+923001234567', recipientAddress: 'House 12, Street 4, F-8/2, Islamabad', giftMessage: 'Hope you love this special surprise!', mediaAttachments: ['https://cdn.yourdomain.com/gift-message-media/photo.png'] } } } })
   createOrder(@CurrentUser() user: AuthUserContext, @Body() dto: CreateOrderDto) { return this.marketplace.createOrder(user, dto); }
 
   @Roles(UserRole.REGISTERED_USER)
@@ -195,6 +194,6 @@ export class CustomerMarketplaceController {
   @Get('orders/:id')
   @ApiTags('05 Customer - Orders')
   @ApiOperation({ summary: 'Fetch customer order', description: 'REGISTERED_USER only. Order must belong to the current customer.' })
-  @ApiResponse({ status: 200, description: 'Order fetched successfully.', schema: { example: { success: true, data: { id: 'order_id', orderNumber: 'ORD-1760000000000', status: 'CONFIRMED', paymentStatus: 'SUCCEEDED', paymentMethod: 'STRIPE_CARD', recipient: { name: 'Sarah Khan', email: null, phone: '+923001234567', avatarUrl: null }, deliveryDate: '2026-12-24T10:00:00.000Z', occasion: null, giftMessage: 'Hope you love this special surprise!', items: [{ giftId: 'gift_id', name: 'Luxury Perfume', variantName: '50ml', quantity: 1, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', total: 109.99 }], summary: { subtotal: 129.99, discountTotal: 20, deliveryFee: 0, tax: 0, total: 109.99, currency: 'PKR' } }, message: 'Order fetched successfully.' } } })
+  @ApiResponse({ status: 200, description: 'Order fetched successfully.', schema: { example: { success: true, data: { id: 'order_id', orderNumber: 'ORD-1760000000000', status: 'PENDING', recipient: { name: 'Sarah Khan', phone: '+923001234567', address: 'House 12, Street 4, F-8/2, Islamabad' }, occasion: null, giftMessage: 'Hope you love this special surprise!', mediaAttachments: ['https://cdn.yourdomain.com/gift-message-media/photo.png'], items: [{ giftId: 'gift_id', name: 'Luxury Perfume', quantity: 1, imageUrl: 'https://cdn.yourdomain.com/gift-images/perfume.png', unitPrice: 99.99 }], summary: { subtotal: 99.99, platformFee: 5, total: 104.99 }, isGroupGift: false }, message: 'Order fetched successfully.' } } })
   orderDetails(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.orderDetails(user, id); }
 }

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CartStatus, NotificationRecipientType, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType } from '@prisma/client';
+import { NotificationRecipientType, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const CUSTOMER_ORDER_INCLUDE = Prisma.validator<Prisma.OrderInclude>()({
-  items: { include: { gift: { select: { id: true, name: true, imageUrls: true } }, variant: { select: { id: true, name: true } } } },
-  payment: true,
+  items: { include: { gift: { select: { id: true, name: true, imageUrls: true } } } },
+  payments: true,
 });
 
 type CheckoutTransaction = Prisma.TransactionClient;
@@ -41,15 +41,7 @@ export class CustomerOrdersRepository {
   }
 
   findActiveCartForCheckout(userId: string, cartId?: string) {
-    return this.prisma.cart.findFirst({ where: { ...(cartId ? { id: cartId } : {}), userId, status: CartStatus.ACTIVE }, include: CUSTOMER_CART_WITH_ITEMS_INCLUDE });
-  }
-
-  findPaymentForUser(userId: string, paymentId: string) {
-    return this.prisma.payment.findFirst({ where: { id: paymentId, userId } });
-  }
-
-  findDeliveryAddressForUser(userId: string, addressId: string) {
-    return this.prisma.customerAddress.findFirst({ where: { id: addressId, userId, deletedAt: null } });
+    return this.prisma.cart.findFirst({ where: { ...(cartId ? { id: cartId } : {}), userId }, include: CUSTOMER_CART_WITH_ITEMS_INCLUDE });
   }
 
   findGiftsForCheckout<T extends Prisma.GiftInclude>(params: { giftIds: string[]; where: Prisma.GiftWhereInput; include: T }) {
@@ -83,10 +75,6 @@ export class CustomerOrdersRepository {
 
   markCartCheckedOut(tx: CheckoutTransaction, cartId: string) {
     return tx.cartItem.deleteMany({ where: { cartId } });
-  }
-
-  linkPaymentToOrder(tx: CheckoutTransaction, paymentId: string, orderId: string) {
-    return tx.payment.update({ where: { id: paymentId }, data: { orderId } });
   }
 
   createOrderNotification(tx: CheckoutTransaction, params: { recipientId: string; recipientType: NotificationRecipientType; title: string; message: string; orderId: string }) {

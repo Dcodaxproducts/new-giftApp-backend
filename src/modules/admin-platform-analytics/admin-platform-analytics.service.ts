@@ -122,7 +122,7 @@ export class AdminPlatformAnalyticsService {
   private orderFilter(query: Partial<PlatformAnalyticsTransactionsQueryDto>): Prisma.OrderWhereInput | null {
     const AND: Prisma.OrderWhereInput[] = [];
     if (query.categoryId) AND.push({ items: { some: { gift: { categoryId: query.categoryId } } } });
-    if (query.providerId) AND.push({ OR: [{ providerId: query.providerId }, { items: { some: { providerId: query.providerId } } }] });
+    if (query.providerId) AND.push({ providerId: query.providerId });
     return AND.length ? { AND } : null;
   }
 

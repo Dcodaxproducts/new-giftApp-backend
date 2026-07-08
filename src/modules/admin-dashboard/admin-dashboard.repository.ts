@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PaymentStatus, Prisma, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export interface ProviderPerformanceRow {
@@ -8,7 +8,6 @@ export interface ProviderPerformanceRow {
   totalOrders: number;
   successfulOrders: number;
   totalVolume: number;
-  currency: string;
 }
 
 @Injectable()
@@ -45,8 +44,8 @@ export class AdminDashboardRepository {
 
   async findProviderPerformanceRows(): Promise<ProviderPerformanceRow[]> {
     const orderRows = await this.prisma.order.groupBy({
-      by: ['providerId', 'providerStatus', 'currency'],
-      where: { providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+      by: ['providerId', 'status'],
+      where: { status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REJECTED] } },
       _count: { _all: true },
       _sum: { total: true },
     });
@@ -61,17 +60,16 @@ export class AdminDashboardRepository {
     const aggregateMap = new Map<string, ProviderPerformanceRow>();
 
     for (const row of orderRows) {
-      const key = `${row.providerId}:${row.currency}`;
+      const key = row.providerId;
       const current = aggregateMap.get(key) ?? {
         providerId: row.providerId,
         providerName: providerNames.get(row.providerId) ?? 'Provider',
         totalOrders: 0,
         successfulOrders: 0,
         totalVolume: 0,
-        currency: row.currency,
       };
       current.totalOrders += row._count._all;
-      if (row.providerStatus === ProviderOrderStatus.DELIVERED || row.providerStatus === ProviderOrderStatus.COMPLETED) {
+      if (row.status === OrderStatus.DELIVERED || row.status === OrderStatus.COMPLETED) {
         current.successfulOrders += row._count._all;
         current.totalVolume += Number(row._sum.total ?? 0);
       }

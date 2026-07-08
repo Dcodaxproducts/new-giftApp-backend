@@ -11,7 +11,7 @@ import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from '.
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { PaymentsRepository } from '../repositories/payments.repository';
 
-type CartWithItems = Prisma.CartGetPayload<{ include: { items: true } }>;
+type CartWithItems = Prisma.CartGetPayload<{ include: { items: { include: { gift: { select: { price: true; currency: true } } } } } }>;
 
 type StripeIntentLike = {
   id: string;
@@ -245,13 +245,10 @@ export class PaymentsService {
     return method;
   }
 
-  private cartSummary(items: { unitPriceSnapshot: Prisma.Decimal; discountAmountSnapshot: Prisma.Decimal; quantity: number }[]) {
-    const subtotal = items.reduce((sum, item) => sum + Number(item.unitPriceSnapshot) * item.quantity, 0);
-    const discountTotal = items.reduce((sum, item) => sum + Number(item.discountAmountSnapshot) * item.quantity, 0);
-    const deliveryFee = 0;
-    const tax = 0;
-    const total = this.money(Math.max(0, subtotal - discountTotal + deliveryFee + tax));
-    return { subtotal: this.money(subtotal), discountTotal: this.money(discountTotal), deliveryFee, tax, total, currency: this.currency() };
+  private cartSummary(items: CartWithItems['items']) {
+    const subtotal = items.reduce((sum, item) => sum + Number(item.gift.price) * item.quantity, 0);
+    const total = this.money(Math.max(0, subtotal));
+    return { subtotal: this.money(subtotal), total, currency: items[0]?.gift.currency ?? this.currency() };
   }
 
   private statusFromStripe(status: string): PaymentStatus {

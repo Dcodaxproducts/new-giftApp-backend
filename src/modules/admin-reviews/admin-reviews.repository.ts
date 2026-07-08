@@ -6,7 +6,7 @@ import { DispatchNotificationInput, NotificationDispatchService } from '../notif
 export const ADMIN_REVIEW_INCLUDE = Prisma.validator<Prisma.ReviewInclude>()({
   customer: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
   provider: { select: { id: true, providerProfile: { select: { businessName: true } }, firstName: true, lastName: true } },
-  order: { select: { id: true, orderNumber: true, createdAt: true, payment: { select: { id: true, providerPaymentIntentId: true, createdAt: true } } } },
+  order: { select: { id: true, orderNumber: true, createdAt: true, payments: { select: { id: true, providerPaymentIntentId: true, createdAt: true }, take: 1, orderBy: { createdAt: 'desc' as const } } } },
   response: { where: { deletedAt: null }, select: { id: true, body: true, createdAt: true } },
 });
 

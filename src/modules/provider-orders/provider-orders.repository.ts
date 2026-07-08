@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderOrderStatus, Prisma, UserStatus } from '@prisma/client';
+import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const PROVIDER_ORDER_LIST_INCLUDE = Prisma.validator<Prisma.OrderInclude>()({
-  items: { include: { gift: { select: { id: true, name: true, imageUrls: true } }, variant: { select: { id: true, name: true } } } },
+  items: { include: { gift: { select: { id: true, name: true, imageUrls: true } } } },
   refundRequests: { orderBy: { requestedAt: 'desc' }, take: 1 },
 });
 
@@ -32,18 +32,14 @@ export class ProviderOrdersRepository {
     return this.prisma.order.findFirst({ where: { id, providerId }, include });
   }
 
-  findCustomerAddressForProviderOrder(order: { deliveryAddressId: string; userId: string }) {
-    return this.prisma.customerAddress.findFirst({ where: { id: order.deliveryAddressId, userId: order.userId } });
-  }
-
   findProviderOrderSummary(params: { base: Prisma.OrderWhereInput; todayWhere: Prisma.OrderWhereInput }) {
     return this.prisma.$transaction([
       this.prisma.order.findMany({ where: params.todayWhere }),
-      this.prisma.order.count({ where: { ...params.base, providerStatus: ProviderOrderStatus.PENDING } }),
-      this.prisma.order.count({ where: { ...params.base, providerStatus: { in: [ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED] } } }),
-      this.prisma.order.count({ where: { ...params.base, providerStatus: ProviderOrderStatus.SHIPPED } }),
-      this.prisma.order.count({ where: { ...params.base, providerStatus: { in: [ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED] } } }),
-      this.prisma.order.count({ where: { ...params.base, providerStatus: { in: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED, ProviderOrderStatus.REFUNDED] } } }),
+      this.prisma.order.count({ where: { ...params.base, status: OrderStatus.PENDING } }),
+      this.prisma.order.count({ where: { ...params.base, status: { in: [OrderStatus.ACCEPTED, OrderStatus.PROCESSING] } } }),
+      this.prisma.order.count({ where: { ...params.base, status: OrderStatus.SHIPPED } }),
+      this.prisma.order.count({ where: { ...params.base, status: { in: [OrderStatus.DELIVERED, OrderStatus.COMPLETED] } } }),
+      this.prisma.order.count({ where: { ...params.base, status: { in: [OrderStatus.CANCELLED, OrderStatus.REJECTED] } } }),
     ]);
   }
 
@@ -58,10 +54,10 @@ export class ProviderOrdersRepository {
     ]);
   }
 
-  findRevenueAnalyticsRows(params: { providerId: string; range: { from: Date; to: Date }; previous: { from: Date; to: Date }; statuses: ProviderOrderStatus[] }) {
+  findRevenueAnalyticsRows(params: { providerId: string; range: { from: Date; to: Date }; previous: { from: Date; to: Date }; statuses: OrderStatus[] }) {
     return Promise.all([
-      this.prisma.order.findMany({ where: { providerId: params.providerId, createdAt: { gte: params.range.from, lte: params.range.to }, providerStatus: { in: params.statuses } } }),
-      this.prisma.order.findMany({ where: { providerId: params.providerId, createdAt: { gte: params.previous.from, lte: params.previous.to }, providerStatus: { in: params.statuses } } }),
+      this.prisma.order.findMany({ where: { providerId: params.providerId, createdAt: { gte: params.range.from, lte: params.range.to }, status: { in: params.statuses } } }),
+      this.prisma.order.findMany({ where: { providerId: params.providerId, createdAt: { gte: params.previous.from, lte: params.previous.to }, status: { in: params.statuses } } }),
     ]);
   }
 
@@ -82,27 +78,19 @@ export class ProviderOrdersRepository {
   }
 
   markProviderOrderAccepted(tx: ProviderOrderTransaction, id: string) {
-    return tx.order.update({ where: { id }, data: { providerStatus: ProviderOrderStatus.ACCEPTED, acceptedAt: new Date(), status: OrderStatus.PROCESSING } });
+    return tx.order.update({ where: { id }, data: { status: OrderStatus.ACCEPTED } });
   }
 
-  markProviderOrderRejected(tx: ProviderOrderTransaction, params: { id: string; reason: Prisma.OrderUpdateInput['rejectionReason']; comment?: string }) {
-    return tx.order.update({ where: { id: params.id }, data: { providerStatus: ProviderOrderStatus.REJECTED, rejectedAt: new Date(), rejectionReason: params.reason, rejectionComment: params.comment, status: OrderStatus.CANCELLED } });
+  markProviderOrderRejected(tx: ProviderOrderTransaction, params: { id: string; reason: string; comment?: string }) {
+    return tx.order.update({ where: { id: params.id }, data: { status: OrderStatus.REJECTED } });
   }
 
   updateProviderOrderStatus(tx: ProviderOrderTransaction, id: string, data: ProviderOrderUpdateData) {
     return tx.order.update({ where: { id }, data });
   }
 
-  fulfillProviderOrder(tx: ProviderOrderTransaction, params: { id: string; dispatchAt: Date; estimatedDeliveryAt: Date | null; carrier: string; trackingNumber: string }) {
-    return tx.order.update({ where: { id: params.id }, data: { providerStatus: ProviderOrderStatus.SHIPPED, status: OrderStatus.SHIPPED, dispatchAt: params.dispatchAt, fulfilledAt: new Date(), estimatedDeliveryAt: params.estimatedDeliveryAt, carrier: params.carrier, trackingNumber: params.trackingNumber } });
-  }
-
-  updateParentOrderStatus(tx: ProviderOrderTransaction, orderId: string, data: Prisma.OrderUpdateInput) {
-    return tx.order.update({ where: { id: orderId }, data });
-  }
-
-  syncParentOrderStatus(tx: ProviderOrderTransaction, orderId: string, status: OrderStatus) {
-    return this.updateParentOrderStatus(tx, orderId, { status });
+  fulfillProviderOrder(tx: ProviderOrderTransaction, id: string) {
+    return tx.order.update({ where: { id }, data: { status: OrderStatus.SHIPPED } });
   }
 
   createCustomerOrderNotification(tx: ProviderOrderTransaction, data: NotificationCreateData) {
@@ -113,11 +101,11 @@ export class ProviderOrdersRepository {
     return tx.user.findMany({ where: { role: 'SUPER_ADMIN', status: UserStatus.APPROVED }, select: { id: true } });
   }
 
-  upsertOrderEarningLedger(tx: ProviderOrderTransaction, params: { providerId: string; orderId: string; amount: Prisma.Decimal; currency: string; description: string }) {
+  upsertOrderEarningLedger(tx: ProviderOrderTransaction, params: { providerId: string; orderId: string; amount: Prisma.Decimal; description: string }) {
     return tx.providerEarningsLedger.upsert({
       where: { orderId_type: { orderId: params.orderId, type: ProviderEarningsLedgerType.ORDER_EARNING } },
       update: {},
-      create: { providerId: params.providerId, orderId: params.orderId, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: params.amount, currency: params.currency, status: ProviderEarningsLedgerStatus.AVAILABLE, description: params.description, metadataJson: { orderId: params.orderId } },
+      create: { providerId: params.providerId, orderId: params.orderId, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: params.amount, currency: 'PKR', status: ProviderEarningsLedgerStatus.AVAILABLE, description: params.description, metadataJson: { orderId: params.orderId } },
     });
   }
 }

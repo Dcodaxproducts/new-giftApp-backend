@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { ProviderApprovalStatus, ProviderFinancialAdjustmentDirection, ProviderFinancialAdjustmentStatus, ProviderPayoutAccountType, ProviderPayoutExternalProvider, ProviderPayoutMethodType, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
+import { ProviderPayoutAccountType, ProviderPayoutExternalProvider, ProviderPayoutMethodType, ProviderPayoutVerificationStatus, UserRole, UserStatus } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ProviderPayoutMethodsRepository } from './provider-payout-methods.repository';
@@ -13,7 +13,7 @@ const provider = {
   role: UserRole.PROVIDER,
   deletedAt: null,
   providerBusinessName: 'Sylvia Bond Gifts',
-  providerApprovalStatus: ProviderApprovalStatus.APPROVED,
+  status: UserStatus.APPROVED,
   isActive: true,
   isApproved: true,
   suspendedAt: null,
@@ -141,7 +141,7 @@ describe('ProviderPayoutMethodsService', () => {
   });
 
   it('provider cannot delete method used by pending payout', async () => {
-    const { service } = createService({ pendingPayout: { id: 'pending_payout', direction: ProviderFinancialAdjustmentDirection.CREDIT, status: ProviderFinancialAdjustmentStatus.PENDING } });
+    const { service } = createService({ pendingPayout: { id: 'pending_payout', status: 'PENDING' } });
     await expect(service.delete({ uid: 'provider_1', role: UserRole.PROVIDER }, 'payout_method_1')).rejects.toThrow(ConflictException);
   });
 

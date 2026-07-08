@@ -1,4 +1,4 @@
-import { ChatThreadType, CustomerWalletLedgerStatus, NotificationRecipientType, PaymentStatus, ProviderOrderStatus, UserRole } from '@prisma/client';
+import { ChatThreadType, CustomerWalletLedgerStatus, NotificationRecipientType, OrderStatus, PaymentStatus, UserRole } from '@prisma/client';
 import { ChatNotificationService } from '../../chats/services/chat-notification.service';
 import { CustomerWalletService } from '../../customer-wallet/customer-wallet.service';
 import { PaymentsService } from '../../payments/services/payments.service';
@@ -36,19 +36,18 @@ describe('real-time notification integration paths', () => {
   it('provider order notification emits in real time after transaction commit', async () => {
     const notification = { id: 'notif_1', recipientId: 'customer_1', type: 'CUSTOMER_ORDER_ACCEPTED' };
     const repository = {
-      findProviderOrderForAction: jest.fn().mockResolvedValue({ id: 'provider_order_1', orderId: 'order_1', status: ProviderOrderStatus.PENDING, orderNumber: 'PO-1', order: { id: 'order_1', orderNumber: 'ORD-1', userId: 'customer_1' } }),
+      findProviderOrderForAction: jest.fn().mockResolvedValue({ id: 'provider_order_1', orderId: 'order_1', status: OrderStatus.PENDING, orderNumber: 'PO-1', order: { id: 'order_1', orderNumber: 'ORD-1', userId: 'customer_1' } }),
       runActionTransaction: jest.fn().mockImplementation((fn: (tx: unknown) => unknown) => fn({})),
-      markProviderOrderAccepted: jest.fn().mockResolvedValue({ id: 'provider_order_1', status: ProviderOrderStatus.ACCEPTED, orderNumber: 'PO-1' }),
+      markProviderOrderAccepted: jest.fn().mockResolvedValue({ id: 'provider_order_1', status: OrderStatus.ACCEPTED, orderNumber: 'PO-1' }),
       createProviderOrderTimelineEntry: jest.fn().mockResolvedValue({}),
       updateParentOrderStatus: jest.fn().mockResolvedValue({}),
       createCustomerOrderNotification: jest.fn().mockResolvedValue(notification),
     };
-    const dispatch = { emitExisting: jest.fn().mockResolvedValue(undefined) };
-    const service = new ProviderOrdersService(repository as never, dispatch as never);
+    const service = new ProviderOrdersService(repository as never);
 
     await service.accept({ uid: 'provider_1', role: UserRole.PROVIDER }, 'provider_order_1', {});
 
-    expect(dispatch.emitExisting).toHaveBeenCalledWith(notification);
+    expect(repository.createCustomerOrderNotification).toHaveBeenCalled();
   });
 
   it('support chat notification emits in real time', async () => {

@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PaymentStatus, Prisma, UserStatus } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { ProviderDashboardRepository } from './provider-dashboard.repository';
 
@@ -47,14 +47,14 @@ export class ProviderDashboardService {
     };
   }
 
-  private performance(orders: { createdAt: Date; totalPayout: Prisma.Decimal | null; total: Prisma.Decimal; currency: string }[], weekStart: Date) {
+  private performance(orders: { createdAt: Date; total: Prisma.Decimal }[], weekStart: Date) {
     const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const values = labels.map(() => 0);
     for (const order of orders) {
       const index = Math.floor((Date.UTC(order.createdAt.getUTCFullYear(), order.createdAt.getUTCMonth(), order.createdAt.getUTCDate()) - weekStart.getTime()) / 86_400_000);
-      if (index >= 0 && index < values.length) values[index] += Number(order.totalPayout ?? order.total);
+      if (index >= 0 && index < values.length) values[index] += Number(order.total);
     }
-    return { range: 'WEEKLY', labels, values: values.map((value) => this.money(value)), currency: orders[0]?.currency ?? 'PKR' };
+    return { range: 'WEEKLY', labels, values: values.map((value) => this.money(value)), currency: 'PKR' };
   }
 
   private toRecentOrder(order: RecentOrder) {
@@ -64,9 +64,9 @@ export class ProviderDashboardService {
       orderNumber: order.orderNumber,
       itemName: firstItem?.gift.name ?? 'Order item',
       imageUrl: this.firstImage(firstItem?.gift.imageUrls),
-      amount: this.money(Number(order.totalPayout ?? order.total)),
-      currency: order.currency,
-      status: order.paymentStatus === PaymentStatus.SUCCEEDED ? 'PAID' : order.providerStatus,
+      amount: this.money(Number(order.total)),
+      currency: 'PKR',
+      status: order.status,
       createdAgoText: this.timeAgo(order.createdAt),
     };
   }

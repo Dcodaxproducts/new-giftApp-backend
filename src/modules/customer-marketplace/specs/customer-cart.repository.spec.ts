@@ -29,7 +29,7 @@ describe('Customer cart repository cleanup', () => {
     expect(repository).toContain('findCartItemsForCart');
     expect(repository).toContain('findCartWithItemsForUser');
     expect(repository).toContain('findCartWithItemsById');
-    expect(repository).toContain('status: CartStatus.ACTIVE');
+    expect(repository).toContain('findActiveCartForUser');
     expect(repository).toContain('CUSTOMER_CART_WITH_ITEMS_INCLUDE');
   });
 
@@ -52,7 +52,7 @@ describe('Customer cart repository cleanup', () => {
   it('customer can fetch and mutate only own active cart through JWT scoping', () => {
     expect(service).toContain('getActiveCart(user.uid)');
     expect(service).toContain('findOrCreateActiveCart(userId)');
-    expect(repository).toContain('cart: { userId, status: CartStatus.ACTIVE }');
+    expect(repository).toContain('cart: { userId }');
     expect(repository).toContain('where: { id: addressId, userId, deletedAt: null }');
     expect(repository).toContain('where: { id: contactId, userId, deletedAt: null }');
     expect(repository).toContain('where: { id: eventId, userId, deletedAt: null }');

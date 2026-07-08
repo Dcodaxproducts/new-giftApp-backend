@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GiftStatus, PaymentStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderOrderStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
+import { GiftStatus, OrderStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../common/pagination/pagination.util';
 import { PrismaService } from '../../database/prisma.service';
@@ -160,10 +160,9 @@ export class ProviderManagementRepository {
         by: ['providerId'],
         where: {
           providerId: { in: uniqueProviderIds },
-          providerStatus: { in: this.revenueEligibleStatuses() },
-          paymentStatus: PaymentStatus.SUCCEEDED,
+          status: { in: this.revenueEligibleStatuses() },
         },
-        _sum: { totalPayout: true, total: true },
+        _sum: { total: true },
       }),
       this.prisma.gift.groupBy({
         by: ['providerId'],
@@ -182,32 +181,32 @@ export class ProviderManagementRepository {
       }),
       this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, providerStatus: { in: this.fulfillmentSuccessStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED },
+        where: { providerId: { in: uniqueProviderIds }, status: { in: this.fulfillmentSuccessStatuses() } },
         _count: { _all: true },
       }),
       this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+        where: { providerId: { in: uniqueProviderIds }, status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
       this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, providerStatus: { in: this.fulfillmentSuccessStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, status: { in: this.fulfillmentSuccessStatuses() } },
         _count: { _all: true },
       }),
       this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: currentWindow.start, lt: currentWindow.end }, status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
       this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, providerStatus: { in: this.fulfillmentSuccessStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, status: { in: this.fulfillmentSuccessStatuses() } },
         _count: { _all: true },
       }),
       this.prisma.order.groupBy({
         by: ['providerId'],
-        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, providerStatus: { notIn: [ProviderOrderStatus.CANCELLED, ProviderOrderStatus.REJECTED] } },
+        where: { providerId: { in: uniqueProviderIds }, createdAt: { gte: previousWindow.start, lt: previousWindow.end }, status: { notIn: [OrderStatus.CANCELLED, OrderStatus.REJECTED] } },
         _count: { _all: true },
       }),
       this.prisma.dispute.groupBy({
@@ -234,7 +233,7 @@ export class ProviderManagementRepository {
     ]);
 
     const revenueMap = new Map(revenueRows.map((row) => [row.providerId, { total: Number(row._sum.amount ?? 0), count: row._count._all }]));
-    const fallbackRevenueMap = new Map(fallbackRevenueRows.map((row) => [row.providerId, Number(row._sum.totalPayout ?? row._sum.total ?? 0)]));
+    const fallbackRevenueMap = new Map(fallbackRevenueRows.map((row) => [row.providerId, Number(row._sum.total ?? 0)]));
     const listedItemsMap = new Map(listedItemsRows.map((row) => [row.providerId, row._count._all]));
     const listedItemsCurrentMap = new Map(listedItemsCurrentRows.map((row) => [row.providerId, row._count._all]));
     const listedItemsPreviousMap = new Map(listedItemsPreviousRows.map((row) => [row.providerId, row._count._all]));
@@ -304,8 +303,7 @@ export class ProviderManagementRepository {
             giftId: { in: giftIds },
             order: {
               providerId,
-              providerStatus: { in: this.fulfillmentSuccessStatuses() },
-              paymentStatus: PaymentStatus.SUCCEEDED,
+              status: { in: this.fulfillmentSuccessStatuses() },
             },
           },
           _sum: { quantity: true },
@@ -363,14 +361,14 @@ export class ProviderManagementRepository {
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
-      this.prisma.order.aggregate({ where: { providerStatus: { in: this.revenueEligibleStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED }, _sum: { totalPayout: true, total: true } }),
-      this.prisma.order.aggregate({ where: { providerStatus: { in: this.revenueEligibleStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { totalPayout: true, total: true } }),
-      this.prisma.order.aggregate({ where: { providerStatus: { in: this.revenueEligibleStatuses() }, paymentStatus: PaymentStatus.SUCCEEDED, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { totalPayout: true, total: true } }),
+      this.prisma.order.aggregate({ where: { status: { in: this.revenueEligibleStatuses() } }, _sum: { total: true } }),
+      this.prisma.order.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { total: true } }),
+      this.prisma.order.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { total: true } }),
     ]);
 
-    const activeRevenue = revenueRows._count._all > 0 ? Number(revenueRows._sum.amount ?? 0) : Number(fallbackOrders._sum.totalPayout ?? fallbackOrders._sum.total ?? 0);
-    const activeRevenueCurrentPeriod = revenueCurrentRows._count._all > 0 ? Number(revenueCurrentRows._sum.amount ?? 0) : Number(fallbackOrdersCurrent._sum.totalPayout ?? fallbackOrdersCurrent._sum.total ?? 0);
-    const activeRevenuePreviousPeriod = revenuePreviousRows._count._all > 0 ? Number(revenuePreviousRows._sum.amount ?? 0) : Number(fallbackOrdersPrevious._sum.totalPayout ?? fallbackOrdersPrevious._sum.total ?? 0);
+    const activeRevenue = revenueRows._count._all > 0 ? Number(revenueRows._sum.amount ?? 0) : Number(fallbackOrders._sum.total ?? 0);
+    const activeRevenueCurrentPeriod = revenueCurrentRows._count._all > 0 ? Number(revenueCurrentRows._sum.amount ?? 0) : Number(fallbackOrdersCurrent._sum.total ?? 0);
+    const activeRevenuePreviousPeriod = revenuePreviousRows._count._all > 0 ? Number(revenuePreviousRows._sum.amount ?? 0) : Number(fallbackOrdersPrevious._sum.total ?? 0);
 
     return {
       totalProviders,
@@ -443,7 +441,7 @@ export class ProviderManagementRepository {
 
   countActiveProcessingOrders(providerId: string) {
     return this.prisma.order.count({
-      where: { providerId, providerStatus: { in: [ProviderOrderStatus.PENDING, ProviderOrderStatus.ACCEPTED, ProviderOrderStatus.PROCESSING, ProviderOrderStatus.PACKED, ProviderOrderStatus.READY_FOR_PICKUP, ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY] } },
+      where: { providerId, status: { in: [OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.PROCESSING, OrderStatus.SHIPPED] } },
     });
   }
 
@@ -549,12 +547,12 @@ export class ProviderManagementRepository {
     return { start, end };
   }
 
-  private revenueEligibleStatuses(): ProviderOrderStatus[] {
-    return [ProviderOrderStatus.SHIPPED, ProviderOrderStatus.OUT_FOR_DELIVERY, ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED];
+  private revenueEligibleStatuses(): OrderStatus[] {
+    return [OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.COMPLETED];
   }
 
-  private fulfillmentSuccessStatuses(): ProviderOrderStatus[] {
-    return [ProviderOrderStatus.DELIVERED, ProviderOrderStatus.COMPLETED];
+  private fulfillmentSuccessStatuses(): OrderStatus[] {
+    return [OrderStatus.DELIVERED, OrderStatus.COMPLETED];
   }
 
   private safeRatioPercent(numerator: number, denominator: number): number {
