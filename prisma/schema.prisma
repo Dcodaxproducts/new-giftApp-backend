@@ -800,8 +800,9 @@ model ProviderProfile {
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessCategory ProviderBusinessCategory? @relation(fields: [businessCategoryId], references: [id])
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessCategory  ProviderBusinessCategory? @relation(fields: [businessCategoryId], references: [id])
+  providerDocuments ProviderDocument[]
 
   @@index([businessCategoryId])
   @@map("provider_profiles")
@@ -2297,4 +2298,41 @@ model AdminAuditLog {
   @@index([status, createdAt])
   @@index([module, createdAt])
   @@map("admin_audit_logs")
+}
+
+enum ProviderDocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isRequired Boolean  @default(false) @map("is_required")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  providerDocuments ProviderDocument[]
+
+  @@map("document_types")
+}
+
+model ProviderDocument {
+  id                String                 @id @default(cuid())
+  providerProfileId String                 @map("provider_profile_id")
+  documentTypeId    String                 @map("document_type_id")
+  fileUrl           String                 @map("file_url")
+  status            ProviderDocumentStatus @default(PENDING)
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+
+  providerProfile ProviderProfile @relation(fields: [providerProfileId], references: [id], onDelete: Cascade)
+  documentType    Document    @relation(fields: [documentTypeId], references: [id])
+
+  @@unique([providerProfileId, documentTypeId])
+  @@index([providerProfileId])
+  @@index([documentTypeId])
+  @@map("provider_documents")
 }
