@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ProviderDocumentStatus } from '@prisma/client';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { ProviderDocumentsRepository } from './provider-documents.repository';
-import { SubmitProviderDocumentDto, UpdateProviderDocumentDto } from './dto/provider-documents.dto';
+import { ReviewProviderDocumentDto, SubmitProviderDocumentDto, UpdateProviderDocumentDto } from './dto/provider-documents.dto';
 
 @Injectable()
 export class ProviderDocumentsService {
@@ -28,14 +28,17 @@ export class ProviderDocumentsService {
     const data = documents.map((doc) => {
       const submission = submissionMap.get(doc.id);
       return {
-        document: { id: doc.id, name: doc.name, isRequired: doc.isRequired },
+        id: doc.id,
+        name: doc.name,
+        isRequired: doc.isRequired,
+        isSubmitted: !!submission,
         submission: submission
           ? { id: submission.id, fileUrl: submission.fileUrl, status: submission.status, createdAt: submission.createdAt, updatedAt: submission.updatedAt }
           : null,
       };
     });
 
-    return { data, message: 'My documents fetched successfully.' };
+    return { data, message: 'Provider documents fetched successfully.' };
   }
 
   async submit(actorId: string, providerProfileId: string, dto: SubmitProviderDocumentDto) {
@@ -115,6 +118,34 @@ export class ProviderDocumentsService {
   async updateByProvider(userId: string, providerDocumentId: string, dto: UpdateProviderDocumentDto) {
     const profile = await this.getProviderProfile(userId);
     return this.update(userId, providerDocumentId, profile.id, dto);
+  }
+
+  async reviewDocument(actorId: string, providerDocumentId: string, dto: ReviewProviderDocumentDto) {
+    const providerDoc = await this.repository.findProviderDocumentById(providerDocumentId);
+    if (!providerDoc) {
+      throw new NotFoundException('Provider document not found.');
+    }
+
+    if (dto.status === ProviderDocumentStatus.PENDING) {
+      throw new BadRequestException('Status must be APPROVED or REJECTED.');
+    }
+
+    const before = { status: providerDoc.status };
+    const updated = await this.repository.updateProviderDocument(providerDocumentId, {
+      status: dto.status,
+    });
+
+    await this.auditLog.write({
+      actorId,
+      targetId: providerDocumentId,
+      targetType: 'PROVIDER_DOCUMENT',
+      action: dto.status === ProviderDocumentStatus.APPROVED ? 'PROVIDER_DOCUMENT_APPROVED' : 'PROVIDER_DOCUMENT_REJECTED',
+      module: 'Provider Documents',
+      beforeJson: before,
+      afterJson: { status: updated.status },
+    });
+
+    return { data: updated, message: `Document ${dto.status.toLowerCase()} successfully.` };
   }
 
   private async getProviderProfile(userId: string) {

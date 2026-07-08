@@ -89,6 +89,14 @@ export class ProviderManagementRepository {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  async hasAllRequiredDocsApproved(providerProfileId: string): Promise<boolean> {
+    const [requiredDocs, approvedDocs] = await this.prisma.$transaction([
+      this.prisma.document.count({ where: { isActive: true, isRequired: true } }),
+      this.prisma.providerDocument.count({ where: { providerProfileId, status: 'APPROVED', documentType: { isActive: true, isRequired: true } } }),
+    ]);
+    return requiredDocs === 0 || approvedDocs >= requiredDocs;
+  }
+
   findProviderLookup(query: ProviderLookupDto) {
     const { take } = getPagination(query);
     return this.prisma.user.findMany({

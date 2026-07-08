@@ -47,6 +47,13 @@ export class ProviderDocumentsRepository {
     });
   }
 
+  findProviderDocumentById(id: string) {
+    return this.prisma.providerDocument.findUnique({
+      where: { id },
+      include: { documentType: { select: { id: true, name: true, isRequired: true } } },
+    });
+  }
+
   updateProviderDocument(id: string, data: Prisma.ProviderDocumentUncheckedUpdateInput) {
     return this.prisma.providerDocument.update({
       where: { id },

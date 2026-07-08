@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, MinLength } from 'class-validator';
+import { IsEnum, IsString, MinLength } from 'class-validator';
+import { ProviderDocumentStatus } from '@prisma/client';
 
 export class SubmitProviderDocumentDto {
   @ApiProperty({ example: 'document_id', description: 'ID of the document definition created by admin.' })
@@ -21,3 +22,9 @@ export class UpdateProviderDocumentDto {
 }
 
 export class AdminSubmitProviderDocumentDto extends SubmitProviderDocumentDto {}
+
+export class ReviewProviderDocumentDto {
+  @ApiProperty({ enum: [ProviderDocumentStatus.APPROVED, ProviderDocumentStatus.REJECTED], example: 'APPROVED' })
+  @IsEnum(ProviderDocumentStatus)
+  status!: ProviderDocumentStatus;
+}

@@ -400,11 +400,8 @@ export class ProviderManagementService {
     const profile = this.profile(provider);
     return {
       id: provider.id,
-      providerCode: this.providerCode(provider.id),
       businessName: this.businessName(provider),
       email: provider.email,
-      phone: provider.phone,
-      avatarUrl: provider.avatarUrl,
       name: this.name(provider),
       companyLogoUrl: provider.avatarUrl,
       coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
@@ -412,7 +409,6 @@ export class ProviderManagementService {
       revenue: stats.revenue,
       listedItems: stats.listedItems,
       performanceStats: stats.performanceStats,
-      registeredSince: provider.createdAt,
       createdAt: provider.createdAt,
     };
   }
@@ -421,17 +417,11 @@ export class ProviderManagementService {
     const profile = this.profile(provider);
     return {
       ...this.toListItem(provider, stats),
-      contact: provider.phone,
       businessCategoryId: profile.businessCategoryId,
       taxId: profile.taxId,
       businessAddress: profile.businessAddress,
-      headquarters: provider.location,
-      location: this.providerLocation(provider),
+      businessPhone: profile.businessPhone,
       businessBio: this.providerAssets(provider).businessBio ?? null,
-      verification: {
-        status: provider.status !== UserStatus.PENDING ? 'TIER_2_VERIFIED' : 'UNVERIFIED',
-        label: provider.status !== UserStatus.PENDING ? 'Tier 2 Verified Provider' : 'Unverified Provider',
-      },
       stats: {
         performanceStats: stats.performanceStats,
         performanceChangePercent: stats.performanceChangePercent,
@@ -482,8 +472,6 @@ export class ProviderManagementService {
       isSuspended: provider.status === UserStatus.SUSPENDED,
       reason: provider.suspensionReason,
       comment: provider.suspensionComment,
-      suspendedAt: null,
-      suspendedBy: null,
     };
   }
 
@@ -768,6 +756,14 @@ export class ProviderManagementService {
   }
 
   private async approveProvider(user: AuthUserContext, provider: ProviderUser, dto: UpdateProviderStatusDto) {
+    const profileId = this.profile(provider).id;
+    if (profileId) {
+      const docsApproved = await this.repository.hasAllRequiredDocsApproved(profileId);
+      if (!docsApproved) {
+        throw new BadRequestException('Cannot approve provider. Required documents are not approved yet.');
+      }
+    }
+
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         status: UserStatus.APPROVED,

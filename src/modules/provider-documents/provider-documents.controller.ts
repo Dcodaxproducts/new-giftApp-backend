@@ -25,7 +25,7 @@ export class ProviderDocumentsController {
 
   @Get('my')
   @ApiOperation({ summary: 'Fetch my submitted documents with status', description: 'PROVIDER only. Returns all active documents with submission status (PENDING/APPROVED/REJECTED) for the logged-in provider.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ document: { id: 'doc_id', name: 'Business License', isRequired: true }, submission: { id: 'provider_doc_id', fileUrl: 'provider-documents/license.pdf', status: 'PENDING', createdAt: '2025-01-01T00:00:00.000Z', updatedAt: '2025-01-01T00:00:00.000Z' } }], message: 'My documents fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'doc_id', name: 'Business License', isRequired: true, isSubmitted: true, submission: { id: 'provider_doc_id', fileUrl: 'provider-documents/license.pdf', status: 'PENDING', createdAt: '2025-01-01T00:00:00.000Z', updatedAt: '2025-01-01T00:00:00.000Z' } }, { id: 'doc_id_2', name: 'Tax Certificate', isRequired: false, isSubmitted: false, submission: null }], message: 'Provider documents fetched successfully.' } } })
   my(@CurrentUser() user: AuthUserContext) {
     return this.providerDocuments.myDocuments(user.uid);
   }
