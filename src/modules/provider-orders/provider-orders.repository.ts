@@ -9,7 +9,7 @@ export const PROVIDER_ORDER_LIST_INCLUDE = Prisma.validator<Prisma.OrderInclude>
 });
 
 type ProviderOrderTransaction = Prisma.TransactionClient;
-type ProviderOrderUpdateData = Prisma.Args<ProviderOrderTransaction['order'], 'update'>['data'];
+
 type NotificationCreateData = DispatchNotificationInput;
 
 @Injectable()
@@ -77,20 +77,8 @@ export class ProviderOrdersRepository {
     return this.findProviderOrderById(providerId, id, include);
   }
 
-  markProviderOrderAccepted(tx: ProviderOrderTransaction, id: string) {
-    return tx.order.update({ where: { id }, data: { status: OrderStatus.ACCEPTED } });
-  }
-
-  markProviderOrderRejected(tx: ProviderOrderTransaction, params: { id: string; reason: string; comment?: string }) {
-    return tx.order.update({ where: { id: params.id }, data: { status: OrderStatus.REJECTED } });
-  }
-
-  updateProviderOrderStatus(tx: ProviderOrderTransaction, id: string, data: ProviderOrderUpdateData) {
-    return tx.order.update({ where: { id }, data });
-  }
-
-  fulfillProviderOrder(tx: ProviderOrderTransaction, id: string) {
-    return tx.order.update({ where: { id }, data: { status: OrderStatus.SHIPPED } });
+  updateProviderOrderStatus(tx: ProviderOrderTransaction, id: string, data: { status: OrderStatus; rejectionReason?: string }) {
+    return tx.order.update({ where: { id }, data: { status: data.status, rejectionReason: data.rejectionReason } });
   }
 
   createCustomerOrderNotification(tx: ProviderOrderTransaction, data: NotificationCreateData) {

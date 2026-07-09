@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { MoneyGiftStatus, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
-import Stripe from 'stripe';
+import * as Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { MoneyGiftsRepository } from '../repositories/money-gifts.repository';
 import { StripeWebhookEventsRepository } from '../repositories/stripe-webhook-events.repository';
@@ -11,7 +11,7 @@ import { ConfirmPaymentDto, CreateMoneyGiftDto, CreatePaymentIntentDto } from '.
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 import { PaymentsRepository } from '../repositories/payments.repository';
 
-type CartWithItems = Prisma.CartGetPayload<{ include: { items: { include: { gift: { select: { price: true; currency: true } } } } } }>;
+type OrderWithItems = Prisma.OrderGetPayload<{ include: { items: { include: { gift: { select: { currency: true } } } } } }>;
 
 type StripeIntentLike = {
   id: string;
@@ -63,27 +63,27 @@ export class PaymentsService {
   }
 
   async createIntent(user: AuthUserContext, dto: CreatePaymentIntentDto) {
-    const idempotencyKey = this.idempotencyKey('cart', user.uid, dto.idempotencyKey ?? dto.cartId);
+    const idempotencyKey = this.idempotencyKey('order', user.uid, dto.idempotencyKey ?? dto.orderId);
     const existing = await this.repository.findPaymentByIdempotencyKey(user.uid, idempotencyKey);
     if (existing) return { data: this.intentResponse(existing), message: 'Payment intent created successfully.' };
-    const cart = await this.getOwnedCart(user.uid, dto.cartId);
-    if (cart.items.length === 0) throw new BadRequestException('Cart is empty');
-    const summary = this.cartSummary(cart.items);
+    const order = await this.getOwnedOrder(user.uid, dto.orderId);
+    const amount = Number(order.total);
+    const currency = order.items[0]?.gift?.currency ?? this.currency();
     const provider = dto.paymentMethod === PaymentMethod.STRIPE_CARD ? PaymentProvider.STRIPE : PaymentProvider.MANUAL;
-    const payment = await this.repository.createPayment({ userId: user.uid, provider, amount: new Prisma.Decimal(summary.total), currency: summary.currency, status: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod, metadataJson: { cartId: cart.id, summary, idempotencyKey }, idempotencyKey });
+    const payment = await this.repository.createPayment({ userId: user.uid, orderId: order.id, provider, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: dto.paymentMethod, metadataJson: { orderId: order.id, idempotencyKey }, idempotencyKey });
 
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) {
       return { data: this.toPaymentResponse(payment), message: 'Payment intent created successfully.' };
     }
 
     const intent = await this.stripe().paymentIntents.create({
-      amount: this.toSmallestUnit(summary.total, summary.currency),
-      currency: summary.currency.toLowerCase(),
-      automatic_payment_methods: { enabled: true },
-      metadata: this.sanitizeMetadata({ paymentId: payment.id, cartId: cart.id, userId: user.uid, idempotencyKey }),
+      amount: this.toSmallestUnit(amount, currency),
+      currency: currency.toLowerCase(),
+      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+      metadata: this.sanitizeMetadata({ paymentId: payment.id, orderId: order.id, userId: user.uid, idempotencyKey }),
     }, { idempotencyKey });
-    const updated = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { cartId: cart.id, summary, stripeStatus: intent.status, idempotencyKey } });
-    return { data: { ...this.toPaymentResponse(updated), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey(), amount: this.toSmallestUnit(summary.total, summary.currency), currency: summary.currency }, message: 'Payment intent created successfully.' };
+    const updated = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { orderId: order.id, stripeStatus: intent.status, idempotencyKey } });
+    return { data: { ...this.toPaymentResponse(updated), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret }, message: 'Payment intent created successfully.' };
   }
 
   async confirm(user: AuthUserContext, dto: ConfirmPaymentDto) {
@@ -96,11 +96,13 @@ export class PaymentsService {
     const status = this.statusFromStripe(intent.status);
     const updated = await this.repository.updatePaymentConfirmation({ id: payment.id, status, failureReason: intent.last_payment_error?.message ?? null, metadataJson: this.mergeMetadata(payment.metadataJson, { stripeStatus: intent.status, confirmIdempotencyKey: idempotencyKey }) });
     if (status === PaymentStatus.SUCCEEDED) {
+      if (updated.orderId) await this.repository.updateOrderStatus(updated.orderId, 'ACCEPTED');
       await this.customerWalletService.creditWalletTopUp(updated);
       await this.customerReferralsService.awardReferralForFirstEligiblePurchase(user.uid, payment.id, Number(updated.amount));
       await this.notify(user.uid, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: payment.id });
     }
     if (status === PaymentStatus.FAILED) {
+      if (updated.orderId) await this.repository.updateOrderStatus(updated.orderId, 'CANCELLED');
       await this.customerWalletService.failWalletTopUp(updated);
       await this.notify(user.uid, 'Payment failed', 'Your payment could not be completed.', 'PAYMENT_FAILED', { paymentId: payment.id });
     }
@@ -117,7 +119,7 @@ export class PaymentsService {
     const existing = await this.repository.findLatestSavedPaymentMethodForUser(user.uid);
     const customerId = existing?.stripeCustomerId ?? (await this.stripe().customers.create({ email: dbUser.email, name: `${dbUser.firstName} ${dbUser.lastName}`.trim(), metadata: { userId: user.uid } }) as StripeCustomerLike).id;
     const intent = await this.stripe().setupIntents.create({ customer: customerId, payment_method_types: ['card'], metadata: { userId: user.uid } }) as StripeSetupIntentCreateResult;
-    return { data: { setupIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey() }, message: 'Setup intent created successfully.' };
+    return { data: { setupIntentId: intent.id, clientSecret: intent.client_secret }, message: 'Setup intent created successfully.' };
   }
 
   async savedPaymentMethods(user: AuthUserContext) {
@@ -176,7 +178,7 @@ export class PaymentsService {
     }
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(dto.amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true }, metadata: this.sanitizeMetadata({ paymentId: payment.id, moneyGiftId: moneyGift.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey });
     const updatedPayment = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { moneyGiftId: moneyGift.id, stripeStatus: intent.status, idempotencyKey } });
-    return { data: { ...this.toMoneyGift(moneyGift), payment: { ...this.toPaymentResponse(updatedPayment), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, publishableKey: this.publishableKey(), amount: this.toSmallestUnit(dto.amount, currency), currency } }, message: 'Money gift created successfully.' };
+    return { data: { ...this.toMoneyGift(moneyGift), payment: { ...this.toPaymentResponse(updatedPayment), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount: this.toSmallestUnit(dto.amount, currency), currency } }, message: 'Money gift created successfully.' };
   }
 
   async moneyGifts(user: AuthUserContext) {
@@ -190,10 +192,10 @@ export class PaymentsService {
     return { data: this.toMoneyGift(item), message: 'Money gift fetched successfully.' };
   }
 
-  private async getOwnedCart(userId: string, cartId: string): Promise<CartWithItems> {
-    const cart = await this.repository.findOwnedActiveCartWithItems(userId, cartId);
-    if (!cart) throw new NotFoundException('Active cart not found');
-    return cart;
+  private async getOwnedOrder(userId: string, orderId: string): Promise<OrderWithItems> {
+    const order = await this.repository.findOwnedOrder(userId, orderId);
+    if (!order) throw new NotFoundException('Order not found');
+    return order;
   }
 
   private async getOwnedPayment(userId: string, id: string): Promise<Payment> {
@@ -229,11 +231,13 @@ export class PaymentsService {
       await this.notify(updated.userId, 'Money gift paid', 'Your money gift payment was completed.', 'MONEY_GIFT_SENT', { paymentId: updated.id, moneyGiftId: updated.moneyGiftId });
     }
     if (status === PaymentStatus.SUCCEEDED) {
+      if (updated.orderId) await this.repository.updateOrderStatus(updated.orderId, 'ACCEPTED');
       await this.customerWalletService.creditWalletTopUp(updated);
       await this.customerReferralsService.awardReferralForFirstEligiblePurchase(updated.userId, updated.id, Number(updated.amount));
       await this.notify(updated.userId, 'Payment successful', 'Your payment was completed successfully.', 'PAYMENT_SUCCEEDED', { paymentId: updated.id });
     }
     if (status === PaymentStatus.FAILED) {
+      if (updated.orderId) await this.repository.updateOrderStatus(updated.orderId, 'CANCELLED');
       await this.customerWalletService.failWalletTopUp(updated);
       await this.notify(updated.userId, 'Payment failed', 'Your payment could not be completed.', 'PAYMENT_FAILED', { paymentId: updated.id });
     }
@@ -243,12 +247,6 @@ export class PaymentsService {
     const method = await this.repository.findSavedPaymentMethodForUser(userId, id);
     if (!method) throw new NotFoundException('Payment method not found');
     return method;
-  }
-
-  private cartSummary(items: CartWithItems['items']) {
-    const subtotal = items.reduce((sum, item) => sum + Number(item.gift.price) * item.quantity, 0);
-    const total = this.money(Math.max(0, subtotal));
-    return { subtotal: this.money(subtotal), total, currency: items[0]?.gift.currency ?? this.currency() };
   }
 
   private statusFromStripe(status: string): PaymentStatus {
@@ -265,7 +263,6 @@ export class PaymentsService {
     return this.stripeClient;
   }
 
-  private publishableKey(): string { return process.env.STRIPE_PUBLISHABLE_KEY ?? ''; }
   private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'PKR').toUpperCase(); }
   private toSmallestUnit(amount: number, currency: string): number { return this.zeroDecimalCurrencies().has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100); }
   private zeroDecimalCurrencies(): Set<string> { return new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF']); }

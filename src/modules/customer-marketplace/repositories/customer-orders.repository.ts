@@ -5,7 +5,7 @@ import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
 export const CUSTOMER_ORDER_INCLUDE = Prisma.validator<Prisma.OrderInclude>()({
-  items: { include: { gift: { select: { id: true, name: true, imageUrls: true } } } },
+  items: { include: { gift: { select: { id: true, name: true, imageUrls: true, price: true, currency: true } } } },
   payments: true,
 });
 

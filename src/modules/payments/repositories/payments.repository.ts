@@ -54,16 +54,16 @@ export class PaymentsRepository {
     return this.prisma.customerPaymentMethod.upsert({ where: { stripePaymentMethodId: params.stripePaymentMethodId }, update: params.update, create: params.create });
   }
 
-  findOwnedActiveCartWithItems(userId: string, cartId: string) {
-    return this.prisma.cart.findFirst({ where: { id: cartId, userId }, include: { items: { include: { gift: { select: { price: true, currency: true } } } } } });
+  findOwnedOrder(userId: string, orderId: string) {
+    return this.prisma.order.findFirst({ where: { id: orderId, userId }, include: { items: { include: { gift: { select: { currency: true } } } } } });
   }
 
   findPaymentByIdempotencyKey(userId: string, idempotencyKey: string) {
     return this.prisma.payment.findFirst({ where: { userId, idempotencyKey } });
   }
 
-  createPayment(params: { userId: string; provider: PaymentProvider; amount: Prisma.Decimal; currency: string; status: PaymentStatus; paymentMethod: string; metadataJson: Prisma.InputJsonObject; idempotencyKey?: string; moneyGiftId?: string; customerSubscriptionId?: string; providerPaymentIntentId?: string | null }) {
-    return this.prisma.payment.create({ data: { userId: params.userId, provider: params.provider, amount: params.amount, currency: params.currency, status: params.status, paymentMethod: params.paymentMethod as never, metadataJson: params.metadataJson, idempotencyKey: params.idempotencyKey, providerPaymentIntentId: params.providerPaymentIntentId, ...(params.moneyGiftId ? { moneyGiftId: params.moneyGiftId } : {}), ...(params.customerSubscriptionId ? { customerSubscriptionId: params.customerSubscriptionId } : {}) } });
+  createPayment(params: { userId: string; orderId?: string; provider: PaymentProvider; amount: Prisma.Decimal; currency: string; status: PaymentStatus; paymentMethod: string; metadataJson: Prisma.InputJsonObject; idempotencyKey?: string; moneyGiftId?: string; customerSubscriptionId?: string; providerPaymentIntentId?: string | null }) {
+    return this.prisma.payment.create({ data: { userId: params.userId, orderId: params.orderId, provider: params.provider, amount: params.amount, currency: params.currency, status: params.status, paymentMethod: params.paymentMethod as never, metadataJson: params.metadataJson, idempotencyKey: params.idempotencyKey, providerPaymentIntentId: params.providerPaymentIntentId, ...(params.moneyGiftId ? { moneyGiftId: params.moneyGiftId } : {}), ...(params.customerSubscriptionId ? { customerSubscriptionId: params.customerSubscriptionId } : {}) } });
   }
 
   updatePaymentIntent(params: { id: string; providerPaymentIntentId: string; status: PaymentStatus; metadataJson: Prisma.InputJsonObject }) {
@@ -76,6 +76,10 @@ export class PaymentsRepository {
 
   updatePaymentConfirmation(params: { id: string; status: PaymentStatus; failureReason: string | null; metadataJson: Prisma.InputJsonObject }) {
     return this.prisma.payment.update({ where: { id: params.id }, data: { status: params.status, failureReason: params.failureReason, metadataJson: params.metadataJson } });
+  }
+
+  updateOrderStatus(orderId: string, status: string) {
+    return this.prisma.order.update({ where: { id: orderId }, data: { status: status as never } });
   }
 
   createNotification(recipientId: string, title: string, message: string, type: string, metadataJson: Prisma.InputJsonObject) {

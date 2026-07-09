@@ -1250,7 +1250,8 @@ model Order {
   orderNumber String      @unique @map("order_number")
   userId      String      @map("user_id")
   providerId  String      @map("provider_id")
-  status      OrderStatus @default(PENDING)
+  status          OrderStatus @default(PENDING)
+  rejectionReason String?     @map("rejection_reason")
 
   // Pricing
   subtotal    Decimal @db.Decimal(10, 2)
@@ -1290,15 +1291,18 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String  @map("order_id")
-  giftId    String  @map("gift_id")
-  quantity  Int
-  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  id          String  @id @default(cuid())
+  orderId     String  @map("order_id")
+  giftId      String  @map("gift_id")
+  variantId   String? @map("variant_id")
+  variantName String? @map("variant_name")
+  quantity    Int
+  unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
 
   // Relations
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  gift  Gift  @relation(fields: [giftId], references: [id])
+  order   Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gift    Gift         @relation(fields: [giftId], references: [id])
+  variant GiftVariant? @relation(fields: [variantId], references: [id])
 
   @@map("order_items")
 }
@@ -1522,8 +1526,9 @@ model GiftVariant {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  gift      Gift       @relation(fields: [giftId], references: [id])
-  cartItems CartItem[]
+  gift       Gift        @relation(fields: [giftId], references: [id])
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@index([giftId])
   @@map("gift_variants")

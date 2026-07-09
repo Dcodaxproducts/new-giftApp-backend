@@ -5,7 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../common/decorators/current-us
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { ListProviderOrdersDto, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto } from './dto/provider-orders.dto';
+import { ListProviderOrdersDto, ProviderOrderHistoryDto, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { ProviderOrdersService } from './provider-orders.service';
 
 @ApiBearerAuth()
@@ -64,12 +64,12 @@ export class ProviderOrdersController {
   rejectReasons() { return this.providerOrders.rejectReasons(); }
 
 
-  @Post(':id/action')
+  @Post(':id/status')
   @ApiTags('03 Provider - Orders')
-  @ApiOperation({ summary: 'Run provider order action', description: 'PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces order state machine. FULFILL moves order to SHIPPED state.' })
-  @ApiBody({ type: ProviderOrderActionDto, examples: { accept: { value: { action: 'ACCEPT', comment: 'Order accepted and will be processed shortly.', notifyCustomer: true } }, reject: { value: { action: 'REJECT', reason: 'Out of stock', comment: 'The selected item is currently unavailable.', notifyCustomer: true } }, updateStatus: { value: { action: 'UPDATE_STATUS', status: 'PROCESSING', note: 'Order is being prepared.', notifyCustomer: true } }, fulfill: { value: { action: 'FULFILL', notifyCustomer: true, note: 'Package handed to courier.' } } } })
-  @ApiResponse({ status: 200, description: 'Provider order action completed successfully', schema: { example: { success: true, data: { id: 'order_id', status: 'PROCESSING', orderNumber: 'ORD-10293' }, message: 'Provider order action completed successfully.' } } })
-  action(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: ProviderOrderActionDto) { return this.providerOrders.action(user, id, dto); }
+  @ApiOperation({ summary: 'Update provider order status', description: 'PROVIDER only. Enforces order state machine transitions. Reason is required when rejecting.' })
+  @ApiBody({ type: UpdateProviderOrderStatusDto, examples: { accept: { summary: 'Accept order', value: { status: 'ACCEPTED' } }, reject: { summary: 'Reject order', value: { status: 'REJECTED', reason: 'Out of stock' } }, processing: { summary: 'Start processing', value: { status: 'PROCESSING' } }, shipped: { summary: 'Mark shipped', value: { status: 'SHIPPED' } }, delivered: { summary: 'Mark delivered', value: { status: 'DELIVERED' } } } })
+  @ApiResponse({ status: 200, description: 'Order status updated successfully', schema: { example: { success: true, data: { id: 'order_id', orderNumber: 'ORD-10293', status: 'ACCEPTED' }, message: 'Order status updated successfully.' } } })
+  updateStatus(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateProviderOrderStatusDto) { return this.providerOrders.updateOrderStatus(user, id, dto); }
 
   @Get(':id/timeline')
   @ApiTags('03 Provider - Orders')

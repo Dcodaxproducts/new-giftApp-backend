@@ -10,9 +10,9 @@ export enum OrderHistoryType {
 }
 
 export class CreatePaymentIntentDto {
-  @ApiProperty({ example: 'cmf0cartactive001' }) @IsString() cartId!: string;
+  @ApiProperty({ example: 'order_id_123' }) @IsString() orderId!: string;
   @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.STRIPE_CARD }) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
-  @ApiPropertyOptional({ example: 'cart_customer_1_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
+  @ApiPropertyOptional({ example: 'order_payment_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
 }
 
 export class ConfirmPaymentDto {

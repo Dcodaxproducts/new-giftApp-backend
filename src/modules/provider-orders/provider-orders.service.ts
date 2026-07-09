@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
-import { NotificationRecipientType, OrderStatus, Prisma, RefundRequestStatus } from '@prisma/client';
+import { OrderStatus, Prisma, RefundRequestStatus } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { getPagination } from '../../common/pagination/pagination.util';
-import { AcceptProviderOrderDto, FulfillProviderOrderDto, ListProviderOrdersDto, ProviderOrderAction, ProviderOrderActionDto, ProviderOrderHistoryDto, ProviderOrderHistoryStatus, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, RejectProviderOrderDto, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
+import { ListProviderOrdersDto, ProviderOrderHistoryDto, ProviderOrderSortBy, ProviderOrderSortOrder, ProviderOrderStatusFilter, ProviderOrdersExportDto, ProviderOrdersSummaryDto, ProviderPerformanceDto, ProviderPerformanceRange, ProviderRecentOrdersDto, ProviderRevenueAnalyticsDto, ProviderRevenueRange, UpdateProviderOrderStatusDto } from './dto/provider-orders.dto';
 import { PROVIDER_ORDER_LIST_INCLUDE, ProviderOrdersRepository } from './provider-orders.repository';
 
 type ProviderOrderView = Prisma.OrderGetPayload<{ include: typeof PROVIDER_ORDER_LIST_INCLUDE }>;
@@ -77,71 +77,22 @@ export class ProviderOrdersService {
     return { data: this.toDetails(order), message: 'Provider order fetched successfully.' };
   }
 
-  async action(user: AuthUserContext, id: string, dto: ProviderOrderActionDto) {
-    if (dto.action === ProviderOrderAction.ACCEPT) return this.accept(user, id, { note: dto.note ?? dto.comment });
-    if (dto.action === ProviderOrderAction.REJECT) {
-      if (!dto.reason) throw new BadRequestException('Reason is required when rejecting an order');
-      return this.reject(user, id, { reason: dto.reason, comment: dto.comment });
-    }
-    if (dto.action === ProviderOrderAction.UPDATE_STATUS) {
-      if (!dto.status) throw new BadRequestException('Status is required when updating order status');
-      return this.updateStatus(user, id, { status: dto.status, note: dto.note });
-    }
-    return this.fulfill(user, id, { notifyCustomer: dto.notifyCustomer, note: dto.note ?? dto.comment });
-  }
-
-  async accept(user: AuthUserContext, id: string, dto: AcceptProviderOrderDto) {
+  async updateOrderStatus(user: AuthUserContext, id: string, dto: UpdateProviderOrderStatusDto) {
     const order = await this.getOwnedProviderOrder(user.uid, id);
-    if (order.status !== OrderStatus.PENDING) throw new BadRequestException('Only pending provider orders can be accepted');
-    const updated = await this.providerOrdersRepository.runActionTransaction(async (tx) => {
-      const item = await this.providerOrdersRepository.markProviderOrderAccepted(tx, order.id);
-      await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Order accepted', message: dto.note?.trim() ?? 'Your gift order was accepted by the provider.', type: 'CUSTOMER_ORDER_ACCEPTED', metadataJson: { orderId: order.id } });
-      return item;
-    });
-    return { data: { id: updated.id, orderNumber: updated.orderNumber, status: updated.status }, message: 'Order accepted successfully.' };
-  }
-
-  async reject(user: AuthUserContext, id: string, dto: RejectProviderOrderDto) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    if (order.status !== OrderStatus.PENDING) throw new BadRequestException('Only pending provider orders can be rejected');
-    const updated = await this.providerOrdersRepository.runActionTransaction(async (tx) => {
-      const item = await this.providerOrdersRepository.markProviderOrderRejected(tx, { id: order.id, reason: dto.reason, comment: dto.comment?.trim() });
-      await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Order rejected', message: 'A provider rejected your gift order. Our team will review it.', type: 'CUSTOMER_ORDER_REJECTED', metadataJson: { orderId: order.id, reason: dto.reason } });
-      const admins = await this.providerOrdersRepository.findActiveSuperAdminIds(tx);
-      for (const admin of admins) await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: admin.id, recipientType: NotificationRecipientType.ADMIN, title: 'Order requires review', message: 'A provider rejected an assigned order.', type: 'ADMIN_ORDER_REQUIRES_REVIEW', metadataJson: { orderId: order.id, reason: dto.reason } });
-      return item;
-    });
-    return { data: { id: updated.id, orderNumber: updated.orderNumber, status: updated.status }, message: 'Order rejected successfully.' };
-  }
-
-  async updateStatus(user: AuthUserContext, id: string, dto: UpdateProviderOrderStatusDto) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    if (this.closedStatuses().has(order.status)) throw new BadRequestException('Cannot update a closed provider order');
-    if (!this.updatableStatuses().has(dto.status)) throw new BadRequestException('Unsupported provider order status');
+    if (this.closedStatuses().has(order.status)) throw new BadRequestException('Cannot update a closed order');
     this.assertTransition(order.status, dto.status);
+    if (dto.status === OrderStatus.REJECTED && !dto.reason) throw new BadRequestException('Reason is required when rejecting an order');
     const updated = await this.providerOrdersRepository.runActionTransaction(async (tx) => {
-      const item = await this.providerOrdersRepository.updateProviderOrderStatus(tx, order.id, { status: dto.status });
+      const item = await this.providerOrdersRepository.updateProviderOrderStatus(tx, order.id, { status: dto.status, rejectionReason: dto.status === OrderStatus.REJECTED ? dto.reason : undefined });
       if (this.completedStatuses().has(dto.status)) await this.createOrderEarningLedger(tx, order);
-      await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: this.statusTitle(dto.status), message: this.customerStatusMessage(dto.status), type: `ORDER_${dto.status}`, metadataJson: { orderId: order.id } });
       return item;
     });
     return { data: { id: updated.id, orderNumber: updated.orderNumber, status: updated.status }, message: 'Order status updated successfully.' };
   }
 
-  async fulfill(user: AuthUserContext, id: string, dto: FulfillProviderOrderDto) {
-    const order = await this.getOwnedProviderOrder(user.uid, id);
-    this.assertCanFulfill(order);
-    const updated = await this.providerOrdersRepository.runActionTransaction(async (tx) => {
-      const item = await this.providerOrdersRepository.fulfillProviderOrder(tx, order.id);
-      if (dto.notifyCustomer ?? true) await this.providerOrdersRepository.createCustomerOrderNotification(tx, { recipientId: order.userId, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Your order is on the way', message: `Order #${order.orderNumber} has been dispatched.`, type: 'ORDER_SHIPPED', metadataJson: { orderId: order.id } });
-      return item;
-    });
-    return { data: { id: updated.id, orderNumber: updated.orderNumber, status: updated.status }, message: 'Order fulfilled successfully.' };
-  }
-
   async timeline(user: AuthUserContext, id: string) {
     const order = await this.getOwnedProviderOrderForRead(user.uid, id);
-    return { data: [{ status: 'ORDERED', title: 'Ordered', description: 'System confirmed the order.', createdAt: order.createdAt }, { status: order.status, title: this.statusTitle(order.status), description: this.statusDescription(order.status), createdAt: order.updatedAt }], message: 'Order timeline fetched successfully.' };
+    return { data: [{ status: 'ORDERED', title: 'Ordered', description: 'System confirmed the order.', createdAt: order.createdAt }, { status: order.status, title: this.statusLabel(order.status), description: `Order moved to ${this.statusLabel(order.status)}.`, createdAt: order.updatedAt }], message: 'Order timeline fetched successfully.' };
   }
 
   rejectReasons() { return { data: [{ key: 'OUT_OF_STOCK', label: 'Out of Stock' }, { key: 'BUSINESS_CLOSED', label: 'Business Closed' }, { key: 'CANNOT_DELIVER_TO_AREA', label: 'Cannot deliver to area' }, { key: 'PRICING_ERROR', label: 'Pricing Error' }, { key: 'OTHER', label: 'Other' }], message: 'Reject reasons fetched successfully.' }; }
@@ -156,8 +107,7 @@ export class ProviderOrdersService {
   private revenuePoints(items: { createdAt: Date; total: Prisma.Decimal }[], range: ProviderRevenueRange, from: Date) { const buckets = new Map<string, number>(); for (const item of items) { const label = this.pointLabel(item.createdAt, range); buckets.set(label, (buckets.get(label) ?? 0) + this.revenueValue(item)); } if (buckets.size === 0) buckets.set(this.pointLabel(from, range), 0); return [...buckets.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([label, value]) => ({ label, value: this.money(value) })); }
   private pointLabel(date: Date, range: ProviderRevenueRange): string { if (range === ProviderRevenueRange.MONTHLY) return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`; if (range === ProviderRevenueRange.WEEKLY) return `W${Math.ceil(date.getUTCDate() / 7)}`; return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getUTCDay()]; }
   private where(providerId: string, query: ListProviderOrdersDto): Prisma.OrderWhereInput { const where: Prisma.OrderWhereInput = { providerId }; if (query.status) this.applyStatusFilter(where, query.status); else where.status = OrderStatus.PENDING; if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined }; if (query.search) where.OR = [{ orderNumber: { contains: query.search, mode: 'insensitive' } }, { recipientName: { contains: query.search, mode: 'insensitive' } }, { items: { some: { gift: { name: { contains: query.search, mode: 'insensitive' } } } } }]; return where; }
-  private applyStatusFilter(where: Prisma.OrderWhereInput, status?: ProviderOrderStatusFilter): void { if (!status || status === ProviderOrderStatusFilter.ALL) return; const refundStatus = this.refundStatus(status); if (refundStatus) { where.refundRequests = { some: { status: refundStatus } }; return; } if (status === ProviderOrderStatusFilter.CANCELLED) { where.status = { in: [OrderStatus.CANCELLED, OrderStatus.REJECTED] }; return; } where.status = status as unknown as OrderStatus; }
-  private refundStatus(status: ProviderOrderStatusFilter | ProviderOrderHistoryStatus): RefundRequestStatus | null { if (status === ProviderOrderStatusFilter.REFUND_REQUESTED || status === ProviderOrderHistoryStatus.REFUND_REQUESTED) return RefundRequestStatus.REQUESTED; if (status === ProviderOrderStatusFilter.REFUND_PROCESSING || status === ProviderOrderHistoryStatus.REFUND_PROCESSING) return RefundRequestStatus.REFUND_PROCESSING; if (status === ProviderOrderStatusFilter.REFUNDED || status === ProviderOrderHistoryStatus.REFUNDED) return RefundRequestStatus.REFUNDED; if (status === ProviderOrderStatusFilter.REFUND_REJECTED || status === ProviderOrderHistoryStatus.REFUND_REJECTED) return RefundRequestStatus.REJECTED; return null; }
+  private applyStatusFilter(where: Prisma.OrderWhereInput, status?: ProviderOrderStatusFilter): void { if (!status || status === ProviderOrderStatusFilter.ALL) return; where.status = status as unknown as OrderStatus; }
   private orderBy(sortBy?: ProviderOrderSortBy, sortOrder?: ProviderOrderSortOrder): Prisma.OrderOrderByWithRelationInput { const direction = sortOrder === ProviderOrderSortOrder.ASC ? 'asc' : 'desc'; if (sortBy === ProviderOrderSortBy.AMOUNT) return { total: direction }; if (sortBy === ProviderOrderSortBy.STATUS) return { status: direction }; return { createdAt: direction }; }
   private listInclude() { return PROVIDER_ORDER_LIST_INCLUDE; }
   private async getOwnedProviderOrderForRead(providerId: string, id: string): Promise<ProviderOrderDetail> { const order = await this.providerOrdersRepository.findProviderOrderById(providerId, id, this.listInclude()); if (!order) throw new NotFoundException('Provider order not found'); return order; }
@@ -170,17 +120,12 @@ export class ProviderOrdersService {
   private refundDetails(item: ProviderOrderDetail) { const refund = this.latestRefund(item); return refund ? { id: refund.id, status: refund.status, requestedAmount: Number(refund.requestedAmount), approvedAmount: refund.approvedAmount === null ? null : Number(refund.approvedAmount), transactionId: refund.transactionId, customerReason: refund.customerReason, providerDecisionReason: refund.rejectionReason, providerComment: refund.providerComment, refundedAt: refund.refundedAt } : null; }
   private toListItem(item: ProviderOrderView) { const status = this.displayStatus(item); return { id: item.id, orderId: item.id, orderNumber: item.orderNumber, customerName: item.recipientName, amount: Number(item.total), status, statusLabel: this.statusLabel(status), refund: this.refundSummary(item), customer: { name: item.recipientName, phone: item.recipientPhone }, itemPreview: item.items.slice(0, 2).map((orderItem) => ({ name: orderItem.gift.name, imageUrl: this.firstImage(orderItem.gift.imageUrls) })), itemCount: item.items.reduce((sum, orderItem) => sum + orderItem.quantity, 0), total: Number(item.total), currency: 'PKR', createdAt: item.createdAt, receivedAgoText: this.timeAgo(item.createdAt) }; }
   private toDetails(item: ProviderOrderDetail) { const status = this.displayStatus(item); return { id: item.id, orderNumber: item.orderNumber, status, statusLabel: this.statusLabel(status), receivedAt: item.createdAt, receivedAgoText: this.timeAgo(item.createdAt), customer: { name: item.recipientName, phone: item.recipientPhone }, deliveryAddress: item.recipientAddress, items: item.items.map((orderItem) => ({ id: orderItem.id, giftId: orderItem.giftId, name: orderItem.gift.name, quantity: orderItem.quantity, unitPrice: Number(orderItem.unitPrice), total: Number(orderItem.unitPrice) * orderItem.quantity, imageUrl: this.firstImage(orderItem.gift.imageUrls) })), summary: { subtotal: Number(item.subtotal), platformFee: Number(item.platformFee), total: Number(item.total), currency: 'PKR' }, cancellation: this.cancellation(item), refund: this.refundDetails(item), giftMessage: item.giftMessage }; }
-  private assertCanFulfill(order: ProviderOrderDetail): void { const eligible = new Set<OrderStatus>([OrderStatus.ACCEPTED, OrderStatus.PROCESSING]); if (!eligible.has(order.status)) throw new BadRequestException('Only accepted or processing provider orders can be fulfilled'); }
-  private assertTransition(current: OrderStatus, next: OrderStatus): void { const allowed: Record<string, OrderStatus[]> = { PENDING: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED], ACCEPTED: [OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.CANCELLED], PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED], SHIPPED: [OrderStatus.DELIVERED, OrderStatus.CANCELLED], DELIVERED: [OrderStatus.COMPLETED], COMPLETED: [], CANCELLED: [], REJECTED: [] }; if (!(allowed[current] ?? []).includes(next)) throw new BadRequestException(`Invalid status transition from ${current} to ${next}`); }
+  private assertTransition(current: OrderStatus, next: OrderStatus): void { const allowed: Record<string, OrderStatus[]> = { PENDING: [OrderStatus.ACCEPTED, OrderStatus.REJECTED, OrderStatus.CANCELLED], ACCEPTED: [OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.CANCELLED], PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED], SHIPPED: [OrderStatus.DELIVERED, OrderStatus.CANCELLED], DELIVERED: [OrderStatus.COMPLETED], COMPLETED: [], CANCELLED: [], REJECTED: [] }; if (!(allowed[current] ?? []).includes(next)) throw new BadRequestException(`Invalid status transition from ${current} to ${next}`); }
   private async createOrderEarningLedger(tx: Prisma.TransactionClient, order: ProviderOrderDetail): Promise<void> { await this.providerOrdersRepository.upsertOrderEarningLedger(tx, { providerId: order.providerId, orderId: order.id, amount: order.total, description: `Order #${order.orderNumber} payout` }); }
-  private statusTitle(status: OrderStatus): string { return this.statusLabel(status); }
-  private statusDescription(status: OrderStatus): string { if (status === OrderStatus.SHIPPED) return 'Order has been shipped.'; if (status === OrderStatus.DELIVERED) return 'Order has been delivered.'; if (status === OrderStatus.COMPLETED) return 'Order has been completed.'; return `Order moved to ${this.statusTitle(status)}.`; }
-  private customerStatusMessage(status: OrderStatus): string { if (status === OrderStatus.PROCESSING) return 'Your order is being prepared.'; if (status === OrderStatus.SHIPPED) return 'Your order has been shipped.'; if (status === OrderStatus.DELIVERED) return 'Your order has been delivered.'; if (status === OrderStatus.COMPLETED) return 'Your order is complete.'; return 'Your order status was updated.'; }
   private timeAgo(date: Date): string { const diff = Math.max(0, Date.now() - date.getTime()); const minutes = Math.floor(diff / 60_000); if (minutes < 60) return `${minutes}m ago`; const hours = Math.floor(minutes / 60); if (hours < 24) return `${hours}h ago`; return `${Math.floor(hours / 24)}d ago`; }
   private money(value: number): number { return Number(value.toFixed(2)); }
   private firstImage(value: Prisma.JsonValue): string | null { return Array.isArray(value) && typeof value[0] === 'string' ? value[0] : null; }
   private completedStatuses() { return new Set<OrderStatus>([OrderStatus.DELIVERED, OrderStatus.COMPLETED]); }
   private cancelledStatuses() { return new Set<OrderStatus>([OrderStatus.CANCELLED, OrderStatus.REJECTED]); }
   private closedStatuses() { return new Set<OrderStatus>([OrderStatus.CANCELLED, OrderStatus.REJECTED]); }
-  private updatableStatuses() { return new Set<OrderStatus>([OrderStatus.ACCEPTED, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.COMPLETED, OrderStatus.CANCELLED]); }
 }

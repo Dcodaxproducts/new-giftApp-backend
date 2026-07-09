@@ -218,7 +218,8 @@ export class CustomerMarketplaceService {
     const providerId = providerIds[0];
     const subtotal = this.money(cart.items.reduce((sum, item) => {
       const gift = giftById.get(item.giftId)!;
-      return sum + Number(gift.price) * item.quantity;
+      const unitPrice = item.variant ? Number(item.variant.price) : Number(gift.price);
+      return sum + unitPrice * item.quantity;
     }, 0));
     const order = await this.customerOrdersRepository.runCheckoutTransaction(async (tx) => {
       const payout = await this.providerPayoutCalculation(tx, providerId, subtotal);
@@ -226,7 +227,8 @@ export class CustomerMarketplaceService {
       const created = await this.customerOrdersRepository.createOrderWithItems(tx, { userId: user.uid, providerId, orderNumber: this.nextOrderNumber(), status: OrderStatus.PENDING, subtotal: new Prisma.Decimal(subtotal), platformFee: new Prisma.Decimal(payout.platformFee), total: new Prisma.Decimal(total), recipientName: dto.recipientName.trim(), recipientPhone: dto.recipientPhone.trim(), recipientAddress: dto.recipientAddress.trim(), giftMessage: dto.giftMessage?.trim(), mediaAttachments: dto.mediaAttachments ?? undefined });
       for (const item of cart.items) {
         const gift = giftById.get(item.giftId)!;
-        await this.customerOrdersRepository.createOrderItem(tx, { orderId: created.id, giftId: item.giftId, quantity: item.quantity, unitPrice: gift.price });
+        const unitPrice = item.variant ? item.variant.price : gift.price;
+        await this.customerOrdersRepository.createOrderItem(tx, { orderId: created.id, giftId: item.giftId, variantId: item.variant?.id, variantName: item.variant?.name, quantity: item.quantity, unitPrice });
       }
       await this.customerOrdersRepository.markCartCheckedOut(tx, cart.id);
       await this.customerOrdersRepository.createOrderNotification(tx, { recipientId: user.uid, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Gift order created', message: 'Your gift order has been created successfully.', orderId: created.id });
@@ -316,6 +318,6 @@ export class CustomerMarketplaceService {
 
   private money(value: number): number { return Number(value.toFixed(2)); }
   private toOrderListItem(order: OrderView, type?: OrderHistoryType) { return { id: order.id, orderNumber: order.orderNumber, type: type === OrderHistoryType.PAYMENTS_SENT ? OrderHistoryType.PAYMENTS_SENT : OrderHistoryType.GIFTS_SENT, recipientName: order.recipientName, occasion: null, status: order.status, total: Number(order.total), createdAt: order.createdAt }; }
-  private toOrder(order: OrderView) { return { id: order.id, orderNumber: order.orderNumber, status: order.status, recipient: { name: order.recipientName, phone: order.recipientPhone, address: order.recipientAddress }, occasion: null, giftMessage: order.giftMessage, mediaAttachments: order.mediaAttachments, items: order.items.map((item) => ({ giftId: item.giftId, name: item.gift.name, quantity: item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), unitPrice: Number(item.unitPrice) })), summary: { subtotal: Number(order.subtotal), platformFee: Number(order.platformFee), total: Number(order.total) }, isGroupGift: order.isGroupGift, createdAt: order.createdAt, updatedAt: order.updatedAt }; }
+  private toOrder(order: OrderView) { return { id: order.id, orderNumber: order.orderNumber, status: order.status, recipient: { name: order.recipientName, phone: order.recipientPhone, address: order.recipientAddress }, occasion: null, giftMessage: order.giftMessage, mediaAttachments: order.mediaAttachments, items: order.items.map((item) => ({ giftId: item.giftId, name: item.gift.name, quantity: item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), unitPrice: Number(item.unitPrice), variantId: item.variantId, variantName: item.variantName })), summary: { subtotal: Number(order.subtotal), platformFee: Number(order.platformFee), total: Number(order.total) }, isGroupGift: order.isGroupGift, createdAt: order.createdAt, updatedAt: order.updatedAt }; }
   private nextOrderNumber(): string { return `ORD-${Date.now()}`; }
 }

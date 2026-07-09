@@ -3,7 +3,7 @@ import { OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max, Min } from 'class-validator';
 
-export enum ProviderOrderStatusFilter { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', SHIPPED = 'SHIPPED', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED', REFUND_REQUESTED = 'REFUND_REQUESTED', REFUND_PROCESSING = 'REFUND_PROCESSING', REFUNDED = 'REFUNDED', REFUND_REJECTED = 'REFUND_REJECTED' }
+export enum ProviderOrderStatusFilter { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', SHIPPED = 'SHIPPED', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED' }
 export enum ProviderOrderSortBy { CREATED_AT = 'createdAt', AMOUNT = 'amount', STATUS = 'status' }
 export enum ProviderOrderSortOrder { ASC = 'ASC', DESC = 'DESC' }
 
@@ -23,16 +23,13 @@ export class ProviderOrdersSummaryDto {
   @ApiPropertyOptional({ example: '2026-10-31T23:59:59.999Z' }) @IsOptional() @IsISO8601() toDate?: string;
 }
 
-export enum ProviderOrderAction { ACCEPT = 'ACCEPT', REJECT = 'REJECT', UPDATE_STATUS = 'UPDATE_STATUS', FULFILL = 'FULFILL' }
-
-export class AcceptProviderOrderDto { @ApiPropertyOptional({ example: 'Order accepted and will be processed shortly.' }) @IsOptional() @IsString() note?: string; }
-export class RejectProviderOrderDto { @ApiProperty({ example: 'Out of stock' }) @IsString() reason!: string; @ApiPropertyOptional({ example: 'The selected size is currently unavailable.' }) @IsOptional() @IsString() comment?: string; }
-export class UpdateProviderOrderStatusDto { @ApiProperty({ enum: OrderStatus, example: OrderStatus.SHIPPED }) @IsEnum(OrderStatus) status!: OrderStatus; @ApiPropertyOptional({ example: 'Package handed over to courier.' }) @IsOptional() @IsString() note?: string; }
-export class FulfillProviderOrderDto { @ApiPropertyOptional({ example: true, default: true }) @IsOptional() @IsBoolean() notifyCustomer?: boolean; @ApiPropertyOptional({ example: 'Order dispatched successfully.' }) @IsOptional() @IsString() note?: string; }
-export class ProviderOrderActionDto { @ApiProperty({ enum: ProviderOrderAction, example: ProviderOrderAction.ACCEPT }) @IsEnum(ProviderOrderAction) action!: ProviderOrderAction; @ApiPropertyOptional({ enum: OrderStatus, example: OrderStatus.PROCESSING }) @IsOptional() @IsEnum(OrderStatus) status?: OrderStatus; @ApiPropertyOptional({ example: 'Out of stock' }) @IsOptional() @IsString() reason?: string; @ApiPropertyOptional({ example: 'Order accepted.' }) @IsOptional() @IsString() comment?: string; @ApiPropertyOptional({ example: 'Package handed to courier.' }) @IsOptional() @IsString() note?: string; @ApiPropertyOptional({ example: true }) @IsOptional() @IsBoolean() notifyCustomer?: boolean; }
+export class UpdateProviderOrderStatusDto {
+  @ApiProperty({ enum: OrderStatus, example: OrderStatus.ACCEPTED }) @IsEnum(OrderStatus) status!: OrderStatus;
+  @ApiPropertyOptional({ example: 'Out of stock', description: 'Required when status is REJECTED' }) @IsOptional() @IsString() reason?: string;
+}
 export const providerOrderStatuses = Object.values(OrderStatus);
 
-export enum ProviderOrderHistoryStatus { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', SHIPPED = 'SHIPPED', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED', REFUND_REQUESTED = 'REFUND_REQUESTED', REFUND_PROCESSING = 'REFUND_PROCESSING', REFUNDED = 'REFUNDED', REFUND_REJECTED = 'REFUND_REJECTED' }
+export enum ProviderOrderHistoryStatus { ALL = 'ALL', PENDING = 'PENDING', ACCEPTED = 'ACCEPTED', PROCESSING = 'PROCESSING', SHIPPED = 'SHIPPED', DELIVERED = 'DELIVERED', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED', REJECTED = 'REJECTED' }
 export enum ProviderPerformanceRange { TODAY = 'TODAY', THIS_WEEK = 'THIS_WEEK', THIS_MONTH = 'THIS_MONTH', CUSTOM = 'CUSTOM' }
 export enum ProviderRevenueRange { DAILY = 'DAILY', WEEKLY = 'WEEKLY', MONTHLY = 'MONTHLY' }
 export enum ProviderOrderExportFormat { CSV = 'CSV' }

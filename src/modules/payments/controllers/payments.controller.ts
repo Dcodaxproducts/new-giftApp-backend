@@ -20,9 +20,9 @@ export class CustomerPaymentsController {
   constructor(private readonly payments: PaymentsService) {}
 
   @Post('create-intent')
-  @ApiOperation({ summary: 'Create payment intent from active cart', description: 'REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.' })
-  @ApiBody({ type: CreatePaymentIntentDto, examples: { stripe: { value: { cartId: 'cmf0cartactive001', paymentMethod: 'STRIPE_CARD' } }, cod: { value: { cartId: 'cmf0cartactive001', paymentMethod: 'COD' } } } })
-  @ApiResponse({ status: 201, description: 'Payment intent created successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', stripePaymentIntentId: 'pi_xxx', clientSecret: 'pi_xxx_secret_xxx', publishableKey: 'pk_live_or_test', amount: 10999, currency: 'PKR' }, message: 'Payment intent created successfully.' } } })
+  @ApiOperation({ summary: 'Create payment intent for an order', description: 'REGISTERED_USER only. Amount is taken from the order total; frontend amount is never accepted.' })
+  @ApiBody({ type: CreatePaymentIntentDto, examples: { stripe: { value: { orderId: 'order_id_123', paymentMethod: 'STRIPE_CARD' } }, cod: { value: { orderId: 'order_id_123', paymentMethod: 'COD' } } } })
+  @ApiResponse({ status: 201, description: 'Payment intent created successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', stripePaymentIntentId: 'pi_xxx', clientSecret: 'pi_xxx_secret_xxx', amount: 10999, currency: 'PKR' }, message: 'Payment intent created successfully.' } } })
   createIntent(@CurrentUser() user: AuthUserContext, @Body() dto: CreatePaymentIntentDto) { return this.payments.createIntent(user, dto); }
 
   @Post('confirm')
@@ -50,7 +50,7 @@ export class CustomerPaymentMethodsController {
 
   @Post('setup-intent')
   @ApiOperation({ summary: 'Create Stripe SetupIntent for saving card', description: 'Frontend confirms card with Stripe SDK. Backend never accepts raw card number or CVV.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { setupIntentId: 'seti_xxx', clientSecret: 'seti_xxx_secret_xxx', publishableKey: 'pk_test_xxx' }, message: 'Setup intent created successfully.' } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { setupIntentId: 'seti_xxx', clientSecret: 'seti_xxx_secret_xxx' }, message: 'Setup intent created successfully.' } } })
   setupIntent(@CurrentUser() user: AuthUserContext) { return this.payments.createSetupIntent(user); }
 
   @Get('saved')
