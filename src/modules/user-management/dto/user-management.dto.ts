@@ -17,10 +17,11 @@ import {
 
 export enum RegisteredUserStatusFilter {
   ALL = 'ALL',
-  ACTIVE = 'ACTIVE',
   PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
   SUSPENDED = 'SUSPENDED',
-  DISABLED = 'DISABLED',
+  BLOCKED = 'BLOCKED',
 }
 
 export enum RegisteredUserSortBy {

@@ -551,13 +551,15 @@ export class UserManagementCoreService {
 
   private statusWhere(status?: RegisteredUserStatusFilter): Prisma.UserWhereInput {
     switch (status) {
-      case RegisteredUserStatusFilter.ACTIVE:
-        return { status: UserStatus.APPROVED };
       case RegisteredUserStatusFilter.PENDING:
         return { status: UserStatus.PENDING };
+      case RegisteredUserStatusFilter.APPROVED:
+        return { status: UserStatus.APPROVED };
+      case RegisteredUserStatusFilter.REJECTED:
+        return { status: UserStatus.REJECTED };
       case RegisteredUserStatusFilter.SUSPENDED:
         return { status: UserStatus.SUSPENDED };
-      case RegisteredUserStatusFilter.DISABLED:
+      case RegisteredUserStatusFilter.BLOCKED:
         return { status: UserStatus.BLOCKED };
       case RegisteredUserStatusFilter.ALL:
       case undefined:
