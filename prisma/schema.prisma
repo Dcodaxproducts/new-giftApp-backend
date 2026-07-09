@@ -1150,13 +1150,15 @@ model CartItem {
   id        String   @id @default(cuid())
   cartId    String   @map("cart_id")
   giftId    String   @map("gift_id")
+  variantId String?  @map("variant_id")
   quantity  Int
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  gift Gift @relation(fields: [giftId], references: [id])
+  cart    Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  gift   Gift         @relation(fields: [giftId], references: [id])
+  variant GiftVariant? @relation(fields: [variantId], references: [id])
 
   @@index([cartId])
   @@map("cart_items")
@@ -1520,7 +1522,8 @@ model GiftVariant {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  gift Gift @relation(fields: [giftId], references: [id])
+  gift      Gift       @relation(fields: [giftId], references: [id])
+  cartItems CartItem[]
 
   @@index([giftId])
   @@map("gift_variants")

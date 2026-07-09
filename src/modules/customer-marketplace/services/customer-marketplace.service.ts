@@ -41,7 +41,8 @@ type GiftView = {
 type RatingSummary = { rating: number; reviewCount: number };
 type CartItemView = {
   id: string; giftId: string; quantity: number; createdAt: Date; updatedAt: Date;
-  gift: { id: string; name: string; imageUrls: Prisma.JsonValue };
+  gift: { id: string; name: string; description: string | null; price: Prisma.Decimal; currency: string; imageUrls: Prisma.JsonValue; variants: { id: string }[] };
+  variant: { id: string; name: string; price: Prisma.Decimal } | null;
 };
 
 type CartView = { id: string; userId: string; items: CartItemView[]; createdAt: Date; updatedAt: Date };
@@ -97,7 +98,7 @@ export class CustomerMarketplaceService {
     const gifts = await this.customerMarketplaceRepository.findWishlistGifts({ giftIds: rows.map((row) => row.giftId), where: this.availableGiftWhere(), include: this.giftInclude() });
     const wishlist = new Set(rows.map((row) => row.giftId));
     const ratings = await this.ratingSummaries(gifts);
-    return { data: gifts.map((gift) => this.toGiftListItem(gift, wishlist, ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user)), message: 'Wishlist fetched successfully' };
+    return { data: await Promise.all(gifts.map((gift) => this.toGiftDetail(gift, wishlist, ratings.get(gift.provider.id) ?? this.emptyRatingSummary(), user))), message: 'Wishlist fetched successfully' };
   }
 
   async addWishlist(user: AuthUserContext, giftId: string) {
@@ -169,13 +170,17 @@ export class CustomerMarketplaceService {
 
   async addCartItem(user: AuthUserContext, dto: AddCartItemDto) {
     const [gift, cart] = await Promise.all([this.getAvailableGift(dto.giftId), this.getActiveCart(user.uid)]);
+    const hasVariants = gift.variants.length > 0;
+    if (hasVariants && !dto.variantId) throw new BadRequestException('This gift has variants — variantId is required');
+    if (!hasVariants && dto.variantId) throw new BadRequestException('This gift has no variants');
+    if (dto.variantId && !gift.variants.some((v) => v.id === dto.variantId)) throw new BadRequestException('Variant does not belong to this gift');
     if (cart.items.length > 0) {
       const existingGiftIds = cart.items.map((item) => item.giftId);
       const existingGifts = await this.customerOrdersRepository.findGiftsForCheckout({ giftIds: existingGiftIds, where: this.availableGiftWhere(), include: { provider: { select: { id: true } } } });
       const existingProviderIds = new Set(existingGifts.map((g) => g.provider.id));
       if (existingProviderIds.size > 0 && !existingProviderIds.has(gift.provider.id)) throw new BadRequestException('Cart can only contain gifts from one provider');
     }
-    const item = await this.customerCartRepository.createCartItem({ cartId: cart.id, giftId: gift.id, quantity: dto.quantity });
+    const item = await this.customerCartRepository.createCartItem({ cartId: cart.id, giftId: gift.id, variantId: dto.variantId, quantity: dto.quantity });
     return { data: this.toCartItem(item), message: 'Cart item added successfully' };
   }
 
@@ -275,11 +280,10 @@ export class CustomerMarketplaceService {
 
   private toCategory(category: CategoryView) { return { id: category.id, name: category.name, slug: category.slug, imageUrl: category.imageUrl }; }
   private toGiftCard(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, _user?: AuthUserContext) { const offer = this.activeOffer(gift); return { id: gift.id, name: gift.name, price: Number(gift.price), currency: gift.currency, imageUrl: this.firstImage(gift.imageUrls), rating: ratingSummary.rating, isWishlisted: wishlist.has(gift.id), activeOffer: this.toOffer(offer, Number(gift.price)) }; }
-  private toGiftListItem(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user?: AuthUserContext) { return { ...this.toGiftCard(gift, wishlist, ratingSummary, user), reviewCount: ratingSummary.reviewCount, category: this.toCategory(gift.category), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount }, popularity: 0 }; }
-  private async toGiftDetail(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user: AuthUserContext) { return { ...this.toGiftListItem(gift, wishlist, ratingSummary, user), description: gift.description, originalPrice: Number(gift.price), imageUrls: this.stringArray(gift.imageUrls), badges: this.giftBadges(gift), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, fulfillmentMethods: this.stringArray(gift.provider.providerProfile?.fulfillmentMethods ?? null) }, variants: gift.variants.map((variant) => ({ id: variant.id, name: variant.name, price: Number(variant.price) })), activeOffer: this.toOffer(this.activeOffer(gift), Number(gift.price)) }; }
+  private toGiftListItem(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user?: AuthUserContext) { return { ...this.toGiftCard(gift, wishlist, ratingSummary, user), reviewCount: ratingSummary.reviewCount, category: this.toCategory(gift.category), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount } }; }
+  private async toGiftDetail(gift: GiftView, wishlist: Set<string>, ratingSummary: RatingSummary, user: AuthUserContext) { return { ...this.toGiftListItem(gift, wishlist, ratingSummary, user), description: gift.description, originalPrice: Number(gift.price), imageUrls: this.stringArray(gift.imageUrls), provider: { id: gift.provider.id, businessName: this.providerName(gift.provider), rating: ratingSummary.rating, reviewCount: ratingSummary.reviewCount, fulfillmentMethods: this.stringArray(gift.provider.providerProfile?.fulfillmentMethods ?? null) }, variants: gift.variants.map((variant) => ({ id: variant.id, name: variant.name, price: Number(variant.price) })), activeOffer: this.toOffer(this.activeOffer(gift), Number(gift.price)) }; }
   private activeOffer(gift: GiftView): OfferView | null { return gift.promotionalOffers[0] ?? null; }
   private toOffer(offer: OfferView | null, price: number) { if (!offer) return null; const value = Number(offer.discountValue); const discountAmount = offer.discountType === PromotionalOfferDiscountType.PERCENTAGE ? Math.min(price, price * (value / 100)) : Math.min(price, value); return { id: offer.id, title: offer.title, discountType: offer.discountType, discountValue: value, discountAmount, finalPrice: price - discountAmount, startDate: offer.startDate, endDate: offer.endDate }; }
-  private giftBadges(gift: GiftView): string[] { const badges = ['AUTHENTIC']; if (gift.promotionalOffers.length > 0) badges.push('EXPRESS'); const methods = this.stringArray(gift.provider.providerProfile?.fulfillmentMethods ?? null); if (methods.includes('DELIVERY')) badges.push('FREE_SHIPPING'); return badges; }
   private firstImage(value: Prisma.JsonValue): string | null { return this.stringArray(value)[0] ?? null; }
   private stringArray(value: Prisma.JsonValue): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
   private providerName(provider: { providerProfile: { businessName: string | null } | null; firstName: string; lastName: string }): string { return provider.providerProfile?.businessName ?? `${provider.firstName} ${provider.lastName}`.trim(); }
@@ -297,7 +301,7 @@ export class CustomerMarketplaceService {
   private toAddress(address: CustomerAddress) { return { id: address.id, label: address.label, fullName: address.fullName, phone: address.phone, line1: address.line1, line2: address.line2, city: address.city, state: address.state, country: address.country, postalCode: address.postalCode, latitude: address.latitude === null ? null : Number(address.latitude), longitude: address.longitude === null ? null : Number(address.longitude), deliveryInstructions: address.deliveryInstructions, isDefault: address.isDefault, createdAt: address.createdAt, updatedAt: address.updatedAt }; }
   private toReminder(reminder: CustomerReminder) { return { id: reminder.id, title: reminder.title, recipientName: reminder.recipientName, eventType: reminder.eventType, reminderDate: reminder.reminderDate, notes: reminder.notes, isActive: reminder.isActive, createdAt: reminder.createdAt, updatedAt: reminder.updatedAt }; }
   private toCart(cart: CartView) { const items = cart.items.map((item) => this.toCartItem(item)); return { id: cart.id, items, itemCount: items.length, createdAt: cart.createdAt, updatedAt: cart.updatedAt }; }
-  private toCartItem(item: CartItemView) { return { id: item.id, giftId: item.giftId, name: item.gift.name, quantity: item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), createdAt: item.createdAt, updatedAt: item.updatedAt }; }
+  private toCartItem(item: CartItemView) { return { id: item.id, giftId: item.giftId, name: item.gift.name, description: item.gift.description, price: Number(item.variant?.price ?? item.gift.price), currency: item.gift.currency, quantity: item.quantity, imageUrl: this.firstImage(item.gift.imageUrls), variantId: item.variant?.id ?? null, variantName: item.variant?.name ?? null, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
   private async providerPayoutCalculation(tx: Prisma.TransactionClient, providerId: string, grossAmount: number): Promise<{ platformFee: number; totalPayout: number }> {
     const [settings, tiers, providerEarnings] = await Promise.all([
       this.customerOrdersRepository.findActivePayoutSettings(tx),

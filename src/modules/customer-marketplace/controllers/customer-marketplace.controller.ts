@@ -155,7 +155,7 @@ export class CustomerMarketplaceController {
   @Post('cart/items')
   @ApiTags('05 Customer - Cart')
   @ApiOperation({ summary: 'Add item to cart', description: 'REGISTERED_USER only. All cart items must belong to the same provider.' })
-  @ApiBody({ type: AddCartItemDto, examples: { sendGift: { value: { giftId: 'cmf0giftroses001', quantity: 1 } } } })
+  @ApiBody({ type: AddCartItemDto, examples: { withoutVariant: { summary: 'Add gift without variant', value: { giftId: 'cmf0giftroses001', quantity: 1 } }, withVariant: { summary: 'Add gift with variant', value: { giftId: 'cmf0giftroses001', variantId: 'variant_50ml', quantity: 1 } } } })
   addCartItem(@CurrentUser() user: AuthUserContext, @Body() dto: AddCartItemDto) { return this.marketplace.addCartItem(user, dto); }
 
   @Roles(UserRole.REGISTERED_USER)

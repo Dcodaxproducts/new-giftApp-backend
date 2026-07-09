@@ -79,6 +79,7 @@ export class UpdateCustomerReminderDto {
 
 export class AddCartItemDto {
   @ApiProperty({ example: 'cmf0giftroses001' }) @IsString() giftId!: string;
+  @ApiPropertyOptional({ example: 'variant_50ml' }) @IsOptional() @IsString() variantId?: string;
   @ApiProperty({ example: 1 }) @Type(() => Number) @IsInt() @Min(1) quantity!: number;
 }
 

@@ -3,7 +3,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 export const CUSTOMER_CART_ITEM_INCLUDE = Prisma.validator<Prisma.CartItemInclude>()({
-  gift: { select: { id: true, name: true, imageUrls: true } },
+  gift: { select: { id: true, name: true, description: true, price: true, currency: true, imageUrls: true, variants: { select: { id: true } } } },
+  variant: { select: { id: true, name: true, price: true } },
 });
 
 export const CUSTOMER_CART_WITH_ITEMS_INCLUDE = Prisma.validator<Prisma.CartInclude>()({
