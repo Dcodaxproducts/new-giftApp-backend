@@ -101,7 +101,6 @@ export class UserManagementCoreService {
       lastName: dto.lastName?.trim(),
       phone: dto.phone?.trim(),
       avatarUrl: dto.avatarUrl?.trim(),
-      location: dto.location?.trim(),
     });
     await this.recordAudit(user.uid, target.id, 'REGISTERED_USER_UPDATED', before, this.toDetail(updated, stats, subscription));
 
@@ -614,7 +613,6 @@ export class UserManagementCoreService {
     return {
       ...this.toListItem(user, stats),
       lastLoginAt: user.lastLoginAt,
-      location: user.location,
       subscription: {
         planName: subscription?.planName ?? null,
         planType: subscription?.planType ?? null,

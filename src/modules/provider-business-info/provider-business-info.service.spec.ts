@@ -54,7 +54,6 @@ const businessInfoProvider = {
     businessPhone: '+1 (555) 012-3456',
     businessAddress: '842 Industrial Way, Suite 102',
     fulfillmentMethods: ['PICKUP', 'DELIVERY'],
-    autoAcceptOrders: false,
     status: UserStatus.APPROVED,
   },
   isApproved: true,
@@ -118,7 +117,6 @@ describe('ProviderBusinessInfoService mobile profile fields', () => {
     const { service, prisma } = createBusinessInfoService();
     await service.update({ uid: 'provider_1', role: UserRole.PROVIDER }, {
       legalName: 'Global Logistics Solutions LLC',
-      autoAcceptOrders: false,
     });
     expect(prisma.adminAuditLog.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'PROVIDER_BUSINESS_INFO_UPDATED' }) }));
   });

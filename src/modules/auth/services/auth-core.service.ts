@@ -90,12 +90,11 @@ export class AuthCoreService implements OnModuleInit {
 
   async registerUser(dto: RegisterUserDto) {
     await this.customerReferralsService?.assertValidReferralCode(dto.referralCode);
-    const name = this.nameParts(dto);
     const user = await this.createUser({
       email: dto.email,
       password: dto.password,
-      firstName: name.firstName,
-      lastName: name.lastName,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       phone: dto.phone,
       role: UserRole.REGISTERED_USER,
       status: UserStatus.PENDING,
@@ -118,23 +117,22 @@ export class AuthCoreService implements OnModuleInit {
 
   async registerProvider(dto: RegisterProviderDto) {
     await this.getProviderBusinessCategory(dto.businessCategoryId);
-    const name = this.nameParts(dto);
     const user = await this.createUser({
       email: dto.email,
       password: dto.password,
-      firstName: name.firstName,
-      lastName: name.lastName,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       phone: dto.phone,
       role: UserRole.PROVIDER,
       status: UserStatus.PENDING,
-      location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
       providerProfile: {
         businessName: dto.businessName.trim(),
         businessCategoryId: dto.businessCategoryId,
         taxId: dto.taxId?.trim(),
         businessAddress: dto.businessAddress.trim(),
         fulfillmentMethods: dto.fulfillmentMethods,
-        autoAcceptOrders: dto.autoAcceptOrders ?? false,
+        lat: dto.location?.lat,
+        lng: dto.location?.lng,
       },
     });
     await this.mailerService.sendVerificationEmail(
@@ -462,15 +460,17 @@ export class AuthCoreService implements OnModuleInit {
     role: UserRole;
     status?: UserStatus;
     mustChangePassword?: boolean;
-    location?: string;
     providerProfile?: {
       businessName?: string;
       businessCategoryId?: string;
       taxId?: string;
       businessAddress?: string;
       fulfillmentMethods?: string[];
-      autoAcceptOrders?: boolean;
-      documents?: Prisma.InputJsonValue;
+      companyLogoUrl?: string;
+      coverImageUrl?: string;
+      businessBio?: string;
+      lat?: number;
+      lng?: number;
     };
     avatarUrl?: string;
   }): Promise<User> {
@@ -492,7 +492,6 @@ export class AuthCoreService implements OnModuleInit {
         role: input.role,
         status: input.status ?? UserStatus.PENDING,
         mustChangePassword: input.mustChangePassword ?? false,
-        location: input.location,
         providerProfile: input.providerProfile
           ? {
               create: {
@@ -501,8 +500,11 @@ export class AuthCoreService implements OnModuleInit {
                 taxId: input.providerProfile.taxId,
                 businessAddress: input.providerProfile.businessAddress,
                 fulfillmentMethods: input.providerProfile.fulfillmentMethods ?? undefined,
-                autoAcceptOrders: input.providerProfile.autoAcceptOrders ?? false,
-                documents: input.providerProfile.documents ?? undefined,
+                companyLogoUrl: input.providerProfile.companyLogoUrl ?? '',
+                coverImageUrl: input.providerProfile.coverImageUrl ?? '',
+                businessBio: input.providerProfile.businessBio,
+                lat: input.providerProfile.lat,
+                lng: input.providerProfile.lng,
               },
             }
           : undefined,
@@ -514,20 +516,6 @@ export class AuthCoreService implements OnModuleInit {
         verificationOtp: otp,
         verificationOtpExpiresAt: this.generateOtpExpiry(),
       });
-  }
-
-  private nameParts(dto: { name?: string; firstName?: string; lastName?: string }): { firstName: string; lastName: string } {
-    if (dto.name?.trim()) {
-      const trimmed = dto.name.trim();
-      const [firstName, ...rest] = trimmed.split(/\s+/);
-      return { firstName, lastName: rest.join(' ') };
-    }
-
-    if (!dto.firstName?.trim()) {
-      throw new BadRequestException('Name is required');
-    }
-
-    return { firstName: dto.firstName.trim(), lastName: dto.lastName?.trim() ?? '' };
   }
 
   private async getActiveUser(userId: string): Promise<User> {
@@ -622,9 +610,12 @@ export class AuthCoreService implements OnModuleInit {
             : null,
           taxId: profile?.taxId ?? null,
           businessAddress: profile?.businessAddress ?? null,
-          location: this.providerLocation(user),
+          companyLogoUrl: profile?.companyLogoUrl ?? null,
+          coverImageUrl: profile?.coverImageUrl ?? null,
+          businessBio: profile?.businessBio ?? null,
+          lat: profile?.lat ?? null,
+          lng: profile?.lng ?? null,
           fulfillmentMethods: this.stringArray(profile?.fulfillmentMethods),
-          autoAcceptOrders: profile?.autoAcceptOrders ?? false,
           status: user.status,
           memberSince: user.createdAt,
         },
@@ -632,15 +623,6 @@ export class AuthCoreService implements OnModuleInit {
     }
 
     return { ...baseUser, subscription: await this.customerSubscriptionSummary(user.id) };
-  }
-
-  private providerLocation(user: AuthUserWithStaff): { lat: number; lng: number } | null {
-    const [lat, lng] = user.location?.split(',').map((part) => Number(part)) ?? [];
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      return { lat, lng };
-    }
-
-    return null;
   }
 
   private async customerSubscriptionSummary(userId: string) {

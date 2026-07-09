@@ -141,10 +141,6 @@ export class UpdateRegisteredUserDto {
   @IsUrl({ require_tld: false })
   avatarUrl?: string;
 
-  @ApiPropertyOptional({ example: 'New York, USA' })
-  @IsOptional()
-  @IsString()
-  location?: string;
 }
 
 export class UpdateRegisteredUserStatusDto {

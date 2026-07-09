@@ -525,7 +525,7 @@ describe('AuthService sensitive auth behavior', () => {
     const { service, mailerService, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
 
-    const result = await service.registerProvider({ email: 'provider@example.com', password: 'Password@123', firstName: 'Cake', lastName: 'Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', fulfillmentMethods: [ProviderFulfillmentMethodDto.DELIVERY], autoAcceptOrders: false });
+    const result = await service.registerProvider({ email: 'provider@example.com', password: 'Password@123', firstName: 'Cake', lastName: 'Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', fulfillmentMethods: [ProviderFulfillmentMethodDto.DELIVERY] });
 
     expect(result.message).toBe('Provider application submitted for Super Admin approval.');
     expect(mailerService.sendVerificationEmail).toHaveBeenCalledWith('provider@example.com', '123456');
@@ -542,7 +542,7 @@ describe('AuthService sensitive auth behavior', () => {
     const { service, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
 
-    await service.registerProvider({ email: 'provider-name@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street' });
+    await service.registerProvider({ email: 'provider-name@example.com', password: 'Password@123', firstName: 'Cake', lastName: 'Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street' });
 
     const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { firstName: string; lastName: string; providerProfile?: { create: { fulfillmentMethods?: string[] } } } }];
     expect(registerProviderCall[0].data.firstName).toBe('Cake');
@@ -555,16 +555,17 @@ describe('AuthService sensitive auth behavior', () => {
     const { service, prisma } = createSensitiveAuthService({ user });
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(user);
 
-    const result = await service.registerProvider({ email: 'provider-location@example.com', password: 'Password@123', name: 'Cake Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', location: { lat: 31.5, lng: 74.3 } });
+    const result = await service.registerProvider({ email: 'provider-location@example.com', password: 'Password@123', firstName: 'Cake', lastName: 'Owner', phone: '+15550000002', businessName: 'Cake Shop', businessCategoryId: 'cat_1', taxId: 'TAX-1', businessAddress: 'Main Street', location: { lat: 31.5, lng: 74.3 } });
 
-    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { location?: string; providerProfile?: { create: Record<string, unknown> } } }];
-    expect(registerProviderCall[0].data.location).toBe('31.5,74.3');
+    const registerProviderCall = prisma.user.create.mock.calls[0] as [{ data: { providerProfile?: { create: Record<string, unknown> } } }];
+    expect(registerProviderCall[0].data.providerProfile?.create.lat).toBe(31.5);
+    expect(registerProviderCall[0].data.providerProfile?.create.lng).toBe(74.3);
     expect(registerProviderCall[0].data.providerProfile?.create).not.toHaveProperty('storeAddress');
-    const providerUser = result.data.user as { provider: { location: { lat: number; lng: number } } };
-    expect(providerUser.provider).toEqual(expect.objectContaining({ location: { lat: 31.5, lng: 74.3 } }));
+    const providerUser = result.data.user as { provider: { lat: number; lng: number } };
+    expect(providerUser.provider).toEqual(expect.objectContaining({ lat: 31.5, lng: 74.3 }));
 
     const pipe = new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true });
-    const basePayload = { email: 'provider-invalid@example.com', password: 'Password@123', name: 'Cake Owner', businessName: 'Cake Shop', businessCategoryId: 'cat_1', businessAddress: 'Main Street' };
+    const basePayload = { email: 'provider-invalid@example.com', password: 'Password@123', firstName: 'Cake', lastName: 'Owner', businessName: 'Cake Shop', businessCategoryId: 'cat_1', businessAddress: 'Main Street' };
     await expect(pipe.transform({ ...basePayload, location: { lat: 31.5 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, location: { lat: -91, lng: 74.3 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();
     await expect(pipe.transform({ ...basePayload, location: { lat: 31.5, lng: -181 } }, { type: 'body', metatype: RegisterProviderDto })).rejects.toThrow();

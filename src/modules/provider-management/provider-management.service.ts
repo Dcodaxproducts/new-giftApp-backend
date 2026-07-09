@@ -39,11 +39,6 @@ interface ProviderActivityItem {
   createdAt: Date;
 }
 
-interface ProviderAssetMetadata {
-  businessBio?: string;
-  coverImageUrl?: string;
-}
-
 type ProviderUser = User & { providerProfile?: ProviderProfile | null };
 
 @Injectable()
@@ -150,11 +145,9 @@ export class ProviderManagementService {
         firstName: dto.name.trim(),
         lastName: '',
         phone: dto.contact.trim(),
-        avatarUrl: dto.companyLogoUrl?.trim(),
         role: UserRole.PROVIDER,
         status,
         mustChangePassword: true,
-        location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
         providerProfile: {
           create: {
             legalName: dto.businessName.trim(),
@@ -164,7 +157,11 @@ export class ProviderManagementService {
             businessCategoryId: dto.businessCategoryId,
             taxId: dto.taxId?.trim(),
             businessAddress: dto.businessAddress.trim(),
-            documents: this.providerAssetMetadata(dto),
+            companyLogoUrl: dto.companyLogoUrl,
+            coverImageUrl: dto.coverImageUrl,
+            businessBio: dto.businessBio?.trim(),
+            lat: dto.location?.lat,
+            lng: dto.location?.lng,
           },
         },
     });
@@ -209,8 +206,6 @@ export class ProviderManagementService {
         firstName: dto.name?.trim(),
         email,
         phone: dto.contact?.trim(),
-        avatarUrl: dto.companyLogoUrl?.trim(),
-        location: dto.location ? `${dto.location.lat},${dto.location.lng}` : undefined,
       }, {
         legalName: dto.businessName?.trim(),
         businessEmail: email,
@@ -219,7 +214,11 @@ export class ProviderManagementService {
         businessCategoryId: dto.businessCategoryId,
         taxId: dto.taxId?.trim(),
         businessAddress: dto.businessAddress?.trim(),
-        documents: this.updatedProviderAssetMetadata(provider, dto),
+        companyLogoUrl: dto.companyLogoUrl?.trim(),
+        coverImageUrl: dto.coverImageUrl?.trim(),
+        businessBio: dto.businessBio?.trim(),
+        lat: dto.location?.lat,
+        lng: dto.location?.lng,
     });
     await this.recordAudit(user.uid, provider.id, 'PROVIDER_UPDATED', before, this.toDetail(updated, stats));
 
@@ -403,8 +402,8 @@ export class ProviderManagementService {
       businessName: this.businessName(provider),
       email: provider.email,
       name: this.name(provider),
-      companyLogoUrl: provider.avatarUrl,
-      coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
+      companyLogoUrl: profile.companyLogoUrl,
+      coverImageUrl: profile.coverImageUrl,
       status: this.toStatus(provider),
       revenue: stats.revenue,
       listedItems: stats.listedItems,
@@ -421,7 +420,7 @@ export class ProviderManagementService {
       taxId: profile.taxId,
       businessAddress: profile.businessAddress,
       businessPhone: profile.businessPhone,
-      businessBio: this.providerAssets(provider).businessBio ?? null,
+      businessBio: profile.businessBio ?? null,
       stats: {
         performanceStats: stats.performanceStats,
         performanceChangePercent: stats.performanceChangePercent,
@@ -450,10 +449,11 @@ export class ProviderManagementService {
       businessCategoryId: profile.businessCategoryId,
       taxId: profile.taxId,
       businessAddress: profile.businessAddress,
-      businessBio: this.providerAssets(provider).businessBio ?? null,
-      companyLogoUrl: provider.avatarUrl,
-      coverImageUrl: this.providerAssets(provider).coverImageUrl ?? null,
-      location: this.providerLocation(provider),
+      businessBio: profile.businessBio ?? null,
+      companyLogoUrl: profile.companyLogoUrl,
+      coverImageUrl: profile.coverImageUrl,
+      lat: profile.lat ?? null,
+      lng: profile.lng ?? null,
       status: this.toStatus(provider),
       inviteEmailSent,
     };
@@ -651,7 +651,7 @@ export class ProviderManagementService {
     }
   }
 
-  private async validateBrandingUploads(dto: Pick<CreateProviderDto, 'companyLogoUrl' | 'coverImageUrl'>): Promise<void> {
+  private async validateBrandingUploads(dto: { companyLogoUrl?: string; coverImageUrl?: string }): Promise<void> {
     const requested = [
       ...(dto.companyLogoUrl ? [{ kind: 'company logo', url: dto.companyLogoUrl.trim(), allowedFolders: ['provider-logos'] }] : []),
       ...(dto.coverImageUrl ? [{ kind: 'cover image', url: dto.coverImageUrl.trim(), allowedFolders: ['provider-covers', 'provider-cover'] }] : []),
@@ -680,56 +680,7 @@ export class ProviderManagementService {
     }
   }
 
-  private providerAssetMetadata(dto: CreateProviderDto): Prisma.InputJsonObject | undefined {
-    const metadata: Record<string, string> = {};
-    if (dto.businessBio?.trim()) {
-      metadata.businessBio = dto.businessBio.trim();
-    }
-    if (dto.coverImageUrl?.trim()) {
-      metadata.coverImageUrl = dto.coverImageUrl.trim();
-    }
-    return Object.keys(metadata).length ? metadata : undefined;
-  }
 
-  private updatedProviderAssetMetadata(provider: ProviderUser, dto: UpdateProviderDto): Prisma.InputJsonObject | undefined {
-    if (dto.businessBio === undefined && dto.coverImageUrl === undefined) {
-      return undefined;
-    }
-
-    const current = this.providerAssets(provider);
-    const metadata: Record<string, string> = {};
-    const businessBio = dto.businessBio === undefined ? current.businessBio : dto.businessBio.trim();
-    const coverImageUrl = dto.coverImageUrl === undefined ? current.coverImageUrl : dto.coverImageUrl.trim();
-
-    if (businessBio) {
-      metadata.businessBio = businessBio;
-    }
-    if (coverImageUrl) {
-      metadata.coverImageUrl = coverImageUrl;
-    }
-
-    return metadata;
-  }
-
-  private providerAssets(provider: ProviderUser): ProviderAssetMetadata {
-    const value = this.profile(provider).documents;
-    if (!value || Array.isArray(value) || typeof value !== 'object') {
-      return {};
-    }
-
-    return {
-      businessBio: typeof value.businessBio === 'string' ? value.businessBio : undefined,
-      coverImageUrl: typeof value.coverImageUrl === 'string' ? value.coverImageUrl : undefined,
-    };
-  }
-
-  private providerLocation(provider: ProviderUser): { lat: number; lng: number } | null {
-    const [lat, lng] = provider.location?.split(',').map((part) => Number(part)) ?? [];
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      return { lat, lng };
-    }
-    return null;
-  }
 
   private validateLifecycleAction(provider: ProviderUser, dto: UpdateProviderStatusDto): void {
     if (dto.action === ProviderLifecycleAction.REJECT && !dto.reason) {

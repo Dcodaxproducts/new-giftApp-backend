@@ -36,7 +36,6 @@ export class ProviderBusinessInfoService {
     ].some((key) => dto[key as keyof UpdateProviderBusinessInfoDto] !== undefined);
 
     const updated = await this.repository.updateProvider(user.uid, {
-        location: dto.headquarters?.trim(),
         status: materialChange ? UserStatus.PENDING : provider.status,
       }, {
         businessName: dto.businessName?.trim(),
@@ -47,7 +46,6 @@ export class ProviderBusinessInfoService {
         businessPhone: dto.phone?.trim(),
         businessAddress: dto.businessAddress?.trim(),
         fulfillmentMethods: dto.fulfillmentMethods,
-        autoAcceptOrders: dto.autoAcceptOrders,
     });
 
     await this.repository.createAuditLog({
@@ -108,10 +106,8 @@ export class ProviderBusinessInfoService {
       email: profile.businessEmail ?? provider.email,
       phone: profile.businessPhone ?? provider.phone,
       fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
-      autoAcceptOrders: profile.autoAcceptOrders ?? false,
       verificationRequired: provider.status !== UserStatus.APPROVED,
       businessAddress: profile.businessAddress,
-      headquarters: provider.location,
     };
   }
 
@@ -125,9 +121,7 @@ export class ProviderBusinessInfoService {
       email: profile.businessEmail,
       phone: profile.businessPhone,
       businessAddress: profile.businessAddress,
-      headquarters: provider.location,
       fulfillmentMethods: this.stringArray(profile.fulfillmentMethods),
-      autoAcceptOrders: profile.autoAcceptOrders ?? false,
     };
   }
 

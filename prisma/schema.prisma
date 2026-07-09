@@ -686,7 +686,6 @@ model User {
   lastName                            String                               @map("last_name")
   phone                               String?
   avatarUrl                           String?                              @map("avatar_url")
-  location                            String?
   mustChangePassword                  Boolean                              @default(false) @map("must_change_password")
   lastLoginAt                         DateTime?                            @map("last_login_at") @db.Timestamptz
   verificationOtp                     String?                              @map("verification_otp")
@@ -795,8 +794,11 @@ model ProviderProfile {
   businessPhone      String?  @map("business_phone")
   businessAddress    String?  @map("business_address")
   fulfillmentMethods Json?    @map("fulfillment_methods")
-  autoAcceptOrders   Boolean  @default(false) @map("auto_accept_orders")
-  documents          Json?
+  companyLogoUrl     String   @default("") @map("company_logo_url")
+  coverImageUrl      String   @default("") @map("cover_image_url")
+  businessBio        String?  @map("business_bio")
+  lat                Float?
+  lng                Float?
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 

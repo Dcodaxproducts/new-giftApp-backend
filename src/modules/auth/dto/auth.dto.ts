@@ -12,7 +12,6 @@ import {
   IsString,
   Matches,
   Max,
-  MaxLength,
   Min,
   MinLength,
   ValidateNested,
@@ -49,22 +48,15 @@ export class RegisterUserDto {
   @MinLength(8)
   password!: string;
 
-  @ApiPropertyOptional({ example: 'Cake Owner', maxLength: 120, description: 'Preferred full-name field. Provider self-registration may send this instead of firstName/lastName.' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(120)
-  name?: string;
-
-  @ApiPropertyOptional({ description: 'Deprecated for provider self-registration; send name instead. Kept for backward compatibility.' })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  firstName?: string;
+  firstName!: string;
 
-  @ApiPropertyOptional({ description: 'Deprecated for provider self-registration; send name instead. Kept for backward compatibility.' })
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  lastName?: string;
+  @IsNotEmpty()
+  lastName!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -113,11 +105,6 @@ export class RegisterProviderDto extends RegisterUserDto {
   @ArrayMinSize(1)
   @IsEnum(ProviderFulfillmentMethodDto, { each: true })
   fulfillmentMethods?: ProviderFulfillmentMethodDto[];
-
-  @ApiPropertyOptional({ default: false })
-  @IsOptional()
-  @IsBoolean()
-  autoAcceptOrders?: boolean;
 }
 
 export class LoginDto {

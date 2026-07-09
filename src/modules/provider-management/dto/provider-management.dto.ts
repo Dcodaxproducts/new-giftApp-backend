@@ -207,15 +207,13 @@ export class CreateProviderDto {
   @MaxLength(500)
   businessBio?: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-logos/logo.png', description: 'Provider logo URL. If completed upload metadata exists, it must be a provider-logo asset no larger than 5MB.' })
-  @IsOptional()
+  @ApiProperty({ example: 'https://cdn.yourdomain.com/provider-logos/logo.png', description: 'Provider logo URL. If completed upload metadata exists, it must be a provider-logo asset no larger than 5MB.' })
   @IsUrl({ require_tld: false })
-  companyLogoUrl?: string;
+  companyLogoUrl!: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.yourdomain.com/provider-covers/cover.png', description: 'Provider cover image URL. If completed upload metadata exists, it must be a provider-cover asset no larger than 5MB.' })
-  @IsOptional()
+  @ApiProperty({ example: 'https://cdn.yourdomain.com/provider-covers/cover.png', description: 'Provider cover image URL. If completed upload metadata exists, it must be a provider-cover asset no larger than 5MB.' })
   @IsUrl({ require_tld: false })
-  coverImageUrl?: string;
+  coverImageUrl!: string;
 
   @ApiPropertyOptional({
     example: { lat: 31.5, lng: 74.3 },
