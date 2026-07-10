@@ -80,4 +80,17 @@ export class CustomerOrdersRepository {
   createOrderNotification(tx: CheckoutTransaction, params: { recipientId: string; recipientType: NotificationRecipientType; title: string; message: string; orderId: string }) {
     return this.notificationDispatch.createAndEmit({ recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } });
   }
+
+  cancelOrder(orderId: string, data: { cancellationDeductionPercent: Prisma.Decimal; cancellationRefundAmount: Prisma.Decimal }) {
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: 'CANCELLED',
+        cancellationDeductionPercent: data.cancellationDeductionPercent,
+        cancellationRefundAmount: data.cancellationRefundAmount,
+        cancelledAt: new Date(),
+      },
+      include: CUSTOMER_ORDER_INCLUDE,
+    });
+  }
 }

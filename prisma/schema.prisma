@@ -627,7 +627,6 @@ model User {
   rewardLedger                        RewardLedger[]
   uploadedFiles                       UploadedFile[]
   updatedReferralSettings             ReferralSettings[]                   @relation("ReferralSettingsUpdater")
-  updatedRefundPolicySettings         RefundPolicySettings[]               @relation("RefundPolicySettingsUpdater")
   cart                                Cart?
   customerOrders                      Order[]                              @relation("CustomerOrders")
   providerOrders                      Order[]                              @relation("ProviderOrders")
@@ -771,20 +770,13 @@ model ReferralSettings {
 }
 
 model RefundPolicySettings {
-  id                        String   @id @default(cuid())
-  allowRefund               Boolean  @default(true) @map("allow_refund")
-  noteText                  String?  @map("note_text")
-  refundWindowDays          Int      @default(30) @map("refund_window_days")
-  autoRefundThresholdAmount Decimal  @default(50) @map("auto_refund_threshold_amount") @db.Decimal(10, 2)
-  currency                  String   @default("PKR")
-  cancellationTiersJson     Json     @default("[]") @map("cancellation_tiers_json")
-  updatedById               String?  @map("updated_by_id")
-  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                            String   @id @default(cuid())
+  allowCancellation             Boolean  @default(true) @map("allow_cancellation")
+  cancellationDeductionPercent  Decimal  @default(0) @map("cancellation_deduction_percent") @db.Decimal(5, 2)
+  currency                      String   @default("USD")
+  createdAt                     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                     DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  updatedBy User? @relation("RefundPolicySettingsUpdater", fields: [updatedById], references: [id])
-
-  @@index([updatedById])
   @@map("refund_policy_settings")
 }
 
@@ -1159,6 +1151,11 @@ model Order {
   giftMessage      String? @map("gift_message")
   mediaAttachments Json?   @map("media_attachments")
 
+  // Cancellation
+  cancellationDeductionPercent Decimal?  @map("cancellation_deduction_percent") @db.Decimal(5, 2)
+  cancelledAt                  DateTime? @map("cancelled_at") @db.Timestamptz
+  cancellationRefundAmount     Decimal?  @map("cancellation_refund_amount") @db.Decimal(10, 2)
+
   // Group Gifting
   isGroupGift          Boolean  @default(false) @map("is_group_gift")
   groupTargetAmount    Decimal? @map("group_target_amount") @db.Decimal(10, 2)
@@ -1209,7 +1206,7 @@ model RefundRequest {
   paymentId        String?             @map("payment_id")
   requestedAmount  Decimal             @map("requested_amount") @db.Decimal(10, 2)
   approvedAmount   Decimal?            @map("approved_amount") @db.Decimal(10, 2)
-  currency         String              @default("PKR")
+  currency         String              @default("USD")
   customerReason   String              @map("customer_reason")
   evidenceUrlsJson Json                @default("[]") @map("evidence_urls_json")
   status           RefundRequestStatus @default(REQUESTED)

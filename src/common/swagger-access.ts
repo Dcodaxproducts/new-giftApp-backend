@@ -200,8 +200,8 @@ export const SWAGGER_ACCESS_RULES: Record<string, SwaggerAccessRule> = {
   'PATCH /api/v1/referral-settings': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Changes apply to future referral snapshots.' },
   'PATCH /api/v1/referral-settings/status': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. isActive=true activates the referral program; isActive=false deactivates it.' },
   'GET /api/v1/referral-settings/audit-logs': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Referral settings audit logs.' },
-  'GET /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with refundPolicies.read', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows.' },
-  'PATCH /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows.' },
+  'GET /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN or ADMIN with refundPolicies.read', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read permission. Returns cancellation enablement and deduction percentage.' },
+  'PATCH /api/v1/admin/refund-policy-settings': { allowedRoles: 'SUPER_ADMIN', description: 'SUPER_ADMIN only. Updates cancellation enablement and deduction percentage for order cancellations.' },
 
   'GET /api/v1/admin/seasonal-themes': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.read', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.read permission.' },
   'POST /api/v1/admin/seasonal-themes': { allowedRoles: 'SUPER_ADMIN or ADMIN with seasonalThemes.create', description: 'SUPER_ADMIN or ADMIN with seasonalThemes.create permission. imageUrl must reference a completed seasonal-theme-assets upload.' },

@@ -11,22 +11,19 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UpdateRefundPolicySettingsDto } from './dto/refund-policy-settings.dto';
 import { RefundPolicySettingsService } from './refund-policy-settings.service';
 
-const refundPolicySettingsResponseExample = {
+const responseExample = {
   success: true,
   data: {
-    allowRefund: true,
-    cancellationTiers: [{ daysBeforeDelivery: 30, deductionPercent: 50, label: 'Early Cancellation' }],
+    allowCancellation: true,
+    cancellationDeductionPercent: 10,
     lastUpdatedAt: '2026-05-25T10:00:00.000Z',
   },
   message: 'Refund policy settings fetched successfully.',
 };
 
-const refundPolicyPatchExamples = {
-  updateRefundPolicy: {
-    value: {
-      allowRefund: true,
-      cancellationTiers: [{ daysBeforeDelivery: 30, deductionPercent: 50, label: 'Early Cancellation' }],
-    },
+const patchExamples = {
+  updatePolicy: {
+    value: { allowCancellation: true, cancellationDeductionPercent: 10 },
   },
 } as const;
 
@@ -40,14 +37,14 @@ export class RefundPolicySettingsController {
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Permissions('refundPolicies.read')
-  @ApiOperation({ summary: 'Fetch refund policy settings', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read. Returns refund enablement status and cancellation deduction tiers used by refund policy settings.' })
-  @ApiResponse({ status: 200, schema: { example: refundPolicySettingsResponseExample } })
+  @ApiOperation({ summary: 'Fetch refund policy settings', description: 'SUPER_ADMIN or ADMIN with refundPolicies.read. Returns cancellation enablement status and deduction percentage.' })
+  @ApiResponse({ status: 200, schema: { example: responseExample } })
   get() { return this.settings.get(); }
 
   @Patch()
   @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update refund policy settings', description: 'SUPER_ADMIN only. Updates refund enablement status and cancellation deduction tiers used by refund policy settings.' })
-  @ApiBody({ type: UpdateRefundPolicySettingsDto, examples: refundPolicyPatchExamples })
-  @ApiResponse({ status: 200, schema: { example: { ...refundPolicySettingsResponseExample, message: 'Refund policy settings updated successfully.' } } })
+  @ApiOperation({ summary: 'Update refund policy settings', description: 'SUPER_ADMIN only. Updates cancellation enablement and deduction percentage for order cancellations.' })
+  @ApiBody({ type: UpdateRefundPolicySettingsDto, examples: patchExamples })
+  @ApiResponse({ status: 200, schema: { example: { ...responseExample, message: 'Refund policy settings updated successfully.' } } })
   update(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateRefundPolicySettingsDto, @Req() request: Request) { return this.settings.update(user, dto, request.ip, request.headers['user-agent']); }
 }

@@ -6,9 +6,10 @@ import { CustomerOrdersRepository } from './repositories/customer-orders.reposit
 import { CustomerMarketplaceRepository } from './repositories/customer-marketplace.repository';
 import { CustomerMarketplaceService } from './services/customer-marketplace.service';
 import { BroadcastNotificationsModule } from '../broadcast-notifications/broadcast-notifications.module';
+import { RefundPolicySettingsModule } from '../refund-policy-settings/refund-policy-settings.module';
 
 @Module({
-  imports: [BroadcastNotificationsModule, DatabaseModule],
+  imports: [BroadcastNotificationsModule, DatabaseModule, RefundPolicySettingsModule],
   controllers: [CustomerMarketplaceController],
   providers: [CustomerMarketplaceService, CustomerCartRepository, CustomerOrdersRepository, CustomerMarketplaceRepository],
 })

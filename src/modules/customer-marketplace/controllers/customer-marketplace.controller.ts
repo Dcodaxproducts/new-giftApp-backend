@@ -191,6 +191,11 @@ export class CustomerMarketplaceController {
   orders(@CurrentUser() user: AuthUserContext, @Query() query: ListCustomerOrdersDto) { return this.marketplace.orders(user, query); }
 
   @Roles(UserRole.REGISTERED_USER)
+  @Post('orders/:id/cancel')
+  @ApiTags('05 Customer - Orders')
+  @ApiOperation({ summary: 'Cancel order', description: 'REGISTERED_USER only. Order can be cancelled when status is ACCEPTED or PROCESSING. Cancellation deduction percentage is applied per admin policy.' })
+  cancelOrder(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.marketplace.cancelOrder(user, id); }
+
   @Get('orders/:id')
   @ApiTags('05 Customer - Orders')
   @ApiOperation({ summary: 'Fetch customer order', description: 'REGISTERED_USER only. Order must belong to the current customer.' })

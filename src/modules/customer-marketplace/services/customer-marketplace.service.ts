@@ -29,6 +29,7 @@ import {
   UpdateCustomerReminderDto,
 } from '../dto/customer-marketplace.dto';
 import { getPagination } from '../../../common/pagination/pagination.util';
+import { RefundPolicySettingsService } from '../../refund-policy-settings/refund-policy-settings.service';
 
 type CategoryView = { id: string; name: string; slug: string; imageUrl: string | null };
 type ProviderView = { id: string; providerProfile: { businessName: string | null; fulfillmentMethods: Prisma.JsonValue } | null; firstName: string; lastName: string };
@@ -54,6 +55,7 @@ export class CustomerMarketplaceService {
     private readonly customerCartRepository: CustomerCartRepository,
     private readonly customerOrdersRepository: CustomerOrdersRepository,
     private readonly customerMarketplaceRepository: CustomerMarketplaceRepository,
+    private readonly refundPolicySettings: RefundPolicySettingsService,
   ) {}
 
   async home(user: AuthUserContext) {
@@ -250,6 +252,41 @@ export class CustomerMarketplaceService {
     const order = await this.customerOrdersRepository.findOwnedOrderById(user.uid, id);
     if (!order) throw new NotFoundException('Order not found');
     return { data: this.toOrder(order), message: 'Order fetched successfully' };
+  }
+
+  async cancelOrder(user: AuthUserContext, id: string) {
+    const order = await this.customerOrdersRepository.findOwnedOrderById(user.uid, id);
+    if (!order) throw new NotFoundException('Order not found');
+
+    if (order.status !== OrderStatus.ACCEPTED && order.status !== OrderStatus.PROCESSING) {
+      throw new BadRequestException('Order can only be cancelled when status is ACCEPTED or PROCESSING');
+    }
+
+    const policy = await this.refundPolicySettings.getActivePolicy();
+    if (!policy.allowCancellation) throw new BadRequestException('Cancellation is currently disabled');
+
+    const deductionPercent = Number(policy.cancellationDeductionPercent);
+    const total = Number(order.total);
+    const deductionAmount = this.money((total * deductionPercent) / 100);
+    const refundAmount = this.money(total - deductionAmount);
+
+    const cancelled = await this.customerOrdersRepository.cancelOrder(order.id, {
+      cancellationDeductionPercent: new Prisma.Decimal(deductionPercent),
+      cancellationRefundAmount: new Prisma.Decimal(refundAmount),
+    });
+
+    return {
+      data: {
+        orderId: cancelled.id,
+        status: cancelled.status,
+        deductionPercent,
+        deductionAmount,
+        refundAmount,
+        currency: order.payments[0]?.currency ?? 'PKR',
+        cancelledAt: cancelled.cancelledAt,
+      },
+      message: `Order cancelled. ${refundAmount > 0 ? `Refund of ${refundAmount} will be credited to your wallet.` : 'No refund applicable.'}`,
+    };
   }
 
   private customerGiftWhere(query: CustomerGiftListDto): Prisma.GiftWhereInput {
