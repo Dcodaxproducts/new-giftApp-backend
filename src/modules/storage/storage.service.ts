@@ -108,20 +108,20 @@ export class StorageService {
     if (dto.folder === UploadFolder.GIFT_MESSAGE_MEDIA && user.role !== UserRole.REGISTERED_USER) throw new ForbiddenException('Gift message media uploads are allowed for registered users only');
     if (user.role === UserRole.REGISTERED_USER) {
       if (targetAccountId) throw new ForbiddenException('targetAccountId is not allowed for this account.');
-      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.GIFT_MESSAGE_MEDIA, UploadFolder.CHAT_ATTACHMENTS, UploadFolder.PROVIDER_REPORT_EVIDENCE, UploadFolder.USER_REPORT_EVIDENCE, UploadFolder.DISPUTE_EVIDENCE, UploadFolder.PROVIDER_DISPUTE_EVIDENCE, UploadFolder.SUPPORT_CHAT_ATTACHMENTS];
+      const allowed = [UploadFolder.USER_AVATARS, UploadFolder.CUSTOMER_CONTACT_AVATARS, UploadFolder.GIFT_MESSAGE_MEDIA, UploadFolder.CONVERSATION_ATTACHMENTS, UploadFolder.PROVIDER_REPORT_EVIDENCE, UploadFolder.USER_REPORT_EVIDENCE, UploadFolder.DISPUTE_EVIDENCE, UploadFolder.PROVIDER_DISPUTE_EVIDENCE];
       if (!allowed.includes(dto.folder)) throw new ForbiddenException('Registered users can upload only allowed customer files');
       return;
     }
     if (user.role === UserRole.PROVIDER) {
       if (targetAccountId) throw new ForbiddenException('targetAccountId is not allowed for this account.');
-      const allowed = [UploadFolder.PROVIDER_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_COVERS, UploadFolder.PROVIDER_DOCUMENTS, UploadFolder.PROVIDER_ITEM_IMAGES, UploadFolder.GIFT_IMAGES, UploadFolder.CHAT_ATTACHMENTS, UploadFolder.PROVIDER_SUPPORT_ATTACHMENTS, UploadFolder.SUPPORT_CHAT_ATTACHMENTS];
+      const allowed = [UploadFolder.PROVIDER_AVATARS, UploadFolder.PROVIDER_LOGOS, UploadFolder.PROVIDER_COVERS, UploadFolder.PROVIDER_DOCUMENTS, UploadFolder.PROVIDER_ITEM_IMAGES, UploadFolder.GIFT_IMAGES, UploadFolder.CONVERSATION_ATTACHMENTS];
       if (!allowed.includes(dto.folder)) throw new ForbiddenException('Providers can upload only their own provider assets');
       return;
     }
 
     if (user.role === UserRole.STAFF) {
       if (targetAccountId) return;
-      if (dto.folder === UploadFolder.ADMIN_AVATARS || dto.folder === UploadFolder.SUPPORT_CHAT_ATTACHMENTS) return;
+      if (dto.folder === UploadFolder.ADMIN_AVATARS) return;
       if (dto.folder === UploadFolder.PLATFORM_LOGOS && this.hasAnyPermission(user, ['systemSettings.update'])) return;
       if (dto.folder === UploadFolder.GIFT_CATEGORY_IMAGES && this.hasAnyPermission(user, ['giftCategories.create', 'giftCategories.update'])) return;
       if (dto.folder === UploadFolder.GIFT_IMAGES && this.hasAnyPermission(user, ['gifts.create', 'gifts.update'])) return;

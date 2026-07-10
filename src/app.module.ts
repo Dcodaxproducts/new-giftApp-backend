@@ -29,8 +29,6 @@ import { CustomerTransactionsModule } from './modules/customer-transactions/cust
 import { CustomerWalletModule } from './modules/customer-wallet/customer-wallet.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { GiftManagementModule } from './modules/gift-management/gift-management.module';
-import { MessageModerationModule } from './modules/message-moderation/message-moderation.module';
-import { MessagingSettingsModule } from './modules/messaging-settings/messaging-settings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProviderBusinessInfoModule } from './modules/provider-business-info/provider-business-info.module';
@@ -101,8 +99,6 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     ReferralSettingsModule,
     ReportingCoreModule,
     RefundPolicySettingsModule,
-    MessageModerationModule,
-    MessagingSettingsModule,
     PaymentsModule,
     AuditLogsModule,
     SocialModerationModule,

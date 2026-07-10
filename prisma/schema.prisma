@@ -437,109 +437,9 @@ enum ReviewModerationAction {
   AUTO_FLAGGED
 }
 
-enum ChatSenderType {
-  CUSTOMER
+enum SenderType {
+  USER
   PROVIDER
-  ADMIN
-  PARTICIPANT
-  SYSTEM
-}
-
-enum ChatMessageType {
-  TEXT
-  IMAGE
-  AUDIO
-  VIDEO
-  FILE
-}
-
-enum MessageVisibilityStatus {
-  VISIBLE
-  HIDDEN_BY_MODERATION
-}
-
-enum ChatThreadType {
-  ORDER_CHAT
-  SUPPORT_CHAT
-  MODERATION_REVIEW
-}
-
-enum ChatSourceType {
-  CUSTOMER_ORDER
-  PROVIDER_ORDER
-  SUPPORT
-  MESSAGE_MODERATION
-}
-
-enum ChatThreadStatus {
-  OPEN
-  ACTIVE
-  RESOLVED
-  REOPENED
-  ARCHIVED
-  BLOCKED_BY_MODERATION
-}
-
-enum ChatParticipantRole {
-  REGISTERED_USER
-  PROVIDER
-  ADMIN
-  SUPER_ADMIN
-  SYSTEM
-}
-
-enum MessageModerationSource {
-  CUSTOMER_PROVIDER_CHAT
-  PROVIDER_BUYER_CHAT
-  ADMIN_SUPPORT_CHAT
-  WHATSAPP_BUSINESS
-  ZENDESK
-  SMS_GATEWAY
-  IN_APP_CHAT
-}
-
-enum MessageModerationFlagType {
-  PROFANITY
-  HOSTILITY
-  SUSPICIOUS_LINK
-  HARASSMENT
-  HATE_SPEECH
-  SPAM
-  SCAM
-  OTHER
-}
-
-enum MessageModerationStatus {
-  FLAGGED
-  PENDING_REVIEW
-  UNDER_REVIEW
-  ACTION_TAKEN
-  DISMISSED
-  BLOCKED
-  WARNED
-  SUSPENDED
-  ESCALATED
-  RESOLVED
-}
-
-enum MessageModerationSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum MessageModerationAction {
-  FLAGGED
-  HIDE_MESSAGE
-  RESTORE_MESSAGE
-  BLOCK_MESSAGE
-  WARN_USER
-  SUSPEND_ACCOUNT
-  DISMISS_FLAG
-  ADD_NOTE
-  REPROCESS
-  ESCALATE_MESSAGE
 }
 
 enum ProviderReportReason {
@@ -737,13 +637,8 @@ model User {
   providerReviews                     Review[]                             @relation("ReviewProvider")
   reviewResponses                     ReviewResponse[]                     @relation("ReviewResponseProvider")
   updatedReviewPolicies               ReviewPolicy[]                       @relation("ReviewPolicyUpdater")
-  customerChatThreads                 ChatThread[]                         @relation("CustomerChatThread")
-  providerChatThreads                 ChatThread[]                         @relation("ProviderChatThread")
-  assignedChatThreads                 ChatThread[]                         @relation("AssignedChatAdmin")
-  resolvedChatThreads                 ChatThread[]                         @relation("ResolvedChatAdmin")
-  sentChatMessages                    ChatMessage[]                        @relation("ChatMessageSender")
-  chatParticipants                    ChatParticipant[]                    @relation("ChatParticipantUser")
-  chatReadReceipts                    ChatMessageReadReceipt[]             @relation("ChatReadReceiptUser")
+  userConversations                    Conversation[]                       @relation("UserConversation")
+  providerConversations               Conversation[]                       @relation("ProviderConversation")
   submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
   receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
   reviewedProviderReports             ProviderReport[]                     @relation("ProviderReportReviewer")
@@ -754,7 +649,6 @@ model User {
   providerPayouts                     ProviderPayout[]
   updatedPayoutSettings               AdminPayoutSettings[]                @relation("AdminPayoutSettingsUpdater")
   updatedSystemSettings               SystemSettings[]                     @relation("SystemSettingsUpdater")
-  updatedMessagingSettings            MessagingSettings[]                  @relation("MessagingSettingsUpdater")
   updatedCommissionTiers              CommissionTier[]                     @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
   socialReports                       SocialReport[]                       @relation("SocialReportReporter")
@@ -1281,7 +1175,7 @@ model Order {
   disputes                Dispute[]
   reviews                 Review[]
   refundRequests          RefundRequest[]
-  chatThreads             ChatThread[]
+  conversations           Conversation[]
   providerReports         ProviderReport[]
   providerEarningsLedgers ProviderEarningsLedger[]
 
@@ -1648,174 +1542,41 @@ model ReviewPolicy {
   @@map("review_policies")
 }
 
-model ChatThread {
-  id              String           @id @default(cuid())
-  threadType      ChatThreadType   @default(ORDER_CHAT) @map("thread_type")
-  sourceType      ChatSourceType   @default(PROVIDER_ORDER) @map("source_type")
-  sourceId        String?          @map("source_id")
-  subject         String?
-  status          ChatThreadStatus @default(ACTIVE)
-  orderId         String?          @map("order_id")
-  providerId      String?          @map("provider_id")
-  customerId      String?          @map("customer_id")
-  assignedAdminId String?          @map("assigned_admin_id")
-  resolvedById    String?          @map("resolved_by_id")
-  resolvedAt      DateTime?        @map("resolved_at") @db.Timestamptz
-  lastMessageId   String?          @unique @map("last_message_id")
-  lastMessageAt   DateTime?        @map("last_message_at") @db.Timestamptz
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+model Conversation {
+  id         String   @id @default(cuid())
+  orderId    String   @map("order_id")
+  userId     String   @map("user_id")
+  providerId String   @map("provider_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  order         Order?                   @relation(fields: [orderId], references: [id])
-  provider      User?                    @relation("ProviderChatThread", fields: [providerId], references: [id])
-  customer      User?                    @relation("CustomerChatThread", fields: [customerId], references: [id])
-  assignedAdmin User?                    @relation("AssignedChatAdmin", fields: [assignedAdminId], references: [id])
-  resolvedBy    User?                    @relation("ResolvedChatAdmin", fields: [resolvedById], references: [id])
-  lastMessage   ChatMessage?             @relation("ThreadLastMessage", fields: [lastMessageId], references: [id])
-  messages      ChatMessage[]            @relation("ThreadMessages")
-  participants  ChatParticipant[]
-  readReceipts  ChatMessageReadReceipt[]
-  attachments   ChatAttachment[]
+  order    Order     @relation(fields: [orderId], references: [id])
+  user     User      @relation("UserConversation", fields: [userId], references: [id])
+  provider User      @relation("ProviderConversation", fields: [providerId], references: [id])
+  messages Message[]
 
-  @@index([threadType, status, updatedAt])
-  @@index([sourceType, sourceId])
-  @@index([customerId, updatedAt])
-  @@index([providerId, updatedAt])
-  @@index([assignedAdminId, updatedAt])
-  @@index([orderId])
-  @@map("chat_threads")
+  @@unique([orderId, userId, providerId])
+  @@index([userId])
+  @@index([providerId])
+  @@map("conversations")
 }
 
-model ChatMessage {
-  id                 String                  @id @default(cuid())
-  threadId           String                  @map("thread_id")
-  senderId           String                  @map("sender_id")
-  senderType         ChatSenderType          @map("sender_type")
-  clientMessageId    String?                 @map("client_message_id")
-  messageType        ChatMessageType         @default(TEXT) @map("message_type")
-  body               String?
-  attachmentUrlsJson Json                    @default("[]") @map("attachment_urls_json")
-  isReadByCustomer   Boolean                 @default(false) @map("is_read_by_customer")
-  isReadByProvider   Boolean                 @default(false) @map("is_read_by_provider")
-  visibilityStatus   MessageVisibilityStatus @default(VISIBLE) @map("visibility_status")
-  hiddenByModeration Boolean                 @default(false) @map("hidden_by_moderation")
-  hiddenAt           DateTime?               @map("hidden_at") @db.Timestamptz
-  hiddenByAdminId    String?                 @map("hidden_by_admin_id")
-  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz
+model Message {
+  id             String     @id @default(cuid())
+  conversationId String     @map("conversation_id")
+  senderType     SenderType @map("sender_type")
+  senderId       String     @map("sender_id")
+  content        String?
+  attachmentUrl  String?    @map("attachment_url")
+  isRead         Boolean    @default(false) @map("is_read")
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz
 
-  thread        ChatThread               @relation("ThreadMessages", fields: [threadId], references: [id])
-  sender        User                     @relation("ChatMessageSender", fields: [senderId], references: [id])
-  lastForThread ChatThread?              @relation("ThreadLastMessage")
-  readReceipts  ChatMessageReadReceipt[]
-  attachments   ChatAttachment[]
+  conversation Conversation @relation(fields: [conversationId], references: [id])
 
-  @@unique([threadId, senderId, clientMessageId])
-  @@index([threadId, createdAt])
-  @@index([senderId, createdAt])
-  @@map("chat_messages")
+  @@index([conversationId, createdAt])
+  @@map("messages")
 }
 
-model ChatParticipant {
-  id        String              @id @default(cuid())
-  threadId  String              @map("thread_id")
-  userId    String              @map("user_id")
-  role      ChatParticipantRole
-  joinedAt  DateTime            @default(now()) @map("joined_at") @db.Timestamptz
-  leftAt    DateTime?           @map("left_at") @db.Timestamptz
-  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz
-
-  thread ChatThread @relation(fields: [threadId], references: [id])
-  user   User       @relation("ChatParticipantUser", fields: [userId], references: [id])
-
-  @@unique([threadId, userId])
-  @@index([userId, updatedAt])
-  @@map("chat_participants")
-}
-
-model ChatMessageReadReceipt {
-  id        String   @id @default(cuid())
-  threadId  String   @map("thread_id")
-  messageId String   @map("message_id")
-  userId    String   @map("user_id")
-  readAt    DateTime @default(now()) @map("read_at") @db.Timestamptz
-
-  thread  ChatThread  @relation(fields: [threadId], references: [id])
-  message ChatMessage @relation(fields: [messageId], references: [id])
-  user    User        @relation("ChatReadReceiptUser", fields: [userId], references: [id])
-
-  @@unique([messageId, userId])
-  @@index([threadId, userId, readAt])
-  @@map("chat_message_read_receipts")
-}
-
-model ChatAttachment {
-  id        String   @id @default(cuid())
-  threadId  String   @map("thread_id")
-  messageId String?  @map("message_id")
-  fileUrl   String   @map("file_url")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  thread  ChatThread   @relation(fields: [threadId], references: [id])
-  message ChatMessage? @relation(fields: [messageId], references: [id])
-
-  @@index([threadId, createdAt])
-  @@index([messageId])
-  @@map("chat_attachments")
-}
-
-model MessageModerationCase {
-  id                   String                    @id @default(cuid())
-  conversationId       String                    @map("conversation_id")
-  messageId            String                    @unique @map("message_id")
-  source               MessageModerationSource
-  participantId        String                    @map("participant_id")
-  participantRole      String                    @map("participant_role")
-  participantName      String?                   @map("participant_name")
-  participantAvatarUrl String?                   @map("participant_avatar_url")
-  externalReference    String?                   @map("external_reference")
-  senderId             String                    @map("sender_id")
-  senderRole           String                    @map("sender_role")
-  rawBody              String?                   @map("raw_body")
-  redactedBody         String                    @map("redacted_body")
-  flagTypesJson        Json                      @default("[]") @map("flag_types_json")
-  keywordsJson         Json                      @default("[]") @map("keywords_json")
-  severity             MessageModerationSeverity
-  confidence           Decimal                   @db.Decimal(5, 2)
-  status               MessageModerationStatus   @default(FLAGGED)
-  assignedToId         String?                   @map("assigned_to_id")
-  lastMessageAt        DateTime                  @map("last_message_at") @db.Timestamptz
-  resolvedAt           DateTime?                 @map("resolved_at") @db.Timestamptz
-  createdAt            DateTime                  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt            DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
-
-  escalations MessageModerationEscalation[]
-
-  @@index([source, status, severity, createdAt])
-  @@index([participantId, createdAt])
-  @@index([assignedToId, status])
-  @@map("message_moderation_cases")
-}
-
-model MessageModerationEscalation {
-  id                String                    @id @default(cuid())
-  caseId            String                    @map("case_id")
-  messageId         String                    @map("message_id")
-  conversationId    String                    @map("conversation_id")
-  escalationType    String                    @map("escalation_type")
-  priority          MessageModerationSeverity
-  reason            String
-  assignedToAdminId String?                   @map("assigned_to_admin_id")
-  status            String                    @default("ESCALATED")
-  createdByAdminId  String                    @map("created_by_admin_id")
-  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz
-
-  case MessageModerationCase @relation(fields: [caseId], references: [id])
-
-  @@index([messageId, createdAt])
-  @@index([assignedToAdminId, status])
-  @@map("message_moderation_escalations")
-}
 
 model ProviderReport {
   id               String               @id @default(cuid())
@@ -2021,29 +1782,6 @@ model SystemSettings {
   @@map("system_settings")
 }
 
-model MessagingSettings {
-  id                              String   @id @default(cuid())
-  buyerProviderChatEnabled        Boolean  @default(true) @map("buyer_provider_chat_enabled")
-  supportChatEnabled              Boolean  @default(true) @map("support_chat_enabled")
-  messageRetentionDays            Int      @default(365) @map("message_retention_days")
-  maxMessageLength                Int      @default(2000) @map("max_message_length")
-  maxAttachmentsPerMessage        Int      @default(5) @map("max_attachments_per_message")
-  allowedAttachmentTypesJson      Json     @default("[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"mp4\"]") @map("allowed_attachment_types_json")
-  profanityFilterEnabled          Boolean  @default(true) @map("profanity_filter_enabled")
-  piiFilterEnabled                Boolean  @default(true) @map("pii_filter_enabled")
-  autoFlagEnabled                 Boolean  @default(true) @map("auto_flag_enabled")
-  autoFlagKeywordsJson            Json     @default("[\"refund outside platform\",\"bank account\",\"whatsapp me\"]") @map("auto_flag_keywords_json")
-  offlineNotificationDelaySeconds Int      @default(10) @map("offline_notification_delay_seconds")
-  messageEditWindowMinutes        Int      @default(0) @map("message_edit_window_minutes")
-  updatedById                     String?  @map("updated_by_id")
-  createdAt                       DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                       DateTime @updatedAt @map("updated_at") @db.Timestamptz
-
-  updatedBy User? @relation("MessagingSettingsUpdater", fields: [updatedById], references: [id])
-
-  @@index([updatedById])
-  @@map("messaging_settings")
-}
 
 model AdminPayoutSettings {
   id                     String              @id @default(cuid())

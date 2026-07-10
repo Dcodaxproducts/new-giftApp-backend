@@ -16,12 +16,10 @@ export enum UploadFolder {
   CUSTOMER_CONTACT_AVATARS = 'customer-contact-avatars',
   BROADCAST_IMAGES = 'broadcast-images',
   GIFT_MESSAGE_MEDIA = 'gift-message-media',
-  CHAT_ATTACHMENTS = 'chat-attachments',
+  CONVERSATION_ATTACHMENTS = 'conversation-attachments',
   PROVIDER_REPORT_EVIDENCE = 'provider-report-evidence',
   DISPUTE_EVIDENCE = 'dispute-evidence',
   PROVIDER_DISPUTE_EVIDENCE = 'provider-dispute-evidence',
-  PROVIDER_SUPPORT_ATTACHMENTS = 'provider-support-attachments',
-  SUPPORT_CHAT_ATTACHMENTS = 'support-chat-attachments',
   USER_REPORT_EVIDENCE = 'user-report-evidence',
   SEASONAL_THEME_ASSETS = 'seasonal-theme-assets',
 }

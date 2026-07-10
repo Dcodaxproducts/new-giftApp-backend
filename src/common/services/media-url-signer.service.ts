@@ -18,12 +18,10 @@ const SIGNABLE_FOLDER_PREFIXES = [
   'customer-contact-avatars/',
   'broadcast-images/',
   'gift-message-media/',
-  'chat-attachments/',
+  'conversation-attachments/',
   'provider-report-evidence/',
   'dispute-evidence/',
   'provider-dispute-evidence/',
-  'provider-support-attachments/',
-  'support-chat-attachments/',
   'user-report-evidence/',
   'seasonal-theme-assets/',
 ];

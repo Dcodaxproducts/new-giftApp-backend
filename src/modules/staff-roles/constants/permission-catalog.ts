@@ -207,16 +207,6 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
-    module: 'supportChats',
-    label: 'Support Chat',
-    permissions: [
-      { key: 'read', label: 'View Support Chats', description: 'View assigned support chats.' },
-      { key: 'read.all', label: 'View All Support Chats', description: 'View all support chats regardless of assignment.' },
-      { key: 'reply', label: 'Reply Support Chats', description: 'Reply to support tickets.' },
-      { key: 'resolve', label: 'Resolve Support Chats', description: 'Resolve and reopen support tickets.' },
-    ],
-  },
-  {
     module: 'systemSettings',
     label: 'System Settings',
     permissions: [
@@ -258,29 +248,6 @@ export const PERMISSION_CATALOG = [
     ],
   },
 
-  {
-    module: 'messagingSettings',
-    label: 'In-App Messaging Settings',
-    permissions: [
-      { key: 'read', label: 'View In-App Messaging Settings', description: 'View message retention, content filter, attachment, and offline notification settings.' },
-      { key: 'update', label: 'Update In-App Messaging Settings', description: 'Update message retention, content filter, attachment, and offline notification settings.' },
-    ],
-  },
-  {
-    module: 'messageModeration',
-    label: 'Message Moderation',
-
-    permissions: [
-      { key: 'read', label: 'View Message Moderation', description: 'View flagged message conversations, detail, history, stats, and filter options.' },
-      { key: 'export', label: 'Export Message Moderation', description: 'Export redacted message moderation queues.' },
-      { key: 'moderate', label: 'Moderate Messages', description: 'Hide, restore, or dismiss flagged messages without physically deleting them.' },
-      { key: 'warn', label: 'Warn Message Senders', description: 'Warn registered user or provider message senders.' },
-      { key: 'suspend', label: 'Suspend Message Senders', description: 'Suspend non-admin message sender accounts through lifecycle services.' },
-      { key: 'notes.create', label: 'Create Message Moderation Notes', description: 'Create internal private moderation notes.' },
-      { key: 'reprocess', label: 'Reprocess Messages', description: 'Reprocess flagged messages through the moderation scanner.' },
-      { key: 'escalate', label: 'Escalate Messages', description: 'Escalate flagged messages to support, security, or dispute review.' },
-    ],
-  },
   {
     module: 'socialModeration',
     label: 'Social Moderation',

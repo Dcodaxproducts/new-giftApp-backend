@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
-import { ChatMessageType, ProviderReportReason, ProviderReportStatus, ReviewStatus } from '@prisma/client';
+import { ArrayMaxSize, IsArray, IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { ProviderReportReason, ProviderReportStatus, ReviewStatus } from '@prisma/client';
 
 export enum SortOrder { ASC = 'ASC', DESC = 'DESC' }
 export enum CustomerReviewStatusFilter { ALL = 'ALL', PUBLISHED = 'PUBLISHED', PENDING = 'PENDING', FLAGGED = 'FLAGGED', HIDDEN = 'HIDDEN', REMOVED = 'REMOVED' }
@@ -12,16 +12,6 @@ export class PageDto {
   @ApiPropertyOptional({ example: 10, default: 10 }) @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
 }
 
-export class GetOrderChatDto { @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() createIfMissing?: boolean; }
-export class ListCustomerChatsDto extends PageDto { @ApiPropertyOptional({ example: 'Global Logistics' }) @IsOptional() @IsString() search?: string; @ApiPropertyOptional({ example: true }) @IsOptional() @Type(() => Boolean) @IsBoolean() unreadOnly?: boolean; }
-export class ChatDetailsDto extends PageDto { @ApiPropertyOptional({ example: '2026-10-24T10:33:00.000Z' }) @IsOptional() @IsISO8601() before?: string; }
-
-export class SendChatMessageDto {
-  @ApiPropertyOptional({ example: 'mobile-generated-uuid' }) @IsOptional() @IsString() @MaxLength(120) clientMessageId?: string;
-  @ApiProperty({ enum: ChatMessageType, example: ChatMessageType.TEXT }) @IsEnum(ChatMessageType) messageType!: ChatMessageType;
-  @ApiPropertyOptional({ example: 'Can you confirm delivery time?' }) @IsOptional() @IsString() @MaxLength(1000) body?: string;
-  @ApiPropertyOptional({ type: [String], example: [] }) @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) attachmentUrls?: string[];
-}
 
 export class CreateReviewDto {
   @ApiProperty({ example: 'provider_id' }) @IsString() providerId!: string;
