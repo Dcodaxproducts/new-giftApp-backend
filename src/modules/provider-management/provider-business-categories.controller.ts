@@ -5,6 +5,7 @@ import { AuthUserContext, CurrentUser } from '../../common/decorators/current-us
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateProviderBusinessCategoryDto, ListProviderBusinessCategoriesDto, UpdateProviderBusinessCategoryDto } from './dto/provider-business-categories.dto';
@@ -16,9 +17,10 @@ export class ProviderBusinessCategoriesController {
   constructor(private readonly service: ProviderBusinessCategoriesService) { }
 
   @Get()
-  @ApiOperation({ summary: 'List provider business categories', description: 'Lists provider business categories. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination). Use isActive=true or isActive=false to filter by active state.' })
-  list(@Query() query: ListProviderBusinessCategoriesDto) {
-    return this.service.list(query);
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'List provider business categories', description: 'Public. Non-admin callers always receive active categories only. SUPER_ADMIN/STAFF may pass isActive=true or isActive=false to see inactive categories too. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination).' })
+  list(@CurrentUser() user: AuthUserContext | undefined, @Query() query: ListProviderBusinessCategoriesDto) {
+    return this.service.list(query, user);
   }
 
   @ApiBearerAuth()

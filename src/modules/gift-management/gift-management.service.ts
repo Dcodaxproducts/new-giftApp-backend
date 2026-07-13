@@ -47,14 +47,15 @@ export class GiftManagementService {
     return { data: this.toCategory(category, 0), message: 'Gift category created successfully' };
   }
 
-  async listCategories(query: ListGiftCategoriesDto) {
+  async listCategories(query: ListGiftCategoriesDto, user?: AuthUserContext) {
     if (query.lookup) {
       const items = await this.giftManagementRepository.lookupGiftCategories();
       return { data: items, message: 'Gift categories lookup fetched successfully' };
     }
+    const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.STAFF;
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.GiftCategoryWhereInput = {
-      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
+      ...(isAdmin ? (query.isActive === undefined ? {} : { isActive: query.isActive }) : { isActive: true }),
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
     };
     const [items, total] = await this.giftManagementRepository.findGiftCategoriesAndCount({ where, orderBy: this.categoryOrderBy(query.sortBy, query.sortOrder), skip, take });

@@ -5,19 +5,20 @@ import { AuthUserContext, CurrentUser } from '../../common/decorators/current-us
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateGiftCategoryDto, ListGiftCategoriesDto, UpdateGiftCategoryDto } from './dto/gift-management.dto';
 import { GiftManagementService } from './gift-management.service';
 
 @ApiTags('04 Gifts - Categories')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Controller('gift-categories')
 export class GiftCategoriesController {
   constructor(private readonly gifts: GiftManagementService) { }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Post()
   @Permissions('giftCategories.create')
   @ApiOperation({ summary: 'Create gift category', description: 'RBAC permission: giftCategories.create. Slug is auto-generated and unique.' })
@@ -26,11 +27,14 @@ export class GiftCategoriesController {
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateGiftCategoryDto) { return this.gifts.createCategory(user, dto); }
 
   @Get()
-  @Permissions('giftCategories.read')
-  @ApiOperation({ summary: 'List gift categories', description: 'RBAC permission: giftCategories.read. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination). Otherwise returns full list with pagination. Use isActive=true or isActive=false to filter by active state.' })
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'List gift categories', description: 'Public. Non-admin callers (including providers) always receive active categories only. SUPER_ADMIN/STAFF may pass isActive=true or isActive=false to see inactive categories too. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination).' })
   @ApiResponse({ status: 200, description: 'Gift categories fetched successfully' })
-  list(@Query() query: ListGiftCategoriesDto) { return this.gifts.listCategories(query); }
+  list(@CurrentUser() user: AuthUserContext | undefined, @Query() query: ListGiftCategoriesDto) { return this.gifts.listCategories(query, user); }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Patch(':id')
   @Permissions('giftCategories.update')
   @ApiOperation({ summary: 'Update gift category', description: 'RBAC permission: giftCategories.update. Slug is regenerated when name changes.' })
@@ -38,6 +42,9 @@ export class GiftCategoriesController {
   @ApiResponse({ status: 200, description: 'Gift category updated successfully' })
   update(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Body() dto: UpdateGiftCategoryDto) { return this.gifts.updateCategory(user, id, dto); }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Delete(':id')
   @Permissions('giftCategories.delete')
   @ApiOperation({ summary: 'Delete gift category', description: 'RBAC permission: giftCategories.delete. Permanently deletes the category. Categories with attached gifts cannot be deleted; delete writes an audit log.' })

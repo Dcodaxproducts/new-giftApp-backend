@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { ProviderBusinessCategory, Prisma } from '@prisma/client';
+import { ProviderBusinessCategory, Prisma, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { ProviderBusinessCategoriesRepository } from './provider-business-categories.repository';
@@ -26,15 +26,16 @@ export class ProviderBusinessCategoriesService implements OnModuleInit {
     }
   }
 
-  async list(query: ListProviderBusinessCategoriesDto = {}) {
+  async list(query: ListProviderBusinessCategoriesDto = {}, user?: AuthUserContext) {
     if (query.lookup) {
       const items = await this.repository.lookup();
       return { data: items, message: 'Provider business categories lookup fetched successfully' };
     }
+    const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.STAFF;
     const { page, limit, skip, take } = getPagination(query);
     const where: Prisma.ProviderBusinessCategoryWhereInput = {
       ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
-      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
+      ...(isAdmin ? (query.isActive === undefined ? {} : { isActive: query.isActive }) : { isActive: true }),
     };
     const [items, total] = await this.repository.findManyForList({ where, skip, take });
 
