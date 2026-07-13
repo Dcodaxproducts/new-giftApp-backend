@@ -223,7 +223,8 @@ export class CustomerMarketplaceService {
       const unitPrice = item.variant ? Number(item.variant.price) : Number(gift.price);
       return sum + unitPrice * item.quantity;
     }, 0));
-    // Orders are paid from the wallet only (no Stripe at checkout). Fail fast with a clear message before doing any work.
+    // Orders are paid from the wallet only. Money is NOT debited at creation — only a balance check
+    // so the customer can top up before ordering. The actual debit happens when the provider accepts.
     const walletBalance = await this.walletAvailableBalance(user.uid);
     const order = await this.customerOrdersRepository.runCheckoutTransaction(async (tx) => {
       const payout = await this.providerPayoutCalculation(tx, providerId, subtotal);
@@ -235,7 +236,6 @@ export class CustomerMarketplaceService {
         const unitPrice = item.variant ? item.variant.price : gift.price;
         await this.customerOrdersRepository.createOrderItem(tx, { orderId: created.id, giftId: item.giftId, variantId: item.variant?.id, variantName: item.variant?.name, quantity: item.quantity, unitPrice });
       }
-      await this.customerOrdersRepository.debitCustomerWalletForOrder(tx, { userId: user.uid, orderId: created.id, amount: total, currency: 'USD' });
       await this.customerOrdersRepository.markCartCheckedOut(tx, cart.id);
       await this.customerOrdersRepository.createOrderNotification(tx, { recipientId: user.uid, recipientType: NotificationRecipientType.REGISTERED_USER, title: 'Gift order created', message: 'Your gift order has been created successfully.', orderId: created.id });
       await this.customerOrdersRepository.createOrderNotification(tx, { recipientId: providerId, recipientType: NotificationRecipientType.PROVIDER, title: 'New order received', message: 'You received a new gift order.', orderId: created.id });
@@ -273,10 +273,16 @@ export class CustomerMarketplaceService {
     const total = Number(order.total);
     const deductionAmount = this.money((total * deductionPercent) / 100);
     const refundAmount = this.money(total - deductionAmount);
+    const currency = order.payments[0]?.currency ?? 'USD';
 
-    const cancelled = await this.customerOrdersRepository.cancelOrder(order.id, {
-      cancellationDeductionPercent: new Prisma.Decimal(deductionPercent),
-      cancellationRefundAmount: new Prisma.Decimal(refundAmount),
+    // Refund the customer's wallet immediately and route the deduction to the platform wallet.
+    const cancelled = await this.customerOrdersRepository.cancelOrderWithRefund({
+      orderId: order.id,
+      userId: user.uid,
+      deductionPercent: new Prisma.Decimal(deductionPercent),
+      refundAmount,
+      deductionAmount,
+      currency,
     });
 
     return {
@@ -286,10 +292,10 @@ export class CustomerMarketplaceService {
         deductionPercent,
         deductionAmount,
         refundAmount,
-        currency: order.payments[0]?.currency ?? 'USD',
+        currency,
         cancelledAt: cancelled.cancelledAt,
       },
-      message: `Order cancelled. ${refundAmount > 0 ? `Refund of ${refundAmount} will be credited to your wallet.` : 'No refund applicable.'}`,
+      message: `Order cancelled. ${refundAmount > 0 ? `Refund of ${refundAmount} credited to your wallet.` : 'No refund applicable.'}`,
     };
   }
 

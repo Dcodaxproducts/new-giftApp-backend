@@ -83,6 +83,10 @@ export class ProviderOrdersService {
     this.assertTransition(order.status, dto.status);
     if (dto.status === OrderStatus.REJECTED && !dto.reason) throw new BadRequestException('Reason is required when rejecting an order');
     const updated = await this.providerOrdersRepository.runActionTransaction(async (tx) => {
+      // Accepting the order is when the customer's wallet is actually charged (no charge at creation).
+      if (order.status === OrderStatus.PENDING && dto.status === OrderStatus.ACCEPTED) {
+        await this.providerOrdersRepository.debitCustomerWalletForOrder(tx, { userId: order.userId, orderId: order.id, amount: order.total });
+      }
       const item = await this.providerOrdersRepository.updateProviderOrderStatus(tx, order.id, { status: dto.status, rejectionReason: dto.status === OrderStatus.REJECTED ? dto.reason : undefined });
       if (this.completedStatuses().has(dto.status)) await this.createOrderEarningLedger(tx, order);
       return item;

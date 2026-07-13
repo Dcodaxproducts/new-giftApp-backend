@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
@@ -77,42 +77,48 @@ export class CustomerOrdersRepository {
     return this.prisma.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: userId } } });
   }
 
-  // Pays for an order entirely from the customer's wallet (no Stripe at checkout). Gift credits are
-  // spent first, then the cash balance. Throws (rolling back the checkout tx) if funds are short.
-  async debitCustomerWalletForOrder(tx: CheckoutTransaction, params: { userId: string; orderId: string; amount: number; currency: string }) {
-    const wallet = await tx.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
-    if (!wallet) throw new BadRequestException('Wallet not found. Please top up your wallet before ordering.');
-    const giftCredits = Number(wallet.giftCredits);
-    const balance = Number(wallet.balance);
-    if (giftCredits + balance + 1e-9 < params.amount) throw new BadRequestException('Insufficient wallet balance. Please top up your wallet.');
-    const giftCreditsUsed = this.round(Math.min(giftCredits, params.amount));
-    const balanceUsed = this.round(params.amount - giftCreditsUsed);
-    await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_PAYMENT, direction: WalletLedgerDirection.DEBIT, amount: new Prisma.Decimal(params.amount), currency: params.currency, status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: 'Order payment from wallet.' } });
-    await tx.wallet.update({ where: { id: wallet.id }, data: { giftCredits: { decrement: new Prisma.Decimal(giftCreditsUsed) }, balance: { decrement: new Prisma.Decimal(balanceUsed) } } });
-    return { giftCreditsUsed, balanceUsed };
-  }
-
   markCartCheckedOut(tx: CheckoutTransaction, cartId: string) {
     return tx.cartItem.deleteMany({ where: { cartId } });
   }
-
-  private round(value: number): number { return Number(value.toFixed(2)); }
-  private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
 
   createOrderNotification(tx: CheckoutTransaction, params: { recipientId: string; recipientType: NotificationRecipientType; title: string; message: string; orderId: string }) {
     return this.notificationDispatch.createAndEmit({ recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } });
   }
 
-  cancelOrder(orderId: string, data: { cancellationDeductionPercent: Prisma.Decimal; cancellationRefundAmount: Prisma.Decimal }) {
-    return this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: 'CANCELLED',
-        cancellationDeductionPercent: data.cancellationDeductionPercent,
-        cancellationRefundAmount: data.cancellationRefundAmount,
-        cancelledAt: new Date(),
-      },
-      include: CUSTOMER_ORDER_INCLUDE,
+  // Cancels a paid order: refunds the customer's wallet and moves the deduction (cancellation fee)
+  // to the platform wallet, then marks the order CANCELLED — all atomically and idempotently.
+  cancelOrderWithRefund(params: { orderId: string; userId: string; deductionPercent: Prisma.Decimal; refundAmount: number; deductionAmount: number; currency: string }) {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Refund the customer (only once per order).
+      if (params.refundAmount > 0) {
+        const wallet = await tx.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
+        if (wallet) {
+          const already = await tx.walletLedger.findFirst({ where: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.REFUND } });
+          if (!already) {
+            await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.REFUND, direction: WalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(params.refundAmount), currency: params.currency, status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: 'Order cancellation refund.' } });
+            await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: new Prisma.Decimal(params.refundAmount) } } });
+          }
+        }
+      }
+      // 2. Move the cancellation deduction to the platform wallet (only once per order).
+      if (params.deductionAmount > 0) {
+        const platform = await this.getOrCreatePlatformWallet(tx, params.currency);
+        const already = await tx.walletLedger.findFirst({ where: { walletId: platform.id, orderId: params.orderId, type: WalletLedgerType.PLATFORM_FEE } });
+        if (!already) {
+          await tx.walletLedger.create({ data: { walletId: platform.id, orderId: params.orderId, type: WalletLedgerType.PLATFORM_FEE, direction: WalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(params.deductionAmount), currency: params.currency, status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: 'Order cancellation deduction.' } });
+          await tx.wallet.update({ where: { id: platform.id }, data: { balance: { increment: new Prisma.Decimal(params.deductionAmount) } } });
+        }
+      }
+      // 3. Mark the order cancelled.
+      return tx.order.update({ where: { id: params.orderId }, data: { status: 'CANCELLED', cancellationDeductionPercent: params.deductionPercent, cancellationRefundAmount: new Prisma.Decimal(params.refundAmount), cancelledAt: new Date() }, include: CUSTOMER_ORDER_INCLUDE });
     });
   }
+
+  private async getOrCreatePlatformWallet(tx: CheckoutTransaction, currency: string) {
+    // Platform wallet is a singleton with no user owner (ownerId is a FK to User, so it must be null).
+    const existing = await tx.wallet.findFirst({ where: { ownerType: WalletOwnerType.PLATFORM } });
+    return existing ?? tx.wallet.create({ data: { ownerType: WalletOwnerType.PLATFORM, ownerId: null, currency } });
+  }
+
+  private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
 }

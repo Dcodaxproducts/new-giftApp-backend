@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrderStatus, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType, Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
@@ -102,5 +102,24 @@ export class ProviderOrdersRepository {
     return ledger;
   }
 
+  // Charges the order to the customer's wallet at acceptance time (no Stripe). Gift credits are spent
+  // first, then the cash balance. Throws (rolling back accept) if funds are short. Idempotent per order.
+  async debitCustomerWalletForOrder(tx: ProviderOrderTransaction, params: { userId: string; orderId: string; amount: Prisma.Decimal }) {
+    const wallet = await tx.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
+    if (!wallet) throw new BadRequestException('Customer wallet not found. The customer must top up before this order can be accepted.');
+    const existing = await tx.walletLedger.findFirst({ where: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_PAYMENT } });
+    if (existing) return existing;
+    const amount = Number(params.amount);
+    const giftCredits = Number(wallet.giftCredits);
+    const balance = Number(wallet.balance);
+    if (giftCredits + balance + 1e-9 < amount) throw new BadRequestException('Customer has insufficient wallet balance to pay for this order.');
+    const giftCreditsUsed = this.round(Math.min(giftCredits, amount));
+    const balanceUsed = this.round(amount - giftCreditsUsed);
+    const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_PAYMENT, direction: WalletLedgerDirection.DEBIT, amount: params.amount, currency: 'USD', status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: 'Order payment from wallet.' } });
+    await tx.wallet.update({ where: { id: wallet.id }, data: { giftCredits: { decrement: new Prisma.Decimal(giftCreditsUsed) }, balance: { decrement: new Prisma.Decimal(balanceUsed) } } });
+    return ledger;
+  }
+
+  private round(value: number): number { return Number(value.toFixed(2)); }
   private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
 }
