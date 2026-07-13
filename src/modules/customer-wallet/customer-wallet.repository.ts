@@ -64,11 +64,24 @@ export class CustomerWalletRepository {
     return this.prisma.walletLedger.findFirst({ where: { id: params.walletTopUpId, wallet: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
   }
 
-  completeWalletTopUp(params: { ledgerId: string; walletId: string; amount: Prisma.Decimal; paymentId: string }) {
-    return this.prisma.$transaction([
-      this.prisma.walletLedger.update({ where: { id: params.ledgerId }, data: { status: WalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: params.paymentId } }),
-      this.prisma.wallet.update({ where: { id: params.walletId }, data: { balance: { increment: params.amount } } }),
-    ]);
+  // Atomically credits a top-up. The ledger is flipped PENDING -> SUCCESS with a conditional
+  // updateMany; only the first caller (webhook OR manual confirm) that wins the flip increments
+  // the balance, so concurrent confirmations can never double-credit the wallet.
+  completeWalletTopUp(params: { ledgerId: string; walletId: string; amount: Prisma.Decimal; paymentId: string }): Promise<{ credited: boolean }> {
+    return this.prisma.$transaction(async (tx) => {
+      const flipped = await tx.walletLedger.updateMany({ where: { id: params.ledgerId, status: WalletLedgerStatus.PENDING }, data: { status: WalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: params.paymentId } });
+      if (flipped.count === 0) return { credited: false };
+      await tx.wallet.update({ where: { id: params.walletId }, data: { balance: { increment: params.amount } } });
+      return { credited: true };
+    });
+  }
+
+  findTopUpPaymentById(paymentId: string, userId: string) {
+    return this.prisma.payment.findFirst({ where: { id: paymentId, userId } });
+  }
+
+  markTopUpPaymentStatus(paymentId: string, status: PaymentStatus) {
+    return this.prisma.payment.update({ where: { id: paymentId }, data: { status } });
   }
 
   updateWalletTopUpStatus(params: { walletTopUpId: string; userId: string; status: WalletLedgerStatus; description: string }) {

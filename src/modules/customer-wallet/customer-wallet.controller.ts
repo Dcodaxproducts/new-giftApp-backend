@@ -6,7 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CustomerWalletService } from './customer-wallet.service';
-import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
+import { AddWalletFundsDto, ConfirmWalletTopUpDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
 
 @ApiTags('05 Customer - Wallet')
 @ApiBearerAuth()
@@ -22,8 +22,13 @@ export class CustomerWalletController {
   overview(@CurrentUser() user: AuthUserContext) { return this.wallet.overview(user); }
 
   @Post('add-funds')
-  @ApiOperation({ summary: 'Create wallet top-up payment', description: 'Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.' })
+  @ApiOperation({ summary: 'Create wallet top-up payment', description: 'Uses Stripe PaymentIntent (USD only). Wallet is credited only after successful server-side confirmation/webhook.' })
   addFunds(@CurrentUser() user: AuthUserContext, @Body() dto: AddWalletFundsDto) { return this.wallet.addFunds(user, dto); }
+
+  @Post('confirm-top-up')
+  @ApiOperation({ summary: 'Confirm a wallet top-up (webhook fallback)', description: 'Use when the Stripe webhook has not settled the top-up. Retrieves the PaymentIntent status server-side and credits the wallet if paid. Idempotent — safe to call repeatedly; never double-credits.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { walletTopUpId: 'ledger_id_123', paymentId: 'payment_id', status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' } } })
+  confirmTopUp(@CurrentUser() user: AuthUserContext, @Body() dto: ConfirmWalletTopUpDto) { return this.wallet.confirmTopUp(user, dto); }
 
   @Get('history')
   @ApiOperation({ summary: 'List own wallet history', description: 'Positive amounts are credits, negative amounts are debits. Results are scoped to the logged-in customer.' })

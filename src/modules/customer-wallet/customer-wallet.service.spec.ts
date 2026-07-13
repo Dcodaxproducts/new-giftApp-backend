@@ -24,7 +24,7 @@ function createService(overrides: Partial<{ wallet: unknown; ledgerRows: unknown
     },
     customerPaymentMethod: { findFirst: jest.fn().mockResolvedValue(paymentMethod) },
     customerBankAccount: { findFirst: jest.fn().mockResolvedValue(bankAccount), findMany: jest.fn().mockResolvedValue([bankAccount]), updateMany: jest.fn().mockResolvedValue({ count: 1 }), update: jest.fn().mockResolvedValue({ ...bankAccount, isDefault: true }), create: jest.fn().mockResolvedValue(bankAccount), delete: jest.fn().mockResolvedValue(bankAccount) },
-    walletLedger: { findMany: jest.fn().mockResolvedValue(ledgerRows), count: jest.fn().mockResolvedValue(ledgerRows.length), create: jest.fn().mockResolvedValue(pendingLedger), findFirst: jest.fn(), update: jest.fn().mockResolvedValue({ ...pendingLedger, paymentId: payment.id }), updateMany: jest.fn() },
+    walletLedger: { findMany: jest.fn().mockResolvedValue(ledgerRows), count: jest.fn().mockResolvedValue(ledgerRows.length), create: jest.fn().mockResolvedValue(pendingLedger), findFirst: jest.fn(), update: jest.fn().mockResolvedValue({ ...pendingLedger, paymentId: payment.id }), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
     payment: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue(payment), update: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...payment, ...data })) },
     paymentAuditLog: { create: jest.fn() },
     notification: { create: jest.fn() },
@@ -205,17 +205,17 @@ describe('CustomerWalletService read APIs', () => {
   it('customer can create wallet top-up payment', async () => {
     const { service, prisma } = createService();
     const stripeCreate = mockStripe(service);
-    const result = await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD, stripePaymentMethodId: 'pm_card_visa' });
+    const result = await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50 });
     expect(result.message).toBe('Wallet top-up payment created successfully.');
-    expect(result.data).toEqual(expect.objectContaining({ walletTopUpId: 'ledger_pending', paymentId: 'payment_1', clientSecret: 'secret_1', amount: 50, currency: 'USD', status: 'PAYMENT_PENDING' }));
-    expect(stripeCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 5000, currency: 'usd', payment_method: 'pm_card_visa', metadata: expect.objectContaining({ paymentId: 'payment_1', walletTopUpId: 'ledger_pending', userId: 'customer_1' }) }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
+    expect(result.data).toEqual(expect.objectContaining({ walletTopUpId: 'ledger_pending', paymentId: 'payment_1', clientSecret: 'secret_1', amount: 50, status: 'PAYMENT_PENDING' }));
+    expect(stripeCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 5000, currency: 'usd', automatic_payment_methods: { enabled: true }, metadata: expect.objectContaining({ paymentId: 'payment_1', walletTopUpId: 'ledger_pending', userId: 'customer_1' }) }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
     expect(prisma.payment.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payment_1' }, data: expect.objectContaining({ providerPaymentIntentId: 'pi_1', status: PaymentStatus.PROCESSING }) }));
   });
 
   it('wallet top-up uses logged-in user only', async () => {
     const { service, prisma } = createService();
     mockStripe(service);
-    await service.addFunds({ uid: 'customer_2', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD });
+    await service.addFunds({ uid: 'customer_2', role: UserRole.REGISTERED_USER }, { amount: 50 });
     expect(prisma.walletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ walletId: 'wallet_1' }) }));
     expect(prisma.payment.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId: 'customer_2' }) }));
   });
@@ -225,14 +225,14 @@ describe('CustomerWalletService read APIs', () => {
     expect(dto).toContain('@Min(0.01)');
     const { service, prisma } = createService();
     mockStripe(service);
-    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50.129, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD });
+    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50.129 });
     expect(prisma.walletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ amount: expect.objectContaining({}) }) }));
   });
 
   it('wallet ledger behavior remains unchanged for top-up pending flow', async () => {
     const { service, prisma } = createService();
     mockStripe(service);
-    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD });
+    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50 });
     expect(prisma.walletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: WalletLedgerType.TOP_UP, direction: WalletLedgerDirection.CREDIT, status: WalletLedgerStatus.PENDING, description: 'Wallet top-up pending payment.' }) }));
     expect(prisma.walletLedger.update).toHaveBeenCalledWith({ where: { id: 'ledger_pending' }, data: { paymentId: 'payment_1' } });
   });
@@ -243,7 +243,7 @@ describe('CustomerWalletService read APIs', () => {
 
     await service.creditWalletTopUp({ ...payment, status: PaymentStatus.SUCCEEDED, metadataJson: { walletTopUpId: 'ledger_pending' } } as never);
 
-    expect(prisma.walletLedger.update).toHaveBeenCalledWith({ where: { id: 'ledger_pending' }, data: { status: WalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: 'payment_1' } });
+    expect(prisma.walletLedger.updateMany).toHaveBeenCalledWith({ where: { id: 'ledger_pending', status: WalletLedgerStatus.PENDING }, data: { status: WalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: 'payment_1' } });
     expect(prisma.wallet.update).toHaveBeenCalledWith({ where: { id: 'wallet_1' }, data: { balance: { increment: pendingLedger.amount } } });
     expect(notificationDispatch.createAndEmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'WALLET_TOP_UP_SUCCEEDED' }));
   });
@@ -256,6 +256,42 @@ describe('CustomerWalletService read APIs', () => {
 
     expect(prisma.wallet.update).not.toHaveBeenCalled();
     expect(notificationDispatch.createAndEmit).not.toHaveBeenCalled();
+  });
+
+  it('credit is not duplicated when the ledger was already flipped by a concurrent path (updateMany count 0)', async () => {
+    const { service, prisma, notificationDispatch } = createService();
+    prisma.walletLedger.findFirst.mockResolvedValueOnce(pendingLedger);
+    prisma.walletLedger.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await service.creditWalletTopUp({ ...payment, status: PaymentStatus.SUCCEEDED, metadataJson: { walletTopUpId: 'ledger_pending' } } as never);
+
+    expect(prisma.wallet.update).not.toHaveBeenCalled();
+    expect(notificationDispatch.createAndEmit).not.toHaveBeenCalled();
+  });
+
+  it('confirmTopUp credits the wallet when Stripe reports the intent succeeded', async () => {
+    const { service, prisma } = createService();
+    prisma.walletLedger.findFirst.mockResolvedValueOnce({ ...pendingLedger, paymentId: 'payment_1' }).mockResolvedValueOnce(pendingLedger);
+    prisma.payment.findFirst.mockResolvedValueOnce({ ...payment, providerPaymentIntentId: 'pi_1', metadataJson: { walletTopUpId: 'ledger_pending' } });
+    prisma.payment.update.mockResolvedValueOnce({ ...payment, status: PaymentStatus.SUCCEEDED, providerPaymentIntentId: 'pi_1', metadataJson: { walletTopUpId: 'ledger_pending' } });
+    const retrieve = jest.fn().mockResolvedValue({ id: 'pi_1', status: 'succeeded' });
+    Object.defineProperty(service, 'stripeClient', { value: { paymentIntents: { retrieve } }, configurable: true });
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+
+    const result = await service.confirmTopUp({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { walletTopUpId: 'ledger_pending' });
+
+    expect(result.data.status).toBe('SUCCESS');
+    expect(prisma.wallet.update).toHaveBeenCalledWith({ where: { id: 'wallet_1' }, data: { balance: { increment: pendingLedger.amount } } });
+  });
+
+  it('confirmTopUp is idempotent and does not re-credit an already-successful top-up', async () => {
+    const { service, prisma } = createService();
+    prisma.walletLedger.findFirst.mockResolvedValueOnce({ ...pendingLedger, status: WalletLedgerStatus.SUCCESS });
+
+    const result = await service.confirmTopUp({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { walletTopUpId: 'ledger_pending' });
+
+    expect(result.message).toBe('Wallet top-up already confirmed.');
+    expect(prisma.wallet.update).not.toHaveBeenCalled();
   });
 
   it('wallet top-up failure updates pending ledger only', async () => {
@@ -277,10 +313,12 @@ describe('CustomerWalletService read APIs', () => {
     expect(prisma.wallet.update).not.toHaveBeenCalled();
   });
 
-  it('rejects unsupported payment method and currency as before', async () => {
-    const { service } = createService();
-    await expect(service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'USD', paymentMethod: PaymentMethod.COD })).rejects.toThrow('Wallet top-up currently supports STRIPE_CARD only');
-    await expect(service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50, currency: 'EUR', paymentMethod: PaymentMethod.STRIPE_CARD })).rejects.toThrow('Currency does not match configured payment currency');
+  it('top-up always uses USD and creates a Stripe payment intent', async () => {
+    const { service, prisma } = createService();
+    mockStripe(service);
+    await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50 });
+    expect(prisma.walletLedger.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ currency: 'USD' }) }));
+    expect(prisma.payment.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ currency: 'USD', provider: PaymentProvider.STRIPE }) }));
   });
 
   it('customer can list own bank accounts', async () => {

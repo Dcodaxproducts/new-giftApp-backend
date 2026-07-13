@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
@@ -8,10 +7,11 @@ export enum WalletHistoryStatus { ALL = 'ALL', SUCCESS = 'SUCCESS', PENDING = 'P
 
 export class AddWalletFundsDto {
   @ApiProperty({ example: 100 }) @Type(() => Number) @IsNumber() @Min(0.01) amount!: number;
-  @ApiProperty({ example: 'USD' }) @IsString() @IsNotEmpty() currency!: string;
-  @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.STRIPE_CARD }) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
-  @ApiPropertyOptional({ example: 'pm_xxx' }) @IsOptional() @IsString() stripePaymentMethodId?: string;
   @ApiPropertyOptional({ example: 'wallet_topup_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
+}
+
+export class ConfirmWalletTopUpDto {
+  @ApiProperty({ example: 'ledger_id_123', description: 'The walletTopUpId returned from POST /customer/wallet/add-funds.' }) @IsString() @IsNotEmpty() walletTopUpId!: string;
 }
 
 export class ListWalletHistoryDto {

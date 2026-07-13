@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableE
 import { CustomerBankAccount, CustomerPaymentMethod, Wallet, WalletLedger, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, RewardLedger } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
-import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
+import { AddWalletFundsDto, ConfirmWalletTopUpDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import { CustomerWalletRepository } from './customer-wallet.repository';
 import { getPagination } from '../../common/pagination/pagination.util';
@@ -29,20 +29,18 @@ export class CustomerWalletService {
   }
 
   async addFunds(user: AuthUserContext, dto: AddWalletFundsDto) {
-    if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) throw new BadRequestException('Wallet top-up currently supports STRIPE_CARD only');
-    const currency = this.currency(dto.currency);
-    if (currency !== this.currency()) throw new BadRequestException('Currency does not match configured payment currency');
+    const currency = 'USD';
     const idempotencyKey = this.idempotencyKey('wallet-top-up', user.uid, dto.idempotencyKey ?? `${dto.amount}:${currency}`);
     const existing = await this.repository.findPaymentByIdempotencyKey(user.uid, idempotencyKey);
-    if (existing) return { data: { walletTopUpId: this.metadata(existing.metadataJson).walletTopUpId, paymentId: existing.id, amount: Number(existing.amount), currency: existing.currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
+    if (existing) return { data: { walletTopUpId: this.metadata(existing.metadataJson).walletTopUpId, paymentId: existing.id, amount: Number(existing.amount), status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
     const wallet = await this.getOrCreateWallet(user.uid);
     const amount = this.money(dto.amount);
     const ledger = await this.repository.createWalletLedgerEntry({ walletId: wallet.id, type: WalletLedgerType.TOP_UP, direction: WalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: WalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
-    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripePaymentMethodId: dto.stripePaymentMethodId, idempotencyKey }, idempotencyKey });
+    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, idempotencyKey }, idempotencyKey });
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
-    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), payment_method: dto.stripePaymentMethodId, automatic_payment_methods: dto.stripePaymentMethodId ? undefined : { enabled: true }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
-    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, stripePaymentMethodId: dto.stripePaymentMethodId, idempotencyKey } });
-    return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, clientSecret: intent.client_secret, amount, currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
+    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
+    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, idempotencyKey } });
+    return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 
   async history(user: AuthUserContext, query: ListWalletHistoryDto) {
@@ -73,8 +71,34 @@ export class CustomerWalletService {
     if (!metadata.walletTopUpId) return;
     const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId });
     if (!ledger || ledger.status === WalletLedgerStatus.SUCCESS) return;
-    await this.repository.completeWalletTopUp({ ledgerId: ledger.id, walletId: ledger.walletId, amount: ledger.amount, paymentId: payment.id });
+    const result = await this.repository.completeWalletTopUp({ ledgerId: ledger.id, walletId: ledger.walletId, amount: ledger.amount, paymentId: payment.id });
+    if (!result.credited) return; // another confirmation path already credited this top-up
     await this.notify(payment.userId, 'Wallet top-up succeeded', `${Number(ledger.amount)} ${ledger.currency} was added to your wallet.`, 'WALLET_TOP_UP_SUCCEEDED', { paymentId: payment.id, walletLedgerId: ledger.id });
+  }
+
+  // Webhook fallback: if Stripe's webhook never reaches us, the client can call this to
+  // pull the PaymentIntent status server-side and settle the top-up. Fully idempotent —
+  // credits at most once because it funnels through the same guarded creditWalletTopUp path.
+  async confirmTopUp(user: AuthUserContext, dto: ConfirmWalletTopUpDto) {
+    const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId: dto.walletTopUpId, userId: user.uid });
+    if (!ledger) throw new NotFoundException('Wallet top-up not found');
+    if (ledger.status === WalletLedgerStatus.SUCCESS) return { data: { walletTopUpId: ledger.id, paymentId: ledger.paymentId, status: 'SUCCESS' }, message: 'Wallet top-up already confirmed.' };
+    if (ledger.status === WalletLedgerStatus.FAILED || ledger.status === WalletLedgerStatus.CANCELLED) return { data: { walletTopUpId: ledger.id, paymentId: ledger.paymentId, status: ledger.status }, message: 'Wallet top-up was not successful.' };
+    if (!ledger.paymentId) throw new BadRequestException('No payment is associated with this top-up yet');
+    const payment = await this.repository.findTopUpPaymentById(ledger.paymentId, user.uid);
+    if (!payment || !payment.providerPaymentIntentId) throw new BadRequestException('Stripe payment is not ready to confirm');
+    const intent = await this.stripe().paymentIntents.retrieve(payment.providerPaymentIntentId) as { status: string };
+    if (intent.status === 'succeeded') {
+      const succeeded = await this.repository.markTopUpPaymentStatus(payment.id, PaymentStatus.SUCCEEDED);
+      await this.creditWalletTopUp(succeeded);
+      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' };
+    }
+    if (intent.status === 'canceled' || intent.status === 'requires_payment_method') {
+      const failed = await this.repository.markTopUpPaymentStatus(payment.id, PaymentStatus.FAILED);
+      await this.failWalletTopUp(failed);
+      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, status: 'FAILED' }, message: 'Wallet top-up payment failed.' };
+    }
+    return { data: { walletTopUpId: ledger.id, paymentId: payment.id, status: 'PENDING' }, message: 'Wallet top-up is still processing. Please try again shortly.' };
   }
 
   async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.repository.updateWalletTopUpStatus({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId, status: WalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
