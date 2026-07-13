@@ -31,7 +31,7 @@ export class ListRecurringPaymentsDto {
 
 export class CreateRecurringPaymentDto {
   @ApiProperty({ example: 100 }) @Type(() => Number) @IsNumber() @Min(1) amount!: number;
-  @ApiPropertyOptional({ example: 'PKR' }) @IsOptional() @IsString() currency?: string;
+  @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsString() currency?: string;
   @ApiProperty({ enum: CustomerRecurringPaymentFrequency, example: CustomerRecurringPaymentFrequency.WEEKLY }) @IsEnum(CustomerRecurringPaymentFrequency) frequency!: CustomerRecurringPaymentFrequency;
   @ApiProperty({ type: RecurringPaymentScheduleDto }) @ValidateNested() @Type(() => RecurringPaymentScheduleDto) schedule!: RecurringPaymentScheduleDto;
   @ApiProperty({ example: 'contact_id' }) @IsString() recipientContactId!: string;

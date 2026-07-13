@@ -15,7 +15,7 @@ const settings = {
   noteText: 'Refunds are processed according to cancellation policy.',
   refundWindowDays: 30,
   autoRefundThresholdAmount: new Prisma.Decimal(50),
-  currency: 'PKR',
+  currency: 'USD',
   cancellationTiersJson: [{ id: 'tier_1', daysBeforeCheckIn: 5, deductionPercent: 10, label: 'Early', createdAt: '2026-05-14T10:00:00.000Z' }],
   updatedById: 'admin_1',
   createdAt: now,
@@ -32,7 +32,7 @@ function createService() {
     },
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  const configService = { get: jest.fn((key: string, fallback?: string) => key === 'STRIPE_CURRENCY' ? 'PKR' : fallback) };
+  const configService = { get: jest.fn((key: string, fallback?: string) => key === 'STRIPE_CURRENCY' ? 'USD' : fallback) };
   const repository = new RefundPolicySettingsRepository(prisma as never);
   const service = new RefundPolicySettingsService(repository, auditLog as never, configService as unknown as ConfigService);
   return { service, prisma, auditLog };
@@ -170,7 +170,7 @@ describe('Refund policy settings source safety', () => {
     expect(controller).toContain('@Roles(UserRole.SUPER_ADMIN)');
     expect(controller).toContain('Updates refund enablement status and cancellation deduction tiers used by refund policy settings.');
     expect(controller).toContain('updateRefundPolicy');
-    expect(controller).not.toContain("currency: 'PKR'");
+    expect(controller).not.toContain("currency: 'USD'");
   });
 
   it('removes fields outside the refund settings design from Swagger examples and DTO', () => {

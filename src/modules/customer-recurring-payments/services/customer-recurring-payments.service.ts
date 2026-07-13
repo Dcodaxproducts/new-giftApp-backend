@@ -220,7 +220,7 @@ export class CustomerRecurringPaymentsService {
   }
   private stripe(): InstanceType<typeof Stripe> { const key = process.env.STRIPE_SECRET_KEY; if (!key) throw new ServiceUnavailableException('Stripe is not configured'); this.stripeClient ??= new Stripe(key); return this.stripeClient; }
   private publishableKey(): string { return process.env.STRIPE_PUBLISHABLE_KEY ?? ''; }
-  private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'PKR').toUpperCase(); }
+  private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'USD').toUpperCase(); }
   private toSmallestUnit(amount: number, currency: string): number { return this.zeroDecimalCurrencies().has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100); }
   private zeroDecimalCurrencies(): Set<string> { return new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF']); }
   private addDays(date: Date, days: number): Date { const next = new Date(date); next.setUTCDate(next.getUTCDate() + days); return next; }

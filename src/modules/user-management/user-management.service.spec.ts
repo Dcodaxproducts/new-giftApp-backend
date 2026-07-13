@@ -162,8 +162,8 @@ describe('UserManagementService', () => {
       { id: 'audit_1', action: 'REGISTERED_USER_UPDATED', createdAt: new Date('2026-05-11T09:00:00.000Z') },
       { id: 'audit_2', action: 'USER_PASSWORD_CHANGED_BY_ADMIN', createdAt: new Date('2026-05-11T08:00:00.000Z') },
     ]);
-    prisma.order.findMany.mockResolvedValue([{ id: 'order_1', orderNumber: 'ORD-1001', status: OrderStatus.DELIVERED, paymentStatus: PaymentStatus.SUCCEEDED, total: new Prisma.Decimal(1200), currency: 'PKR', createdAt: new Date('2026-05-11T07:00:00.000Z'), updatedAt: new Date('2026-05-11T07:30:00.000Z') }]);
-    prisma.payment.findMany.mockResolvedValue([{ id: 'payment_1', status: PaymentStatus.SUCCEEDED, amount: new Prisma.Decimal(1200), currency: 'PKR', paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, orderId: 'order_1', moneyGiftId: null, createdAt: new Date('2026-05-11T07:01:00.000Z'), updatedAt: new Date('2026-05-11T07:02:00.000Z') }]);
+    prisma.order.findMany.mockResolvedValue([{ id: 'order_1', orderNumber: 'ORD-1001', status: OrderStatus.DELIVERED, paymentStatus: PaymentStatus.SUCCEEDED, total: new Prisma.Decimal(1200), currency: 'USD', createdAt: new Date('2026-05-11T07:00:00.000Z'), updatedAt: new Date('2026-05-11T07:30:00.000Z') }]);
+    prisma.payment.findMany.mockResolvedValue([{ id: 'payment_1', status: PaymentStatus.SUCCEEDED, amount: new Prisma.Decimal(1200), currency: 'USD', paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, orderId: 'order_1', moneyGiftId: null, createdAt: new Date('2026-05-11T07:01:00.000Z'), updatedAt: new Date('2026-05-11T07:02:00.000Z') }]);
     prisma.providerOrderTimeline.findMany.mockResolvedValue([{ id: 'timeline_1', status: OrderStatus.SHIPPED, title: 'Order shipped', description: 'Provider shipped the order.', createdAt: new Date('2026-05-11T07:20:00.000Z'), providerOrder: { id: 'provider_order_1', orderNumber: 'PO-1001', orderId: 'order_1' } }]);
 
     const result = await service.activity('user_1', { page: 1, limit: 20 });

@@ -27,7 +27,7 @@ export class AdminTransactionsService {
     const today = this.todayRange();
     const failedToday = (await this.transactions({ status: AdminTransactionStatus.FAILED, fromDate: today.fromDate.toISOString(), toDate: today.toDate.toISOString() })).length;
     const previousFailedToday = (await this.transactions({ status: AdminTransactionStatus.FAILED, fromDate: today.previousFromDate, toDate: today.previousToDate })).length;
-    return { data: { totalVolume, totalVolumeDeltaPercent: this.delta(totalVolume, previousVolume), successRate, successRateDeltaPercent: this.money(successRate - previousSuccessRate), pendingReview: items.filter((item) => item.status === AdminTransactionStatus.PENDING).length, failedToday, failedTodayDeltaPercent: this.delta(failedToday, previousFailedToday), currency: successful[0]?.currency ?? items[0]?.currency ?? process.env.STRIPE_CURRENCY ?? 'PKR' }, message: 'Transaction stats fetched successfully.' };
+    return { data: { totalVolume, totalVolumeDeltaPercent: this.delta(totalVolume, previousVolume), successRate, successRateDeltaPercent: this.money(successRate - previousSuccessRate), pendingReview: items.filter((item) => item.status === AdminTransactionStatus.PENDING).length, failedToday, failedTodayDeltaPercent: this.delta(failedToday, previousFailedToday), currency: successful[0]?.currency ?? items[0]?.currency ?? process.env.STRIPE_CURRENCY ?? 'USD' }, message: 'Transaction stats fetched successfully.' };
   }
 
   async list(query: ListAdminTransactionsDto) {

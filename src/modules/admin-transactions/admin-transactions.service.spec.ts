@@ -7,9 +7,9 @@ import { AdminNotificationChannel, AdminRefundReason, AdminRefundType, AdminTran
 
 const createdAt = new Date('2026-10-24T14:20:00.000Z');
 const payment = {
-  id: 'payment_1', userId: 'user_1', orderId: 'order_1', moneyGiftId: null, customerSubscriptionId: null, provider: PaymentProvider.STRIPE, providerPaymentIntentId: 'TRX-982341', amount: new Prisma.Decimal(1281.25), currency: 'PKR', status: PaymentStatus.SUCCEEDED, paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, metadataJson: { cardBrand: 'Visa', cardLast4: '4242', clientSecret: 'should_not_leak', processorAuthCode: 'AUTH-9921-X' }, createdAt, updatedAt: createdAt,
+  id: 'payment_1', userId: 'user_1', orderId: 'order_1', moneyGiftId: null, customerSubscriptionId: null, provider: PaymentProvider.STRIPE, providerPaymentIntentId: 'TRX-982341', amount: new Prisma.Decimal(1281.25), currency: 'USD', status: PaymentStatus.SUCCEEDED, paymentMethod: PaymentMethod.STRIPE_CARD, failureReason: null, metadataJson: { cardBrand: 'Visa', cardLast4: '4242', clientSecret: 'should_not_leak', processorAuthCode: 'AUTH-9921-X' }, createdAt, updatedAt: createdAt,
   user: { id: 'user_1', firstName: 'Julianne', lastName: 'Doe', email: 'julianne.doe@example.com', avatarUrl: 'avatar.png', location: 'San Francisco, CA, USA' },
-  order: { id: 'order_1', orderNumber: 'ORD-88421', subtotal: new Prisma.Decimal(1250), discountTotal: new Prisma.Decimal(0), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(31.25), currency: 'PKR', providerOrders: [{ id: 'provider_order_1', providerId: 'provider_1', status: OrderStatus.COMPLETED, fulfilledAt: createdAt, provider: { id: 'provider_1', providerBusinessName: 'Gift Shop' } }] },
+  order: { id: 'order_1', orderNumber: 'ORD-88421', subtotal: new Prisma.Decimal(1250), discountTotal: new Prisma.Decimal(0), deliveryFee: new Prisma.Decimal(0), tax: new Prisma.Decimal(31.25), currency: 'USD', providerOrders: [{ id: 'provider_order_1', providerId: 'provider_1', status: OrderStatus.COMPLETED, fulfilledAt: createdAt, provider: { id: 'provider_1', providerBusinessName: 'Gift Shop' } }] },
   moneyGift: null, customerSubscription: null, recurringPaymentOccurrences: [], refundRequests: [],
 };
 

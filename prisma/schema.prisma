@@ -558,13 +558,6 @@ enum ProviderPayoutStatus {
   REJECTED
 }
 
-enum AdminPayoutSchedule {
-  WEEKLY_MONDAY
-  BIWEEKLY_FRIDAY
-  MONTHLY_LAST_DAY
-  MANUAL
-}
-
 model User {
   id                                  String                               @id @default(cuid())
   email                               String                               @unique
@@ -632,7 +625,6 @@ model User {
   disputesAsUser                      Dispute[]                            @relation("DisputeUser")
   disputesAsProvider                  Dispute[]                            @relation("DisputeProvider")
   providerPayoutMethods               ProviderPayoutMethod[]
-  updatedPayoutSettings               AdminPayoutSettings[]                @relation("AdminPayoutSettingsUpdater")
   updatedSystemSettings               SystemSettings[]                     @relation("SystemSettingsUpdater")
   updatedCommissionTiers              CommissionTier[]                     @relation("CommissionTierUpdater")
   socialPosts                         SocialPost[]                         @relation("SocialPostAuthor")
@@ -1787,6 +1779,8 @@ model SystemSettings {
   smtpPassword               String?  @map("smtp_password")
   senderEmail                String?  @map("sender_email")
   senderName                 String?  @map("sender_name")
+  platformRatePercent        Decimal  @default(5) @map("platform_rate_percent") @db.Decimal(5, 2)
+  minimumPayoutThreshold     Decimal  @default(100) @map("minimum_payout_threshold") @db.Decimal(10, 2)
   updatedById                String?  @map("updated_by_id")
   createdAt                  DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                  DateTime @updatedAt @map("updated_at") @db.Timestamptz
@@ -1794,23 +1788,6 @@ model SystemSettings {
   updatedBy User? @relation("SystemSettingsUpdater", fields: [updatedById], references: [id])
 
   @@map("system_settings")
-}
-
-model AdminPayoutSettings {
-  id                     String              @id @default(cuid())
-  platformRatePercent    Decimal             @default(5) @map("platform_rate_percent") @db.Decimal(5, 2)
-  minimumPayoutThreshold Decimal             @default(100) @map("minimum_payout_threshold") @db.Decimal(10, 2)
-  currency               String              @default("USD")
-  payoutSchedule         AdminPayoutSchedule @default(MONTHLY_LAST_DAY) @map("payout_schedule")
-  payoutTimeUtc          String              @default("00:00") @map("payout_time_utc")
-  autoPayoutEnabled      Boolean             @default(true) @map("auto_payout_enabled")
-  updatedById            String?             @map("updated_by_id")
-  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt              DateTime            @updatedAt @map("updated_at") @db.Timestamptz
-
-  updatedBy User? @relation("AdminPayoutSettingsUpdater", fields: [updatedById], references: [id])
-
-  @@map("admin_payout_settings")
 }
 
 model SeasonalTheme {

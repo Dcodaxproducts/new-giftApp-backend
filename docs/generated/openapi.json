@@ -3557,7 +3557,7 @@
                         "date": "2023-09-17T00:00:00.000Z",
                         "userEmail": "alex.rivera@gmail.com",
                         "amount": 150,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "provider": {
                           "id": "provider_id",
                           "businessName": "Gift Provider"
@@ -3800,7 +3800,7 @@
                       "pendingReview": 14,
                       "failedToday": 3,
                       "failedTodayDeltaPercent": -5,
-                      "currency": "PKR"
+                      "currency": "USD"
                     },
                     "message": "Transaction stats fetched successfully."
                   }
@@ -4239,7 +4239,7 @@
                         "gatewayProvider": "STRIPE",
                         "type": "PAYMENT",
                         "amount": 1250,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "status": "SUCCESS",
                         "createdAt": "2026-10-24T14:20:00.000Z"
                       }
@@ -4425,7 +4425,7 @@
                       "transactionId": "TRX-982341",
                       "refundId": "RF-45678",
                       "refundAmount": 1281.25,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "status": "REFUNDED"
                     },
                     "message": "Transaction refunded successfully."
@@ -4475,7 +4475,7 @@
                       "transactionId": "TRX-982341",
                       "status": "SUCCESS",
                       "type": "PAYMENT",
-                      "currency": "PKR",
+                      "currency": "USD",
                       "paymentBreakdown": {
                         "subtotal": 1250,
                         "processingFee": 31.25,
@@ -7757,7 +7757,7 @@
                           260,
                           220
                         ],
-                        "currency": "PKR"
+                        "currency": "USD"
                       },
                       "recentOrders": [
                         {
@@ -7766,7 +7766,7 @@
                           "itemName": "Nike Air Max 270",
                           "imageUrl": "https://cdn.yourdomain.com/gifts/shoe.png",
                           "amount": 120,
-                          "currency": "PKR",
+                          "currency": "USD",
                           "status": "PAID",
                           "createdAgoText": "2m ago"
                         }
@@ -8754,7 +8754,7 @@
                         "id": "gift_id",
                         "name": "Luxury Perfume",
                         "price": 99.99,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "status": "ACTIVE",
                         "category": {
                           "id": "category_id",
@@ -8812,7 +8812,7 @@
                     "description": "Long-lasting premium fragrance.",
                     "categoryId": "gift_category_id",
                     "price": 99.99,
-                    "currency": "PKR",
+                    "currency": "USD",
                     "imageUrls": [
                       "https://cdn.yourdomain.com/gift-images/perfume.png"
                     ],
@@ -8844,7 +8844,7 @@
                       "id": "gift_id",
                       "name": "Luxury Perfume",
                       "price": 99.99,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "status": "ACTIVE",
                       "variants": [
                         {
@@ -8946,7 +8946,7 @@
                       "name": "Luxury Perfume",
                       "description": "Long-lasting premium fragrance.",
                       "price": 99.99,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "status": "ACTIVE",
                       "imageUrls": [
                         "https://cdn.yourdomain.com/gift-images/perfume.png"
@@ -9243,7 +9243,7 @@
                         ],
                         "itemCount": 3,
                         "totalPayout": 142,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "createdAt": "2026-10-24T10:45:00.000Z",
                         "receivedAgoText": "5m ago"
                       }
@@ -10238,7 +10238,7 @@
                           "avatarUrl": "https://cdn.yourdomain.com/customer-avatar.jpg"
                         },
                         "requestedAmount": 45,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "status": "REQUESTED",
                         "customerReason": "Item was damaged on arrival",
                         "createdAt": "2026-10-23T18:10:00.000Z"
@@ -13467,7 +13467,7 @@
                         "id": "gift_id",
                         "name": "Luxury Perfume",
                         "price": 99.99,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
                         "rating": 4.6,
                         "isWishlisted": false,
@@ -13543,7 +13543,7 @@
                       "description": "Long-lasting premium fragrance.",
                       "price": 99.99,
                       "originalPrice": 99.99,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "imageUrls": [
                         "https://cdn.yourdomain.com/gift-images/perfume.png"
                       ],
@@ -13923,7 +13923,7 @@
                         "deliveryFee": 0,
                         "tax": 0,
                         "total": 109.99,
-                        "currency": "PKR"
+                        "currency": "USD"
                       }
                     },
                     "message": "Cart fetched successfully"
@@ -14314,7 +14314,7 @@
                         "deliveryFee": 0,
                         "tax": 0,
                         "total": 109.99,
-                        "currency": "PKR"
+                        "currency": "USD"
                       }
                     },
                     "message": "Order fetched successfully."
@@ -15150,7 +15150,7 @@
                           "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
                         },
                         "amount": 50,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "frequency": "MONTHLY",
                         "nextBillingAt": "2026-03-15T09:00:00.000Z",
                         "status": "ACTIVE",
@@ -15198,7 +15198,7 @@
                 "weeklyStripe": {
                   "value": {
                     "amount": 100,
-                    "currency": "PKR",
+                    "currency": "USD",
                     "frequency": "WEEKLY",
                     "schedule": {
                       "dayOfWeek": "MONDAY",
@@ -15234,7 +15234,7 @@
                     "data": {
                       "id": "recurring_payment_id",
                       "amount": 100,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "frequency": "WEEKLY",
                       "nextBillingAt": "2026-05-12T09:00:00.000Z",
                       "status": "ACTIVE"
@@ -15331,7 +15331,7 @@
                         "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
                       },
                       "amount": 50,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "frequency": "MONTHLY",
                       "nextBillingAt": "2026-03-15T09:00:00.000Z",
                       "status": "ACTIVE",
@@ -15592,7 +15592,7 @@
                         "id": "history_id",
                         "paymentId": "payment_id",
                         "amount": 50,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "status": "SUCCESS",
                         "billingDate": "2026-02-15T09:00:00.000Z",
                         "transactionId": "GFT-8829-XPL",
@@ -15789,7 +15789,7 @@
                           "avatarUrl": "https://cdn.yourdomain.com/customer-contact-avatars/sarah.png"
                         },
                         "amount": 50,
-                        "currency": "PKR",
+                        "currency": "USD",
                         "type": "RECURRING_PAYMENT",
                         "status": "SUCCESS",
                         "paymentMethod": "STRIPE_CARD",
@@ -15856,7 +15856,7 @@
                     "success": true,
                     "data": {
                       "totalSpentThisMonth": 255,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "successfulCount": 9,
                       "failedCount": 1,
                       "pendingCount": 0,
@@ -16087,7 +16087,7 @@
                       "transactionId": "TXN-2026-001234-ABC-XYZ",
                       "status": "SUCCESS",
                       "amount": 50,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "createdAt": "2026-03-01T14:34:00.000Z",
                       "type": "RECURRING_PAYMENT",
                       "giftInformation": {
@@ -16384,7 +16384,7 @@
                     "categoryId": "gift_category_id",
                     "providerId": "provider_id",
                     "price": 99.99,
-                    "currency": "PKR",
+                    "currency": "USD",
                     "imageUrls": [
                       "https://cdn.yourdomain.com/gift-images/perfume.png"
                     ],
@@ -16418,7 +16418,7 @@
                       "id": "gift_id",
                       "name": "Luxury Perfume",
                       "price": 99.99,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "status": "ACTIVE",
                       "variants": [
                         {
@@ -18254,7 +18254,7 @@
                       "clientSecret": "pi_xxx_secret_xxx",
                       "publishableKey": "pk_live_or_test",
                       "amount": 10999,
-                      "currency": "PKR"
+                      "currency": "USD"
                     },
                     "message": "Payment intent created successfully."
                   }
@@ -18335,7 +18335,7 @@
                       "provider": "STRIPE",
                       "stripePaymentIntentId": "pi_xxx",
                       "amount": 109.99,
-                      "currency": "PKR",
+                      "currency": "USD",
                       "status": "SUCCEEDED",
                       "paymentMethod": "STRIPE_CARD",
                       "failureReason": null
@@ -18591,7 +18591,7 @@
                 "create": {
                   "value": {
                     "amount": 100,
-                    "currency": "PKR",
+                    "currency": "USD",
                     "recipientContactId": "cmf0contactmary001",
                     "message": "Hope this helps. Enjoy your day!",
                     "messageMediaUrls": [],
@@ -24334,7 +24334,7 @@
           },
           "currency": {
             "type": "string",
-            "example": "PKR"
+            "example": "USD"
           },
           "frequency": {
             "type": "string",
@@ -25117,7 +25117,7 @@
           },
           "currency": {
             "type": "string",
-            "example": "PKR"
+            "example": "USD"
           },
           "recipientContactId": {
             "type": "string",

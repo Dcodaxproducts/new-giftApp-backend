@@ -42,7 +42,7 @@ describe('CustomerRecurringPaymentsService schedule rules', () => {
 
 describe('Customer recurring payment action behavior', () => {
   const user = { uid: 'customer_1', role: 'REGISTERED_USER' as const };
-  const recurring = { id: 'recurring_1', userId: 'customer_1', recipientContactId: 'contact_1', amount: 50, currency: 'PKR', frequency: CustomerRecurringPaymentFrequency.MONTHLY, scheduleJson: { dayOfMonth: 15, time: '09:00', timezone: 'Asia/Karachi' }, message: 'Monthly flowers', messageMediaUrlsJson: [], paymentMethod: 'STRIPE_CARD', stripePaymentMethodId: 'pm_123', status: CustomerRecurringPaymentStatus.ACTIVE, nextBillingAt: new Date('2026-06-15T09:00:00.000Z'), cancelAtPeriodEnd: false, cancelAt: null, cancelledAt: null, cancelReason: null, createdAt: new Date(), updatedAt: new Date(), deletedAt: null, failureCount: 0, startDate: new Date('2026-05-01T00:00:00.000Z'), endDate: null, recipientContact: { id: 'contact_1', name: 'Sarah Johnson', email: 'sarah@example.com', avatarUrl: null } };
+  const recurring = { id: 'recurring_1', userId: 'customer_1', recipientContactId: 'contact_1', amount: 50, currency: 'USD', frequency: CustomerRecurringPaymentFrequency.MONTHLY, scheduleJson: { dayOfMonth: 15, time: '09:00', timezone: 'Asia/Karachi' }, message: 'Monthly flowers', messageMediaUrlsJson: [], paymentMethod: 'STRIPE_CARD', stripePaymentMethodId: 'pm_123', status: CustomerRecurringPaymentStatus.ACTIVE, nextBillingAt: new Date('2026-06-15T09:00:00.000Z'), cancelAtPeriodEnd: false, cancelAt: null, cancelledAt: null, cancelReason: null, createdAt: new Date(), updatedAt: new Date(), deletedAt: null, failureCount: 0, startDate: new Date('2026-05-01T00:00:00.000Z'), endDate: null, recipientContact: { id: 'contact_1', name: 'Sarah Johnson', email: 'sarah@example.com', avatarUrl: null } };
   const createService = (overrides: Record<string, jest.Mock> = {}) => {
     const repository = {
       findByIdForCustomer: jest.fn(async ({ where }) => (where.id === recurring.id ? recurring : null)),
@@ -70,7 +70,7 @@ describe('Customer recurring payment action behavior', () => {
       findByIdForCustomer: jest.fn(async ({ where }) => (where.id === recurring.id ? recurring : null)),
       updateRecurringPayment: jest.fn(async (id, data) => ({ ...recurring, id, ...data })),
       createNotification: jest.fn(async () => undefined),
-      findBillingHistory: jest.fn(async () => [{ id: 'occ_1', paymentId: 'pay_1', amount: 50, currency: 'PKR', status: 'SUCCESS', scheduledFor: new Date('2026-05-15T09:00:00.000Z'), failureReason: null }]),
+      findBillingHistory: jest.fn(async () => [{ id: 'occ_1', paymentId: 'pay_1', amount: 50, currency: 'USD', status: 'SUCCESS', scheduledFor: new Date('2026-05-15T09:00:00.000Z'), failureReason: null }]),
       countBillingHistory: jest.fn(async () => 1),
     } as unknown as CustomerRecurringPaymentsRepository;
     const service = new CustomerRecurringPaymentsService(repository);

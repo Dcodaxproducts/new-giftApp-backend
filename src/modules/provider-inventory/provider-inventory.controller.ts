@@ -18,7 +18,7 @@ export class ProviderInventoryController {
 
   @Get()
   @ApiOperation({ summary: 'List provider inventory items', description: 'PROVIDER only. Pending providers cannot access inventory. Use status to filter ACTIVE, INACTIVE, or OUT_OF_STOCK items.' })
-  @ApiResponse({ status: 200, description: 'Provider inventory fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', status: 'ACTIVE', category: { id: 'category_id', name: 'Perfumes' }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Provider inventory fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Provider inventory fetched successfully', schema: { example: { success: true, data: [{ id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'USD', status: 'ACTIVE', category: { id: 'category_id', name: 'Perfumes' }, variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Provider inventory fetched successfully' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderInventoryDto) { return this.service.list(user, query); }
 
   @Get('stats')
@@ -31,13 +31,13 @@ export class ProviderInventoryController {
 
   @Post()
   @ApiOperation({ summary: 'Create provider inventory item with optional nested variants', description: 'PROVIDER only. Pending providers cannot access this module.' })
-  @ApiBody({ type: CreateProviderInventoryItemDto, examples: { withVariants: { value: { name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', categoryId: 'gift_category_id', price: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99 }] } } } })
-  @ApiResponse({ status: 201, description: 'Inventory item created successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Inventory item created successfully' } } })
+  @ApiBody({ type: CreateProviderInventoryItemDto, examples: { withVariants: { value: { name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', categoryId: 'gift_category_id', price: 99.99, currency: 'USD', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99 }] } } } })
+  @ApiResponse({ status: 201, description: 'Inventory item created successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'USD', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Inventory item created successfully' } } })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateProviderInventoryItemDto) { return this.service.create(user, dto); }
 
   @Get(':id')
   @ApiOperation({ summary: 'Fetch own provider inventory item details' })
-  @ApiResponse({ status: 200, description: 'Inventory item fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', price: 99.99, currency: 'PKR', status: 'ACTIVE', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Inventory item fetched successfully' } } })
+  @ApiResponse({ status: 200, description: 'Inventory item fetched successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', price: 99.99, currency: 'USD', status: 'ACTIVE', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Inventory item fetched successfully' } } })
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.details(user, id); }
 
   @Patch(':id')

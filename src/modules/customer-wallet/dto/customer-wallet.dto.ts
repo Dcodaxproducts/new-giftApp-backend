@@ -1,17 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export enum WalletHistoryType { ALL = 'ALL', TOP_UP = 'TOP_UP', ORDER_PAYMENT = 'ORDER_PAYMENT', MONEY_GIFT_SENT = 'MONEY_GIFT_SENT', REWARD_CREDIT = 'REWARD_CREDIT', REFUND = 'REFUND', ADJUSTMENT = 'ADJUSTMENT' }
 export enum WalletHistoryStatus { ALL = 'ALL', SUCCESS = 'SUCCESS', PENDING = 'PENDING', FAILED = 'FAILED' }
 
 export class AddWalletFundsDto {
   @ApiProperty({ example: 100 }) @Type(() => Number) @IsNumber() @Min(0.01) amount!: number;
-  @ApiPropertyOptional({ example: 'wallet_topup_2026_001' }) @IsOptional() @IsString() @MaxLength(120) idempotencyKey?: string;
 }
 
 export class ConfirmWalletTopUpDto {
-  @ApiProperty({ example: 'ledger_id_123', description: 'The walletTopUpId returned from POST /customer/wallet/add-funds.' }) @IsString() @IsNotEmpty() walletTopUpId!: string;
+  @ApiProperty({ example: 'pi_3TshCwP5GAZBrbrD0EC7FoKQ', description: 'The stripePaymentIntentId returned from POST /customer/wallet/add-funds.' }) @IsString() @IsNotEmpty() stripePaymentIntentId!: string;
 }
 
 export class ListWalletHistoryDto {

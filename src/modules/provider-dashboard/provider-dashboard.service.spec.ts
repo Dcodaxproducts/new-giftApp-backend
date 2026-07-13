@@ -20,7 +20,7 @@ const approvedProvider = {
 
 function createService(provider: Record<string, unknown> | null = approvedProvider, empty = false) {
   const orders = empty ? [] : [
-    { createdAt: new Date(), totalPayout: 120, total: 120, currency: 'PKR' },
+    { createdAt: new Date(), totalPayout: 120, total: 120, currency: 'USD' },
   ];
   const recentOrder = empty ? null : {
     id: 'provider_order_1',
@@ -28,7 +28,7 @@ function createService(provider: Record<string, unknown> | null = approvedProvid
     status: OrderStatus.PENDING,
     totalPayout: 120,
     total: 120,
-    currency: 'PKR',
+    currency: 'USD',
     createdAt: new Date(),
     order: { orderNumber: 'ORD-8821', paymentStatus: PaymentStatus.SUCCEEDED },
     items: [{ nameSnapshot: 'Nike Air Max 270', imageUrl: 'https://cdn.yourdomain.com/gifts/shoe.png' }],
@@ -100,7 +100,7 @@ describe('ProviderDashboardService', () => {
   it('dashboard returns performance chart', async () => {
     const { service } = createService();
     const result = await service.get({ uid: 'provider_1', role: UserRole.PROVIDER });
-    expect(result.data.performance).toEqual(expect.objectContaining({ range: 'WEEKLY', labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], currency: 'PKR' }));
+    expect(result.data.performance).toEqual(expect.objectContaining({ range: 'WEEKLY', labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], currency: 'USD' }));
     expect(result.data.performance.values).toHaveLength(7);
   });
 
@@ -109,7 +109,7 @@ describe('ProviderDashboardService', () => {
     const result = await service.get({ uid: 'provider_1', role: UserRole.PROVIDER });
     expect(result.data.operationalSummary).toEqual({ todayOrders: 0, pendingOrders: 0, activeOffers: 0, totalItems: 0 });
     expect(result.data.recentOrders).toEqual([]);
-    expect(result.data.performance).toEqual(expect.objectContaining({ range: 'WEEKLY', currency: 'PKR' }));
+    expect(result.data.performance).toEqual(expect.objectContaining({ range: 'WEEKLY', currency: 'USD' }));
     expect(result.data.performance.values).toEqual([0, 0, 0, 0, 0, 0, 0]);
   });
 });

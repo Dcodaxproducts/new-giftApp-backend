@@ -263,7 +263,7 @@ export class PaymentsService {
     return this.stripeClient;
   }
 
-  private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'PKR').toUpperCase(); }
+  private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'USD').toUpperCase(); }
   private toSmallestUnit(amount: number, currency: string): number { return this.zeroDecimalCurrencies().has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100); }
   private zeroDecimalCurrencies(): Set<string> { return new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF']); }
   private money(value: number): number { return Number(value.toFixed(2)); }

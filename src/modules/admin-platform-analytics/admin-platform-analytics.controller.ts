@@ -29,7 +29,7 @@ export class AdminPlatformAnalyticsController {
   @Get('revenue-transactions')
   @Permissions('analytics.read')
   @ApiOperation({ summary: 'List recent revenue transactions', description: 'SUPER_ADMIN or ADMIN with analytics.read. Uses real payment, order, provider order, gift, category, provider, and subscription records. Card/payment secrets are never selected or returned.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'transaction_id', date: '2023-09-17T00:00:00.000Z', userEmail: 'alex.rivera@gmail.com', amount: 150, currency: 'PKR', provider: { id: 'provider_id', businessName: 'Gift Provider' }, category: { id: 'category_id', name: 'Flowers' } }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Revenue transactions fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'transaction_id', date: '2023-09-17T00:00:00.000Z', userEmail: 'alex.rivera@gmail.com', amount: 150, currency: 'USD', provider: { id: 'provider_id', businessName: 'Gift Provider' }, category: { id: 'category_id', name: 'Flowers' } }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Revenue transactions fetched successfully.' } } })
   revenueTransactions(@Query() query: PlatformAnalyticsTransactionsQueryDto) {
     return this.analytics.revenueTransactions(query);
   }

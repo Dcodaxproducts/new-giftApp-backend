@@ -26,7 +26,7 @@ export class CustomerTransactionsService {
     const toDate = query.toDate ? new Date(query.toDate) : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
     const items = await this.transactions(user.uid, { fromDate: fromDate.toISOString(), toDate: toDate.toISOString() });
     const successful = items.filter((item) => item.status === CustomerTransactionStatus.SUCCESS);
-    return { data: { totalSpentThisMonth: this.money(successful.reduce((sum, item) => sum + item.amount, 0)), currency: successful[0]?.currency ?? process.env.STRIPE_CURRENCY ?? 'PKR', successfulCount: successful.length, failedCount: items.filter((item) => item.status === CustomerTransactionStatus.FAILED).length, pendingCount: items.filter((item) => item.status === CustomerTransactionStatus.PENDING).length, refundedCount: items.filter((item) => item.status === CustomerTransactionStatus.REFUNDED).length }, message: 'Transaction summary fetched successfully.' };
+    return { data: { totalSpentThisMonth: this.money(successful.reduce((sum, item) => sum + item.amount, 0)), currency: successful[0]?.currency ?? process.env.STRIPE_CURRENCY ?? 'USD', successfulCount: successful.length, failedCount: items.filter((item) => item.status === CustomerTransactionStatus.FAILED).length, pendingCount: items.filter((item) => item.status === CustomerTransactionStatus.PENDING).length, refundedCount: items.filter((item) => item.status === CustomerTransactionStatus.REFUNDED).length }, message: 'Transaction summary fetched successfully.' };
   }
 
   async details(user: AuthUserContext, id: string) {

@@ -45,6 +45,8 @@ export class SystemSettingsService {
       smtpPassword: this.secretValue(dto.email.smtpPassword, current.smtpPassword),
       senderEmail: this.nullableTrim(dto.email.senderEmail),
       senderName: this.nullableTrim(dto.email.senderName),
+      platformRatePercent: new Prisma.Decimal(dto.financial.platformRatePercent),
+      minimumPayoutThreshold: new Prisma.Decimal(dto.financial.minimumPayoutThreshold),
       updatedById: user.uid,
     });
     await this.writeAudit(user, current.id, 'SYSTEM_SETTINGS_UPDATED', before, this.toAuditView(updated), ipAddress, userAgent);
@@ -102,6 +104,10 @@ export class SystemSettingsService {
         smtpPassword: this.mask(settings.smtpPassword),
         senderEmail: settings.senderEmail,
         senderName: settings.senderName,
+      },
+      financial: {
+        platformRatePercent: Number(settings.platformRatePercent),
+        minimumPayoutThreshold: Number(settings.minimumPayoutThreshold),
       },
     };
   }

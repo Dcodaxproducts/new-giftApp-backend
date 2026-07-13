@@ -32,7 +32,7 @@ export class ListOrdersDto {
 
 export class CreateMoneyGiftDto {
   @ApiProperty({ example: 100 }) @Type(() => Number) @IsNumber() @Min(1) amount!: number;
-  @ApiProperty({ example: 'PKR' }) @IsString() currency!: string;
+  @ApiProperty({ example: 'USD' }) @IsString() currency!: string;
   @ApiProperty({ example: 'cmf0contactmary001' }) @IsString() recipientContactId!: string;
   @ApiPropertyOptional({ example: 'Hope this helps. Enjoy your day!' }) @IsOptional() @IsString() message?: string;
   @ApiPropertyOptional({ type: [String], example: ['https://cdn.yourdomain.com/gift-message-media/photo.png'] }) @IsOptional() @IsArray() @IsUrl({ require_tld: false }, { each: true }) messageMediaUrls?: string[];

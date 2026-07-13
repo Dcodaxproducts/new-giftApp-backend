@@ -22,7 +22,7 @@ export class ProviderRefundRequestsService {
     const items = await this.repository.findManyByProviderId(user.uid);
     const count = (status: RefundRequestStatus) => items.filter((item) => item.status === status).length;
     const sum = (status: RefundRequestStatus, field: 'requestedAmount' | 'approvedAmount') => this.money(items.filter((item) => item.status === status).reduce((total, item) => total + Number(item[field] ?? 0), 0));
-    return { data: { requested: count(RefundRequestStatus.REQUESTED), approved: count(RefundRequestStatus.APPROVED), rejected: count(RefundRequestStatus.REJECTED), refunded: count(RefundRequestStatus.REFUNDED), failed: count(RefundRequestStatus.FAILED), currency: items[0]?.currency ?? 'PKR', requestedAmountTotal: sum(RefundRequestStatus.REQUESTED, 'requestedAmount'), refundedAmountTotal: sum(RefundRequestStatus.REFUNDED, 'approvedAmount') }, message: 'Provider refund request summary fetched successfully.' };
+    return { data: { requested: count(RefundRequestStatus.REQUESTED), approved: count(RefundRequestStatus.APPROVED), rejected: count(RefundRequestStatus.REJECTED), refunded: count(RefundRequestStatus.REFUNDED), failed: count(RefundRequestStatus.FAILED), currency: items[0]?.currency ?? 'USD', requestedAmountTotal: sum(RefundRequestStatus.REQUESTED, 'requestedAmount'), refundedAmountTotal: sum(RefundRequestStatus.REFUNDED, 'approvedAmount') }, message: 'Provider refund request summary fetched successfully.' };
   }
 
   async details(user: AuthUserContext, id: string) { const refund = await this.getOwnedRefundRequest(user.uid, id); return { data: this.toDetails(refund), message: 'Refund request fetched successfully.' }; }

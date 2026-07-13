@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CustomerBankAccount, CustomerPaymentMethod, Wallet, WalletLedger, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, RewardLedger } from '@prisma/client';
-import Stripe from 'stripe';
+import * as Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AddWalletFundsDto, ConfirmWalletTopUpDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
 import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
@@ -30,17 +30,14 @@ export class CustomerWalletService {
 
   async addFunds(user: AuthUserContext, dto: AddWalletFundsDto) {
     const currency = 'USD';
-    const idempotencyKey = this.idempotencyKey('wallet-top-up', user.uid, dto.idempotencyKey ?? `${dto.amount}:${currency}`);
-    const existing = await this.repository.findPaymentByIdempotencyKey(user.uid, idempotencyKey);
-    if (existing) return { data: { walletTopUpId: this.metadata(existing.metadataJson).walletTopUpId, paymentId: existing.id, amount: Number(existing.amount), status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
     const wallet = await this.getOrCreateWallet(user.uid);
     const amount = this.money(dto.amount);
     const ledger = await this.repository.createWalletLedgerEntry({ walletId: wallet.id, type: WalletLedgerType.TOP_UP, direction: WalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: WalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
-    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, idempotencyKey }, idempotencyKey });
+    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id } });
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
-    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
-    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, idempotencyKey } });
-    return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
+    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true, allow_redirects: 'never' }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid }) }) as StripeIntentCreateResult;
+    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status } });
+    return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 
   async history(user: AuthUserContext, query: ListWalletHistoryDto) {
@@ -76,29 +73,31 @@ export class CustomerWalletService {
     await this.notify(payment.userId, 'Wallet top-up succeeded', `${Number(ledger.amount)} ${ledger.currency} was added to your wallet.`, 'WALLET_TOP_UP_SUCCEEDED', { paymentId: payment.id, walletLedgerId: ledger.id });
   }
 
-  // Webhook fallback: if Stripe's webhook never reaches us, the client can call this to
-  // pull the PaymentIntent status server-side and settle the top-up. Fully idempotent —
-  // credits at most once because it funnels through the same guarded creditWalletTopUp path.
+  // Webhook fallback: if Stripe's webhook never reaches us, the client can call this with the
+  // stripePaymentIntentId to pull the PaymentIntent status server-side and settle the top-up.
+  // Fully idempotent — credits at most once because it funnels through the same guarded
+  // creditWalletTopUp path. Ownership is enforced by matching the payment to the caller.
   async confirmTopUp(user: AuthUserContext, dto: ConfirmWalletTopUpDto) {
-    const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId: dto.walletTopUpId, userId: user.uid });
+    const payment = await this.repository.findTopUpPaymentByIntentId(dto.stripePaymentIntentId, user.uid);
+    if (!payment) throw new NotFoundException('Wallet top-up payment not found');
+    const walletTopUpId = this.metadata(payment.metadataJson).walletTopUpId;
+    if (!walletTopUpId) throw new BadRequestException('This payment is not a wallet top-up');
+    const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId, userId: user.uid });
     if (!ledger) throw new NotFoundException('Wallet top-up not found');
-    if (ledger.status === WalletLedgerStatus.SUCCESS) return { data: { walletTopUpId: ledger.id, paymentId: ledger.paymentId, status: 'SUCCESS' }, message: 'Wallet top-up already confirmed.' };
-    if (ledger.status === WalletLedgerStatus.FAILED || ledger.status === WalletLedgerStatus.CANCELLED) return { data: { walletTopUpId: ledger.id, paymentId: ledger.paymentId, status: ledger.status }, message: 'Wallet top-up was not successful.' };
-    if (!ledger.paymentId) throw new BadRequestException('No payment is associated with this top-up yet');
-    const payment = await this.repository.findTopUpPaymentById(ledger.paymentId, user.uid);
-    if (!payment || !payment.providerPaymentIntentId) throw new BadRequestException('Stripe payment is not ready to confirm');
-    const intent = await this.stripe().paymentIntents.retrieve(payment.providerPaymentIntentId) as { status: string };
+    if (ledger.status === WalletLedgerStatus.SUCCESS) return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'SUCCESS' }, message: 'Wallet top-up already confirmed.' };
+    if (ledger.status === WalletLedgerStatus.FAILED || ledger.status === WalletLedgerStatus.CANCELLED) return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: ledger.status }, message: 'Wallet top-up was not successful.' };
+    const intent = await this.stripe().paymentIntents.retrieve(dto.stripePaymentIntentId) as { status: string };
     if (intent.status === 'succeeded') {
       const succeeded = await this.repository.markTopUpPaymentStatus(payment.id, PaymentStatus.SUCCEEDED);
       await this.creditWalletTopUp(succeeded);
-      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' };
+      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' };
     }
     if (intent.status === 'canceled' || intent.status === 'requires_payment_method') {
       const failed = await this.repository.markTopUpPaymentStatus(payment.id, PaymentStatus.FAILED);
       await this.failWalletTopUp(failed);
-      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, status: 'FAILED' }, message: 'Wallet top-up payment failed.' };
+      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'FAILED' }, message: 'Wallet top-up payment failed.' };
     }
-    return { data: { walletTopUpId: ledger.id, paymentId: payment.id, status: 'PENDING' }, message: 'Wallet top-up is still processing. Please try again shortly.' };
+    return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'PENDING' }, message: 'Wallet top-up is still processing. Please try again shortly.' };
   }
 
   async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.repository.updateWalletTopUpStatus({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId, status: WalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
@@ -120,7 +119,6 @@ export class CustomerWalletService {
   private metadata(value: Prisma.JsonValue): { walletTopUpId?: string } { if (!value || typeof value !== 'object' || Array.isArray(value)) return {}; const source = value as Record<string, unknown>; return { walletTopUpId: typeof source.walletTopUpId === 'string' ? source.walletTopUpId : undefined }; }
   private last4(value: string): string { const digits = value.replace(/\D/g, ''); if (digits.length < 4) throw new BadRequestException('Bank account number must include at least 4 digits'); return digits.slice(-4); }
   private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
-  private idempotencyKey(scope: string, userId: string, raw: string): string { return `${scope}:${userId}:${raw}`.replace(/[^a-zA-Z0-9:_-]/g, '_').slice(0, 120); }
   private sanitizeMetadata(input: Record<string, unknown>): Record<string, string> { return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined && value !== null).map(([key, value]) => [key, String(value).replace(/[\r\n\t]/g, ' ').slice(0, 500)])); }
   private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'USD').toUpperCase(); }
   private toSmallestUnit(amount: number, currency: string): number { return this.zeroDecimalCurrencies().has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100); }

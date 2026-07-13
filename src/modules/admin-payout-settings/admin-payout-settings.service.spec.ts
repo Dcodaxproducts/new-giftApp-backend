@@ -31,7 +31,7 @@ function createService(overrides: Partial<{ settings: typeof settings | null; ti
     $transaction: jest.fn((operations: Promise<unknown>[]) => Promise.all(operations)),
   };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  const configService = { get: jest.fn((key: string, fallback?: string) => key === 'PAYOUT_ALLOWED_CURRENCIES' ? 'USD,PKR' : fallback) };
+  const configService = { get: jest.fn((key: string, fallback?: string) => key === 'PAYOUT_ALLOWED_CURRENCIES' ? 'USD,USD' : fallback) };
   const settingsRepository = new AdminPayoutSettingsRepository(prisma as never);
   const tiersRepository = new CommissionTiersRepository(prisma as never);
   const service = new AdminPayoutSettingsService(settingsRepository, tiersRepository, auditLog as never, configService as unknown as ConfigService);

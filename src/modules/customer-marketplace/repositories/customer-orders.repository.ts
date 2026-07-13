@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotificationRecipientType, Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
@@ -61,7 +61,7 @@ export class CustomerOrdersRepository {
   }
 
   findActivePayoutSettings(tx: CheckoutTransaction) {
-    return tx.adminPayoutSettings.findFirst({ orderBy: { createdAt: 'asc' } });
+    return tx.systemSettings.findFirst({ orderBy: { createdAt: 'asc' } });
   }
 
   findActiveCommissionTiers(tx: CheckoutTransaction) {
@@ -73,9 +73,31 @@ export class CustomerOrdersRepository {
     return Number(aggregate._sum.amount ?? 0);
   }
 
+  findCustomerWallet(userId: string) {
+    return this.prisma.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: userId } } });
+  }
+
+  // Pays for an order entirely from the customer's wallet (no Stripe at checkout). Gift credits are
+  // spent first, then the cash balance. Throws (rolling back the checkout tx) if funds are short.
+  async debitCustomerWalletForOrder(tx: CheckoutTransaction, params: { userId: string; orderId: string; amount: number; currency: string }) {
+    const wallet = await tx.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
+    if (!wallet) throw new BadRequestException('Wallet not found. Please top up your wallet before ordering.');
+    const giftCredits = Number(wallet.giftCredits);
+    const balance = Number(wallet.balance);
+    if (giftCredits + balance + 1e-9 < params.amount) throw new BadRequestException('Insufficient wallet balance. Please top up your wallet.');
+    const giftCreditsUsed = this.round(Math.min(giftCredits, params.amount));
+    const balanceUsed = this.round(params.amount - giftCreditsUsed);
+    await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_PAYMENT, direction: WalletLedgerDirection.DEBIT, amount: new Prisma.Decimal(params.amount), currency: params.currency, status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: 'Order payment from wallet.' } });
+    await tx.wallet.update({ where: { id: wallet.id }, data: { giftCredits: { decrement: new Prisma.Decimal(giftCreditsUsed) }, balance: { decrement: new Prisma.Decimal(balanceUsed) } } });
+    return { giftCreditsUsed, balanceUsed };
+  }
+
   markCartCheckedOut(tx: CheckoutTransaction, cartId: string) {
     return tx.cartItem.deleteMany({ where: { cartId } });
   }
+
+  private round(value: number): number { return Number(value.toFixed(2)); }
+  private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
 
   createOrderNotification(tx: CheckoutTransaction, params: { recipientId: string; recipientType: NotificationRecipientType; title: string; message: string; orderId: string }) {
     return this.notificationDispatch.createAndEmit({ recipientId: params.recipientId, recipientType: params.recipientType, title: params.title, message: params.message, type: 'ORDER', metadataJson: { orderId: params.orderId } });

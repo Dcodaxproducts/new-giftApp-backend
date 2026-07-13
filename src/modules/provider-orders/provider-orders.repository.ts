@@ -93,11 +93,11 @@ export class ProviderOrdersRepository {
     const wallet = await tx.wallet.upsert({
       where: { ownerType_ownerId: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId } },
       update: {},
-      create: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId, currency: 'PKR' },
+      create: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId, currency: 'USD' },
     });
     const existing = await tx.walletLedger.findFirst({ where: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING } });
     if (existing) return existing;
-    const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, amount: params.amount, currency: 'PKR', status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: params.description } });
+    const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, amount: params.amount, currency: 'USD', status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: params.description } });
     await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: params.amount } } });
     return ledger;
   }

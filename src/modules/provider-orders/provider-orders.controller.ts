@@ -19,7 +19,7 @@ export class ProviderOrdersController {
   @ApiTags('03 Provider - Orders')
   @ApiOperation({ summary: 'List own assigned provider orders', description: 'PROVIDER only. Returns only orders assigned to the authenticated providerId. Default status filter is PENDING.' })
   @ApiQuery({ name: 'status', enum: ProviderOrderStatusFilter, required: false })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'order_id', orderId: 'order_id', orderNumber: 'ORD-10293', status: 'PENDING', customer: { name: 'Sarah Jenkins', phone: '+15551234567' }, itemPreview: [{ name: 'Premium Sneakers', imageUrl: 'https://cdn.yourdomain.com/gifts/sneaker.png' }], itemCount: 3, total: 142, currency: 'PKR', createdAt: '2026-10-24T10:45:00.000Z', receivedAgoText: '5m ago' }], message: 'Provider orders fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'order_id', orderId: 'order_id', orderNumber: 'ORD-10293', status: 'PENDING', customer: { name: 'Sarah Jenkins', phone: '+15551234567' }, itemPreview: [{ name: 'Premium Sneakers', imageUrl: 'https://cdn.yourdomain.com/gifts/sneaker.png' }], itemCount: 3, total: 142, currency: 'USD', createdAt: '2026-10-24T10:45:00.000Z', receivedAgoText: '5m ago' }], message: 'Provider orders fetched successfully.' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListProviderOrdersDto) { return this.providerOrders.list(user, query); }
 
 

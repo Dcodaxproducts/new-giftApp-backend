@@ -1,6 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEmail, IsInt, IsOptional, IsString, IsUrl, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsEmail, IsInt, IsNumber, IsOptional, IsString, IsUrl, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+
+export class FinancialSettingsDto {
+  @ApiProperty({ example: 5, minimum: 0, maximum: 100, description: 'Platform commission percentage applied on orders.' })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  platformRatePercent!: number;
+
+  @ApiProperty({ example: 100, minimum: 0, description: 'Minimum wallet balance a provider must reach before withdrawal.' })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minimumPayoutThreshold!: number;
+}
 
 export class PlatformInfoDto {
   @ApiProperty({ example: 'FintechOS Enterprise' })
@@ -135,4 +150,9 @@ export class UpdateSystemSettingsDto {
   @ValidateNested()
   @Type(() => EmailSettingsDto)
   email!: EmailSettingsDto;
+
+  @ApiProperty({ type: FinancialSettingsDto })
+  @ValidateNested()
+  @Type(() => FinancialSettingsDto)
+  financial!: FinancialSettingsDto;
 }

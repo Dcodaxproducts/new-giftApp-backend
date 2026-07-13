@@ -21,8 +21,8 @@ export class GiftsController {
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.PROVIDER)
   @ApiOperation({ summary: 'Create gift with optional nested variants', description: 'SUPER_ADMIN/ADMIN with gifts.create creates ACTIVE gifts. PROVIDER creates gifts for their own account as INACTIVE. Nested variants are created in the same transaction and stored in GiftVariant.' })
-  @ApiBody({ type: CreateGiftDto, examples: { withVariants: { value: { name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', categoryId: 'gift_category_id', providerId: 'provider_id', price: 99.99, currency: 'PKR', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], status: 'ACTIVE', isFeatured: false, variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99 }] } } } })
-  @ApiResponse({ status: 201, description: 'Gift created successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'PKR', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Gift created successfully' } } })
+  @ApiBody({ type: CreateGiftDto, examples: { withVariants: { value: { name: 'Luxury Perfume', description: 'Long-lasting premium fragrance.', categoryId: 'gift_category_id', providerId: 'provider_id', price: 99.99, currency: 'USD', imageUrls: ['https://cdn.yourdomain.com/gift-images/perfume.png'], status: 'ACTIVE', isFeatured: false, variants: [{ name: '30ml', price: 89.99 }, { name: '50ml', price: 129.99 }] } } } })
+  @ApiResponse({ status: 201, description: 'Gift created successfully', schema: { example: { success: true, data: { id: 'gift_id', name: 'Luxury Perfume', price: 99.99, currency: 'USD', status: 'ACTIVE', variants: [{ id: 'variant_id', name: '50ml', price: 129.99 }] }, message: 'Gift created successfully' } } })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateGiftDto) { return this.gifts.createGift(user, dto); }
 
   @Get()

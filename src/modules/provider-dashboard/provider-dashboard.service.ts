@@ -54,7 +54,7 @@ export class ProviderDashboardService {
       const index = Math.floor((Date.UTC(order.createdAt.getUTCFullYear(), order.createdAt.getUTCMonth(), order.createdAt.getUTCDate()) - weekStart.getTime()) / 86_400_000);
       if (index >= 0 && index < values.length) values[index] += Number(order.total);
     }
-    return { range: 'WEEKLY', labels, values: values.map((value) => this.money(value)), currency: 'PKR' };
+    return { range: 'WEEKLY', labels, values: values.map((value) => this.money(value)), currency: 'USD' };
   }
 
   private toRecentOrder(order: RecentOrder) {
@@ -65,7 +65,7 @@ export class ProviderDashboardService {
       itemName: firstItem?.gift.name ?? 'Order item',
       imageUrl: this.firstImage(firstItem?.gift.imageUrls),
       amount: this.money(Number(order.total)),
-      currency: 'PKR',
+      currency: 'USD',
       status: order.status,
       createdAgoText: this.timeAgo(order.createdAt),
     };

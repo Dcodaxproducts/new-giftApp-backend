@@ -8,7 +8,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { ListPayoutSettingsAuditLogsDto, UpdateAdminPayoutSettingsDto, UpsertCommissionTierDto } from './dto/admin-payout-settings.dto';
+import { ListPayoutSettingsAuditLogsDto, UpsertCommissionTierDto } from './dto/admin-payout-settings.dto';
 import { AdminPayoutSettingsService } from './admin-payout-settings.service';
 
 @ApiTags('02 Admin - Commission & Payout Settings')
@@ -21,16 +21,9 @@ export class AdminPayoutSettingsController {
 
   @Get()
   @Permissions('payoutSettings.read')
-  @ApiOperation({ summary: 'Fetch commission and payout settings', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { platformRatePercent: 5, minimumPayoutThreshold: 100, currency: 'USD', payoutSchedule: 'MONTHLY_LAST_DAY', payoutTimeUtc: '00:00', autoPayoutEnabled: true, lastUpdatedAt: '2026-05-16T10:00:00.000Z', commissionTiers: [{ id: 'tier_standard', name: 'Standard Tier', commissionRatePercent: 15, orderVolumeThreshold: 0, sortOrder: 1, isActive: true }, { id: 'tier_silver', name: 'Silver Partner', commissionRatePercent: 12.5, orderVolumeThreshold: 5000, sortOrder: 2, isActive: true }] }, message: 'Payout settings fetched successfully.' } } })
+  @ApiOperation({ summary: 'Fetch commission tiers', description: 'SUPER_ADMIN or ADMIN with payoutSettings.read. Returns active provider commission tiers. Platform commission rate and minimum payout threshold now live in System Settings.' })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: { commissionTiers: [{ id: 'tier_standard', name: 'Standard Tier', commissionRatePercent: 15, orderVolumeThreshold: 0, sortOrder: 1, isActive: true }, { id: 'tier_silver', name: 'Silver Partner', commissionRatePercent: 12.5, orderVolumeThreshold: 5000, sortOrder: 2, isActive: true }] }, message: 'Commission tiers fetched successfully.' } } })
   get() { return this.payoutSettings.get(); }
-
-  @Patch()
-  @Permissions('payoutSettings.update')
-  @ApiOperation({ summary: 'Update commission and payout settings', description: 'SUPER_ADMIN or ADMIN with payoutSettings.update. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.' })
-  @ApiBody({ type: UpdateAdminPayoutSettingsDto, examples: { update: { value: { platformRatePercent: 5, minimumPayoutThreshold: 100, currency: 'USD', payoutSchedule: 'MONTHLY_LAST_DAY', payoutTimeUtc: '00:00', autoPayoutEnabled: true } } } })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { platformRatePercent: 5, minimumPayoutThreshold: 100, currency: 'USD', payoutSchedule: 'MONTHLY_LAST_DAY', payoutTimeUtc: '00:00', autoPayoutEnabled: true, lastUpdatedAt: '2026-05-16T10:00:00.000Z' }, message: 'Payout settings updated successfully.' } } })
-  update(@CurrentUser() user: AuthUserContext, @Body() dto: UpdateAdminPayoutSettingsDto, @Req() request: Request) { return this.payoutSettings.update(user, dto, request.ip, request.headers['user-agent']); }
 
   @Get('commission-tiers')
   @Permissions('payoutSettings.read')

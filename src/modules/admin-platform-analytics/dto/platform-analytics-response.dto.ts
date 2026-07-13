@@ -51,7 +51,7 @@ export class PlatformAnalyticsRevenueTransactionDto {
   @ApiProperty({ example: 150 })
   amount!: number;
 
-  @ApiProperty({ example: 'PKR' })
+  @ApiProperty({ example: 'USD' })
   currency!: string;
 
   @ApiProperty({ type: PlatformAnalyticsProviderDto, nullable: true })

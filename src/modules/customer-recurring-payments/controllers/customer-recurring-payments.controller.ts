@@ -18,13 +18,13 @@ export class CustomerRecurringPaymentsController {
 
   @Get()
   @ApiOperation({ summary: 'List own recurring payments', description: 'REGISTERED_USER only. Returns recurring money/gift payment subscriptions owned by the logged-in customer.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'recurring_payment_id', title: "Sarah's Birthday", recipient: { id: 'contact_id', name: 'Sarah Johnson', email: 'sarah.j@example.com', avatarUrl: 'https://cdn.yourdomain.com/customer-contact-avatars/sarah.png' }, amount: 50, currency: 'PKR', frequency: 'MONTHLY', nextBillingAt: '2026-03-15T09:00:00.000Z', status: 'ACTIVE', message: 'Monthly flowers', createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Recurring payments fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'recurring_payment_id', title: "Sarah's Birthday", recipient: { id: 'contact_id', name: 'Sarah Johnson', email: 'sarah.j@example.com', avatarUrl: 'https://cdn.yourdomain.com/customer-contact-avatars/sarah.png' }, amount: 50, currency: 'USD', frequency: 'MONTHLY', nextBillingAt: '2026-03-15T09:00:00.000Z', status: 'ACTIVE', message: 'Monthly flowers', createdAt: '2026-05-09T10:00:00.000Z' }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Recurring payments fetched successfully.' } } })
   list(@CurrentUser() user: AuthUserContext, @Query() query: ListRecurringPaymentsDto) { return this.service.list(user, query); }
 
   @Post()
   @ApiOperation({ summary: 'Create recurring payment', description: 'REGISTERED_USER only. Recipient contact and saved Stripe payment method must both belong to the logged-in customer. Stripe card recurring payments require a saved payment method.' })
-  @ApiBody({ type: CreateRecurringPaymentDto, examples: { weeklyStripe: { value: { amount: 100, currency: 'PKR', frequency: 'WEEKLY', schedule: { dayOfWeek: 'MONDAY', dayOfMonth: null, monthOfYear: null, time: '09:00', timezone: 'Asia/Karachi' }, recipientContactId: 'contact_id', message: 'Hope you love this special surprise!', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/photo.png'], paymentMethod: 'STRIPE_CARD', stripePaymentMethodId: 'pm_xxx', startDate: '2026-05-10T00:00:00.000Z', endDate: null, autoSend: true } } } })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'recurring_payment_id', amount: 100, currency: 'PKR', frequency: 'WEEKLY', nextBillingAt: '2026-05-12T09:00:00.000Z', status: 'ACTIVE' }, message: 'Recurring payment created successfully.' } } })
+  @ApiBody({ type: CreateRecurringPaymentDto, examples: { weeklyStripe: { value: { amount: 100, currency: 'USD', frequency: 'WEEKLY', schedule: { dayOfWeek: 'MONDAY', dayOfMonth: null, monthOfYear: null, time: '09:00', timezone: 'Asia/Karachi' }, recipientContactId: 'contact_id', message: 'Hope you love this special surprise!', messageMediaUrls: ['https://cdn.yourdomain.com/gift-message-media/photo.png'], paymentMethod: 'STRIPE_CARD', stripePaymentMethodId: 'pm_xxx', startDate: '2026-05-10T00:00:00.000Z', endDate: null, autoSend: true } } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { id: 'recurring_payment_id', amount: 100, currency: 'USD', frequency: 'WEEKLY', nextBillingAt: '2026-05-12T09:00:00.000Z', status: 'ACTIVE' }, message: 'Recurring payment created successfully.' } } })
   create(@CurrentUser() user: AuthUserContext, @Body() dto: CreateRecurringPaymentDto) { return this.service.create(user, dto); }
 
   @Get('summary')
@@ -34,7 +34,7 @@ export class CustomerRecurringPaymentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Fetch own recurring payment details', description: 'REGISTERED_USER only. Customer cannot access another user’s recurring payment.' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'recurring_payment_id', title: 'Monthly Flowers', recipient: { id: 'contact_id', name: 'Sarah Johnson', email: 'sarah.j@example.com', avatarUrl: 'https://cdn.yourdomain.com/customer-contact-avatars/sarah.png' }, amount: 50, currency: 'PKR', frequency: 'MONTHLY', nextBillingAt: '2026-03-15T09:00:00.000Z', status: 'ACTIVE', message: 'Fresh seasonal bouquet delivered to her doorstep every month', messageMediaUrls: [], paymentMethod: { type: 'STRIPE_CARD', brand: 'visa', last4: '4242', expiryMonth: 12, expiryYear: 2026 }, schedule: { frequency: 'MONTHLY', dayOfMonth: 15, time: '09:00', timezone: 'Asia/Karachi' }, createdAt: '2026-05-09T10:00:00.000Z' }, message: 'Recurring payment fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: { id: 'recurring_payment_id', title: 'Monthly Flowers', recipient: { id: 'contact_id', name: 'Sarah Johnson', email: 'sarah.j@example.com', avatarUrl: 'https://cdn.yourdomain.com/customer-contact-avatars/sarah.png' }, amount: 50, currency: 'USD', frequency: 'MONTHLY', nextBillingAt: '2026-03-15T09:00:00.000Z', status: 'ACTIVE', message: 'Fresh seasonal bouquet delivered to her doorstep every month', messageMediaUrls: [], paymentMethod: { type: 'STRIPE_CARD', brand: 'visa', last4: '4242', expiryMonth: 12, expiryYear: 2026 }, schedule: { frequency: 'MONTHLY', dayOfMonth: 15, time: '09:00', timezone: 'Asia/Karachi' }, createdAt: '2026-05-09T10:00:00.000Z' }, message: 'Recurring payment fetched successfully.' } } })
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.service.details(user, id); }
 
   @Patch(':id')
@@ -51,7 +51,7 @@ export class CustomerRecurringPaymentsController {
 
   @Get(':id/history')
   @ApiOperation({ summary: 'List own recurring payment billing history' })
-  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'history_id', paymentId: 'payment_id', amount: 50, currency: 'PKR', status: 'SUCCESS', billingDate: '2026-02-15T09:00:00.000Z', transactionId: 'GFT-8829-XPL', failureReason: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Recurring payment history fetched successfully.' } } })
+  @ApiResponse({ status: 200, schema: { example: { success: true, data: [{ id: 'history_id', paymentId: 'payment_id', amount: 50, currency: 'USD', status: 'SUCCESS', billingDate: '2026-02-15T09:00:00.000Z', transactionId: 'GFT-8829-XPL', failureReason: null }], meta: { page: 1, limit: 10, total: 1, totalPages: 1 }, message: 'Recurring payment history fetched successfully.' } } })
   history(@CurrentUser() user: AuthUserContext, @Param('id') id: string, @Query() query: RecurringPaymentHistoryDto) { return this.service.history(user, id, query); }
 }
 

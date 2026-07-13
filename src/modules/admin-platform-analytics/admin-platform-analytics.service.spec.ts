@@ -17,7 +17,7 @@ function payment(params: { id: string; email: string; amount: number; status?: P
     provider: 'STRIPE',
     providerPaymentIntentId: `TXN-${params.id}`,
     amount: new Prisma.Decimal(params.amount),
-    currency: 'PKR',
+    currency: 'USD',
     status: params.status ?? PaymentStatus.SUCCEEDED,
     paymentMethod: 'STRIPE_CARD',
     failureReason: null,
@@ -126,7 +126,7 @@ describe('AdminPlatformAnalyticsService', () => {
     const result = await service.revenueTransactions({ page: 1, limit: 1 });
 
     expect(result.meta).toEqual({ page: 1, limit: 1, total: 2, totalPages: 2 });
-    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'TXN-pay_1', userEmail: 'alex.rivera@gmail.com', amount: 150, currency: 'PKR' }));
+    expect(result.data[0]).toEqual(expect.objectContaining({ id: 'TXN-pay_1', userEmail: 'alex.rivera@gmail.com', amount: 150, currency: 'USD' }));
     expect(result.data[0]).not.toHaveProperty('plan');
     expect(result.data[0]).not.toHaveProperty('status');
     expect(JSON.stringify(result.data[0])).not.toContain('card');

@@ -1,16 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AdminPayoutSchedule } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsISO4217CurrencyCode, IsISO8601, IsInt, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
-
-export class UpdateAdminPayoutSettingsDto {
-  @ApiProperty({ example: 5, minimum: 0, maximum: 100 }) @Type(() => Number) @IsNumber() @Min(0) @Max(100) platformRatePercent!: number;
-  @ApiProperty({ example: 100, minimum: 0 }) @Type(() => Number) @IsNumber() @Min(0) minimumPayoutThreshold!: number;
-  @ApiProperty({ example: 'USD' }) @IsISO4217CurrencyCode() currency!: string;
-  @ApiProperty({ enum: AdminPayoutSchedule, example: AdminPayoutSchedule.MONTHLY_LAST_DAY }) @IsEnum(AdminPayoutSchedule) payoutSchedule!: AdminPayoutSchedule;
-  @ApiProperty({ example: '00:00', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' }) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) payoutTimeUtc!: string;
-  @ApiProperty({ example: true }) @IsBoolean() autoPayoutEnabled!: boolean;
-}
+import { IsBoolean, IsInt, IsISO8601, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class UpsertCommissionTierDto {
   @ApiProperty({ example: 'Gold Elite', maxLength: 80 }) @IsString() @MaxLength(80) name!: string;
