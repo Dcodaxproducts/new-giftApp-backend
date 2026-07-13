@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NotificationRecipientType, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType } from '@prisma/client';
+import { NotificationRecipientType, Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { CUSTOMER_CART_WITH_ITEMS_INCLUDE } from './customer-cart.repository';
 import { NotificationDispatchService } from '../../notifications/notification-dispatch.service';
@@ -69,7 +69,7 @@ export class CustomerOrdersRepository {
   }
 
   async sumProviderOrderEarnings(tx: CheckoutTransaction, providerId: string) {
-    const aggregate = await tx.providerEarningsLedger.aggregate({ where: { providerId, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true } });
+    const aggregate = await tx.walletLedger.aggregate({ where: { type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, status: WalletLedgerStatus.SUCCESS, wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId } }, _sum: { amount: true } });
     return Number(aggregate._sum.amount ?? 0);
   }
 

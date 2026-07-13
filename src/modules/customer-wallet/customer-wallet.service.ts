@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { CustomerBankAccount, CustomerPaymentMethod, CustomerWallet, CustomerWalletLedger, CustomerWalletLedgerDirection, CustomerWalletLedgerStatus, CustomerWalletLedgerType, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, RewardLedger } from '@prisma/client';
+import { CustomerBankAccount, CustomerPaymentMethod, Wallet, WalletLedger, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, NotificationRecipientType, Payment, PaymentMethod, PaymentProvider, PaymentStatus, Prisma, RewardLedger } from '@prisma/client';
 import Stripe from 'stripe';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AddWalletFundsDto, CreateBankAccountDto, ListWalletHistoryDto, WalletHistoryStatus, WalletHistoryType } from './dto/customer-wallet.dto';
@@ -23,7 +23,7 @@ export class CustomerWalletService {
       this.repository.findDefaultPaymentMethodForUser(user.uid),
       this.repository.findDefaultBankAccountForUser(user.uid),
     ]);
-    const cashBalance = Number(wallet.cashBalance);
+    const cashBalance = Number(wallet.balance);
     const giftCredits = Number(wallet.giftCredits);
     return { data: { totalBalance: this.money(cashBalance + giftCredits), giftCredits, cashBalance, currency: wallet.currency, defaultPaymentMethod: defaultPaymentMethod ? this.toPaymentMethod(defaultPaymentMethod) : null, defaultBankAccount: defaultBankAccount ? this.toBankAccount(defaultBankAccount) : null }, message: 'Wallet fetched successfully.' };
   }
@@ -37,7 +37,7 @@ export class CustomerWalletService {
     if (existing) return { data: { walletTopUpId: this.metadata(existing.metadataJson).walletTopUpId, paymentId: existing.id, amount: Number(existing.amount), currency: existing.currency, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
     const wallet = await this.getOrCreateWallet(user.uid);
     const amount = this.money(dto.amount);
-    const ledger = await this.repository.createWalletLedgerEntry({ userId: user.uid, walletId: wallet.id, type: CustomerWalletLedgerType.TOP_UP, direction: CustomerWalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: CustomerWalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
+    const ledger = await this.repository.createWalletLedgerEntry({ walletId: wallet.id, type: WalletLedgerType.TOP_UP, direction: WalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: WalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
     const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripePaymentMethodId: dto.stripePaymentMethodId, idempotencyKey }, idempotencyKey });
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), payment_method: dto.stripePaymentMethodId, automatic_payment_methods: dto.stripePaymentMethodId ? undefined : { enabled: true }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
@@ -47,9 +47,10 @@ export class CustomerWalletService {
 
   async history(user: AuthUserContext, query: ListWalletHistoryDto) {
     const { page, limit, skip, take } = getPagination(query);
-    const where: Prisma.CustomerWalletLedgerWhereInput = { userId: user.uid };
-    if (query.type && query.type !== WalletHistoryType.ALL) where.type = query.type;
-    if (query.status && query.status !== WalletHistoryStatus.ALL) where.status = query.status;
+    const wallet = await this.getOrCreateWallet(user.uid);
+    const where: Prisma.WalletLedgerWhereInput = { walletId: wallet.id };
+    if (query.type && query.type !== WalletHistoryType.ALL) where.type = query.type as unknown as WalletLedgerType;
+    if (query.status && query.status !== WalletHistoryStatus.ALL) where.status = query.status as unknown as WalletLedgerStatus;
     if (query.fromDate || query.toDate) where.createdAt = { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined };
     const [items, total] = await this.repository.findWalletHistoryRows({ where, skip, take });
     return { data: items.map((item) => this.toHistoryItem(item)), meta: { page, limit, total, totalPages: Math.ceil(total / limit) }, message: 'Wallet history fetched successfully.' };
@@ -71,12 +72,12 @@ export class CustomerWalletService {
     const metadata = this.metadata(payment.metadataJson);
     if (!metadata.walletTopUpId) return;
     const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId });
-    if (!ledger || ledger.status === CustomerWalletLedgerStatus.SUCCESS) return;
+    if (!ledger || ledger.status === WalletLedgerStatus.SUCCESS) return;
     await this.repository.completeWalletTopUp({ ledgerId: ledger.id, walletId: ledger.walletId, amount: ledger.amount, paymentId: payment.id });
     await this.notify(payment.userId, 'Wallet top-up succeeded', `${Number(ledger.amount)} ${ledger.currency} was added to your wallet.`, 'WALLET_TOP_UP_SUCCEEDED', { paymentId: payment.id, walletLedgerId: ledger.id });
   }
 
-  async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.repository.updateWalletTopUpStatus({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId, status: CustomerWalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
+  async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.repository.updateWalletTopUpStatus({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId, status: WalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
 
   async creditRewardRedemption(userId: string, rewardLedger: RewardLedger): Promise<void> {
     const wallet = await this.getOrCreateWallet(userId);
@@ -86,11 +87,11 @@ export class CustomerWalletService {
     await this.notify(userId, 'Reward credit added', `${Number(rewardLedger.amount)} ${rewardLedger.currency} reward credit was added to your wallet.`, 'REWARD_CREDIT_ADDED', { rewardLedgerId: rewardLedger.id });
   }
 
-  private async getOrCreateWallet(userId: string): Promise<CustomerWallet> { return (await this.repository.findWalletByUserId(userId)) ?? this.repository.createWalletForUser(userId, this.currency()); }
+  private async getOrCreateWallet(userId: string): Promise<Wallet> { return (await this.repository.findWalletByUserId(userId)) ?? this.repository.createWalletForUser(userId, this.currency()); }
   private toPaymentMethod(item: CustomerPaymentMethod) { return { id: item.stripePaymentMethodId, type: item.type, brand: item.brand, last4: item.last4, expiryMonth: item.expiryMonth, expiryYear: item.expiryYear, isDefault: item.isDefault }; }
   private toBankAccount(item: CustomerBankAccount) { return { id: item.id, accountHolderName: item.accountHolderName, bankName: item.bankName, last4: item.last4, maskedAccount: item.maskedAccount, isDefault: item.isDefault }; }
-  private toHistoryItem(item: CustomerWalletLedger) { return { id: item.id, type: item.type, title: this.title(item), description: item.description, amount: item.direction === CustomerWalletLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount), currency: item.currency, status: item.status, transactionId: item.transactionId, createdAt: item.createdAt }; }
-  private title(item: CustomerWalletLedger): string { if (item.type === CustomerWalletLedgerType.TOP_UP) return 'Wallet top-up'; if (item.type === CustomerWalletLedgerType.REWARD_CREDIT) return 'Reward credit'; if (item.type === CustomerWalletLedgerType.MONEY_GIFT_SENT) return 'Money gift sent'; if (item.type === CustomerWalletLedgerType.GIFT_SENT) return 'Gift sent'; return 'Wallet transaction'; }
+  private toHistoryItem(item: WalletLedger) { return { id: item.id, type: item.type, title: this.title(item), description: item.description, amount: item.direction === WalletLedgerDirection.CREDIT ? Number(item.amount) : -Number(item.amount), currency: item.currency, status: item.status, transactionId: item.transactionId, createdAt: item.createdAt }; }
+  private title(item: WalletLedger): string { if (item.type === WalletLedgerType.TOP_UP) return 'Wallet top-up'; if (item.type === WalletLedgerType.REWARD_CREDIT) return 'Reward credit'; if (item.type === WalletLedgerType.MONEY_GIFT_SENT) return 'Money gift sent'; if (item.type === WalletLedgerType.ORDER_PAYMENT) return 'Order payment'; if (item.type === WalletLedgerType.REFUND) return 'Refund'; if (item.type === WalletLedgerType.WITHDRAWAL) return 'Withdrawal'; return 'Wallet transaction'; }
   private async getOwnedBankAccount(userId: string, id: string): Promise<CustomerBankAccount> { const account = await this.repository.findBankAccountForUser(userId, id); if (!account) throw new NotFoundException('Bank account not found'); return account; }
   private metadata(value: Prisma.JsonValue): { walletTopUpId?: string } { if (!value || typeof value !== 'object' || Array.isArray(value)) return {}; const source = value as Record<string, unknown>; return { walletTopUpId: typeof source.walletTopUpId === 'string' ? source.walletTopUpId : undefined }; }
   private last4(value: string): string { const digits = value.replace(/\D/g, ''); if (digits.length < 4) throw new BadRequestException('Bank account number must include at least 4 digits'); return digits.slice(-4); }

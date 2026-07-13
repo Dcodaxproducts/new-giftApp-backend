@@ -39,7 +39,7 @@ export class ProviderPayoutMethodsRepository {
   }
 
   findPendingPayoutUsage(providerId: string, payoutMethodId: string) {
-    return this.prisma.providerPayout.findFirst({ where: { providerId, payoutMethodId, status: { in: ['PENDING', 'PROCESSING', 'ON_HOLD'] } } });
+    return this.prisma.walletWithdrawal.findFirst({ where: { wallet: { ownerType: 'PROVIDER', ownerId: providerId }, bankAccountId: payoutMethodId, status: { in: ['PENDING', 'PROCESSING', 'ON_HOLD'] } } });
   }
 
   deleteAndPromoteNextDefault(providerId: string, id: string, promoteNext: boolean) {

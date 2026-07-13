@@ -299,8 +299,9 @@ export class UserManagementRepository {
       await tx.customerReminder.deleteMany({ where: { userId: params.target.id } });
       await tx.customerBankAccount.deleteMany({ where: { userId: params.target.id } });
       await tx.customerPaymentMethod.deleteMany({ where: { userId: params.target.id } });
-      await tx.customerWalletLedger.deleteMany({ where: { userId: params.target.id } });
-      await tx.customerWallet.deleteMany({ where: { userId: params.target.id } });
+      await tx.walletLedger.deleteMany({ where: { wallet: { ownerId: params.target.id } } });
+      await tx.walletWithdrawal.deleteMany({ where: { wallet: { ownerId: params.target.id } } });
+      await tx.wallet.deleteMany({ where: { ownerId: params.target.id } });
       await tx.rewardLedger.deleteMany({ where: { userId: params.target.id } });
       await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: params.target.id }, { referredUserId: params.target.id }] } });
       await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId: params.target.id } });

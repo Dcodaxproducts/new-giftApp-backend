@@ -3,8 +3,8 @@ import { Type } from 'class-transformer';
 import { IsEnum, IsISO8601, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 export enum EarningsSummaryRange { LAST_7_DAYS = 'LAST_7_DAYS', LAST_30_DAYS = 'LAST_30_DAYS', LAST_90_DAYS = 'LAST_90_DAYS', ALL_TIME = 'ALL_TIME', CUSTOM = 'CUSTOM' }
 export enum EarningsChartRange { DAILY = 'DAILY', WEEKLY = 'WEEKLY', MONTHLY = 'MONTHLY' }
-export enum EarningsLedgerTypeFilter { ALL = 'ALL', ORDER_EARNING = 'ORDER_EARNING', REFUND_DEDUCTION = 'REFUND_DEDUCTION', PENALTY = 'PENALTY', PAYOUT = 'PAYOUT', ADJUSTMENT = 'ADJUSTMENT' }
-export enum EarningsLedgerStatusFilter { ALL = 'ALL', PENDING = 'PENDING', AVAILABLE = 'AVAILABLE', PAID = 'PAID', FAILED = 'FAILED' }
+export enum EarningsLedgerTypeFilter { ALL = 'ALL', ORDER_EARNING = 'ORDER_EARNING', REFUND = 'REFUND', PENALTY = 'PENALTY', WITHDRAWAL = 'WITHDRAWAL', ADJUSTMENT = 'ADJUSTMENT' }
+export enum EarningsLedgerStatusFilter { ALL = 'ALL', PENDING = 'PENDING', SUCCESS = 'SUCCESS', FAILED = 'FAILED', CANCELLED = 'CANCELLED' }
 export enum PayoutHistoryRange { ALL_TIME = 'ALL_TIME', LAST_30_DAYS = 'LAST_30_DAYS', LAST_90_DAYS = 'LAST_90_DAYS', CUSTOM = 'CUSTOM' }
 export enum PayoutStatusFilter { ALL = 'ALL', PENDING = 'PENDING', PROCESSING = 'PROCESSING', COMPLETED = 'COMPLETED', FAILED = 'FAILED', CANCELLED = 'CANCELLED' }
 export enum PayoutSortBy { createdAt = 'createdAt', amount = 'amount' }

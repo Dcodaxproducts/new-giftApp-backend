@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GiftStatus, OrderStatus, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
+import { GiftStatus, OrderStatus, Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType, ReviewStatus, UploadedFileStatus, UserRole, UserStatus } from '@prisma/client';
 import { ADMIN_AUDIT_ACTOR_SELECT, buildAdminAuditLogData } from '../../common/audit/admin-audit-log.util';
 import { getPagination } from '../../common/pagination/pagination.util';
 import { PrismaService } from '../../database/prisma.service';
@@ -137,8 +137,14 @@ export class ProviderManagementRepository {
     const currentWindow = this.currentWindow();
     const previousWindow = this.previousWindow(currentWindow.start);
 
+    // WalletLedger has no providerId column (normalized: ownership lives on Wallet), so
+    // resolve provider wallets first and group ledger rows by walletId, then map back.
+    const providerWallets = await this.prisma.wallet.findMany({ where: { ownerType: WalletOwnerType.PROVIDER, ownerId: { in: uniqueProviderIds } }, select: { id: true, ownerId: true } });
+    const walletIdToProviderId = new Map(providerWallets.map((wallet) => [wallet.id, wallet.ownerId as string]));
+    const providerWalletIds = [...walletIdToProviderId.keys()];
+
     const [
-      revenueRows,
+      revenueRowsByWallet,
       fallbackRevenueRows,
       listedItemsRows,
       listedItemsCurrentRows,
@@ -154,16 +160,19 @@ export class ProviderManagementRepository {
       disputePreviousRows,
       reviewRows,
     ] = await Promise.all([
-      this.prisma.providerEarningsLedger.groupBy({
-        by: ['providerId'],
-        where: {
-          providerId: { in: uniqueProviderIds },
-          direction: ProviderEarningsLedgerDirection.CREDIT,
-          status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] },
-        },
-        _sum: { amount: true },
-        _count: { _all: true },
-      }),
+      providerWalletIds.length
+        ? this.prisma.walletLedger.groupBy({
+            by: ['walletId'],
+            where: {
+              walletId: { in: providerWalletIds },
+              type: WalletLedgerType.ORDER_EARNING,
+              direction: WalletLedgerDirection.CREDIT,
+              status: WalletLedgerStatus.SUCCESS,
+            },
+            _sum: { amount: true },
+            _count: { _all: true },
+          })
+        : Promise.resolve([] as { walletId: string; _sum: { amount: Prisma.Decimal | null }; _count: { _all: number } }[]),
       this.prisma.order.groupBy({
         by: ['providerId'],
         where: {
@@ -240,7 +249,7 @@ export class ProviderManagementRepository {
       }),
     ]);
 
-    const revenueMap = new Map(revenueRows.map((row) => [row.providerId, { total: Number(row._sum.amount ?? 0), count: row._count._all }]));
+    const revenueMap = new Map(revenueRowsByWallet.map((row) => [walletIdToProviderId.get(row.walletId)!, { total: Number(row._sum.amount ?? 0), count: row._count._all }]));
     const fallbackRevenueMap = new Map(fallbackRevenueRows.map((row) => [row.providerId, Number(row._sum.total ?? 0)]));
     const listedItemsMap = new Map(listedItemsRows.map((row) => [row.providerId, row._count._all]));
     const listedItemsCurrentMap = new Map(listedItemsCurrentRows.map((row) => [row.providerId, row._count._all]));
@@ -366,9 +375,9 @@ export class ProviderManagementRepository {
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } } }),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER, status: { in: [UserStatus.BLOCKED, UserStatus.SUSPENDED, UserStatus.REJECTED] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } } }),
-      this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }, _sum: { amount: true }, _count: { _all: true } }),
-      this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
-      this.prisma.providerEarningsLedger.aggregate({ where: { direction: ProviderEarningsLedgerDirection.CREDIT, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
+      this.prisma.walletLedger.aggregate({ where: { type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, status: WalletLedgerStatus.SUCCESS, wallet: { ownerType: WalletOwnerType.PROVIDER } }, _sum: { amount: true }, _count: { _all: true } }),
+      this.prisma.walletLedger.aggregate({ where: { type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, status: WalletLedgerStatus.SUCCESS, wallet: { ownerType: WalletOwnerType.PROVIDER }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
+      this.prisma.walletLedger.aggregate({ where: { type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, status: WalletLedgerStatus.SUCCESS, wallet: { ownerType: WalletOwnerType.PROVIDER }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.order.aggregate({ where: { status: { in: this.revenueEligibleStatuses() } }, _sum: { total: true } }),
       this.prisma.order.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, createdAt: { gte: currentWindow.start, lt: currentWindow.end } }, _sum: { total: true } }),
       this.prisma.order.aggregate({ where: { status: { in: this.revenueEligibleStatuses() }, createdAt: { gte: previousWindow.start, lt: previousWindow.end } }, _sum: { total: true } }),

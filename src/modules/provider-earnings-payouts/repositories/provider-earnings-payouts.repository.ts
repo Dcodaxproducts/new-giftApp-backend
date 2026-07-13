@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, ProviderEarningsLedgerStatus, ProviderPayoutStatus } from '@prisma/client';
+import { Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType, ProviderPayoutStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../../notifications/notification-dispatch.service';
 
-export const PROVIDER_EARNINGS_LEDGER_INCLUDE = Prisma.validator<Prisma.ProviderEarningsLedgerInclude>()({
+export const WALLET_LEDGER_ORDER_INCLUDE = Prisma.validator<Prisma.WalletLedgerInclude>()({
   order: { select: { orderNumber: true } },
 });
 
-export const PROVIDER_PAYOUT_INCLUDE = Prisma.validator<Prisma.ProviderPayoutInclude>()({
-  payoutMethod: true,
-});
+type WalletWithdrawalRow = Prisma.WalletWithdrawalGetPayload<{}>;
+export type WalletWithdrawalWithMethod = WalletWithdrawalRow & { payoutMethod: Prisma.ProviderPayoutMethodGetPayload<{}> | null };
 
 @Injectable()
 export class ProviderEarningsPayoutsRepository {
@@ -19,70 +18,74 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.user.findFirst({ where: { id, role: 'PROVIDER' }, include: { providerProfile: true } });
   }
 
-  findLedgerEntriesForProvider(where: Prisma.ProviderEarningsLedgerWhereInput, params?: { skip?: number; take?: number; includeOrder?: boolean }) {
-    return this.prisma.providerEarningsLedger.findMany({
+  findProviderWallet(providerId: string) {
+    return this.prisma.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId } } });
+  }
+
+  async getOrCreateProviderWallet(providerId: string, currency = 'USD') {
+    return this.prisma.wallet.upsert({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId } }, update: {}, create: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId, currency } });
+  }
+
+  findLedgerEntriesForProvider(params: { providerId: string; createdAt?: Prisma.DateTimeFilter }) {
+    return this.prisma.walletLedger.findMany({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId }, ...(params.createdAt ? { createdAt: params.createdAt } : {}) } });
+  }
+
+  findLedgerEntriesForProviderWhere(where: Prisma.WalletLedgerWhereInput, params?: { skip?: number; take?: number; includeOrder?: boolean }) {
+    return this.prisma.walletLedger.findMany({
       where,
-      ...(params?.includeOrder ? { include: PROVIDER_EARNINGS_LEDGER_INCLUDE } : {}),
+      ...(params?.includeOrder ? { include: WALLET_LEDGER_ORDER_INCLUDE } : {}),
       orderBy: { createdAt: 'desc' },
       skip: params?.skip,
       take: params?.take,
     });
   }
 
-  countLedgerEntriesForProvider(where: Prisma.ProviderEarningsLedgerWhereInput) {
-    return this.prisma.providerEarningsLedger.count({ where });
+  countLedgerEntriesForProvider(where: Prisma.WalletLedgerWhereInput) {
+    return this.prisma.walletLedger.count({ where });
   }
 
-  findLedgerEntriesAndCountForProvider(where: Prisma.ProviderEarningsLedgerWhereInput, params: { skip: number; take: number }) {
+  findLedgerEntriesAndCountForProvider(where: Prisma.WalletLedgerWhereInput, params: { skip: number; take: number }) {
     return this.prisma.$transaction([
-      this.prisma.providerEarningsLedger.findMany({ where, include: PROVIDER_EARNINGS_LEDGER_INCLUDE, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
-      this.prisma.providerEarningsLedger.count({ where }),
+      this.prisma.walletLedger.findMany({ where, include: WALLET_LEDGER_ORDER_INCLUDE, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
+      this.prisma.walletLedger.count({ where }),
     ]);
-  }
-
-  findLedgerForAvailableBalance(providerId: string) {
-    return this.prisma.providerEarningsLedger.findMany({ where: { providerId, status: ProviderEarningsLedgerStatus.AVAILABLE } });
-  }
-
-  findAvailableLedgerEntries(providerId: string) {
-    return this.prisma.providerEarningsLedger.findMany({ where: { providerId, status: ProviderEarningsLedgerStatus.AVAILABLE, direction: 'CREDIT' }, orderBy: { createdAt: 'asc' }, take: 100 });
   }
 
   findActivePayoutForMethod(providerId: string, payoutMethodId: string) {
-    return this.prisma.providerPayout.findFirst({ where: { providerId, payoutMethodId, status: { in: [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING, ProviderPayoutStatus.ON_HOLD] } } });
+    return this.prisma.walletWithdrawal.findFirst({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId }, bankAccountId: payoutMethodId, status: { in: [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING, ProviderPayoutStatus.ON_HOLD] } } });
   }
 
-  findEarningsChartRows(where: Prisma.ProviderEarningsLedgerWhereInput) {
-    return this.prisma.providerEarningsLedger.findMany({ where });
+  findEarningsChartRows(params: { providerId: string; direction: WalletLedgerDirection; status: WalletLedgerStatus | { in: WalletLedgerStatus[] }; createdAt: Prisma.DateTimeFilter }) {
+    return this.prisma.walletLedger.findMany({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId }, direction: params.direction, status: params.status, createdAt: params.createdAt } });
   }
 
   findPendingPayoutsForProvider(providerId: string) {
-    return this.prisma.providerPayout.findMany({ where: { providerId, status: { in: [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING] } } });
+    return this.prisma.walletWithdrawal.findMany({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId }, status: { in: [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING] } } });
   }
 
-  findPayoutsForProvider(where: Prisma.ProviderPayoutWhereInput, params?: { orderBy?: Prisma.ProviderPayoutOrderByWithRelationInput; skip?: number; take?: number; includeMethod?: boolean }) {
-    return this.prisma.providerPayout.findMany({
-      where,
-      ...(params?.includeMethod ? { include: PROVIDER_PAYOUT_INCLUDE } : {}),
-      orderBy: params?.orderBy,
-      skip: params?.skip,
-      take: params?.take,
-    });
+  async findPayoutsForProvider(providerId: string, where?: Prisma.WalletWithdrawalWhereInput, params?: { orderBy?: Prisma.WalletWithdrawalOrderByWithRelationInput; skip?: number; take?: number }): Promise<WalletWithdrawalWithMethod[]> {
+    const items = await this.prisma.walletWithdrawal.findMany({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId }, ...where }, orderBy: params?.orderBy, skip: params?.skip, take: params?.take });
+    return this.attachPayoutMethods(items);
   }
 
-  countPayoutsForProvider(where: Prisma.ProviderPayoutWhereInput) {
-    return this.prisma.providerPayout.count({ where });
+  countPayoutsForProvider(providerId: string, where?: Prisma.WalletWithdrawalWhereInput) {
+    return this.prisma.walletWithdrawal.count({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId }, ...where } });
   }
 
-  findPayoutsAndCountForProvider(where: Prisma.ProviderPayoutWhereInput, params: { orderBy: Prisma.ProviderPayoutOrderByWithRelationInput; skip: number; take: number }) {
-    return this.prisma.$transaction([
-      this.prisma.providerPayout.findMany({ where, include: PROVIDER_PAYOUT_INCLUDE, orderBy: params.orderBy, skip: params.skip, take: params.take }),
-      this.prisma.providerPayout.count({ where }),
+  async findPayoutsAndCountForProvider(providerId: string, where: Prisma.WalletWithdrawalWhereInput, params: { orderBy: Prisma.WalletWithdrawalOrderByWithRelationInput; skip: number; take: number }): Promise<[WalletWithdrawalWithMethod[], number]> {
+    const finalWhere: Prisma.WalletWithdrawalWhereInput = { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId }, ...where };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.walletWithdrawal.findMany({ where: finalWhere, orderBy: params.orderBy, skip: params.skip, take: params.take }),
+      this.prisma.walletWithdrawal.count({ where: finalWhere }),
     ]);
+    return [await this.attachPayoutMethods(items), total];
   }
 
-  findPayoutByIdForProvider(providerId: string, id: string) {
-    return this.prisma.providerPayout.findFirst({ where: { id, providerId }, include: PROVIDER_PAYOUT_INCLUDE });
+  async findPayoutByIdForProvider(providerId: string, id: string): Promise<WalletWithdrawalWithMethod | null> {
+    const item = await this.prisma.walletWithdrawal.findFirst({ where: { id, wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId } } });
+    if (!item) return null;
+    const [withMethod] = await this.attachPayoutMethods([item]);
+    return withMethod;
   }
 
   findDefaultPayoutMethodForProvider(providerId: string) {
@@ -97,56 +100,56 @@ export class ProviderEarningsPayoutsRepository {
     return this.prisma.order.findUnique({ where: { id: orderId } });
   }
 
-  createOrderEarningLedgerEntry(data: Prisma.ProviderEarningsLedgerUncheckedCreateInput) {
-    return this.prisma.providerEarningsLedger.upsert({ where: { orderId_type: { orderId: data.orderId ?? '', type: data.type } }, update: {}, create: data });
+  async createOrderEarningLedgerEntry(params: { providerId: string; orderId: string; amount: Prisma.Decimal; currency: string; description: string }) {
+    const wallet = await this.getOrCreateProviderWallet(params.providerId, params.currency);
+    const existing = await this.prisma.walletLedger.findFirst({ where: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING } });
+    if (existing) return existing;
+    const [ledger] = await this.prisma.$transaction([
+      this.prisma.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, amount: params.amount, currency: params.currency, status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: params.description } }),
+      this.prisma.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: params.amount } } }),
+    ]);
+    return ledger;
   }
 
-  returnFailedPayoutBalance(params: { providerId: string; payoutId: string; reason: string }) {
+  returnFailedPayoutBalance(params: { walletId: string; payoutId: string; amount: Prisma.Decimal; reason: string }) {
     return this.prisma.$transaction([
-      this.prisma.providerEarningsLedger.updateMany({ where: { providerId: params.providerId, payoutId: params.payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { failureReason: params.reason } } }),
-      this.prisma.providerPayout.update({ where: { id: params.payoutId }, data: { status: ProviderPayoutStatus.FAILED, failureReason: params.reason } }),
+      this.prisma.walletWithdrawal.update({ where: { id: params.payoutId }, data: { status: ProviderPayoutStatus.FAILED, failureReason: params.reason } }),
+      this.prisma.walletLedger.updateMany({ where: { withdrawalId: params.payoutId, status: WalletLedgerStatus.PENDING }, data: { status: WalletLedgerStatus.FAILED, description: `Withdrawal failed: ${params.reason}` } }),
+      this.prisma.wallet.update({ where: { id: params.walletId }, data: { balance: { increment: params.amount } } }),
     ]);
   }
 
   findExistingPayoutByIdempotencyKey(providerId: string, idempotencyKey: string) {
-    return this.prisma.providerPayout.findFirst({ where: { providerId, idempotencyKey } });
+    return this.prisma.walletWithdrawal.findFirst({ where: { wallet: { ownerType: WalletOwnerType.PROVIDER, ownerId: providerId }, idempotencyKey } });
   }
 
-  createPayoutRequest(params: { payoutData: Prisma.ProviderPayoutUncheckedCreateInput; ledgerEntryIds: string[]; notificationData: DispatchNotificationInput }) {
+  createPayoutRequest(params: { walletId: string; withdrawalData: Omit<Prisma.WalletWithdrawalUncheckedCreateInput, 'walletId'>; amount: Prisma.Decimal; currency: string; notificationData: DispatchNotificationInput }) {
     return this.prisma.$transaction(async (tx) => {
-      const created = await this.createPayout(tx, params.payoutData);
-      await tx.providerEarningsLedger.updateMany({ where: { id: { in: params.ledgerEntryIds }, providerId: params.payoutData.providerId, status: ProviderEarningsLedgerStatus.AVAILABLE }, data: { status: ProviderEarningsLedgerStatus.PAYOUT_PENDING, payoutId: created.id, metadataJson: { payoutId: created.id } } });
-      await this.createPayoutNotification(tx, { ...params.notificationData, metadataJson: { payoutId: created.id } });
+      const created = await tx.walletWithdrawal.create({ data: { walletId: params.walletId, ...params.withdrawalData } });
+      await tx.walletLedger.create({ data: { walletId: params.walletId, type: WalletLedgerType.WITHDRAWAL, direction: WalletLedgerDirection.DEBIT, amount: params.amount, currency: params.currency, status: WalletLedgerStatus.PENDING, withdrawalId: created.id, transactionId: this.transactionId(), description: 'Provider payout requested.' } });
+      await tx.wallet.update({ where: { id: params.walletId }, data: { balance: { decrement: params.amount } } });
+      await this.notificationDispatch.createAndEmit({ ...params.notificationData, metadataJson: { payoutId: created.id } });
       return created;
     });
   }
 
-  cancelPayoutRequest(params: { providerId: string; actorId: string; payoutId: string; cancelReason: string; payoutData: Prisma.ProviderPayoutUpdateArgs['data']; notificationData: DispatchNotificationInput }) {
+  cancelPayoutRequest(params: { walletId: string; payoutId: string; amount: Prisma.Decimal; cancelReason: string; notificationData: DispatchNotificationInput }) {
     return this.prisma.$transaction(async (tx) => {
-      await this.releaseLedgerEntriesFromPayout(tx, params.providerId, params.payoutId, params.cancelReason);
-      const item = await this.cancelPayout(tx, params.payoutId, params.payoutData);
-      await this.createPayoutNotification(tx, params.notificationData);
+      const item = await tx.walletWithdrawal.update({ where: { id: params.payoutId }, data: { status: ProviderPayoutStatus.CANCELLED, failureReason: params.cancelReason } });
+      await tx.walletLedger.updateMany({ where: { withdrawalId: params.payoutId, status: WalletLedgerStatus.PENDING }, data: { status: WalletLedgerStatus.CANCELLED, description: `Withdrawal cancelled: ${params.cancelReason}` } });
+      await tx.wallet.update({ where: { id: params.walletId }, data: { balance: { increment: params.amount } } });
+      await this.notificationDispatch.createAndEmit(params.notificationData);
       return item;
     });
   }
 
-  private createPayout(tx: Prisma.TransactionClient, data: Prisma.ProviderPayoutUncheckedCreateInput) {
-    return tx.providerPayout.create({ data });
+  private async attachPayoutMethods(items: WalletWithdrawalRow[]): Promise<WalletWithdrawalWithMethod[]> {
+    if (!items.length) return [];
+    const methodIds = [...new Set(items.map((item) => item.bankAccountId))];
+    const methods = await this.prisma.providerPayoutMethod.findMany({ where: { id: { in: methodIds } } });
+    const methodMap = new Map(methods.map((method) => [method.id, method]));
+    return items.map((item) => ({ ...item, payoutMethod: methodMap.get(item.bankAccountId) ?? null }));
   }
 
-  private markLedgerEntriesPayoutPending(tx: Prisma.TransactionClient, data: Prisma.ProviderEarningsLedgerUncheckedCreateInput) {
-    return tx.providerEarningsLedger.create({ data });
-  }
-
-  private cancelPayout(tx: Prisma.TransactionClient, id: string, data: Prisma.ProviderPayoutUpdateArgs['data']) {
-    return tx.providerPayout.update({ where: { id }, data });
-  }
-
-  private releaseLedgerEntriesFromPayout(tx: Prisma.TransactionClient, providerId: string, payoutId: string, cancelReason: string) {
-    return tx.providerEarningsLedger.updateMany({ where: { providerId, payoutId, status: ProviderEarningsLedgerStatus.PAYOUT_PENDING }, data: { status: ProviderEarningsLedgerStatus.AVAILABLE, metadataJson: { cancelReason } } });
-  }
-
-  private createPayoutNotification(tx: Prisma.TransactionClient, data: DispatchNotificationInput) {
-    return this.notificationDispatch.createAndEmit(data);
-  }
+  private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
 }

@@ -55,8 +55,9 @@ export class AuthRepository {
       await tx.customerReminder.deleteMany({ where: { userId } });
       await tx.customerBankAccount.deleteMany({ where: { userId } });
       await tx.customerPaymentMethod.deleteMany({ where: { userId } });
-      await tx.customerWalletLedger.deleteMany({ where: { userId } });
-      await tx.customerWallet.deleteMany({ where: { userId } });
+      await tx.walletLedger.deleteMany({ where: { wallet: { ownerType: 'USER', ownerId: userId } } });
+      await tx.walletWithdrawal.deleteMany({ where: { wallet: { ownerType: 'USER', ownerId: userId } } });
+      await tx.wallet.deleteMany({ where: { ownerType: 'USER', ownerId: userId } });
       await tx.rewardLedger.deleteMany({ where: { userId } });
       await tx.referral.deleteMany({ where: { OR: [{ referrerUserId: userId }, { referredUserId: userId }] } });
       await tx.customerRecurringPaymentOccurrence.deleteMany({ where: { userId } });

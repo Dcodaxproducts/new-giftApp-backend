@@ -282,21 +282,31 @@ enum ReferralQualificationRule {
   FIRST_SUCCESSFUL_PURCHASE
 }
 
-enum CustomerWalletLedgerType {
-  TOP_UP
-  GIFT_SENT
-  MONEY_GIFT_SENT
-  REWARD_CREDIT
-  REFUND
-  ADJUSTMENT
+enum WalletOwnerType {
+  USER
+  PROVIDER
+  PLATFORM
 }
 
-enum CustomerWalletLedgerDirection {
+enum WalletLedgerType {
+  TOP_UP
+  ORDER_PAYMENT
+  MONEY_GIFT_SENT
+  ORDER_EARNING
+  PLATFORM_FEE
+  REFUND
+  REWARD_CREDIT
+  WITHDRAWAL
+  ADJUSTMENT
+  PENALTY
+}
+
+enum WalletLedgerDirection {
   CREDIT
   DEBIT
 }
 
-enum CustomerWalletLedgerStatus {
+enum WalletLedgerStatus {
   PENDING
   SUCCESS
   FAILED
@@ -538,27 +548,6 @@ enum ProviderPayoutVerificationStatus {
   FAILED
 }
 
-enum ProviderEarningsLedgerType {
-  ORDER_EARNING
-  REFUND_DEDUCTION
-  PENALTY
-  PAYOUT
-  ADJUSTMENT
-}
-
-enum ProviderEarningsLedgerDirection {
-  CREDIT
-  DEBIT
-}
-
-enum ProviderEarningsLedgerStatus {
-  PENDING
-  AVAILABLE
-  PAYOUT_PENDING
-  PAID
-  FAILED
-}
-
 enum ProviderPayoutStatus {
   PENDING
   PROCESSING
@@ -617,8 +606,7 @@ model User {
   customerRecurringPayments           CustomerRecurringPayment[]
   customerRecurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   customerPaymentMethods              CustomerPaymentMethod[]
-  customerWallet                      CustomerWallet?
-  customerWalletLedger                CustomerWalletLedger[]
+  wallets                             Wallet[]
   customerBankAccounts                CustomerBankAccount[]
   customerSubscriptions               CustomerSubscription[]
   customerSubscriptionInvoices        CustomerSubscriptionInvoice[]
@@ -636,7 +624,7 @@ model User {
   providerReviews                     Review[]                             @relation("ReviewProvider")
   reviewResponses                     ReviewResponse[]                     @relation("ReviewResponseProvider")
   updatedReviewPolicies               ReviewPolicy[]                       @relation("ReviewPolicyUpdater")
-  userConversations                    Conversation[]                       @relation("UserConversation")
+  userConversations                   Conversation[]                       @relation("UserConversation")
   providerConversations               Conversation[]                       @relation("ProviderConversation")
   submittedProviderReports            ProviderReport[]                     @relation("ProviderReportReporter")
   receivedProviderReports             ProviderReport[]                     @relation("ProviderReportProvider")
@@ -644,8 +632,6 @@ model User {
   disputesAsUser                      Dispute[]                            @relation("DisputeUser")
   disputesAsProvider                  Dispute[]                            @relation("DisputeProvider")
   providerPayoutMethods               ProviderPayoutMethod[]
-  providerEarningsLedger              ProviderEarningsLedger[]
-  providerPayouts                     ProviderPayout[]
   updatedPayoutSettings               AdminPayoutSettings[]                @relation("AdminPayoutSettingsUpdater")
   updatedSystemSettings               SystemSettings[]                     @relation("SystemSettingsUpdater")
   updatedCommissionTiers              CommissionTier[]                     @relation("CommissionTierUpdater")
@@ -770,12 +756,12 @@ model ReferralSettings {
 }
 
 model RefundPolicySettings {
-  id                            String   @id @default(cuid())
-  allowCancellation             Boolean  @default(true) @map("allow_cancellation")
-  cancellationDeductionPercent  Decimal  @default(0) @map("cancellation_deduction_percent") @db.Decimal(5, 2)
-  currency                      String   @default("USD")
-  createdAt                     DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                           String   @id @default(cuid())
+  allowCancellation            Boolean  @default(true) @map("allow_cancellation")
+  cancellationDeductionPercent Decimal  @default(0) @map("cancellation_deduction_percent") @db.Decimal(5, 2)
+  currency                     String   @default("USD")
+  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   @@map("refund_policy_settings")
 }
@@ -799,46 +785,77 @@ model RewardLedger {
   @@map("reward_ledgers")
 }
 
-model CustomerWallet {
-  id          String   @id @default(cuid())
-  userId      String   @unique @map("user_id")
-  cashBalance Decimal  @default(0) @map("cash_balance") @db.Decimal(10, 2)
-  giftCredits Decimal  @default(0) @map("gift_credits") @db.Decimal(10, 2)
-  currency    String   @default("USD")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+model Wallet {
+  id          String          @id @default(cuid())
+  ownerType   WalletOwnerType @map("owner_type")
+  ownerId     String?         @map("owner_id") // null = PLATFORM singleton
+  balance     Decimal         @default(0) @db.Decimal(10, 2) // real, withdrawable money
+  giftCredits Decimal         @default(0) @map("gift_credits") @db.Decimal(10, 2) // USER-only, non-withdrawable
+  currency    String          @default("USD")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  user   User                   @relation(fields: [userId], references: [id])
-  ledger CustomerWalletLedger[]
+  owner User? @relation(fields: [ownerId], references: [id])
 
-  @@map("customer_wallets")
+  ledger      WalletLedger[]
+  withdrawals WalletWithdrawal[]
+
+  @@unique([ownerType, ownerId])
+  @@map("wallets")
 }
 
-model CustomerWalletLedger {
-  id             String                        @id @default(cuid())
-  userId         String                        @map("user_id")
-  walletId       String                        @map("wallet_id")
-  type           CustomerWalletLedgerType
-  direction      CustomerWalletLedgerDirection
-  amount         Decimal                       @db.Decimal(10, 2)
-  currency       String                        @default("USD")
-  status         CustomerWalletLedgerStatus    @default(PENDING)
-  paymentId      String?                       @map("payment_id")
-  orderId        String?                       @map("order_id")
-  moneyGiftId    String?                       @map("money_gift_id")
-  rewardLedgerId String?                       @map("reward_ledger_id")
-  transactionId  String                        @unique @map("transaction_id")
+model WalletLedger {
+  id             String                @id @default(cuid())
+  walletId       String                @map("wallet_id")
+  type           WalletLedgerType
+  direction      WalletLedgerDirection
+  amount         Decimal               @db.Decimal(10, 2)
+  currency       String                @default("USD")
+  status         WalletLedgerStatus    @default(PENDING)
+  orderId        String?               @map("order_id")
+  paymentId      String?               @map("payment_id") // set only when a Stripe/gateway Payment is involved
+  withdrawalId   String?               @map("withdrawal_id") // set only when type = WITHDRAWAL
+  rewardLedgerId String?               @map("reward_ledger_id")
+  transactionId  String                @unique @map("transaction_id")
   description    String
-  createdAt      DateTime                      @default(now()) @map("created_at") @db.Timestamptz
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz
 
-  user   User           @relation(fields: [userId], references: [id])
-  wallet CustomerWallet @relation(fields: [walletId], references: [id])
+  wallet     Wallet            @relation(fields: [walletId], references: [id])
+  order      Order?            @relation(fields: [orderId], references: [id])
+  payment    Payment?          @relation(fields: [paymentId], references: [id])
+  withdrawal WalletWithdrawal? @relation(fields: [withdrawalId], references: [id])
 
-  @@index([userId, type, status, createdAt])
+  @@unique([walletId, orderId, type]) // idempotency: an order can only credit/debit a given wallet once per ledger type
   @@index([walletId, createdAt])
+  @@index([orderId])
   @@index([paymentId])
   @@index([rewardLedgerId])
-  @@map("customer_wallet_ledgers")
+  @@map("wallet_ledgers")
+}
+
+model WalletWithdrawal {
+  id                String               @id @default(cuid())
+  walletId          String               @map("wallet_id")
+  bankAccountId     String               @map("bank_account_id") // CustomerBankAccount.id or ProviderPayoutMethod.id
+  amount            Decimal              @db.Decimal(10, 2)
+  processingFee     Decimal              @default(0) @map("processing_fee") @db.Decimal(10, 2)
+  totalToReceive    Decimal              @map("total_to_receive") @db.Decimal(10, 2)
+  currency          String               @default("USD")
+  status            ProviderPayoutStatus @default(PENDING)
+  externalPayoutId  String?              @map("external_payout_id")
+  failureReason     String?              @map("failure_reason")
+  expectedArrivalAt DateTime?            @map("expected_arrival_at") @db.Timestamptz
+  completedAt       DateTime?            @map("completed_at") @db.Timestamptz
+  transactionId     String               @unique @map("transaction_id")
+  idempotencyKey    String?              @unique @map("idempotency_key")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  wallet Wallet         @relation(fields: [walletId], references: [id])
+  ledger WalletLedger[]
+
+  @@index([walletId, status, createdAt])
+  @@map("wallet_withdrawals")
 }
 
 model CustomerBankAccount {
@@ -1043,7 +1060,7 @@ model CartItem {
 
   // Relations
   cart    Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  gift   Gift         @relation(fields: [giftId], references: [id])
+  gift    Gift         @relation(fields: [giftId], references: [id])
   variant GiftVariant? @relation(fields: [variantId], references: [id])
 
   @@index([cartId])
@@ -1074,6 +1091,7 @@ model Payment {
   customerSubscription        CustomerSubscription?                @relation(fields: [customerSubscriptionId], references: [id])
   recurringPaymentOccurrences CustomerRecurringPaymentOccurrence[]
   refundRequests              RefundRequest[]
+  walletLedgerEntries         WalletLedger[]
 
   @@index([userId, status])
   @@index([status, createdAt])
@@ -1132,10 +1150,10 @@ model CustomerSubscriptionInvoice {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  orderNumber String      @unique @map("order_number")
-  userId      String      @map("user_id")
-  providerId  String      @map("provider_id")
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique @map("order_number")
+  userId          String      @map("user_id")
+  providerId      String      @map("provider_id")
   status          OrderStatus @default(PENDING)
   rejectionReason String?     @map("rejection_reason")
 
@@ -1165,16 +1183,16 @@ model Order {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  user                    User                     @relation("CustomerOrders", fields: [userId], references: [id])
-  provider                User                     @relation("ProviderOrders", fields: [providerId], references: [id])
-  items                   OrderItem[]
-  payments                Payment[]
-  disputes                Dispute[]
-  reviews                 Review[]
-  refundRequests          RefundRequest[]
-  conversations           Conversation[]
-  providerReports         ProviderReport[]
-  providerEarningsLedgers ProviderEarningsLedger[]
+  user                User             @relation("CustomerOrders", fields: [userId], references: [id])
+  provider            User             @relation("ProviderOrders", fields: [providerId], references: [id])
+  items               OrderItem[]
+  payments            Payment[]
+  disputes            Dispute[]
+  reviews             Review[]
+  refundRequests      RefundRequest[]
+  conversations       Conversation[]
+  providerReports     ProviderReport[]
+  walletLedgerEntries WalletLedger[]
 
   @@index([userId])
   @@index([providerId, status])
@@ -1574,7 +1592,6 @@ model Message {
   @@map("messages")
 }
 
-
 model ProviderReport {
   id               String               @id @default(cuid())
   reporterUserId   String               @map("reporter_user_id")
@@ -1779,7 +1796,6 @@ model SystemSettings {
   @@map("system_settings")
 }
 
-
 model AdminPayoutSettings {
   id                     String              @id @default(cuid())
   platformRatePercent    Decimal             @default(5) @map("platform_rate_percent") @db.Decimal(5, 2)
@@ -1852,67 +1868,13 @@ model ProviderPayoutMethod {
   createdAt          DateTime                         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime                         @updatedAt @map("updated_at") @db.Timestamptz
 
-  provider User             @relation(fields: [providerId], references: [id])
-  payouts  ProviderPayout[]
+  provider User @relation(fields: [providerId], references: [id])
 
   @@unique([providerId, fingerprint])
   @@index([providerId, deletedAt])
   @@index([providerId, isDefault])
   @@index([providerId, verificationStatus])
   @@map("provider_payout_methods")
-}
-
-model ProviderEarningsLedger {
-  id           String                          @id @default(cuid())
-  providerId   String                          @map("provider_id")
-  orderId      String?                         @map("order_id")
-  payoutId     String?                         @map("payout_id")
-  type         ProviderEarningsLedgerType
-  direction    ProviderEarningsLedgerDirection
-  amount       Decimal                         @db.Decimal(10, 2)
-  currency     String                          @default("USD")
-  status       ProviderEarningsLedgerStatus    @default(PENDING)
-  description  String
-  metadataJson Json                            @default("{}") @map("metadata_json")
-  createdAt    DateTime                        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime                        @updatedAt @map("updated_at") @db.Timestamptz
-
-  provider User            @relation(fields: [providerId], references: [id])
-  order    Order?          @relation(fields: [orderId], references: [id])
-  payout   ProviderPayout? @relation(fields: [payoutId], references: [id])
-
-  @@unique([orderId, type])
-  @@index([providerId, status, createdAt])
-  @@index([providerId, type, createdAt])
-  @@index([payoutId])
-  @@map("provider_earnings_ledger")
-}
-
-model ProviderPayout {
-  id                String               @id @default(cuid())
-  providerId        String               @map("provider_id")
-  payoutMethodId    String               @map("payout_method_id")
-  transactionId     String               @unique @map("transaction_id")
-  amount            Decimal              @db.Decimal(10, 2)
-  processingFee     Decimal              @default(0) @map("processing_fee") @db.Decimal(10, 2)
-  totalToReceive    Decimal              @map("total_to_receive") @db.Decimal(10, 2)
-  currency          String               @default("USD")
-  status            ProviderPayoutStatus @default(PENDING)
-  externalPayoutId  String?              @map("external_payout_id")
-  failureReason     String?              @map("failure_reason")
-  expectedArrivalAt DateTime?            @map("expected_arrival_at") @db.Timestamptz
-  completedAt       DateTime?            @map("completed_at") @db.Timestamptz
-  idempotencyKey    String?              @unique @map("idempotency_key")
-  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
-
-  provider     User                     @relation(fields: [providerId], references: [id])
-  payoutMethod ProviderPayoutMethod     @relation(fields: [payoutMethodId], references: [id])
-  ledger       ProviderEarningsLedger[]
-
-  @@index([providerId, status, createdAt])
-  @@index([payoutMethodId])
-  @@map("provider_payouts")
 }
 
 model AuthSession {
@@ -2052,12 +2014,12 @@ enum ProviderDocumentStatus {
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  name      String   @unique
+  id         String   @id @default(cuid())
+  name       String   @unique
   isRequired Boolean  @default(false) @map("is_required")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   providerDocuments ProviderDocument[]
 
@@ -2074,7 +2036,7 @@ model ProviderDocument {
   updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz
 
   providerProfile ProviderProfile @relation(fields: [providerProfileId], references: [id], onDelete: Cascade)
-  documentType    Document    @relation(fields: [documentTypeId], references: [id])
+  documentType    Document        @relation(fields: [documentTypeId], references: [id])
 
   @@unique([providerProfileId, documentTypeId])
   @@index([providerProfileId])

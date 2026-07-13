@@ -87,7 +87,7 @@ describe('Provider orders repository cleanup', () => {
     expect(repository).toContain('this.notificationDispatch.createAndEmit');
     expect(repository).not.toContain('providerOrderChecklist');
     expect(repository).toContain('tx.order.update');
-    expect(repository).toContain('tx.providerEarningsLedger.upsert');
+    expect(repository).toContain('tx.walletLedger.create');
     expect(service).toContain('async action');
     expect(service).toContain('async accept');
     expect(service).toContain('async reject');

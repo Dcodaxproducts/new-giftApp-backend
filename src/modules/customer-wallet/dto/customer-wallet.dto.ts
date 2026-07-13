@@ -3,7 +3,7 @@ import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
-export enum WalletHistoryType { ALL = 'ALL', TOP_UP = 'TOP_UP', GIFT_SENT = 'GIFT_SENT', MONEY_GIFT_SENT = 'MONEY_GIFT_SENT', REWARD_CREDIT = 'REWARD_CREDIT', REFUND = 'REFUND', ADJUSTMENT = 'ADJUSTMENT' }
+export enum WalletHistoryType { ALL = 'ALL', TOP_UP = 'TOP_UP', ORDER_PAYMENT = 'ORDER_PAYMENT', MONEY_GIFT_SENT = 'MONEY_GIFT_SENT', REWARD_CREDIT = 'REWARD_CREDIT', REFUND = 'REFUND', ADJUSTMENT = 'ADJUSTMENT' }
 export enum WalletHistoryStatus { ALL = 'ALL', SUCCESS = 'SUCCESS', PENDING = 'PENDING', FAILED = 'FAILED' }
 
 export class AddWalletFundsDto {

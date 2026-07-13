@@ -57,7 +57,7 @@ function createService(overrides: Partial<{ method: PayoutMethodFixture | null; 
       delete: jest.fn().mockResolvedValue(payoutMethod),
     },
     providerFinancialAdjustment: { findFirst: jest.fn().mockResolvedValue(overrides.pendingPayout ?? null) },
-    providerPayout: { findFirst: jest.fn().mockResolvedValue(overrides.pendingPayout ?? null) },
+    walletWithdrawal: { findFirst: jest.fn().mockResolvedValue(overrides.pendingPayout ?? null) },
     notification: { create: jest.fn().mockResolvedValue({ id: 'notification_1' }) },
     $transaction: jest.fn().mockImplementation((input: unknown) => typeof input === 'function' ? (input as (tx: unknown) => unknown)(prisma) : Promise.all(input as Promise<unknown>[])),
   };
@@ -66,10 +66,10 @@ function createService(overrides: Partial<{ method: PayoutMethodFixture | null; 
 }
 
 describe('Provider payout methods source safety', () => {
-  const controller = readFileSync(join(__dirname, '../provider-payout-methods.controller.ts'), 'utf8');
-  const service = readFileSync(join(__dirname, '../provider-payout-methods.service.ts'), 'utf8');
-  const repository = readFileSync(join(__dirname, '../provider-payout-methods.repository.ts'), 'utf8');
-  const dto = readFileSync(join(__dirname, '../dto/provider-payout-methods.dto.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, './provider-payout-methods.controller.ts'), 'utf8');
+  const service = readFileSync(join(__dirname, './provider-payout-methods.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, './provider-payout-methods.repository.ts'), 'utf8');
+  const dto = readFileSync(join(__dirname, './dto/provider-payout-methods.dto.ts'), 'utf8');
 
   it('creates provider-only payout method APIs and does not reuse customer routes', () => {
     expect(controller).toContain("@ApiTags('03 Provider - Payout Methods')");
@@ -174,7 +174,7 @@ describe('ProviderPayoutMethodsService', () => {
   });
 
   it('repository extraction keeps API behavior source stable', () => {
-    const controller = readFileSync(join(__dirname, '../provider-payout-methods.controller.ts'), 'utf8');
+    const controller = readFileSync(join(__dirname, './provider-payout-methods.controller.ts'), 'utf8');
     expect(controller).toContain("@Get()");
     expect(controller).toContain("@Post('bank-accounts')");
     expect(controller).toContain("@Get(':id')");

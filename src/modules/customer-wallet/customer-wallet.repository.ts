@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CustomerWalletLedgerStatus, CustomerWalletLedgerType, CustomerWalletLedgerDirection, NotificationRecipientType, PaymentStatus, Prisma } from '@prisma/client';
+import { WalletLedgerStatus, WalletLedgerType, WalletLedgerDirection, WalletOwnerType, NotificationRecipientType, PaymentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
@@ -10,11 +10,11 @@ export class CustomerWalletRepository {
   constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   findWalletByUserId(userId: string) {
-    return this.prisma.customerWallet.findUnique({ where: { userId } });
+    return this.prisma.wallet.findUnique({ where: { ownerType_ownerId: { ownerType: WalletOwnerType.USER, ownerId: userId } } });
   }
 
   createWalletForUser(userId: string, currency: string) {
-    return this.prisma.customerWallet.create({ data: { userId, currency } });
+    return this.prisma.wallet.create({ data: { ownerType: WalletOwnerType.USER, ownerId: userId, currency } });
   }
 
   findDefaultPaymentMethodForUser(userId: string) {
@@ -25,18 +25,18 @@ export class CustomerWalletRepository {
     return this.prisma.customerBankAccount.findFirst({ where: { userId, isDefault: true, deletedAt: null } });
   }
 
-  findWalletLedgerEntries(params: { where: Prisma.CustomerWalletLedgerWhereInput; skip: number; take: number }) {
-    return this.prisma.customerWalletLedger.findMany({ where: params.where, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });
+  findWalletLedgerEntries(params: { where: Prisma.WalletLedgerWhereInput; skip: number; take: number }) {
+    return this.prisma.walletLedger.findMany({ where: params.where, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take });
   }
 
-  countWalletLedgerEntries(where: Prisma.CustomerWalletLedgerWhereInput) {
-    return this.prisma.customerWalletLedger.count({ where });
+  countWalletLedgerEntries(where: Prisma.WalletLedgerWhereInput) {
+    return this.prisma.walletLedger.count({ where });
   }
 
-  findWalletHistoryRows(params: { where: Prisma.CustomerWalletLedgerWhereInput; skip: number; take: number }) {
+  findWalletHistoryRows(params: { where: Prisma.WalletLedgerWhereInput; skip: number; take: number }) {
     return this.prisma.$transaction([
-      this.prisma.customerWalletLedger.findMany({ where: params.where, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
-      this.prisma.customerWalletLedger.count({ where: params.where }),
+      this.prisma.walletLedger.findMany({ where: params.where, orderBy: { createdAt: 'desc' }, skip: params.skip, take: params.take }),
+      this.prisma.walletLedger.count({ where: params.where }),
     ]);
   }
 
@@ -44,8 +44,8 @@ export class CustomerWalletRepository {
     return this.prisma.payment.findFirst({ where: { userId, idempotencyKey } });
   }
 
-  createWalletLedgerEntry(data: Prisma.CustomerWalletLedgerUncheckedCreateInput) {
-    return this.prisma.customerWalletLedger.create({ data });
+  createWalletLedgerEntry(data: Prisma.WalletLedgerUncheckedCreateInput) {
+    return this.prisma.walletLedger.create({ data });
   }
 
   createWalletTopUpPayment(data: Prisma.PaymentUncheckedCreateInput) {
@@ -53,7 +53,7 @@ export class CustomerWalletRepository {
   }
 
   markWalletTopUpPending(ledgerId: string, paymentId: string) {
-    return this.prisma.customerWalletLedger.update({ where: { id: ledgerId }, data: { paymentId } });
+    return this.prisma.walletLedger.update({ where: { id: ledgerId }, data: { paymentId } });
   }
 
   markWalletTopUpPaymentProcessing(params: { paymentId: string; providerPaymentIntentId: string; metadataJson: Prisma.InputJsonObject }) {
@@ -61,28 +61,28 @@ export class CustomerWalletRepository {
   }
 
   findWalletTopUpLedger(params: { walletTopUpId: string; userId: string }) {
-    return this.prisma.customerWalletLedger.findFirst({ where: { id: params.walletTopUpId, userId: params.userId } });
+    return this.prisma.walletLedger.findFirst({ where: { id: params.walletTopUpId, wallet: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
   }
 
   completeWalletTopUp(params: { ledgerId: string; walletId: string; amount: Prisma.Decimal; paymentId: string }) {
     return this.prisma.$transaction([
-      this.prisma.customerWalletLedger.update({ where: { id: params.ledgerId }, data: { status: CustomerWalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: params.paymentId } }),
-      this.prisma.customerWallet.update({ where: { id: params.walletId }, data: { cashBalance: { increment: params.amount } } }),
+      this.prisma.walletLedger.update({ where: { id: params.ledgerId }, data: { status: WalletLedgerStatus.SUCCESS, description: 'Wallet top-up completed.', paymentId: params.paymentId } }),
+      this.prisma.wallet.update({ where: { id: params.walletId }, data: { balance: { increment: params.amount } } }),
     ]);
   }
 
-  updateWalletTopUpStatus(params: { walletTopUpId: string; userId: string; status: CustomerWalletLedgerStatus; description: string }) {
-    return this.prisma.customerWalletLedger.updateMany({ where: { id: params.walletTopUpId, userId: params.userId, status: CustomerWalletLedgerStatus.PENDING }, data: { status: params.status, description: params.description } });
+  updateWalletTopUpStatus(params: { walletTopUpId: string; userId: string; status: WalletLedgerStatus; description: string }) {
+    return this.prisma.walletLedger.updateMany({ where: { id: params.walletTopUpId, wallet: { ownerType: WalletOwnerType.USER, ownerId: params.userId }, status: WalletLedgerStatus.PENDING }, data: { status: params.status, description: params.description } });
   }
 
   findRewardWalletLedger(params: { userId: string; rewardLedgerId: string }) {
-    return this.prisma.customerWalletLedger.findFirst({ where: { userId: params.userId, rewardLedgerId: params.rewardLedgerId } });
+    return this.prisma.walletLedger.findFirst({ where: { rewardLedgerId: params.rewardLedgerId, wallet: { ownerType: WalletOwnerType.USER, ownerId: params.userId } } });
   }
 
   creditRewardWallet(params: { userId: string; walletId: string; rewardLedgerId: string; amount: Prisma.Decimal; currency: string; transactionId: string }) {
     return this.prisma.$transaction([
-      this.prisma.customerWalletLedger.create({ data: { userId: params.userId, walletId: params.walletId, type: CustomerWalletLedgerType.REWARD_CREDIT, direction: CustomerWalletLedgerDirection.CREDIT, amount: params.amount, currency: params.currency, status: CustomerWalletLedgerStatus.SUCCESS, rewardLedgerId: params.rewardLedgerId, transactionId: params.transactionId, description: 'Referral reward credit added to wallet.' } }),
-      this.prisma.customerWallet.update({ where: { id: params.walletId }, data: { giftCredits: { increment: params.amount } } }),
+      this.prisma.walletLedger.create({ data: { walletId: params.walletId, type: WalletLedgerType.REWARD_CREDIT, direction: WalletLedgerDirection.CREDIT, amount: params.amount, currency: params.currency, status: WalletLedgerStatus.SUCCESS, rewardLedgerId: params.rewardLedgerId, transactionId: params.transactionId, description: 'Referral reward credit added to wallet.' } }),
+      this.prisma.wallet.update({ where: { id: params.walletId }, data: { giftCredits: { increment: params.amount } } }),
     ]);
   }
 

@@ -97,7 +97,7 @@ describe('Customer orders repository cleanup', () => {
     expect(repository).toContain('findActiveCommissionTiers');
     expect(repository).toContain('tx.commissionTier.findMany');
     expect(repository).toContain('sumProviderOrderEarnings');
-    expect(repository).toContain('ProviderEarningsLedgerType.ORDER_EARNING');
+    expect(repository).toContain('WalletLedgerType.ORDER_EARNING');
     expect(service).toContain('private async providerPayoutCalculation');
     expect(service).toContain('tier?.commissionRatePercent ?? settings?.platformRatePercent ?? 0');
   });

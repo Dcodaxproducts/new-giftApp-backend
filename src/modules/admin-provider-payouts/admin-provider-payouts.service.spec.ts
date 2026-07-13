@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
+import { Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, ProviderPayoutStatus, ProviderPayoutVerificationStatus, UserRole } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AdminProviderPayoutAction, AdminProviderPayoutActionReason, AdminProviderPayoutSortBy, AdminProviderPayoutStatusFilter, AdminProviderPayoutTrendRange } from './dto/admin-provider-payouts.dto';
@@ -9,9 +9,9 @@ import { AdminProviderPayoutsService } from './admin-provider-payouts.service';
 const now = new Date();
 const current = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 5));
 const previous = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 5));
-const provider = { id: 'provider_90210', providerBusinessName: 'TechSolutions Inc.', firstName: 'Tech', lastName: 'Solutions', avatarUrl: 'https://cdn.example.com/provider.png' };
+const provider = { id: 'provider_90210', providerProfile: { businessName: 'TechSolutions Inc.' }, firstName: 'Tech', lastName: 'Solutions', avatarUrl: 'https://cdn.example.com/provider.png' };
 const payoutMethod = { id: 'method_1', bankName: 'Chase Bank', maskedAccount: '****1234', last4: '1234', verificationStatus: ProviderPayoutVerificationStatus.VERIFIED };
-const completedPayout = { id: 'payout_1', providerId: provider.id, payoutMethodId: 'method_1', transactionId: 'TXN-001', amount: new Prisma.Decimal(3420), processingFee: new Prisma.Decimal(42), totalToReceive: new Prisma.Decimal(3378), currency: 'USD', status: ProviderPayoutStatus.COMPLETED, externalPayoutId: 'po_ext_1', failureReason: null, expectedArrivalAt: new Date('2026-05-12T00:00:00.000Z'), completedAt: new Date('2026-05-12T00:00:00.000Z'), idempotencyKey: null, createdAt: current, updatedAt: current, provider, payoutMethod };
+const completedPayout = { id: 'payout_1', providerId: provider.id, walletId: 'wallet_p1', bankAccountId: 'method_1', transactionId: 'TXN-001', amount: new Prisma.Decimal(3420), processingFee: new Prisma.Decimal(42), totalToReceive: new Prisma.Decimal(3378), currency: 'USD', status: ProviderPayoutStatus.COMPLETED, externalPayoutId: 'po_ext_1', failureReason: null, expectedArrivalAt: new Date('2026-05-12T00:00:00.000Z'), completedAt: new Date('2026-05-12T00:00:00.000Z'), idempotencyKey: null, createdAt: current, updatedAt: current, provider, payoutMethod };
 const pendingPayout = { ...completedPayout, id: 'payout_2', transactionId: 'TXN-002', amount: new Prisma.Decimal(1000), processingFee: new Prisma.Decimal(10), totalToReceive: new Prisma.Decimal(990), status: ProviderPayoutStatus.PENDING, completedAt: null, createdAt: current };
 const previousPayout = { ...completedPayout, id: 'payout_prev', amount: new Prisma.Decimal(2000), processingFee: new Prisma.Decimal(20), createdAt: previous, completedAt: previous };
 
@@ -20,8 +20,8 @@ function createService() {
     findPayouts: jest.fn().mockResolvedValue([completedPayout, pendingPayout, previousPayout]),
     findPayoutById: jest.fn().mockResolvedValue(completedPayout),
     findPreviousCompletedPayout: jest.fn().mockResolvedValue(previousPayout),
-    findLedgerEntries: jest.fn().mockResolvedValue([{ id: 'ledger_1', providerId: provider.id, amount: new Prisma.Decimal(6000), currency: 'USD', direction: ProviderEarningsLedgerDirection.CREDIT, type: ProviderEarningsLedgerType.ORDER_EARNING, status: ProviderEarningsLedgerStatus.AVAILABLE, description: 'Order earning', metadataJson: {}, createdAt: current, updatedAt: current, provider }]),
-    findPayoutLedgerEntries: jest.fn().mockResolvedValue([{ id: 'ledger_payout_1', providerOrderId: 'provider_order_1', amount: new Prisma.Decimal(199), currency: 'USD', description: 'Subscription - Professional Plan', providerOrder: { orderNumber: '88392' } }]),
+    findLedgerEntries: jest.fn().mockResolvedValue([{ id: 'ledger_1', providerId: provider.id, walletId: 'wallet_p1', amount: new Prisma.Decimal(6000), currency: 'USD', direction: WalletLedgerDirection.CREDIT, type: WalletLedgerType.ORDER_EARNING, status: WalletLedgerStatus.SUCCESS, description: 'Order earning', createdAt: current, provider }]),
+    findPayoutLedgerEntries: jest.fn().mockResolvedValue([{ id: 'ledger_payout_1', orderId: 'order_1', amount: new Prisma.Decimal(199), currency: 'USD', description: 'Subscription - Professional Plan', order: { orderNumber: '88392' } }]),
     findCommissionTiers: jest.fn().mockResolvedValue([{ id: 'tier_standard', name: 'Standard Tier', commissionRatePercent: new Prisma.Decimal(15), orderVolumeThreshold: new Prisma.Decimal(0), sortOrder: 1, isActive: true, updatedById: null, deletedAt: null, createdAt: current, updatedAt: current }, { id: 'tier_silver', name: 'Silver Partner', commissionRatePercent: new Prisma.Decimal(12.5), orderVolumeThreshold: new Prisma.Decimal(5000), sortOrder: 2, isActive: true, updatedById: null, deletedAt: null, createdAt: current, updatedAt: current }]),
     transitionPayout: jest.fn().mockImplementation((params: { status: ProviderPayoutStatus; failureReason?: string }) => Promise.resolve({ ...pendingPayout, status: params.status, failureReason: params.failureReason ?? null })),
   };
@@ -42,7 +42,7 @@ describe('AdminProviderPayoutsService', () => {
     const response = await service.list({ providerId: provider.id, status: AdminProviderPayoutStatusFilter.COMPLETED, search: 'TechSolutions', fromDate: '2026-05-01T00:00:00.000Z', sortBy: AdminProviderPayoutSortBy.amount });
     expect(response.data[0]).toMatchObject({ id: 'payout_1', provider: { id: provider.id, businessName: 'TechSolutions Inc.', providerCode: 'PRV-90210' }, pendingAmount: 3420, currency: 'USD', status: 'COMPLETED' });
     const calls = repository.findPayouts.mock.calls as unknown[][];
-    expect(calls[0]?.[0]).toMatchObject({ where: { providerId: provider.id, status: ProviderPayoutStatus.COMPLETED } });
+    expect(calls[0]?.[0]).toMatchObject({ where: { wallet: { ownerId: provider.id }, status: ProviderPayoutStatus.COMPLETED } });
   });
 
   it('filters ON_HOLD and REJECTED statuses through real provider payout statuses', async () => {
@@ -80,7 +80,7 @@ describe('AdminProviderPayoutsService', () => {
     expect(trendCalls[0]?.[0]?.where?.createdAt?.gte).toBeInstanceOf(Date);
     const distribution = await service.earningDistribution();
     expect(distribution.data[0]).toMatchObject({ tierId: 'tier_silver', tierName: 'Silver Partner', providerCount: 1, totalEarnings: 6000, currency: 'USD' });
-    expect(repository.findLedgerEntries).toHaveBeenCalledWith({ direction: ProviderEarningsLedgerDirection.CREDIT, type: ProviderEarningsLedgerType.ORDER_EARNING, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } });
+    expect(repository.findLedgerEntries).toHaveBeenCalledWith({ direction: WalletLedgerDirection.CREDIT, type: WalletLedgerType.ORDER_EARNING, status: WalletLedgerStatus.SUCCESS });
   });
 
   it('returns transaction breakdown from payout and locked ledger rows', async () => {
@@ -146,11 +146,11 @@ describe('AdminProviderPayoutsService', () => {
 });
 
 describe('Admin provider payouts Swagger and permission safety', () => {
-  const controller = readFileSync(join(__dirname, '../admin-provider-payouts.controller.ts'), 'utf8');
-  const serviceSource = readFileSync(join(__dirname, '../admin-provider-payouts.service.ts'), 'utf8');
-  const repository = readFileSync(join(__dirname, '../admin-provider-payouts.repository.ts'), 'utf8');
-  const permissions = readFileSync(join(__dirname, '../../staff-roles/constants/permission-catalog.ts'), 'utf8');
-  const main = readFileSync(join(__dirname, '../../../main.ts'), 'utf8');
+  const controller = readFileSync(join(__dirname, './admin-provider-payouts.controller.ts'), 'utf8');
+  const serviceSource = readFileSync(join(__dirname, './admin-provider-payouts.service.ts'), 'utf8');
+  const repository = readFileSync(join(__dirname, './admin-provider-payouts.repository.ts'), 'utf8');
+  const permissions = readFileSync(join(__dirname, '../staff-roles/constants/permission-catalog.ts'), 'utf8');
+  const main = readFileSync(join(__dirname, '../../main.ts'), 'utf8');
   const swaggerAccess = readFileSync(join(__dirname, '../../common/swagger-access.ts'), 'utf8');
 
   it('adds required routes, Swagger examples, and access metadata', () => {
@@ -176,8 +176,8 @@ describe('Admin provider payouts Swagger and permission safety', () => {
     expect(controller).not.toContain("@Post(':id/hold')");
     expect(controller).not.toContain("@Post(':id/reject')");
     expect(controller).toContain("@Permissions('providerPayouts.export')");
-    expect(repository).toContain('this.prisma.providerPayout.findMany');
-    expect(repository).toContain('this.prisma.providerEarningsLedger.findMany');
+    expect(repository).toContain('this.prisma.walletWithdrawal.findMany');
+    expect(repository).toContain('this.prisma.walletLedger.findMany');
     expect(repository).toContain('maskedAccount');
     expect(repository).not.toContain('accountHolderName: true');
     expect(repository).not.toContain('externalAccountId: true');
@@ -194,7 +194,7 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   });
 
   it('removes old bulk approve route from generated Swagger', () => {
-    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
+    const openapi = JSON.parse(readFileSync(join(__dirname, '../../../docs/generated/openapi.json'), 'utf8')) as { paths: Record<string, unknown> };
     expect(controller).not.toContain("@Post('bulk-approve')");
     expect(openapi.paths['/api/v1/admin/provider-payouts/bulk-action']).toBeDefined();
     expect(openapi.paths['/api/v1/admin/provider-payouts/bulk-approve']).toBeUndefined();

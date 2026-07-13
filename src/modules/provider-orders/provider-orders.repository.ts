@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, Prisma, UserStatus } from '@prisma/client';
+import { OrderStatus, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, WalletOwnerType, Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
@@ -89,11 +89,18 @@ export class ProviderOrdersRepository {
     return tx.user.findMany({ where: { role: 'SUPER_ADMIN', status: UserStatus.APPROVED }, select: { id: true } });
   }
 
-  upsertOrderEarningLedger(tx: ProviderOrderTransaction, params: { providerId: string; orderId: string; amount: Prisma.Decimal; description: string }) {
-    return tx.providerEarningsLedger.upsert({
-      where: { orderId_type: { orderId: params.orderId, type: ProviderEarningsLedgerType.ORDER_EARNING } },
+  async upsertOrderEarningLedger(tx: ProviderOrderTransaction, params: { providerId: string; orderId: string; amount: Prisma.Decimal; description: string }) {
+    const wallet = await tx.wallet.upsert({
+      where: { ownerType_ownerId: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId } },
       update: {},
-      create: { providerId: params.providerId, orderId: params.orderId, type: ProviderEarningsLedgerType.ORDER_EARNING, direction: ProviderEarningsLedgerDirection.CREDIT, amount: params.amount, currency: 'PKR', status: ProviderEarningsLedgerStatus.AVAILABLE, description: params.description, metadataJson: { orderId: params.orderId } },
+      create: { ownerType: WalletOwnerType.PROVIDER, ownerId: params.providerId, currency: 'PKR' },
     });
+    const existing = await tx.walletLedger.findFirst({ where: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING } });
+    if (existing) return existing;
+    const ledger = await tx.walletLedger.create({ data: { walletId: wallet.id, orderId: params.orderId, type: WalletLedgerType.ORDER_EARNING, direction: WalletLedgerDirection.CREDIT, amount: params.amount, currency: 'PKR', status: WalletLedgerStatus.SUCCESS, transactionId: this.transactionId(), description: params.description } });
+    await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: params.amount } } });
+    return ledger;
   }
+
+  private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
 }

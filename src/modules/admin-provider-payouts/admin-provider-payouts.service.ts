@@ -1,12 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CommissionTier, Prisma, ProviderEarningsLedgerDirection, ProviderEarningsLedgerStatus, ProviderEarningsLedgerType, ProviderPayout, ProviderPayoutMethod, ProviderPayoutStatus, UserRole } from '@prisma/client';
+import { CommissionTier, Prisma, WalletLedgerDirection, WalletLedgerStatus, WalletLedgerType, ProviderPayoutStatus, UserRole } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { AdminProviderPayoutAction, AdminProviderPayoutActionDto, AdminProviderPayoutTrendRange, AdminProviderPayoutTrendsDto, ApproveProviderPayoutDto, BulkProviderPayoutActionDto, HoldProviderPayoutDto, RejectProviderPayoutDto, AdminProviderPayoutSortBy, AdminProviderPayoutSortOrder, AdminProviderPayoutStatusFilter, ExportAdminProviderPayoutsDto, ListAdminProviderPayoutsDto } from './dto/admin-provider-payouts.dto';
-import { ADMIN_PROVIDER_PAYOUT_INCLUDE, AdminProviderPayoutsRepository } from './admin-provider-payouts.repository';
+import { AdminPayoutRecord, AdminProviderPayoutsRepository } from './admin-provider-payouts.repository';
 import { getPagination } from '../../common/pagination/pagination.util';
 
-type PayoutWithRelations = Prisma.ProviderPayoutGetPayload<{ include: typeof ADMIN_PROVIDER_PAYOUT_INCLUDE }>;
+type PayoutWithRelations = AdminPayoutRecord;
+type PayoutMethodSummary = AdminPayoutRecord['payoutMethod'];
 type LedgerWithProvider = Awaited<ReturnType<AdminProviderPayoutsRepository['findLedgerEntries']>>[number];
 type FileResult = { content: string; filename: string; contentType: string };
 
@@ -39,7 +40,7 @@ export class AdminProviderPayoutsService {
 
   async earningDistribution() {
     const [ledger, tiers] = await Promise.all([
-      this.repository.findLedgerEntries({ direction: ProviderEarningsLedgerDirection.CREDIT, type: ProviderEarningsLedgerType.ORDER_EARNING, status: { in: [ProviderEarningsLedgerStatus.AVAILABLE, ProviderEarningsLedgerStatus.PAYOUT_PENDING, ProviderEarningsLedgerStatus.PAID] } }),
+      this.repository.findLedgerEntries({ direction: WalletLedgerDirection.CREDIT, type: WalletLedgerType.ORDER_EARNING, status: WalletLedgerStatus.SUCCESS }),
       this.repository.findCommissionTiers(),
     ]);
     const providerTotals = this.providerEarningTotals(ledger);
@@ -98,7 +99,7 @@ export class AdminProviderPayoutsService {
     const payout = await this.getPayout(id);
     if (payout.status === ProviderPayoutStatus.PROCESSING || payout.status === ProviderPayoutStatus.COMPLETED) return { data: { id: payout.id, status: payout.status, idempotent: true }, message: 'Payout already approved.' };
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.ON_HOLD], 'Only PENDING or ON_HOLD payout can be approved');
-    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, actorId: user.uid, action: 'PROVIDER_PAYOUT_APPROVED', notification: dto.notifyProvider ? this.notification('Provider payout approved', 'Your payout was approved and is processing.', 'PROVIDER_PAYOUT_APPROVED', payout.id, dto.comment) : undefined });
+    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, walletId: payout.walletId, amount: payout.amount, status: ProviderPayoutStatus.PROCESSING, releaseLedger: false, actorId: user.uid, action: 'PROVIDER_PAYOUT_APPROVED', notification: dto.notifyProvider ? this.notification('Provider payout approved', 'Your payout was approved and is processing.', 'PROVIDER_PAYOUT_APPROVED', payout.id, dto.comment) : undefined });
     await this.writeAudit(user, payout, updated, 'PROVIDER_PAYOUT_APPROVED', dto.comment);
     return { data: { id: updated.id, status: updated.status }, message: 'Payout approved successfully.' };
   }
@@ -106,7 +107,7 @@ export class AdminProviderPayoutsService {
   async hold(user: AuthUserContext, id: string, dto: HoldProviderPayoutDto | { reason: string; comment?: string; notifyProvider: boolean }) {
     const payout = await this.getPayout(id);
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING], 'Only PENDING payout can be placed on hold');
-    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.ON_HOLD, failureReason: dto.reason, releaseLedger: false, actorId: user.uid, action: 'PROVIDER_PAYOUT_HELD', notification: dto.notifyProvider ? this.notification('Provider payout on hold', dto.comment ?? 'Your payout is on hold pending review.', 'PROVIDER_PAYOUT_ON_HOLD', payout.id, dto.reason) : undefined });
+    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, walletId: payout.walletId, amount: payout.amount, status: ProviderPayoutStatus.ON_HOLD, failureReason: dto.reason, releaseLedger: false, actorId: user.uid, action: 'PROVIDER_PAYOUT_HELD', notification: dto.notifyProvider ? this.notification('Provider payout on hold', dto.comment ?? 'Your payout is on hold pending review.', 'PROVIDER_PAYOUT_ON_HOLD', payout.id, dto.reason) : undefined });
     await this.writeAudit(user, payout, updated, 'PROVIDER_PAYOUT_HELD', dto.comment ?? dto.reason);
     return { data: { id: updated.id, status: updated.status }, message: 'Payout held successfully.' };
   }
@@ -114,7 +115,7 @@ export class AdminProviderPayoutsService {
   async reject(user: AuthUserContext, id: string, dto: RejectProviderPayoutDto | { reason: string; comment?: string; notifyProvider: boolean }) {
     const payout = await this.getPayout(id);
     this.assertTransition(payout, [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.ON_HOLD], 'Only PENDING or ON_HOLD payout can be rejected');
-    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, status: ProviderPayoutStatus.REJECTED, failureReason: dto.reason, releaseLedger: true, actorId: user.uid, action: 'PROVIDER_PAYOUT_REJECTED', notification: dto.notifyProvider ? this.notification('Provider payout rejected', dto.comment ?? 'Your payout was rejected.', 'PROVIDER_PAYOUT_REJECTED', payout.id, dto.reason) : undefined });
+    const updated = await this.repository.transitionPayout({ payoutId: payout.id, providerId: payout.providerId, walletId: payout.walletId, amount: payout.amount, status: ProviderPayoutStatus.REJECTED, failureReason: dto.reason, releaseLedger: true, actorId: user.uid, action: 'PROVIDER_PAYOUT_REJECTED', notification: dto.notifyProvider ? this.notification('Provider payout rejected', dto.comment ?? 'Your payout was rejected.', 'PROVIDER_PAYOUT_REJECTED', payout.id, dto.reason) : undefined });
     await this.writeAudit(user, payout, updated, 'PROVIDER_PAYOUT_REJECTED', dto.comment ?? dto.reason);
     return { data: { id: updated.id, status: updated.status, ledgerReleased: true }, message: 'Payout rejected successfully.' };
   }
@@ -157,14 +158,14 @@ export class AdminProviderPayoutsService {
   }
 
   private async filteredPayouts(query: ListAdminProviderPayoutsDto): Promise<PayoutWithRelations[]> {
-    const payouts = await this.repository.findPayouts({ where: this.where(query), include: ADMIN_PROVIDER_PAYOUT_INCLUDE, orderBy: { createdAt: 'desc' }, take: 10000 });
+    const payouts = await this.repository.findPayouts({ where: this.where(query), orderBy: { createdAt: 'desc' }, take: 10000 });
     const searched = query.search?.trim() ? payouts.filter((item) => this.matchesSearch(item, query.search?.trim() ?? '')) : payouts;
     return this.sort(searched, query.sortBy ?? AdminProviderPayoutSortBy.createdAt, query.sortOrder ?? AdminProviderPayoutSortOrder.DESC);
   }
 
-  private where(query: ListAdminProviderPayoutsDto): Prisma.ProviderPayoutWhereInput {
+  private where(query: ListAdminProviderPayoutsDto): Prisma.WalletWithdrawalWhereInput {
     const status = this.toProviderPayoutStatus(query.status);
-    return { ...(query.providerId ? { providerId: query.providerId } : {}), ...(status ? { status } : {}), ...(query.fromDate || query.toDate ? { createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } } : {}) };
+    return { ...(query.providerId ? { wallet: { ownerId: query.providerId } } : {}), ...(status ? { status } : {}), ...(query.fromDate || query.toDate ? { createdAt: { gte: query.fromDate ? new Date(query.fromDate) : undefined, lte: query.toDate ? new Date(query.toDate) : undefined } } : {}) };
   }
 
   private sort(items: PayoutWithRelations[], sortBy: AdminProviderPayoutSortBy, sortOrder: AdminProviderPayoutSortOrder): PayoutWithRelations[] { const direction = sortOrder === AdminProviderPayoutSortOrder.ASC ? 1 : -1; return [...items].sort((left, right) => { const leftValue = this.sortValue(left, sortBy); const rightValue = this.sortValue(right, sortBy); if (leftValue < rightValue) return -1 * direction; if (leftValue > rightValue) return 1 * direction; return 0; }); }
@@ -172,14 +173,14 @@ export class AdminProviderPayoutsService {
   private async toListItem(item: PayoutWithRelations) { const previous = await this.repository.findPreviousCompletedPayout(item.providerId, item.completedAt ?? item.createdAt, item.id); return { id: item.id, provider: { id: item.provider.id, businessName: this.providerName(item.provider), providerCode: this.providerCode(item.provider.id), avatarUrl: item.provider.avatarUrl }, pendingAmount: this.money(item.amount), currency: item.currency, lastPayoutDate: previous?.completedAt ?? null, nextPayoutDate: item.expectedArrivalAt, status: item.status }; }
   private async getPayout(id: string): Promise<PayoutWithRelations> { const payout = await this.repository.findPayoutById(id); if (!payout) throw new NotFoundException('Provider payout not found'); return payout; }
   private assertTransition(payout: PayoutWithRelations, allowed: ProviderPayoutStatus[], message: string): void { if (!allowed.includes(payout.status)) throw new BadRequestException(message); }
-  private toDestination(method: Pick<ProviderPayoutMethod, 'id' | 'bankName' | 'maskedAccount' | 'last4' | 'verificationStatus'>) { return { id: method.id, bankName: method.bankName, maskedAccount: method.maskedAccount, last4: method.last4, verificationStatus: method.verificationStatus }; }
+  private toDestination(method: PayoutMethodSummary) { return { id: method.id, bankName: method.bankName, maskedAccount: method.maskedAccount, last4: method.last4, verificationStatus: method.verificationStatus }; }
   private toProviderPayoutStatus(status?: AdminProviderPayoutStatusFilter): ProviderPayoutStatus | undefined { if (!status || status === AdminProviderPayoutStatusFilter.ALL) return undefined; return status; }
   private notification(title: string, message: string, type: string, payoutId: string, comment?: string): { title: string; message: string; type: string; metadataJson: Prisma.InputJsonValue } { return { title, message, type, metadataJson: { payoutId, comment: comment ?? null } }; }
   private async writeAudit(user: AuthUserContext, before: PayoutWithRelations, after: PayoutWithRelations, action: string, comment?: string): Promise<void> { await this.auditLog.write({ actorId: user.uid, targetId: before.id, targetType: 'PROVIDER_PAYOUT', action, module: 'Provider Payout Approvals', beforeJson: { status: before.status, failureReason: before.failureReason }, afterJson: { status: after.status, failureReason: after.failureReason, providerId: before.providerId, comment: comment ?? null } }); }
   private matchesSearch(item: PayoutWithRelations, search: string): boolean { const normalized = search.toLowerCase(); return [item.id, item.transactionId, item.provider.id, this.providerName(item.provider), item.provider.firstName, item.provider.lastName].filter(Boolean).some((value) => String(value).toLowerCase().includes(normalized)); }
   private pendingStatuses(): ProviderPayoutStatus[] { return [ProviderPayoutStatus.PENDING, ProviderPayoutStatus.PROCESSING]; }
-  private sumPayouts(items: Pick<ProviderPayout, 'amount'>[]): number { return this.money(items.reduce((sum, item) => sum + Number(item.amount), 0)); }
-  private sumFees(items: Pick<ProviderPayout, 'processingFee'>[]): number { return this.money(items.reduce((sum, item) => sum + Number(item.processingFee), 0)); }
+  private sumPayouts(items: { amount: Prisma.Decimal }[]): number { return this.money(items.reduce((sum, item) => sum + Number(item.amount), 0)); }
+  private sumFees(items: { processingFee: Prisma.Decimal }[]): number { return this.money(items.reduce((sum, item) => sum + Number(item.processingFee), 0)); }
   private providerEarningTotals(ledger: LedgerWithProvider[]): Map<string, { totalEarnings: number; currency: string }> { const totals = new Map<string, { totalEarnings: number; currency: string }>(); for (const item of ledger) { const current = totals.get(item.providerId) ?? { totalEarnings: 0, currency: item.currency }; current.totalEarnings = this.money(current.totalEarnings + Number(item.amount)); totals.set(item.providerId, current); } return totals; }
   private tierFor(total: number, tiers: CommissionTier[]): CommissionTier | null { return [...tiers].filter((tier) => total >= Number(tier.orderVolumeThreshold)).sort((left, right) => Number(right.orderVolumeThreshold) - Number(left.orderVolumeThreshold))[0] ?? null; }
   private monthRanges(): { currentStart: Date; previousStart: Date; previousEnd: Date } { const now = new Date(); const currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)); return { currentStart, previousStart: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)), previousEnd: currentStart }; }
