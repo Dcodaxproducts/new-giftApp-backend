@@ -683,10 +683,6 @@ export class ProviderManagementService {
 
 
   private validateLifecycleAction(provider: ProviderUser, dto: UpdateProviderStatusDto): void {
-    if (dto.action === ProviderLifecycleAction.REJECT && !dto.reason) {
-      throw new BadRequestException('Reason is required when rejecting a provider');
-    }
-
     if (dto.action === ProviderLifecycleAction.SUSPEND && !dto.reason) {
       throw new BadRequestException('Reason is required when suspending a provider');
     }
@@ -826,7 +822,7 @@ export class ProviderManagementService {
       }
 
       if (status === 'PROVIDER_REJECTED') {
-        await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), provider.suspensionReason ?? undefined, comment);
+        await this.mailerService.sendProviderRejectedEmail(provider.email, this.businessName(provider), undefined, comment);
         return;
       }
 
