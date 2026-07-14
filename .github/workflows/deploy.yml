@@ -22,6 +22,6 @@ jobs:
           script: |
             cd /srv/new-giftApp-backend
             git pull origin main
-            npm install
-            npm run build
-            pm2 restart gift-app-backend
+            npm ci
+            npx prisma migrate deploy
+            npm run build && pm2 restart gift-app-backend || (echo "Build failed, old version still running" && exit 1)
