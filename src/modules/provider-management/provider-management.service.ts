@@ -728,9 +728,6 @@ export class ProviderManagementService {
     const before = this.toLifecycleResponse(provider);
     const updated = await this.repository.updateProviderLifecycleStatus(provider.id, {
         status: UserStatus.REJECTED,
-        suspensionReason: dto.reason,
-        suspensionComment: dto.comment?.trim(),
-        refreshTokenHash: null,
     });
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_REJECTED', before, updated, dto, 'Provider rejected successfully.');
   }
