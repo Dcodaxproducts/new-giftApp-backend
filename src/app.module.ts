@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { RequestMetricsModule } from './common/request-metrics.module';
 import { JwtAuthModule } from './common/auth/jwt-auth.module';
@@ -107,7 +108,7 @@ import { UserSafetyModule } from './modules/user-safety/user-safety.module';
     SeasonalThemesModule,
     ChatsModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [MediaUrlSignerService, ResponseInterceptor],
 })
 export class AppModule {}
