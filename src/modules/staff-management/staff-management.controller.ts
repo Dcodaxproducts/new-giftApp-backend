@@ -30,16 +30,12 @@ export class StaffManagementController {
     schema: {
       example: {
         email: 'staff@example.com',
-        temporaryPassword: 'Temp@123456',
-        generateTemporaryPassword: false,
-        mustChangePassword: true,
+        password: 'Temp@123456',
         firstName: 'Operations',
         lastName: 'Staff',
         phone: '+15550000002',
         roleId: 'STAFF_ROLE_id',
-        avatarUrl: 'https://cdn.yourdomain.com/staff-avatars/staff.png',
         isActive: true,
-        sendInviteEmail: true,
       },
     },
   })

@@ -73,18 +73,8 @@ export class CreateAdminDto {
 
   @ApiProperty()
   @IsString()
-  @IsOptional()
-  temporaryPassword?: string;
-
-  @ApiPropertyOptional({ default: true })
-  @IsOptional()
-  @IsBoolean()
-  generateTemporaryPassword?: boolean;
-
-  @ApiPropertyOptional({ default: true })
-  @IsOptional()
-  @IsBoolean()
-  mustChangePassword?: boolean;
+  @MinLength(8)
+  password!: string;
 
   @ApiProperty()
   @IsString()
@@ -109,20 +99,10 @@ export class CreateAdminDto {
   @MinLength(1)
   roleId!: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  avatarUrl?: string;
-
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-  @ApiPropertyOptional({ default: true })
-  @IsOptional()
-  @IsBoolean()
-  sendInviteEmail?: boolean;
 }
 
 export class UpdateAdminDto {
@@ -130,6 +110,12 @@ export class UpdateAdminDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  @ApiPropertyOptional({ minLength: 8 })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  password?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -50,7 +50,7 @@ function createService() {
   const config = { get: jest.fn().mockReturnValue('https://app.giftapp.com') };
   const mailer = { sendAdminInviteEmail: jest.fn().mockResolvedValue(undefined) };
   const auditLog = { write: jest.fn().mockResolvedValue(undefined) };
-  const service = new StaffManagementService(config as never, mailer as never, auditLog as never, repository as never);
+  const service = new StaffManagementService(auditLog as never, repository as never);
   return { service, repository, config, mailer, auditLog };
 }
 
@@ -65,21 +65,17 @@ describe('StaffManagementService', () => {
     expect(repositorySource).toContain('deleteAdminPermanently');
   });
 
-  it('admin creation behavior remains unchanged', async () => {
-    const { service, mailer, auditLog } = createService();
+  it('creates a staff user with the provided password', async () => {
+    const { service, auditLog } = createService();
     const result = await service.create(superAdmin, {
       email: 'staff@example.com',
-      temporaryPassword: 'Temp@123456',
-      generateTemporaryPassword: false,
-      mustChangePassword: true,
+      password: 'Temp@123456',
       firstName: 'Ops',
       lastName: 'User',
       roleId: 'role_1',
-      sendInviteEmail: true,
     });
-    expect(result.message).toBe('Staff user created successfully and invite email sent.');
-    expect(result.data).toEqual({ id: 'admin_1', email: 'staff@example.com', role: UserRole.STAFF, roleId: 'role_1', inviteEmailSent: true });
-    expect(mailer.sendAdminInviteEmail).toHaveBeenCalled();
+    expect(result.message).toBe('Staff user created successfully.');
+    expect(result.data).toEqual({ id: 'admin_1', email: 'staff@example.com', role: UserRole.STAFF, roleId: 'role_1' });
     expect(auditLog.write).toHaveBeenCalledWith(expect.objectContaining({ action: 'ADMIN_CREATED', targetId: 'admin_1' }));
   });
 
@@ -104,8 +100,7 @@ describe('StaffManagementService', () => {
     repository.findAdminByEmail.mockResolvedValueOnce(adminUser);
     await expect(service.create(superAdmin, {
       email: 'staff@example.com',
-      temporaryPassword: 'Temp@123456',
-      generateTemporaryPassword: false,
+      password: 'Temp@123456',
       firstName: 'Ops',
       lastName: 'User',
       roleId: 'role_1',

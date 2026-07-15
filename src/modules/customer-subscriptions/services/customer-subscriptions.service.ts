@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { BillingCycle, CustomerSubscription, CustomerSubscriptionInvoice, CustomerSubscriptionInvoiceStatus, CustomerSubscriptionStatus, PaymentMethod, Prisma, SubscriptionPlan } from '@prisma/client';
-import Stripe from 'stripe';
+import * as Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { ConfirmSubscriptionDto, CustomerSubscriptionAction, CustomerSubscriptionActionDto, InvoiceStatusFilter, ListCustomerSubscriptionPlansDto, ListSubscriptionInvoicesDto, SubscriptionCheckoutDto } from '../dto/customer-subscriptions.dto';
 import { CustomerSubscriptionsRepository } from '../repositories/customer-subscriptions.repository';
 import { getPagination } from '../../../common/pagination/pagination.util';
 
 type PlanFeature = { key: string; label: string; description?: string | null; enabled: boolean };
-type StripeSubscriptionLike = { id: string; status: string; customer?: string | { id: string } | null; current_period_start?: number; current_period_end?: number; cancel_at_period_end?: boolean; latest_invoice?: string | { payment_intent?: string | { client_secret?: string | null; id?: string } | null } | null; items?: { data?: { price?: { id?: string } }[] } };
+type StripeSubscriptionLike = { id: string; status: string; customer?: string | { id: string } | null; current_period_start?: number; current_period_end?: number; cancel_at_period_end?: boolean; latest_invoice?: string | { payment_intent?: string | { client_secret?: string | null; id?: string } | null; confirmation_secret?: { client_secret?: string | null } | null } | null; items?: { data?: { price?: { id?: string } }[] } };
 type StripeInvoiceLike = { id: string; subscription?: string | { id: string } | null; payment_intent?: string | { id: string } | null; amount_due?: number; amount_paid?: number; currency?: string; status?: string; invoice_pdf?: string | null; hosted_invoice_url?: string | null; billing_reason?: string | null; created?: number };
 
 @Injectable()
@@ -30,18 +30,20 @@ export class CustomerSubscriptionsService {
     const duplicate = await this.repository.findSubscriptionByIdempotencyKey(user.uid, idempotencyKey);
     if (duplicate?.customerSubscription) return { data: { customerSubscriptionId: duplicate.customerSubscription.id, stripeSubscriptionId: duplicate.customerSubscription.stripeSubscriptionId, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount: this.toSmallestUnit(Number(duplicate.amount), duplicate.currency), currency: duplicate.currency, billingCycle: duplicate.customerSubscription.billingCycle, status: duplicate.customerSubscription.status }, message: 'Subscription checkout created successfully.' };
     const existing = await this.activeSubscription(user.uid);
-    if (existing) throw new BadRequestException('You already have an active premium subscription');
+    if (existing && this.isPremiumStatus(existing.status)) throw new BadRequestException('You already have an active premium subscription');
     const plan = await this.publicPlan(dto.planId);
-    if (plan.currency.toUpperCase() !== this.currency(plan.currency)) throw new BadRequestException('Plan currency must match Stripe currency');
+    // if (plan.currency.toUpperCase() !== this.currency(plan.currency)) throw new BadRequestException('Plan currency must match Stripe currency');
     const price = await this.ensureStripePrice(plan, dto.billingCycle);
     const customerId = await this.ensureStripeCustomer(user.uid);
-    const subscription = await this.stripe().subscriptions.create({ customer: customerId, items: [{ price }], default_payment_method: dto.stripePaymentMethodId, payment_behavior: 'default_incomplete', expand: ['latest_invoice.payment_intent'], metadata: this.sanitizeMetadata({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, idempotencyKey }) }, { idempotencyKey }) as StripeSubscriptionLike;
-    const paymentIntent = typeof subscription.latest_invoice === 'object' ? subscription.latest_invoice?.payment_intent : null;
-    const clientSecret = typeof paymentIntent === 'object' ? paymentIntent?.client_secret ?? null : null;
+    const subscription = await this.stripe().subscriptions.create({ customer: customerId, items: [{ price }], default_payment_method: dto.stripePaymentMethodId, payment_behavior: 'default_incomplete', expand: ['latest_invoice.confirmation_secret', 'latest_invoice.payment_intent'], metadata: this.sanitizeMetadata({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, idempotencyKey }) }, { idempotencyKey }) as StripeSubscriptionLike;
+    const invoice = typeof subscription.latest_invoice === 'object' ? subscription.latest_invoice : null;
+    const paymentIntent = typeof invoice?.payment_intent === 'object' ? invoice?.payment_intent : null;
+    const clientSecret = invoice?.confirmation_secret?.client_secret ?? paymentIntent?.client_secret ?? null;
     const planPrice = this.planPrice(plan, dto.billingCycle);
     const amount = this.toSmallestUnit(planPrice, plan.currency);
     const saved = await this.repository.createCustomerSubscription({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, status: CustomerSubscriptionStatus.INCOMPLETE, stripeCustomerId: customerId, stripeSubscriptionId: subscription.id, stripePriceId: price });
-    await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: typeof paymentIntent === 'object' ? paymentIntent?.id ?? null : null, amount: new Prisma.Decimal(planPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
+    const paymentIntentId = paymentIntent?.id ?? (clientSecret ? clientSecret.split('_secret_')[0] : null);
+    await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: paymentIntentId, amount: new Prisma.Decimal(planPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
     return { data: { customerSubscriptionId: saved.id, stripeSubscriptionId: subscription.id, clientSecret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount, currency: plan.currency, billingCycle: dto.billingCycle, status: saved.status }, message: 'Subscription checkout created successfully.' };
   }
 

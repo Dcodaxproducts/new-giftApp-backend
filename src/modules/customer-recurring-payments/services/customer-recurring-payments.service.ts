@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CustomerRecurringPayment, CustomerRecurringPaymentFrequency, CustomerRecurringPaymentOccurrence, CustomerRecurringPaymentOccurrenceStatus, CustomerRecurringPaymentStatus, MoneyGiftStatus, PaymentMethod, PaymentProvider, PaymentStatus, Prisma } from '@prisma/client';
-import Stripe from 'stripe';
+import * as Stripe from 'stripe';
 import { AuthUserContext } from '../../../common/decorators/current-user.decorator';
 import { CustomerRecurringPaymentsRepository } from '../repositories/customer-recurring-payments.repository';
 import { CreateRecurringPaymentDto, CustomerRecurringPaymentAction, HistoryStatusFilter, ListRecurringPaymentsDto, ListRecurringPaymentsSortBy, ListRecurringPaymentsStatus, RecurringPaymentActionDto, RecurringPaymentScheduleDto, SortOrder, UpdateRecurringPaymentDto, Weekday } from '../dto/customer-recurring-payments.dto';

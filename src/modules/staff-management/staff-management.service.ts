@@ -1,11 +1,9 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { StaffRole, Prisma, StaffProfile, User, UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
-import { MailerService } from '../mailer/mailer.service';
 import {
   AdminStatusFilter,
   CreateAdminDto,
@@ -22,49 +20,23 @@ type StaffUser = User & { staffProfile: (StaffProfile & { staffRole: StaffRole |
 @Injectable()
 export class StaffManagementService {
   constructor(
-    private readonly configService: ConfigService,
-    private readonly mailerService: MailerService,
     private readonly auditLog: AuditLogWriterService,
     private readonly repository: StaffManagementRepository,
   ) {}
 
   async create(user: AuthUserContext, dto: CreateAdminDto) {
     const staffRole = await this.getStaffRole(dto.roleId);
-    const temporaryPassword = dto.generateTemporaryPassword === false
-      ? dto.temporaryPassword
-      : (dto.temporaryPassword ?? this.generateTemporaryPassword());
-
-    if (!temporaryPassword) {
-      throw new BadRequestException('Temporary password is required when generateTemporaryPassword is false');
-    }
 
     const admin = await this.createAdminUser({
       email: dto.email,
-      password: temporaryPassword,
+      password: dto.password,
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
       isActive: dto.isActive ?? true,
-      mustChangePassword: dto.mustChangePassword ?? true,
+      mustChangePassword: true,
       staffRoleId: staffRole.id,
-      avatarUrl: dto.avatarUrl,
     });
-
-    let inviteEmailSent = false;
-    if (dto.sendInviteEmail) {
-      try {
-        await this.mailerService.sendAdminInviteEmail({
-          email: admin.email,
-          userName: `${admin.firstName} ${admin.lastName}`.trim(),
-          temporaryPassword,
-          mustChangePassword: admin.mustChangePassword,
-          ctaUrl: `${this.configService.get<string>('APP_FRONTEND_URL', 'https://app.giftapp.com').replace(/\/$/, '')}/admin`,
-        });
-        inviteEmailSent = true;
-      } catch {
-        inviteEmailSent = false;
-      }
-    }
 
     await this.auditLog.write({
       actorId: user.uid,
@@ -81,13 +53,8 @@ export class StaffManagementService {
         role: admin.role,
         roleId: staffRole.id,
         status: admin.status,
-        inviteEmailSent,
       },
-      message: dto.sendInviteEmail
-        ? inviteEmailSent
-          ? 'Staff user created successfully and invite email sent.'
-          : 'Staff user created successfully, but invite email could not be sent.'
-        : 'Staff user created successfully.',
+      message: 'Staff user created successfully.',
     };
   }
 
@@ -150,16 +117,18 @@ export class StaffManagementService {
     const currentStaffRole = this.staffRoleFor(admin);
     const targetStaffRole = dto.roleId ? await this.getStaffRole(dto.roleId) : currentStaffRole;
     const email = dto.email ? await this.assertEmailAvailable(dto.email, admin.id) : undefined;
+    const password = dto.password ? await bcrypt.hash(dto.password, 10) : undefined;
     const before = this.toAdminDetail(admin, currentStaffRole);
     const updated = await this.repository.updateAdminUser(admin.id, {
       userData: {
         email,
+        password,
         firstName: dto.firstName?.trim(),
         lastName: dto.lastName?.trim(),
         phone: dto.phone?.trim(),
         avatarUrl: dto.avatarUrl,
         status: dto.isActive === undefined ? undefined : dto.isActive ? UserStatus.APPROVED : UserStatus.BLOCKED,
-        refreshTokenHash: dto.isActive === false ? null : admin.refreshTokenHash,
+        refreshTokenHash: dto.isActive === false || dto.password ? null : admin.refreshTokenHash,
       },
       staffProfileData: admin.role === UserRole.STAFF
         ? {
