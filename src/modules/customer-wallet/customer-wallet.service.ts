@@ -32,12 +32,24 @@ export class CustomerWalletService {
     const currency = 'USD';
     const wallet = await this.getOrCreateWallet(user.uid);
     const amount = this.money(dto.amount);
+    // Short-circuit duplicate top-up requests (double-click / retry) that reuse the same client key,
+    // so the user is never double-charged and no duplicate ledger row is created.
+    const idempotencyKey = this.idempotencyKey('wallet-topup', user.uid, dto.idempotencyKey);
+    const existing = await this.repository.findWalletTopUpPaymentByIdempotencyKey(user.uid, idempotencyKey);
+    if (existing?.providerPaymentIntentId) return this.replayTopUpResponse(existing, amount);
     const ledger = await this.repository.createWalletLedgerEntry({ walletId: wallet.id, type: WalletLedgerType.TOP_UP, direction: WalletLedgerDirection.CREDIT, amount: new Prisma.Decimal(amount), currency, status: WalletLedgerStatus.PENDING, transactionId: this.transactionId(), description: 'Wallet top-up pending payment.' });
-    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id } });
+    const payment = await this.repository.createWalletTopUpPayment({ userId: user.uid, provider: PaymentProvider.STRIPE, amount: new Prisma.Decimal(amount), currency, status: PaymentStatus.PENDING, paymentMethod: PaymentMethod.STRIPE_CARD, idempotencyKey, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, idempotencyKey } });
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
-    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true, allow_redirects: 'never' }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid }) }) as StripeIntentCreateResult;
-    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status } });
+    const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true, allow_redirects: 'never' }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
+    const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, idempotencyKey } });
     return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
+  }
+
+  // Re-fetches the original PaymentIntent so a retried request returns the SAME clientSecret without creating a new charge.
+  private async replayTopUpResponse(payment: Payment, amount: number) {
+    const intent = await this.stripe().paymentIntents.retrieve(payment.providerPaymentIntentId!) as StripeIntentCreateResult;
+    const meta = (payment.metadataJson ?? {}) as Record<string, unknown>;
+    return { data: { walletTopUpId: (meta.walletTopUpId as string) ?? null, paymentId: payment.id, stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 
   async history(user: AuthUserContext, query: ListWalletHistoryDto) {
@@ -119,6 +131,7 @@ export class CustomerWalletService {
   private metadata(value: Prisma.JsonValue): { walletTopUpId?: string } { if (!value || typeof value !== 'object' || Array.isArray(value)) return {}; const source = value as Record<string, unknown>; return { walletTopUpId: typeof source.walletTopUpId === 'string' ? source.walletTopUpId : undefined }; }
   private last4(value: string): string { const digits = value.replace(/\D/g, ''); if (digits.length < 4) throw new BadRequestException('Bank account number must include at least 4 digits'); return digits.slice(-4); }
   private transactionId(): string { return `TXN-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
+  private idempotencyKey(scope: string, userId: string, raw: string): string { return `${scope}:${userId}:${raw}`.replace(/[^a-zA-Z0-9:_-]/g, '_').slice(0, 120); }
   private sanitizeMetadata(input: Record<string, unknown>): Record<string, string> { return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined && value !== null).map(([key, value]) => [key, String(value).replace(/[\r\n\t]/g, ' ').slice(0, 500)])); }
   private currency(input?: string): string { return (input ?? process.env.STRIPE_CURRENCY ?? 'USD').toUpperCase(); }
   private toSmallestUnit(amount: number, currency: string): number { return this.zeroDecimalCurrencies().has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100); }

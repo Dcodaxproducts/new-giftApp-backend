@@ -48,6 +48,10 @@ export class CustomerWalletRepository {
     return this.prisma.payment.create({ data });
   }
 
+  findWalletTopUpPaymentByIdempotencyKey(userId: string, idempotencyKey: string) {
+    return this.prisma.payment.findFirst({ where: { userId, idempotencyKey } });
+  }
+
   markWalletTopUpPending(ledgerId: string, paymentId: string) {
     return this.prisma.walletLedger.update({ where: { id: ledgerId }, data: { paymentId } });
   }

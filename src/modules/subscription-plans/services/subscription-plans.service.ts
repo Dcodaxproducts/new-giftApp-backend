@@ -52,7 +52,12 @@ export class SubscriptionPlansService implements OnModuleInit {
     const before = await this.toPlanDetail(plan);
     const visibility = this.visibilityFromDto(dto);
     if (dto.isPopular) await this.clearPopular(id);
-    const updated = await this.subscriptionPlansRepository.updatePlan(id, { name: dto.name?.trim(), slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined, description: dto.description?.trim(), monthlyPrice: dto.monthlyPrice === undefined ? undefined : new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: dto.yearlyPrice === undefined ? undefined : new Prisma.Decimal(dto.yearlyPrice), currency: dto.currency, visibility, status: dto.status, isPopular: dto.isPopular, featuresJson: dto.features === undefined ? undefined : this.toJson(dto.features), limitsJson: dto.limits === undefined ? undefined : this.toJson(this.sanitizeLimits(dto.limits)) });
+    // Stripe Prices are immutable, so when the amount/currency changes we drop the cached price id(s).
+    // The next customer checkout then mints a fresh Stripe price at the new amount (see ensureStripePrice).
+    const currencyChanged = dto.currency !== undefined && dto.currency !== plan.currency;
+    const monthlyChanged = currencyChanged || (dto.monthlyPrice !== undefined && dto.monthlyPrice !== Number(plan.monthlyPrice));
+    const yearlyChanged = currencyChanged || (dto.yearlyPrice !== undefined && dto.yearlyPrice !== Number(plan.yearlyPrice));
+    const updated = await this.subscriptionPlansRepository.updatePlan(id, { name: dto.name?.trim(), slug: dto.name ? await this.uniqueSlug(dto.name, id) : undefined, description: dto.description?.trim(), monthlyPrice: dto.monthlyPrice === undefined ? undefined : new Prisma.Decimal(dto.monthlyPrice), yearlyPrice: dto.yearlyPrice === undefined ? undefined : new Prisma.Decimal(dto.yearlyPrice), currency: dto.currency, stripeMonthlyPriceId: monthlyChanged ? null : undefined, stripeYearlyPriceId: yearlyChanged ? null : undefined, visibility, status: dto.status, isPopular: dto.isPopular, featuresJson: dto.features === undefined ? undefined : this.toJson(dto.features), limitsJson: dto.limits === undefined ? undefined : this.toJson(this.sanitizeLimits(dto.limits)) });
     const after = await this.toPlanDetail(updated);
     await this.audit(user, id, 'SUBSCRIPTION_PLAN_UPDATED', this.changedFields(before, after, dto.reason), this.changedFields(after, before, dto.reason));
     return { data: after, message: 'Subscription plan updated successfully' };

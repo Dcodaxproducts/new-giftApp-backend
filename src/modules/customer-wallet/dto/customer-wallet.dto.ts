@@ -7,6 +7,7 @@ export enum WalletHistoryStatus { ALL = 'ALL', SUCCESS = 'SUCCESS', PENDING = 'P
 
 export class AddWalletFundsDto {
   @ApiProperty({ example: 100 }) @Type(() => Number) @IsNumber() @Min(0.01) amount!: number;
+  @ApiProperty({ example: 'a1b2c3d4-5678-90ab-cdef-1234567890ab', description: 'Client-generated unique key (e.g. UUID) to make this top-up idempotent. Generate once per top-up attempt and reuse the SAME value across retries so the user is never double-charged.' }) @IsString() @IsNotEmpty() idempotencyKey!: string;
 }
 
 export class ConfirmWalletTopUpDto {

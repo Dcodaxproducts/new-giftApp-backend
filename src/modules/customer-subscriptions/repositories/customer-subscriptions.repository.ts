@@ -86,6 +86,10 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.subscriptionPlan.findFirst({ where: { id, status: SubscriptionPlanStatus.ACTIVE, visibility: SubscriptionPlanVisibility.PUBLIC } });
   }
 
+  saveStripePlanIds(planId: string, data: { stripeProductId?: string; stripeMonthlyPriceId?: string; stripeYearlyPriceId?: string }) {
+    return this.prisma.subscriptionPlan.update({ where: { id: planId }, data });
+  }
+
   updateStripeSubscriptionSync(id: string, data: Prisma.CustomerSubscriptionUpdateArgs['data']) {
     return this.prisma.customerSubscription.update({ where: { id }, data });
   }
