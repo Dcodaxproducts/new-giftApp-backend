@@ -28,7 +28,7 @@ export class CustomerSubscriptionsService {
     if (dto.paymentMethod !== PaymentMethod.STRIPE_CARD) throw new BadRequestException('Premium subscriptions require STRIPE_CARD');
     const idempotencyKey = this.idempotencyKey('subscription-checkout', user.uid, dto.idempotencyKey);
     const duplicate = await this.repository.findSubscriptionByIdempotencyKey(user.uid, idempotencyKey);
-    if (duplicate?.customerSubscription) return { data: { customerSubscriptionId: duplicate.customerSubscription.id, stripeSubscriptionId: duplicate.customerSubscription.stripeSubscriptionId, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount: this.toSmallestUnit(Number(duplicate.amount), duplicate.currency), currency: duplicate.currency, billingCycle: duplicate.customerSubscription.billingCycle, status: duplicate.customerSubscription.status }, message: 'Subscription checkout created successfully.' };
+    if (duplicate?.customerSubscription) return { data: { customerSubscriptionId: duplicate.customerSubscription.id, stripeSubscriptionId: duplicate.customerSubscription.stripeSubscriptionId, paymentIntent: duplicate.providerPaymentIntentId, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount: this.toSmallestUnit(Number(duplicate.amount), duplicate.currency), currency: duplicate.currency, billingCycle: duplicate.customerSubscription.billingCycle, status: duplicate.customerSubscription.status }, message: 'Subscription checkout created successfully.' };
     const existing = await this.activeSubscription(user.uid);
     if (existing && this.isPremiumStatus(existing.status)) throw new BadRequestException('You already have an active premium subscription');
     const plan = await this.publicPlan(dto.planId);
@@ -53,7 +53,7 @@ export class CustomerSubscriptionsService {
     const saved = await this.repository.createCustomerSubscription({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, status: CustomerSubscriptionStatus.INCOMPLETE, stripeCustomerId: customerId, stripeSubscriptionId: subscription.id, stripePriceId: price });
     const paymentIntentId = paymentIntent?.id ?? (clientSecret ? clientSecret.split('_secret_')[0] : null);
     await this.repository.createInitialSubscriptionPayment({ userId: user.uid, customerSubscriptionId: saved.id, providerPaymentIntentId: paymentIntentId, amount: new Prisma.Decimal(planPrice), currency: plan.currency, idempotencyKey, metadataJson: { subscriptionId: saved.id, stripeSubscriptionId: subscription.id, idempotencyKey } });
-    return { data: { customerSubscriptionId: saved.id, stripeSubscriptionId: subscription.id, clientSecret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount, currency: plan.currency, billingCycle: dto.billingCycle, status: saved.status }, message: 'Subscription checkout created successfully.' };
+    return { data: { customerSubscriptionId: saved.id, stripeSubscriptionId: subscription.id, paymentIntent: paymentIntentId, clientSecret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '', amount, currency: plan.currency, billingCycle: dto.billingCycle, status: saved.status }, message: 'Subscription checkout created successfully.' };
   }
 
   async confirm(user: AuthUserContext, dto: ConfirmSubscriptionDto) {

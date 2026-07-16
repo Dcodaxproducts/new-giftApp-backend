@@ -83,7 +83,7 @@ export class PaymentsService {
       metadata: this.sanitizeMetadata({ paymentId: payment.id, orderId: order.id, userId: user.uid, idempotencyKey }),
     }, { idempotencyKey });
     const updated = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { orderId: order.id, stripeStatus: intent.status, idempotencyKey } });
-    return { data: { ...this.toPaymentResponse(updated), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret }, message: 'Payment intent created successfully.' };
+    return { data: { ...this.toPaymentResponse(updated), paymentIntent: intent.id, clientSecret: intent.client_secret }, message: 'Payment intent created successfully.' };
   }
 
   async confirm(user: AuthUserContext, dto: ConfirmPaymentDto) {
@@ -178,7 +178,7 @@ export class PaymentsService {
     }
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(dto.amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true }, metadata: this.sanitizeMetadata({ paymentId: payment.id, moneyGiftId: moneyGift.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey });
     const updatedPayment = await this.repository.updatePaymentIntent({ id: payment.id, providerPaymentIntentId: intent.id, status: PaymentStatus.PROCESSING, metadataJson: { moneyGiftId: moneyGift.id, stripeStatus: intent.status, idempotencyKey } });
-    return { data: { ...this.toMoneyGift(moneyGift), payment: { ...this.toPaymentResponse(updatedPayment), stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount: this.toSmallestUnit(dto.amount, currency), currency } }, message: 'Money gift created successfully.' };
+    return { data: { ...this.toMoneyGift(moneyGift), payment: { ...this.toPaymentResponse(updatedPayment), paymentIntent: intent.id, clientSecret: intent.client_secret, amount: this.toSmallestUnit(dto.amount, currency), currency } }, message: 'Money gift created successfully.' };
   }
 
   async moneyGifts(user: AuthUserContext) {
@@ -275,7 +275,7 @@ export class PaymentsService {
   private cleanText(value?: string): string | null { const cleaned = value?.replace(/[\r\n\t]/g, ' ').trim().slice(0, 500); return cleaned || null; }
   private cleanUrls(values?: string[]): string[] { return [...new Set((values ?? []).filter((value) => typeof value === 'string').map((value) => value.trim()).filter((value) => value.startsWith('https://')).slice(0, 5))]; }
   private toSavedPaymentMethod(item: { stripePaymentMethodId: string; type: string; brand: string | null; last4: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean }) { return { id: item.stripePaymentMethodId, type: item.type, brand: item.brand, last4: item.last4, expiryMonth: item.expiryMonth, expiryYear: item.expiryYear, isDefault: item.isDefault }; }
-  private toPaymentResponse(payment: Payment) { return { paymentId: payment.id, provider: payment.provider, stripePaymentIntentId: payment.providerPaymentIntentId, amount: Number(payment.amount), currency: payment.currency, status: payment.status, paymentMethod: payment.paymentMethod, failureReason: payment.failureReason, createdAt: payment.createdAt, updatedAt: payment.updatedAt }; }
+  private toPaymentResponse(payment: Payment) { return { paymentId: payment.id, provider: payment.provider, paymentIntent: payment.providerPaymentIntentId, amount: Number(payment.amount), currency: payment.currency, status: payment.status, paymentMethod: payment.paymentMethod, failureReason: payment.failureReason, createdAt: payment.createdAt, updatedAt: payment.updatedAt }; }
   private toMoneyGift(item: { id: string; amount: Prisma.Decimal; currency: string; recipientContactId: string; message: string | null; messageMediaUrlsJson: Prisma.JsonValue; deliveryDate: Date; repeatAnnually: boolean; status: MoneyGiftStatus; createdAt: Date; updatedAt: Date; recipientContact?: { name: string; phone: string | null; email: string | null; avatarUrl: string | null } }) { return { id: item.id, amount: Number(item.amount), currency: item.currency, recipientContactId: item.recipientContactId, recipient: item.recipientContact ? { name: item.recipientContact.name, phone: item.recipientContact.phone, email: item.recipientContact.email, avatarUrl: item.recipientContact.avatarUrl } : undefined, message: item.message, messageMediaUrls: Array.isArray(item.messageMediaUrlsJson) ? item.messageMediaUrlsJson.filter((value): value is string => typeof value === 'string') : [], deliveryDate: item.deliveryDate, repeatAnnually: item.repeatAnnually, status: item.status, createdAt: item.createdAt, updatedAt: item.updatedAt }; }
   private async notify(recipientId: string, title: string, message: string, type: string, metadata: Prisma.InputJsonObject): Promise<void> { await this.notificationDispatch.createAndEmit({ recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: metadata }); }
 }

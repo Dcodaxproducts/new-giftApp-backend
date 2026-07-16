@@ -11,7 +11,7 @@ export class AddWalletFundsDto {
 }
 
 export class ConfirmWalletTopUpDto {
-  @ApiProperty({ example: 'pi_3TshCwP5GAZBrbrD0EC7FoKQ', description: 'The stripePaymentIntentId returned from POST /customer/wallet/add-funds.' }) @IsString() @IsNotEmpty() stripePaymentIntentId!: string;
+  @ApiProperty({ example: 'pi_3TshCwP5GAZBrbrD0EC7FoKQ', description: 'The paymentIntent returned from POST /customer/wallet/add-funds.' }) @IsString() @IsNotEmpty() stripePaymentIntentId!: string;
 }
 
 export class ListWalletHistoryDto {

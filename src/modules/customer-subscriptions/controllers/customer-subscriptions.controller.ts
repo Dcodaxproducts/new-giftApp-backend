@@ -28,6 +28,7 @@ export class CustomerSubscriptionsController {
   @Post('checkout')
   @ApiOperation({ summary: 'Create Stripe subscription checkout', description: 'REGISTERED_USER only. Backend calculates price from admin-created SubscriptionPlan. Uses Stripe subscription flow with payment_behavior=default_incomplete.' })
   @ApiBody({ type: SubscriptionCheckoutDto })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { customerSubscriptionId: 'subscription_id', stripeSubscriptionId: 'sub_xxx', paymentIntent: 'pi_xxx', clientSecret: 'pi_xxx_secret_xxx', publishableKey: 'pk_test_xxx', amount: 499, currency: 'USD', billingCycle: 'MONTHLY', status: 'INCOMPLETE' }, message: 'Subscription checkout created successfully.' } } })
   checkout(@CurrentUser() user: AuthUserContext, @Body() dto: SubscriptionCheckoutDto) { return this.subscriptions.checkout(user, dto); }
 
   @Post('confirm')

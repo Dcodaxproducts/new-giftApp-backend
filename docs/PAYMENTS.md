@@ -94,7 +94,7 @@ GET /saved              -> card now appears
   "stripePaymentMethodId": "pm_xxx"       // OPTIONAL — only for a saved card
 }
 ```
-Returns `{ customerSubscriptionId, stripeSubscriptionId, clientSecret, publishableKey, amount, currency, status }`.
+Returns `{ customerSubscriptionId, stripeSubscriptionId, paymentIntent, clientSecret, publishableKey, amount, currency, status }`.
 
 ### Two payment cases (frontend decides — mutually exclusive)
 

@@ -22,13 +22,13 @@ export class CustomerWalletController {
   overview(@CurrentUser() user: AuthUserContext) { return this.wallet.overview(user); }
 
   @Post('add-funds')
-  @ApiOperation({ summary: 'Create wallet top-up payment', description: 'Uses Stripe PaymentIntent (USD only). Returns stripePaymentIntentId and clientSecret. Wallet is credited only after successful server-side confirmation/webhook.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { walletTopUpId: 'ledger_id_123', paymentId: 'payment_id', stripePaymentIntentId: 'pi_3Tsh1zP5GAZBrbrD0jO0B9XO', clientSecret: 'pi_3Tsh1zP5GAZBrbrD0jO0B9XO_secret_xxx', amount: 100, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' } } })
+  @ApiOperation({ summary: 'Create wallet top-up payment', description: 'Uses Stripe PaymentIntent (USD only). Returns paymentIntent and clientSecret. Wallet is credited only after successful server-side confirmation/webhook.' })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { walletTopUpId: 'ledger_id_123', paymentId: 'payment_id', paymentIntent: 'pi_3Tsh1zP5GAZBrbrD0jO0B9XO', clientSecret: 'pi_3Tsh1zP5GAZBrbrD0jO0B9XO_secret_xxx', amount: 100, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' } } })
   addFunds(@CurrentUser() user: AuthUserContext, @Body() dto: AddWalletFundsDto) { return this.wallet.addFunds(user, dto); }
 
   @Post('confirm-top-up')
   @ApiOperation({ summary: 'Confirm a wallet top-up (webhook fallback)', description: 'Use when the Stripe webhook has not settled the top-up. Send the stripePaymentIntentId; the server retrieves its status and credits the wallet if paid. Idempotent — safe to call repeatedly; never double-credits.' })
-  @ApiResponse({ status: 201, schema: { example: { success: true, data: { walletTopUpId: 'ledger_id_123', paymentId: 'payment_id', stripePaymentIntentId: 'pi_3TshCwP5GAZBrbrD0EC7FoKQ', status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' } } })
+  @ApiResponse({ status: 201, schema: { example: { success: true, data: { walletTopUpId: 'ledger_id_123', paymentId: 'payment_id', paymentIntent: 'pi_3TshCwP5GAZBrbrD0EC7FoKQ', status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' } } })
   confirmTopUp(@CurrentUser() user: AuthUserContext, @Body() dto: ConfirmWalletTopUpDto) { return this.wallet.confirmTopUp(user, dto); }
 
   @Get('history')

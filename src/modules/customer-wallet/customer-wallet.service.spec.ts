@@ -207,7 +207,7 @@ describe('CustomerWalletService read APIs', () => {
     const stripeCreate = mockStripe(service);
     const result = await service.addFunds({ uid: 'customer_1', role: UserRole.REGISTERED_USER }, { amount: 50 });
     expect(result.message).toBe('Wallet top-up payment created successfully.');
-    expect(result.data).toEqual(expect.objectContaining({ walletTopUpId: 'ledger_pending', paymentId: 'payment_1', stripePaymentIntentId: 'pi_1', clientSecret: 'secret_1', amount: 50, status: 'PAYMENT_PENDING' }));
+    expect(result.data).toEqual(expect.objectContaining({ walletTopUpId: 'ledger_pending', paymentId: 'payment_1', paymentIntent: 'pi_1', clientSecret: 'secret_1', amount: 50, status: 'PAYMENT_PENDING' }));
     expect(stripeCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 5000, currency: 'usd', automatic_payment_methods: { enabled: true, allow_redirects: 'never' }, metadata: expect.objectContaining({ paymentId: 'payment_1', walletTopUpId: 'ledger_pending', userId: 'customer_1' }) }));
     expect(prisma.payment.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'payment_1' }, data: expect.objectContaining({ providerPaymentIntentId: 'pi_1', status: PaymentStatus.PROCESSING }) }));
   });

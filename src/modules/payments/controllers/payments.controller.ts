@@ -22,7 +22,7 @@ export class CustomerPaymentsController {
   @Post('create-intent')
   @ApiOperation({ summary: 'Create payment intent for an order', description: 'REGISTERED_USER only. Amount is taken from the order total; frontend amount is never accepted.' })
   @ApiBody({ type: CreatePaymentIntentDto, examples: { stripe: { value: { orderId: 'order_id_123', paymentMethod: 'STRIPE_CARD' } }, cod: { value: { orderId: 'order_id_123', paymentMethod: 'COD' } } } })
-  @ApiResponse({ status: 201, description: 'Payment intent created successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', stripePaymentIntentId: 'pi_xxx', clientSecret: 'pi_xxx_secret_xxx', amount: 10999, currency: 'USD' }, message: 'Payment intent created successfully.' } } })
+  @ApiResponse({ status: 201, description: 'Payment intent created successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', paymentIntent: 'pi_xxx', clientSecret: 'pi_xxx_secret_xxx', amount: 10999, currency: 'USD' }, message: 'Payment intent created successfully.' } } })
   createIntent(@CurrentUser() user: AuthUserContext, @Body() dto: CreatePaymentIntentDto) { return this.payments.createIntent(user, dto); }
 
   @Post('confirm')
@@ -31,7 +31,7 @@ export class CustomerPaymentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Fetch own payment details' })
-  @ApiResponse({ status: 200, description: 'Payment fetched successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', provider: 'STRIPE', stripePaymentIntentId: 'pi_xxx', amount: 109.99, currency: 'USD', status: 'SUCCEEDED', paymentMethod: 'STRIPE_CARD', failureReason: null }, message: 'Payment fetched successfully.' } } })
+  @ApiResponse({ status: 200, description: 'Payment fetched successfully.', schema: { example: { success: true, data: { paymentId: 'payment_id', provider: 'STRIPE', paymentIntent: 'pi_xxx', amount: 109.99, currency: 'USD', status: 'SUCCEEDED', paymentMethod: 'STRIPE_CARD', failureReason: null }, message: 'Payment fetched successfully.' } } })
   details(@CurrentUser() user: AuthUserContext, @Param('id') id: string) { return this.payments.details(user, id); }
 }
 

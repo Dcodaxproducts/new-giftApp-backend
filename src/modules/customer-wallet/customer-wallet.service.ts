@@ -42,14 +42,14 @@ export class CustomerWalletService {
     await this.repository.markWalletTopUpPending(ledger.id, payment.id);
     const intent = await this.stripe().paymentIntents.create({ amount: this.toSmallestUnit(amount, currency), currency: currency.toLowerCase(), automatic_payment_methods: { enabled: true, allow_redirects: 'never' }, confirm: false, metadata: this.sanitizeMetadata({ paymentId: payment.id, walletTopUpId: ledger.id, userId: user.uid, idempotencyKey }) }, { idempotencyKey }) as StripeIntentCreateResult;
     const updatedPayment = await this.repository.markWalletTopUpPaymentProcessing({ paymentId: payment.id, providerPaymentIntentId: intent.id, metadataJson: { walletTopUpId: ledger.id, walletId: wallet.id, stripeStatus: intent.status, idempotencyKey } });
-    return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
+    return { data: { walletTopUpId: ledger.id, paymentId: updatedPayment.id, paymentIntent: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 
   // Re-fetches the original PaymentIntent so a retried request returns the SAME clientSecret without creating a new charge.
   private async replayTopUpResponse(payment: Payment, amount: number) {
     const intent = await this.stripe().paymentIntents.retrieve(payment.providerPaymentIntentId!) as StripeIntentCreateResult;
     const meta = (payment.metadataJson ?? {}) as Record<string, unknown>;
-    return { data: { walletTopUpId: (meta.walletTopUpId as string) ?? null, paymentId: payment.id, stripePaymentIntentId: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
+    return { data: { walletTopUpId: (meta.walletTopUpId as string) ?? null, paymentId: payment.id, paymentIntent: intent.id, clientSecret: intent.client_secret, amount, status: 'PAYMENT_PENDING' }, message: 'Wallet top-up payment created successfully.' };
   }
 
   async history(user: AuthUserContext, query: ListWalletHistoryDto) {
@@ -86,7 +86,7 @@ export class CustomerWalletService {
   }
 
   // Webhook fallback: if Stripe's webhook never reaches us, the client can call this with the
-  // stripePaymentIntentId to pull the PaymentIntent status server-side and settle the top-up.
+  // PaymentIntent id to pull the PaymentIntent status server-side and settle the top-up.
   // Fully idempotent — credits at most once because it funnels through the same guarded
   // creditWalletTopUp path. Ownership is enforced by matching the payment to the caller.
   async confirmTopUp(user: AuthUserContext, dto: ConfirmWalletTopUpDto) {
@@ -96,20 +96,20 @@ export class CustomerWalletService {
     if (!walletTopUpId) throw new BadRequestException('This payment is not a wallet top-up');
     const ledger = await this.repository.findWalletTopUpLedger({ walletTopUpId, userId: user.uid });
     if (!ledger) throw new NotFoundException('Wallet top-up not found');
-    if (ledger.status === WalletLedgerStatus.SUCCESS) return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'SUCCESS' }, message: 'Wallet top-up already confirmed.' };
-    if (ledger.status === WalletLedgerStatus.FAILED || ledger.status === WalletLedgerStatus.CANCELLED) return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: ledger.status }, message: 'Wallet top-up was not successful.' };
+    if (ledger.status === WalletLedgerStatus.SUCCESS) return { data: { walletTopUpId: ledger.id, paymentId: payment.id, paymentIntent: dto.stripePaymentIntentId, status: 'SUCCESS' }, message: 'Wallet top-up already confirmed.' };
+    if (ledger.status === WalletLedgerStatus.FAILED || ledger.status === WalletLedgerStatus.CANCELLED) return { data: { walletTopUpId: ledger.id, paymentId: payment.id, paymentIntent: dto.stripePaymentIntentId, status: ledger.status }, message: 'Wallet top-up was not successful.' };
     const intent = await this.stripe().paymentIntents.retrieve(dto.stripePaymentIntentId) as { status: string };
     if (intent.status === 'succeeded') {
       const succeeded = await this.repository.markTopUpPaymentStatus(payment.id, PaymentStatus.SUCCEEDED);
       await this.creditWalletTopUp(succeeded);
-      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' };
+      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, paymentIntent: dto.stripePaymentIntentId, status: 'SUCCESS' }, message: 'Wallet top-up confirmed successfully.' };
     }
     if (intent.status === 'canceled' || intent.status === 'requires_payment_method') {
       const failed = await this.repository.markTopUpPaymentStatus(payment.id, PaymentStatus.FAILED);
       await this.failWalletTopUp(failed);
-      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'FAILED' }, message: 'Wallet top-up payment failed.' };
+      return { data: { walletTopUpId: ledger.id, paymentId: payment.id, paymentIntent: dto.stripePaymentIntentId, status: 'FAILED' }, message: 'Wallet top-up payment failed.' };
     }
-    return { data: { walletTopUpId: ledger.id, paymentId: payment.id, stripePaymentIntentId: dto.stripePaymentIntentId, status: 'PENDING' }, message: 'Wallet top-up is still processing. Please try again shortly.' };
+    return { data: { walletTopUpId: ledger.id, paymentId: payment.id, paymentIntent: dto.stripePaymentIntentId, status: 'PENDING' }, message: 'Wallet top-up is still processing. Please try again shortly.' };
   }
 
   async failWalletTopUp(payment: Payment): Promise<void> { const metadata = this.metadata(payment.metadataJson); if (!metadata.walletTopUpId) return; await this.repository.updateWalletTopUpStatus({ walletTopUpId: metadata.walletTopUpId, userId: payment.userId, status: WalletLedgerStatus.FAILED, description: 'Wallet top-up payment failed.' }); await this.notify(payment.userId, 'Wallet top-up failed', 'Your wallet top-up payment failed.', 'WALLET_TOP_UP_FAILED', { paymentId: payment.id, walletLedgerId: metadata.walletTopUpId }); }
