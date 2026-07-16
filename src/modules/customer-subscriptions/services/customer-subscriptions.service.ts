@@ -34,7 +34,7 @@ export class CustomerSubscriptionsService {
     const plan = await this.publicPlan(dto.planId);
     // if (plan.currency.toUpperCase() !== this.currency(plan.currency)) throw new BadRequestException('Plan currency must match Stripe currency');
     const price = await this.ensureStripePrice(plan, dto.billingCycle);
-    const customerId = await this.ensureStripeCustomer(user.uid);
+    const customerId = await this.ensureStripeCustomer(user.uid, dto.stripePaymentMethodId);
     const subscription = await this.stripe().subscriptions.create({ customer: customerId, items: [{ price }], default_payment_method: dto.stripePaymentMethodId, payment_behavior: 'default_incomplete', expand: ['latest_invoice.confirmation_secret', 'latest_invoice.payment_intent'], metadata: this.sanitizeMetadata({ userId: user.uid, planId: plan.id, billingCycle: dto.billingCycle, idempotencyKey }) }, { idempotencyKey }) as StripeSubscriptionLike;
     const invoice = typeof subscription.latest_invoice === 'object' ? subscription.latest_invoice : null;
     const paymentIntent = typeof invoice?.payment_intent === 'object' ? invoice?.payment_intent : null;
@@ -108,7 +108,22 @@ export class CustomerSubscriptionsService {
   private features(plan: SubscriptionPlan): PlanFeature[] { const map = this.object(plan.featuresJson); return Object.entries(map).map(([key, enabled]) => ({ key, label: key.split('_').map((p) => p[0]?.toUpperCase() + p.slice(1)).join(' '), enabled: Boolean(enabled) })); }
   private object(value: Prisma.JsonValue): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
   private planPrice(plan: SubscriptionPlan, cycle: BillingCycle): number { return Number(cycle === BillingCycle.YEARLY ? plan.yearlyPrice : plan.monthlyPrice); }
-  private async ensureStripeCustomer(userId: string): Promise<string> { const existing = await this.repository.findSubscriptionWithStripeCustomer(userId); if (existing?.stripeCustomerId) return existing.stripeCustomerId; const user = await this.repository.findUserByIdOrThrow(userId); return (await this.stripe().customers.create({ email: user.email, name: `${user.firstName} ${user.lastName}`.trim(), metadata: { userId } })).id; }
+  // A saved card is attached to one specific Stripe customer. If the checkout pays with a saved card,
+  // the subscription MUST be created on that same customer, otherwise Stripe rejects the payment method
+  // ("not attached to the customer"). We therefore resolve the customer from the card first, then any
+  // existing subscription/card, and only create a fresh customer when the user has none.
+  private async ensureStripeCustomer(userId: string, paymentMethodId?: string): Promise<string> {
+    if (paymentMethodId) {
+      const card = await this.repository.findSavedCardByPaymentMethodId(userId, paymentMethodId);
+      if (card?.stripeCustomerId) return card.stripeCustomerId;
+    }
+    const existing = await this.repository.findSubscriptionWithStripeCustomer(userId);
+    if (existing?.stripeCustomerId) return existing.stripeCustomerId;
+    const anyCard = await this.repository.findAnySavedCardForUser(userId);
+    if (anyCard?.stripeCustomerId) return anyCard.stripeCustomerId;
+    const user = await this.repository.findUserByIdOrThrow(userId);
+    return (await this.stripe().customers.create({ email: user.email, name: `${user.firstName} ${user.lastName}`.trim(), metadata: { userId } })).id;
+  }
   // Reuses the plan's cached Stripe product/price so we don't create a fresh duplicate on every checkout.
   // Admin price/currency edits null these cache columns, forcing a fresh price to be minted here on the next checkout.
   private async ensureStripePrice(plan: SubscriptionPlan, cycle: BillingCycle): Promise<string> {

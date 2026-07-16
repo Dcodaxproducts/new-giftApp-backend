@@ -59,6 +59,14 @@ export class CustomerSubscriptionsRepository {
     return this.prisma.customerSubscription.findFirst({ where: { userId, stripeCustomerId: { not: null } } });
   }
 
+  findSavedCardByPaymentMethodId(userId: string, stripePaymentMethodId: string) {
+    return this.prisma.customerPaymentMethod.findFirst({ where: { userId, stripePaymentMethodId, deletedAt: null } });
+  }
+
+  findAnySavedCardForUser(userId: string) {
+    return this.prisma.customerPaymentMethod.findFirst({ where: { userId, deletedAt: null }, orderBy: { createdAt: 'desc' } });
+  }
+
   findUserByIdOrThrow(id: string) {
     return this.prisma.user.findUniqueOrThrow({ where: { id } });
   }
