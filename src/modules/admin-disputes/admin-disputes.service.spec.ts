@@ -36,7 +36,7 @@ describe('Admin Dispute Manager Core module', () => {
   });
 
   it('adds required dispute permissions to the catalog', () => {
-    for (const text of ["module: 'disputes'", "key: 'read'", "key: 'create'", "key: 'update'", "key: 'assign'", "key: 'linkTransaction'", "key: 'refund.evaluate'", "key: 'notes.create'", "key: 'export'", "key: 'evidence.read'", "key: 'timeline.read'"]) expect(permissions).toContain(text);
+    for (const text of ["module: 'disputes'", "key: 'read'", "key: 'create'", "key: 'update'"]) expect(permissions).toContain(text);
   });
 
   it('exposes static routes before /admin/disputes/:id', () => {

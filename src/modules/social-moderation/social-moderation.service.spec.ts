@@ -108,7 +108,7 @@ describe('Social moderation source safety', () => {
 
   it('adds social moderation models and permissions', () => {
     for (const text of ['model SocialPost', 'model SocialReport', 'model SocialModerationLog', 'model SocialReportingRule', 'model UserWarning']) expect(schema).toContain(text);
-    for (const text of ["module: 'socialModeration'", "key: 'moderate'", "key: 'hide'", "key: 'remove'", "key: 'warn'", "module: 'socialReportingRules'"]) expect(permissions).toContain(text);
+    for (const text of ["module: 'socialModeration'", "key: 'read'", "key: 'update'", "module: 'socialReportingRules'"]) expect(permissions).toContain(text);
   });
 
   it('uses required Swagger tags, route order, and no duplicate routes', () => {

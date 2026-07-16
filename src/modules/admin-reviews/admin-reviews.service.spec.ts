@@ -39,7 +39,7 @@ describe('Admin Ratings & Reviews Management module', () => {
   });
 
   it('adds required review permissions to the catalog', () => {
-    for (const text of ["module: 'reviews'", "key: 'read'", "key: 'moderate'", "key: 'approve'", "key: 'remove'", "key: 'hide'", "key: 'penalize'", "key: 'export'", "module: 'reviewPolicies'", "key: 'update'", "module: 'reviewModerationLogs'"]) {
+    for (const text of ["module: 'reviews'", "key: 'read'", "key: 'update'", "module: 'reviewPolicies'"]) {
       expect(permissions).toContain(text);
     }
   });

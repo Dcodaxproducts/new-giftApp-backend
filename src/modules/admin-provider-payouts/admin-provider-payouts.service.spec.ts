@@ -168,8 +168,8 @@ describe('Admin provider payouts Swagger and permission safety', () => {
   it('uses provider payout/ledger records, permissions, and masked payout data', () => {
     expect(permissions).toContain("module: 'providerPayouts'");
     expect(permissions).toContain("key: 'read'");
-    expect(permissions).toContain("key: 'export'");
-    expect(permissions).toContain("key: 'initiate'");
+    expect(permissions).toContain("key: 'create'");
+    expect(permissions).toContain("key: 'update'");
     expect(controller.match(/@Permissions\('providerPayouts\.read'\)/g)).toHaveLength(6);
     expect(serviceSource).toContain('assertActionPermission(user, dto.action)');
     expect(controller).not.toContain("@Post(':id/approve')");

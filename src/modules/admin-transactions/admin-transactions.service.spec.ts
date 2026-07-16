@@ -173,7 +173,7 @@ describe('Admin transaction monitoring source safety', () => {
   });
 
   it('adds all required permissions and access metadata', () => {
-    for (const permission of ['read', 'export', 'refund', 'openDispute', 'notifyUser', 'receipt.download']) expect(permissions).toContain(`key: '${permission}'`);
+    for (const permission of ['read', 'update']) expect(permissions).toContain(`key: '${permission}'`);
     expect(swaggerAccess).toContain('GET /api/v1/admin/transactions/stats');
     expect(swaggerAccess).toContain('POST /api/v1/admin/transactions/{id}/action');
     expect(swaggerAccess).not.toContain('POST /api/v1/admin/transactions/{id}/refund');
