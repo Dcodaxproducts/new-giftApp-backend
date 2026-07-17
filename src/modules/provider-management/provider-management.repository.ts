@@ -439,6 +439,10 @@ export class ProviderManagementRepository {
     return this.updateProvider(id, data, profileData);
   }
 
+  revokeActiveSessions(providerId: string) {
+    return this.prisma.authSession.updateMany({ where: { userId: providerId, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
+
   private sanitizeProviderProfileData(profileData: Prisma.ProviderProfileUncheckedUpdateInput): Prisma.ProviderProfileUncheckedUpdateInput {
     const {
       approvedAt: _approvedAt,

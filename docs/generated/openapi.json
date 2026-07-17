@@ -1,6 +1,21 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_root",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List ",
+        "x-allowed-roles": "PUBLIC",
+        "x-access": "PUBLIC",
+        "description": "Access: PUBLIC."
+      }
+    },
     "/api/v1/auth/users/register": {
       "post": {
         "operationId": "AuthController_registerUser",
@@ -1157,6 +1172,95 @@
         "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
       }
     },
+    "/api/v1/notifications/device-tokens": {
+      "post": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. The device is always bound to the logged-in account. Safe to call on every app start and whenever Firebase rotates the token: re-sending the same token updates the existing device instead of creating a duplicate. A token already registered to another account is reassigned to the logged-in account, so a shared device never receives the previous owner notifications.",
+        "operationId": "NotificationsController_registerDeviceToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDeviceTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Device registered for push notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "device_token_id",
+                      "platform": "ANDROID"
+                    },
+                    "message": "Device registered for push notifications"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a device for push notifications",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      },
+      "delete": {
+        "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Call on logout so the signed-out device stops receiving push. Removes only the supplied token, so other devices signed in to the same account keep receiving notifications.",
+        "operationId": "NotificationsController_unregisterDeviceToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnregisterDeviceTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Device unregistered from push notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": null,
+                    "message": "Device unregistered from push notifications"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unregister a device from push notifications",
+        "tags": [
+          "06 Notifications"
+        ],
+        "x-allowed-roles": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER",
+        "x-access": "SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER"
+      }
+    },
     "/api/v1/notifications/read-all": {
       "patch": {
         "description": "Access: SUPER_ADMIN, ADMIN, PROVIDER, or REGISTERED_USER. Access is scoped to the authenticated account. JWT auth. Marks only notifications belonging to the logged-in account.",
@@ -1268,7 +1372,7 @@
     },
     "/api/v1/customer/wallet/add-funds": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Uses Stripe PaymentIntent. Wallet is credited only after successful server-side confirmation/webhook.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Uses Stripe PaymentIntent (USD only). Returns paymentIntent and clientSecret. Wallet is credited only after successful server-side confirmation/webhook.",
         "operationId": "CustomerWalletController_addFunds",
         "parameters": [],
         "requestBody": {
@@ -1283,7 +1387,25 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "walletTopUpId": "ledger_id_123",
+                      "paymentId": "payment_id",
+                      "paymentIntent": "pi_3Tsh1zP5GAZBrbrD0jO0B9XO",
+                      "clientSecret": "pi_3Tsh1zP5GAZBrbrD0jO0B9XO_secret_xxx",
+                      "amount": 100,
+                      "status": "PAYMENT_PENDING"
+                    },
+                    "message": "Wallet top-up payment created successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1292,6 +1414,55 @@
           }
         ],
         "summary": "Create wallet top-up payment",
+        "tags": [
+          "05 Customer - Wallet"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
+    "/api/v1/customer/wallet/confirm-top-up": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. Use when the Stripe webhook has not settled the top-up. Send the stripePaymentIntentId; the server retrieves its status and credits the wallet if paid. Idempotent — safe to call repeatedly; never double-credits.",
+        "operationId": "CustomerWalletController_confirmTopUp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmWalletTopUpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "walletTopUpId": "ledger_id_123",
+                      "paymentId": "payment_id",
+                      "paymentIntent": "pi_3TshCwP5GAZBrbrD0EC7FoKQ",
+                      "status": "SUCCESS"
+                    },
+                    "message": "Wallet top-up confirmed successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Confirm a wallet top-up (webhook fallback)",
         "tags": [
           "05 Customer - Wallet"
         ],
@@ -1331,7 +1502,7 @@
               "enum": [
                 "ALL",
                 "TOP_UP",
-                "GIFT_SENT",
+                "ORDER_PAYMENT",
                 "MONEY_GIFT_SENT",
                 "REWARD_CREDIT",
                 "REFUND",
@@ -1733,6 +1904,234 @@
         ],
         "x-allowed-roles": "SUPER_ADMIN",
         "x-access": "SUPER_ADMIN"
+      }
+    },
+    "/api/v1/admin/documents": {
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with documents.create. Creates a new document type that providers must upload.",
+        "operationId": "AdminDocumentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "doc_id",
+                      "name": "Business License",
+                      "isRequired": true,
+                      "isActive": true,
+                      "createdAt": "2025-01-01T00:00:00.000Z",
+                      "updatedAt": "2025-01-01T00:00:00.000Z"
+                    },
+                    "message": "Document created successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a document definition",
+        "tags": [
+          "02 Admin - Document Management"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with documents.read. Supports pagination and isActive filter.",
+        "operationId": "AdminDocumentsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true,
+                        "isActive": true,
+                        "createdAt": "2025-01-01T00:00:00.000Z",
+                        "updatedAt": "2025-01-01T00:00:00.000Z"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "limit": 10,
+                      "total": 1,
+                      "totalPages": 1
+                    },
+                    "message": "Documents fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all document definitions",
+        "tags": [
+          "02 Admin - Document Management"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/documents/{id}": {
+      "patch": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with documents.update. Update name, isRequired, or isActive.",
+        "operationId": "AdminDocumentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "doc_id",
+                      "name": "Tax Certificate",
+                      "isRequired": false,
+                      "isActive": true,
+                      "createdAt": "2025-01-01T00:00:00.000Z",
+                      "updatedAt": "2025-01-01T00:00:00.000Z"
+                    },
+                    "message": "Document updated successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a document definition",
+        "tags": [
+          "02 Admin - Document Management"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "delete": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with documents.delete. Permanently removes the document from the database.",
+        "operationId": "AdminDocumentsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": null,
+                    "message": "Document deleted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Permanently delete a document definition",
+        "tags": [
+          "02 Admin - Document Management"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/admin/dashboard": {
@@ -4493,7 +4892,6 @@
                         "id": "user_id",
                         "name": "Julianne Doe",
                         "email": "julianne.doe@example.com",
-                        "location": "San Francisco, CA, USA",
                         "kycStatus": "KYC Level 2 Verified"
                       },
                       "relatedRecords": {
@@ -4534,7 +4932,7 @@
     },
     "/api/v1/admin/refund-policy-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Settings feed refund eligibility, cancellation deduction tiers, dispute, and provider refund workflows. Returns refund enablement status and cancellation deduction tiers used by refund policy settings.",
+        "description": "Access: SUPER_ADMIN or ADMIN with refundPolicies.read. SUPER_ADMIN or ADMIN with refundPolicies.read permission. Returns cancellation enablement and deduction percentage. Returns cancellation enablement status and deduction percentage.",
         "operationId": "RefundPolicySettingsController_get",
         "parameters": [],
         "responses": {
@@ -4546,14 +4944,8 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "allowRefund": true,
-                      "cancellationTiers": [
-                        {
-                          "daysBeforeDelivery": 30,
-                          "deductionPercent": 50,
-                          "label": "Early Cancellation"
-                        }
-                      ],
+                      "allowCancellation": true,
+                      "cancellationDeductionPercent": 10,
                       "lastUpdatedAt": "2026-05-25T10:00:00.000Z"
                     },
                     "message": "Refund policy settings fetched successfully."
@@ -4576,7 +4968,7 @@
         "x-access": "SUPER_ADMIN or ADMIN with refundPolicies.read"
       },
       "patch": {
-        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates global refund policy settings used by customer refund request eligibility, provider refund handling, cancellation deduction tiers, and admin/provider dispute workflows. SUPER_ADMIN only. Updates refund enablement status and cancellation deduction tiers used by refund policy settings.",
+        "description": "Access: SUPER_ADMIN. SUPER_ADMIN only. Updates cancellation enablement and deduction percentage for order cancellations. SUPER_ADMIN only. Updates cancellation enablement and deduction percentage for order cancellations.",
         "operationId": "RefundPolicySettingsController_update",
         "parameters": [],
         "requestBody": {
@@ -4587,16 +4979,10 @@
                 "$ref": "#/components/schemas/UpdateRefundPolicySettingsDto"
               },
               "examples": {
-                "updateRefundPolicy": {
+                "updatePolicy": {
                   "value": {
-                    "allowRefund": true,
-                    "cancellationTiers": [
-                      {
-                        "daysBeforeDelivery": 30,
-                        "deductionPercent": 50,
-                        "label": "Early Cancellation"
-                      }
-                    ]
+                    "allowCancellation": true,
+                    "cancellationDeductionPercent": 10
                   }
                 }
               }
@@ -4612,14 +4998,8 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "allowRefund": true,
-                      "cancellationTiers": [
-                        {
-                          "daysBeforeDelivery": 30,
-                          "deductionPercent": 50,
-                          "label": "Early Cancellation"
-                        }
-                      ],
+                      "allowCancellation": true,
+                      "cancellationDeductionPercent": 10,
                       "lastUpdatedAt": "2026-05-25T10:00:00.000Z"
                     },
                     "message": "Refund policy settings updated successfully."
@@ -4654,16 +5034,12 @@
               "schema": {
                 "example": {
                   "email": "staff@example.com",
-                  "temporaryPassword": "Temp@123456",
-                  "generateTemporaryPassword": false,
-                  "mustChangePassword": true,
+                  "password": "Temp@123456",
                   "firstName": "Operations",
                   "lastName": "Staff",
                   "phone": "+15550000002",
                   "roleId": "STAFF_ROLE_id",
-                  "avatarUrl": "https://cdn.yourdomain.com/staff-avatars/staff.png",
-                  "isActive": true,
-                  "sendInviteEmail": true
+                  "isActive": true
                 }
               }
             }
@@ -5024,7 +5400,7 @@
     },
     "/api/v1/admin/payout-settings": {
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns global platform commission, payout threshold/schedule, and active provider commission tiers. Settings affect future payout calculations only and do not rewrite historical payouts.",
+        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.read. SUPER_ADMIN or ADMIN with payoutSettings.read permission. Returns active provider commission tiers. Platform commission rate and minimum payout threshold now live in System Settings.",
         "operationId": "AdminPayoutSettingsController_get",
         "parameters": [],
         "responses": {
@@ -5036,13 +5412,6 @@
                   "example": {
                     "success": true,
                     "data": {
-                      "platformRatePercent": 5,
-                      "minimumPayoutThreshold": 100,
-                      "currency": "USD",
-                      "payoutSchedule": "MONTHLY_LAST_DAY",
-                      "payoutTimeUtc": "00:00",
-                      "autoPayoutEnabled": true,
-                      "lastUpdatedAt": "2026-05-16T10:00:00.000Z",
                       "commissionTiers": [
                         {
                           "id": "tier_standard",
@@ -5062,7 +5431,7 @@
                         }
                       ]
                     },
-                    "message": "Payout settings fetched successfully."
+                    "message": "Commission tiers fetched successfully."
                   }
                 }
               }
@@ -5074,74 +5443,12 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch commission and payout settings",
+        "summary": "Fetch commission tiers",
         "tags": [
           "02 Admin - Commission & Payout Settings"
         ],
         "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.read",
         "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with payoutSettings.update. SUPER_ADMIN or ADMIN with payoutSettings.update permission. Applies to future payout calculations only. Updates global settings for future payout calculations only; existing historical payouts are not rewritten or recalculated.",
-        "operationId": "AdminPayoutSettingsController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateAdminPayoutSettingsDto"
-              },
-              "examples": {
-                "update": {
-                  "value": {
-                    "platformRatePercent": 5,
-                    "minimumPayoutThreshold": 100,
-                    "currency": "USD",
-                    "payoutSchedule": "MONTHLY_LAST_DAY",
-                    "payoutTimeUtc": "00:00",
-                    "autoPayoutEnabled": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "platformRatePercent": 5,
-                      "minimumPayoutThreshold": 100,
-                      "currency": "USD",
-                      "payoutSchedule": "MONTHLY_LAST_DAY",
-                      "payoutTimeUtc": "00:00",
-                      "autoPayoutEnabled": true,
-                      "lastUpdatedAt": "2026-05-16T10:00:00.000Z"
-                    },
-                    "message": "Payout settings updated successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update commission and payout settings",
-        "tags": [
-          "02 Admin - Commission & Payout Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with payoutSettings.update",
-        "x-access": "SUPER_ADMIN or ADMIN with payoutSettings.update"
       }
     },
     "/api/v1/admin/payout-settings/commission-tiers": {
@@ -7009,10 +7316,8 @@
                     "businessBio": "Short customer-facing business summary.",
                     "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
                     "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
-                    "location": {
-                      "lat": 31.5,
-                      "lng": 74.3
-                    },
+                    "lat": 31.5,
+                    "lng": 74.3,
                     "isActive": true
                   }
                 },
@@ -7050,10 +7355,8 @@
                       "businessName": "Gifts & Blooms Co. Ltd",
                       "companyLogoUrl": "https://cdn.yourdomain.com/provider-logos/logo.png",
                       "coverImageUrl": "https://cdn.yourdomain.com/provider-covers/cover.png",
-                      "location": {
-                        "lat": 31.5,
-                        "lng": 74.3
-                      },
+                      "lat": 31.5,
+                      "lng": 74.3,
                       "status": "PENDING",
                       "inviteEmailSent": true
                     },
@@ -7555,9 +7858,18 @@
     },
     "/api/v1/provider-business-categories": {
       "get": {
-        "description": "Access: PUBLIC. Lists provider business categories. Use isActive=true or isActive=false to filter by active state. Lists provider business categories. Use isActive=true or isActive=false to filter by active state.",
+        "description": "Access: PUBLIC. Lists provider business categories. Use isActive=true or isActive=false to filter by active state. Public. Non-admin callers always receive active categories only. SUPER_ADMIN/STAFF may pass isActive=true or isActive=false to see inactive categories too. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination).",
         "operationId": "ProviderBusinessCategoriesController_list",
         "parameters": [
+          {
+            "name": "lookup",
+            "required": false,
+            "in": "query",
+            "description": "When true, returns only { id, name } pairs (for dropdowns). All other params are ignored.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
           {
             "name": "page",
             "required": false,
@@ -7964,9 +8276,9 @@
               "enum": [
                 "ALL",
                 "ORDER_EARNING",
-                "REFUND_DEDUCTION",
+                "REFUND",
                 "PENALTY",
-                "PAYOUT",
+                "WITHDRAWAL",
                 "ADJUSTMENT"
               ]
             }
@@ -7980,9 +8292,9 @@
               "enum": [
                 "ALL",
                 "PENDING",
-                "AVAILABLE",
-                "PAID",
-                "FAILED"
+                "SUCCESS",
+                "FAILED",
+                "CANCELLED"
               ]
             }
           }
@@ -8353,6 +8665,405 @@
         ],
         "x-allowed-roles": "PROVIDER",
         "x-access": "PROVIDER"
+      }
+    },
+    "/api/v1/provider/documents": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Returns list of all active documents that provider needs to submit.",
+        "operationId": "ProviderDocumentsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true,
+                        "isActive": true
+                      }
+                    ],
+                    "message": "Documents fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch all active document definitions",
+        "tags": [
+          "03 Provider - Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Submit a document against a document definition. Upload file first via storage presigned URL, then submit fileUrl here.",
+        "operationId": "ProviderDocumentsController_submit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitProviderDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_doc_id",
+                      "providerProfileId": "profile_id",
+                      "documentTypeId": "doc_id",
+                      "fileUrl": "provider-documents/license.pdf",
+                      "status": "PENDING",
+                      "documentType": {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true
+                      }
+                    },
+                    "message": "Document submitted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit a document",
+        "tags": [
+          "03 Provider - Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/documents/my": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Returns all active documents with submission status (PENDING/APPROVED/REJECTED) for the logged-in provider.",
+        "operationId": "ProviderDocumentsController_my",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true,
+                        "isSubmitted": true,
+                        "submission": {
+                          "id": "provider_doc_id",
+                          "fileUrl": "provider-documents/license.pdf",
+                          "status": "PENDING",
+                          "createdAt": "2025-01-01T00:00:00.000Z",
+                          "updatedAt": "2025-01-01T00:00:00.000Z"
+                        }
+                      },
+                      {
+                        "id": "doc_id_2",
+                        "name": "Tax Certificate",
+                        "isRequired": false,
+                        "isSubmitted": false,
+                        "submission": null
+                      }
+                    ],
+                    "message": "Provider documents fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch my submitted documents with status",
+        "tags": [
+          "03 Provider - Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/provider/documents/{id}": {
+      "patch": {
+        "description": "Access: Authenticated. Authenticated JWT required. PROVIDER only. Update fileUrl for an existing submission. Status resets to PENDING.",
+        "operationId": "ProviderDocumentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_doc_id",
+                      "fileUrl": "provider-documents/updated-license.pdf",
+                      "status": "PENDING",
+                      "documentType": {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true
+                      }
+                    },
+                    "message": "Document updated successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Re-upload a document",
+        "tags": [
+          "03 Provider - Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/providers/{id}/documents": {
+      "get": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with providers.read. Returns all documents with submission status for a specific provider.",
+        "operationId": "AdminProviderDocumentsController_documents",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": [
+                      {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true,
+                        "isSubmitted": true,
+                        "submission": {
+                          "id": "provider_doc_id",
+                          "fileUrl": "provider-documents/license.pdf",
+                          "status": "APPROVED",
+                          "createdAt": "2025-01-01T00:00:00.000Z",
+                          "updatedAt": "2025-01-01T00:00:00.000Z"
+                        }
+                      },
+                      {
+                        "id": "doc_id_2",
+                        "name": "Tax Certificate",
+                        "isRequired": true,
+                        "isSubmitted": false,
+                        "submission": null
+                      }
+                    ],
+                    "message": "Provider documents fetched successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "View provider submitted documents",
+        "tags": [
+          "02 Admin - Provider Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      },
+      "post": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with providers.update. Admin submits a document for a provider.",
+        "operationId": "AdminProviderDocumentsController_submit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminSubmitProviderDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_doc_id",
+                      "providerProfileId": "profile_id",
+                      "documentTypeId": "doc_id",
+                      "fileUrl": "provider-documents/license.pdf",
+                      "status": "PENDING",
+                      "documentType": {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true
+                      }
+                    },
+                    "message": "Document submitted successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit document on behalf of provider",
+        "tags": [
+          "02 Admin - Provider Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
+      }
+    },
+    "/api/v1/admin/providers/documents/{id}/review": {
+      "patch": {
+        "description": "Access: Authenticated. Authenticated JWT required. SUPER_ADMIN or STAFF with providers.update. Approve or reject a submitted provider document.",
+        "operationId": "AdminProviderDocumentsController_review",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewProviderDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "id": "provider_doc_id",
+                      "fileUrl": "provider-documents/license.pdf",
+                      "status": "APPROVED",
+                      "documentType": {
+                        "id": "doc_id",
+                        "name": "Business License",
+                        "isRequired": true
+                      }
+                    },
+                    "message": "Document approved successfully."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Review provider document",
+        "tags": [
+          "02 Admin - Provider Documents"
+        ],
+        "x-allowed-roles": "Authenticated",
+        "x-access": "Authenticated"
       }
     },
     "/api/v1/provider/reviews/summary": {
@@ -9147,18 +9858,11 @@
                 "PENDING",
                 "ACCEPTED",
                 "PROCESSING",
-                "PACKED",
-                "READY_TO_FULFILL",
                 "SHIPPED",
-                "OUT_FOR_DELIVERY",
                 "DELIVERED",
                 "COMPLETED",
                 "CANCELLED",
-                "REJECTED",
-                "REFUND_REQUESTED",
-                "REFUND_PROCESSING",
-                "REFUNDED",
-                "REFUND_REJECTED"
+                "REJECTED"
               ],
               "type": "string"
             }
@@ -9226,11 +9930,10 @@
                     "success": true,
                     "data": [
                       {
-                        "id": "provider_order_id",
+                        "id": "order_id",
                         "orderId": "order_id",
                         "orderNumber": "ORD-10293",
                         "status": "PENDING",
-                        "paymentStatus": "SUCCEEDED",
                         "customer": {
                           "name": "Sarah Jenkins",
                           "phone": "+15551234567"
@@ -9242,7 +9945,7 @@
                           }
                         ],
                         "itemCount": 3,
-                        "totalPayout": 142,
+                        "total": 142,
                         "currency": "USD",
                         "createdAt": "2026-10-24T10:45:00.000Z",
                         "receivedAgoText": "5m ago"
@@ -9270,7 +9973,7 @@
     },
     "/api/v1/provider/orders/history": {
       "get": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses ProviderOrder records scoped to the authenticated provider. Status tabs map to provider order statuses.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Uses Order records scoped to the authenticated provider. Status tabs map to order statuses.",
         "operationId": "ProviderOrdersController_history",
         "parameters": [
           {
@@ -9303,19 +10006,11 @@
                 "PENDING",
                 "ACCEPTED",
                 "PROCESSING",
-                "PACKED",
-                "READY_TO_FULFILL",
                 "SHIPPED",
-                "OUT_FOR_DELIVERY",
                 "DELIVERED",
                 "COMPLETED",
                 "CANCELLED",
-                "REJECTED",
-                "REFUND_REQUESTED",
-                "REFUND_PROCESSING",
-                "REFUNDED",
-                "REFUND_REJECTED",
-                "DRAFT"
+                "REJECTED"
               ]
             }
           },
@@ -9448,7 +10143,7 @@
     },
     "/api/v1/provider/orders/analytics/revenue": {
       "get": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Revenue uses provider totalPayout for paid active/completed provider orders.",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Revenue uses order total for active/completed orders.",
         "operationId": "ProviderOrdersController_revenueAnalytics",
         "parameters": [
           {
@@ -9686,10 +10381,10 @@
         "x-access": "PROVIDER"
       }
     },
-    "/api/v1/provider/orders/{id}/action": {
+    "/api/v1/provider/orders/{id}/status": {
       "post": {
-        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. ACCEPT allows PENDING -> ACCEPTED. REJECT allows PENDING -> REJECTED with required reason. UPDATE_STATUS enforces provider order state machine. FULFILL stores dispatch details and moves order to shipped/fulfilled state.",
-        "operationId": "ProviderOrdersController_action",
+        "description": "Access: PROVIDER. PROVIDER only. providerId is derived from JWT; provider can access only own inventory, offers, orders, analytics, and messages. PROVIDER only. Enforces order state machine transitions. Reason is required when rejecting.",
+        "operationId": "ProviderOrdersController_updateStatus",
         "parameters": [
           {
             "name": "id",
@@ -9705,41 +10400,38 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProviderOrderActionDto"
+                "$ref": "#/components/schemas/UpdateProviderOrderStatusDto"
               },
               "examples": {
                 "accept": {
+                  "summary": "Accept order",
                   "value": {
-                    "action": "ACCEPT",
-                    "comment": "Order accepted and will be processed shortly.",
-                    "notifyCustomer": true
+                    "status": "ACCEPTED"
                   }
                 },
                 "reject": {
+                  "summary": "Reject order",
                   "value": {
-                    "action": "REJECT",
-                    "reason": "OUT_OF_STOCK",
-                    "comment": "The selected item is currently unavailable.",
-                    "notifyCustomer": true
+                    "status": "REJECTED",
+                    "reason": "Out of stock"
                   }
                 },
-                "updateStatus": {
+                "processing": {
+                  "summary": "Start processing",
                   "value": {
-                    "action": "UPDATE_STATUS",
-                    "status": "PROCESSING",
-                    "note": "Order is being prepared.",
-                    "notifyCustomer": true
+                    "status": "PROCESSING"
                   }
                 },
-                "fulfill": {
+                "shipped": {
+                  "summary": "Mark shipped",
                   "value": {
-                    "action": "FULFILL",
-                    "dispatchAt": "2026-10-25T10:00:00.000Z",
-                    "estimatedDeliveryAt": "2026-10-26T10:00:00.000Z",
-                    "carrier": "FedEx",
-                    "trackingNumber": "FDX-123456",
-                    "notifyCustomer": true,
-                    "note": "Package handed to courier."
+                    "status": "SHIPPED"
+                  }
+                },
+                "delivered": {
+                  "summary": "Mark delivered",
+                  "value": {
+                    "status": "DELIVERED"
                   }
                 }
               }
@@ -9748,19 +10440,18 @@
         },
         "responses": {
           "200": {
-            "description": "Provider order action completed successfully",
+            "description": "Order status updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "example": {
                     "success": true,
                     "data": {
-                      "id": "provider_order_id",
-                      "status": "PROCESSING",
-                      "orderId": "order_id",
-                      "orderNumber": "ORD-10293"
+                      "id": "order_id",
+                      "orderNumber": "ORD-10293",
+                      "status": "ACCEPTED"
                     },
-                    "message": "Provider order action completed successfully."
+                    "message": "Order status updated successfully."
                   }
                 }
               }
@@ -9772,7 +10463,7 @@
             "bearer": []
           }
         ],
-        "summary": "Run provider order action",
+        "summary": "Update provider order status",
         "tags": [
           "03 Provider - Orders"
         ],
@@ -11249,10 +11940,11 @@
               "type": "string",
               "enum": [
                 "ALL",
-                "ACTIVE",
                 "PENDING",
+                "APPROVED",
+                "REJECTED",
                 "SUSPENDED",
-                "DISABLED"
+                "BLOCKED"
               ]
             }
           },
@@ -11344,10 +12036,11 @@
               "type": "string",
               "enum": [
                 "ALL",
-                "ACTIVE",
                 "PENDING",
+                "APPROVED",
+                "REJECTED",
                 "SUSPENDED",
-                "DISABLED"
+                "BLOCKED"
               ]
             }
           },
@@ -13245,20 +13938,6 @@
             }
           },
           {
-            "name": "deliveryOption",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "SAME_DAY",
-              "type": "string",
-              "enum": [
-                "SAME_DAY",
-                "NEXT_DAY",
-                "SCHEDULED"
-              ]
-            }
-          },
-          {
             "name": "sortBy",
             "required": false,
             "in": "query",
@@ -13423,20 +14102,6 @@
             }
           },
           {
-            "name": "deliveryOption",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "SAME_DAY",
-              "type": "string",
-              "enum": [
-                "SAME_DAY",
-                "NEXT_DAY",
-                "SCHEDULED"
-              ]
-            }
-          },
-          {
             "name": "sortBy",
             "required": false,
             "in": "query",
@@ -13481,11 +14146,6 @@
                           "id": "provider_id",
                           "businessName": "Dcodax Gifts"
                         },
-                        "deliveryOptions": [
-                          "SAME_DAY",
-                          "NEXT_DAY",
-                          "SCHEDULED"
-                        ],
                         "activeOffer": null
                       }
                     ],
@@ -13573,11 +14233,6 @@
                           "name": "50ml",
                           "price": 129.99
                         }
-                      ],
-                      "deliveryOptions": [
-                        "SAME_DAY",
-                        "NEXT_DAY",
-                        "SCHEDULED"
                       ],
                       "activeOffer": null
                     },
@@ -13876,7 +14531,7 @@
     },
     "/api/v1/customer/cart": {
       "get": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Totals are backend calculated from price snapshots.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Returns cart items with gift info.",
         "operationId": "CustomerMarketplaceController_cart",
         "parameters": [],
         "responses": {
@@ -13889,42 +14544,18 @@
                     "success": true,
                     "data": {
                       "id": "cart_id",
-                      "status": "ACTIVE",
                       "items": [
                         {
                           "id": "cart_item_id",
                           "giftId": "gift_id",
-                          "variantId": "variant_id",
                           "name": "Luxury Perfume",
-                          "variantName": "50ml",
                           "quantity": 1,
-                          "unitPrice": 129.99,
-                          "discountAmount": 20,
-                          "finalUnitPrice": 109.99,
-                          "lineTotal": 109.99,
                           "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
-                          "deliveryOption": "SAME_DAY",
-                          "recipient": {
-                            "contactId": "contact_id",
-                            "name": "Sarah Khan",
-                            "phone": "+923001234567",
-                            "addressId": "address_id"
-                          },
-                          "giftMessage": "Hope you love this special surprise!",
-                          "messageMediaUrls": [
-                            "https://cdn.yourdomain.com/gift-message-media/photo.png"
-                          ],
-                          "scheduledDeliveryAt": "2026-12-24T10:00:00.000Z"
+                          "createdAt": "2026-06-01T12:00:00.000Z",
+                          "updatedAt": "2026-06-01T12:00:00.000Z"
                         }
                       ],
-                      "summary": {
-                        "subtotal": 129.99,
-                        "discountTotal": 20,
-                        "deliveryFee": 0,
-                        "tax": 0,
-                        "total": 109.99,
-                        "currency": "USD"
-                      }
+                      "itemCount": 1
                     },
                     "message": "Cart fetched successfully"
                   }
@@ -13969,7 +14600,7 @@
     },
     "/api/v1/customer/cart/items": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Backend calculates unit price, active offer discount, final price, subtotal, delivery fee placeholder, and total.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. All cart items must belong to the same provider.",
         "operationId": "CustomerMarketplaceController_addCartItem",
         "parameters": [],
         "requestBody": {
@@ -13980,22 +14611,19 @@
                 "$ref": "#/components/schemas/AddCartItemDto"
               },
               "examples": {
-                "sendGift": {
+                "withoutVariant": {
+                  "summary": "Add gift without variant",
                   "value": {
                     "giftId": "cmf0giftroses001",
-                    "variantId": "cmf0variant50ml001",
-                    "quantity": 1,
-                    "deliveryOption": "SAME_DAY",
-                    "recipientContactId": "cmf0contactmary001",
-                    "recipientName": "Sarah Khan",
-                    "recipientPhone": "+923001234567",
-                    "recipientAddressId": "cmf0addresshome001",
-                    "eventId": "cmf0eventbirthday001",
-                    "giftMessage": "Hope you love this special surprise!",
-                    "messageMediaUrls": [
-                      "https://cdn.yourdomain.com/gift-message-media/photo.png"
-                    ],
-                    "scheduledDeliveryAt": "2026-12-24T10:00:00.000Z"
+                    "quantity": 1
+                  }
+                },
+                "withVariant": {
+                  "summary": "Add gift with variant",
+                  "value": {
+                    "giftId": "cmf0giftroses001",
+                    "variantId": "variant_50ml",
+                    "quantity": 1
                   }
                 }
               }
@@ -14042,21 +14670,9 @@
                 "$ref": "#/components/schemas/UpdateCartItemDto"
               },
               "examples": {
-                "updateSelection": {
+                "updateQuantity": {
                   "value": {
-                    "variantId": "cmf0variant100ml001",
-                    "quantity": 2,
-                    "deliveryOption": "SCHEDULED",
-                    "recipientContactId": "cmf0contactmary001",
-                    "recipientName": "Sarah Khan",
-                    "recipientPhone": "+923001234567",
-                    "recipientAddressId": "cmf0addresshome001",
-                    "eventId": "cmf0eventbirthday001",
-                    "giftMessage": "Updated gift note.",
-                    "messageMediaUrls": [
-                      "https://cdn.yourdomain.com/gift-message-media/video.mp4"
-                    ],
-                    "scheduledDeliveryAt": "2026-12-25T10:00:00.000Z"
+                    "quantity": 2
                   }
                 }
               }
@@ -14113,7 +14729,7 @@
     },
     "/api/v1/customer/orders": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Prices are backend-calculated from cart/payment snapshots. STRIPE_CARD requires a successful owned paymentId; COD stays pending; PLACEHOLDER is for development only. Multiple providers are split into provider sub-orders.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Creates an order from cart items. All items must be from the same provider. Platform fee is calculated automatically.",
         "operationId": "CustomerMarketplaceController_createOrder",
         "parameters": [],
         "requestBody": {
@@ -14124,21 +14740,16 @@
                 "$ref": "#/components/schemas/CreateOrderDto"
               },
               "examples": {
-                "stripeCard": {
-                  "summary": "Stripe card checkout",
+                "checkout": {
+                  "summary": "Standard checkout",
                   "value": {
-                    "cartId": "cart_id",
-                    "paymentId": "payment_id",
-                    "deliveryAddressId": "address_id",
-                    "paymentMethod": "STRIPE_CARD"
-                  }
-                },
-                "cod": {
-                  "summary": "Cash on delivery checkout",
-                  "value": {
-                    "cartId": "cart_id",
-                    "deliveryAddressId": "address_id",
-                    "paymentMethod": "COD"
+                    "recipientName": "Sarah Khan",
+                    "recipientPhone": "+923001234567",
+                    "recipientAddress": "House 12, Street 4, F-8/2, Islamabad",
+                    "giftMessage": "Hope you love this special surprise!",
+                    "mediaAttachments": [
+                      "https://cdn.yourdomain.com/gift-message-media/photo.png"
+                    ]
                   }
                 }
               }
@@ -14204,23 +14815,17 @@
             "required": false,
             "in": "query",
             "schema": {
-              "example": "CONFIRMED",
+              "example": "PENDING",
               "type": "string",
               "enum": [
                 "PENDING",
-                "CONFIRMED",
+                "ACCEPTED",
                 "PROCESSING",
-                "PARTIALLY_PROCESSING",
-                "PARTIALLY_SHIPPED",
                 "SHIPPED",
-                "PARTIALLY_COMPLETED",
-                "NEEDS_REVIEW",
-                "READY_FOR_PICKUP",
-                "OUT_FOR_DELIVERY",
                 "DELIVERED",
                 "COMPLETED",
                 "CANCELLED",
-                "FAILED"
+                "REJECTED"
               ]
             }
           },
@@ -14261,6 +14866,38 @@
         "x-access": "REGISTERED_USER"
       }
     },
+    "/api/v1/customer/orders/{id}/cancel": {
+      "post": {
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Order can be cancelled when status is ACCEPTED or PROCESSING. Cancellation deduction percentage is applied per admin policy.",
+        "operationId": "CustomerMarketplaceController_cancelOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel order",
+        "tags": [
+          "05 Customer - Orders"
+        ],
+        "x-allowed-roles": "REGISTERED_USER",
+        "x-access": "REGISTERED_USER"
+      }
+    },
     "/api/v1/customer/orders/{id}": {
       "get": {
         "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Order must belong to the current customer.",
@@ -14286,36 +14923,32 @@
                     "data": {
                       "id": "order_id",
                       "orderNumber": "ORD-1760000000000",
-                      "status": "CONFIRMED",
-                      "paymentStatus": "SUCCEEDED",
-                      "paymentMethod": "STRIPE_CARD",
+                      "status": "PENDING",
                       "recipient": {
                         "name": "Sarah Khan",
-                        "email": null,
                         "phone": "+923001234567",
-                        "avatarUrl": null
+                        "address": "House 12, Street 4, F-8/2, Islamabad"
                       },
-                      "deliveryDate": "2026-12-24T10:00:00.000Z",
                       "occasion": null,
                       "giftMessage": "Hope you love this special surprise!",
+                      "mediaAttachments": [
+                        "https://cdn.yourdomain.com/gift-message-media/photo.png"
+                      ],
                       "items": [
                         {
                           "giftId": "gift_id",
                           "name": "Luxury Perfume",
-                          "variantName": "50ml",
                           "quantity": 1,
                           "imageUrl": "https://cdn.yourdomain.com/gift-images/perfume.png",
-                          "total": 109.99
+                          "unitPrice": 99.99
                         }
                       ],
                       "summary": {
-                        "subtotal": 129.99,
-                        "discountTotal": 20,
-                        "deliveryFee": 0,
-                        "tax": 0,
-                        "total": 109.99,
-                        "currency": "USD"
-                      }
+                        "subtotal": 99.99,
+                        "platformFee": 5,
+                        "total": 104.99
+                      },
+                      "isGroupGift": false
                     },
                     "message": "Order fetched successfully."
                   }
@@ -14841,7 +15474,28 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "data": {
+                      "customerSubscriptionId": "subscription_id",
+                      "stripeSubscriptionId": "sub_xxx",
+                      "paymentIntent": "pi_xxx",
+                      "clientSecret": "pi_xxx_secret_xxx",
+                      "publishableKey": "pk_test_xxx",
+                      "amount": 499,
+                      "currency": "USD",
+                      "billingCycle": "MONTHLY",
+                      "status": "INCOMPLETE"
+                    },
+                    "message": "Subscription checkout created successfully."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -16202,9 +16856,18 @@
         "x-access": "SUPER_ADMIN or ADMIN with giftCategories.create"
       },
       "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. RBAC permission: giftCategories.read. By default returns all categories. Use isActive=true or isActive=false to filter by active state.",
+        "description": "Access: SUPER_ADMIN or ADMIN with giftCategories.read. SUPER_ADMIN or ADMIN with giftCategories.read permission. Public. Non-admin callers (including providers) always receive active categories only. SUPER_ADMIN/STAFF may pass isActive=true or isActive=false to see inactive categories too. Use lookup=true to get only { id, name } pairs for dropdowns (active only, no pagination).",
         "operationId": "GiftCategoriesController_list",
         "parameters": [
+          {
+            "name": "lookup",
+            "required": false,
+            "in": "query",
+            "description": "When true, returns only { id, name } pairs (for dropdowns). All other params are ignored.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
           {
             "name": "page",
             "required": false,
@@ -16271,11 +16934,6 @@
             "description": "Gift categories fetched successfully"
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "summary": "List gift categories",
         "tags": [
           "04 Gifts - Categories"
@@ -17354,866 +18012,9 @@
         "description": "Access: SUPER_ADMIN or ADMIN with planFeatures.delete. SUPER_ADMIN or ADMIN with planFeatures.delete permission."
       }
     },
-    "/api/v1/admin/message-moderation/conversations": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Harmful message previews are redacted. Supports page, limit, search, chatType, status, severity, flagReason, senderRole, participantType, assignedToAdminId, fromDate, toDate, sortBy, sortOrder.",
-        "operationId": "MessageModerationController_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "chatType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BUYER_PROVIDER",
-                "SUPPORT_CHAT",
-                "SYSTEM_REVIEW"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING_REVIEW",
-                "ACTION_TAKEN",
-                "DISMISSED",
-                "ESCALATED",
-                "RESOLVED"
-              ]
-            }
-          },
-          {
-            "name": "severity",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOW",
-                "MEDIUM",
-                "HIGH",
-                "CRITICAL"
-              ]
-            }
-          },
-          {
-            "name": "flagReason",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER"
-              ]
-            }
-          },
-          {
-            "name": "senderRole",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "participantType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "assignedToAdminId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CUSTOMER_PROVIDER_CHAT",
-                "PROVIDER_BUYER_CHAT",
-                "ADMIN_SUPPORT_CHAT",
-                "WHATSAPP_BUSINESS",
-                "ZENDESK",
-                "SMS_GATEWAY",
-                "IN_APP_CHAT",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "flagType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "assignedToId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "flaggedAt",
-                "severity",
-                "lastMessageAt",
-                "createdAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": [
-                      {
-                        "id": "conversation_id",
-                        "chatType": "BUYER_PROVIDER",
-                        "status": "PENDING_REVIEW",
-                        "severity": "HIGH",
-                        "flaggedMessageCount": 2,
-                        "lastFlaggedAt": "2026-05-18T10:00:00.000Z",
-                        "participants": [
-                          {
-                            "id": "customer_id",
-                            "type": "REGISTERED_USER",
-                            "name": "Sarah Johnson",
-                            "avatarUrl": null
-                          },
-                          {
-                            "id": "provider_id",
-                            "type": "PROVIDER",
-                            "name": "Dcodax Gifts",
-                            "avatarUrl": null
-                          }
-                        ],
-                        "lastMessagePreview": "Please pay outside the platform...",
-                        "flagReasons": [
-                          "OFF_PLATFORM_PAYMENT",
-                          "AUTO_FLAG_KEYWORD"
-                        ],
-                        "assignedTo": null
-                      }
-                    ],
-                    "meta": {
-                      "page": 1,
-                      "limit": 10,
-                      "total": 1,
-                      "totalPages": 1
-                    },
-                    "message": "Flagged message conversations fetched successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List flagged message moderation conversations",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/stats": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Calculated from real moderation records.",
-        "operationId": "MessageModerationController_stats",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation stats",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/filter-options": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission.",
-        "operationId": "MessageModerationController_filterOptions",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation filter options",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/export": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.export. SUPER_ADMIN or ADMIN with messageModeration.export permission. Export is redacted. Export contains moderation-safe redacted fields only, not full private conversation history.",
-        "operationId": "MessageModerationController_export",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "chatType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BUYER_PROVIDER",
-                "SUPPORT_CHAT",
-                "SYSTEM_REVIEW"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING_REVIEW",
-                "ACTION_TAKEN",
-                "DISMISSED",
-                "ESCALATED",
-                "RESOLVED"
-              ]
-            }
-          },
-          {
-            "name": "severity",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LOW",
-                "MEDIUM",
-                "HIGH",
-                "CRITICAL"
-              ]
-            }
-          },
-          {
-            "name": "flagReason",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER"
-              ]
-            }
-          },
-          {
-            "name": "senderRole",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "participantType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "assignedToAdminId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CUSTOMER_PROVIDER_CHAT",
-                "PROVIDER_BUYER_CHAT",
-                "ADMIN_SUPPORT_CHAT",
-                "WHATSAPP_BUSINESS",
-                "ZENDESK",
-                "SMS_GATEWAY",
-                "IN_APP_CHAT",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "flagType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PROFANITY",
-                "HOSTILITY",
-                "SUSPICIOUS_LINK",
-                "HARASSMENT",
-                "HATE_SPEECH",
-                "SPAM",
-                "SCAM",
-                "OTHER",
-                "ALL"
-              ]
-            }
-          },
-          {
-            "name": "assignedToId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "flaggedAt",
-                "severity",
-                "lastMessageAt",
-                "createdAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Export message moderation rows",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.export",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.export"
-      }
-    },
-    "/api/v1/admin/message-moderation/conversations/{id}": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Flagged body is null by default; redactedBody is returned. Returns participants, flagged messages, internal notes, and action history.",
-        "operationId": "MessageModerationController_detail",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch message moderation conversation detail",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/conversations/{id}/history": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messageModeration.read. SUPER_ADMIN or ADMIN with messageModeration.read permission. Defaults to paginated scoped history around flagged messages and masks sensitive payment/contact data.",
-        "operationId": "MessageModerationController_history",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "beforeMessageId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "afterMessageId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch paginated message moderation conversation history",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messageModeration.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messageModeration.read"
-      }
-    },
-    "/api/v1/admin/message-moderation/messages/{messageId}/action": {
-      "post": {
-        "description": "Access: SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate). SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require messageModeration.moderate; WARN_SENDER requires messageModeration.warn; SUSPEND_SENDER requires messageModeration.suspend; ADD_NOTE requires messageModeration.notes.create; REPROCESS requires messageModeration.reprocess; ESCALATE requires messageModeration.escalate. SUPER_ADMIN or ADMIN with action-specific message moderation permission. HIDE_MESSAGE, RESTORE_MESSAGE, and DISMISS_FLAG require 'messageModeration.moderate'; WARN_SENDER requires 'messageModeration.warn'; SUSPEND_SENDER requires 'messageModeration.suspend'; ADD_NOTE requires 'messageModeration.notes.create'; REPROCESS requires 'messageModeration.reprocess'; ESCALATE requires 'messageModeration.escalate'.",
-        "operationId": "MessageModerationController_action",
-        "parameters": [
-          {
-            "name": "messageId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MessageModerationActionDto"
-              },
-              "examples": {
-                "hideMessage": {
-                  "value": {
-                    "action": "HIDE_MESSAGE",
-                    "reason": "OFF_PLATFORM_PAYMENT",
-                    "comment": "Message asks the customer to pay outside the platform.",
-                    "notifySender": true,
-                    "notifyParticipants": true
-                  }
-                },
-                "restoreMessage": {
-                  "value": {
-                    "action": "RESTORE_MESSAGE",
-                    "reason": "FALSE_POSITIVE",
-                    "comment": "Message was incorrectly flagged.",
-                    "notifyParticipants": true
-                  }
-                },
-                "warnSender": {
-                  "value": {
-                    "action": "WARN_SENDER",
-                    "reason": "POLICY_WARNING",
-                    "comment": "Sender warned for policy violation.",
-                    "notifySender": true,
-                    "severity": "MEDIUM"
-                  }
-                },
-                "suspendSender": {
-                  "value": {
-                    "action": "SUSPEND_SENDER",
-                    "reason": "REPEATED_POLICY_VIOLATION",
-                    "comment": "Sender suspended after repeated violations.",
-                    "notifySender": true
-                  }
-                },
-                "dismissFlag": {
-                  "value": {
-                    "action": "DISMISS_FLAG",
-                    "reason": "NOT_A_VIOLATION",
-                    "comment": "Flag dismissed after manual review."
-                  }
-                },
-                "addNote": {
-                  "value": {
-                    "action": "ADD_NOTE",
-                    "comment": "Internal note added for future reviews."
-                  }
-                },
-                "reprocess": {
-                  "value": {
-                    "action": "REPROCESS",
-                    "reason": "POLICY_UPDATED",
-                    "comment": "Re-run scanner using the current policy."
-                  }
-                },
-                "escalate": {
-                  "value": {
-                    "action": "ESCALATE",
-                    "reason": "SECURITY_REVIEW_REQUIRED",
-                    "comment": "Escalated for security review.",
-                    "severity": "HIGH",
-                    "assignToAdminId": "admin_id"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "success": true,
-                    "data": {
-                      "messageId": "message_id",
-                      "status": "ACTION_TAKEN"
-                    },
-                    "message": "Message hidden successfully."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Run message moderation action",
-        "tags": [
-          "02 Admin - Message Moderation"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate)",
-        "x-access": "SUPER_ADMIN or ADMIN with message moderation action permission (HIDE_MESSAGE/RESTORE_MESSAGE/DISMISS_FLAG=>messageModeration.moderate, WARN_SENDER=>messageModeration.warn, SUSPEND_SENDER=>messageModeration.suspend, ADD_NOTE=>messageModeration.notes.create, REPROCESS=>messageModeration.reprocess, ESCALATE=>messageModeration.escalate)"
-      }
-    },
-    "/api/v1/admin/messaging-settings": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission. Settings apply to future messages only; retention jobs must preserve compliance-sensitive order, dispute, and support records.",
-        "operationId": "MessagingSettingsController_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessagingSettingsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch in-app messaging settings",
-        "tags": [
-          "02 Admin - In-App Messaging Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
-      },
-      "patch": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.update. SUPER_ADMIN or ADMIN with messagingSettings.update permission. Settings apply to future messages only. Creates an admin audit log for every update.",
-        "operationId": "MessagingSettingsController_update",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateMessagingSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update in-app messaging settings",
-        "tags": [
-          "02 Admin - In-App Messaging Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.update",
-        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.update"
-      }
-    },
-    "/api/v1/admin/messaging-settings/audit-logs": {
-      "get": {
-        "description": "Access: SUPER_ADMIN or ADMIN with messagingSettings.read. SUPER_ADMIN or ADMIN with messagingSettings.read permission.",
-        "operationId": "MessagingSettingsController_auditLogs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List in-app messaging settings audit logs",
-        "tags": [
-          "02 Admin - In-App Messaging Settings"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with messagingSettings.read",
-        "x-access": "SUPER_ADMIN or ADMIN with messagingSettings.read"
-      }
-    },
     "/api/v1/customer/payments/create-intent": {
       "post": {
-        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Amount is calculated from backend cart totals; frontend amount is never accepted.",
+        "description": "Access: REGISTERED_USER. REGISTERED_USER only. Endpoint is scoped to the authenticated customer account. REGISTERED_USER only. Amount is taken from the order total; frontend amount is never accepted.",
         "operationId": "CustomerPaymentsController_createIntent",
         "parameters": [],
         "requestBody": {
@@ -18226,13 +18027,13 @@
               "examples": {
                 "stripe": {
                   "value": {
-                    "cartId": "cmf0cartactive001",
+                    "orderId": "order_id_123",
                     "paymentMethod": "STRIPE_CARD"
                   }
                 },
                 "cod": {
                   "value": {
-                    "cartId": "cmf0cartactive001",
+                    "orderId": "order_id_123",
                     "paymentMethod": "COD"
                   }
                 }
@@ -18250,9 +18051,8 @@
                     "success": true,
                     "data": {
                       "paymentId": "payment_id",
-                      "stripePaymentIntentId": "pi_xxx",
+                      "paymentIntent": "pi_xxx",
                       "clientSecret": "pi_xxx_secret_xxx",
-                      "publishableKey": "pk_live_or_test",
                       "amount": 10999,
                       "currency": "USD"
                     },
@@ -18268,7 +18068,7 @@
             "bearer": []
           }
         ],
-        "summary": "Create payment intent from active cart",
+        "summary": "Create payment intent for an order",
         "tags": [
           "06 Payments"
         ],
@@ -18333,7 +18133,7 @@
                     "data": {
                       "paymentId": "payment_id",
                       "provider": "STRIPE",
-                      "stripePaymentIntentId": "pi_xxx",
+                      "paymentIntent": "pi_xxx",
                       "amount": 109.99,
                       "currency": "USD",
                       "status": "SUCCEEDED",
@@ -18426,8 +18226,7 @@
                     "success": true,
                     "data": {
                       "setupIntentId": "seti_xxx",
-                      "clientSecret": "seti_xxx_secret_xxx",
-                      "publishableKey": "pk_test_xxx"
+                      "clientSecret": "seti_xxx_secret_xxx"
                     },
                     "message": "Setup intent created successfully."
                   }
@@ -20194,12 +19993,10 @@
                 "customer-contact-avatars",
                 "broadcast-images",
                 "gift-message-media",
-                "chat-attachments",
+                "conversation-attachments",
                 "provider-report-evidence",
                 "dispute-evidence",
                 "provider-dispute-evidence",
-                "provider-support-attachments",
-                "support-chat-attachments",
                 "user-report-evidence",
                 "seasonal-theme-assets"
               ]
@@ -20626,7 +20423,7 @@
     },
     "/api/v1/chats": {
       "get": {
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Role-aware thread listing. Customers/providers see own order/support threads; SUPER_ADMIN sees support threads; ADMIN is scoped by supportChats.read/read.all or moderation chat permissions. Role-aware list for customer order chats, provider buyer chats, support chats, and admin-visible support/moderation chat views.",
+        "description": "Access: REGISTERED_USER or PROVIDER. Lists order-based conversations for the authenticated buyer or provider. Lists all order-based conversations for the authenticated user (buyer or provider).",
         "operationId": "ChatsController_list",
         "parameters": [
           {
@@ -20643,154 +20440,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "default": 10,
-              "example": 10,
+              "default": 20,
+              "example": 20,
               "type": "number"
             }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "order support",
-              "type": "string"
-            }
-          },
-          {
-            "name": "threadType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ORDER_CHAT",
-                "SUPPORT_CHAT",
-                "MODERATION_REVIEW"
-              ]
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ACTIVE",
-                "RESOLVED",
-                "REOPENED",
-                "ARCHIVED",
-                "BLOCKED_BY_MODERATION"
-              ]
-            }
-          },
-          {
-            "name": "unreadOnly",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "sourceType",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CUSTOMER_ORDER",
-                "PROVIDER_ORDER",
-                "SUPPORT",
-                "MESSAGE_MODERATION"
-              ]
-            }
-          },
-          {
-            "name": "sourceId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "order_id",
-              "type": "string"
-            }
-          },
-          {
-            "name": "participantRole",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "SUPER_ADMIN",
-                "STAFF",
-                "REGISTERED_USER",
-                "PROVIDER"
-              ]
-            }
-          },
-          {
-            "name": "participantId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "user_id",
-              "type": "string"
-            }
-          },
-          {
-            "name": "assignedToAdminId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "admin_id",
-              "type": "string"
-            }
-          },
-          {
-            "name": "fromDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-01T00:00:00.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "toDate",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-19T23:59:59.000Z",
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "lastMessageAt"
-              ]
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ASC",
-                "DESC"
-              ]
-            }
           }
         ],
         "responses": {
@@ -20803,47 +20456,23 @@
             "bearer": []
           }
         ],
-        "summary": "List chat threads",
+        "summary": "List conversations",
         "tags": [
-          "08 Chat - Threads"
+          "08 Chat - Conversations"
         ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission"
-      }
-    },
-    "/api/v1/chats/quick-replies": {
-      "get": {
-        "operationId": "ChatsController_quickReplies",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch role-aware chat quick replies",
-        "tags": [
-          "08 Chat - Threads"
-        ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN",
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN. Role-aware quick replies."
-      }
-    },
-    "/api/v1/chats/threads": {
+        "x-allowed-roles": "REGISTERED_USER or PROVIDER",
+        "x-access": "REGISTERED_USER or PROVIDER"
+      },
       "post": {
-        "operationId": "ChatsController_createOrGetThread",
+        "description": "Access: REGISTERED_USER or PROVIDER. Start or get a conversation for an order. Only buyer and provider of the order can access. Creates a new conversation for an order or returns existing one. Only buyer and provider of the order can start a conversation.",
+        "operationId": "ChatsController_start",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateChatThreadDto"
+                "$ref": "#/components/schemas/StartConversationDto"
               }
             }
           }
@@ -20858,23 +20487,23 @@
             "bearer": []
           }
         ],
-        "summary": "Create or get a chat thread",
+        "summary": "Start or get conversation",
         "tags": [
-          "08 Chat - Threads"
+          "08 Chat - Conversations"
         ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission",
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply/messageModeration permission. Create or get an order/support/moderation chat thread based on role and sourceType."
+        "x-allowed-roles": "REGISTERED_USER or PROVIDER",
+        "x-access": "REGISTERED_USER or PROVIDER"
       }
     },
-    "/api/v1/chats/threads/{threadId}": {
+    "/api/v1/chats/{id}": {
       "get": {
-        "operationId": "ChatsController_threadDetails",
+        "operationId": "ChatsController_details",
         "parameters": [
           {
-            "name": "threadId",
+            "name": "id",
             "required": true,
             "in": "path",
+            "description": "Conversation ID",
             "schema": {
               "type": "string"
             }
@@ -20890,23 +20519,25 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch chat thread details",
+        "summary": "Get conversation details",
         "tags": [
-          "08 Chat - Threads"
+          "08 Chat - Conversations"
         ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch a thread only when the authenticated role can access it."
+        "x-allowed-roles": "REGISTERED_USER or PROVIDER",
+        "x-access": "REGISTERED_USER or PROVIDER",
+        "description": "Access: REGISTERED_USER or PROVIDER. Get conversation details. Only participants can access."
       }
     },
-    "/api/v1/chats/threads/{threadId}/messages": {
+    "/api/v1/chats/{id}/messages": {
       "get": {
+        "description": "Access: REGISTERED_USER or PROVIDER. Get paginated messages for a conversation. Returns paginated messages for a conversation, newest first.",
         "operationId": "ChatsController_messages",
         "parameters": [
           {
-            "name": "threadId",
+            "name": "id",
             "required": true,
             "in": "path",
+            "description": "Conversation ID",
             "schema": {
               "type": "string"
             }
@@ -20925,18 +20556,9 @@
             "required": false,
             "in": "query",
             "schema": {
-              "default": 10,
-              "example": 10,
+              "default": 50,
+              "example": 50,
               "type": "number"
-            }
-          },
-          {
-            "name": "before",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "example": "2026-05-18T10:00:00.000Z",
-              "type": "string"
             }
           }
         ],
@@ -20950,21 +20572,22 @@
             "bearer": []
           }
         ],
-        "summary": "Fetch chat thread messages",
+        "summary": "Get conversation messages",
         "tags": [
-          "08 Chat - Threads"
+          "08 Chat - Conversations"
         ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission",
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with chat/support permission. Fetch messages only for accessible threads."
+        "x-allowed-roles": "REGISTERED_USER or PROVIDER",
+        "x-access": "REGISTERED_USER or PROVIDER"
       },
       "post": {
-        "operationId": "ChatsController_sendMessage",
+        "description": "Access: REGISTERED_USER or PROVIDER. Send a message in a conversation. Send a text message or attachment in a conversation.",
+        "operationId": "ChatsController_send",
         "parameters": [
           {
-            "name": "threadId",
+            "name": "id",
             "required": true,
             "in": "path",
+            "description": "Conversation ID",
             "schema": {
               "type": "string"
             }
@@ -20975,7 +20598,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SendChatThreadMessageDto"
+                "$ref": "#/components/schemas/SendMessageDto"
               }
             }
           }
@@ -20990,23 +20613,24 @@
             "bearer": []
           }
         ],
-        "summary": "Send a chat message",
+        "summary": "Send a message",
         "tags": [
-          "08 Chat - Threads"
+          "08 Chat - Conversations"
         ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply",
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.reply. Send a message in an accessible order/support thread."
+        "x-allowed-roles": "REGISTERED_USER or PROVIDER",
+        "x-access": "REGISTERED_USER or PROVIDER"
       }
     },
-    "/api/v1/chats/threads/{threadId}/read": {
+    "/api/v1/chats/{id}/read": {
       "patch": {
+        "description": "Access: REGISTERED_USER or PROVIDER. Mark unread messages as read. Marks all unread messages from the other party as read.",
         "operationId": "ChatsController_markRead",
         "parameters": [
           {
-            "name": "threadId",
+            "name": "id",
             "required": true,
             "in": "path",
+            "description": "Conversation ID",
             "schema": {
               "type": "string"
             }
@@ -21022,121 +20646,12 @@
             "bearer": []
           }
         ],
-        "summary": "Mark a chat thread as read",
+        "summary": "Mark conversation as read",
         "tags": [
-          "08 Chat - Threads"
+          "08 Chat - Conversations"
         ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read",
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with supportChats.read. Mark an accessible thread as read for the authenticated participant/admin."
-      }
-    },
-    "/api/v1/chats/threads/{threadId}/status": {
-      "patch": {
-        "description": "Access: REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission. Unified chat thread lifecycle endpoint. Support thread RESOLVED/REOPENED requires supportChats.resolve; BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate. Unified thread lifecycle endpoint. RESOLVED and REOPENED require supportChats.resolve for support threads. ARCHIVED follows thread owner/admin access rules. BLOCKED_BY_MODERATION requires messageModeration.moderate or chats.moderate.",
-        "operationId": "ChatsController_updateStatus",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateChatThreadStatusDto"
-              },
-              "examples": {
-                "resolved": {
-                  "value": {
-                    "status": "RESOLVED",
-                    "reason": "ISSUE_RESOLVED",
-                    "comment": "Support issue resolved.",
-                    "notifyParticipants": true
-                  }
-                },
-                "reopened": {
-                  "value": {
-                    "status": "REOPENED",
-                    "reason": "CUSTOMER_REPLIED",
-                    "comment": "Customer needs more help.",
-                    "notifyParticipants": true
-                  }
-                },
-                "archived": {
-                  "value": {
-                    "status": "ARCHIVED",
-                    "reason": "NO_LONGER_NEEDED",
-                    "comment": "Archived by participant.",
-                    "notifyParticipants": false
-                  }
-                },
-                "blocked": {
-                  "value": {
-                    "status": "BLOCKED_BY_MODERATION",
-                    "reason": "POLICY_VIOLATION",
-                    "comment": "Blocked by moderation.",
-                    "notifyParticipants": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update chat thread status",
-        "tags": [
-          "08 Chat - Threads"
-        ],
-        "x-allowed-roles": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission",
-        "x-access": "REGISTERED_USER, PROVIDER, SUPER_ADMIN, or ADMIN with status-specific chat permission"
-      }
-    },
-    "/api/v1/chats/threads/{threadId}/audit-log": {
-      "get": {
-        "operationId": "ChatsController_auditLog",
-        "parameters": [
-          {
-            "name": "threadId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Fetch chat thread audit log",
-        "tags": [
-          "08 Chat - Threads"
-        ],
-        "x-allowed-roles": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "x-access": "SUPER_ADMIN or ADMIN with supportChats.read",
-        "description": "Access: SUPER_ADMIN or ADMIN with supportChats.read. Fetch audit trail for an accessible support/moderation thread."
+        "x-allowed-roles": "REGISTERED_USER or PROVIDER",
+        "x-access": "REGISTERED_USER or PROVIDER"
       }
     }
   },
@@ -21145,7 +20660,7 @@
     "description": "Complete backend API documentation for authentication, customer app flows, provider operations, admin management, payments, orders, recurring payments, transactions, notifications, storage, and audit workflows.",
     "version": "0.1.0",
     "contact": {},
-    "x-openapi-generated-at": "2026-07-06T09:12:28.041Z"
+    "x-openapi-generated-at": "2026-07-17T10:31:35.470Z"
   },
   "tags": [
     {
@@ -21384,19 +20899,11 @@
           "password": {
             "type": "string"
           },
-          "name": {
-            "type": "string",
-            "example": "Cake Owner",
-            "maxLength": 120,
-            "description": "Preferred full-name field. Provider self-registration may send this instead of firstName/lastName."
-          },
           "firstName": {
-            "type": "string",
-            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
+            "type": "string"
           },
           "lastName": {
-            "type": "string",
-            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
+            "type": "string"
           },
           "phone": {
             "type": "string"
@@ -21408,7 +20915,9 @@
         },
         "required": [
           "email",
-          "password"
+          "password",
+          "firstName",
+          "lastName"
         ]
       },
       "RegisterProviderLocationDto": {
@@ -21437,19 +20946,11 @@
           "password": {
             "type": "string"
           },
-          "name": {
-            "type": "string",
-            "example": "Cake Owner",
-            "maxLength": 120,
-            "description": "Preferred full-name field. Provider self-registration may send this instead of firstName/lastName."
-          },
           "firstName": {
-            "type": "string",
-            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
+            "type": "string"
           },
           "lastName": {
-            "type": "string",
-            "description": "Deprecated for provider self-registration; send name instead. Kept for backward compatibility."
+            "type": "string"
           },
           "phone": {
             "type": "string"
@@ -21492,15 +20993,13 @@
                 "DELIVERY"
               ]
             }
-          },
-          "autoAcceptOrders": {
-            "type": "boolean",
-            "default": false
           }
         },
         "required": [
           "email",
           "password",
+          "firstName",
+          "lastName",
           "businessName",
           "businessCategoryId",
           "businessAddress"
@@ -21694,6 +21193,44 @@
           "audience"
         ]
       },
+      "RegisterDeviceTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "fMEP0vJqSk6...device-registration-token"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ANDROID",
+              "IOS",
+              "WEB"
+            ],
+            "example": "ANDROID"
+          },
+          "deviceId": {
+            "type": "string",
+            "example": "pixel-8-personal"
+          }
+        },
+        "required": [
+          "token",
+          "platform"
+        ]
+      },
+      "UnregisterDeviceTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "fMEP0vJqSk6...device-registration-token"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
       "AddWalletFundsDto": {
         "type": "object",
         "properties": {
@@ -21701,34 +21238,28 @@
             "type": "number",
             "example": 100
           },
-          "currency": {
-            "type": "string",
-            "example": "USD"
-          },
-          "paymentMethod": {
-            "type": "string",
-            "enum": [
-              "STRIPE_CARD",
-              "E_WALLET",
-              "BANK_TRANSFER",
-              "COD",
-              "PLACEHOLDER"
-            ],
-            "example": "STRIPE_CARD"
-          },
-          "stripePaymentMethodId": {
-            "type": "string",
-            "example": "pm_xxx"
-          },
           "idempotencyKey": {
             "type": "string",
-            "example": "wallet_topup_2026_001"
+            "example": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
+            "description": "Client-generated unique key (e.g. UUID) to make this top-up idempotent. Generate once per top-up attempt and reuse the SAME value across retries so the user is never double-charged."
           }
         },
         "required": [
           "amount",
-          "currency",
-          "paymentMethod"
+          "idempotencyKey"
+        ]
+      },
+      "ConfirmWalletTopUpDto": {
+        "type": "object",
+        "properties": {
+          "stripePaymentIntentId": {
+            "type": "string",
+            "example": "pi_3TshCwP5GAZBrbrD0EC7FoKQ",
+            "description": "The paymentIntent returned from POST /customer/wallet/add-funds."
+          }
+        },
+        "required": [
+          "stripePaymentIntentId"
         ]
       },
       "CreateBankAccountDto": {
@@ -21807,6 +21338,40 @@
           "statusReason": {
             "type": "string",
             "example": "Seasonal referral campaign enabled."
+          }
+        }
+      },
+      "CreateDocumentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Business License"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": true,
+            "default": false
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateDocumentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tax Certificate"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": false
           }
         }
       },
@@ -22077,51 +21642,18 @@
           "action"
         ]
       },
-      "CancellationTierDto": {
+      "UpdateRefundPolicySettingsDto": {
         "type": "object",
         "properties": {
-          "daysBeforeDelivery": {
-            "type": "number",
-            "example": 30,
-            "minimum": 0
+          "allowCancellation": {
+            "type": "boolean",
+            "example": true
           },
-          "deductionPercent": {
+          "cancellationDeductionPercent": {
             "type": "number",
             "example": 10,
             "minimum": 0,
             "maximum": 100
-          },
-          "label": {
-            "type": "string",
-            "example": "Early Cancellation",
-            "maxLength": 80
-          }
-        },
-        "required": [
-          "daysBeforeDelivery",
-          "deductionPercent",
-          "label"
-        ]
-      },
-      "UpdateRefundPolicySettingsDto": {
-        "type": "object",
-        "properties": {
-          "allowRefund": {
-            "type": "boolean",
-            "example": true
-          },
-          "cancellationTiers": {
-            "example": [
-              {
-                "daysBeforeDelivery": 30,
-                "deductionPercent": 50,
-                "label": "Early Cancellation"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CancellationTierDto"
-            }
           }
         }
       },
@@ -22131,6 +21663,10 @@
           "email": {
             "type": "string",
             "example": "staff.updated@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
           },
           "firstName": {
             "type": "string"
@@ -22175,53 +21711,6 @@
             "default": true
           }
         }
-      },
-      "UpdateAdminPayoutSettingsDto": {
-        "type": "object",
-        "properties": {
-          "platformRatePercent": {
-            "type": "number",
-            "example": 5,
-            "minimum": 0,
-            "maximum": 100
-          },
-          "minimumPayoutThreshold": {
-            "type": "number",
-            "example": 100,
-            "minimum": 0
-          },
-          "currency": {
-            "type": "string",
-            "example": "USD"
-          },
-          "payoutSchedule": {
-            "type": "string",
-            "enum": [
-              "WEEKLY_MONDAY",
-              "BIWEEKLY_FRIDAY",
-              "MONTHLY_LAST_DAY",
-              "MANUAL"
-            ],
-            "example": "MONTHLY_LAST_DAY"
-          },
-          "payoutTimeUtc": {
-            "type": "string",
-            "example": "00:00",
-            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-          },
-          "autoPayoutEnabled": {
-            "type": "boolean",
-            "example": true
-          }
-        },
-        "required": [
-          "platformRatePercent",
-          "minimumPayoutThreshold",
-          "currency",
-          "payoutSchedule",
-          "payoutTimeUtc",
-          "autoPayoutEnabled"
-        ]
       },
       "UpsertCommissionTierDto": {
         "type": "object",
@@ -22584,7 +22073,9 @@
           "password",
           "businessName",
           "businessCategoryId",
-          "businessAddress"
+          "businessAddress",
+          "companyLogoUrl",
+          "coverImageUrl"
         ]
       },
       "UpdateProviderDto": {
@@ -22828,10 +22319,6 @@
             "type": "string",
             "example": "123 Main Street"
           },
-          "headquarters": {
-            "type": "string",
-            "example": "New York, USA"
-          },
           "fulfillmentMethods": {
             "type": "array",
             "items": {
@@ -22841,12 +22328,75 @@
                 "DELIVERY"
               ]
             }
-          },
-          "autoAcceptOrders": {
-            "type": "boolean",
-            "example": false
           }
         }
+      },
+      "SubmitProviderDocumentDto": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "example": "document_id",
+            "description": "ID of the document definition created by admin."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "provider-documents/abc123-business-license.pdf",
+            "description": "File URL from presigned upload."
+          }
+        },
+        "required": [
+          "documentId",
+          "fileUrl"
+        ]
+      },
+      "UpdateProviderDocumentDto": {
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string",
+            "example": "provider-documents/updated-license.pdf",
+            "description": "New file URL to replace existing document."
+          }
+        },
+        "required": [
+          "fileUrl"
+        ]
+      },
+      "AdminSubmitProviderDocumentDto": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "example": "document_id",
+            "description": "ID of the document definition created by admin."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "provider-documents/abc123-business-license.pdf",
+            "description": "File URL from presigned upload."
+          }
+        },
+        "required": [
+          "documentId",
+          "fileUrl"
+        ]
+      },
+      "ReviewProviderDocumentDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ],
+            "example": "APPROVED"
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "ReviewResponseDto": {
         "type": "object",
@@ -22969,79 +22519,31 @@
           }
         }
       },
-      "ProviderOrderActionDto": {
+      "UpdateProviderOrderStatusDto": {
         "type": "object",
         "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "ACCEPT",
-              "REJECT",
-              "UPDATE_STATUS",
-              "FULFILL"
-            ],
-            "example": "ACCEPT"
-          },
           "status": {
             "type": "string",
             "enum": [
               "PENDING",
               "ACCEPTED",
               "PROCESSING",
-              "PACKED",
-              "READY_FOR_PICKUP",
               "SHIPPED",
-              "OUT_FOR_DELIVERY",
               "DELIVERED",
               "COMPLETED",
               "CANCELLED",
-              "REJECTED",
-              "REFUNDED"
+              "REJECTED"
             ],
-            "example": "PROCESSING"
+            "example": "ACCEPTED"
           },
           "reason": {
             "type": "string",
-            "enum": [
-              "OUT_OF_STOCK",
-              "BUSINESS_CLOSED",
-              "CANNOT_DELIVER_TO_AREA",
-              "PRICING_ERROR",
-              "OTHER"
-            ],
-            "example": "OUT_OF_STOCK"
-          },
-          "comment": {
-            "type": "string",
-            "example": "Order accepted."
-          },
-          "note": {
-            "type": "string",
-            "example": "Package handed to courier."
-          },
-          "carrier": {
-            "type": "string",
-            "example": "FedEx"
-          },
-          "trackingNumber": {
-            "type": "string",
-            "example": "FDX-123456"
-          },
-          "estimatedDeliveryAt": {
-            "type": "string",
-            "example": "2026-10-26T10:00:00.000Z"
-          },
-          "dispatchAt": {
-            "type": "string",
-            "example": "2026-10-25T10:00:00.000Z"
-          },
-          "notifyCustomer": {
-            "type": "boolean",
-            "example": true
+            "example": "Out of stock",
+            "description": "Required when status is REJECTED"
           }
         },
         "required": [
-          "action"
+          "status"
         ]
       },
       "CreateProviderBankAccountDto": {
@@ -23381,10 +22883,6 @@
           "avatarUrl": {
             "type": "string",
             "example": "https://<YOUR_PUBLIC_BUCKET_OR_CDN_URL>/user-avatars/avatar.jpg"
-          },
-          "location": {
-            "type": "string",
-            "example": "New York, USA"
           }
         }
       },
@@ -23972,126 +23470,24 @@
           },
           "variantId": {
             "type": "string",
-            "example": "cmf0variant50ml001"
+            "example": "variant_50ml"
           },
           "quantity": {
             "type": "number",
             "example": 1
-          },
-          "deliveryOption": {
-            "type": "string",
-            "enum": [
-              "SAME_DAY",
-              "NEXT_DAY",
-              "SCHEDULED"
-            ],
-            "example": "SCHEDULED"
-          },
-          "recipientContactId": {
-            "type": "string",
-            "example": "cmf0contactmary001"
-          },
-          "recipientName": {
-            "type": "string",
-            "example": "Sarah Khan"
-          },
-          "recipientPhone": {
-            "type": "string",
-            "example": "+923001234567"
-          },
-          "recipientAddressId": {
-            "type": "string",
-            "example": "cmf0addresshome001"
-          },
-          "eventId": {
-            "type": "string",
-            "example": "cmf0eventbirthday001"
-          },
-          "giftMessage": {
-            "type": "string",
-            "example": "Hope you love this special surprise!"
-          },
-          "messageMediaUrls": {
-            "example": [
-              "https://cdn.yourdomain.com/gift-message-media/photo.png"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "scheduledDeliveryAt": {
-            "type": "string",
-            "example": "2026-06-01T12:00:00.000Z",
-            "nullable": true
           }
         },
         "required": [
           "giftId",
-          "quantity",
-          "deliveryOption",
-          "recipientName",
-          "recipientPhone",
-          "recipientAddressId"
+          "quantity"
         ]
       },
       "UpdateCartItemDto": {
         "type": "object",
         "properties": {
-          "variantId": {
-            "type": "string",
-            "example": "cmf0variant100ml001"
-          },
           "quantity": {
             "type": "number",
             "example": 2
-          },
-          "deliveryOption": {
-            "type": "string",
-            "enum": [
-              "SAME_DAY",
-              "NEXT_DAY",
-              "SCHEDULED"
-            ],
-            "example": "NEXT_DAY"
-          },
-          "recipientContactId": {
-            "type": "string",
-            "example": "cmf0contactmary001"
-          },
-          "recipientName": {
-            "type": "string",
-            "example": "Sarah Khan"
-          },
-          "recipientPhone": {
-            "type": "string",
-            "example": "+923001234567"
-          },
-          "recipientAddressId": {
-            "type": "string",
-            "example": "cmf0addresshome001"
-          },
-          "eventId": {
-            "type": "string",
-            "example": "cmf0eventbirthday001"
-          },
-          "giftMessage": {
-            "type": "string",
-            "example": "Happy Birthday!"
-          },
-          "messageMediaUrls": {
-            "example": [
-              "https://cdn.yourdomain.com/gift-message-media/video.mp4"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "scheduledDeliveryAt": {
-            "type": "string",
-            "example": "2026-06-01T12:00:00.000Z",
-            "nullable": true
           }
         }
       },
@@ -24102,29 +23498,36 @@
             "type": "string",
             "example": "cmf0cartactive001"
           },
-          "paymentId": {
+          "recipientName": {
             "type": "string",
-            "example": "cmf0payment001"
+            "example": "Sarah Khan"
           },
-          "deliveryAddressId": {
+          "recipientPhone": {
             "type": "string",
-            "example": "cmf0addresshome001"
+            "example": "+923001234567"
           },
-          "paymentMethod": {
+          "recipientAddress": {
             "type": "string",
-            "enum": [
-              "STRIPE_CARD",
-              "E_WALLET",
-              "BANK_TRANSFER",
-              "COD",
-              "PLACEHOLDER"
+            "example": "House 12, Street 4, F-8/2, Islamabad"
+          },
+          "giftMessage": {
+            "type": "string",
+            "example": "Hope you love this special surprise!"
+          },
+          "mediaAttachments": {
+            "example": [
+              "https://cdn.yourdomain.com/gift-message-media/photo.png"
             ],
-            "default": "COD",
-            "example": "COD"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "deliveryAddressId"
+          "recipientName",
+          "recipientPhone",
+          "recipientAddress"
         ]
       },
       "CreateReviewDto": {
@@ -24230,13 +23633,15 @@
           },
           "idempotencyKey": {
             "type": "string",
-            "example": "sub_checkout_2026_001"
+            "example": "sub_checkout_2026_001",
+            "description": "Client-generated unique key (e.g. UUID) per checkout attempt. Reuse the SAME value across retries so the subscription is never created twice."
           }
         },
         "required": [
           "planId",
           "billingCycle",
-          "paymentMethod"
+          "paymentMethod",
+          "idempotencyKey"
         ]
       },
       "ConfirmSubscriptionDto": {
@@ -24837,234 +24242,12 @@
           }
         }
       },
-      "MessageModerationActionDto": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "HIDE_MESSAGE",
-              "RESTORE_MESSAGE",
-              "WARN_SENDER",
-              "SUSPEND_SENDER",
-              "DISMISS_FLAG",
-              "ADD_NOTE",
-              "REPROCESS",
-              "ESCALATE"
-            ]
-          },
-          "reason": {
-            "type": "string"
-          },
-          "comment": {
-            "type": "string"
-          },
-          "notifySender": {
-            "type": "boolean"
-          },
-          "notifyParticipants": {
-            "type": "boolean"
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "LOW",
-              "MEDIUM",
-              "HIGH",
-              "CRITICAL"
-            ]
-          },
-          "assignToAdminId": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "action"
-        ]
-      },
-      "MessagingSettingsResponseDto": {
-        "type": "object",
-        "properties": {
-          "buyerProviderChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "supportChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "messageRetentionDays": {
-            "type": "number",
-            "example": 365
-          },
-          "maxMessageLength": {
-            "type": "number",
-            "example": 2000
-          },
-          "maxAttachmentsPerMessage": {
-            "type": "number",
-            "example": 5
-          },
-          "allowedAttachmentTypes": {
-            "example": [
-              "jpg",
-              "jpeg",
-              "png",
-              "pdf",
-              "mp4"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "profanityFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "piiFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagKeywords": {
-            "example": [
-              "refund outside platform",
-              "bank account",
-              "whatsapp me"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "offlineNotificationDelaySeconds": {
-            "type": "number",
-            "example": 10
-          },
-          "messageEditWindowMinutes": {
-            "type": "number",
-            "example": 0
-          },
-          "lastUpdatedAt": {
-            "format": "date-time",
-            "type": "string",
-            "example": "2026-05-18T10:00:00.000Z"
-          },
-          "lastUpdatedBy": {
-            "type": "object",
-            "example": {
-              "id": "admin_id",
-              "name": "Alex Rivera"
-            },
-            "nullable": true
-          }
-        },
-        "required": [
-          "buyerProviderChatEnabled",
-          "supportChatEnabled",
-          "messageRetentionDays",
-          "maxMessageLength",
-          "maxAttachmentsPerMessage",
-          "allowedAttachmentTypes",
-          "profanityFilterEnabled",
-          "piiFilterEnabled",
-          "autoFlagEnabled",
-          "autoFlagKeywords",
-          "offlineNotificationDelaySeconds",
-          "messageEditWindowMinutes",
-          "lastUpdatedAt",
-          "lastUpdatedBy"
-        ]
-      },
-      "UpdateMessagingSettingsDto": {
-        "type": "object",
-        "properties": {
-          "buyerProviderChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "supportChatEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "messageRetentionDays": {
-            "type": "number",
-            "example": 365,
-            "minimum": 30,
-            "maximum": 2555
-          },
-          "maxMessageLength": {
-            "type": "number",
-            "example": 2000,
-            "minimum": 1,
-            "maximum": 5000
-          },
-          "maxAttachmentsPerMessage": {
-            "type": "number",
-            "example": 5,
-            "minimum": 0,
-            "maximum": 10
-          },
-          "allowedAttachmentTypes": {
-            "example": [
-              "jpg",
-              "jpeg",
-              "png",
-              "pdf",
-              "mp4"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "profanityFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "piiFilterEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "autoFlagKeywords": {
-            "example": [
-              "refund outside platform",
-              "bank account",
-              "whatsapp me"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "offlineNotificationDelaySeconds": {
-            "type": "number",
-            "example": 10,
-            "minimum": 0,
-            "maximum": 300
-          },
-          "messageEditWindowMinutes": {
-            "type": "number",
-            "example": 0,
-            "minimum": 0,
-            "maximum": 60
-          }
-        }
-      },
       "CreatePaymentIntentDto": {
         "type": "object",
         "properties": {
-          "cartId": {
+          "orderId": {
             "type": "string",
-            "example": "cmf0cartactive001"
+            "example": "order_id_123"
           },
           "paymentMethod": {
             "type": "string",
@@ -25079,11 +24262,11 @@
           },
           "idempotencyKey": {
             "type": "string",
-            "example": "cart_customer_1_2026_001"
+            "example": "order_payment_2026_001"
           }
         },
         "required": [
-          "cartId",
+          "orderId",
           "paymentMethod"
         ]
       },
@@ -25299,12 +24482,10 @@
               "customer-contact-avatars",
               "broadcast-images",
               "gift-message-media",
-              "chat-attachments",
+              "conversation-attachments",
               "provider-report-evidence",
               "dispute-evidence",
               "provider-dispute-evidence",
-              "provider-support-attachments",
-              "support-chat-attachments",
               "user-report-evidence",
               "seasonal-theme-assets"
             ],
@@ -25457,6 +24638,28 @@
           }
         }
       },
+      "FinancialSettingsDto": {
+        "type": "object",
+        "properties": {
+          "platformRatePercent": {
+            "type": "number",
+            "example": 5,
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Platform commission percentage applied on orders."
+          },
+          "minimumPayoutThreshold": {
+            "type": "number",
+            "example": 100,
+            "minimum": 0,
+            "description": "Minimum wallet balance a provider must reach before withdrawal."
+          }
+        },
+        "required": [
+          "platformRatePercent",
+          "minimumPayoutThreshold"
+        ]
+      },
       "UpdateSystemSettingsDto": {
         "type": "object",
         "properties": {
@@ -25474,6 +24677,9 @@
           },
           "email": {
             "$ref": "#/components/schemas/EmailSettingsDto"
+          },
+          "financial": {
+            "$ref": "#/components/schemas/FinancialSettingsDto"
           }
         },
         "required": [
@@ -25481,7 +24687,8 @@
           "payments",
           "firebase",
           "storage",
-          "email"
+          "email",
+          "financial"
         ]
       },
       "CreateSeasonalThemeDto": {
@@ -25540,140 +24747,34 @@
           }
         }
       },
-      "CreateChatThreadDto": {
+      "StartConversationDto": {
         "type": "object",
         "properties": {
-          "threadType": {
-            "type": "string",
-            "enum": [
-              "ORDER_CHAT",
-              "SUPPORT_CHAT",
-              "MODERATION_REVIEW"
-            ],
-            "example": "ORDER_CHAT"
-          },
-          "sourceType": {
-            "type": "string",
-            "enum": [
-              "CUSTOMER_ORDER",
-              "PROVIDER_ORDER",
-              "SUPPORT",
-              "MESSAGE_MODERATION"
-            ],
-            "example": "CUSTOMER_ORDER"
-          },
-          "sourceId": {
+          "orderId": {
             "type": "string",
             "example": "order_id"
           },
-          "subject": {
-            "type": "string",
-            "example": "Order support"
-          },
           "initialMessage": {
             "type": "string",
-            "example": "Can you confirm delivery time?"
-          },
-          "attachmentUrls": {
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "createIfMissing": {
-            "type": "boolean",
-            "example": true
-          },
-          "participantId": {
-            "type": "string",
-            "example": "participant_user_id",
-            "description": "Admin-created support chats only. For order chats, omit this; the customer/provider participants are derived from sourceId."
-          },
-          "participantRole": {
-            "type": "string",
-            "enum": [
-              "REGISTERED_USER",
-              "PROVIDER"
-            ],
-            "description": "Optional legacy field for admin-created support chats. Backend derives the role from participantId and rejects mismatches."
+            "example": "Hello, I have a question about my order."
           }
         },
         "required": [
-          "threadType",
-          "sourceType"
+          "orderId"
         ]
       },
-      "SendChatThreadMessageDto": {
+      "SendMessageDto": {
         "type": "object",
         "properties": {
-          "clientMessageId": {
+          "content": {
             "type": "string",
-            "example": "mobile-generated-uuid"
+            "example": "Hello, can you confirm delivery time?"
           },
-          "messageType": {
+          "attachmentUrl": {
             "type": "string",
-            "enum": [
-              "TEXT",
-              "IMAGE",
-              "AUDIO",
-              "VIDEO",
-              "FILE"
-            ],
-            "example": "TEXT"
-          },
-          "body": {
-            "type": "string",
-            "example": "Can you confirm delivery time?"
-          },
-          "attachmentUrls": {
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "example": "https://storage.example.com/photo.jpg"
           }
-        },
-        "required": [
-          "messageType"
-        ]
-      },
-      "UpdateChatThreadStatusDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "RESOLVED",
-              "REOPENED",
-              "ARCHIVED",
-              "BLOCKED_BY_MODERATION"
-            ],
-            "example": "RESOLVED"
-          },
-          "reason": {
-            "type": "string",
-            "example": "ISSUE_RESOLVED"
-          },
-          "comment": {
-            "type": "string",
-            "example": "Support issue resolved."
-          },
-          "notifyParticipants": {
-            "type": "boolean",
-            "example": true
-          },
-          "notifyParticipant": {
-            "type": "boolean",
-            "example": true,
-            "deprecated": true,
-            "description": "Use notifyParticipants."
-          }
-        },
-        "required": [
-          "status"
-        ]
+        }
       }
     }
   }

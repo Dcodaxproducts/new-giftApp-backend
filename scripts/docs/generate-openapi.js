@@ -13,7 +13,7 @@ const { AppModule } = require('../../src/app.module');
 const { HttpExceptionFilter } = require('../../src/common/filters/http-exception.filter');
 const { ResponseInterceptor } = require('../../src/common/interceptors/response.interceptor');
 const { fillMissingOperationSummaries, SWAGGER_TAG_ORDER } = require('../../src/main');
-const { applySwaggerAccessMetadata } = require('../../src/swagger-access');
+const { applySwaggerAccessMetadata } = require('../../src/common/swagger-access');
 
 async function main() {
   const app = await NestFactory.create(AppModule, { rawBody: true, logger: false });

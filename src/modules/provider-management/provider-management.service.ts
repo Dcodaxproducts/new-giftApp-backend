@@ -738,8 +738,8 @@ export class ProviderManagementService {
         status: dto.status === ProviderStatusUpdate.APPROVED ? UserStatus.APPROVED : UserStatus.BLOCKED,
         suspensionReason: null,
         suspensionComment: null,
-        refreshTokenHash: dto.status === ProviderStatusUpdate.APPROVED ? provider.refreshTokenHash : null,
     });
+    if (dto.status !== ProviderStatusUpdate.APPROVED) await this.repository.revokeActiveSessions(provider.id);
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_STATUS_UPDATED', before, updated, dto, 'Provider status updated successfully.');
   }
 
@@ -749,8 +749,8 @@ export class ProviderManagementService {
         status: UserStatus.SUSPENDED,
         suspensionReason: dto.reason,
         suspensionComment: dto.comment?.trim(),
-        refreshTokenHash: null,
     });
+    await this.repository.revokeActiveSessions(provider.id);
     return this.completeLifecycleAction(user, provider.id, 'PROVIDER_SUSPENDED', before, updated, dto, 'Provider suspended successfully.');
   }
 

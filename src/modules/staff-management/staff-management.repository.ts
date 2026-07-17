@@ -49,7 +49,14 @@ export class StaffManagementRepository {
   }
 
   updateAdminPasswordHash(id: string, password: string, mustChangePassword: boolean) {
-    return this.prisma.user.update({ where: { id }, data: { password, mustChangePassword, refreshTokenHash: null } });
+    return this.prisma.$transaction([
+      this.prisma.user.update({ where: { id }, data: { password, mustChangePassword } }),
+      this.prisma.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ]);
+  }
+
+  revokeActiveSessions(adminId: string) {
+    return this.prisma.authSession.updateMany({ where: { userId: adminId, revokedAt: null }, data: { revokedAt: new Date() } });
   }
 
   deleteAdminPermanently(adminId: string) {

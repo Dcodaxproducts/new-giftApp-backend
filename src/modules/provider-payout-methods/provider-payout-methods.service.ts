@@ -54,6 +54,7 @@ export class ProviderPayoutMethodsService {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
     const updated = await this.repository.updateMetadata(method.id, { accountHolderName: dto.accountHolderName?.trim(), bankName: dto.bankName?.trim(), isActive: dto.isActive });
+    if (dto.isActive === false) await this.notify(user.uid, 'Payout method disabled', `${updated.bankName} payout method was disabled.`, 'PROVIDER_PAYOUT_METHOD_DISABLED', { payoutMethodId: updated.id });
     return { data: this.toDetail(updated), message: 'Provider payout method updated successfully.' };
   }
 
@@ -63,6 +64,7 @@ export class ProviderPayoutMethodsService {
     if (!method.isActive) throw new ConflictException('Only active payout methods can be set as default');
     if (method.verificationStatus !== ProviderPayoutVerificationStatus.VERIFIED) throw new ConflictException('Only verified payout methods can be set as default');
     await this.repository.setDefault(user.uid, method.id);
+    await this.notify(user.uid, 'Default payout method updated', `${method.bankName} payout method is now your default.`, 'PROVIDER_PAYOUT_METHOD_DEFAULT_CHANGED', { payoutMethodId: method.id });
     return { data: { id: method.id, isDefault: true }, message: 'Default payout method updated successfully.' };
   }
 
@@ -71,6 +73,7 @@ export class ProviderPayoutMethodsService {
     const method = await this.getOwnedMethod(user.uid, id);
     await this.assertNoPendingPayoutUsage(user.uid, method.id);
     await this.repository.deleteAndPromoteNextDefault(user.uid, method.id, method.isDefault);
+    await this.notify(user.uid, 'Payout method removed', `${method.bankName} payout method was removed.`, 'PROVIDER_PAYOUT_METHOD_DELETED', { payoutMethodId: method.id });
     return { data: null, message: 'Provider payout method deleted successfully.' };
   }
 
@@ -78,6 +81,7 @@ export class ProviderPayoutMethodsService {
     await this.getApprovedActiveProvider(user.uid);
     const method = await this.getOwnedMethod(user.uid, id);
     const updated = await this.repository.markVerificationStatus(method.id, { externalProvider: dto.verificationMethod, verificationStatus: ProviderPayoutVerificationStatus.PENDING, externalAccountId: undefined });
+    await this.notify(user.uid, 'Payout method verification submitted', `${updated.bankName} payout method verification was submitted.`, 'PROVIDER_PAYOUT_METHOD_VERIFICATION_SUBMITTED', { payoutMethodId: updated.id });
     return { data: { id: updated.id, verificationStatus: updated.verificationStatus, externalProvider: updated.externalProvider }, message: 'Provider payout method verification submitted successfully.' };
   }
 

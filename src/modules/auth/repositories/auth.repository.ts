@@ -22,10 +22,6 @@ export class AuthRepository {
     return this.prisma.user.update({ where: { id: userId }, data: { lastLoginAt: new Date() } });
   }
 
-  clearRefreshTokenHash(userId: string) {
-    return this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null } });
-  }
-
   findProviderBusinessCategory(categoryId: string) {
     return this.prisma.providerBusinessCategory.findUnique({ where: { id: categoryId } });
   }
@@ -83,7 +79,7 @@ export class AuthRepository {
   demoteOtherSuperAdmins(canonicalSuperAdminId: string) {
     return this.prisma.user.updateMany({
       where: { role: UserRole.SUPER_ADMIN, id: { not: canonicalSuperAdminId } },
-      data: { role: UserRole.STAFF, status: UserStatus.BLOCKED, refreshTokenHash: null },
+      data: { role: UserRole.STAFF, status: UserStatus.BLOCKED },
     });
   }
 }

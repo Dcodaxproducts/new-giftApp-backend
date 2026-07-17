@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Dispute, DisputeStatus, Prisma } from '@prisma/client';
+import { Dispute, DisputeStatus, NotificationRecipientType, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { getPagination } from '../../common/pagination/pagination.util';
@@ -39,6 +39,7 @@ export class AdminDisputesService {
     if (!dto.userId || !dto.providerId || !dto.orderId) throw new BadRequestException('userId, providerId, and orderId are required for admin dispute creation');
     const dispute = await this.disputesRepository.create(this.createData(dto.userId, dto.providerId, dto.orderId, dto));
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: dispute.id, targetType: 'DISPUTE', action: 'DISPUTE_CREATED', module: 'Disputes', afterJson: this.snapshot(dispute) });
+    await this.notifyDisputeCreated(dispute);
     return { data: this.item(dispute), message: 'Dispute created successfully.' };
   }
 
@@ -49,6 +50,7 @@ export class AdminDisputesService {
     if (!providerId) throw new BadRequestException('Provider is required to create a dispute for this order');
     const dispute = await this.disputesRepository.create(this.createData(user.uid, providerId, orderId, dto));
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: dispute.id, targetType: 'DISPUTE', action: 'DISPUTE_CREATED_BY_CUSTOMER', module: 'Disputes', afterJson: this.snapshot(dispute) });
+    await this.notifyProvider(dispute.providerId, 'New dispute opened', `A dispute was opened for order ${dispute.order.orderNumber}.`, 'DISPUTE_OPENED', dispute);
     return { data: this.item(dispute), message: 'Dispute created successfully.' };
   }
 
@@ -86,6 +88,7 @@ export class AdminDisputesService {
       providerEvidenceUrlsJson: this.evidence(dto.evidenceUrls),
     });
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: id, targetType: 'DISPUTE', action: 'DISPUTE_RESPONDED_BY_PROVIDER', module: 'Disputes', beforeJson: this.snapshot(current), afterJson: this.snapshot(updated) });
+    await this.notifyCustomer(updated.userId, 'Dispute response submitted', `The provider responded to your dispute for order ${updated.order.orderNumber}.`, 'DISPUTE_PROVIDER_RESPONSE', updated);
     return { data: this.item(updated), message: 'Dispute response submitted successfully.' };
   }
 
@@ -93,6 +96,7 @@ export class AdminDisputesService {
     const current = await this.getDispute(id);
     const updated = await this.disputesRepository.updateStatus(id, { status: this.status(dto.status), adminNote: dto.adminNote?.trim() || null, decisionReason: dto.decisionReason ?? null });
     await this.auditLog.write({ actorId: user.uid, actorType: user.role, targetId: id, targetType: 'DISPUTE', action: `DISPUTE_${dto.status}`, module: 'Disputes', beforeJson: this.snapshot(current), afterJson: this.snapshot(updated) });
+    await this.notifyDisputeDecision(updated, dto.status);
     return { data: this.item(updated), message: `Dispute ${dto.status.toLowerCase()} successfully.` };
   }
 
@@ -154,6 +158,34 @@ export class AdminDisputesService {
   private snapshot(dispute: Dispute | DisputeView) {
     const extras = dispute as (Dispute | DisputeView) & DisputeExtras;
     return { id: dispute.id, reason: dispute.reason, status: dispute.status, evidenceUrls: this.stringArray(extras.evidenceUrlsJson), providerDecision: extras.providerDecision ?? null, providerResponse: extras.providerResponse ?? null, providerEvidenceUrls: this.stringArray(extras.providerEvidenceUrlsJson), adminNote: dispute.adminNote, decisionReason: extras.decisionReason ?? null };
+  }
+
+  private async notifyDisputeCreated(dispute: DisputeView): Promise<void> {
+    await Promise.all([
+      this.notifyCustomer(dispute.userId, 'Dispute opened', `A dispute was opened for order ${dispute.order.orderNumber}.`, 'DISPUTE_OPENED', dispute),
+      this.notifyProvider(dispute.providerId, 'New dispute opened', `A dispute was opened for order ${dispute.order.orderNumber}.`, 'DISPUTE_OPENED', dispute),
+    ]);
+  }
+
+  private async notifyDisputeDecision(dispute: DisputeView, status: string): Promise<void> {
+    const title = status === 'APPROVED' ? 'Dispute approved' : status === 'REJECTED' ? 'Dispute rejected' : 'Dispute updated';
+    const message = `Dispute for order ${dispute.order.orderNumber} was ${status.toLowerCase()}.`;
+    await Promise.all([
+      this.notifyCustomer(dispute.userId, title, message, `DISPUTE_${status}`, dispute),
+      this.notifyProvider(dispute.providerId, title, message, `DISPUTE_${status}`, dispute),
+    ]);
+  }
+
+  private notifyCustomer(recipientId: string, title: string, message: string, type: string, dispute: DisputeView) {
+    return this.disputesRepository.createNotification({ recipientId, recipientType: NotificationRecipientType.REGISTERED_USER, title, message, type, metadataJson: this.notificationMetadata(dispute) });
+  }
+
+  private notifyProvider(recipientId: string, title: string, message: string, type: string, dispute: DisputeView) {
+    return this.disputesRepository.createNotification({ recipientId, recipientType: NotificationRecipientType.PROVIDER, title, message, type, metadataJson: this.notificationMetadata(dispute) });
+  }
+
+  private notificationMetadata(dispute: DisputeView): Prisma.InputJsonObject {
+    return { disputeId: dispute.id, orderId: dispute.orderId, orderNumber: dispute.order.orderNumber, status: dispute.status };
   }
   private name(user: { firstName: string; lastName: string }) { return `${user.firstName} ${user.lastName}`.trim(); }
 }

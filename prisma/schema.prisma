@@ -54,6 +54,12 @@ enum NotificationRecipientType {
   REGISTERED_USER
 }
 
+enum DevicePlatform {
+  ANDROID
+  IOS
+  WEB
+}
+
 enum AuditLogStatus {
   SUCCESS
   FAILED
@@ -578,7 +584,6 @@ model User {
   resetPasswordOtpAttempts            Int                                  @default(0) @map("reset_password_otp_attempts")
   suspensionReason                    String?                              @map("suspension_reason")
   suspensionComment                   String?                              @map("suspension_comment")
-  refreshTokenHash                    String?                              @map("refresh_token_hash")
   referralCode                        String?                              @unique @map("referral_code")
   createdAt                           DateTime                             @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                           DateTime                             @updatedAt @map("updated_at") @db.Timestamptz
@@ -593,6 +598,7 @@ model User {
   createdBroadcasts                   Broadcast[]                          @relation("BroadcastCreator")
   updatedBroadcasts                   Broadcast[]                          @relation("BroadcastUpdater")
   notifications                       Notification[]
+  deviceTokens                        DeviceToken[]
   authSessions                        AuthSession[]
   payments                            Payment[]
   moneyGifts                          MoneyGift[]
@@ -1474,6 +1480,22 @@ model Notification {
   @@index([recipientId, isRead, createdAt])
   @@index([broadcastId])
   @@map("notifications")
+}
+
+model DeviceToken {
+  id         String         @id @default(cuid())
+  userId     String         @map("user_id")
+  token      String         @unique
+  platform   DevicePlatform
+  deviceId   String?        @map("device_id")
+  lastSeenAt DateTime       @default(now()) @map("last_seen_at") @db.Timestamptz
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
 }
 
 model Review {

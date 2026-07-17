@@ -3,8 +3,9 @@ import { Notification, Prisma } from '@prisma/client';
 import { AuthUserContext } from '../../common/decorators/current-user.decorator';
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { NotificationsRepository } from './repositories/notifications.repository';
-import { ListNotificationsDto, NotificationFilterDto, SortOrder } from './dto/notifications.dto';
+import { ListNotificationsDto, NotificationFilterDto, RegisterDeviceTokenDto, SortOrder, UnregisterDeviceTokenDto } from './dto/notifications.dto';
 import { NotificationDispatchService } from './notification-dispatch.service';
+import { PushService } from './push.service';
 import { getPagination } from '../../common/pagination/pagination.util';
 
 @Injectable()
@@ -13,7 +14,18 @@ export class NotificationsService {
     private readonly notificationsRepository: NotificationsRepository,
     private readonly auditLog: AuditLogWriterService,
     private readonly notificationDispatch: NotificationDispatchService,
+    private readonly push: PushService,
   ) {}
+
+  async registerDeviceToken(user: AuthUserContext, dto: RegisterDeviceTokenDto) {
+    const device = await this.push.registerDevice(user.uid, { token: dto.token, platform: dto.platform, deviceId: dto.deviceId });
+    return { data: { id: device.id, platform: device.platform }, message: 'Device registered for push notifications' };
+  }
+
+  async unregisterDeviceToken(user: AuthUserContext, dto: UnregisterDeviceTokenDto) {
+    await this.push.unregisterDevice(user.uid, dto.token);
+    return { data: null, message: 'Device unregistered from push notifications' };
+  }
 
   async list(user: AuthUserContext, query: ListNotificationsDto) {
     const { page, limit, skip, take } = getPagination(query);

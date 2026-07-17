@@ -6,10 +6,12 @@ import { AuditLogWriterRepository } from '../../common/repositories/audit-log-wr
 import { AuditLogWriterService } from '../../common/services/audit-log.service';
 import { MailerModule } from '../mailer/mailer.module';
 import { NotificationsRepository } from './repositories/notifications.repository';
+import { PushRepository } from './repositories/push.repository';
 import { NotificationDispatchService } from './notification-dispatch.service';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
 import { NotificationsService } from './notifications.service';
+import { PushService } from './push.service';
 
 @Global()
 @Module({
@@ -22,7 +24,9 @@ import { NotificationsService } from './notifications.service';
     NotificationsRepository,
     NotificationsGateway,
     NotificationDispatchService,
+    PushRepository,
+    PushService,
   ],
-  exports: [NotificationDispatchService, NotificationsGateway],
+  exports: [NotificationDispatchService, NotificationsGateway, PushService],
 })
 export class NotificationsModule {}

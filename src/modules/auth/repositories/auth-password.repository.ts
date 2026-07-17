@@ -35,10 +35,16 @@ export class AuthPasswordRepository {
   }
 
   resetPassword(userId: string, passwordHash: string) {
-    return this.prisma.user.update({ where: { id: userId }, data: { password: passwordHash, refreshTokenHash: null, resetPasswordOtp: null, resetPasswordOtpExpiresAt: null, resetPasswordOtpAttempts: 0 } });
+    return this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { password: passwordHash, resetPasswordOtp: null, resetPasswordOtpExpiresAt: null, resetPasswordOtpAttempts: 0 } }),
+      this.prisma.authSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ]);
   }
 
   changePassword(userId: string, passwordHash: string) {
-    return this.prisma.user.update({ where: { id: userId }, data: { password: passwordHash, refreshTokenHash: null } });
+    return this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { password: passwordHash } }),
+      this.prisma.authSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ]);
   }
 }

@@ -40,8 +40,8 @@ export class AccountLifecycleService {
       status,
       suspensionReason: null,
       suspensionComment: null,
-      refreshTokenHash: status === UserStatus.APPROVED || status === UserStatus.PENDING ? account.refreshTokenHash : null,
     });
+    if (status !== UserStatus.APPROVED && status !== UserStatus.PENDING) await this.repository.invalidateActiveSessions(account.id);
 
     await this.auditLog.write({
       actorId: input.actorId,
@@ -66,7 +66,6 @@ export class AccountLifecycleService {
       status: UserStatus.SUSPENDED,
       suspensionReason: input.reason,
       suspensionComment: input.comment?.trim(),
-      refreshTokenHash: null,
     });
     await this.repository.invalidateActiveSessions(account.id);
 

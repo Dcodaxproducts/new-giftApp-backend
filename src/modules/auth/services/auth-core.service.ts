@@ -222,20 +222,18 @@ export class AuthCoreService implements OnModuleInit {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.authRepository.findUserById(payload.uid);
-    if (!user?.refreshTokenHash || (user.status !== UserStatus.APPROVED && user.status !== UserStatus.PENDING)) {
+    if (!payload.sessionId) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const isValid = await bcrypt.compare(dto.refreshToken, user.refreshTokenHash);
-    if (!isValid) {
+    const user = await this.authRepository.findUserById(payload.uid);
+    if (!user || (user.status !== UserStatus.APPROVED && user.status !== UserStatus.PENDING)) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    if (payload.sessionId) {
-      const session = await this.authSessionsRepository.findRefreshSession(payload.sessionId, user.id);
-      if (!session || !(await bcrypt.compare(dto.refreshToken, session.refreshTokenHash))) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
+
+    const session = await this.authSessionsRepository.findRefreshSession(payload.sessionId, user.id);
+    if (!session || !(await bcrypt.compare(dto.refreshToken, session.refreshTokenHash))) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
     return {
@@ -245,7 +243,6 @@ export class AuthCoreService implements OnModuleInit {
   }
 
   async logout(user: AuthUserContext) {
-    await this.authRepository.clearRefreshTokenHash(user.uid);
     if (user.sessionId) {
       await this.authSessionsRepository.revokeCurrentSession(user.sessionId, user.uid);
     }

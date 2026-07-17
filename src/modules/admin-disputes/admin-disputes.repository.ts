@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DisputeStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { DispatchNotificationInput, NotificationDispatchService } from '../notifications/notification-dispatch.service';
 
 export const DISPUTE_INCLUDE = Prisma.validator<Prisma.DisputeInclude>()({
   user: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -10,7 +11,7 @@ export const DISPUTE_INCLUDE = Prisma.validator<Prisma.DisputeInclude>()({
 
 @Injectable()
 export class AdminDisputesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly notificationDispatch: NotificationDispatchService) {}
 
   countStats(where: Prisma.DisputeWhereInput) {
     return this.prisma.$transaction([
@@ -68,6 +69,10 @@ export class AdminDisputesRepository {
 
   respondAsProvider(id: string, data: Prisma.DisputeUpdateInput & Record<string, unknown>) {
     return this.prisma.dispute.update({ where: { id }, data: data as Prisma.DisputeUpdateInput, include: DISPUTE_INCLUDE });
+  }
+
+  createNotification(data: DispatchNotificationInput) {
+    return this.notificationDispatch.createAndEmit(data);
   }
 
   private status(value: string): DisputeStatus {

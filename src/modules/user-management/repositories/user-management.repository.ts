@@ -166,14 +166,17 @@ export class UserManagementRepository {
     comment?: string;
     actorId: string;
   }): Promise<User> {
-    return this.prisma.user.update({
-      where: { id: params.userId },
-      data: {
-        status: UserStatus.SUSPENDED,
-        suspensionReason: params.reason,
-        suspensionComment: params.comment?.trim(),
-        refreshTokenHash: null,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: params.userId },
+        data: {
+          status: UserStatus.SUSPENDED,
+          suspensionReason: params.reason,
+          suspensionComment: params.comment?.trim(),
+        },
+      });
+      await tx.authSession.updateMany({ where: { userId: params.userId, revokedAt: null }, data: { revokedAt: new Date() } });
+      return user;
     });
   }
 
@@ -192,7 +195,6 @@ export class UserManagementRepository {
     userId: string;
     actorId: string;
     status: UserStatus;
-    refreshTokenHash: string | null;
   }): Promise<User> {
     return this.prisma.user.update({
       where: { id: params.userId },
@@ -200,21 +202,23 @@ export class UserManagementRepository {
         status: params.status,
         suspensionReason: null,
         suspensionComment: null,
-        refreshTokenHash: params.refreshTokenHash,
       },
     });
   }
 
   updateUserPasswordHash(userId: string, passwordHash: string): Promise<User> {
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        password: passwordHash,
-        resetPasswordOtp: null,
-        resetPasswordOtpExpiresAt: null,
-        resetPasswordOtpAttempts: 0,
-        refreshTokenHash: null,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          password: passwordHash,
+          resetPasswordOtp: null,
+          resetPasswordOtpExpiresAt: null,
+          resetPasswordOtpAttempts: 0,
+        },
+      });
+      await tx.authSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+      return user;
     });
   }
 

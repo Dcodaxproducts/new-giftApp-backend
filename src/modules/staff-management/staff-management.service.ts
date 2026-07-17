@@ -128,7 +128,6 @@ export class StaffManagementService {
         phone: dto.phone?.trim(),
         avatarUrl: dto.avatarUrl,
         status: dto.isActive === undefined ? undefined : dto.isActive ? UserStatus.APPROVED : UserStatus.BLOCKED,
-        refreshTokenHash: dto.isActive === false || dto.password ? null : admin.refreshTokenHash,
       },
       staffProfileData: admin.role === UserRole.STAFF
         ? {
@@ -136,6 +135,9 @@ export class StaffManagementService {
           }
         : undefined,
     });
+    if (dto.isActive === false || dto.password) {
+      await this.repository.revokeActiveSessions(admin.id);
+    }
     await this.auditLog.write({
       actorId: user.uid,
       targetId: admin.id,

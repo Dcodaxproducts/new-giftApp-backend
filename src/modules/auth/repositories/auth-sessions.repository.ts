@@ -13,11 +13,8 @@ export class AuthSessionsRepository {
     return this.prisma.authSession.create({ data: { userId: params.userId, refreshTokenHash: 'pending', deviceName: params.deviceName, ipAddress: params.ipAddress, userAgent: params.userAgent, lastActiveAt: new Date() } });
   }
 
-  storeRefreshTokenHash(userId: string, sessionId: string, refreshTokenHash: string) {
-    return this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: userId }, data: { refreshTokenHash } }),
-      this.prisma.authSession.update({ where: { id: sessionId }, data: { refreshTokenHash } }),
-    ]);
+  storeRefreshTokenHash(_userId: string, sessionId: string, refreshTokenHash: string) {
+    return this.prisma.authSession.update({ where: { id: sessionId }, data: { refreshTokenHash } });
   }
 
   findRefreshSession(id: string, userId: string) {
@@ -34,6 +31,10 @@ export class AuthSessionsRepository {
 
   revokeOtherSessions(userId: string, currentSessionId?: string) {
     return this.prisma.authSession.updateMany({ where: { userId, revokedAt: null, id: currentSessionId ? { not: currentSessionId } : undefined }, data: { revokedAt: new Date() } });
+  }
+
+  revokeAllSessions(userId: string) {
+    return this.prisma.authSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
   }
 
   findActiveSessionForUser(userId: string, id: string) {

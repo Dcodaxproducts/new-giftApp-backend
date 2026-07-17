@@ -2,10 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Notification, NotificationRecipientType, Prisma } from '@prisma/client';
 import { MailerService } from '../mailer/mailer.service';
 import { NotificationsGateway } from './notifications.gateway';
+import { PushService } from './push.service';
 import { NotificationsRepository } from './repositories/notifications.repository';
 
 type NotificationChannel = 'IN_APP' | 'SOCKET' | 'PUSH' | 'EMAIL';
 type NotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+const DEFAULT_CHANNELS: NotificationChannel[] = ['IN_APP', 'SOCKET', 'PUSH'];
 export type DispatchNotificationInput = {
   recipientId: string;
   recipientType: 'SUPER_ADMIN' | 'ADMIN' | 'PROVIDER' | 'REGISTERED_USER' | NotificationRecipientType;
@@ -28,10 +30,11 @@ export class NotificationDispatchService {
     private readonly notificationsRepository: NotificationsRepository,
     private readonly gateway: NotificationsGateway,
     private readonly mailer: MailerService,
+    private readonly push: PushService,
   ) {}
 
   async dispatch(input: DispatchNotificationInput): Promise<Notification> {
-    const channels: NotificationChannel[] = input.channels?.length ? Array.from(new Set(['IN_APP', ...input.channels])) : ['IN_APP', 'SOCKET'];
+    const channels: NotificationChannel[] = input.channels?.length ? Array.from(new Set(['IN_APP', ...input.channels])) : DEFAULT_CHANNELS;
     let notification: Notification | null = null;
     try {
       if (channels.includes('IN_APP')) {
@@ -55,7 +58,7 @@ export class NotificationDispatchService {
       type: input.type,
       metadata: input.metadata,
       metadataJson: input.metadataJson,
-      channels: 'channels' in input ? input.channels : ['IN_APP', 'SOCKET'],
+      channels: 'channels' in input ? input.channels : DEFAULT_CHANNELS,
       priority: 'priority' in input ? input.priority : undefined,
       idempotencyKey: 'idempotencyKey' in input ? input.idempotencyKey : undefined,
     });
@@ -79,7 +82,16 @@ export class NotificationDispatchService {
         this.logger.warn(`Notification email failed: ${this.errorMessage(error)}`);
       }
     }
+    if (channels.includes('PUSH')) {
+      await this.push.sendToUser(input.recipientId, { title: input.title, body: input.message, data: this.pushData(notification, input) });
+    }
   }
 
+  private pushData(notification: Notification | null, input: DispatchNotificationInput): Record<string, unknown> {
+    const metadata = input.metadata ?? (this.isObjectRecord(input.metadataJson) ? input.metadataJson : {});
+    return { notificationId: notification?.id, type: input.type, ...metadata };
+  }
+
+  private isObjectRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
   private errorMessage(error: unknown): string { return error instanceof Error ? error.message : 'Notification delivery failed'; }
 }
